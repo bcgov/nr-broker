@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { lastValueFrom, map } from 'rxjs';
 
 @Injectable()
 export class TokenService {
@@ -31,15 +32,28 @@ export class TokenService {
         null,
         this.prepareWrappedResponseConfig(),
       )
-      .subscribe({
-        error: () => {
-          console.info('Error retreiving secret id');
-        },
-        next: (val: AxiosResponse<any, any>) => {
-          console.info(val.data);
-          return val.data.wrap_info;
-        },
-      });
+      .pipe(
+        map((response) => {
+          return response.data.wrap_info.token;
+        }),
+      );
+  }
+
+  public getRoleIdForApplication(
+    projectName: string,
+    appName: string,
+    environment: string,
+  ) {
+    return this.httpService
+      .get(
+        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${projectName}_${appName}_${environment}/role-id`,
+        this.prepareConfig(),
+      )
+      .pipe(
+        map((response) => {
+          return response.data.data.role_id;
+        }),
+      );
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES)

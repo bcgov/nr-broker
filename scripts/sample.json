@@ -1,0 +1,15 @@
+{
+  "event": {
+    "category": "package",
+    "type": "installation"
+  },
+  "labels": {
+    "build": "0",
+    "project": "fluent"
+  },
+  "service": {
+    "name": "fluent-bit",
+    "environment": "prod",
+    "version": "1.0"
+  }
+}
