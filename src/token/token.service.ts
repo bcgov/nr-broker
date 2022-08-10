@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { lastValueFrom, map } from 'rxjs';
+import { map } from 'rxjs';
 
 @Injectable()
 export class TokenService {
@@ -19,6 +19,10 @@ export class TokenService {
 
   public token(): string {
     return this.brokerToken;
+  }
+
+  public hasValidToken() {
+    return this.tokenValid;
   }
 
   public provisionSecretId(

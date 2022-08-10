@@ -11,7 +11,7 @@ export class ProvisionService {
     this.logger.debug(
       `Provision: ${provisionDto.labels.project} - ${provisionDto.service.name}`,
     );
-    this.logger.debug(provisionDto);
+    this.logger.debug(JSON.stringify(provisionDto));
     return this.tokenService.provisionSecretId(
       provisionDto.labels.project,
       provisionDto.service.name,
