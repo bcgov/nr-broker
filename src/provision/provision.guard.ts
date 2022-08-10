@@ -1,10 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { lastValueFrom } from 'rxjs';
-import { TokenService } from 'src/token/token.service';
+import { TokenService } from '../token/token.service';
+import { HEADER_VAULT_ROLE_ID } from './constants';
 import { ProvisionDto } from './provision.dto';
-
-const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 
 @Injectable()
 export class ProvisionGuard implements CanActivate {

@@ -1,0 +1,15 @@
+{
+  "event": {
+    "category": "authentication",
+    "type": "start"
+  },
+  "labels": {
+    "build": "0",
+    "project": "jenkins"
+  },
+  "service": {
+    "name": "jenkins-isss",
+    "environment": "prod",
+    "version": "1.0"
+  }
+}

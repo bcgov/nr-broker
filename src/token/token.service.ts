@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { map } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 
 @Injectable()
 export class TokenService {
@@ -40,6 +40,35 @@ export class TokenService {
         map((response) => {
           return response.data.wrap_info.token;
         }),
+      );
+  }
+
+  public provisionToken(
+    projectName: string,
+    appName: string,
+    environment: string,
+    roleId: string,
+  ) {
+    return this.httpService
+      .post(
+        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${projectName}_${appName}_${environment}/secret-id`,
+        null,
+        this.prepareConfig(),
+      )
+      .pipe(
+        map((response) => {
+          return response.data.secret_id;
+        }),
+        switchMap((secretId) =>
+          this.httpService.post(
+            `${this.vaultAddr}/v1/auth/vs_apps_approle/login`,
+            {
+              role_id: roleId,
+              secret_id: secretId,
+            },
+            this.prepareWrappedResponseConfig(),
+          ),
+        ),
       );
   }
 
