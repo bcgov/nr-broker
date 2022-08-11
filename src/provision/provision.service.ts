@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenService } from 'src/token/token.service';
+import { TokenService } from '../token/token.service';
 import { ProvisionDto } from './provision.dto';
 
 @Injectable()
@@ -34,7 +34,7 @@ export class ProvisionService {
     this.logger.debug(
       `Token: ${provisionDto.labels.project} - ${provisionDto.service.name}`,
     );
-    this.logger.debug(JSON.stringify(provisionDto));
+    // this.logger.debug(JSON.stringify(provisionDto));
     return this.tokenService.provisionToken(
       provisionDto.labels.project,
       provisionDto.service.name,

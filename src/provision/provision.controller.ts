@@ -7,7 +7,8 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { HEADER_VAULT_ROLE_ID } from './constants';
+import { Request } from 'express';
+import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { DtoValidationPipe } from './dto-validation.pipe';
 import { ProvisionDto } from './provision.dto';
 import { ProvisionGuard } from './provision.guard';
@@ -32,7 +33,8 @@ export class ProvisionController {
     @Body(new DtoValidationPipe()) provisionDto: ProvisionDto,
     @Req() request: Request,
   ) {
-    const roleId = request.headers[HEADER_VAULT_ROLE_ID];
+    const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
+    const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
     return this.provisionService.generateToken(provisionDto, roleId);
   }
 }

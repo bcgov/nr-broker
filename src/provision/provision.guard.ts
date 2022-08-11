@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { lastValueFrom } from 'rxjs';
 import { TokenService } from '../token/token.service';
-import { HEADER_VAULT_ROLE_ID } from './constants';
+import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ProvisionDto } from './provision.dto';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class ProvisionGuard implements CanActivate {
       const application = provision?.service?.name;
       const project = provision?.labels?.project;
       const environment = provision?.service?.environment;
-      console.log(request.headers);
+
       if (
         !application ||
         !project ||
