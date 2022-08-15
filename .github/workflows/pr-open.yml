@@ -65,15 +65,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Clear any previous OpenShift image
-        run: |
-          # Login to OpenShift and select project
-          oc login --token=${{ secrets.OC_TOKEN }} --server=${{ secrets.OC_SERVER }}
-          oc project ${{ secrets.OC_NAMESPACE }}
-
-          # Clean previous image
-          oc delete is ${{ env.NAME }}-${{ github.event.number }}-backend || true
-
   tests-backend:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
@@ -123,6 +114,8 @@ jobs:
     if: always() && (needs.build-backend.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: dev
     env:
       DOMAIN: apps.silver.devops.gov.bc.ca
       ZONE: ${{ github.event.number }}
