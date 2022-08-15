@@ -97,14 +97,13 @@ jobs:
         id: cache-backend
         uses: actions/cache@v3
         with:
-          path: backend/coverage
+          path: coverage
           key: backend-coverage-${{ github.run_number }}
           restore-keys: |
             backend-coverage-
 
       - name: Tests
         run: |
-          cd backend
           npm ci
           npm run test:cov
 
