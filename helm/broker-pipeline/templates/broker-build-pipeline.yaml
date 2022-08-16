@@ -48,7 +48,7 @@ spec:
     - name: TLSVERIFY
       value: "false"
     - name: BUILD_EXTRA_ARGS
-      value: "--build-arg REGISTRY={{ .Values.build.dockerRegistry }}"
+      value: "--build-arg=REGISTRY={{ .Values.build.dockerRegistry }}"
     workspaces:
     - name: source
       workspace: shared-workspace
