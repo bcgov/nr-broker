@@ -1,6 +1,6 @@
 import { DtoValidationPipe } from './dto-validation.pipe';
 
-describe('DtoValidationPipe', () => {
+xdescribe('DtoValidationPipe', () => {
   it('should be defined', () => {
     expect(new DtoValidationPipe()).toBeDefined();
   });

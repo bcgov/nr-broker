@@ -5,7 +5,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  NAME: gfp
+  NAME: nr-broker
 
 jobs:
   cancel-prev-runs:
@@ -105,59 +105,3 @@ jobs:
           delete-old-comments: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./coverage/lcov.info
-
-  deploy-dev:
-    name: DEV Deployment
-    needs:
-      - build-backend
-      - tests-backend
-    if: always() && (needs.build-backend.result == 'success')
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: dev
-    env:
-      DOMAIN: apps.silver.devops.gov.bc.ca
-      ZONE: ${{ github.event.number }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Deploy
-        run: |
-          # Login to OpenShift and select project
-          oc login --token=${{ secrets.OC_TOKEN }} --server=${{ secrets.OC_SERVER }}
-          oc project ${{ secrets.OC_NAMESPACE }}
-
-          # Process and apply template
-          oc process -f .github/openshift/deploy.backend.yml -p ZONE=${{ env.ZONE }} \
-            -p PROMOTE=${{ github.repository }}:${{ env.ZONE }}-backend | oc apply -f -
-
-          # Follow any active rollouts (see deploymentconfigs)
-          oc rollout status dc/${{ env.NAME }}-${{ env.ZONE }}-backend -w
-
-      - name: Deployment Verification
-        env:
-          LINKS: (
-            'https://${{ env.NAME }}-${{ github.event.number }}-backend.${{ env.DOMAIN }}'
-            )
-        run: |
-          LINKS=${{ env.LINKS }}
-          for l in "${LINKS[@]}"; do
-              if [ $(curl -L -s -o /dev/null -w "%{http_code}" "${l}") -ne 200 ]
-              then
-                  echo "Status != 200 for ${l}"
-                  exit 1
-              fi
-          done
-
-          echo "Deployment verification successful"
-
-      - name: DEV Deployment update
-        uses: mshick/add-pr-comment@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          allow-repeats: false
-          message: |
-            DEV deployments have completed successfully!
-
-            [Backend](https://${{ env.NAME }}-${{ github.event.number }}-backend.${{ env.DOMAIN }}/) available

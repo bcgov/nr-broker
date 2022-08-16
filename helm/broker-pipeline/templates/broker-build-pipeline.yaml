@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: nr-broker-build
+  labels:
+    helm.sh/chart: {{ .Values.global.name }}
+    app: {{ .Values.global.name }}
+spec:
+  workspaces:
+  - name: shared-workspace
+  params:
+  - name: git-url
+    type: string
+    description: Url of the git repo for the code
+    default: {{ .Values.build.repository }}
+  - name: git-revision
+    type: string
+    description: Revision to be used
+    default: {{ .Values.build.revision }}
+  - name: IMAGE
+    type: string
+    description: Image stream to save the built image to
+    default: {{ .Values.build.image }}
+  tasks:
+  - name: fetch-repository
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: subdirectory
+      value: ""
+    - name: deleteExisting
+      value: "true"
+    - name: revision
+      value: $(params.git-revision)
+  - name: build-image
+    taskRef:
+      name: buildah
+      kind: ClusterTask
+    params:
+    - name: IMAGE
+      value: $(params.IMAGE)
+    - name: TLSVERIFY
+      value: "false"
+    - name: BUILD_EXTRA_ARGS
+      value: "--build-arg REGISTRY={{ .Values.build.dockerRegistry }}"
+    workspaces:
+    - name: source
+      workspace: shared-workspace
+    runAfter:
+    - fetch-repository
