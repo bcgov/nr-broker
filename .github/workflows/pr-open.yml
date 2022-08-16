@@ -64,6 +64,8 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.event.number }}-backend
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            REPO_LOCATION=
 
   tests-backend:
     name: Backend Unit Tests

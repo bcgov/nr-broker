@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/compare-options: IgnoreExtraneous
     argocd.argoproj.io/sync-options: Prune=false
   generateName: broker-run-build-
-  namespace: 7e553b-tools
+  namespace: a03c8f-tools
   labels:
     app: nr-broker-tools
     app.kubernetes.io/managed-by: Helm
