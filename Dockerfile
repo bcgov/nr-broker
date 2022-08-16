@@ -1,4 +1,4 @@
-ARG REPO_LOCATION=docker-remote.artifacts.developer.gov.bc.ca/
+ARG REPO_LOCATION=artifacts.developer.gov.bc.ca/docker-remote/
 FROM ${REPO_LOCATION}node:16 as builder
 
 # Install packages, build and keep only prod packages

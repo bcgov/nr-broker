@@ -8,6 +8,8 @@ metadata:
 spec:
   workspaces:
   - name: shared-workspace
+  - name: dockerconfig-workspace
+    optional: true
   params:
   - name: git-url
     type: string
@@ -51,6 +53,6 @@ spec:
     - name: source
       workspace: shared-workspace
     - name: dockerconfig
-      workspace: dockerconfig-ws
+      workspace: dockerconfig-workspace
     runAfter:
     - fetch-repository

@@ -8,6 +8,5 @@ build:
   repository: "https://github.com/bcgov-nr/nr-broker.git"
   revision: "main"
   image: "image-registry.openshift-image-registry.svc:5000/a03c8f-tools/nr-broker"
-  dockerRegistry: "artifacts.developer.gov.bc.ca/docker-remote"
   storage:
     workspace: "500Mi"
