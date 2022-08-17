@@ -24,6 +24,12 @@
 
 ## Description
 
+NR-Broker
+
+The dockerfile can be built locally by setting the REPO_LOCATION.
+
+`podman build . -t nr-broker --build-arg REPO_LOCATION=`
+
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Installation

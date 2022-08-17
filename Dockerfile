@@ -1,4 +1,5 @@
-FROM node:16 as builder
+ARG REPO_LOCATION=artifacts.developer.gov.bc.ca/docker-remote/
+FROM ${REPO_LOCATION}node:16 as builder
 
 # Install packages, build and keep only prod packages
 WORKDIR /app
@@ -7,7 +8,7 @@ RUN npm ci && \
     npm run build
 
 # Deployment container
-FROM node:16
+FROM ${REPO_LOCATION}node:16
 
 # Copy over app
 WORKDIR /app

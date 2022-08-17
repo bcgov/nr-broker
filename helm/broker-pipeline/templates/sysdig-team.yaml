@@ -1,0 +1,21 @@
+apiVersion: ops.gov.bc.ca/v1alpha1
+kind: SysdigTeam
+metadata:
+  name: a03c8f-sysdigteam
+  namespace: a03c8f-tools
+spec:
+  team:
+    description: The Sysdig Team for the OpenShift Project Set a03c8f
+    users:
+    - name: mbystedt@gmail.com
+      role: ROLE_TEAM_EDIT
+    - name: andreas.wilson@gmail.com
+      role: ROLE_TEAM_EDIT
+    - name: grace.ruan@gov.bc.ca
+      role: ROLE_TEAM_EDIT
+    - name: canpernano@gmail.com
+      role: ROLE_TEAM_EDIT
+    # - name: <sysdig_email_for_developer>
+    #   role: ROLE_TEAM_STANDARD
+    # - name: <sysdig_email_for_po>
+    #   role: ROLE_TEAM_READ
