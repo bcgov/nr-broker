@@ -18,6 +18,14 @@ helm upgrade broker-pipeline .
 
 ```oc create -f scripts/pipelinerun-broker-build.yaml```
 
+Then, tag the image for the environments.
+
+```
+oc tag nr-broker:latest nr-broker:dev
+oc tag nr-broker:latest nr-broker:test
+oc tag nr-broker:latest nr-broker:prod
+```
+
 ## Initial Setup
 
 The tools namespace needed the artifactory secret (artifactory-creds) created and linked to the pipeline service account.

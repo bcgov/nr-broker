@@ -1,8 +1,17 @@
 global:
   environment: "development"
+  envtag: "dev"
   vault: "https://vault-iit-dev.apps.silver.devops.gov.bc.ca"
 
 server:
   route:
     internal:
       host: nr-broker-dev.apps.silver.devops.gov.bc.ca
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi

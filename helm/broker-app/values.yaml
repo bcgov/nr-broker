@@ -1,9 +1,10 @@
-# Default values for vault sync.
+# Default values for broker app
 # This is a YAML-formatted file.
 
 global:
   name: "nr-broker-app"
   environment: "development"
+  envtag: "dev"
   vault: "https://vault-iit.apps.silver.devops.gov.bc.ca"
 
 server:
