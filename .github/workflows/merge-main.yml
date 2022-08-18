@@ -74,4 +74,4 @@ jobs:
           owner: orgs/bcgov
           package: ${{ github.event.repository.name }}
           skip_tags: prod-backend
-          token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
