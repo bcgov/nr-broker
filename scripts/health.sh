@@ -2,4 +2,9 @@
 
 cd "${0%/*}"
 
-curl -X GET http://localhost:3000/health -H 'Content-Type: application/json'
+if [ -z BROKER_URL ]
+then
+  BROKER_URL=http://localhost:3000
+fi
+
+curl -X GET $BROKER_URL/health -H 'Content-Type: application/json'

@@ -2,4 +2,4 @@
 
 cd "${0%/*}"
 
-curl -X POST http://localhost:3000/provision/token -H 'Content-Type: application/json' -H 'X-Vault-Role-Id: '"$CONFIG_ROLE_ID"'' -u "myusername:password123" -d @config-jenkins.json
+curl -X POST $BROKER_URL/provision/token -H 'Content-Type: application/json' -H 'X-Vault-Role-Id: '"$CONFIG_ROLE_ID"'' -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" -d @config-jenkins.json

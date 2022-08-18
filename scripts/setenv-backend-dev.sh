@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VAULT_ADDR="https://vault-iit.apps.silver.devops.gov.bc.ca"
+export VAULT_ADDR="https://vault-iit-dev.apps.silver.devops.gov.bc.ca"
 VAULT_TOKEN=$(vault login -method=oidc -format json -tls-skip-verify | jq -r '.auth.client_token')
 ROLE_ID=$(vault read -format json auth/vs_apps_approle/role/vault_nr-broker_prod/role-id | jq -r '.data.role_id')
 SECRET_ID=$(vault write -format json -f auth/vs_apps_approle/role/vault_nr-broker_prod/secret-id | jq -r '.data.secret_id')

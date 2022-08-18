@@ -2,4 +2,4 @@
 
 cd "${0%/*}"
 
-curl -X POST http://localhost:3000/provision/secret-id -H 'Content-Type: application/json' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'' -u "myusername:password123" -d @provision-fluent-bit.json
+curl -X POST $BROKER_URL/provision/secret-id -H 'Content-Type: application/json' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'' -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" -d @provision-fluent-bit.json
