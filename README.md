@@ -1,3 +1,72 @@
+# NR Broker
+
+NR Broker handles the business logic of authenticating and validating requests for automated processes to access secrets.
+
+NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
+
+## Installation
+
+```bash
+$ npm ci
+```
+
+## Running the app
+
+```bash
+# ENV setup - Requires admin access to IIT's dev vault instance
+$ source ./scripts/setenv-backend-dev.sh
+
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
+```
+
+## API demonstrations
+
+There are a handful of demonstration curl commands in the scripts folder.
+
+```bash
+$ cd scripts
+# ENV setup - Requires admin access to IIT's dev vault instance
+$ source ./setenv-curl-local.sh
+# Health check
+$ ./health.sh
+# Get token
+$ ./config-jenkins.sh
+# Get secret id for provisioning fluentbit
+$ ./provision-fluent-bit.sh
+```
+
+## Test
+
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
+```
+
+## Building image
+
+The dockerfile can be built locally by setting the REPO_LOCATION.
+
+`podman build . -t nr-broker --build-arg REPO_LOCATION=`
+
+## Deployment
+
+See: [./helm](helm/README.md)
+
+## Built with NestJS
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
@@ -21,59 +90,3 @@
 </p>
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-NR-Broker
-
-The dockerfile can be built locally by setting the REPO_LOCATION.
-
-`podman build . -t nr-broker --build-arg REPO_LOCATION=`
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ npm install
-```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

@@ -1,4 +1,4 @@
-# Broker Pipeline charts
+# Broker app chart
 
 ## Installing/Upgrading
 
@@ -16,5 +16,7 @@ helm upgrade -f values/<env>.yaml broker-app .
 ```
 
 ## Initial Setup
+
+Run the [secret chart](../broker-secrets/README.md) first
 
 

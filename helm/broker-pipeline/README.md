@@ -1,4 +1,4 @@
-# Broker Pipeline charts
+# Broker Pipeline chart
 
 ## Installing/Upgrading
 
