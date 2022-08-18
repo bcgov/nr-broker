@@ -14,6 +14,6 @@ spec:
       from:
         kind: ImageStreamTag
         namespace: {{ regexReplaceAll "-[a-zA-Z0-9]+" .Release.Namespace "-tools" }}
-        name: nr-broker:latest
+        name: nr-broker:{{ .Values.global.environment }}
       referencePolicy:
         type: Local

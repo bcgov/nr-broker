@@ -17,7 +17,7 @@ spec:
         from:
           kind: ImageStreamTag
           namespace: {{ .Release.Namespace }}
-          name: 'nr-broker:latest'
+          name: nr-broker:latest
   selector:
     deploymentconfig: {{ .Values.global.name }}
   strategy:
@@ -29,7 +29,7 @@ spec:
         deploymentconfig: {{ .Values.global.name }}
     spec:
       containers:
-        - image: nr-broker
+        - image: nr-broker:latest
           imagePullPolicy: Always
           name: nr-broker
           env:
