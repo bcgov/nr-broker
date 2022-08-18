@@ -1,0 +1,8 @@
+global:
+  environment: "development"
+  vault: "https://vault-iit-dev.apps.silver.devops.gov.bc.ca"
+
+server:
+  route:
+    internal:
+      host: nr-broker-dev.apps.silver.devops.gov.bc.ca

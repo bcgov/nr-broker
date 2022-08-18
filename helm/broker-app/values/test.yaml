@@ -1,0 +1,8 @@
+global:
+  environment: "test"
+  vault: "https://vault-iit-test.apps.silver.devops.gov.bc.ca"
+
+server:
+  route:
+    internal:
+      host: nr-broker-test.apps.silver.devops.gov.bc.ca
