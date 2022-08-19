@@ -9,8 +9,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { HEADER_VAULT_ROLE_ID } from '../constants';
-import { DtoValidationPipe } from './dto-validation.pipe';
-import { ProvisionDto } from './provision.dto';
+import { ConfigureIntentionDtoValidationPipe } from './configure-intention-dto-validation.pipe';
+import { ConfigureIntentionDto } from './configure-intention.dto';
+import { DeployIntentionDtoValidationPipe } from './deploy-intention-dto-validation.pipe';
+import { DeployIntentionDto } from './deploy-intention.dto';
 import { ProvisionGuard } from './provision.guard';
 import { ProvisionService } from './provision.service';
 
@@ -22,7 +24,10 @@ export class ProvisionController {
   @Post('secret-id')
   @SetMetadata('roles', ['provision'])
   @UseGuards(AuthGuard('basic'))
-  provisionSecretId(@Body(new DtoValidationPipe()) provisionDto: ProvisionDto) {
+  provisionSecretId(
+    @Body(new DeployIntentionDtoValidationPipe())
+    provisionDto: DeployIntentionDto,
+  ) {
     return this.provisionService.generateSecretId(provisionDto);
   }
 
@@ -30,7 +35,8 @@ export class ProvisionController {
   @SetMetadata('roles', ['provision'])
   @UseGuards(AuthGuard('basic'))
   provisionToken(
-    @Body(new DtoValidationPipe()) provisionDto: ProvisionDto,
+    @Body(new ConfigureIntentionDtoValidationPipe())
+    provisionDto: ConfigureIntentionDto,
     @Req() request: Request,
   ) {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];

@@ -1,39 +1,25 @@
-import { IsString, ValidateNested } from 'class-validator';
-export class EventDto {
-  @IsString()
+interface EventDto {
   category: string;
-  @IsString()
   type: string;
 }
 
-export class LabelsDto {
-  @IsString()
-  build: string;
-  @IsString()
+interface LabelsDto {
   project: string;
 }
 
-export class ServiceDto {
-  @IsString()
+interface ServiceDto {
   name: string;
-  @IsString()
   environment: string;
-  @IsString()
   version: string;
 }
 
-export class UserDto {
-  @IsString()
+interface UserDto {
   id: string;
 }
 
-export class ProvisionDto {
-  @ValidateNested()
+export interface ProvisionDto {
   event: EventDto;
-  @ValidateNested()
   labels: LabelsDto;
-  @ValidateNested()
   service: ServiceDto;
-  @ValidateNested()
   user: UserDto;
 }
