@@ -26,6 +26,14 @@ oc tag nr-broker:latest nr-broker:test
 oc tag nr-broker:latest nr-broker:prod
 ```
 
+To deploy:
+
+```
+oc tag -n a03c8f-dev a03c8f-tools/nr-broker:dev nr-broker:latest
+oc tag -n a03c8f-test a03c8f-tools/nr-broker:test nr-broker:latest
+oc tag -n a03c8f-prod a03c8f-tools/nr-broker:prod nr-broker:latest
+```
+
 ## Initial Setup
 
 The tools namespace needed the artifactory secret (artifactory-creds) created and linked to the pipeline service account.
