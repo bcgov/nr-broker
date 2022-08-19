@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { map, switchMap } from 'rxjs';
-import { TOKEN_SERVICE_WRAP_TTL } from '../constants';
+import { SHORT_ENV_CONVERSION, TOKEN_SERVICE_WRAP_TTL } from '../constants';
 
 interface VaultTokenLookupDto {
   data: {
@@ -51,9 +51,13 @@ export class TokenService {
     appName: string,
     environment: string,
   ) {
+    const env = SHORT_ENV_CONVERSION[environment]
+      ? SHORT_ENV_CONVERSION[environment]
+      : environment;
     return this.httpService
       .post(
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${projectName}_${appName}_${environment}/secret-id`,
+        // eslint-disable-next-line prettier/prettier
+        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareWrappedResponseConfig(),
       )
@@ -70,9 +74,13 @@ export class TokenService {
     environment: string,
     roleId: string,
   ) {
+    const env = SHORT_ENV_CONVERSION[environment]
+      ? SHORT_ENV_CONVERSION[environment]
+      : environment;
     return this.httpService
       .post(
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${projectName}_${appName}_${environment}/secret-id`,
+        // eslint-disable-next-line prettier/prettier
+        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareConfig(),
       )
@@ -104,9 +112,13 @@ export class TokenService {
     appName: string,
     environment: string,
   ) {
+    const env = SHORT_ENV_CONVERSION[environment]
+      ? SHORT_ENV_CONVERSION[environment]
+      : environment;
     return this.httpService
       .get(
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${projectName}_${appName}_${environment}/role-id`,
+        // eslint-disable-next-line prettier/prettier
+        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
         this.prepareConfig(),
       )
       .pipe(
@@ -168,6 +180,10 @@ export class TokenService {
           this.lookupSelf();
         },
       });
+  }
+
+  private convertUnderscoreToDash(str: string) {
+    return str.replace('_', '-');
   }
 
   private prepareWrappedResponseConfig(): AxiosRequestConfig<any> {

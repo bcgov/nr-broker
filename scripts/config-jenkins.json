@@ -1,15 +1,20 @@
 {
   "event": {
+    "action": "job-fluentbit-status",
     "category": "authentication",
-    "type": "start"
+    "reason": "Job triggered",
+    "type": "start",
+    "url": "JOB_URL"
   },
   "labels": {
-    "build": "0",
     "project": "jenkins"
   },
   "service": {
-    "name": "jenkins-isss",
-    "environment": "prod",
-    "version": "1.0"
+    "name": "jenkins_isss",
+    "environment": "production",
+    "version": "2.73.2"
+  },
+  "user": {
+    "id": "USER_ID"
   }
 }

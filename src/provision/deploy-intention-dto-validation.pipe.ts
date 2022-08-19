@@ -6,10 +6,15 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { EventDto, LabelsDto, ServiceDto, UserDto } from './provision.dto';
+import {
+  EventDto,
+  LabelsDto,
+  ServiceDto,
+  UserDto,
+} from './deploy-intention.dto';
 
 @Injectable()
-export class DtoValidationPipe implements PipeTransform {
+export class DeployIntentionDtoValidationPipe implements PipeTransform {
   async transform(value: any, { metatype }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
@@ -30,6 +35,7 @@ export class DtoValidationPipe implements PipeTransform {
     const errors = await validate(object, {
       whitelist: true,
       forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
     });
     if (errors.length > 0) {
       throw new BadRequestException('Validation failed');

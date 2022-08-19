@@ -9,7 +9,10 @@
   },
   "service": {
     "name": "fluent-bit",
-    "environment": "prod",
+    "environment": "production",
     "version": "1.0"
+  },
+  "user": {
+    "id": "USER_ID"
   }
 }
