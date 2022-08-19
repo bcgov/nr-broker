@@ -51,7 +51,7 @@ spec:
                   name: nr-broker-basic-creds
                   key: password
             - name: NO_COLOR
-              value: true
+              value: "true"
           ports:
             - containerPort: 3000
               protocol: TCP
