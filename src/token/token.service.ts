@@ -63,6 +63,7 @@ export class TokenService {
       )
       .pipe(
         map((response) => {
+          // TODO: return JSON object
           return response.data.wrap_info.token;
         }),
       );

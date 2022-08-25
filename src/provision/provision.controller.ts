@@ -17,13 +17,12 @@ import { ProvisionGuard } from './provision.guard';
 import { ProvisionService } from './provision.service';
 
 @Controller('provision')
-@UseGuards(ProvisionGuard)
 export class ProvisionController {
   constructor(private readonly provisionService: ProvisionService) {}
 
   @Post('secret-id')
   @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'))
+  @UseGuards(AuthGuard('basic'), ProvisionGuard)
   provisionSecretId(
     @Body(new DeployIntentionDtoValidationPipe())
     provisionDto: DeployIntentionDto,
@@ -33,7 +32,7 @@ export class ProvisionController {
 
   @Post('token')
   @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'))
+  @UseGuards(AuthGuard('basic'), ProvisionGuard)
   provisionToken(
     @Body(new ConfigureIntentionDtoValidationPipe())
     provisionDto: ConfigureIntentionDto,

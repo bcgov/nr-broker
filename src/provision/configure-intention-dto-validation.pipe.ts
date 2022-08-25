@@ -40,7 +40,6 @@ export class ConfigureIntentionDtoValidationPipe implements PipeTransform {
     if (errors.length > 0) {
       throw new BadRequestException('Validation failed');
     }
-    console.log(`ConfigureIntentionDtoValidationPipe: pass`);
     return value;
   }
 
