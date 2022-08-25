@@ -71,7 +71,7 @@ jobs:
           keep_versions: 10
           keep_versions_untagged: 0
           minimum_days: 14
-          owner: orgs/bcgov
+          owner: orgs/bcgov-nr
           package: ${{ github.event.repository.name }}
           skip_tags: prod-backend
           token: ${{ secrets.GITHUB_TOKEN }}
