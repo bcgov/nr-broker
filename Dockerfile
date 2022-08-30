@@ -9,6 +9,12 @@ RUN npm ci && \
 
 # Deployment container
 FROM ${REPO_LOCATION}node:16
+ARG ENVCONSUL_VERSION=0.13.0
+
+ADD https://releases.hashicorp.com/envconsul/${ENVCONSUL_VERSION}/envconsul_${ENVCONSUL_VERSION}_linux_amd64.zip /tmp/envconsul.zip
+RUN unzip /tmp/envconsul.zip && \
+    rm /tmp/envconsul.zip && \
+    mv envconsul /usr/local/bin/
 
 # Copy over app
 WORKDIR /app
@@ -19,4 +25,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 # Start up command
-ENTRYPOINT ["node", "dist/main"]
+ENTRYPOINT ["envconsul", "-config", "env.hcl"]
