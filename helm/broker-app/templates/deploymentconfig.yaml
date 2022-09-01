@@ -42,6 +42,11 @@ spec:
                 secretKeyRef:
                   name: vault
                   key: broker-token
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault
+                  key: fluentbit-token
             - name: HTTP_BASIC_USER
               valueFrom:
                 secretKeyRef:

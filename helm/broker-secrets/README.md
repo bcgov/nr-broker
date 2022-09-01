@@ -15,6 +15,6 @@ helm upgrade broker-secrets .
 
 ## Broker token generation
 
-You will need to create a broker token to complete the values.yaml.
+You will need to create a broker token and fluentbit to complete the values.yaml.
 
-See: [Broker token generator](../../scripts/gen-broker-token.sh)
+See: [Broker token generator](../../scripts/gen-broker-token.sh) and [Fluentbit token generator](../../scripts/gen-fluentbit-token.sh)

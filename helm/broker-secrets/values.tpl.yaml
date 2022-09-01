@@ -3,6 +3,7 @@
 
 vault:
   brokertoken: ""
+  fluentbittoken: ""
 
 auth:
   user: ""

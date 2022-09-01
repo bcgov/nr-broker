@@ -25,4 +25,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 # Start up command
-ENTRYPOINT ["envconsul", "-config", "env.hcl"]
+ENTRYPOINT ["envconsul", "-config", "env.hcl", "node", "dist/main"]
