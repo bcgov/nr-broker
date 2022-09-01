@@ -4,7 +4,7 @@ import { KinesisService } from './kinesis.service';
 @Injectable()
 export class FakeKinesisService extends KinesisService {
   private readonly logger = new Logger(FakeKinesisService.name);
-  public putRecord(partitionKey: string, data: any): void {
+  public putRecord(data: any): void {
     this.logger.debug(`putRecord: ${JSON.stringify(data)}`);
   }
 }
