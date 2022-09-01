@@ -6,7 +6,21 @@ import { KinesisService } from '../kinesis/kinesis.service';
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
-  constructor(private readonly kinesisService: KinesisService) {}
+  private readonly metadataAuth = {};
+  private readonly metadataHttpAccess = {};
+
+  constructor(private readonly kinesisService: KinesisService) {
+    if (process.env.OS_INDEX_AUTH) {
+      this.metadataAuth['@metadata'] = {
+        index: process.env.OS_INDEX_AUTH,
+      };
+    }
+    if (process.env.OS_INDEX_HTTP_ACCESS) {
+      this.metadataHttpAccess['@metadata'] = {
+        index: process.env.OS_INDEX_HTTP_ACCESS,
+      };
+    }
+  }
   recordActivity(provisionDto: ProvisionDto) {
     const startDate = new Date();
     from([
@@ -32,9 +46,10 @@ export class AuditService {
       },
     ])
       .pipe(
-        map(this.addTimestampFunc()),
+        map(this.addMetadataAuthFunc()),
         map(this.addHttpRequestFunc(req)),
         map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc()),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
@@ -46,25 +61,33 @@ export class AuditService {
       {
         event: {
           category: 'web',
-          dataset: 'access',
+          dataset: 'express.access',
           duration: endDate.valueOf() - startDate.valueOf(),
           kind: 'event',
         },
       },
     ])
       .pipe(
-        map(this.addTimestampFunc(startDate)),
+        map(this.addEcsFunc),
         map(this.addHttpRequestFunc(req)),
         map(this.addHttpResponseFunc(resp)),
-        map(this.addSourceFunc(req)),
-        map(this.addUrlFunc(req)),
+        map(this.addMetadataHttpAccessFunc()),
         map(this.addServiceFunc),
-        map(this.addEcsFunc),
+        map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc(startDate)),
+        map(this.addUrlFunc(req)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
         this.kinesisService.putRecord(`${Date.now()}`, ecsObj);
       });
+  }
+
+  private removeUndefined(obj: any) {
+    Object.keys(obj).forEach(
+      (key) => obj[key] === undefined && delete obj[key],
+    );
+    return obj;
   }
 
   private addEcsFunc(ecsObj: any) {
@@ -75,24 +98,16 @@ export class AuditService {
     });
   }
 
-  private addTimestampFunc(timestamp: Date = new Date()) {
-    return (ecsObj: any) => {
-      return merge(ecsObj, {
-        '@timestamp': timestamp.toISOString(),
-      });
-    };
-  }
-
   private addHttpRequestFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
         http: {
-          request: {
+          request: this.removeUndefined({
             method: req.method,
             mime_type: req.headers['content-type'],
             referrer: req.referrer,
             bytes: req.headers['content-length'],
-          },
+          }),
         },
       });
     };
@@ -112,6 +127,14 @@ export class AuditService {
     };
   }
 
+  private addMetadataAuthFunc() {
+    return (ecsObj: any) => merge(ecsObj, this.metadataAuth);
+  }
+
+  private addMetadataHttpAccessFunc() {
+    return (ecsObj: any) => merge(ecsObj, this.metadataHttpAccess);
+  }
+
   private addServiceFunc(ecsObj: any) {
     return merge(ecsObj, {
       service: {
@@ -129,6 +152,14 @@ export class AuditService {
         source: {
           ip: req.ip,
         },
+      });
+    };
+  }
+
+  private addTimestampFunc(timestamp: Date = new Date()) {
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        '@timestamp': timestamp.toISOString(),
       });
     };
   }

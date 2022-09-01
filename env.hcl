@@ -1,5 +1,6 @@
 vault {
   address = "https://vault-iit.apps.silver.devops.gov.bc.ca"
+  renew_token = true
   retry {
     enabled = true
     attempts = 12
@@ -14,7 +15,6 @@ secret {
 }
 
 exec {
-  command = "node dist/main"
   splay = "0s"
   env {
     pristine = false
