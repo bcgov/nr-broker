@@ -37,7 +37,7 @@ spec:
               value: {{ .Values.global.environment }}
             - name: VAULT_ADDR
               value: {{ .Values.global.vault }}
-            - name: VAULT_TOKEN
+            - name: BROKER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: vault

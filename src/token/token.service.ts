@@ -37,7 +37,7 @@ export class TokenService {
   private renewAt: number | undefined;
 
   constructor(private readonly httpService: HttpService) {
-    this.brokerToken = process.env.VAULT_TOKEN;
+    this.brokerToken = process.env.BROKER_TOKEN;
     this.vaultAddr = process.env.VAULT_ADDR;
     this.lookupSelf();
   }
