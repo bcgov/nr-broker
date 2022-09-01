@@ -29,7 +29,7 @@ $ npm run start:prod
 If you want to test the kinesis then you need to request the Fluentbit token from prod vault and start the server using envconsul.
 
 ```bash
-$ source ./scripts/setenv-backend-dev.sh fluent
+$ source ./scripts/setenv-backend-dev.sh kinesis
 
 # watch mode
 $ envconsul -config=env.hcl npm run start:dev
