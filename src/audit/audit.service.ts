@@ -3,6 +3,20 @@ import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
 import { ProvisionDto } from '../provision/provision.dto';
 import { KinesisService } from '../kinesis/kinesis.service';
+import os from 'os';
+
+const hostInfo = {
+  host: {
+    architecture: os.arch(),
+    hostname: os.hostname(),
+    os: {
+      // full: os.version(),
+      type: os.platform(),
+      version: os.release(),
+    },
+  },
+};
+
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
@@ -46,8 +60,11 @@ export class AuditService {
       },
     ])
       .pipe(
+        map(this.addEcsFunc),
         map(this.addMetadataAuthFunc()),
         map(this.addHttpRequestFunc(req)),
+        map(this.addLabelsFunc),
+        map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
       )
@@ -61,7 +78,7 @@ export class AuditService {
       {
         event: {
           category: 'web',
-          dataset: 'express.access',
+          dataset: 'generic.access',
           duration: endDate.valueOf() - startDate.valueOf(),
           kind: 'event',
         },
@@ -69,17 +86,20 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addHostFunc),
         map(this.addHttpRequestFunc(req)),
         map(this.addHttpResponseFunc(resp)),
+        map(this.addLabelsFunc),
         map(this.addMetadataHttpAccessFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(startDate)),
         map(this.addUrlFunc(req)),
+        map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(`${Date.now()}`, ecsObj);
+        this.kinesisService.putRecord(ecsObj);
       });
   }
 
@@ -98,6 +118,10 @@ export class AuditService {
     });
   }
 
+  private addHostFunc(ecsObj: any) {
+    return merge(ecsObj, hostInfo);
+  }
+
   private addHttpRequestFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -108,6 +132,7 @@ export class AuditService {
             referrer: req.referrer,
             bytes: req.headers['content-length'],
           }),
+          version: req.httpVersion,
         },
       });
     };
@@ -117,7 +142,7 @@ export class AuditService {
     return (ecsObj: any) => {
       return merge(ecsObj, {
         http: {
-          reponse: {
+          response: {
             status_code: resp.statusCode,
             mime_type: resp.get('Content-Type'),
             bytes: resp._contentLength,
@@ -125,6 +150,14 @@ export class AuditService {
         },
       });
     };
+  }
+
+  private addLabelsFunc(ecsObj: any) {
+    return merge(ecsObj, {
+      labels: {
+        project: 'nr-broker',
+      },
+    });
   }
 
   private addMetadataAuthFunc() {
@@ -138,7 +171,7 @@ export class AuditService {
   private addServiceFunc(ecsObj: any) {
     return merge(ecsObj, {
       service: {
-        name: 'nr-broker',
+        name: 'nr-broker-backend',
         environment: process.env.APP_ENVIRONMENT
           ? process.env.APP_ENVIRONMENT
           : 'unknown',
@@ -168,8 +201,18 @@ export class AuditService {
     return (ecsObj: any) => {
       return merge(ecsObj, {
         url: {
-          full: `${req.protocol}://${req.headers.host}${req.url}`,
+          original: `${req.protocol}://${req.headers.host}${req.url}`,
         },
+      });
+    };
+  }
+
+  private addUserAgentFunc(req: any) {
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        user_agent: this.removeUndefined({
+          original: req.headers['user-agent'],
+        }),
       });
     };
   }
