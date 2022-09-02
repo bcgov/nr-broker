@@ -20,10 +20,16 @@ const hostInfo = {
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
+  private readonly metadataActivity = {};
   private readonly metadataAuth = {};
   private readonly metadataHttpAccess = {};
 
   constructor(private readonly kinesisService: KinesisService) {
+    if (process.env.OS_INDEX_ACTIVITY) {
+      this.metadataActivity['@metadata'] = {
+        index: process.env.OS_INDEX_ACTIVITY,
+      };
+    }
     if (process.env.OS_INDEX_AUTH) {
       this.metadataAuth['@metadata'] = {
         index: process.env.OS_INDEX_AUTH,
@@ -35,45 +41,60 @@ export class AuditService {
       };
     }
   }
-  recordActivity(provisionDto: ProvisionDto) {
+
+  public recordActivity(provisionDto: ProvisionDto) {
     const startDate = new Date();
     from([
       {
         ...provisionDto,
       },
     ])
-      .pipe(map(this.addTimestampFunc(startDate)))
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addMetadataActivityFunc()),
+        map(this.addTimestampFunc(startDate)),
+      )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
+        // this.kinesisService.putRecord(ecsObj);
       });
   }
 
-  recordAuth(req: any, outcome: 'success' | 'failure' | 'unknown') {
+  public recordAuth(
+    req: any,
+    type: 'start' | 'end',
+    outcome: 'success' | 'failure' | 'unknown',
+  ) {
     from([
       {
         event: {
           category: 'authentication',
-          dataset: 'auth',
-          kind: 'end',
+          dataset: 'generic.auth',
+          kind: 'event',
+          type,
           outcome,
         },
       },
     ])
       .pipe(
         map(this.addEcsFunc),
-        map(this.addMetadataAuthFunc()),
+        map(this.addHostFunc),
         map(this.addHttpRequestFunc(req)),
         map(this.addLabelsFunc),
+        map(this.addMetadataAuthFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
+        map(this.addUrlFunc(req)),
+        map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
+        // this.kinesisService.putRecord(ecsObj);
       });
   }
 
-  recordHttpAccess(req: any, resp: any, startDate: Date, endDate: Date) {
+  public recordHttpAccess(req: any, resp: any, startDate: Date, endDate: Date) {
     from([
       {
         event: {
@@ -158,6 +179,10 @@ export class AuditService {
         project: 'nr-broker',
       },
     });
+  }
+
+  private addMetadataActivityFunc() {
+    return (ecsObj: any) => merge(ecsObj, this.metadataActivity);
   }
 
   private addMetadataAuthFunc() {
