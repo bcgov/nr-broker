@@ -23,6 +23,7 @@ if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
   export APP_ENVIRONMENT=development
   export OS_INDEX_AUTH=nrm-test-broker-auth
   export OS_INDEX_HTTP_ACCESS=nrm-test-broker-access-external
+  export OS_INDEX_ACTIVITY=nrm-test-broker-activity
 fi
 
 export HTTP_BASIC_USER=myusername
