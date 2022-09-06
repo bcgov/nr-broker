@@ -1,6 +1,5 @@
 global:
   environment: "production"
-  envtag: "prod"
 
 server:
   route:

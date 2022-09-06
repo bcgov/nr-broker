@@ -12,5 +12,5 @@ spec:
     - name: latest
       from:
         kind: DockerImage
-        name: "{{ .Values.server.images.registry }}{{ .Values.server.images.context }}/bcgov-nr/nr-broker-backend:{{ .Values.global.envtag }}"
+        name: "{{ .Values.server.images.registry }}{{ .Values.server.images.context }}/bcgov-nr/nr-broker-backend:v{{ .Values.global.version }}"
         type: Local

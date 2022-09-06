@@ -1,6 +1,5 @@
 global:
   environment: "development"
-  envtag: "dev"
   vault: "https://vault-iit-dev.apps.silver.devops.gov.bc.ca"
 
 server:
