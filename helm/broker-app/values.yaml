@@ -4,7 +4,7 @@
 global:
   name: "nr-broker-app"
   environment: "development"
-  version: "1.0.0"
+  version: "1.0.1"
   vault: "https://vault-iit.apps.silver.devops.gov.bc.ca"
 
 server:
