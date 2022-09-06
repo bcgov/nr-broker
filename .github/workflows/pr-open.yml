@@ -3,30 +3,26 @@ name: Pull Request
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
-  NAME: nr-broker
 
 jobs:
-  cancel-prev-runs:
-    name: Cancel Previous Runs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: n1hility/cancel-previous-runs@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  view-context:
-    # https://docs.github.com/en/actions/learn-github-actions/contexts
-    name: View GitHub Context
-    runs-on: ubuntu-latest
-    steps:
-      - name: Echo GitHub context
-        uses: satackey/action-js-inline@v0.0.2
-        with:
-          script: |
-            const github = require('@actions/github');
-            console.log(JSON.stringify(github, null, 2));
+  # # Uncomment to view GitHub context object
+  # view-context:
+  #   # https://docs.github.com/en/actions/learn-github-actions/contexts
+  #   name: View GitHub Context
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Echo GitHub context
+  #       uses: satackey/action-js-inline@v0.0.2
+  #       with:
+  #         script: |
+  #           const github = require('@actions/github');
+  #           console.log(JSON.stringify(github, null, 2));
 
   build-backend:
     name: Backend Image Build
