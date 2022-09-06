@@ -10,10 +10,7 @@ spec:
     local: true
   tags:
     - name: latest
-      annotations: null
       from:
-        kind: ImageStreamTag
-        namespace: {{ regexReplaceAll "-[a-zA-Z0-9]+" .Release.Namespace "-tools" }}
-        name: nr-broker:{{ .Values.global.envtag }}
-      referencePolicy:
+        kind: DockerImage
+        name: "{{ .Values.server.images.registry }}{{ .Values.server.images.context }}/bcgov-nr/nr-broker-backend:{{ .Values.global.envtag }}"
         type: Local
