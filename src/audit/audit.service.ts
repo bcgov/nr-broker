@@ -208,7 +208,9 @@ export class AuditService {
     return (ecsObj: any) => {
       return merge(ecsObj, {
         source: {
-          ip: req.ip,
+          ip: req.headers['x-forwarded-for']
+            ? req.headers['x-forwarded-for']
+            : req.ip,
         },
       });
     };
