@@ -9,6 +9,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AccessLogsMiddleware } from './access-logs.middleware';
+import { KinesisModule } from './kinesis/kinesis.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AccessLogsMiddleware } from './access-logs.middleware';
     TokenModule,
     AuditModule,
     AuthModule,
+    KinesisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

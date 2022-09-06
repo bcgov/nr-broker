@@ -33,13 +33,20 @@ spec:
           imagePullPolicy: Always
           name: nr-broker
           env:
+            - name: APP_ENVIRONMENT
+              value: {{ .Values.global.environment }}
             - name: VAULT_ADDR
               value: {{ .Values.global.vault }}
-            - name: VAULT_TOKEN
+            - name: BROKER_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: vault
                   key: broker-token
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault
+                  key: fluentbit-token
             - name: HTTP_BASIC_USER
               valueFrom:
                 secretKeyRef:

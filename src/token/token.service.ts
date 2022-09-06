@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { map, switchMap } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { SHORT_ENV_CONVERSION, TOKEN_SERVICE_WRAP_TTL } from '../constants';
 
 interface VaultTokenLookupDto {
@@ -37,7 +37,7 @@ export class TokenService {
   private renewAt: number | undefined;
 
   constructor(private readonly httpService: HttpService) {
-    this.brokerToken = process.env.VAULT_TOKEN;
+    this.brokerToken = process.env.BROKER_TOKEN;
     this.vaultAddr = process.env.VAULT_ADDR;
     this.lookupSelf();
   }
@@ -50,7 +50,7 @@ export class TokenService {
     projectName: string,
     appName: string,
     environment: string,
-  ) {
+  ): Observable<any> {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;
@@ -63,8 +63,7 @@ export class TokenService {
       )
       .pipe(
         map((response) => {
-          // TODO: return JSON object
-          return response.data.wrap_info.token;
+          return response.data;
         }),
       );
   }
@@ -74,7 +73,7 @@ export class TokenService {
     appName: string,
     environment: string,
     roleId: string,
-  ) {
+  ): Observable<any> {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;

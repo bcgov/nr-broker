@@ -6,3 +6,5 @@
 *.md
 
 node_modules
+/helm
+/scripts

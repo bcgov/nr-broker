@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuditService } from './audit.service';
+import { AwsKinesisService } from './aws-kinesis.service';
 
-xdescribe('AuditService', () => {
-  let service: AuditService;
+xdescribe('AwsKinesisService', () => {
+  let service: AwsKinesisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuditService],
+      providers: [AwsKinesisService],
     }).compile();
 
-    service = module.get<AuditService>(AuditService);
+    service = module.get<AwsKinesisService>(AwsKinesisService);
   });
 
   it('should be defined', () => {
