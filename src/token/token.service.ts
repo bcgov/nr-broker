@@ -63,8 +63,7 @@ export class TokenService {
       )
       .pipe(
         map((response) => {
-          // TODO: return JSON object
-          return response.data.wrap_info;
+          return response.data;
         }),
       );
   }
@@ -101,7 +100,7 @@ export class TokenService {
             )
             .pipe(
               map((response) => {
-                return response.data.wrap_info;
+                return response.data;
               }),
             );
         }),
