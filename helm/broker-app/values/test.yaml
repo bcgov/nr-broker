@@ -1,6 +1,5 @@
 global:
   environment: "test"
-  envtag: "test"
   vault: "https://vault-iit-test.apps.silver.devops.gov.bc.ca"
 
 server:
