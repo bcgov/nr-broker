@@ -9,8 +9,8 @@ global:
 
 server:
   image:
-    repository: "image-registry.openshift-image-registry.svc:5000"
-    pullPolicy: IfNotPresent
+    registry: "artifacts.developer.gov.bc.ca"
+    context: "/artifactory/ba03-docker-local"
 
   resources:
     replicas: 1
