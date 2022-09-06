@@ -4,13 +4,13 @@
 global:
   name: "nr-broker-app"
   environment: "development"
-  envtag: "dev"
+  version: "1.0.0"
   vault: "https://vault-iit.apps.silver.devops.gov.bc.ca"
 
 server:
   image:
     registry: "artifacts.developer.gov.bc.ca"
-    context: "/artifactory/ba03-docker-local"
+    context: "/ba03-docker-local"
 
   resources:
     replicas: 1
