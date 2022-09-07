@@ -12,7 +12,7 @@ RUN npm ci --omit=dev --no-audit
 
 # Deployment container
 FROM ${REPO_LOCATION}node:16
-ARG ENVCONSUL_VERSION=0.13.0
+ARG ENVCONSUL_VERSION=0.12.1
 
 ADD https://releases.hashicorp.com/envconsul/${ENVCONSUL_VERSION}/envconsul_${ENVCONSUL_VERSION}_linux_amd64.zip /tmp/envconsul.zip
 RUN unzip /tmp/envconsul.zip && \
