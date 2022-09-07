@@ -1,0 +1,5 @@
+# Default values for vault sync.
+# This is a YAML-formatted file.
+
+global:
+  name: "nr-broker-tools"
