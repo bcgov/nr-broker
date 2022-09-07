@@ -1,10 +1,7 @@
 global:
   environment: "production"
-<<<<<<< Updated upstream
-=======
   envtag: "prod"
   envlable: "prod"
->>>>>>> Stashed changes
 
 server:
   route:
