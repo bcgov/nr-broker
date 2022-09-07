@@ -4,6 +4,11 @@
 global:
   name: "nr-broker-app"
   environment: "development"
+<<<<<<< Updated upstream
+=======
+  envtag: "dev"
+  envlable: "nonprod"
+>>>>>>> Stashed changes
   vault: "https://vault-iit.apps.silver.devops.gov.bc.ca"
 
 server:
