@@ -3,7 +3,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { map, Observable, switchMap } from 'rxjs';
-import { SHORT_ENV_CONVERSION, TOKEN_SERVICE_WRAP_TTL } from '../constants';
+import {
+  SHORT_ENV_CONVERSION,
+  TOKEN_RENEW_RATIO,
+  TOKEN_SERVICE_WRAP_TTL,
+} from '../constants';
 
 interface VaultTokenLookupDto {
   data: {
@@ -146,7 +150,10 @@ export class TokenService {
             ? this.tokenLookup.data.last_renewal_time
             : this.tokenLookup.data.creation_time;
           this.renewAt =
-            (baseTime + Math.round(this.tokenLookup.data.creation_ttl * 0.75)) *
+            (baseTime +
+              Math.round(
+                this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
+              )) *
             1000;
         },
       });
