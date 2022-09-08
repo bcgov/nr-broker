@@ -4,8 +4,6 @@
 global:
   name: "nr-broker-app"
   environment: "development"
-  envtag: "dev"
-  envlable: "nonprod"
   vault: "https://vault-iit.apps.silver.devops.gov.bc.ca"
 
 server:

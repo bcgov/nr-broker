@@ -1,7 +1,5 @@
 global:
   environment: "production"
-  envtag: "prod"
-  envlable: "prod"
 
 server:
   route:

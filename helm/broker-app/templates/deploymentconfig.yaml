@@ -1,3 +1,12 @@
+{{- $licenseplate := regexSplit "-" .Release.Namespace 0 -}}
+{{- $envtag := regexSplit "-" .Release.Namespace 1 -}}
+{{- if ne $envtag "prod" -}}
+{{- $envlable := "nonprod" -}}
+{{- else -}}
+{{- $envlable := "prod" -}}
+{{- $envlable := printf "%s-%s" $licenseplate $envlable -}}
+{{- $envtokenpath := printf "%s/%s-token" $envlable $envtag -}}
+{{- end -}}
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
@@ -29,16 +38,16 @@ spec:
         deploymentconfig: {{ .Values.global.name }}
     annotations:
         vault.hashicorp.com/agent-inject: 'true'
-        vault.hashicorp.com/agent-inject-secret-broker-token: a03c8f-{{ .Values.global.envlable }}/{{ .Values.global.envtag }}-token
+        vault.hashicorp.com/agent-inject-secret-broker-token: {{ $envtokenpath }}
         vault.hashicorp.com/agent-inject-template-broker-token: |
-          {{`{{- with secret `}}"a03c8f-{{ .Values.global.envlable }}/{{ .Values.global.envtag }}-token" {{` }}
+          {{`{{- with secret `}}"{{ $envtokenpath }}" {{` }}
           export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
           export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
           {{ end `}} }}       
         vault.hashicorp.com/agent-inject-token: 'true'
         vault.hashicorp.com/auth-path: auth/k8s-CLUSTER
         vault.hashicorp.com/namespace: {{ .Release.Namespace }}
-        vault.hashicorp.com/role: a03c8f-{{ .Values.global.envlable }}
+        vault.hashicorp.com/role: {{ $envlable }}
     spec:
       containers:
         - image: nr-broker:latest
@@ -48,17 +57,7 @@ spec:
             - name: APP_ENVIRONMENT
               value: {{ .Values.global.environment }}
             - name: VAULT_ADDR
-              value: {{ .Values.global.vault }}
-            - name: BROKER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault
-                  key: broker-token
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault
-                  key: fluentbit-token
+              value: {{ .Values.global.vault }}            
             - name: HTTP_BASIC_USER
               valueFrom:
                 secretKeyRef:
