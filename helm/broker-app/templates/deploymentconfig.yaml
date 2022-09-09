@@ -49,6 +49,7 @@ spec:
         vault.hashicorp.com/namespace: {{ .Release.Namespace }}
         vault.hashicorp.com/role: {{ $envlable }}
     spec:
+      serviceAccountName: {{ $licenseplate }}-vault
       containers:
         - image: nr-broker:latest
           imagePullPolicy: Always
