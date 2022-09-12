@@ -31,7 +31,7 @@ spec:
       labels:
         app: {{ .Values.global.name }}
         deploymentconfig: {{ .Values.global.name }}
-    annotations:
+      annotations:
         vault.hashicorp.com/agent-inject: 'true'
         vault.hashicorp.com/agent-inject-secret-config: {{ $envTokenPath }}
         vault.hashicorp.com/agent-inject-template-config: |
