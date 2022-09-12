@@ -39,16 +39,17 @@ spec:
           export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
           export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
           {{ end `}} }}
-        vault.hashicorp.com/auth-path: "auth/k8s-gold"
-        vault.hashicorp.com/namespace: "platform-services"
-        vault.hashicorp.com/role: "{{ $licensePlate }}-{{ $envLabel }}"
+        vault.hashicorp.com/auth-path: auth/k8s-silver
+        vault.hashicorp.com/namespace: platform-services
+        vault.hashicorp.com/role: {{ $licensePlate }}-{{ $envLabel }}
     spec:
       serviceAccountName: {{ $licensePlate }}-vault
       containers:
         - image: nr-broker:latest
           imagePullPolicy: Always
           name: nr-broker
-          args: ['sh', '-c', 'source /vault/secrets/config && envconsul -config env.hcl node dist/main']
+          command: ["/bin/bash"]
+          args: ['-c', 'source /vault/secrets/config && envconsul -config env.hcl node dist/main']
           env:
             - name: APP_ENVIRONMENT
               value: {{ .Values.global.environment }}
