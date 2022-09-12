@@ -39,9 +39,9 @@ spec:
           export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
           export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
           {{ end `}} }}
-        vault.hashicorp.com/auth-path: auth/k8s-CLUSTER
-        vault.hashicorp.com/namespace: {{ .Release.Namespace }}
-        vault.hashicorp.com/role: {{ $envLabel }}
+        vault.hashicorp.com/auth-path: "auth/k8s-gold"
+        vault.hashicorp.com/namespace: "platform-services"
+        vault.hashicorp.com/role: "{{ $licensePlate }}-{{ $envLabel }}"
     spec:
       serviceAccountName: {{ $licensePlate }}-vault
       containers:
