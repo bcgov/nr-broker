@@ -42,6 +42,10 @@ spec:
         vault.hashicorp.com/auth-path: auth/k8s-silver
         vault.hashicorp.com/namespace: platform-services
         vault.hashicorp.com/role: {{ $licensePlate }}-{{ $envLabel }}
+        vault.hashicorp.com/agent-limits-cpu: {{ .Values.vault.agent.limits.cpu }}
+        vault.hashicorp.com/agent-requests-cpu: {{ .Values.vault.agent.requests.cpu }}
+        vault.hashicorp.com/agent-limits-mem: {{ .Values.vault.agent.limits.memory }}
+        vault.hashicorp.com/agent-requests-mem: {{ .Values.vault.agent.requests.memory }}
     spec:
       serviceAccountName: {{ $licensePlate }}-vault
       containers:
