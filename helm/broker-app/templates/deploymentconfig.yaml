@@ -1,11 +1,31 @@
+{{- $licensePlate := regexFind "^[a-zA-Z0-9]+" .Release.Namespace -}}
+{{- $envTag := regexFind "[a-zA-Z0-9]+$" .Release.Namespace -}}
+{{- $envLabel := eq $envTag "prod" | ternary "prod" "nonprod" -}}
+{{- $envTokenPath := printf "%s-%s/%s-token" $licensePlate $envLabel $envTag -}}
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
   labels:
     app: {{ .Values.global.name }}
-    helm.sh/chart: {{ .Values.global.name }}
+    helm.sh/chart: {{ .Values.global.name }}{{- if .Values.vault.agent.enabled }}
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/agent-inject-secret-config: {{ $envTokenPath }}
+    vault.hashicorp.com/agent-inject-template-config: |
+      {{`{{- with secret `}}"{{ $envTokenPath }}" {{` }}
+      export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
+      export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
+      {{ end `}} }}
+    vault.hashicorp.com/auth-path: auth/k8s-silver
+    vault.hashicorp.com/namespace: platform-services
+    vault.hashicorp.com/role: {{ $licensePlate }}-{{ $envLabel }}
+    vault.hashicorp.com/agent-limits-cpu: {{ .Values.vault.agent.limits.cpu }}
+    vault.hashicorp.com/agent-requests-cpu: {{ .Values.vault.agent.requests.cpu }}
+    vault.hashicorp.com/agent-limits-mem: {{ .Values.vault.agent.limits.memory }}
+    vault.hashicorp.com/agent-requests-mem: {{ .Values.vault.agent.requests.memory }}{{- end }}
   name: {{ .Values.global.name }}
-spec:
+spec:{{- if .Values.vault.agent.enabled }}
+  serviceAccountName: {{ $licensePlate }}-vault{{- end }}
   replicas: {{ .Values.server.resources.replicas }}
   triggers:
     - type: ConfigChange
@@ -13,7 +33,9 @@ spec:
       imageChangeParams:
         automatic: true
         containerNames:
-          - nr-broker
+          - nr-broker{{- if .Values.vault.agent.enabled }}
+        command: ["/bin/bash"]
+        args: ['-c', 'source /vault/secrets/config && envconsul -config env.hcl node dist/main']{{- end }}
         from:
           kind: ImageStreamTag
           namespace: {{ .Release.Namespace }}
@@ -36,7 +58,7 @@ spec:
             - name: APP_ENVIRONMENT
               value: {{ .Values.global.environment }}
             - name: VAULT_ADDR
-              value: {{ .Values.global.vault }}
+              value: {{ .Values.global.vault }}{{- if .Values.vault.agent.enabled }}{{- else }}
             - name: BROKER_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -46,7 +68,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: vault
-                  key: fluentbit-token
+                  key: vault-token{{- end }}
             - name: HTTP_BASIC_USER
               valueFrom:
                 secretKeyRef:
