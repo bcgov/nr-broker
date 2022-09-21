@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AccessLogsMiddleware } from './access-logs.middleware';
 import { KinesisModule } from './kinesis/kinesis.module';
+import { IntentionModule } from './intention/intention.module';
+import { PersistenceModule } from './persistence/persistence.module';
 
 @Module({
   imports: [
@@ -18,11 +20,13 @@ import { KinesisModule } from './kinesis/kinesis.module';
     }),
     ScheduleModule.forRoot(),
     HealthModule,
+    IntentionModule,
     ProvisionModule,
     TokenModule,
     AuditModule,
     AuthModule,
     KinesisModule,
+    PersistenceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
