@@ -24,7 +24,7 @@ export class PersistenceService {
     );
   }
 
-  public async getIntention(id: string): Promise<object | null> {
+  public async getIntention(id: string): Promise<any | null> {
     const intentionStr = await this.client.get(`${INTENTION_PREFIX}${id}`);
     return intentionStr ? JSON.parse(intentionStr) : null;
   }

@@ -35,7 +35,6 @@ export class ProvisionService {
    * @returns A wrapped token
    */
   public generateToken(provisionDto: ConfigureIntentionDto, roleId: string) {
-    // TODO: Should record start & end of activity in seperate api
     this.auditService.recordActivity(provisionDto);
     // TOOD: audit provisioning of token
     return this.tokenService.provisionToken(
