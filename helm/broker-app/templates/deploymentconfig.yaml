@@ -49,6 +49,7 @@ spec:{{- if .Values.vault.agent.enabled }}
       labels:
         app: {{ .Values.global.name }}
         deploymentconfig: {{ .Values.global.name }}
+        redis-client: 'true'
     spec:
       containers:
         - image: nr-broker:latest
@@ -70,7 +71,7 @@ spec:{{- if .Values.vault.agent.enabled }}
                   name: vault
                   key: vault-token{{- end }}
             - name: REDIS_HOST
-              value: redis-master.{{ .Release.Namespace }}.svc.cluster.local
+              value: redis-master
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
