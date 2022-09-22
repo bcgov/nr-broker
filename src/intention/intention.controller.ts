@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './intention.dto';
