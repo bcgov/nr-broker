@@ -29,7 +29,7 @@ export class PersistenceService {
     return intentionStr ? JSON.parse(intentionStr) : null;
   }
 
-  public async finalizeIntention(id: string): Promise<boolean> {
+  public async closeIntention(id: string): Promise<boolean> {
     return (await this.client.del(`${INTENTION_PREFIX}${id}`)) === 1;
   }
 }

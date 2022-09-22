@@ -20,7 +20,7 @@ export class IntentionService {
     };
   }
 
-  public finalize(id: string): Promise<boolean> {
-    return this.persistenceService.finalizeIntention(id);
+  public close(id: string): Promise<boolean> {
+    return this.persistenceService.closeIntention(id);
   }
 }

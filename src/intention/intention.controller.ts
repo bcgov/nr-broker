@@ -16,7 +16,7 @@ import { IntentionService } from './intention.service';
 export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 
-  @Post()
+  @Post('open')
   @UseGuards(AuthGuard('basic'))
   registerIntention(
     @Body(new IntentionDtoValidationPipe())
@@ -25,13 +25,13 @@ export class IntentionController {
     return this.intentionService.create(intentionDto);
   }
 
-  @Post('finalize')
+  @Post('close')
   @UseGuards(AuthGuard('basic'))
-  async finalizeIntention(@Req() request: Request) {
+  async closeIntention(@Req() request: Request) {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-    const result = await this.intentionService.finalize(token);
+    const result = await this.intentionService.close(token);
     if (!result) {
       throw new NotFoundException('Intention not found');
     }
