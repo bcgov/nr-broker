@@ -106,7 +106,7 @@ export class AwsKinesisService extends KinesisService {
       region: process.env.AWS_DEFAULT_REGION || AWS_REGION,
     });
     const stsAssumeRoleCommand = new AssumeRoleCommand({
-      RoleArn: process.env.AWS_ROLE_ARN,
+      RoleArn: process.env.AWS_KINESIS_ROLE_ARN,
       RoleSessionName: 'broker',
     });
     // Send command
