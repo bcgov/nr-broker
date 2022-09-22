@@ -33,7 +33,7 @@ export class IntentionController {
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
     const result = await this.intentionService.close(token);
     if (!result) {
-      throw new NotFoundException('Intention not found');
+      throw new NotFoundException();
     }
   }
 }
