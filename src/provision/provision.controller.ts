@@ -5,7 +5,6 @@ import {
   UseGuards,
   SetMetadata,
   Req,
-  Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
