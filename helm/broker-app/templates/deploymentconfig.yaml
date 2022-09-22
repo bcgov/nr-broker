@@ -69,6 +69,13 @@ spec:{{- if .Values.vault.agent.enabled }}
                 secretKeyRef:
                   name: vault
                   key: vault-token{{- end }}
+            - name: REDIS_HOST
+              value: redis-master.{{ .Release.Namespace }}.svc.cluster.local
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
             - name: HTTP_BASIC_USER
               valueFrom:
                 secretKeyRef:
@@ -97,7 +104,7 @@ spec:{{- if .Values.vault.agent.enabled }}
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 30
-            periodSeconds: 15
+            periodSeconds: 60
             timeoutSeconds: 5
           livenessProbe:
             successThreshold: 1
@@ -107,5 +114,5 @@ spec:{{- if .Values.vault.agent.enabled }}
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 30
-            periodSeconds: 30
+            periodSeconds: 60
             timeoutSeconds: 5

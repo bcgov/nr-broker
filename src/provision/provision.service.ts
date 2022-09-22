@@ -18,8 +18,6 @@ export class ProvisionService {
    * @returns A wrapped secret id
    */
   public generateSecretId(provisionDto: DeployIntentionDto) {
-    // TODO: Should record start & end of activity in seperate api
-    this.auditService.recordActivity(provisionDto);
     // TOOD: audit provisioning of secret id
     return this.tokenService.provisionSecretId(
       provisionDto.labels.project,
@@ -35,8 +33,6 @@ export class ProvisionService {
    * @returns A wrapped token
    */
   public generateToken(provisionDto: ConfigureIntentionDto, roleId: string) {
-    // TODO: Should record start & end of activity in seperate api
-    this.auditService.recordActivity(provisionDto);
     // TOOD: audit provisioning of token
     return this.tokenService.provisionToken(
       provisionDto.labels.project,

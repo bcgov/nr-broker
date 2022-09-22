@@ -13,6 +13,8 @@ $ npm ci
 ## Running the app
 
 ```bash
+# Start up local redis (works on MacOS)
+$ podman run -p 6379:6379 --name broker-redis -d redis
 # ENV setup - Requires admin access to IIT's dev vault instance
 $ source ./scripts/setenv-backend-dev.sh
 
