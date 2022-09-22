@@ -14,6 +14,7 @@ export class IntentionService {
   public create(provisionDto: DeployIntentionDto) {
     const token = uuidv4();
     console.log(provisionDto);
+    this.persistenceService.addIntention(token, provisionDto);
     return {
       token,
       ttl: 6000,
