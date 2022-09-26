@@ -1,3 +1,4 @@
+import { plainToInstance } from 'class-transformer';
 import {
   IsDefined,
   IsOptional,
@@ -34,6 +35,15 @@ export class LabelsDto {
   project: string;
 }
 
+export class MetaDto {
+  @IsString()
+  @IsOptional()
+  fingerprint: string;
+
+  @IsOptional()
+  roles: string[];
+}
+
 export class ServiceDto {
   @IsString()
   name: string;
@@ -51,6 +61,26 @@ export class UserDto {
 }
 
 export class IntentionDto {
+  static plainToInstance(value: any): IntentionDto {
+    const object = plainToInstance(IntentionDto, value);
+    if (object.event) {
+      object.event = plainToInstance(EventDto, object.event);
+    }
+    if (object.labels) {
+      object.labels = plainToInstance(LabelsDto, object.labels);
+    }
+    if (object.meta) {
+      object.meta = plainToInstance(MetaDto, object.meta);
+    }
+    if (object.service) {
+      object.service = plainToInstance(ServiceDto, object.service);
+    }
+    if (object.user) {
+      object.user = plainToInstance(UserDto, object.user);
+    }
+    return object;
+  }
+
   @ValidateNested()
   @IsDefined()
   event: EventDto;
@@ -58,6 +88,9 @@ export class IntentionDto {
   @ValidateNested()
   @IsDefined()
   labels: LabelsDto;
+
+  @IsOptional()
+  meta: MetaDto | undefined;
 
   @ValidateNested()
   @IsDefined()
