@@ -17,6 +17,8 @@ import { DeployIntentionDto } from './deploy-intention.dto';
 import { ProvisionGuard } from './provision.guard';
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
+import { IntentionDto } from '../intention/dto/intention.dto';
+import { RolesGuard } from './roles.guard';
 
 @Controller('provision')
 export class ProvisionController {
@@ -26,21 +28,21 @@ export class ProvisionController {
   ) {}
 
   @Post('approle/secret-id')
-  @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'), VaultRoleGuard)
+  @SetMetadata('roles', ['provision', 'provision/approle/secret-id'])
+  @UseGuards(VaultRoleGuard, RolesGuard)
   async provisionIntentionSecretId(@Req() request: Request) {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
     const provisionDto = (await this.persistenceService.getIntention(
       token,
-    )) as unknown as DeployIntentionDto;
+    )) as unknown as IntentionDto;
     return this.provisionService.generateSecretId(provisionDto);
   }
 
   @Post('token/self')
-  @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'), VaultRoleGuard)
+  @SetMetadata('roles', ['provision', 'provision/token/self'])
+  @UseGuards(VaultRoleGuard, RolesGuard)
   async provisionIntentionToken(@Req() request: Request) {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
@@ -49,7 +51,7 @@ export class ProvisionController {
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
     const provisionDto = (await this.persistenceService.getIntention(
       token,
-    )) as unknown as ConfigureIntentionDto;
+    )) as unknown as IntentionDto;
     return this.provisionService.generateToken(provisionDto, roleId);
   }
 

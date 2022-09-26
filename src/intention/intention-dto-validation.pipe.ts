@@ -5,8 +5,8 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
-import { EventDto, LabelsDto, ServiceDto, UserDto } from './intention.dto';
+import { IntentionDto } from './dto/intention.dto';
+import { FINGERPRINTS } from './intention-fingerprint.constants';
 
 @Injectable()
 export class IntentionDtoValidationPipe implements PipeTransform {
@@ -14,19 +14,8 @@ export class IntentionDtoValidationPipe implements PipeTransform {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
-    const object = plainToInstance(metatype, value);
-    if (object.event) {
-      object.event = plainToInstance(EventDto, object.event);
-    }
-    if (object.labels) {
-      object.labels = plainToInstance(LabelsDto, object.labels);
-    }
-    if (object.service) {
-      object.service = plainToInstance(ServiceDto, object.service);
-    }
-    if (object.user) {
-      object.user = plainToInstance(UserDto, object.user);
-    }
+    // Validate as a generic intention
+    const object = IntentionDto.plainToInstance(value);
     const errors = await validate(object, {
       whitelist: true,
       forbidNonWhitelisted: true,
@@ -35,7 +24,25 @@ export class IntentionDtoValidationPipe implements PipeTransform {
     if (errors.length > 0) {
       throw new BadRequestException('Validation failed');
     }
-    return value;
+    // Fingerprint and validate as a specific intention
+    for (const fingerprint of FINGERPRINTS) {
+      const intentObj = fingerprint.dtoClass.plainToInstance(value);
+
+      const errors = await validate(intentObj, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+      });
+      if (errors.length > 0) {
+        continue;
+      }
+      intentObj.meta = {
+        fingerprint: fingerprint.name,
+        roles: fingerprint.roles,
+      };
+      return intentObj;
+    }
+    throw new BadRequestException('Validation failed');
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
