@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
-import { ConfigureIntentionDto } from './configure-intention.dto';
-import { DeployIntentionDto } from './deploy-intention.dto';
-
 @Injectable()
 export class ProvisionService {
   private readonly logger = new Logger(TokenService.name);
@@ -17,7 +15,7 @@ export class ProvisionService {
    * @param provisionDto The provision information
    * @returns A wrapped secret id
    */
-  public generateSecretId(provisionDto: DeployIntentionDto) {
+  public generateSecretId(provisionDto: IntentionDto) {
     // TOOD: audit provisioning of secret id
     return this.tokenService.provisionSecretId(
       provisionDto.labels.project,
@@ -32,7 +30,7 @@ export class ProvisionService {
    * @param roleId The role id
    * @returns A wrapped token
    */
-  public generateToken(provisionDto: ConfigureIntentionDto, roleId: string) {
+  public generateToken(provisionDto: IntentionDto, roleId: string) {
     // TOOD: audit provisioning of token
     return this.tokenService.provisionToken(
       provisionDto.labels.project,
