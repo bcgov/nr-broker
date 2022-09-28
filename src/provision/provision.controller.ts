@@ -1,20 +1,7 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  SetMetadata,
-  Req,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { PersistenceService } from '../persistence/persistence.service';
 import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
-import { ConfigureIntentionDtoValidationPipe } from './configure-intention-dto-validation.pipe';
-import { ConfigureIntentionDto } from './configure-intention.dto';
-import { DeployIntentionDtoValidationPipe } from './deploy-intention-dto-validation.pipe';
-import { DeployIntentionDto } from './deploy-intention.dto';
-import { ProvisionGuard } from './provision.guard';
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
 import { IntentionDto } from '../intention/dto/intention.dto';
@@ -52,31 +39,6 @@ export class ProvisionController {
     const provisionDto = (await this.persistenceService.getIntention(
       token,
     )) as unknown as IntentionDto;
-    return this.provisionService.generateToken(provisionDto, roleId);
-  }
-
-  // DEPRECATED
-  @Post('secret-id')
-  @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'), ProvisionGuard)
-  provisionSecretId(
-    @Body(new DeployIntentionDtoValidationPipe())
-    provisionDto: DeployIntentionDto,
-  ) {
-    return this.provisionService.generateSecretId(provisionDto);
-  }
-
-  // DEPRECATED
-  @Post('token')
-  @SetMetadata('roles', ['provision'])
-  @UseGuards(AuthGuard('basic'), ProvisionGuard)
-  provisionToken(
-    @Body(new ConfigureIntentionDtoValidationPipe())
-    provisionDto: ConfigureIntentionDto,
-    @Req() request: Request,
-  ) {
-    const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
-    const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
     return this.provisionService.generateToken(provisionDto, roleId);
   }
 }
