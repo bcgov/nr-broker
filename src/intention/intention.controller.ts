@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  NotFoundException,
   Post,
   Query,
   Req,
@@ -48,9 +47,6 @@ export class IntentionController {
     ) {
       throw new BadRequestException();
     }
-    const result = await this.intentionService.close(token, outcome, reason);
-    if (!result) {
-      throw new NotFoundException();
-    }
+    await this.intentionService.close(token, outcome, reason);
   }
 }

@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsDefined,
+  IsIn,
   IsOptional,
   IsString,
   ValidateNested,
@@ -9,21 +10,34 @@ import {
 export class EventDto {
   @IsString()
   @IsOptional()
-  action: string;
+  action?: string;
 
   @IsString()
   category: string;
 
   @IsString()
   @IsOptional()
+  end?: string;
+
+  @IsString()
+  @IsIn(['failure', 'success', 'unknown'])
+  @IsOptional()
+  outcome?: string;
+
+  @IsString()
+  @IsOptional()
   reason: string;
+
+  @IsString()
+  @IsOptional()
+  start?: string;
 
   @IsString()
   type: string;
 
   @IsString()
   @IsOptional()
-  url: string;
+  url?: string;
 }
 
 export class LabelsDto {

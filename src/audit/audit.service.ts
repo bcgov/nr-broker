@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
-import { ProvisionDto } from '../provision/provision.dto';
+import { IntentionDto } from '../intention/dto/intention.dto';
 import { KinesisService } from '../kinesis/kinesis.service';
 import os from 'os';
 
@@ -20,13 +20,13 @@ const hostInfo = {
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
-  private readonly metadataActivity = {};
+  private readonly metadataIntentionActivity = {};
   private readonly metadataAuth = {};
   private readonly metadataHttpAccess = {};
 
   constructor(private readonly kinesisService: KinesisService) {
     if (process.env.OS_INDEX_ACTIVITY) {
-      this.metadataActivity['@metadata'] = {
+      this.metadataIntentionActivity['@metadata'] = {
         index: process.env.OS_INDEX_ACTIVITY,
       };
     }
@@ -42,16 +42,41 @@ export class AuditService {
     }
   }
 
-  public recordActivity(provisionDto: ProvisionDto) {
+  public recordIntentionOpen(intention: IntentionDto) {
     const startDate = new Date();
     from([
       {
-        ...provisionDto,
+        ...intention,
       },
     ])
       .pipe(
         map(this.addEcsFunc),
-        map(this.addMetadataActivityFunc()),
+        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addTimestampFunc(startDate)),
+      )
+      .subscribe((ecsObj) => {
+        this.logger.debug(JSON.stringify(ecsObj));
+        // this.kinesisService.putRecord(ecsObj);
+      });
+  }
+
+  public recordIntentionClose(
+    intention: IntentionDto,
+    outcome: 'failure' | 'success' | 'unknown',
+    reason: string | undefined,
+  ) {
+    const startDate = new Date();
+    from([
+      merge(intention, {
+        event: {
+          outcome,
+          reason,
+        },
+      }),
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addMetadataIntentionActivityFunc()),
         map(this.addTimestampFunc(startDate)),
       )
       .subscribe((ecsObj) => {
@@ -181,8 +206,8 @@ export class AuditService {
     });
   }
 
-  private addMetadataActivityFunc() {
-    return (ecsObj: any) => merge(ecsObj, this.metadataActivity);
+  private addMetadataIntentionActivityFunc() {
+    return (ecsObj: any) => merge(ecsObj, this.metadataIntentionActivity);
   }
 
   private addMetadataAuthFunc() {
