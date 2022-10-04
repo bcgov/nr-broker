@@ -1,36 +1,51 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { RedisClientType } from 'redis';
+import { IntentionDto } from '../intention/dto/intention.dto';
 
 const INTENTION_PREFIX = 'int-';
+const ACTION_PREFIX = 'act-';
 
 @Injectable()
 export class PersistenceService {
   constructor(@Inject('REDIS_CLIENT') private client: RedisClientType) {}
 
   public async addIntention(
-    id: string,
-    intention: object,
+    intention: IntentionDto,
     ttl: number,
   ): Promise<any> {
-    return this.client.set(
-      `${INTENTION_PREFIX}${id}`,
-      JSON.stringify(intention),
-      {
-        EX: ttl,
-      },
-    );
+    return Promise.all([
+      this.client.set(
+        `${INTENTION_PREFIX}${intention.transaction.token}`,
+        JSON.stringify(intention),
+        {
+          EX: ttl,
+        },
+      ),
+      ...intention.actions.map((action) => {
+        return this.client.set(
+          `${ACTION_PREFIX}${action.transaction.token}`,
+          JSON.stringify(action),
+          {
+            EX: ttl,
+          },
+        );
+      }),
+    ]);
   }
 
-  public async getIntention(id: string): Promise<any | null> {
-    const intentionStr = await this.client.get(`${INTENTION_PREFIX}${id}`);
+  public async getIntention(token: string): Promise<any | null> {
+    const intentionStr = await this.client.get(`${INTENTION_PREFIX}${token}`);
     return intentionStr ? JSON.parse(intentionStr) : null;
   }
 
-  public async closeIntention(
-    id: string,
-    outcome: 'failure' | 'success' | 'unknown',
-    reason: string | undefined,
-  ): Promise<boolean> {
-    return (await this.client.del(`${INTENTION_PREFIX}${id}`)) === 1;
+  public async getIntentionAction(token: string): Promise<any | null> {
+    const intentionActionStr = await this.client.get(
+      `${ACTION_PREFIX}${token}`,
+    );
+    return intentionActionStr ? JSON.parse(intentionActionStr) : null;
+  }
+
+  public async closeIntention(token: string): Promise<boolean> {
+    return (await this.client.del(`${INTENTION_PREFIX}${token}`)) === 1;
   }
 }

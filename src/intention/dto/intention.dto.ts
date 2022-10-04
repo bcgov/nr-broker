@@ -1,72 +1,24 @@
 import { plainToInstance } from 'class-transformer';
 import {
+  IsArray,
   IsDefined,
-  IsIn,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { ActionDto } from './action.dto';
+import { DatabaseAccessActionDto } from './database-access-action.dto';
+import { PackageInstallationActionDto } from './package-installation-action.dto';
+import { PackageProvisionActionDto } from './package-provision-action.dto';
+import { ServerAccessActionDto } from './server-access-action.dto';
+import { TransactionDto } from './transaction.dto';
 
 export class EventDto {
   @IsString()
-  @IsOptional()
-  action?: string;
-
-  @IsString()
-  category: string;
-
-  @IsString()
-  @IsOptional()
-  end?: string;
-
-  @IsString()
-  @IsIn(['failure', 'success', 'unknown'])
-  @IsOptional()
-  outcome?: string;
-
-  @IsString()
-  @IsOptional()
   reason: string;
 
   @IsString()
-  @IsOptional()
-  start?: string;
-
-  @IsString()
-  type: string;
-
-  @IsString()
-  @IsOptional()
-  url?: string;
-}
-
-export class LabelsDto {
-  @IsString()
-  @IsOptional()
-  build: string;
-
-  @IsString()
-  project: string;
-}
-
-export class MetaDto {
-  @IsString()
-  @IsOptional()
-  fingerprint: string;
-
-  @IsOptional()
-  roles: string[];
-}
-
-export class ServiceDto {
-  @IsString()
-  name: string;
-
-  @IsString()
-  environment: string;
-
-  @IsString()
-  version: string;
+  url: string;
 }
 
 export class UserDto {
@@ -77,18 +29,41 @@ export class UserDto {
 export class IntentionDto {
   static plainToInstance(value: any): IntentionDto {
     const object = plainToInstance(IntentionDto, value);
+
+    if (object.actions && Array.isArray(object.actions)) {
+      object.actions = object.actions.map((action) => {
+        if (action.action === 'database-access') {
+          return plainToInstance(
+            DatabaseAccessActionDto,
+            ActionDto.plainToInstance(action),
+          );
+        } else if (action.action === 'server-access') {
+          return plainToInstance(
+            ServerAccessActionDto,
+            ActionDto.plainToInstance(action),
+          );
+        } else if (action.action === 'package-installation') {
+          return plainToInstance(
+            PackageInstallationActionDto,
+            ActionDto.plainToInstance(action),
+          );
+        } else if (action.action === 'package-provision') {
+          return plainToInstance(
+            PackageProvisionActionDto,
+            ActionDto.plainToInstance(action),
+          );
+        }
+      });
+    }
+
     if (object.event) {
       object.event = plainToInstance(EventDto, object.event);
     }
-    if (object.labels) {
-      object.labels = plainToInstance(LabelsDto, object.labels);
+
+    if (object.transaction) {
+      object.transaction = plainToInstance(TransactionDto, object.transaction);
     }
-    if (object.meta) {
-      object.meta = plainToInstance(MetaDto, object.meta);
-    }
-    if (object.service) {
-      object.service = plainToInstance(ServiceDto, object.service);
-    }
+
     if (object.user) {
       object.user = plainToInstance(UserDto, object.user);
     }
@@ -97,18 +72,16 @@ export class IntentionDto {
 
   @ValidateNested()
   @IsDefined()
+  @IsArray()
+  actions: ActionDto[];
+
+  @ValidateNested()
+  @IsDefined()
   event: EventDto;
 
   @ValidateNested()
-  @IsDefined()
-  labels: LabelsDto;
-
   @IsOptional()
-  meta: MetaDto | undefined;
-
-  @ValidateNested()
-  @IsDefined()
-  service: ServiceDto;
+  transaction?: TransactionDto;
 
   @ValidateNested()
   @IsDefined()

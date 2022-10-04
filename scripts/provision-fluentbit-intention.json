@@ -1,0 +1,43 @@
+{
+  "event": {
+    "reason": "Job triggered",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "server-access",
+      "id": "login",
+      "provision": ["token/self"],
+      "service": {
+        "name": "jenkins_isss",
+        "project": "jenkins",
+        "environment": "production"
+      }
+    },
+    {
+      "action": "package-installation",
+      "id": "install",
+      "provision": [],
+      "service": {
+        "name": "fluent-bit",
+        "project": "fluent",
+        "environment": "production",
+        "version": "2.73.2"
+      }
+    },
+    {
+      "action": "package-provision",
+      "id": "provision",
+      "provision": ["approle/secret-id"],
+      "service": {
+        "name": "fluent-bit",
+        "project": "fluent",
+        "environment": "production",
+        "version": "2.73.2"
+      }
+    }
+  ],
+  "user": {
+    "id": "USER_ID"
+  }
+}

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 import { PersistenceService } from '../persistence/persistence.service';
 import { IntentionDto } from './dto/intention.dto';
 import {
@@ -24,17 +25,39 @@ export class IntentionService {
     intentionDto: IntentionDto,
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
   ) {
-    const token = uuidv4();
+    const startDate = new Date();
+    const intention = {};
     if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
       throw new BadRequestException();
     }
-    // Annotation intention
-    intentionDto.event.start = new Date().toISOString();
+    // Annotate intention event
+    intentionDto.transaction = {
+      ...this.createTransaction(),
+      start: startDate.toISOString(),
+    };
+    for (const action of intentionDto.actions) {
+      action.transaction = this.createTransaction();
+      intention[action.id] = {
+        token: action.transaction.token,
+        outcome: 'success',
+      };
+    }
     this.auditService.recordIntentionOpen(intentionDto);
-    await this.persistenceService.addIntention(token, intentionDto, ttl);
+    await this.persistenceService.addIntention(intentionDto, ttl);
+    return {
+      intention,
+      token: intentionDto.transaction.token,
+      ttl,
+    };
+  }
+
+  private createTransaction() {
+    const token = uuidv4();
+    const hasher = crypto.createHash('sha256');
+    hasher.update(token);
     return {
       token,
-      ttl,
+      hash: hasher.digest('hex'),
     };
   }
 
@@ -43,11 +66,18 @@ export class IntentionService {
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
   ): Promise<boolean> {
-    const intentionDto = await this.persistenceService.getIntention(token);
+    const intentionDto: IntentionDto =
+      await this.persistenceService.getIntention(token);
     if (!intentionDto) {
       throw new NotFoundException();
     }
-    this.auditService.recordIntentionClose(intentionDto, outcome, reason);
-    return this.persistenceService.closeIntention(token, outcome, reason);
+    const endDate = new Date();
+    const startDate = new Date(intentionDto.transaction.start);
+    intentionDto.transaction.end = endDate.toISOString();
+    intentionDto.transaction.duration = endDate.valueOf() - startDate.valueOf();
+    intentionDto.transaction.outcome = outcome;
+
+    this.auditService.recordIntentionClose(intentionDto, reason);
+    return this.persistenceService.closeIntention(token);
   }
 }

@@ -1,44 +1,31 @@
 import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
-import { Request } from 'express';
-import { PersistenceService } from '../persistence/persistence.service';
-import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
+import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
-import { IntentionDto } from '../intention/dto/intention.dto';
-import { RolesGuard } from './roles.guard';
+import { ProvisionGuard } from './provision.guard';
+import { ActionGuard } from './action.guard';
+import { ActionGuardRequest } from './action-guard-request.interface';
 
 @Controller('provision')
 export class ProvisionController {
-  constructor(
-    private readonly provisionService: ProvisionService,
-    private readonly persistenceService: PersistenceService,
-  ) {}
+  constructor(private readonly provisionService: ProvisionService) {}
 
   @Post('approle/secret-id')
-  @SetMetadata('roles', ['provision', 'provision/approle/secret-id'])
-  @UseGuards(VaultRoleGuard, RolesGuard)
-  async provisionIntentionSecretId(@Req() request: Request) {
-    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
-    const token =
-      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-    const provisionDto = (await this.persistenceService.getIntention(
-      token,
-    )) as unknown as IntentionDto;
-    return this.provisionService.generateSecretId(provisionDto);
+  @SetMetadata('roles', ['provision'])
+  @SetMetadata('provision', ['approle/secret-id'])
+  @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
+  async provisionIntentionSecretId(@Req() request: ActionGuardRequest) {
+    return this.provisionService.generateSecretId(request.brokerActionDto);
   }
 
   @Post('token/self')
-  @SetMetadata('roles', ['provision', 'provision/token/self'])
-  @UseGuards(VaultRoleGuard, RolesGuard)
-  async provisionIntentionToken(@Req() request: Request) {
-    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
-    const token =
-      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
+  @SetMetadata('roles', ['provision'])
+  @SetMetadata('provision', ['token/self'])
+  @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
+  async provisionIntentionToken(@Req() request: ActionGuardRequest) {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
-    const provisionDto = (await this.persistenceService.getIntention(
-      token,
-    )) as unknown as IntentionDto;
-    return this.provisionService.generateToken(provisionDto, roleId);
+    const actionDto = request.brokerActionDto;
+    return this.provisionService.generateToken(actionDto, roleId);
   }
 }

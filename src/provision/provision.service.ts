@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
+import { ActionDto } from '../intention/dto/action.dto';
+
 @Injectable()
 export class ProvisionService {
   private readonly logger = new Logger(TokenService.name);
@@ -12,30 +13,42 @@ export class ProvisionService {
 
   /**
    * Generates and returns a wrapped secret id to provision an application with
-   * @param provisionDto The provision information
+   * @param intentionDto The provision information
    * @returns A wrapped secret id
    */
-  public generateSecretId(provisionDto: IntentionDto) {
-    // TOOD: audit provisioning of secret id
+  public generateSecretId(actionDto: ActionDto) {
+    this.auditService.recordIntentionActionUsage(actionDto, {
+      event: {
+        action: 'generate-secret-id',
+        category: 'configuration',
+        type: 'creation',
+      },
+    });
     return this.tokenService.provisionSecretId(
-      provisionDto.labels.project,
-      provisionDto.service.name,
-      provisionDto.service.environment,
+      actionDto.service.project,
+      actionDto.service.name,
+      actionDto.service.environment,
     );
   }
 
   /**
-   * A temporary token for configuration purposes.
-   * @param provisionDto The provision information
+   * Generates a temporary token for configuration purposes.
+   * @param intentionDto The provision information
    * @param roleId The role id
    * @returns A wrapped token
    */
-  public generateToken(provisionDto: IntentionDto, roleId: string) {
-    // TOOD: audit provisioning of token
+  public generateToken(actionDto: ActionDto, roleId: string) {
+    this.auditService.recordIntentionActionUsage(actionDto, {
+      event: {
+        action: 'generate-token',
+        category: 'configuration',
+        type: 'creation',
+      },
+    });
     return this.tokenService.provisionToken(
-      provisionDto.labels.project,
-      provisionDto.service.name,
-      provisionDto.service.environment,
+      actionDto.service.project,
+      actionDto.service.name,
+      actionDto.service.environment,
       roleId,
     );
   }

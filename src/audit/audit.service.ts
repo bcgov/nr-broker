@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
+import os from 'os';
+
+import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { KinesisService } from '../kinesis/kinesis.service';
-import os from 'os';
 
 const hostInfo = {
   host: {
@@ -43,16 +45,25 @@ export class AuditService {
   }
 
   public recordIntentionOpen(intention: IntentionDto) {
-    const startDate = new Date();
+    const now = new Date();
     from([
       {
-        ...intention,
+        event: {
+          category: 'session',
+          start: intention.transaction.start,
+          reason: intention.event.reason,
+          type: 'start',
+          url: intention.event.url,
+        },
+        service: {
+          name: 'broker',
+        },
       },
     ])
       .pipe(
         map(this.addEcsFunc),
         map(this.addMetadataIntentionActivityFunc()),
-        map(this.addTimestampFunc(startDate)),
+        map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
@@ -60,24 +71,50 @@ export class AuditService {
       });
   }
 
-  public recordIntentionClose(
-    intention: IntentionDto,
-    outcome: 'failure' | 'success' | 'unknown',
-    reason: string | undefined,
-  ) {
-    const startDate = new Date();
+  public recordIntentionClose(intention: IntentionDto, reason: string) {
+    const now = new Date();
     from([
-      merge(intention, {
+      {
         event: {
-          outcome,
+          category: 'session',
+          duration: intention.transaction.duration,
+          end: intention.transaction.end,
+          outcome: intention.transaction.outcome,
+          start: intention.transaction.start,
           reason,
+          type: 'end',
+          url: intention.event.url,
+        },
+        service: {
+          name: 'broker',
+        },
+      },
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addTimestampFunc(now)),
+      )
+      .subscribe((ecsObj) => {
+        this.logger.debug(JSON.stringify(ecsObj));
+        // this.kinesisService.putRecord(ecsObj);
+      });
+  }
+
+  public recordIntentionActionUsage(action: ActionDto, mergeObj: any) {
+    const now = new Date();
+    from([
+      this.removeUndefined({
+        service: {
+          name: action.service.name,
         },
       }),
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addMergeFunc(mergeObj)),
         map(this.addMetadataIntentionActivityFunc()),
-        map(this.addTimestampFunc(startDate)),
+        map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
@@ -204,6 +241,12 @@ export class AuditService {
         project: 'nr-broker',
       },
     });
+  }
+
+  private addMergeFunc(obj: any) {
+    return (ecsObj: any) => {
+      return merge(ecsObj, obj);
+    };
   }
 
   private addMetadataIntentionActivityFunc() {
