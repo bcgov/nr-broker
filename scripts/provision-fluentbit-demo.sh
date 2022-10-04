@@ -2,7 +2,7 @@
 
 cd "${0%/*}"
 
-echo "===> Open intention"
+echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/intention/open -H 'Content-Type: application/json' -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" -d @provision-fluentbit-intention.json)
 echo "$BROKER_URL/intention/open:"
@@ -11,7 +11,7 @@ echo $RESPONSE | jq '.'
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 
-echo "===> Jenkins token provision"
+echo "===> Jenkins provision"
 
 # Get token for provisioning Jenkins vault token
 JENKINS_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.intention.login.token')
@@ -24,7 +24,7 @@ echo $JENKINS_VAULT_TOKEN | jq '.'
 
 # Not shown: Use Vault Token to retreive login information for server & install package (No provisioning required)
 
-echo "===> Fluent bit provision"
+echo "===> Fluent Bit provision"
 
 # Get token for provisioning a Fluentbit deployment
 FLUENTBIT_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.intention.provision.token')
@@ -37,7 +37,7 @@ echo $FLUENTBIT_SECRET_ID | jq '.'
 
 # Not shown: Provision fluentbit service with Vault Token
 
-echo "===> Close intention"
+echo "===> Intention close"
 
 # Use saved intention token to close intention
 curl -s -X POST $BROKER_URL/intention/close -H 'X-Broker-Token: '"$INTENTION_TOKEN"''
