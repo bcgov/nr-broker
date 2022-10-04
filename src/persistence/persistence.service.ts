@@ -33,7 +33,7 @@ export class PersistenceService {
     ]);
   }
 
-  public async getIntention(token: string): Promise<any | null> {
+  public async getIntention(token: string): Promise<IntentionDto | null> {
     const intentionStr = await this.client.get(`${INTENTION_PREFIX}${token}`);
     return intentionStr ? JSON.parse(intentionStr) : null;
   }
@@ -46,6 +46,21 @@ export class PersistenceService {
   }
 
   public async closeIntention(token: string): Promise<boolean> {
+    const intention = await this.getIntention(token);
+    if (intention) {
+      for (const action of intention.actions) {
+        const closeResult = await this.closeIntentionAction(
+          action.transaction.token,
+        );
+        if (!closeResult) {
+          return false;
+        }
+      }
+    }
     return (await this.client.del(`${INTENTION_PREFIX}${token}`)) === 1;
+  }
+
+  public async closeIntentionAction(token: string): Promise<boolean> {
+    return (await this.client.del(`${ACTION_PREFIX}${token}`)) === 1;
   }
 }
