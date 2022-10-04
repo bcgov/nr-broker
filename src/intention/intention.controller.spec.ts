@@ -3,7 +3,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 
-describe('IntentionController', () => {
+xdescribe('IntentionController', () => {
   let controller: IntentionController;
 
   beforeEach(async () => {
