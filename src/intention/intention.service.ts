@@ -36,9 +36,11 @@ export class IntentionService {
       start: startDate.toISOString(),
     };
     for (const action of intentionDto.actions) {
-      action.transaction = this.createTransaction();
+      action.transaction = intentionDto.transaction;
+      action.trace = this.createTransaction();
       intention[action.id] = {
-        token: action.transaction.token,
+        token: action.trace.token,
+        trace_id: action.trace.hash,
         outcome: 'success',
       };
     }
@@ -47,6 +49,7 @@ export class IntentionService {
     return {
       intention,
       token: intentionDto.transaction.token,
+      transaction_id: intentionDto.transaction.hash,
       ttl,
     };
   }

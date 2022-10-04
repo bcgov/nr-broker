@@ -58,6 +58,12 @@ export class AuditService {
         service: {
           name: 'broker',
         },
+        transaction: {
+          id: intention.transaction.hash,
+        },
+        user: {
+          id: intention.user.id,
+        },
       },
     ])
       .pipe(
@@ -88,6 +94,12 @@ export class AuditService {
         service: {
           name: 'broker',
         },
+        transaction: {
+          id: intention.transaction.hash,
+        },
+        user: {
+          id: intention.user.id,
+        },
       },
     ])
       .pipe(
@@ -105,8 +117,18 @@ export class AuditService {
     const now = new Date();
     from([
       this.removeUndefined({
+        labels: {
+          project: action.service.project,
+        },
         service: {
           name: action.service.name,
+          environment: action.service.environment,
+        },
+        trace: {
+          id: action.trace.hash,
+        },
+        transaction: {
+          id: action.transaction.hash,
         },
       }),
     ])

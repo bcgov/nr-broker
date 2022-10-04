@@ -23,7 +23,7 @@ export class PersistenceService {
       ),
       ...intention.actions.map((action) => {
         return this.client.set(
-          `${ACTION_PREFIX}${action.transaction.token}`,
+          `${ACTION_PREFIX}${action.trace.token}`,
           JSON.stringify(action),
           {
             EX: ttl,

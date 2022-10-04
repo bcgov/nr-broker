@@ -4,12 +4,16 @@ cd "${0%/*}"
 
 echo "===> Intention open"
 # Open intention
-RESPONSE=$(curl -s -X POST $BROKER_URL/intention/open -H 'Content-Type: application/json' -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" -d @provision-fluentbit-intention.json)
+RESPONSE=$(curl -s -X POST $BROKER_URL/intention/open \
+    -H 'Content-Type: application/json' \
+    -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
+    -d @<(cat provision-fluentbit-intention.json | jq ".event.url=\"http://sample.com/job\" | .user.id=\"$(whoami)\""))
 echo "$BROKER_URL/intention/open:"
 echo $RESPONSE | jq '.'
 
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
+# echo "Hashed transaction.id: $(echo -n $INTENTION_TOKEN | shasum -a 256)"
 
 echo "===> Jenkins provision"
 

@@ -32,8 +32,7 @@
       "service": {
         "name": "fluent-bit",
         "project": "fluent",
-        "environment": "production",
-        "version": "2.73.2"
+        "environment": "production"
       }
     }
   ],

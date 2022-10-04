@@ -32,6 +32,9 @@ export class ActionDto {
     if (object.transaction) {
       object.transaction = plainToInstance(TransactionDto, object.transaction);
     }
+    if (object.trace) {
+      object.trace = plainToInstance(TransactionDto, object.trace);
+    }
     return object;
   }
 
@@ -61,4 +64,8 @@ export class ActionDto {
   @ValidateNested()
   @IsOptional()
   transaction?: TransactionDto;
+
+  @ValidateNested()
+  @IsOptional()
+  trace?: TransactionDto;
 }
