@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class TransactionDto {
   @IsString()
@@ -8,14 +8,18 @@ export class TransactionDto {
   hash: string;
 
   @IsString()
+  @IsOptional()
   start?: string;
 
   @IsString()
+  @IsOptional()
   end?: string;
 
   @IsNumber()
+  @IsOptional()
   duration?: number;
 
   @IsString()
+  @IsOptional()
   outcome?: string;
 }

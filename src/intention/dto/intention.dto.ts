@@ -1,3 +1,4 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
@@ -31,29 +32,7 @@ export class IntentionDto {
     const object = plainToInstance(IntentionDto, value);
 
     if (object.actions && Array.isArray(object.actions)) {
-      object.actions = object.actions.map((action) => {
-        if (action.action === 'database-access') {
-          return plainToInstance(
-            DatabaseAccessActionDto,
-            ActionDto.plainToInstance(action),
-          );
-        } else if (action.action === 'server-access') {
-          return plainToInstance(
-            ServerAccessActionDto,
-            ActionDto.plainToInstance(action),
-          );
-        } else if (action.action === 'package-installation') {
-          return plainToInstance(
-            PackageInstallationActionDto,
-            ActionDto.plainToInstance(action),
-          );
-        } else if (action.action === 'package-provision') {
-          return plainToInstance(
-            PackageProvisionActionDto,
-            ActionDto.plainToInstance(action),
-          );
-        }
-      });
+      object.actions = object.actions.map(IntentionDto.actionFactory);
     }
 
     if (object.event) {
@@ -68,6 +47,34 @@ export class IntentionDto {
       object.user = plainToInstance(UserDto, object.user);
     }
     return object;
+  }
+
+  static actionFactory(object: any) {
+    if (!object || typeof object !== 'object') {
+      throw new InternalServerErrorException();
+    }
+    if (object.action === 'database-access') {
+      return plainToInstance(
+        DatabaseAccessActionDto,
+        ActionDto.plainToInstance(object),
+      );
+    } else if (object.action === 'server-access') {
+      return plainToInstance(
+        ServerAccessActionDto,
+        ActionDto.plainToInstance(object),
+      );
+    } else if (object.action === 'package-installation') {
+      return plainToInstance(
+        PackageInstallationActionDto,
+        ActionDto.plainToInstance(object),
+      );
+    } else if (object.action === 'package-provision') {
+      return plainToInstance(
+        PackageProvisionActionDto,
+        ActionDto.plainToInstance(object),
+      );
+    }
+    throw new InternalServerErrorException();
   }
 
   @ValidateNested()

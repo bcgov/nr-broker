@@ -1,6 +1,13 @@
 import { Request } from 'express';
-import { ActionDto } from '../intention/dto/action.dto';
+import { DatabaseAccessActionDto } from '../intention/dto/database-access-action.dto';
+import { PackageInstallationActionDto } from '../intention/dto/package-installation-action.dto';
+import { PackageProvisionActionDto } from '../intention/dto/package-provision-action.dto';
+import { ServerAccessActionDto } from '../intention/dto/server-access-action.dto';
 
 export interface ActionGuardRequest extends Request {
-  brokerActionDto?: ActionDto;
+  brokerActionDto?:
+    | DatabaseAccessActionDto
+    | ServerAccessActionDto
+    | PackageInstallationActionDto
+    | PackageProvisionActionDto;
 }
