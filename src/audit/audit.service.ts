@@ -50,7 +50,7 @@ export class AuditService {
       {
         event: {
           category: 'session',
-          dataset: 'intention.audit',
+          dataset: 'broker.audit',
           kind: 'event',
           reason: intention.event.reason,
           start: intention.transaction.start,
@@ -67,6 +67,7 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addMetadataIntentionActivityFunc()),
         map(this.addServiceFunc),
@@ -89,7 +90,7 @@ export class AuditService {
       {
         event: {
           category: 'session',
-          dataset: 'intention.audit',
+          dataset: 'broker.audit',
           duration: intention.transaction.duration,
           kind: 'event',
           end: intention.transaction.end,
@@ -109,6 +110,7 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addMetadataIntentionActivityFunc()),
         map(this.addServiceFunc),
@@ -130,7 +132,7 @@ export class AuditService {
     from([
       this.removeUndefined({
         event: {
-          dataset: 'intention.audit',
+          dataset: 'broker.audit',
           kind: 'event',
         },
         labels: {
@@ -150,6 +152,7 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addHostFunc),
         map(this.addMergeFunc(mergeObj)),
         map(this.addMetadataIntentionActivityFunc()),
         map(this.addSourceFunc(req)),
@@ -170,7 +173,7 @@ export class AuditService {
       {
         event: {
           category: 'authentication',
-          dataset: 'generic.auth',
+          dataset: 'broker.audit',
           kind: 'event',
           type,
           outcome,
@@ -180,18 +183,16 @@ export class AuditService {
       .pipe(
         map(this.addEcsFunc),
         map(this.addHostFunc),
-        map(this.addHttpRequestFunc(req)),
         map(this.addLabelsFunc),
         map(this.addMetadataAuthFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
-        map(this.addUrlFunc(req)),
         map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
-        // this.kinesisService.putRecord(ecsObj);
+        this.kinesisService.putRecord(ecsObj);
       });
   }
 
