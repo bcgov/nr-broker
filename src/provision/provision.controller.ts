@@ -15,7 +15,10 @@ export class ProvisionController {
   @SetMetadata('provision', ['approle/secret-id'])
   @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
   async provisionIntentionSecretId(@Req() request: ActionGuardRequest) {
-    return this.provisionService.generateSecretId(request.brokerActionDto);
+    return this.provisionService.generateSecretId(
+      request,
+      request.brokerActionDto,
+    );
   }
 
   @Post('token/self')
@@ -26,6 +29,6 @@ export class ProvisionController {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
     const actionDto = request.brokerActionDto;
-    return this.provisionService.generateToken(actionDto, roleId);
+    return this.provisionService.generateToken(request, actionDto, roleId);
   }
 }

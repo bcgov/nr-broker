@@ -44,20 +44,19 @@ export class AuditService {
     }
   }
 
-  public recordIntentionOpen(intention: IntentionDto) {
+  public recordIntentionOpen(req: any, intention: IntentionDto) {
     const now = new Date();
     from([
       {
         event: {
           category: 'session',
-          start: intention.transaction.start,
+          dataset: 'intention.audit',
+          kind: 'event',
           reason: intention.event.reason,
+          start: intention.transaction.start,
           type: 'start',
           url: intention.event.url,
         },
-        service: {
-          name: 'broker',
-        },
         transaction: {
           id: intention.transaction.hash,
         },
@@ -68,31 +67,37 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addLabelsFunc),
         map(this.addMetadataIntentionActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
-        // this.kinesisService.putRecord(ecsObj);
+        this.kinesisService.putRecord(ecsObj);
       });
   }
 
-  public recordIntentionClose(intention: IntentionDto, reason: string) {
+  public recordIntentionClose(
+    req: any,
+    intention: IntentionDto,
+    reason: string,
+  ) {
     const now = new Date();
     from([
       {
         event: {
           category: 'session',
+          dataset: 'intention.audit',
           duration: intention.transaction.duration,
+          kind: 'event',
           end: intention.transaction.end,
           outcome: intention.transaction.outcome,
-          start: intention.transaction.start,
           reason,
+          start: intention.transaction.start,
           type: 'end',
           url: intention.event.url,
-        },
-        service: {
-          name: 'broker',
         },
         transaction: {
           id: intention.transaction.hash,
@@ -104,19 +109,30 @@ export class AuditService {
     ])
       .pipe(
         map(this.addEcsFunc),
+        map(this.addLabelsFunc),
         map(this.addMetadataIntentionActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
-        // this.kinesisService.putRecord(ecsObj);
+        this.kinesisService.putRecord(ecsObj);
       });
   }
 
-  public recordIntentionActionUsage(action: ActionDto, mergeObj: any) {
+  public recordIntentionActionUsage(
+    req: any,
+    action: ActionDto,
+    mergeObj: any,
+  ) {
     const now = new Date();
     from([
       this.removeUndefined({
+        event: {
+          dataset: 'intention.audit',
+          kind: 'event',
+        },
         labels: {
           project: action.service.project,
         },
@@ -136,11 +152,12 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addMergeFunc(mergeObj)),
         map(this.addMetadataIntentionActivityFunc()),
+        map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
         this.logger.debug(JSON.stringify(ecsObj));
-        // this.kinesisService.putRecord(ecsObj);
+        this.kinesisService.putRecord(ecsObj);
       });
   }
 

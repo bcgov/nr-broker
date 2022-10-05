@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Request } from 'express';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
@@ -13,11 +14,11 @@ export class ProvisionService {
 
   /**
    * Generates and returns a wrapped secret id to provision an application with
-   * @param intentionDto The provision information
+   * @param actionDto The action information
    * @returns A wrapped secret id
    */
-  public generateSecretId(actionDto: ActionDto) {
-    this.auditService.recordIntentionActionUsage(actionDto, {
+  public generateSecretId(req: Request, actionDto: ActionDto) {
+    this.auditService.recordIntentionActionUsage(req, actionDto, {
       event: {
         action: 'generate-secret-id',
         category: 'configuration',
@@ -33,12 +34,12 @@ export class ProvisionService {
 
   /**
    * Generates a temporary token for configuration purposes.
-   * @param intentionDto The provision information
+   * @param actionDto The action information
    * @param roleId The role id
    * @returns A wrapped token
    */
-  public generateToken(actionDto: ActionDto, roleId: string) {
-    this.auditService.recordIntentionActionUsage(actionDto, {
+  public generateToken(req: Request, actionDto: ActionDto, roleId: string) {
+    this.auditService.recordIntentionActionUsage(req, actionDto, {
       event: {
         action: 'generate-token',
         category: 'configuration',

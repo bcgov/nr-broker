@@ -1,5 +1,6 @@
 {
   "event": {
+    "provider": "provision-fluentbit-demo",
     "reason": "Job triggered",
     "url": "JOB_URL"
   },

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { PersistenceService } from '../persistence/persistence.service';
@@ -22,6 +23,7 @@ export class IntentionService {
   ) {}
 
   public async create(
+    req: Request,
     intentionDto: IntentionDto,
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
   ) {
@@ -44,7 +46,7 @@ export class IntentionService {
         outcome: 'success',
       };
     }
-    this.auditService.recordIntentionOpen(intentionDto);
+    this.auditService.recordIntentionOpen(req, intentionDto);
     await this.persistenceService.addIntention(intentionDto, ttl);
     return {
       intention,
@@ -65,6 +67,7 @@ export class IntentionService {
   }
 
   public async close(
+    req: Request,
     token: string,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
@@ -80,7 +83,7 @@ export class IntentionService {
     intentionDto.transaction.duration = endDate.valueOf() - startDate.valueOf();
     intentionDto.transaction.outcome = outcome;
 
-    this.auditService.recordIntentionClose(intentionDto, reason);
+    this.auditService.recordIntentionClose(req, intentionDto, reason);
     return this.persistenceService.closeIntention(token);
   }
 }
