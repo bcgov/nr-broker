@@ -14,7 +14,10 @@ import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
 
-@Controller('intention')
+@Controller({
+  path: 'intention',
+  version: '1',
+})
 export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 

@@ -6,7 +6,10 @@ import { ProvisionGuard } from './provision.guard';
 import { ActionGuard } from './action.guard';
 import { ActionGuardRequest } from './action-guard-request.interface';
 
-@Controller('provision')
+@Controller({
+  path: 'provision',
+  version: '1',
+})
 export class ProvisionController {
   constructor(private readonly provisionService: ProvisionService) {}
 

@@ -101,7 +101,7 @@ spec:{{- if .Values.vault.agent.enabled }}
               memory: {{ .Values.server.resources.requests.memory | quote }}
           readinessProbe:
             httpGet:
-              path: /health
+              path: /v1/health
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 30
