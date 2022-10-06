@@ -12,9 +12,9 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/intention/open \
     -d @<(cat provision-fluentbit-intention.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.id=\"$(whoami)\" | \
-            (.actions[] | select(.id == \"install\") .service.version) |= \"$INSTALL_VERSION\"\
+            (.actions[] | select(.id == \"install\") .service.version) |= \"$INSTALL_VERSION\" \
         " \
-    )
+    ))
 echo "$BROKER_URL/intention/open:"
 echo $RESPONSE | jq '.'
 
