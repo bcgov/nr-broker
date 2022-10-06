@@ -2,12 +2,19 @@
 
 cd "${0%/*}"
 
+INSTALL_VERSION="12.0.3"
+
 echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/intention/open \
     -H 'Content-Type: application/json' \
     -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
-    -d @<(cat provision-fluentbit-intention.json | jq ".event.url=\"http://sample.com/job\" | .user.id=\"$(whoami)\""))
+    -d @<(cat provision-fluentbit-intention.json | \
+        jq ".event.url=\"http://sample.com/job\" | \
+            .user.id=\"$(whoami)\" | \
+            (.actions[] | select(.id == \"install\") .service.version) |= \"$INSTALL_VERSION\"\
+        " \
+    )
 echo "$BROKER_URL/intention/open:"
 echo $RESPONSE | jq '.'
 
