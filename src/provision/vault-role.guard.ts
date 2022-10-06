@@ -1,17 +1,20 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { lastValueFrom } from 'rxjs';
-import { TokenService } from '../token/token.service';
-import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
-import { PersistenceService } from '../persistence/persistence.service';
 import { Request } from 'express';
+import { TokenService } from '../token/token.service';
+import { HEADER_VAULT_ROLE_ID } from '../constants';
+import { ActionDto } from '../intention/dto/action.dto';
+
+export interface RoleGuardRequest extends Request {
+  brokerActionDto?: ActionDto;
+}
 
 @Injectable()
 export class VaultRoleGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private tokenService: TokenService,
-    private persistenceService: PersistenceService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
@@ -19,18 +22,15 @@ export class VaultRoleGuard implements CanActivate {
       return false;
     }
     if (roles.indexOf('provision') !== -1) {
-      const request = context.switchToHttp().getRequest<Request>();
-      const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
-      const token =
-        typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
+      const request = context.switchToHttp().getRequest<RoleGuardRequest>();
 
-      const provisionDto = await this.persistenceService.getIntention(token);
-      const application = provisionDto?.service?.name;
-      const project = provisionDto?.labels?.project;
-      const environment = provisionDto?.service?.environment;
+      const action: ActionDto = request.brokerActionDto;
+      const application = action?.service?.name;
+      const project = action?.service?.project;
+      const environment = action?.service?.environment;
 
       if (
-        !provisionDto ||
+        !action ||
         !application ||
         !project ||
         !environment ||

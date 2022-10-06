@@ -2,7 +2,10 @@ import { Controller, Get, HttpCode } from '@nestjs/common';
 import { HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
 import { HealthService } from './health.service';
 
-@Controller('health')
+@Controller({
+  path: 'health',
+  version: '1',
+})
 export class HealthController {
   constructor(
     private health: HealthCheckService,
@@ -14,7 +17,10 @@ export class HealthController {
   check() {
     return this.health.check([
       () =>
-        this.http.pingCheck('broker-api', 'http://localhost:3000/health/ping'),
+        this.http.pingCheck(
+          'broker-api',
+          'http://localhost:3000/v1/health/ping',
+        ),
     ]);
   }
 

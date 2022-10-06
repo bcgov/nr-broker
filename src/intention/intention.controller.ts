@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  NotFoundException,
   Post,
   Query,
   Req,
@@ -15,18 +14,22 @@ import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
 
-@Controller('intention')
+@Controller({
+  path: 'intention',
+  version: '1',
+})
 export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 
   @Post('open')
   @UseGuards(AuthGuard('basic'))
   registerIntention(
+    @Req() request: Request,
     @Body(new IntentionDtoValidationPipe())
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
   ) {
-    return this.intentionService.create(intentionDto, ttl);
+    return this.intentionService.create(request, intentionDto, ttl);
   }
 
   @Post('close')
@@ -48,9 +51,6 @@ export class IntentionController {
     ) {
       throw new BadRequestException();
     }
-    const result = await this.intentionService.close(token, outcome, reason);
-    if (!result) {
-      throw new NotFoundException();
-    }
+    await this.intentionService.close(request, token, outcome, reason);
   }
 }

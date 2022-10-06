@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PersistenceModule } from '../persistence/persistence.module';
 import { IntentionController } from './intention.controller';
+import { IntentionService } from './intention.service';
 
 xdescribe('IntentionController', () => {
   let controller: IntentionController;
@@ -7,7 +9,18 @@ xdescribe('IntentionController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [IntentionController],
-    }).compile();
+      providers: [IntentionService],
+      imports: [PersistenceModule],
+    })
+      .useMocker((token) => {
+        if (token === IntentionService) {
+          return {
+            create: jest.fn().mockResolvedValue(null),
+            close: jest.fn().mockResolvedValue(null),
+          };
+        }
+      })
+      .compile();
 
     controller = module.get<IntentionController>(IntentionController);
   });

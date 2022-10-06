@@ -26,7 +26,7 @@ A rollout of a new version can be triggered by tagging a container manually. Thi
 ```
 oc tag -n a03c8f-dev artifacts.developer.gov.bc.ca/ba03-docker-local/bcgov-nr/nr-broker-backend:vx.x.x nr-broker:latest
 oc tag -n a03c8f-test artifacts.developer.gov.bc.ca/ba03-docker-local/bcgov-nr/nr-broker-backend:vx.x.x nr-broker:latest
-oc tag -n a03c8f-prodartifacts.developer.gov.bc.ca/ba03-docker-local/bcgov-nr/nr-broker-backend:vx.x.x nr-broker:latest
+oc tag -n a03c8f-prod artifacts.developer.gov.bc.ca/ba03-docker-local/bcgov-nr/nr-broker-backend:vx.x.x nr-broker:latest
 ```
 
 ## Initial Setup
