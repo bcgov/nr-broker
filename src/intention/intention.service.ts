@@ -28,7 +28,7 @@ export class IntentionService {
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
   ) {
     const startDate = new Date();
-    const intention = {};
+    const actions = {};
     if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
       throw new BadRequestException();
     }
@@ -40,7 +40,7 @@ export class IntentionService {
     for (const action of intentionDto.actions) {
       action.transaction = intentionDto.transaction;
       action.trace = this.createTransaction();
-      intention[action.id] = {
+      actions[action.id] = {
         token: action.trace.token,
         trace_id: action.trace.hash,
         outcome: 'success',
@@ -49,7 +49,7 @@ export class IntentionService {
     this.auditService.recordIntentionOpen(req, intentionDto);
     await this.persistenceService.addIntention(intentionDto, ttl);
     return {
-      intention,
+      actions,
       token: intentionDto.transaction.token,
       transaction_id: intentionDto.transaction.hash,
       ttl,

@@ -25,7 +25,7 @@ INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 echo "===> Jenkins provision"
 
 # Get token for provisioning Jenkins vault token
-JENKINS_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.intention.login.token')
+JENKINS_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.actions.login.token')
 echo "JENKINS_INTENTION_TOKEN: $JENKINS_INTENTION_TOKEN"
 
 # Provision token for application to login as itself to Vault
@@ -38,7 +38,7 @@ echo $JENKINS_VAULT_TOKEN | jq '.'
 echo "===> Fluent Bit provision"
 
 # Get token for provisioning a Fluentbit deployment
-FLUENTBIT_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.intention.provision.token')
+FLUENTBIT_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.actions.provision.token')
 echo "FLUENTBIT_INTENTION_TOKEN: $FLUENTBIT_INTENTION_TOKEN"
 
 # Get secret id for fluentbit provisioning
