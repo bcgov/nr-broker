@@ -87,6 +87,21 @@ spec:{{- if .Values.vault.agent.enabled }}
                 secretKeyRef:
                   name: nr-broker-basic-creds
                   key: password
+            - name: USER_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-user-roles
+                  key: admin
+            - name: USER_DBA
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-user-roles
+                  key: dba
+            - name: USER_DEVELOPER
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-user-roles
+                  key: developer
             - name: NO_COLOR
               value: "true"
           ports:
