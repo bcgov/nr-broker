@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
@@ -7,6 +8,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { UserDto } from './intention.dto';
 import { TransactionDto } from './transaction.dto';
 
 export class ServiceDto {
@@ -34,6 +36,9 @@ export class ActionDto {
     }
     if (object.trace) {
       object.trace = plainToInstance(TransactionDto, object.trace);
+    }
+    if (object.user) {
+      object.user = plainToInstance(UserDto, object.user);
     }
     return object;
   }
@@ -63,9 +68,16 @@ export class ActionDto {
 
   @ValidateNested()
   @IsOptional()
+  @ApiHideProperty()
   transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
+  @ApiHideProperty()
   trace?: TransactionDto;
+
+  @ValidateNested()
+  @IsOptional()
+  @ApiHideProperty()
+  user?: UserDto;
 }

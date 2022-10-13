@@ -14,39 +14,76 @@ import {
   INTENTION_MIN_TTL_SECONDS,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
+import { ActionError, ActionService } from './action.service';
+
+export interface IntentionOpenResponse {
+  actions: any;
+  token: string;
+  transaction_id: string;
+  ttl: number;
+}
 
 @Injectable()
 export class IntentionService {
   constructor(
     private readonly auditService: AuditService,
+    private readonly actionService: ActionService,
     private readonly persistenceService: PersistenceService,
   ) {}
 
-  public async create(
+  /**
+   * Opens an intention after validating its details.
+   * @param req The associated request object
+   * @param intentionDto The intention dto to validate
+   * @param ttl The requested time in seconds to live for this intention
+   * @returns The intention response or throws an error upon validation failure
+   */
+  public async open(
     req: Request,
     intentionDto: IntentionDto,
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
-  ) {
+  ): Promise<IntentionOpenResponse> {
     const startDate = new Date();
     const actions = {};
+    const actionFailures: ActionError[] = [];
     if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
-      throw new BadRequestException();
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'TTL out of bounds',
+        error: `TTL must be between ${INTENTION_MIN_TTL_SECONDS} and ${INTENTION_MAX_TTL_SECONDS}`,
+      });
     }
     // Annotate intention event
     intentionDto.transaction = {
-      ...this.createTransaction(),
+      ...this.createTokenAndHash(),
       start: startDate.toISOString(),
     };
     for (const action of intentionDto.actions) {
+      const validationResult = this.actionService.validate(
+        intentionDto,
+        action,
+      );
+      if (validationResult !== null) {
+        actionFailures.push(validationResult);
+      }
       action.transaction = intentionDto.transaction;
-      action.trace = this.createTransaction();
+      action.user = intentionDto.user;
+      action.trace = this.createTokenAndHash();
       actions[action.id] = {
         token: action.trace.token,
         trace_id: action.trace.hash,
-        outcome: 'success',
+        outcome: validationResult === null ? 'success' : 'failure',
       };
     }
-    this.auditService.recordIntentionOpen(req, intentionDto);
+    const isSuccessfulOpen = actionFailures.length === 0;
+    this.auditService.recordIntentionOpen(req, intentionDto, isSuccessfulOpen);
+    if (!isSuccessfulOpen) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Authorization failed',
+        error: actionFailures,
+      });
+    }
     await this.persistenceService.addIntention(intentionDto, ttl);
     return {
       actions,
@@ -56,16 +93,14 @@ export class IntentionService {
     };
   }
 
-  private createTransaction() {
-    const token = uuidv4();
-    const hasher = crypto.createHash('sha256');
-    hasher.update(token);
-    return {
-      token,
-      hash: hasher.digest('hex'),
-    };
-  }
-
+  /**
+   * Closes the intention.
+   * @param req The associated request object
+   * @param token The intention token
+   * @param outcome The outcome of the intention
+   * @param reason The reason for the outcome
+   * @returns Promise returning true if successfully closed and false otherwise
+   */
   public async close(
     req: Request,
     token: string,
@@ -85,5 +120,19 @@ export class IntentionService {
 
     this.auditService.recordIntentionClose(req, intentionDto, reason);
     return this.persistenceService.closeIntention(token);
+  }
+
+  /**
+   * Creates a unique token and cooresponding hash of it.
+   * @returns Object containing token and hash
+   */
+  private createTokenAndHash() {
+    const token = uuidv4();
+    const hasher = crypto.createHash('sha256');
+    hasher.update(token);
+    return {
+      token,
+      hash: hasher.digest('hex'),
+    };
   }
 }

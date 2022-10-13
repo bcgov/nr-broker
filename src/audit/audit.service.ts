@@ -44,7 +44,11 @@ export class AuditService {
     }
   }
 
-  public recordIntentionOpen(req: any, intention: IntentionDto) {
+  public recordIntentionOpen(
+    req: any,
+    intention: IntentionDto,
+    success: boolean,
+  ) {
     const now = new Date();
     from([
       {
@@ -52,6 +56,7 @@ export class AuditService {
           category: 'session',
           dataset: 'broker.audit',
           kind: 'event',
+          outcome: success ? 'success' : 'failure',
           reason: intention.event.reason,
           start: intention.transaction.start,
           type: 'start',
@@ -147,6 +152,9 @@ export class AuditService {
         },
         transaction: {
           id: action.transaction.hash,
+        },
+        user: {
+          id: action.user.id,
         },
       }),
     ])

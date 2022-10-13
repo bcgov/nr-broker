@@ -1,4 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
@@ -109,6 +110,7 @@ export class IntentionDto {
 
   @ValidateNested()
   @IsOptional()
+  @ApiHideProperty()
   transaction?: TransactionDto;
 
   @ValidateNested()

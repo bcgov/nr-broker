@@ -1,0 +1,22 @@
+{
+  "event": {
+    "provider": "db-demo",
+    "reason": "Job triggered",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "database-access",
+      "id": "database",
+      "provision": ["token/self"],
+      "service": {
+        "name": "fluent-bit",
+        "project": "fluent",
+        "environment": "production"
+      }
+    }
+  ],
+  "user": {
+    "id": "mbystedt@idir"
+  }
+}
