@@ -63,7 +63,8 @@ export class IntentionService {
         intentionDto,
         action,
       );
-      if (validationResult !== null) {
+      action.valid = validationResult === null;
+      if (!action.valid) {
         actionFailures.push(validationResult);
       }
       action.transaction = intentionDto.transaction;
@@ -77,6 +78,7 @@ export class IntentionService {
     }
     const isSuccessfulOpen = actionFailures.length === 0;
     this.auditService.recordIntentionOpen(req, intentionDto, isSuccessfulOpen);
+    this.auditService.recordActionAuthorization(req, intentionDto);
     if (!isSuccessfulOpen) {
       throw new BadRequestException({
         statusCode: 400,

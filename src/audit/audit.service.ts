@@ -53,6 +53,7 @@ export class AuditService {
     from([
       {
         event: {
+          action: 'intention-open',
           category: 'session',
           dataset: 'broker.audit',
           kind: 'event',
@@ -85,6 +86,41 @@ export class AuditService {
       });
   }
 
+  public recordActionAuthorization(req: any, intention: IntentionDto) {
+    const now = new Date();
+    for (const action of intention.actions) {
+      from([
+        {
+          event: {
+            action: `auth-${action.action}`,
+            category: 'session',
+            dataset: 'broker.audit',
+            kind: 'event',
+            outcome: action.valid ? 'success' : 'failure',
+            reason: intention.event.reason,
+            type: 'info',
+            url: intention.event.url,
+          },
+          user: {
+            id: intention.user.id,
+          },
+        },
+      ])
+        .pipe(
+          map(this.addEcsFunc),
+          map(this.addHostFunc),
+          map(this.addActionFunc(action)),
+          map(this.addMetadataIntentionActivityFunc()),
+          map(this.addSourceFunc(req)),
+          map(this.addTimestampFunc(now)),
+        )
+        .subscribe((ecsObj) => {
+          this.logger.debug(JSON.stringify(ecsObj));
+          this.kinesisService.putRecord(ecsObj);
+        });
+    }
+  }
+
   public recordIntentionClose(
     req: any,
     intention: IntentionDto,
@@ -94,6 +130,7 @@ export class AuditService {
     from([
       {
         event: {
+          action: 'intention-close',
           category: 'session',
           dataset: 'broker.audit',
           duration: intention.transaction.duration,
@@ -140,25 +177,13 @@ export class AuditService {
           dataset: 'broker.audit',
           kind: 'event',
         },
-        labels: {
-          project: action.service.project,
-        },
-        service: {
-          name: action.service.name,
-          environment: action.service.environment,
-        },
-        trace: {
-          id: action.trace.hash,
-        },
-        transaction: {
-          id: action.transaction.hash,
-        },
         user: {
           id: action.user.id,
         },
       }),
     ])
       .pipe(
+        map(this.addActionFunc(action)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addMergeFunc(mergeObj)),
@@ -180,6 +205,7 @@ export class AuditService {
     from([
       {
         event: {
+          action: 'authentication',
           category: 'authentication',
           dataset: 'broker.audit',
           kind: 'event',
@@ -239,6 +265,27 @@ export class AuditService {
       (key) => obj[key] === undefined && delete obj[key],
     );
     return obj;
+  }
+
+  private addActionFunc(action: ActionDto) {
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        labels: {
+          action_id: action.id,
+          project: action.service.project,
+        },
+        service: {
+          name: action.service.name,
+          environment: action.service.environment,
+        },
+        trace: {
+          id: action.trace.hash,
+        },
+        transaction: {
+          id: action.transaction.hash,
+        },
+      });
+    };
   }
 
   private addEcsFunc(ecsObj: any) {

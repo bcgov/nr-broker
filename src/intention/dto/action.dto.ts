@@ -2,6 +2,7 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDefined,
   IsIn,
   IsOptional,
@@ -80,4 +81,9 @@ export class ActionDto {
   @IsOptional()
   @ApiHideProperty()
   user?: UserDto;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiHideProperty()
+  valid?: boolean;
 }
