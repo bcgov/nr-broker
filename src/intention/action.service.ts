@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
 
@@ -16,14 +15,17 @@ export interface ActionError {
 }
 @Injectable()
 export class ActionService {
-  private readonly USER_ADMIN = process.env.USER_ADMIN.split(',');
-  private readonly USER_DBA = process.env.USER_DBA.split(',');
-  private readonly USER_DEVELOPER = process.env.USER_DEVELOPER.split(',');
+  private readonly USER_ADMIN = process.env.USER_ADMIN
+    ? process.env.USER_ADMIN.split(',')
+    : '';
+  private readonly USER_DBA = process.env.USER_DBA
+    ? process.env.USER_DBA.split(',')
+    : '';
+  private readonly USER_DEVELOPER = process.env.USER_DEVELOPER
+    ? process.env.USER_DEVELOPER.split(',')
+    : '';
 
-  public validate(
-    intention: IntentionDto,
-    action: ActionDto,
-  ): ActionError | null {
+  public validate(intention: IntentionDto, action: any): ActionError | null {
     if (action instanceof DatabaseAccessActionDto) {
       if (intention.user.id === 'unknown') {
         return {

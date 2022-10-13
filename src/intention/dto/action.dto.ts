@@ -9,23 +9,9 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { UserDto } from './intention.dto';
+import { UserDto } from './user.dto';
+import { ServiceDto } from './service.dto';
 import { TransactionDto } from './transaction.dto';
-
-export class ServiceDto {
-  @IsString()
-  environment: string;
-
-  @IsString()
-  name: string;
-
-  @IsString()
-  project: string;
-
-  @IsString()
-  @IsOptional()
-  version?: string;
-}
 
 export class ActionDto {
   static plainToInstance(object: any): ActionDto {
