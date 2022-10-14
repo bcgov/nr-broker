@@ -1,14 +1,14 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PersistenceService } from '../persistence/persistence.service';
 import { RoleGuardRequest } from './vault-role.guard';
 
+/**
+ * Guards paths by checking if the action associated with the request is
+ * permitted to provision based on the provision metadata.
+ */
 @Injectable()
 export class ProvisionGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private persistenceService: PersistenceService,
-  ) {}
+  constructor(private reflector: Reflector) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>(
       'provision',

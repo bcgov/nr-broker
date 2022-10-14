@@ -13,8 +13,13 @@ export interface ActionError {
     value: string;
   };
 }
+
+/**
+ * Assists with the validation of intention actions
+ */
 @Injectable()
 export class ActionService {
+  // Temporarily read from env
   private readonly USER_ADMIN = process.env.USER_ADMIN
     ? process.env.USER_ADMIN.split(',')
     : '';
