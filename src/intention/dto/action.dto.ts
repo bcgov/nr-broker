@@ -1,28 +1,17 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDefined,
   IsIn,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { UserDto } from './user.dto';
+import { ServiceDto } from './service.dto';
 import { TransactionDto } from './transaction.dto';
-
-export class ServiceDto {
-  @IsString()
-  environment: string;
-
-  @IsString()
-  name: string;
-
-  @IsString()
-  project: string;
-
-  @IsString()
-  @IsOptional()
-  version?: string;
-}
 
 export class ActionDto {
   static plainToInstance(object: any): ActionDto {
@@ -34,6 +23,9 @@ export class ActionDto {
     }
     if (object.trace) {
       object.trace = plainToInstance(TransactionDto, object.trace);
+    }
+    if (object.user) {
+      object.user = plainToInstance(UserDto, object.user);
     }
     return object;
   }
@@ -63,9 +55,21 @@ export class ActionDto {
 
   @ValidateNested()
   @IsOptional()
+  @ApiHideProperty()
   transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
+  @ApiHideProperty()
   trace?: TransactionDto;
+
+  @ValidateNested()
+  @IsOptional()
+  @ApiHideProperty()
+  user?: UserDto;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiHideProperty()
+  valid?: boolean;
 }

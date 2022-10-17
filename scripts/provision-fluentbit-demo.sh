@@ -17,6 +17,10 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     ))
 echo "$BROKER_URL/v1/intention/open:"
 echo $RESPONSE | jq '.'
+if [ "$(echo $RESPONSE | jq '.error')" != "null" ]; then
+    echo "Exit: Error detected"
+    exit 0
+fi
 
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')

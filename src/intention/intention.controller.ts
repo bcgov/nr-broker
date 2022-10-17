@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBasicAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
@@ -23,16 +24,18 @@ export class IntentionController {
 
   @Post('open')
   @UseGuards(AuthGuard('basic'))
-  registerIntention(
+  @ApiBasicAuth()
+  openIntention(
     @Req() request: Request,
     @Body(new IntentionDtoValidationPipe())
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
   ) {
-    return this.intentionService.create(request, intentionDto, ttl);
+    return this.intentionService.open(request, intentionDto, ttl);
   }
 
   @Post('close')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
   async closeIntention(
     @Req() request: Request,
     @Query('outcome') outcome: string | undefined,

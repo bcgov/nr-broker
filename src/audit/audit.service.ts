@@ -19,6 +19,9 @@ const hostInfo = {
   },
 };
 
+/**
+ * Audit service of the broker
+ */
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
@@ -26,6 +29,10 @@ export class AuditService {
   private readonly metadataAuth = {};
   private readonly metadataHttpAccess = {};
 
+  /**
+   * Constructs the audit service
+   * @param kinesisService The Kinesis service to send audit logs to
+   */
   constructor(private readonly kinesisService: KinesisService) {
     if (process.env.OS_INDEX_ACTIVITY) {
       this.metadataIntentionActivity['@metadata'] = {
@@ -44,14 +51,26 @@ export class AuditService {
     }
   }
 
-  public recordIntentionOpen(req: any, intention: IntentionDto) {
+  /**
+   * Records the open of an intention to the audit activity log
+   * @param req The initiating http request
+   * @param intention The intention DTO
+   * @param success True if the intention was opened successfully and false otherwise
+   */
+  public recordIntentionOpen(
+    req: any,
+    intention: IntentionDto,
+    success: boolean,
+  ) {
     const now = new Date();
     from([
       {
         event: {
+          action: 'intention-open',
           category: 'session',
           dataset: 'broker.audit',
           kind: 'event',
+          outcome: success ? 'success' : 'failure',
           reason: intention.event.reason,
           start: intention.transaction.start,
           type: 'start',
@@ -80,6 +99,52 @@ export class AuditService {
       });
   }
 
+  /**
+   * Records the success or failure to validation intention actions in the audit activity log
+   * @param req The initiating http request
+   * @param intention The intention DTO
+   */
+  public recordActionAuthorization(req: any, intention: IntentionDto) {
+    const now = new Date();
+    for (const action of intention.actions) {
+      from([
+        {
+          event: {
+            action: `auth-${action.action}`,
+            category: 'session',
+            dataset: 'broker.audit',
+            kind: 'event',
+            outcome: action.valid ? 'success' : 'failure',
+            reason: intention.event.reason,
+            type: 'info',
+            url: intention.event.url,
+          },
+          user: {
+            id: intention.user.id,
+          },
+        },
+      ])
+        .pipe(
+          map(this.addEcsFunc),
+          map(this.addHostFunc),
+          map(this.addActionFunc(action)),
+          map(this.addMetadataIntentionActivityFunc()),
+          map(this.addSourceFunc(req)),
+          map(this.addTimestampFunc(now)),
+        )
+        .subscribe((ecsObj) => {
+          this.logger.debug(JSON.stringify(ecsObj));
+          this.kinesisService.putRecord(ecsObj);
+        });
+    }
+  }
+
+  /**
+   * Records the close of an intention to the audit activity log
+   * @param req The initiating http request
+   * @param intention The intention DTO
+   * @param reason The reason for the closure
+   */
   public recordIntentionClose(
     req: any,
     intention: IntentionDto,
@@ -89,6 +154,7 @@ export class AuditService {
     from([
       {
         event: {
+          action: 'intention-close',
           category: 'session',
           dataset: 'broker.audit',
           duration: intention.transaction.duration,
@@ -123,6 +189,12 @@ export class AuditService {
       });
   }
 
+  /**
+   * Records the usage of an intention action in the audit activity log
+   * @param req The initiating http request
+   * @param action The action DTO
+   * @param mergeObj An ecs object containing the details of the usage
+   */
   public recordIntentionActionUsage(
     req: any,
     action: ActionDto,
@@ -135,22 +207,13 @@ export class AuditService {
           dataset: 'broker.audit',
           kind: 'event',
         },
-        labels: {
-          project: action.service.project,
-        },
-        service: {
-          name: action.service.name,
-          environment: action.service.environment,
-        },
-        trace: {
-          id: action.trace.hash,
-        },
-        transaction: {
-          id: action.transaction.hash,
+        user: {
+          id: action.user.id,
         },
       }),
     ])
       .pipe(
+        map(this.addActionFunc(action)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addMergeFunc(mergeObj)),
@@ -164,6 +227,12 @@ export class AuditService {
       });
   }
 
+  /**
+   * Records authorization events in the audit activity log
+   * @param req The initiating http request
+   * @param type Indicates if this is the start or end
+   * @param outcome The outcome of the authorization
+   */
   public recordAuth(
     req: any,
     type: 'start' | 'end',
@@ -172,6 +241,7 @@ export class AuditService {
     from([
       {
         event: {
+          action: 'authentication',
           category: 'authentication',
           dataset: 'broker.audit',
           kind: 'event',
@@ -196,6 +266,13 @@ export class AuditService {
       });
   }
 
+  /**
+   * Records http access to the generic access log
+   * @param req The initiating http request
+   * @param resp The http response
+   * @param startDate The start date of the access
+   * @param endDate The end date of the access
+   */
   public recordHttpAccess(req: any, resp: any, startDate: Date, endDate: Date) {
     from([
       {
@@ -226,6 +303,11 @@ export class AuditService {
       });
   }
 
+  /**
+   * Removes undefined keys from object (shallow)
+   * @param obj The object to manipulate
+   * @returns The object with no undefined keys
+   */
   private removeUndefined(obj: any) {
     Object.keys(obj).forEach(
       (key) => obj[key] === undefined && delete obj[key],
@@ -233,6 +315,37 @@ export class AuditService {
     return obj;
   }
 
+  /**
+   * Map function generator for adding intention action fields to ECS document
+   * @param action The action DTO
+   * @returns Function to manipulate the ECS document
+   */
+  private addActionFunc(action: ActionDto) {
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        labels: {
+          action_id: action.id,
+          project: action.service.project,
+        },
+        service: {
+          name: action.service.name,
+          environment: action.service.environment,
+        },
+        trace: {
+          id: action.trace.hash,
+        },
+        transaction: {
+          id: action.transaction.hash,
+        },
+      });
+    };
+  }
+
+  /**
+   * Map function for adding ECS version to ECS document
+   * @param ecsObj The ECS document to manipulate
+   * @returns The manipulated ECS document
+   */
   private addEcsFunc(ecsObj: any) {
     return merge(ecsObj, {
       ecs: {
@@ -241,10 +354,20 @@ export class AuditService {
     });
   }
 
+  /**
+   * Map function for adding host info to ECS document
+   * @param ecsObj The ECS document to manipulate
+   * @returns The manipulated ECS document
+   */
   private addHostFunc(ecsObj: any) {
     return merge(ecsObj, hostInfo);
   }
 
+  /**
+   * Map function generator for adding http request fields to ECS document
+   * @param req The http request
+   * @returns Function to manipulate the ECS document
+   */
   private addHttpRequestFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -261,6 +384,11 @@ export class AuditService {
     };
   }
 
+  /**
+   * Map function generator for adding http response fields to ECS document
+   * @param resp The http response
+   * @returns Function to manipulate the ECS document
+   */
   private addHttpResponseFunc(resp: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -275,6 +403,11 @@ export class AuditService {
     };
   }
 
+  /**
+   * Map function for adding broker labels to ECS document
+   * @param ecsObj The ECS document to manipulate
+   * @returns The manipulated ECS document
+   */
   private addLabelsFunc(ecsObj: any) {
     return merge(ecsObj, {
       labels: {
@@ -283,24 +416,49 @@ export class AuditService {
     });
   }
 
+  /**
+   * Map function generator for merging partial ECS document to ECS document
+   * @param obj The object to merge
+   * @returns Function to manipulate the ECS document
+   */
   private addMergeFunc(obj: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, obj);
     };
   }
 
+  /**
+   * Map function generator for adding audit activity metadata to ECS document.
+   * This allows dev environments to send data to a temporary index.
+   * @returns Function to generate partial ECS document
+   */
   private addMetadataIntentionActivityFunc() {
     return (ecsObj: any) => merge(ecsObj, this.metadataIntentionActivity);
   }
 
+  /**
+   * Map function generator for adding authentication activity metadata to ECS document.
+   * This allows dev environments to send data to a temporary index.
+   * @returns Function to generate partial ECS document
+   */
   private addMetadataAuthFunc() {
     return (ecsObj: any) => merge(ecsObj, this.metadataAuth);
   }
 
+  /**
+   * Map function generator for adding http activity metadata to ECS document.
+   * This allows dev environments to send data to a temporary index.
+   * @returns Function to generate partial ECS document
+   */
   private addMetadataHttpAccessFunc() {
     return (ecsObj: any) => merge(ecsObj, this.metadataHttpAccess);
   }
 
+  /**
+   * Map function for adding broker service details to ECS document.
+   * @param ecsObj The ECS document to manipulate
+   * @returns The manipulated ECS document
+   */
   private addServiceFunc(ecsObj: any) {
     return merge(ecsObj, {
       service: {
@@ -312,6 +470,11 @@ export class AuditService {
     });
   }
 
+  /**
+   * Map function generator for adding request source to ECS document
+   * @param req The http request
+   * @returns Function to generate partial ECS document
+   */
   private addSourceFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -324,6 +487,11 @@ export class AuditService {
     };
   }
 
+  /**
+   * Map function generator for adding timestamp to ECS document
+   * @param timestamp The date to timestamp the document with
+   * @returns Function to manipulate the ECS document
+   */
   private addTimestampFunc(timestamp: Date = new Date()) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -332,6 +500,11 @@ export class AuditService {
     };
   }
 
+  /**
+   * Map function generator for adding request url to ECS document
+   * @param req The http request
+   * @returns Function to manipulate the ECS document
+   */
   private addUrlFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
@@ -342,6 +515,11 @@ export class AuditService {
     };
   }
 
+  /**
+   * Map function generator for adding request user agent to ECS document
+   * @param req The http request
+   * @returns Function to manipulate the ECS document
+   */
   private addUserAgentFunc(req: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, {

@@ -28,3 +28,7 @@ fi
 
 export HTTP_BASIC_USER=myusername
 export HTTP_BASIC_PASS=password123
+
+export USER_ADMIN=mbystedt@idir
+export USER_DBA=dba@idir
+export USER_DEVELOPER=dev1@idir,dev2@idir

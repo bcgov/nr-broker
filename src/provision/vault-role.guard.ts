@@ -10,6 +10,10 @@ export interface RoleGuardRequest extends Request {
   brokerActionDto?: ActionDto;
 }
 
+/**
+ * Guards paths by checking if provided role id matches the one from Vault
+ * for the application. This validates that the caller knows it.
+ */
 @Injectable()
 export class VaultRoleGuard implements CanActivate {
   constructor(

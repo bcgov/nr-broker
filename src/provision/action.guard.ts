@@ -4,11 +4,11 @@ import {
   ExecutionContext,
   Injectable,
 } from '@nestjs/common';
+import { validate } from 'class-validator';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { PersistenceService } from '../persistence/persistence.service';
 import { ActionGuardRequest } from './action-guard-request.interface';
-import { IntentionDto } from '../intention/dto/intention.dto';
-import { validate } from 'class-validator';
+import { actionFactory } from '../intention/dto/action.util';
 
 @Injectable()
 export class ActionGuard implements CanActivate {
@@ -19,7 +19,7 @@ export class ActionGuard implements CanActivate {
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
 
-    const action = IntentionDto.actionFactory(
+    const action = actionFactory(
       await this.persistenceService.getIntentionAction(token),
     );
     const errors = await validate(action, {
