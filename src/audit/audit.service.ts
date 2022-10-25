@@ -125,10 +125,12 @@ export class AuditService {
         },
       ])
         .pipe(
+          map(this.addActionFunc(action)),
           map(this.addEcsFunc),
           map(this.addHostFunc),
-          map(this.addActionFunc(action)),
+          map(this.addLabelsFunc),
           map(this.addMetadataIntentionActivityFunc()),
+          map(this.addServiceFunc),
           map(this.addSourceFunc(req)),
           map(this.addTimestampFunc(now)),
         )
@@ -216,8 +218,10 @@ export class AuditService {
         map(this.addActionFunc(action)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
+        map(this.addLabelsFunc),
         map(this.addMergeFunc(mergeObj)),
         map(this.addMetadataIntentionActivityFunc()),
+        map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
       )
@@ -325,11 +329,13 @@ export class AuditService {
       return merge(ecsObj, {
         labels: {
           action_id: action.id,
-          project: action.service.project,
+          target_project: action.service.project,
         },
         service: {
-          name: action.service.name,
-          environment: action.service.environment,
+          target: {
+            name: action.service.name,
+            environment: action.service.environment,
+          },
         },
         trace: {
           id: action.trace.hash,
