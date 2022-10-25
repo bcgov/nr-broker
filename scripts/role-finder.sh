@@ -18,7 +18,7 @@ if [ -n "$1" ]
     VAULT_ADDR="https://vault-iit.apps.silver.devops.gov.bc.ca"
   fi
   VAULT_TOKEN=$(VAULT_ADDR=$VAULT_ADDR vault login -method=oidc -format json -no-store | jq -r '.auth.client_token')
-  DEV_ROLE_ID= $(VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault read -format json auth/vs_apps_approle/role/$2_$3_dev/role-id 2> /dev/null | jq -r '.data.role_id')
+  DEV_ROLE_ID=$(VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault read -format json auth/vs_apps_approle/role/$2_$3_dev/role-id 2> /dev/null | jq -r '.data.role_id')
   TEST_ROLE_ID=$(VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault read -format json auth/vs_apps_approle/role/$2_$3_test/role-id 2> /dev/null | jq -r '.data.role_id')
   PROD_ROLE_ID=$(VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault read -format json auth/vs_apps_approle/role/$2_$3_prod/role-id 2> /dev/null | jq -r '.data.role_id')
 
