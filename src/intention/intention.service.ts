@@ -14,7 +14,8 @@ import {
   INTENTION_MIN_TTL_SECONDS,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
-import { ActionError, ActionService } from './action.service';
+import { ActionService } from './action.service';
+import { ActionError } from './action.error';
 
 export interface IntentionOpenResponse {
   actions: any;
