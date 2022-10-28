@@ -4,6 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { map, Observable, switchMap } from 'rxjs';
 import {
+  IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   TOKEN_SERVICE_WRAP_TTL,
@@ -159,13 +160,18 @@ export class TokenService {
       });
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   handleTokenRenewal() {
     if (
       this.brokerToken === undefined ||
       this.renewAt === undefined ||
       Date.now() < this.renewAt
     ) {
+      return;
+    }
+    if (!IS_PRIMARY_NODE) {
+      // Nodes that are not the primary one should not renew
+      this.lookupSelf();
       return;
     }
     this.logger.debug('Renew: start');

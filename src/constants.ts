@@ -17,3 +17,5 @@ export const SHORT_ENV_CONVERSION = {
   production: 'prod',
   development: 'dev',
 };
+
+export const IS_PRIMARY_NODE = process.env.HOSTNAME === 'nr-broker-app-0';
