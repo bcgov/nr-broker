@@ -15,6 +15,12 @@ helm install -f values/<env>.yaml broker-app .
 helm upgrade -f values/<env>.yaml broker-app .
 ```
 
+```
+helm upgrade -f values/dev.yaml broker-app .
+helm upgrade -f values/test.yaml broker-app .
+helm upgrade -f values/prod.yaml broker-app .
+```
+
 ## Deploying a new app version
 
 The recommended route is to update the appVersion in Chart.yaml and use `helm upgrade`.

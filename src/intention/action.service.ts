@@ -1,18 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { ActionError } from './action.error';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
 
-const DATABASE_ACCESS_DEVELOPER_ENV = ['test', 'development'];
-
-export interface ActionError {
-  message: string;
-  data: {
-    action: string;
-    action_id: string;
-    key: string;
-    value: string;
-  };
-}
+const DATABASE_ACCESS_DEVELOPER_ENV = ['development'];
 
 /**
  * Assists with the validation of intention actions
