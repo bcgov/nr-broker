@@ -3,7 +3,7 @@ import { ActionError } from './action.error';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
 
-const DATABASE_ACCESS_DEVELOPER_ENV = ['test', 'development'];
+const DATABASE_ACCESS_DEVELOPER_ENV = ['development'];
 
 /**
  * Assists with the validation of intention actions
