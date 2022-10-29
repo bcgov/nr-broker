@@ -2,59 +2,52 @@
 {{- $envTag := regexFind "[a-zA-Z0-9]+$" .Release.Namespace -}}
 {{- $envLabel := eq $envTag "prod" | ternary "prod" "nonprod" -}}
 {{- $envTokenPath := printf "%s-%s/%s-token" $licensePlate $envLabel $envTag -}}
-apiVersion: apps.openshift.io/v1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  name: {{ .Values.global.name }}
   labels:
     app: {{ .Values.global.name }}
-    helm.sh/chart: {{ .Values.global.name }}{{- if .Values.vault.agent.enabled }}
-  annotations:
-    vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/agent-inject-secret-config: {{ $envTokenPath }}
-    vault.hashicorp.com/agent-inject-template-config: |
-      {{`{{- with secret `}}"{{ $envTokenPath }}" {{` }}
-      export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
-      export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
-      {{ end `}} }}
-    vault.hashicorp.com/auth-path: auth/k8s-silver
-    vault.hashicorp.com/namespace: platform-services
-    vault.hashicorp.com/role: {{ $licensePlate }}-{{ $envLabel }}
-    vault.hashicorp.com/agent-limits-cpu: {{ .Values.vault.agent.limits.cpu }}
-    vault.hashicorp.com/agent-requests-cpu: {{ .Values.vault.agent.requests.cpu }}
-    vault.hashicorp.com/agent-limits-mem: {{ .Values.vault.agent.limits.memory }}
-    vault.hashicorp.com/agent-requests-mem: {{ .Values.vault.agent.requests.memory }}{{- end }}
-  name: {{ .Values.global.name }}
-spec:{{- if .Values.vault.agent.enabled }}
-  serviceAccountName: {{ $licensePlate }}-vault{{- end }}
-  replicas: {{ .Values.server.resources.replicas }}
-  triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-          - nr-broker{{- if .Values.vault.agent.enabled }}
-        command: ["/bin/bash"]
-        args: ['-c', 'source /vault/secrets/config && envconsul -config env.hcl node dist/main']{{- end }}
-        from:
-          kind: ImageStreamTag
-          namespace: {{ .Release.Namespace }}
-          name: nr-broker:latest
+    helm.sh/chart: {{ .Values.global.name }}
+    redis-client: 'true'
+spec:
   selector:
-    statefulset: {{ .Values.global.name }}
+    matchLabels:
+      app: {{ .Values.global.name }}
+  serviceName: {{ .Values.global.name }}
+  podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate
+  replicas: {{ .Values.server.resources.replicas }}
   template:
     metadata:
       labels:
         app: {{ .Values.global.name }}
         statefulset: {{ .Values.global.name }}
-        redis-client: 'true'
-    spec:
+        redis-client: 'true'{{- if .Values.vault.agent.enabled }}
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/agent-inject-secret-config: {{ $envTokenPath }}
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{`{{- with secret `}}"{{ $envTokenPath }}" {{` }}
+          export BROKER_TOKEN="{{ .Data.data.BROKER_TOKEN }}"
+          export VAULT_TOKEN="{{ .Data.data.VAULT_TOKEN }}"
+          {{ end `}} }}
+        vault.hashicorp.com/auth-path: auth/k8s-silver
+        vault.hashicorp.com/namespace: platform-services
+        vault.hashicorp.com/role: {{ $licensePlate }}-{{ $envLabel }}
+        vault.hashicorp.com/agent-limits-cpu: {{ .Values.vault.agent.limits.cpu }}
+        vault.hashicorp.com/agent-requests-cpu: {{ .Values.vault.agent.requests.cpu }}
+        vault.hashicorp.com/agent-limits-mem: {{ .Values.vault.agent.limits.memory }}
+        vault.hashicorp.com/agent-requests-mem: {{ .Values.vault.agent.requests.memory }}{{- end }}
+    spec:{{- if .Values.vault.agent.enabled }}
+      serviceAccountName: {{ $licensePlate }}-vault{{- end }}
       containers:
-        - image: nr-broker:latest
+        - image: "{{ .Values.server.image.registry }}{{ .Values.server.image.context }}/bcgov-nr/nr-broker-backend:v{{ .Chart.AppVersion }}"
           imagePullPolicy: Always
-          name: nr-broker
+          name: nr-broker{{- if .Values.vault.agent.enabled }}
+          command: ["/bin/bash"]
+          args: ['-c', 'source /vault/secrets/config && envconsul -config env.hcl node dist/main']{{- end }}
           env:
             - name: APP_ENVIRONMENT
               value: {{ .Values.global.environment }}
