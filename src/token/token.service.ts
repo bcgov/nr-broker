@@ -2,12 +2,14 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { map, Observable, switchMap } from 'rxjs';
+import { response } from 'express';
+import { map, Observable, switchMap, tap } from 'rxjs';
 import {
   IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   TOKEN_SERVICE_WRAP_TTL,
+  VAULT_SYNC_APP_AUTH_MOUNT,
 } from '../constants';
 
 interface VaultTokenLookupDto {
@@ -62,7 +64,7 @@ export class TokenService {
     return this.httpService
       .post(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareWrappedResponseConfig(),
       )
@@ -85,7 +87,7 @@ export class TokenService {
     return this.httpService
       .post(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareConfig(),
       )
@@ -96,12 +98,28 @@ export class TokenService {
         switchMap((secretId) => {
           return this.httpService
             .post(
-              `${this.vaultAddr}/v1/auth/vs_apps_approle/login`,
+              `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/login`,
               {
                 role_id: roleId,
                 secret_id: secretId,
               },
-              this.prepareWrappedResponseConfig(),
+              this.prepareConfig(),
+            )
+            .pipe(
+              map((response) => {
+                return response.data;
+              }),
+            );
+        }),
+        tap((response) => {
+          console.log(response);
+        }),
+        switchMap((response) => {
+          return this.httpService
+            .post(
+              `${this.vaultAddr}/v1/sys/wrapping/wrap`,
+              response,
+              this.prepareConfig(),
             )
             .pipe(
               map((response) => {
@@ -123,7 +141,7 @@ export class TokenService {
     return this.httpService
       .get(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
         this.prepareConfig(),
       )
       .pipe(

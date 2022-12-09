@@ -14,6 +14,7 @@ import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
+// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller({
   path: 'intention',
@@ -23,7 +24,7 @@ export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 
   @Post('open')
-  @UseGuards(AuthGuard('basic'))
+  @UseGuards(AuthGuard(['basic', 'jwt']))
   @ApiBasicAuth()
   openIntention(
     @Req() request: Request,

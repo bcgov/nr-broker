@@ -8,7 +8,7 @@ echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
-    -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
+    -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzA1NDU4Nzg2MzIsImlhdCI6MTY3MDU0NTM3ODYzMiwibmFtZSI6ImVuY29yYSIsInN1YiI6IjEyMzQ1Njc4OTAiLCJyb2xlcyI6WyJkZXZlbG9wZXJfc3BhciJdfQ.ImUFoOlTaoxeilOnSck8og6QLeiho8aKre7AdOjm6_s" \
     -d @<(cat provision-db-intention.json | \
         jq ".event.url=\"http://sample.com/job\" \
         " \
