@@ -28,7 +28,7 @@ export class ActionGuard implements CanActivate {
       forbidUnknownValues: true,
     });
     if (errors.length > 0) {
-      console.log(errors[0].children);
+      // console.log(errors[0].children);
       throw new BadRequestException('Validation failed');
     }
     request.brokerActionDto = action;

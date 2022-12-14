@@ -2,7 +2,6 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { response } from 'express';
 import { map, Observable, switchMap, tap } from 'rxjs';
 import {
   IS_PRIMARY_NODE,
@@ -72,6 +71,26 @@ export class TokenService {
         map((response) => {
           return response.data;
         }),
+        switchMap((wrappedToken) => {
+          return this.httpService
+            .post(
+              `${this.vaultAddr}/v1/sys/audit-hash/file`,
+              {
+                input: wrappedToken.wrap_info.token,
+              },
+              this.prepareConfig(),
+            )
+            .pipe(
+              map((auditResponse) => {
+                return {
+                  audit: {
+                    clientToken: auditResponse.data.data.hash,
+                  },
+                  wrappedToken,
+                };
+              }),
+            );
+        }),
       );
   }
 
@@ -103,7 +122,7 @@ export class TokenService {
                 role_id: roleId,
                 secret_id: secretId,
               },
-              this.prepareConfig(),
+              this.prepareWrappedResponseConfig(),
             )
             .pipe(
               map((response) => {
@@ -111,19 +130,23 @@ export class TokenService {
               }),
             );
         }),
-        tap((response) => {
-          console.log(response);
-        }),
-        switchMap((response) => {
+        switchMap((wrappedToken) => {
           return this.httpService
             .post(
-              `${this.vaultAddr}/v1/sys/wrapping/wrap`,
-              response,
+              `${this.vaultAddr}/v1/sys/audit-hash/file`,
+              {
+                input: wrappedToken.wrap_info.token,
+              },
               this.prepareConfig(),
             )
             .pipe(
-              map((response) => {
-                return response.data;
+              map((auditResponse) => {
+                return {
+                  audit: {
+                    clientToken: auditResponse.data.data.hash,
+                  },
+                  wrappedToken,
+                };
               }),
             );
         }),
