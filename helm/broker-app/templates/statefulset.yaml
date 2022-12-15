@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: nr-broker-basic-creds
                   key: password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-jwt-creds
+                  key: secret
             - name: USER_ADMIN
               valueFrom:
                 secretKeyRef:
