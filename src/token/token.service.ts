@@ -2,13 +2,14 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import {
   IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   TOKEN_SERVICE_WRAP_TTL,
   VAULT_SYNC_APP_AUTH_MOUNT,
+  VAULT_AUDIT_DEVICE_NAME,
 } from '../constants';
 
 interface VaultTokenLookupDto {
@@ -133,7 +134,7 @@ export class TokenService {
         switchMap((wrappedToken) => {
           return this.httpService
             .post(
-              `${this.vaultAddr}/v1/sys/audit-hash/file`,
+              `${this.vaultAddr}/v1/sys/audit-hash/${VAULT_AUDIT_DEVICE_NAME}`,
               {
                 input: wrappedToken.wrap_info.token,
               },
