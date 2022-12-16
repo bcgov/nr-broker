@@ -29,6 +29,8 @@ fi
 export HTTP_BASIC_USER=myusername
 export HTTP_BASIC_PASS=password123
 export JWT_SECRET=secret
+export JWT_VALIDATION_SUB=oneteam@victoria1.gov.bc.ca
+export JWT_VALIDATION_JTI_DENY=
 
 export USER_ADMIN=mbystedt@idir
 export USER_DBA=dba@idir

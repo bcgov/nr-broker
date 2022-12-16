@@ -1,15 +1,13 @@
 import { BasicStrategy as Strategy } from 'passport-http';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { AuditService } from '../audit/audit.service';
+import { randomUUID } from 'crypto';
+import { BrokerJwtPayload } from './broker-jwt.interface';
 
 @Injectable()
 export class BasicStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly auditService: AuditService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     super({
       passReqToCallback: true,
     });
@@ -19,16 +17,23 @@ export class BasicStrategy extends PassportStrategy(Strategy) {
     _req: any,
     username: string,
     password: string,
-  ): Promise<boolean> => {
-    this.auditService.recordAuth(_req, 'start', 'unknown');
+  ): Promise<BrokerJwtPayload | null> => {
     if (
       this.configService.get<string>('HTTP_BASIC_USER') === username &&
       this.configService.get<string>('HTTP_BASIC_PASS') === password
     ) {
-      this.auditService.recordAuth(_req, 'end', 'success');
-      return true;
+      const MILLISECONDS_IN_SECOND = 1000;
+      const DAYS_30_IN_SECONDS = 60 * 60 * 24 * 30;
+      const ISSUED_AT = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
+
+      return {
+        exp: ISSUED_AT + DAYS_30_IN_SECONDS,
+        iat: ISSUED_AT,
+        nbf: ISSUED_AT,
+        jti: randomUUID(),
+        sub: 'oneteam@victoria1.gov.bc.ca',
+      };
     }
-    this.auditService.recordAuth(_req, 'end', 'failure');
-    throw new UnauthorizedException();
+    return null;
   };
 }

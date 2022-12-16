@@ -7,14 +7,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBasicAuth, ApiHeader } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { BrokerAuthGuard } from '../auth/broker-auth.guard';
 
 @Controller({
   path: 'intention',
@@ -24,8 +23,9 @@ export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 
   @Post('open')
-  @UseGuards(AuthGuard(['basic', 'jwt']))
+  @UseGuards(BrokerAuthGuard)
   @ApiBasicAuth()
+  @ApiBearerAuth()
   openIntention(
     @Req() request: Request,
     @Body(new IntentionDtoValidationPipe())
