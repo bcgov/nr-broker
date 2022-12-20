@@ -85,6 +85,16 @@ spec:
                 secretKeyRef:
                   name: nr-broker-jwt-creds
                   key: secret
+            - name: JWT_VALIDATION_SUB
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-jwt-validation
+                  key: sub-allow-list
+            - name: JWT_VALIDATION_JTI_DENY
+              valueFrom:
+                secretKeyRef:
+                  name: nr-broker-jwt-validation
+                  key: jti-deny-list
             - name: USER_ADMIN
               valueFrom:
                 secretKeyRef:
