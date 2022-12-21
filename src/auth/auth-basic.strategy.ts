@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
-import { BrokerJwtPayload } from './broker-jwt.interface';
+import { BrokerJwtDto } from './broker-jwt.dto';
 
 @Injectable()
 export class BasicStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +17,7 @@ export class BasicStrategy extends PassportStrategy(Strategy) {
     _req: any,
     username: string,
     password: string,
-  ): Promise<BrokerJwtPayload | null> => {
+  ): Promise<BrokerJwtDto | null> => {
     if (
       this.configService.get<string>('HTTP_BASIC_USER') === username &&
       this.configService.get<string>('HTTP_BASIC_PASS') === password

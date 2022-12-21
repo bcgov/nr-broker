@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ActionError } from './action.error';
+import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
 
@@ -21,8 +22,27 @@ export class ActionService {
     ? process.env.USER_DEVELOPER.split(',')
     : '';
 
-  public validate(intention: IntentionDto, action: any): ActionError | null {
+  public validate(
+    intention: IntentionDto,
+    action: ActionDto,
+  ): ActionError | null {
+    // Temporary
+    if (
+      intention.jwt.projects &&
+      intention.jwt.projects.indexOf(action.service.project) === -1
+    ) {
+      return {
+        message: 'Token not authorized for this project',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.service.project',
+          value: action.service.project,
+        },
+      };
+    }
     if (action instanceof DatabaseAccessActionDto) {
+      // Temporary
       if (intention.user.id === 'unknown') {
         return {
           message: 'Database access requires a user to evaluate authorization',
@@ -34,6 +54,7 @@ export class ActionService {
           },
         };
       } else if (
+        !!intention.jwt.delegatedUserAuth ||
         this.USER_ADMIN.indexOf(intention.user.id) !== -1 ||
         this.USER_DBA.indexOf(intention.user.id) !== -1
       ) {
