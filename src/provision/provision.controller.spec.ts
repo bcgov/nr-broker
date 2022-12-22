@@ -1,13 +1,16 @@
+import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProvisionController } from './provision.controller';
 
-xdescribe('ProvisionController', () => {
+describe('ProvisionController', () => {
   let controller: ProvisionController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProvisionController],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     controller = module.get<ProvisionController>(ProvisionController);
   });
