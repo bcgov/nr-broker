@@ -85,6 +85,7 @@ export class AuditService {
       },
     ])
       .pipe(
+        map(this.addAuthFunc(intention.jwt)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),

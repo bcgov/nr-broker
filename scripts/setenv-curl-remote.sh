@@ -25,4 +25,6 @@ if [ -n "$1" ] && [ -n "$2" ]
 
   export BASIC_HTTP_USER=$(oc get secret nr-broker-basic-creds -n $1-$2 -o go-template --template="{{.data.user|base64decode}}")
   export BASIC_HTTP_PASSWORD=$(oc get secret nr-broker-basic-creds -n $1-$2 -o go-template --template="{{.data.password|base64decode}}")
+  export JWT_SECRET=$(oc get secret nr-broker-jwt-creds -n $1-$2 -o go-template --template="{{.data.secret|base64decode}}")
+  export BROKER_JWT=$(./gen-team-jwt.mjs)
 fi
