@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
+import { map, tap } from 'rxjs';
 
 @Injectable()
 export class ProvisionService {
@@ -22,14 +23,32 @@ export class ProvisionService {
       event: {
         action: 'generate-secret-id',
         category: 'configuration',
-        type: 'creation',
+        type: 'start',
       },
     });
-    return this.tokenService.provisionSecretId(
-      actionDto.service.project,
-      actionDto.service.name,
-      actionDto.service.environment,
-    );
+    return this.tokenService
+      .provisionSecretId(
+        actionDto.service.project,
+        actionDto.service.name,
+        actionDto.service.environment,
+      )
+      .pipe(
+        tap((response) => {
+          this.auditService.recordIntentionActionUsage(req, actionDto, {
+            auth: {
+              client_token: response.audit.clientToken,
+            },
+            event: {
+              action: 'generate-secret-id',
+              category: 'configuration',
+              type: 'creation',
+            },
+          });
+        }),
+        map((response) => {
+          return response.wrappedToken;
+        }),
+      );
   }
 
   /**
@@ -43,14 +62,32 @@ export class ProvisionService {
       event: {
         action: 'generate-token',
         category: 'configuration',
-        type: 'creation',
+        type: 'start',
       },
     });
-    return this.tokenService.provisionToken(
-      actionDto.service.project,
-      actionDto.service.name,
-      actionDto.service.environment,
-      roleId,
-    );
+    return this.tokenService
+      .provisionToken(
+        actionDto.service.project,
+        actionDto.service.name,
+        actionDto.service.environment,
+        roleId,
+      )
+      .pipe(
+        tap((response) => {
+          this.auditService.recordIntentionActionUsage(req, actionDto, {
+            auth: {
+              client_token: response.audit.clientToken,
+            },
+            event: {
+              action: 'generate-token',
+              category: 'configuration',
+              type: 'creation',
+            },
+          });
+        }),
+        map((response) => {
+          return response.wrappedToken;
+        }),
+      );
   }
 }

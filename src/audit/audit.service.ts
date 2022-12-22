@@ -239,6 +239,7 @@ export class AuditService {
    */
   public recordAuth(
     req: any,
+    user: any,
     type: 'start' | 'end',
     outcome: 'success' | 'failure' | 'unknown',
   ) {
@@ -255,6 +256,7 @@ export class AuditService {
       },
     ])
       .pipe(
+        map(this.addAuthFunc(user)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
@@ -343,6 +345,28 @@ export class AuditService {
         transaction: {
           id: action.transaction.hash,
         },
+      });
+    };
+  }
+
+  /**
+   * Map function generator for adding user auth fields to ECS document
+   * @param user The action DTO
+   * @returns Function to manipulate the ECS document
+   */
+  private addAuthFunc(user: any) {
+    return (ecsObj: any) => {
+      if (!user) {
+        return ecsObj;
+      }
+      return merge(ecsObj, {
+        auth: this.removeUndefined({
+          exp: user?.exp,
+          iat: user?.iat,
+          nbf: user?.nbf,
+          jti: user?.jti,
+          sub: user?.sub,
+        }),
       });
     };
   }

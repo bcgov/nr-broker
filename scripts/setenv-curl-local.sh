@@ -7,4 +7,6 @@ export PROVISION_ROLE_ID=$(vault read -format json auth/vs_apps_approle/role/flu
 
 export BASIC_HTTP_USER=myusername
 export BASIC_HTTP_PASSWORD=password123
+export JWT_SECRET=secret
+export BROKER_JWT=$(./gen-team-jwt.mjs)
 export BROKER_URL=http://localhost:3000

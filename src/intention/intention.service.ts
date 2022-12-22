@@ -6,6 +6,7 @@ import {
 import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
+import { plainToInstance } from 'class-transformer';
 import { PersistenceService } from '../persistence/persistence.service';
 import { IntentionDto } from './dto/intention.dto';
 import {
@@ -16,6 +17,7 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { ActionError } from './action.error';
+import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -59,6 +61,7 @@ export class IntentionService {
       ...this.createTokenAndHash(),
       start: startDate.toISOString(),
     };
+    intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
     for (const action of intentionDto.actions) {
       const validationResult = this.actionService.validate(
         intentionDto,

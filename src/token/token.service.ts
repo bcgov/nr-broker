@@ -8,6 +8,8 @@ import {
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   TOKEN_SERVICE_WRAP_TTL,
+  VAULT_SYNC_APP_AUTH_MOUNT,
+  VAULT_AUDIT_DEVICE_NAME,
 } from '../constants';
 
 interface VaultTokenLookupDto {
@@ -62,13 +64,33 @@ export class TokenService {
     return this.httpService
       .post(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareWrappedResponseConfig(),
       )
       .pipe(
         map((response) => {
           return response.data;
+        }),
+        switchMap((wrappedToken) => {
+          return this.httpService
+            .post(
+              `${this.vaultAddr}/v1/sys/audit-hash/file`,
+              {
+                input: wrappedToken.wrap_info.token,
+              },
+              this.prepareConfig(),
+            )
+            .pipe(
+              map((auditResponse) => {
+                return {
+                  audit: {
+                    clientToken: auditResponse.data.data.hash,
+                  },
+                  wrappedToken,
+                };
+              }),
+            );
         }),
       );
   }
@@ -85,7 +107,7 @@ export class TokenService {
     return this.httpService
       .post(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
         null,
         this.prepareConfig(),
       )
@@ -96,7 +118,7 @@ export class TokenService {
         switchMap((secretId) => {
           return this.httpService
             .post(
-              `${this.vaultAddr}/v1/auth/vs_apps_approle/login`,
+              `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/login`,
               {
                 role_id: roleId,
                 secret_id: secretId,
@@ -106,6 +128,26 @@ export class TokenService {
             .pipe(
               map((response) => {
                 return response.data;
+              }),
+            );
+        }),
+        switchMap((wrappedToken) => {
+          return this.httpService
+            .post(
+              `${this.vaultAddr}/v1/sys/audit-hash/${VAULT_AUDIT_DEVICE_NAME}`,
+              {
+                input: wrappedToken.wrap_info.token,
+              },
+              this.prepareConfig(),
+            )
+            .pipe(
+              map((auditResponse) => {
+                return {
+                  audit: {
+                    clientToken: auditResponse.data.data.hash,
+                  },
+                  wrappedToken,
+                };
               }),
             );
         }),
@@ -123,7 +165,7 @@ export class TokenService {
     return this.httpService
       .get(
         // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/vs_apps_approle/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
+        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
         this.prepareConfig(),
       )
       .pipe(

@@ -8,7 +8,7 @@ echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
-    -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
+    -H "Authorization: Bearer $BROKER_JWT" \
     -d @<(cat provision-fluentbit-intention.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.id=\"$(whoami)\" | \

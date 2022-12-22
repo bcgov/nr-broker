@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { ActionDto } from './action.dto';
 import { actionFactory } from './action.util';
+import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
 import { EventDto } from './event.dto';
 import { TransactionDto } from './transaction.dto';
 import { UserDto } from './user.dto';
@@ -22,6 +23,10 @@ export class IntentionDto {
 
     if (object.event) {
       object.event = plainToInstance(EventDto, object.event);
+    }
+
+    if (object.jwt) {
+      object.jwt = plainToInstance(BrokerJwtDto, object.jwt);
     }
 
     if (object.transaction) {
@@ -42,6 +47,11 @@ export class IntentionDto {
   @ValidateNested()
   @IsDefined()
   event: EventDto;
+
+  @ValidateNested()
+  @IsOptional()
+  @ApiHideProperty()
+  jwt?: BrokerJwtDto;
 
   @ValidateNested()
   @IsOptional()

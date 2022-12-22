@@ -8,7 +8,7 @@ echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
-    -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
+    -H "Authorization: Bearer $BROKER_JWT" \
     -d @<(cat provision-db-intention.json | \
         jq ".event.url=\"http://sample.com/job\" \
         " \
@@ -30,10 +30,15 @@ echo "===> DB provision"
 DB_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.actions.database.token')
 echo "DB_INTENTION_TOKEN: $DB_INTENTION_TOKEN"
 
-# Get secret id for db access
-JENKINS_VAULT_TOKEN=$(curl -s -X POST $BROKER_URL/v1/provision/token/self -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"'' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'')
+# Get wrapped id for db access
+VAULT_TOKEN_WRAP=$(curl -s -X POST $BROKER_URL/v1/provision/token/self -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"'' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'')
 echo "$BROKER_URL/v1/provision/token/self:"
-echo $JENKINS_VAULT_TOKEN | jq '.'
+echo $VAULT_TOKEN_WRAP | jq '.'
+WRAPPED_VAULT_TOKEN=$(echo $VAULT_TOKEN_WRAP | jq -r '.wrap_info.token')
+echo $WRAPPED_VAULT_TOKEN
+
+UNWRAPPED_VAULT_TOKEN=$(curl -s -X POST $VAULT_ADDR/v1/sys/wrapping/unwrap -H 'X-Vault-Token: '"$WRAPPED_VAULT_TOKEN"'')
+echo $UNWRAPPED_VAULT_TOKEN | jq '.'
 
 # Not shown: Use Vault Token to access database
 

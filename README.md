@@ -48,9 +48,9 @@ $ source ./setenv-curl-local.sh
 # Health check
 $ ./health.sh
 # Get token
-$ ./config-jenkins.sh
+$ ./provision-db-demo.sh
 # Get secret id for provisioning fluentbit
-$ ./provision-fluent-bit.sh
+$ ./provision-fluentbit-demo.sh
 ```
 
 ## Test

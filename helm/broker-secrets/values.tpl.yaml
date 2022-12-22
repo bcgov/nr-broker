@@ -8,3 +8,5 @@ vault:
 auth:
   user: ""
   password: ""
+  jwt_secret: ""
+
