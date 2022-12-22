@@ -6,6 +6,7 @@ INSTALL_VERSION="12.0.3"
 
 echo "===> Intention open"
 # Open intention
+# -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
@@ -38,9 +39,11 @@ WRAPPED_VAULT_TOKEN=$(echo $VAULT_TOKEN_WRAP | jq -r '.wrap_info.token')
 echo $WRAPPED_VAULT_TOKEN
 
 UNWRAPPED_VAULT_TOKEN=$(curl -s -X POST $VAULT_ADDR/v1/sys/wrapping/unwrap -H 'X-Vault-Token: '"$WRAPPED_VAULT_TOKEN"'')
-echo $UNWRAPPED_VAULT_TOKEN | jq '.'
+# echo $UNWRAPPED_VAULT_TOKEN | jq '.'
 
-# Not shown: Use Vault Token to access database
+# Not shown: Use Vault Token to access database -- Lookup self to hit Vault API with token
+RESPONSE=$(curl -s -X GET $VAULT_ADDR/v1/auth/token/lookup-self -H 'X-Vault-Token: '"$(echo -n $UNWRAPPED_VAULT_TOKEN | jq -r '.auth.client_token')"'')
+# echo $RESPONSE
 
 echo "===> Intention close"
 
