@@ -57,4 +57,22 @@ export class IntentionController {
     }
     await this.intentionService.close(request, token, outcome, reason);
   }
+
+  @Post('action/end')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  async actionEnd(@Req() request: Request) {
+    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
+    const actionToken =
+      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
+    await this.intentionService.actionLifecycle(request, actionToken, 'end');
+  }
+
+  @Post('action/start')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  async actionStart(@Req() request: Request) {
+    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
+    const actionToken =
+      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
+    await this.intentionService.actionLifecycle(request, actionToken, 'start');
+  }
 }

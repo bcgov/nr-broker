@@ -34,12 +34,14 @@ export class ActionDto {
   @IsIn([
     'database-access',
     'server-access',
+    'package-configure',
     'package-installation',
     'package-provision',
   ])
   action:
     | 'database-access'
     | 'server-access'
+    | 'package-configure'
     | 'package-installation'
     | 'package-provision';
 

@@ -193,6 +193,48 @@ export class AuditService {
   }
 
   /**
+   * Records the lifecycle of an action to the audit activity log
+   * @param req The initiating http request
+   * @param action The action DTO
+   * @param type Start or end of lifecycle
+   */
+  public recordIntentionActionLifecycle(
+    req: any,
+    action: ActionDto,
+    type: 'start' | 'end',
+  ) {
+    const now = new Date();
+    from([
+      this.removeUndefined({
+        event: {
+          action: `action-${action.action}-${type}`,
+          category: 'process',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+        },
+        user: {
+          id: action.user.id,
+        },
+      }),
+    ])
+      .pipe(
+        map(this.addActionFunc(action)),
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc(now)),
+      )
+      .subscribe((ecsObj) => {
+        this.logger.debug(JSON.stringify(ecsObj));
+        this.kinesisService.putRecord(ecsObj);
+      });
+  }
+
+  /**
    * Records the usage of an intention action in the audit activity log
    * @param req The initiating http request
    * @param action The action DTO
@@ -380,7 +422,7 @@ export class AuditService {
   private addEcsFunc(ecsObj: any) {
     return merge(ecsObj, {
       ecs: {
-        version: '1.12.0',
+        version: '8.4.0',
       },
     });
   }

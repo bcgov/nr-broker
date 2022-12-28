@@ -129,6 +129,28 @@ export class IntentionService {
   }
 
   /**
+   * Logs the start and end of an action
+   * @param req The associated request object
+   * @param token The intention action token
+   * @param type Start or end of action
+   * @returns Promise returning true if successfully logged and false otherwise
+   */
+  public async actionLifecycle(
+    req: Request,
+    actionToken: string,
+    type: 'start' | 'end',
+  ): Promise<boolean> {
+    const action = await this.persistenceService.getIntentionAction(
+      actionToken,
+    );
+    if (!action) {
+      throw new NotFoundException();
+    }
+    this.auditService.recordIntentionActionLifecycle(req, action, type);
+    return true;
+  }
+
+  /**
    * Creates a unique token and cooresponding hash of it.
    * @returns Object containing token and hash
    */
