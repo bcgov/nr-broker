@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { IntentionDto } from './dto/intention.dto';
+import { UnknownActionBadRequestException } from './dto/unknown-action-bad-request.exception';
 
 @Injectable()
 export class IntentionDtoValidationPipe implements PipeTransform {
@@ -14,16 +15,23 @@ export class IntentionDtoValidationPipe implements PipeTransform {
       return value;
     }
     // Validate as a generic intention
-    const object = IntentionDto.plainToInstance(value);
-    const errors = await validate(object, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-    });
-    if (errors.length > 0) {
+    try {
+      const object = IntentionDto.plainToInstance(value);
+      const errors = await validate(object, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+      });
+      if (errors.length > 0) {
+        throw new BadRequestException('Validation failed');
+      }
+      return object;
+    } catch (error) {
+      if (error instanceof UnknownActionBadRequestException) {
+        throw error;
+      }
       throw new BadRequestException('Validation failed');
     }
-    return object;
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
