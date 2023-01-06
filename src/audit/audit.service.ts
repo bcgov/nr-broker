@@ -404,6 +404,7 @@ export class AuditService {
       }
       return merge(ecsObj, {
         auth: this.removeUndefined({
+          client_id: user?.client_id,
           exp: user?.exp,
           exp_timestamp: this.secondsToISOString(user?.exp),
           iat: user?.iat,
