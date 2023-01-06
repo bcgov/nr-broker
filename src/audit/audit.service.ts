@@ -405,8 +405,11 @@ export class AuditService {
       return merge(ecsObj, {
         auth: this.removeUndefined({
           exp: user?.exp,
+          exp_timestamp: this.secondsToISOString(user?.exp),
           iat: user?.iat,
+          iat_timestamp: this.secondsToISOString(user?.iat),
           nbf: user?.nbf,
+          nbf_timestamp: this.secondsToISOString(user?.nbf),
           jti: user?.jti,
           sub: user?.sub,
         }),
@@ -601,5 +604,17 @@ export class AuditService {
         }),
       });
     };
+  }
+
+  /**
+   * Converts seconds since unix epoch to ISO string date
+   * @param seconds The seconds since unix epoch
+   * @returns ISO string date
+   */
+  private secondsToISOString(seconds: number | undefined): string | undefined {
+    if (!seconds) {
+      return undefined;
+    }
+    return new Date(seconds * 1000).toISOString();
   }
 }
