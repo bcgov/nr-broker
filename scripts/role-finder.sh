@@ -26,7 +26,8 @@ if [ -n "$1" ]
   echo "dev: $DEV_ROLE_ID"
   echo "test: $TEST_ROLE_ID"
   echo "prod: $PROD_ROLE_ID"
+  echo "Wrapped token:"
   VAULT_WRAP_JSON=$(echo "{\"app\": \"$2 : $3\", \"dev\": \"$DEV_ROLE_ID\", \"test\": \"$TEST_ROLE_ID\", \"prod\": \"$PROD_ROLE_ID\"}" | \
-    VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault write -format json /sys/wrapping/wrap -)
+    VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault write -format json /sys/wrapping/wrap - | jq '.wrap_info.token')
   echo $VAULT_WRAP_JSON | jq '.'
 fi
