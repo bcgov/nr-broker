@@ -13,11 +13,11 @@ const header = {
 };
 
 const MILLISECONDS_IN_SECOND = 1000;
-const DAYS_30_IN_SECONDS = 60 * 60 * 24 * 30;
+const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;
 const ISSUED_AT = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
 
 const payload = {
-  exp: ISSUED_AT + DAYS_30_IN_SECONDS,
+  exp: ISSUED_AT + DAYS_90_IN_SECONDS,
   iat: ISSUED_AT,
   nbf: ISSUED_AT,
   jti: randomUUID(),
