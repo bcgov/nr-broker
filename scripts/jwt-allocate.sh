@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 # ./jwt-allocate.sh plate prod oneteam@victoria1.gov.bc.ca client_id
-#  $1: vault environment
-#  $2: project name
-#  $3: service name
+#  $1: license plate
+#  $2: environment
+#  $3: team email (subject)
+#  $4: client_id (optional)
 
 if [ -z "$1" ]
   then
