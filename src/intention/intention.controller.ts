@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBasicAuth, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
@@ -24,7 +24,6 @@ export class IntentionController {
 
   @Post('open')
   @UseGuards(BrokerAuthGuard)
-  @ApiBasicAuth()
   @ApiBearerAuth()
   openIntention(
     @Req() request: Request,
