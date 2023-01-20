@@ -12,9 +12,13 @@ import {
 import { UserDto } from './user.dto';
 import { ServiceDto } from './service.dto';
 import { TransactionDto } from './transaction.dto';
+import { CloudDto } from './cloud.dto';
 
 export class ActionDto {
   static plainToInstance(object: any): ActionDto {
+    if (object.cloud) {
+      object.cloud = CloudDto.plainToInstance(object.cloud);
+    }
     if (object.service) {
       object.service = plainToInstance(ServiceDto, object.service);
     }
@@ -32,6 +36,7 @@ export class ActionDto {
 
   @IsString()
   @IsIn([
+    'backup',
     'database-access',
     'server-access',
     'package-configure',
@@ -39,6 +44,7 @@ export class ActionDto {
     'package-provision',
   ])
   action:
+    | 'backup'
     | 'database-access'
     | 'server-access'
     | 'package-configure'
@@ -50,6 +56,10 @@ export class ActionDto {
 
   @IsArray()
   provision: string[];
+
+  @ValidateNested()
+  @IsOptional()
+  cloud?: CloudDto;
 
   @ValidateNested()
   @IsDefined()
@@ -74,4 +84,12 @@ export class ActionDto {
   @IsBoolean()
   @ApiHideProperty()
   valid?: boolean;
+
+  @IsOptional()
+  @IsString()
+  vaultEnvironment?: 'production' | 'test' | 'development';
+
+  @IsOptional()
+  @IsString()
+  vaultInstance?: 'production' | 'test' | 'development';
 }

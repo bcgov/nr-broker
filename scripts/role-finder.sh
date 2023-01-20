@@ -33,7 +33,10 @@ then
   echo "test: $TEST_ROLE_ID"
   echo "prod: $PROD_ROLE_ID"
   echo "Wrapped token:"
-  VAULT_WRAP_JSON=$(echo "{\"service\": \"$2 : $3\", \"dev\": \"$DEV_ROLE_ID\", \"test\": \"$TEST_ROLE_ID\", \"prod\": \"$PROD_ROLE_ID\", \"vault_env\": \"$1\"}" | \
+  VAULT_WRAP_JSON=$(echo "{\"info\":{\"project\": \"$2\", \"service\": \"$3\", \"vault_env\": \"$1\"}, \
+    \"auth/vs_apps_approle/role/$2_$3_dev/role-id\": \"$DEV_ROLE_ID\", \
+    \"auth/vs_apps_approle/role/$2_$3_test/role-id\": \"$TEST_ROLE_ID\", \
+    \"auth/vs_apps_approle/role/$2_$3_prod/role-id\": \"$PROD_ROLE_ID\"}" | \
     VAULT_ADDR=$VAULT_ADDR VAULT_TOKEN=$VAULT_TOKEN vault write -format json /sys/wrapping/wrap - | jq '.wrap_info.token')
   echo $VAULT_WRAP_JSON | jq '.'
 fi

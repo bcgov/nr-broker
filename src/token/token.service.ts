@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { map, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap } from 'rxjs';
 import {
   IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
@@ -171,6 +171,17 @@ export class TokenService {
       .pipe(
         map((response) => {
           return response.data.data.role_id;
+        }),
+        catchError((err) => {
+          if (err.response.status === 403) {
+            throw new BadRequestException({
+              statusCode: 403,
+              message: 'Vault forbidden access',
+              error: `Check broker access to ${projectName} : ${appName}`,
+            });
+          } else {
+            throw err;
+          }
         }),
       );
   }

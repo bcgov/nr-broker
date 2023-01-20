@@ -1,3 +1,4 @@
+import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { IntentionController } from './intention.controller';
@@ -12,14 +13,7 @@ xdescribe('IntentionController', () => {
       providers: [IntentionService],
       imports: [PersistenceModule],
     })
-      .useMocker((token) => {
-        if (token === IntentionService) {
-          return {
-            create: jest.fn().mockResolvedValue(null),
-            close: jest.fn().mockResolvedValue(null),
-          };
-        }
-      })
+      .useMocker(createMock)
       .compile();
 
     controller = module.get<IntentionController>(IntentionController);
