@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ActionError } from './action.error';
+import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
@@ -22,10 +23,27 @@ export class ActionService {
     ? process.env.USER_DEVELOPER.split(',')
     : '';
 
+  constructor(private actionUtil: ActionUtil) {}
+
   public validate(
     intention: IntentionDto,
     action: ActionDto,
   ): ActionError | null {
+    if (
+      this.actionUtil.isProvisioned(action) &&
+      !this.actionUtil.isValidVaultEnvironment(action)
+    ) {
+      return {
+        message:
+          'Explicitly set action.vaultEnvironment when service environment is not valid for Vault. Vault environment must be production, test or development.',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.service.environment',
+          value: action.service.environment,
+        },
+      };
+    }
     // Temporary
     if (
       intention.jwt.projects &&

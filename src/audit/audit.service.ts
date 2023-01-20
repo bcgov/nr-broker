@@ -71,6 +71,7 @@ export class AuditService {
           dataset: 'broker.audit',
           kind: 'event',
           outcome: success ? 'success' : 'failure',
+          provider: intention.event.provider,
           reason: intention.event.reason,
           start: intention.transaction.start,
           type: 'start',
@@ -116,6 +117,7 @@ export class AuditService {
             dataset: 'broker.audit',
             kind: 'event',
             outcome: action.valid ? 'success' : 'failure',
+            provider: intention.event.provider,
             reason: intention.event.reason,
             type: 'info',
             url: intention.event.url,
@@ -164,6 +166,7 @@ export class AuditService {
           kind: 'event',
           end: intention.transaction.end,
           outcome: intention.transaction.outcome,
+          provider: intention.event.provider,
           reason,
           start: intention.transaction.start,
           type: 'end',
@@ -207,7 +210,7 @@ export class AuditService {
     from([
       this.removeUndefined({
         event: {
-          action: `action-${action.action}-${type}`,
+          action: `action-${action.action}`,
           category: 'process',
           dataset: 'broker.audit',
           kind: 'event',
@@ -372,6 +375,7 @@ export class AuditService {
   private addActionFunc(action: ActionDto) {
     return (ecsObj: any) => {
       return merge(ecsObj, {
+        cloud: action.cloud,
         labels: {
           action_id: action.id,
           target_project: action.service.project,

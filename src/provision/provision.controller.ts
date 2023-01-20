@@ -1,5 +1,10 @@
 import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
-import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
+import {
+  ACTION_PROVISION_APPROLE_SECRET_ID,
+  ACTION_PROVISION_TOKEN_SELF,
+  HEADER_BROKER_TOKEN,
+  HEADER_VAULT_ROLE_ID,
+} from '../constants';
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
 import { ProvisionGuard } from './provision.guard';
@@ -16,7 +21,7 @@ export class ProvisionController {
 
   @Post('approle/secret-id')
   @SetMetadata('roles', ['provision'])
-  @SetMetadata('provision', ['approle/secret-id'])
+  @SetMetadata('provision', [ACTION_PROVISION_APPROLE_SECRET_ID])
   @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
   @ApiHeader({ name: HEADER_VAULT_ROLE_ID, required: true })
@@ -29,7 +34,7 @@ export class ProvisionController {
 
   @Post('token/self')
   @SetMetadata('roles', ['provision'])
-  @SetMetadata('provision', ['token/self'])
+  @SetMetadata('provision', [ACTION_PROVISION_TOKEN_SELF])
   @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
   @ApiHeader({ name: HEADER_VAULT_ROLE_ID, required: true })

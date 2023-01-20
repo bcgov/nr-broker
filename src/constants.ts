@@ -18,9 +18,17 @@ export const SHORT_ENV_CONVERSION = {
   development: 'dev',
 };
 
+export const ACTION_PROVISION_TOKEN_SELF = 'token/self';
+export const ACTION_PROVISION_APPROLE_SECRET_ID = 'approle/secret-id';
+export const VAULT_PROVISIONED_ACTION_SET = new Set([
+  ACTION_PROVISION_TOKEN_SELF,
+  ACTION_PROVISION_APPROLE_SECRET_ID,
+]);
+
 export const IS_PRIMARY_NODE = process.env.HOSTNAME === 'nr-broker-app-0';
 
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
+export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
 export const VAULT_SYNC_APP_AUTH_MOUNT = 'vs_apps_approle';
 
 export const JWT_MAX_AGE = '90d';

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
+import { ActionUtil } from '../intention/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
@@ -9,6 +10,7 @@ import { map, tap } from 'rxjs';
 export class ProvisionService {
   private readonly logger = new Logger(TokenService.name);
   constructor(
+    private actionUtil: ActionUtil,
     private auditService: AuditService,
     private tokenService: TokenService,
   ) {}
@@ -30,7 +32,7 @@ export class ProvisionService {
       .provisionSecretId(
         actionDto.service.project,
         actionDto.service.name,
-        actionDto.service.environment,
+        this.actionUtil.resolveVaultEnvironment(actionDto),
       )
       .pipe(
         tap((response) => {
@@ -69,7 +71,7 @@ export class ProvisionService {
       .provisionToken(
         actionDto.service.project,
         actionDto.service.name,
-        actionDto.service.environment,
+        this.actionUtil.resolveVaultEnvironment(actionDto),
         roleId,
       )
       .pipe(
