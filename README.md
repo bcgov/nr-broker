@@ -74,7 +74,7 @@ The dockerfile can be built locally by setting the REPO_LOCATION.
 
 ## Deployment
 
-See: [./helm](helm/README.md)
+See: [https://github.com/bcgov-c/tenant-gitops-a03c8f](tenant-gitops-a03c8f)
 
 ## Built with NestJS
 
