@@ -91,11 +91,7 @@ $ npm run test:cov
 
 The dockerfile can be built locally by setting the REPO_LOCATION.
 
-`podman build . -t nr-broker --build-arg REPO_LOCATION=`
-
-## Deployment
-
-See: [https://github.com/bcgov-c/tenant-gitops-a03c8f](tenant-gitops-a03c8f)
+`podman build . -t nr-broker`
 
 ## Built with NestJS
 
