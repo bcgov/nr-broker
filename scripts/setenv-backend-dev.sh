@@ -1,35 +1,31 @@
 #!/usr/bin/env bash
 
-echo "$1"
-
-# Only prod has "real" secrets
+# Only a production vault instance should have real secrets
 if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
-  VAULT_ADDR="https://vault-iit.apps.silver.devops.gov.bc.ca"
-  VAULT_TOKEN=$(vault login -method=oidc -format json -tls-skip-verify | jq -r '.auth.client_token')
-  FLUENT_ROLE_ID=$(vault read -format json auth/vs_apps_approle/role/fluent_fluent-bit_prod/role-id | jq -r '.data.role_id')
-  FLUENT_SECRET_ID=$(vault write -format json -f auth/vs_apps_approle/role/fluent_fluent-bit_prod/secret-id | jq -r '.data.secret_id')
-  FLUENT_VAULT_TOKEN=$(vault write -format json -f auth/vs_apps_approle/login role_id=$FLUENT_ROLE_ID secret_id=$FLUENT_SECRET_ID | jq -r '.auth.client_token')
+  source ${0%/*}/setenv-common.sh prod
+  if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
+  export VAULT_TOKEN=$(eval $VAULT_TOKEN_CMD)
+  AUDIT_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE/role-id | jq -r '.data.role_id')
+  AUDIT_SECRET_ID=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE/secret-id | jq -r '.data.secret_id')
+  AUDIT_VAULT_TOKEN=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/login role_id=$AUDIT_ROLE_ID secret_id=$AUDIT_SECRET_ID | jq -r '.auth.client_token')
 fi
 
-# Use dev for broker development as we don't want it creating real tokens
-export VAULT_ADDR="https://vault-iit-dev.apps.silver.devops.gov.bc.ca"
-VAULT_TOKEN=$(vault login -method=oidc -format json -tls-skip-verify | jq -r '.auth.client_token')
-BROKER_ROLE_ID=$(vault read -format json auth/vs_apps_approle/role/vault_nr-broker_prod/role-id | jq -r '.data.role_id')
-BROKER_SECRET_ID=$(vault write -format json -f auth/vs_apps_approle/role/vault_nr-broker_prod/secret-id | jq -r '.data.secret_id')
-export BROKER_TOKEN=$(vault write -format json -f auth/vs_apps_approle/login role_id=$BROKER_ROLE_ID secret_id=$BROKER_SECRET_ID | jq -r '.auth.client_token')
+# Use local for broker development
+source ${0%/*}/setenv-common.sh local
+if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
+
+export VAULT_TOKEN=$(eval $VAULT_TOKEN_CMD)
+BROKER_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/role-id | jq -r '.data.role_id')
+BROKER_SECRET_ID=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/secret-id | jq -r '.data.secret_id')
+export BROKER_TOKEN=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/login role_id=$BROKER_ROLE_ID secret_id=$BROKER_SECRET_ID | jq -r '.auth.client_token')
 export VAULT_TOKEN=""
 if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
-  export VAULT_TOKEN=$FLUENT_VAULT_TOKEN
+  export VAULT_TOKEN=$AUDIT_VAULT_TOKEN
   export APP_ENVIRONMENT=development
-  export OS_INDEX_AUTH=nrm-test-broker-auth
-  export OS_INDEX_HTTP_ACCESS=nrm-test-broker-access-external
-  export OS_INDEX_ACTIVITY=nrm-test-broker-activity
 fi
 
-export HTTP_BASIC_USER=myusername
-export HTTP_BASIC_PASS=password123
 export JWT_SECRET=secret
-export JWT_VALIDATION_SUB=oneteam@victoria1.gov.bc.ca
+export JWT_VALIDATION_SUB=$JWT_DEFAULT_SUB
 export JWT_VALIDATION_JTI_DENY=
 
 export USER_ADMIN=mbystedt@idir

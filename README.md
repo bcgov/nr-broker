@@ -4,18 +4,39 @@ NR Broker handles the business logic of authenticating and validating requests f
 
 NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 
-## Installation
+## Dev setup
+
+You must have node and podman installed. Run the following command to setup the node dependencies.
 
 ```bash
 $ npm ci
 ```
 
-## Running the app
+### Setup setenv-common.sh
+
+A template for [setenv-common.sh](./scripts/setenv-common.sh.tmp) is provided. A script file like that one needs to be copied to ./scripts/setenv-common.sh. The other scripts rely on this file to set their environment varibles.
+
+### Setup redis
 
 ```bash
-# Start up local redis (works on MacOS)
+# Start up local redis
 $ podman run -p 6379:6379 --name broker-redis -d redis
-# ENV setup - Requires admin access to IIT's dev vault instance
+```
+
+### Setup vault
+```bash
+# Start up local vault
+$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault vault
+# Configure the local vault with basic setup
+$ ./scripts/vault-setup.sh
+```
+
+## Running the server
+
+This assumes redis and vault are running locally.
+
+```bash
+# ENV setup
 $ source ./scripts/setenv-backend-dev.sh
 
 # development
@@ -28,13 +49,13 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-If you want to test the kinesis then you need to request the Fluentbit token from prod vault and start the server using envconsul.
+If you want to do end-to-end testing of the auditing then you need to request the Fluentbit token from your production vault and start the server using envconsul.
 
 ```bash
 $ source ./scripts/setenv-backend-dev.sh kinesis
 
-# watch mode
-$ envconsul -config=env.hcl npm run start:dev
+# Watch mode. The env-prod.hcl file is a copy of env.hcl with production values.
+$ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
 ## API demonstrations
@@ -43,7 +64,7 @@ There are a handful of demonstration curl commands in the scripts folder.
 
 ```bash
 $ cd scripts
-# ENV setup - Requires admin access to IIT's dev vault instance
+# ENV setup
 $ source ./setenv-curl-local.sh
 # Health check
 $ ./health.sh
@@ -70,11 +91,7 @@ $ npm run test:cov
 
 The dockerfile can be built locally by setting the REPO_LOCATION.
 
-`podman build . -t nr-broker --build-arg REPO_LOCATION=`
-
-## Deployment
-
-See: [./helm](helm/README.md)
+`podman build . -t nr-broker`
 
 ## Built with NestJS
 

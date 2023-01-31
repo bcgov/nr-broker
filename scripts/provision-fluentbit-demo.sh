@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 cd "${0%/*}"
 
 INSTALL_VERSION="12.0.3"
@@ -52,6 +51,10 @@ echo "$BROKER_URL/v1/provision/approle/secret-id:"
 echo $FLUENTBIT_SECRET_ID | jq '.'
 
 # Not shown: Provision fluentbit service with Vault Token
+
+# UNWRAPPED_VAULT_TOKEN=$(curl -s -X POST $VAULT_ADDR/v1/sys/wrapping/unwrap -d '{"token": "hvs.CAESIOqIlFWlH5w6NCPt93URqB3i6DACaiwmOX_ICmyeBPMUGh4KHGh2cy5rdEtpOWx0ZmFWRW1KaFVZajh4MlFYOWQ"}' -H 'Content-Type: application/json')
+# curl -s -X GET $VAULT_ADDR/v1/cubbyhole/response -H 'X-VAULT-Token: '""'
+
 
 echo "===> Intention close"
 

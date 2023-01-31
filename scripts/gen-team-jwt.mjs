@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 
 // See: https://jwt.io
+// Assumes that following environment variables set:
+// - JWT_SECRET
+// Arguments:
+// 1: JWT sub(ject)
+// 2: JWT client_id (optional -- random one generated if not set)
 
 import { createHmac, randomUUID } from 'node:crypto';
 import process from 'node:process';
@@ -13,7 +18,7 @@ const header = {
 };
 
 const args = process.argv.slice(2);
-const sub = args[0] ? args[0] : 'oneteam@victoria1.gov.bc.ca';
+const sub = args[0] ?? process.env['JWT_DEFAULT_SUB'] ?? 'unknown';
 const clientId = args[1] ? args[1] : randomUUID();
 const MILLISECONDS_IN_SECOND = 1000;
 const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;

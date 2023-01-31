@@ -1,5 +1,5 @@
 vault {
-  address = "https://vault-iit.apps.silver.devops.gov.bc.ca"
+  address = "http://localhost:3000"
   renew_token = true
   retry {
     enabled = true
@@ -11,7 +11,7 @@ vault {
 
 secret {
     no_prefix = true
-    path = "apps/prod/fluent/fluent-bit"
+    path = "apps/kinesis"
 }
 
 exec {
