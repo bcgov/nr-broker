@@ -29,6 +29,7 @@ export const IS_PRIMARY_NODE = process.env.HOSTNAME === 'nr-broker-app-0';
 
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
-export const VAULT_SYNC_APP_AUTH_MOUNT = 'vs_apps_approle';
+export const VAULT_SYNC_APP_AUTH_MOUNT =
+  process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 
 export const JWT_MAX_AGE = '90d';
