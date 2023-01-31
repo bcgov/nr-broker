@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
-export class BrokerAuthGuard extends AuthGuard(['basic', 'jwt']) {
+export class BrokerAuthGuard extends AuthGuard(['jwt']) {
   constructor(private readonly auditService: AuditService) {
     super();
   }

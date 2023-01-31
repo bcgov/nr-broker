@@ -5,7 +5,6 @@ INSTALL_VERSION="12.0.3"
 
 echo "===> Intention open"
 # Open intention
-# -u "$BASIC_HTTP_USER:$BASIC_HTTP_PASSWORD" \
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
