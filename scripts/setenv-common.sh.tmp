@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]
+  then
+    echo "No environment supplied"
+    return 1
+fi
+
+export BROKER_ENV=$1
+export VAULT_ENV=$1
+
+export BROKER_URL=$(
+if [ -n "$BROKER_ENV" ]
+  then
+  if [ "local" = $BROKER_ENV ]
+  then
+    echo "http://localhost:3000"
+    return
+  fi
+  echo "https://broker-$VAULT_ENV.address"
+fi
+)
+export VAULT_ADDR=$(
+if [ -n "$VAULT_ENV" ]
+  then
+  if [ "local" = $VAULT_ENV ]
+  then
+    echo "https://localhost:8200"
+    return
+  fi
+  echo "https://vault-$VAULT_ENV.address"
+fi
+)
+
+export BROKER_AUDIT_INDEX_ACTIVITY=audit-test-broker-activity
+export BROKER_AUDIT_INDEX_AUTH=audit-test-broker-auth
+export BROKER_AUDIT_INDEX_HTTP_ACCESS=audit-test-broker-access-external
+
+export JWT_DEFAULT_SUB="something@example.com"
+if [ "local" = $BROKER_ENV ]
+then
+  export JWT_SECRET_CMD="echo \"secret\""
+else
+  export JWT_SECRET_CMD="echo \"placeholder\""
+fi
+
+export VAULT_AUDIT_ROLE="audit_prod"
+export VAULT_APPROLE_PATH="approle"
+export VAULT_BROKER_ROLE="broker_prod"
+if [ "local" = $VAULT_ENV ]
+then
+  export VAULT_TOKEN_CMD="echo \"myroot\""
+else
+  export VAULT_TOKEN_CMD="echo \"placeholder\""
+fi

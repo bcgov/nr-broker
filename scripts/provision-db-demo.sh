@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 cd "${0%/*}"
 
 INSTALL_VERSION="12.0.3"

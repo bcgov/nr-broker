@@ -34,19 +34,19 @@ export class AuditService {
    * @param kinesisService The Kinesis service to send audit logs to
    */
   constructor(private readonly kinesisService: KinesisService) {
-    if (process.env.OS_INDEX_ACTIVITY) {
+    if (process.env.BROKER_AUDIT_INDEX_ACTIVITY) {
       this.metadataIntentionActivity['@metadata'] = {
-        index: process.env.OS_INDEX_ACTIVITY,
+        index: process.env.BROKER_AUDIT_INDEX_ACTIVITY,
       };
     }
-    if (process.env.OS_INDEX_AUTH) {
+    if (process.env.BROKER_AUDIT_INDEX_AUTH) {
       this.metadataAuth['@metadata'] = {
-        index: process.env.OS_INDEX_AUTH,
+        index: process.env.BROKER_AUDIT_INDEX_AUTH,
       };
     }
-    if (process.env.OS_INDEX_HTTP_ACCESS) {
+    if (process.env.BROKER_AUDIT_INDEX_HTTP_ACCESS) {
       this.metadataHttpAccess['@metadata'] = {
-        index: process.env.OS_INDEX_HTTP_ACCESS,
+        index: process.env.BROKER_AUDIT_INDEX_HTTP_ACCESS,
       };
     }
   }

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd "${0%/*}"
-
 if [ -z BROKER_URL ]
 then
   BROKER_URL=http://localhost:3000
