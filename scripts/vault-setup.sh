@@ -22,7 +22,8 @@ echo "path \"*\" {  capabilities = [\"create\", \"read\", \"update\", \"delete\"
 vault write auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE policies=broker-policy
 vault write -force auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE
 
+vault audit enable file file_path=/tmp/vault-audit.txt
+
+# Sample approles for demo
 vault write -force auth/$VAULT_APPROLE_PATH/role/jenkins_jenkins-isss_prod policies=default
 vault write -force auth/$VAULT_APPROLE_PATH/role/fluent_fluent-bit_prod policies=default
-
-vault audit enable file file_path=/tmp/my-file.txt
