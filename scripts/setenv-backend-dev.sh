@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+[ -n "$ZSH_VERSION" ] && this_dir=$(dirname "${(%):-%x}") \
+    || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 
 # Only a production vault instance should have real secrets
 if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
-  source ${0%/*}/setenv-common.sh prod
+  source $this_dir/setenv-common.sh prod
   if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
   export VAULT_TOKEN=$(eval $VAULT_TOKEN_CMD)
   AUDIT_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE/role-id | jq -r '.data.role_id')
@@ -11,7 +13,7 @@ if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
 fi
 
 # Use local for broker development
-source ${0%/*}/setenv-common.sh local
+source $this_dir/setenv-common.sh local
 if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
 
 export VAULT_TOKEN=$(eval $VAULT_TOKEN_CMD)

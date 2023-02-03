@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-cd "${0%/*}"
+[ -n "$ZSH_VERSION" ] && this_dir=$(dirname "${(%):-%x}") \
+    || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
+cd "$this_dir"
 
 # ./role-finder.sh prod project service
 #  $1: vault environment
