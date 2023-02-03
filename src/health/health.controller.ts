@@ -1,5 +1,7 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
+import { Controller, Get, HttpCode, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
+import { BrokerAuthGuard } from '../auth/broker-auth.guard';
 import { HealthService } from './health.service';
 
 @Controller({
@@ -28,5 +30,13 @@ export class HealthController {
   @HttpCode(204)
   ping() {
     this.healthService.check();
+  }
+
+  @Get('token-check')
+  @HttpCode(204)
+  @UseGuards(BrokerAuthGuard)
+  @ApiBearerAuth()
+  tokenCheck() {
+    return;
   }
 }

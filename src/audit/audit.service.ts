@@ -156,6 +156,7 @@ export class AuditService {
     reason: string,
   ) {
     const now = new Date();
+    // Warning: req can be undefined!
     from([
       {
         event: {
@@ -557,6 +558,10 @@ export class AuditService {
    * @returns Function to generate partial ECS document
    */
   private addSourceFunc(req: any) {
+    if (req === undefined) {
+      return (ecsObj: any) => ecsObj;
+    }
+
     return (ecsObj: any) => {
       return merge(ecsObj, {
         source: {

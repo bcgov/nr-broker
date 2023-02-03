@@ -1,66 +1,63 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { RedisClientType } from 'redis';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
-
-const INTENTION_PREFIX = 'int-';
-const ACTION_PREFIX = 'act-';
 
 @Injectable()
 export class PersistenceService {
-  constructor(@Inject('REDIS_CLIENT') private client: RedisClientType) {}
+  constructor(
+    @InjectRepository(IntentionDto)
+    private intentionRepository: Repository<IntentionDto>,
+  ) {}
 
-  public async addIntention(
-    intention: IntentionDto,
-    ttl: number,
-  ): Promise<any> {
-    return Promise.all([
-      this.client.set(
-        `${INTENTION_PREFIX}${intention.transaction.token}`,
-        JSON.stringify(intention),
-        {
-          EX: ttl,
-        },
-      ),
-      ...intention.actions.map((action) => {
-        return this.client.set(
-          `${ACTION_PREFIX}${action.trace.token}`,
-          JSON.stringify(action),
-          {
-            EX: ttl,
-          },
-        );
-      }),
-    ]);
+  public async addIntention(intention: IntentionDto): Promise<any> {
+    return await this.intentionRepository.save(intention);
   }
 
-  public async getIntention(token: string): Promise<IntentionDto | null> {
-    const intentionStr = await this.client.get(`${INTENTION_PREFIX}${token}`);
-    return intentionStr ? JSON.parse(intentionStr) : null;
+  public async findAllIntention(): Promise<IntentionDto[]> {
+    return this.intentionRepository.find();
   }
 
-  public async getIntentionAction(token: string): Promise<any | null> {
-    const intentionActionStr = await this.client.get(
-      `${ACTION_PREFIX}${token}`,
-    );
-    return intentionActionStr ? JSON.parse(intentionActionStr) : null;
+  public async findExpiredIntentions(): Promise<IntentionDto[]> {
+    const currentTime = new Date().valueOf();
+    return this.intentionRepository.find({
+      where: { expiry: { $lt: currentTime } } as any,
+    });
   }
 
-  public async closeIntention(token: string): Promise<boolean> {
-    const intention = await this.getIntention(token);
+  public async getIntentionByToken(
+    token: string,
+  ): Promise<IntentionDto | null> {
+    return await this.intentionRepository.findOne({
+      where: { 'transaction.token': token } as any,
+    });
+  }
+
+  public async getIntentionActionByToken(
+    token: string,
+  ): Promise<ActionDto | null> {
+    const action = await this.intentionRepository
+      .findOne({
+        where: { 'actions.trace.token': token } as any,
+      })
+      .then((intention) =>
+        intention.actions.find((action) => action.trace.token === token),
+      );
+    console.log(action);
+    return action;
+  }
+
+  public async closeIntentionByToken(token: string): Promise<boolean> {
+    const intention = await this.getIntentionByToken(token);
+    return this.closeIntention(intention);
+  }
+
+  public async closeIntention(intention: IntentionDto): Promise<boolean> {
     if (intention) {
-      for (const action of intention.actions) {
-        const closeResult = await this.closeIntentionAction(
-          action.transaction.token,
-        );
-        if (!closeResult) {
-          return false;
-        }
-      }
+      await this.intentionRepository.delete(intention.id);
+      return true;
     }
-    return (await this.client.del(`${INTENTION_PREFIX}${token}`)) === 1;
-  }
-
-  public async closeIntentionAction(token: string): Promise<boolean> {
-    return (await this.client.del(`${ACTION_PREFIX}${token}`)) === 1;
+    return false;
   }
 }

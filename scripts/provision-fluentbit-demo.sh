@@ -5,7 +5,7 @@ INSTALL_VERSION="12.0.3"
 
 echo "===> Intention open"
 # Open intention
-RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
+RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30 \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
     -d @<(cat provision-fluentbit-intention.json | \

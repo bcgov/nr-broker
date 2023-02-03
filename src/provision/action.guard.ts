@@ -20,7 +20,7 @@ export class ActionGuard implements CanActivate {
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
 
     const action = actionFactory(
-      await this.persistenceService.getIntentionAction(token),
+      await this.persistenceService.getIntentionActionByToken(token),
     );
     const errors = await validate(action, {
       whitelist: true,

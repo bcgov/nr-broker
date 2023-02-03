@@ -22,6 +22,8 @@ export VAULT_TOKEN=""
 if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
   export VAULT_TOKEN=$AUDIT_VAULT_TOKEN
   export APP_ENVIRONMENT=development
+else
+  unset APP_ENVIRONMENT
 fi
 
 export JWT_SECRET=secret
