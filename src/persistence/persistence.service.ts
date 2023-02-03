@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 
@@ -8,7 +8,7 @@ import { IntentionDto } from '../intention/dto/intention.dto';
 export class PersistenceService {
   constructor(
     @InjectRepository(IntentionDto)
-    private intentionRepository: Repository<IntentionDto>,
+    private intentionRepository: MongoRepository<IntentionDto>,
   ) {}
 
   public async addIntention(intention: IntentionDto): Promise<any> {
@@ -41,10 +41,10 @@ export class PersistenceService {
       .findOne({
         where: { 'actions.trace.token': token } as any,
       })
+      // project the matching ActionDto
       .then((intention) =>
         intention.actions.find((action) => action.trace.token === token),
       );
-    console.log(action);
     return action;
   }
 
@@ -55,8 +55,8 @@ export class PersistenceService {
 
   public async closeIntention(intention: IntentionDto): Promise<boolean> {
     if (intention) {
-      await this.intentionRepository.delete(intention.id);
-      return true;
+      const result = await this.intentionRepository.delete(intention.id);
+      return result.affected === 1;
     }
     return false;
   }
