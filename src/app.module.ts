@@ -15,6 +15,14 @@ import { KinesisModule } from './kinesis/kinesis.module';
 import { IntentionModule } from './intention/intention.module';
 import { PersistenceModule } from './persistence/persistence.module';
 
+function envToObj(key: string, envName: string) {
+  return process.env[envName]
+    ? {
+        [key]: process.env[envName],
+      }
+    : {};
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,15 +44,18 @@ import { PersistenceModule } from './persistence/persistence.module';
         autoLoadEntities: true,
         useUnifiedTopology: true,
       },
-      ...(process.env.DB_SSL_CA && process.env.DB_SSL_KEY
+      ...(process.env.DB_SSL
         ? {
             ssl: true,
             sslValidate: true,
-            sslCA: process.env.DB_SSL_CA,
-            sslKey: process.env.DB_SSL_KEY,
-            replicaSet: 'rs0',
           }
         : {}),
+      ...envToObj('sslCA', 'DB_SSL_CA'),
+      ...envToObj('sslCert', 'DB_SSL_CERT'),
+      ...envToObj('sslKey', 'DB_SSL_KEY'),
+      ...envToObj('sslPass', 'DB_SSL_PASS'),
+      ...envToObj('sslCRL', 'DB_SSL_CRL'),
+      ...envToObj('replicaSet', 'DB_REPLICA_SET'),
     }),
     HealthModule,
     IntentionModule,
