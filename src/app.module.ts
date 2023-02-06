@@ -36,12 +36,13 @@ import { PersistenceModule } from './persistence/persistence.module';
         autoLoadEntities: true,
         useUnifiedTopology: true,
       },
-      ...(process.env.DB_SSL_CA && process.env.DB_SSL_CERT
+      ...(process.env.DB_SSL_CA && process.env.DB_SSL_KEY
         ? {
             ssl: true,
             sslValidate: true,
             sslCA: process.env.DB_SSL_CA,
             sslKey: process.env.DB_SSL_KEY,
+            replicaSet: 'rs0',
           }
         : {}),
     }),
