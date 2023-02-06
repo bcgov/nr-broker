@@ -41,7 +41,7 @@ import { PersistenceModule } from './persistence/persistence.module';
             ssl: true,
             sslValidate: true,
             sslCA: process.env.DB_SSL_CA,
-            sslCert: process.env.DB_SSL_CERT,
+            sslKey: process.env.DB_SSL_KEY,
           }
         : {}),
     }),
