@@ -6,6 +6,7 @@ import {
 import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { PersistenceService } from '../persistence/persistence.service';
 import { IntentionDto } from './dto/intention.dto';
@@ -13,6 +14,7 @@ import {
   INTENTION_DEFAULT_TTL_SECONDS,
   INTENTION_MAX_TTL_SECONDS,
   INTENTION_MIN_TTL_SECONDS,
+  IS_PRIMARY_NODE,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
@@ -23,7 +25,7 @@ export interface IntentionOpenResponse {
   actions: any;
   token: string;
   transaction_id: string;
-  ttl: number;
+  expiry: string;
 }
 
 @Injectable()
@@ -62,6 +64,7 @@ export class IntentionService {
       start: startDate.toISOString(),
     };
     intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
+    intentionDto.expiry = startDate.valueOf() + ttl * 1000;
     for (const action of intentionDto.actions) {
       const validationResult = this.actionService.validate(
         intentionDto,
@@ -90,12 +93,12 @@ export class IntentionService {
         error: actionFailures,
       });
     }
-    await this.persistenceService.addIntention(intentionDto, ttl);
+    await this.persistenceService.addIntention(intentionDto);
     return {
       actions,
       token: intentionDto.transaction.token,
       transaction_id: intentionDto.transaction.hash,
-      ttl,
+      expiry: new Date(intentionDto.expiry).toUTCString(),
     };
   }
 
@@ -113,19 +116,28 @@ export class IntentionService {
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
   ): Promise<boolean> {
-    const intentionDto: IntentionDto =
-      await this.persistenceService.getIntention(token);
-    if (!intentionDto) {
+    const intention: IntentionDto =
+      await this.persistenceService.getIntentionByToken(token);
+    if (!intention) {
       throw new NotFoundException();
     }
-    const endDate = new Date();
-    const startDate = new Date(intentionDto.transaction.start);
-    intentionDto.transaction.end = endDate.toISOString();
-    intentionDto.transaction.duration = endDate.valueOf() - startDate.valueOf();
-    intentionDto.transaction.outcome = outcome;
+    return this.finalizeIntention(intention, outcome, reason, req);
+  }
 
-    this.auditService.recordIntentionClose(req, intentionDto, reason);
-    return this.persistenceService.closeIntention(token);
+  private finalizeIntention(
+    intention: IntentionDto,
+    outcome: 'failure' | 'success' | 'unknown',
+    reason: string | undefined,
+    req: Request = undefined,
+  ): Promise<boolean> {
+    const endDate = new Date();
+    const startDate = new Date(intention.transaction.start);
+    intention.transaction.end = endDate.toISOString();
+    intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
+    intention.transaction.outcome = outcome;
+
+    this.auditService.recordIntentionClose(req, intention, reason);
+    return this.persistenceService.closeIntention(intention);
   }
 
   /**
@@ -140,7 +152,7 @@ export class IntentionService {
     actionToken: string,
     type: 'start' | 'end',
   ): Promise<boolean> {
-    const action = await this.persistenceService.getIntentionAction(
+    const action = await this.persistenceService.getIntentionActionByToken(
       actionToken,
     );
     if (!action) {
@@ -162,5 +174,19 @@ export class IntentionService {
       token,
       hash: hasher.digest('hex'),
     };
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleIntentionExpiry() {
+    if (!IS_PRIMARY_NODE) {
+      // Nodes that are not the primary one should not do expiry
+      return;
+    }
+
+    const expiredIntentionArr =
+      await this.persistenceService.findExpiredIntentions();
+    for (const intention of expiredIntentionArr) {
+      await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
+    }
   }
 }

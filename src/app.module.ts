@@ -1,6 +1,8 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
@@ -19,6 +21,18 @@ import { PersistenceModule } from './persistence/persistence.module';
       ignoreEnvFile: true,
     }),
     ScheduleModule.forRoot(),
+    TypeOrmModule.forRoot({
+      type: 'mongodb',
+      host: process.env.DB_HOST ?? 'localhost',
+      port: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 27017,
+      username: process.env.DB_USERNAME ?? 'mongoadmin',
+      password: process.env.DB_PASSWORD ?? 'secret',
+      database: process.env.DB_DATABASE ?? 'test',
+      authSource: process.env.DB_AUTH_SOURCE ?? 'admin',
+      synchronize: true,
+      autoLoadEntities: true,
+      useUnifiedTopology: true,
+    }),
     HealthModule,
     IntentionModule,
     ProvisionModule,

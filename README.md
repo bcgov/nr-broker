@@ -16,11 +16,16 @@ $ npm ci
 
 A template for [setenv-common.sh](./scripts/setenv-common.sh.tmp) is provided. A script file like that one needs to be copied to ./scripts/setenv-common.sh. The other scripts rely on this file to set their environment varibles.
 
-### Setup redis
+### Setup mongodb
 
 ```bash
-# Start up local redis
-$ podman run -p 6379:6379 --name broker-redis -d redis
+# Start up local mongodb
+podman run \
+  -p 27017:27017 \
+  --name broker-mongo \
+  -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+	-e MONGO_INITDB_ROOT_PASSWORD=secret \
+  -d mongo
 ```
 
 ### Setup vault
@@ -33,7 +38,7 @@ $ ./scripts/vault-setup.sh
 
 ## Running the server
 
-This assumes redis and vault are running locally.
+This assumes mongodb and vault are running locally.
 
 ```bash
 # ENV setup

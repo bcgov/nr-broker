@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-cd "${0%/*}"
+[ -n "$ZSH_VERSION" ] && this_dir=$(dirname "${(%):-%x}") \
+    || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
+cd "$this_dir"
 
 # ./jwt-allocate.sh prod oneteam@victoria1.gov.bc.ca client_id
 #  $1: environment
