@@ -22,16 +22,27 @@ import { PersistenceModule } from './persistence/persistence.module';
     }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'mongodb',
-      host: process.env.DB_HOST ?? 'localhost',
-      port: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 27017,
-      username: process.env.DB_USERNAME ?? 'mongoadmin',
-      password: process.env.DB_PASSWORD ?? 'secret',
-      database: process.env.DB_DATABASE ?? 'test',
-      authSource: process.env.DB_AUTH_SOURCE ?? 'admin',
-      synchronize: true,
-      autoLoadEntities: true,
-      useUnifiedTopology: true,
+      ...{
+        type: 'mongodb',
+        host: process.env.DB_HOST ?? 'localhost',
+        port: process.env.DB_PORT
+          ? Number.parseInt(process.env.DB_PORT)
+          : 27017,
+        username: process.env.DB_USERNAME ?? 'mongoadmin',
+        password: process.env.DB_PASSWORD ?? 'secret',
+        database: process.env.DB_DATABASE ?? 'broker',
+        authSource: process.env.DB_AUTH_SOURCE ?? 'admin',
+        synchronize: true,
+        autoLoadEntities: true,
+        useUnifiedTopology: true,
+      },
+      ...(process.env.DB_SSL_CA && process.env.DB_SSL_CERT
+        ? {
+            sslValidate: true,
+            sslCA: process.env.DB_SSL_CA,
+            sslCert: process.env.DB_SSL_CERT,
+          }
+        : {}),
     }),
     HealthModule,
     IntentionModule,
