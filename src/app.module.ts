@@ -15,6 +15,12 @@ import { KinesisModule } from './kinesis/kinesis.module';
 import { IntentionModule } from './intention/intention.module';
 import { PersistenceModule } from './persistence/persistence.module';
 
+/**
+ * Convenience function for converting an environment variable to an object
+ * @param key Object key
+ * @param envName Name of environment variable
+ * @returns Object
+ */
 function envToObj(key: string, envName: string) {
   return process.env[envName]
     ? {
