@@ -72,6 +72,12 @@ export class ActionDto {
   @Column(() => ServiceDto)
   service: ServiceDto;
 
+  @IsOptional()
+  @IsString()
+  @ApiHideProperty()
+  @Column()
+  lifecycle?: 'started' | 'ended';
+
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()

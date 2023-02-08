@@ -48,6 +48,25 @@ export class PersistenceService {
     return action;
   }
 
+  public async setIntentionActionLifecycle(
+    token: string,
+    type: 'start' | 'end',
+  ): Promise<any> {
+    const intention = await this.intentionRepository.findOne({
+      where: { 'actions.trace.token': token } as any,
+    });
+
+    intention.actions
+      .filter((action) => action.trace.token === token)
+      .forEach((action) => {
+        action.lifecycle = type === 'start' ? 'started' : 'ended';
+      });
+    return this.intentionRepository.findOneAndReplace(
+      { _id: intention.id },
+      intention,
+    );
+  }
+
   public async closeIntentionByToken(token: string): Promise<boolean> {
     const intention = await this.getIntentionByToken(token);
     return this.closeIntention(intention);

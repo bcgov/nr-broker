@@ -158,6 +158,17 @@ export class IntentionService {
     if (!action) {
       throw new NotFoundException();
     }
+    if (
+      (type === 'start' &&
+        (action.lifecycle === 'started' || action.lifecycle === 'ended')) ||
+      (type === 'end' && action.lifecycle === 'ended')
+    ) {
+      throw new BadRequestException();
+    }
+    await this.persistenceService.setIntentionActionLifecycle(
+      actionToken,
+      type,
+    );
     this.auditService.recordIntentionActionLifecycle(req, action, type);
     return true;
   }

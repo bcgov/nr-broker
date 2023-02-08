@@ -31,6 +31,9 @@ echo "===> DB provision"
 DB_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.actions.database.token')
 echo "DB_INTENTION_TOKEN: $DB_INTENTION_TOKEN"
 
+# Start db action
+# curl -s -X POST $BROKER_URL/v1/intention/action/start -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"''
+
 # Get wrapped id for db access
 VAULT_TOKEN_WRAP=$(curl -s -X POST $BROKER_URL/v1/provision/token/self -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"'' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'')
 echo "$BROKER_URL/v1/provision/token/self:"
@@ -47,5 +50,8 @@ RESPONSE=$(curl -s -X GET $VAULT_ADDR/v1/auth/token/lookup-self -H 'X-Vault-Toke
 
 echo "===> Intention close"
 
+# End db action
+curl -s -X POST $BROKER_URL/v1/intention/action/end -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"''
+
 # Use saved intention token to close intention
-curl -s -X POST $BROKER_URL/v1/intention/close -H 'X-Broker-Token: '"$INTENTION_TOKEN"''
+# curl -s -X POST $BROKER_URL/v1/intention/close -H 'X-Broker-Token: '"$INTENTION_TOKEN"''
