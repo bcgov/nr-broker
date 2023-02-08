@@ -44,7 +44,7 @@ function envToObj(key: string, envName: string) {
           : 27017,
         username: process.env.DB_USERNAME ?? 'mongoadmin',
         password: process.env.DB_PASSWORD ?? 'secret',
-        database: process.env.DB_DATABASE ?? 'broker',
+        database: process.env.DB_DATABASE ?? 'brokerDB',
         authSource: process.env.DB_AUTH_SOURCE ?? 'admin',
         synchronize: true,
         autoLoadEntities: true,

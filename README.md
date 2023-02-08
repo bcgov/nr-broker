@@ -44,14 +44,8 @@ This assumes mongodb and vault are running locally.
 # ENV setup
 $ source ./scripts/setenv-backend-dev.sh
 
-# development
-$ npm run start
-
-# watch mode
+# Run server in watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
 If you want to do end-to-end testing of the auditing then you need to request the Fluentbit token from your production vault and start the server using envconsul.

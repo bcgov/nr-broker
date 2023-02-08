@@ -15,7 +15,7 @@ import { EventDto } from './event.dto';
 import { TransactionDto } from './transaction.dto';
 import { UserDto } from './user.dto';
 
-@Entity()
+@Entity({ name: 'intention' })
 export class IntentionDto {
   static plainToInstance(value: any): IntentionDto {
     const object = plainToInstance(IntentionDto, value);
