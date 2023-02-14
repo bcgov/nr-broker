@@ -150,9 +150,10 @@ export class IntentionService {
   public async actionLifecycle(
     req: Request,
     actionToken: string,
+    outcome: string | undefined,
     type: 'start' | 'end',
   ): Promise<boolean> {
-    const action = await this.persistenceService.getIntentionActionByToken(
+    let action = await this.persistenceService.getIntentionActionByToken(
       actionToken,
     );
     if (!action) {
@@ -165,8 +166,9 @@ export class IntentionService {
     ) {
       throw new BadRequestException();
     }
-    await this.persistenceService.setIntentionActionLifecycle(
+    action = await this.persistenceService.setIntentionActionLifecycle(
       actionToken,
+      outcome,
       type,
     );
     this.auditService.recordIntentionActionLifecycle(req, action, type);

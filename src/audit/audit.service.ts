@@ -214,7 +214,11 @@ export class AuditService {
           action: `action-${action.action}`,
           category: 'process',
           dataset: 'broker.audit',
+          duration: action.trace.duration,
+          end: action.trace.end,
           kind: 'event',
+          outcome: action.trace.outcome,
+          start: action.trace.start,
           type,
         },
         user: {
