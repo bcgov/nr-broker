@@ -119,7 +119,10 @@ export class IntentionService {
     const intention: IntentionDto =
       await this.persistenceService.getIntentionByToken(token);
     if (!intention) {
-      throw new NotFoundException();
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Intention not found',
+      });
     }
     return this.finalizeIntention(intention, outcome, reason, req);
   }
@@ -157,14 +160,21 @@ export class IntentionService {
       actionToken,
     );
     if (!action) {
-      throw new NotFoundException();
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Action not found',
+      });
     }
     if (
       (type === 'start' &&
         (action.lifecycle === 'started' || action.lifecycle === 'ended')) ||
       (type === 'end' && action.lifecycle === 'ended')
     ) {
-      throw new BadRequestException();
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal lifecycle request',
+        error: `Action's current lifecycle state (${action.lifecycle}) can not do transition: ${type}`,
+      });
     }
     action = await this.persistenceService.setIntentionActionLifecycle(
       actionToken,

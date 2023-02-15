@@ -52,7 +52,12 @@ export class IntentionController {
       outcome !== 'success' &&
       outcome !== 'unknown'
     ) {
-      throw new BadRequestException();
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal outcome',
+        error:
+          'The outcome parameter must be undefined or be one of failure, success or unknown.',
+      });
     }
     await this.intentionService.close(request, token, outcome, reason);
   }
