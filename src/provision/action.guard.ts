@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { HEADER_BROKER_TOKEN } from '../constants';
-import { PersistenceService } from '../persistence/persistence.service';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { actionFactory } from '../intention/dto/action.util';
+import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 
 @Injectable()
 export class ActionGuard implements CanActivate {
-  constructor(private persistenceService: PersistenceService) {}
+  constructor(private intentionRepository: IntentionRepository) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<ActionGuardRequest>();
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
@@ -20,7 +20,7 @@ export class ActionGuard implements CanActivate {
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
 
     const action = actionFactory(
-      await this.persistenceService.getIntentionActionByToken(token),
+      await this.intentionRepository.getIntentionActionByToken(token),
     );
     const errors = await validate(action, {
       whitelist: true,

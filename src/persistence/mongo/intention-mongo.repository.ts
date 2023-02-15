@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
-import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { ActionDto } from '../../intention/dto/action.dto';
+import { IntentionDto } from '../../intention/dto/intention.dto';
+import { IntentionRepository } from '../interfaces/intention.repository';
 
 @Injectable()
-export class PersistenceService {
+export class IntentionMongoRepository implements IntentionRepository {
   constructor(
     @InjectRepository(IntentionDto)
     private intentionRepository: MongoRepository<IntentionDto>,

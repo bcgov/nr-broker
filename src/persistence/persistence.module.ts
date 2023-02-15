@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IntentionDto } from '../intention/dto/intention.dto';
-import { PersistenceService } from './persistence.service';
+import { IntentionRepository } from './interfaces/intention.repository';
+import { IntentionMongoRepository } from './mongo/intention-mongo.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([IntentionDto])],
-  providers: [PersistenceService],
-  exports: [PersistenceService],
+  providers: [
+    IntentionMongoRepository,
+    { provide: IntentionRepository, useExisting: IntentionMongoRepository },
+  ],
+  exports: [IntentionRepository],
 })
 export class PersistenceModule {}
