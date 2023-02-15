@@ -3,18 +3,18 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JWT_MAX_AGE } from '../constants';
+import { JwtValidationRepository } from '../persistence/interfaces/jwt-validation.reposity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  private readonly JWT_VALIDATION_SUB = process.env.JWT_VALIDATION_SUB
-    ? process.env.JWT_VALIDATION_SUB.split(',')
-    : [];
+  private readonly JWT_SKIP_VALIDATION = process.env.JWT_SKIP_VALIDATION
+    ? process.env.JWT_SKIP_VALIDATION === 'true'
+    : false;
 
-  private readonly JWT_VALIDATION_JTI_DENY = process.env.JWT_VALIDATION_JTI_DENY
-    ? process.env.JWT_VALIDATION_JTI_DENY.split(',')
-    : [];
-
-  constructor(readonly configService: ConfigService) {
+  constructor(
+    readonly configService: ConfigService,
+    private jwtValidationRepository: JwtValidationRepository,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -27,14 +27,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   public async validate(_req: any, payload: any) {
-    if (this.JWT_VALIDATION_SUB.indexOf(payload.sub) === -1) {
+    console.log(this.JWT_SKIP_VALIDATION);
+    if (
+      !this.JWT_SKIP_VALIDATION &&
+      !(await this.jwtValidationRepository.matchesAllowed(payload))
+    ) {
       throw new ForbiddenException({
         statusCode: 403,
         message: 'Invalid JWT sub claim',
         error: `No authorization found for JWT sub claim: ${payload.sub}`,
       });
     }
-    if (this.JWT_VALIDATION_JTI_DENY.indexOf(payload.jti) >= 0) {
+    if (
+      !this.JWT_SKIP_VALIDATION &&
+      (await this.jwtValidationRepository.matchesBlocked(payload))
+    ) {
       throw new ForbiddenException({
         statusCode: 403,
         message: 'Invalid JWT jti claim',

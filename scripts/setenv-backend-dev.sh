@@ -29,8 +29,6 @@ else
 fi
 
 export JWT_SECRET=secret
-export JWT_VALIDATION_SUB=$JWT_DEFAULT_SUB
-export JWT_VALIDATION_JTI_DENY=
 
 export USER_ADMIN=mbystedt@idir
 export USER_DBA=dba@idir

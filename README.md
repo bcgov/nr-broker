@@ -6,7 +6,7 @@ NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 
 ## Dev setup
 
-You must have node and podman installed. Run the following command to setup the node dependencies.
+You must have mongosh, node and podman installed. Run the following command to setup the node dependencies.
 
 ```bash
 $ npm ci
@@ -34,6 +34,8 @@ podman run \
 $ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault vault
 # Configure the local vault with basic setup
 $ ./scripts/vault-setup.sh
+# Configure the local mongo with basic setup
+$ ./scripts/mongo-setup.sh
 ```
 
 ## Running the server
@@ -55,6 +57,12 @@ $ source ./scripts/setenv-backend-dev.sh kinesis
 
 # Watch mode. The env-prod.hcl file is a copy of env.hcl with production values.
 $ envconsul -config=env-prod.hcl npm run start:dev
+```
+
+### Connect to MongoDB
+
+```
+mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB
 ```
 
 ## API demonstrations

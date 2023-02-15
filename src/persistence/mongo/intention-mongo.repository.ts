@@ -44,7 +44,9 @@ export class IntentionMongoRepository implements IntentionRepository {
       })
       // project the matching ActionDto
       .then((intention) =>
-        intention.actions.find((action) => action.trace.token === token),
+        intention
+          ? intention.actions.find((action) => action.trace.token === token)
+          : null,
       );
     return action;
   }
