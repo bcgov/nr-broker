@@ -8,8 +8,8 @@ import {
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
 import { ProvisionGuard } from './provision.guard';
-import { ActionGuard } from './action.guard';
-import { ActionGuardRequest } from './action-guard-request.interface';
+import { ActionGuard } from '../intention/action.guard';
+import { ActionGuardRequest } from '../intention/action-guard-request.interface';
 import { ApiHeader } from '@nestjs/swagger';
 
 @Controller({
@@ -28,6 +28,7 @@ export class ProvisionController {
   async provisionIntentionSecretId(@Req() request: ActionGuardRequest) {
     return this.provisionService.generateSecretId(
       request,
+      request.brokerIntentionDto,
       request.brokerActionDto,
     );
   }
@@ -41,7 +42,13 @@ export class ProvisionController {
   async provisionIntentionToken(@Req() request: ActionGuardRequest) {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
+    const intentionDto = request.brokerIntentionDto;
     const actionDto = request.brokerActionDto;
-    return this.provisionService.generateToken(request, actionDto, roleId);
+    return this.provisionService.generateToken(
+      request,
+      intentionDto,
+      actionDto,
+      roleId,
+    );
   }
 }

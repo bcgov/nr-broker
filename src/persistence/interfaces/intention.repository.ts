@@ -12,6 +12,10 @@ export abstract class IntentionRepository {
     token: string,
   ): Promise<IntentionDto | null>;
 
+  public abstract getIntentionByActionToken(
+    token: string,
+  ): Promise<IntentionDto | null>;
+
   public abstract getIntentionActionByToken(
     token: string,
   ): Promise<ActionDto | null>;

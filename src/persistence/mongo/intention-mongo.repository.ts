@@ -35,6 +35,14 @@ export class IntentionMongoRepository implements IntentionRepository {
     });
   }
 
+  public async getIntentionByActionToken(
+    token: string,
+  ): Promise<IntentionDto | null> {
+    return await this.intentionRepository.findOne({
+      where: { 'actions.trace.token': token } as any,
+    });
+  }
+
   public async getIntentionActionByToken(
     token: string,
   ): Promise<ActionDto | null> {

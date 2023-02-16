@@ -27,7 +27,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   public async validate(_req: any, payload: any) {
-    console.log(this.JWT_SKIP_VALIDATION);
     if (
       !this.JWT_SKIP_VALIDATION &&
       !(await this.jwtValidationRepository.matchesAllowed(payload))

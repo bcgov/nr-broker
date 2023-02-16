@@ -42,6 +42,17 @@ export class IntentionDto {
     return object;
   }
 
+  static projectAction(
+    intention: IntentionDto,
+    token: string,
+  ): ActionDto | null {
+    if (intention) {
+      // project the matching ActionDto
+      return intention.actions.find((action) => action.trace.token === token);
+    }
+    return null;
+  }
+
   @ObjectIdColumn()
   @ApiHideProperty()
   id: ObjectID;
