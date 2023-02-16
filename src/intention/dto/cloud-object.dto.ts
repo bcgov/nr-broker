@@ -5,10 +5,12 @@ import { Entity, Column } from 'typeorm';
 @Entity()
 class CloudObjectAccountDto {
   @IsString()
+  @IsOptional()
   @Column()
   id: string;
 
   @IsString()
+  @IsOptional()
   @Column()
   name: string;
 }
@@ -16,10 +18,12 @@ class CloudObjectAccountDto {
 @Entity()
 class CloudObjectInstanceDto {
   @IsString()
+  @IsOptional()
   @Column()
   id: string;
 
   @IsString()
+  @IsOptional()
   @Column()
   name: string;
 }
@@ -34,10 +38,12 @@ class CloudObjectMachineDto {
 @Entity()
 class CloudObjectProjectDto {
   @IsString()
+  @IsOptional()
   @Column()
   id: string;
 
   @IsString()
+  @IsOptional()
   @Column()
   name: string;
 }

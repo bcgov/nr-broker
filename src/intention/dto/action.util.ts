@@ -1,5 +1,6 @@
 import { InternalServerErrorException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { BackupActionDto } from './backup.action.dto';
 import { DatabaseAccessActionDto } from './database-access-action.dto';
 import { PackageConfigureActionDto } from './package-configure-action.dto';
 import { PackageInstallationActionDto } from './package-installation-action.dto';
@@ -11,7 +12,12 @@ export function actionFactory(object: any) {
   if (!object || typeof object !== 'object') {
     throw new InternalServerErrorException();
   }
-  if (object.action === 'database-access') {
+  if (object.action === 'backup') {
+    return plainToInstance(
+      BackupActionDto,
+      BackupActionDto.plainToInstance(object),
+    );
+  } else if (object.action === 'database-access') {
     return plainToInstance(
       DatabaseAccessActionDto,
       DatabaseAccessActionDto.plainToInstance(object),
