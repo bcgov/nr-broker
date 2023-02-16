@@ -34,8 +34,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       throw new ForbiddenException({
         statusCode: 403,
-        message: 'Invalid JWT sub claim',
-        error: `No authorization found for JWT sub claim: ${payload.sub}`,
+        message: 'Invalid JWT',
+        error: `Allow list has no match`,
       });
     }
     if (
@@ -44,8 +44,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       throw new ForbiddenException({
         statusCode: 403,
-        message: 'Invalid JWT jti claim',
-        error: `Explicit denial registered for JWT jti claim: ${payload.jti}`,
+        message: 'Invalid JWT',
+        error: `Block list has match`,
       });
     }
     return payload;
