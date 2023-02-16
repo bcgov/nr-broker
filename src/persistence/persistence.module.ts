@@ -6,7 +6,7 @@ import { JwtBlockDto } from './dto/jwt-block.dto';
 import { IntentionRepository } from './interfaces/intention.repository';
 import { JwtValidationRepository } from './interfaces/jwt-validation.reposity';
 import { IntentionMongoRepository } from './mongo/intention-mongo.repository';
-import { JwtValidationMongoRepository } from './mongo/jwt-validation-mongo.reposity';
+import { JwtValidationMongoRepository } from './mongo/jwt-validation-mongo.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([IntentionDto, JwtAllowDto, JwtBlockDto])],
