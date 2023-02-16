@@ -14,7 +14,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Vault Broker')
     .setDescription('Application secret provisioner')
-    .setVersion('1.6')
+    .setVersion('1.7')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

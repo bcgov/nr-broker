@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
-import { PersistenceService } from '../persistence/persistence.service';
 import { IntentionDto } from './dto/intention.dto';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
@@ -20,6 +19,7 @@ import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
+import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -33,7 +33,7 @@ export class IntentionService {
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
-    private readonly persistenceService: PersistenceService,
+    private readonly intentionRepository: IntentionRepository,
   ) {}
 
   /**
@@ -93,7 +93,7 @@ export class IntentionService {
         error: actionFailures,
       });
     }
-    await this.persistenceService.addIntention(intentionDto);
+    await this.intentionRepository.addIntention(intentionDto);
     return {
       actions,
       token: intentionDto.transaction.token,
@@ -117,9 +117,12 @@ export class IntentionService {
     reason: string | undefined,
   ): Promise<boolean> {
     const intention: IntentionDto =
-      await this.persistenceService.getIntentionByToken(token);
+      await this.intentionRepository.getIntentionByToken(token);
     if (!intention) {
-      throw new NotFoundException();
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Intention not found',
+      });
     }
     return this.finalizeIntention(intention, outcome, reason, req);
   }
@@ -137,7 +140,7 @@ export class IntentionService {
     intention.transaction.outcome = outcome;
 
     this.auditService.recordIntentionClose(req, intention, reason);
-    return this.persistenceService.closeIntention(intention);
+    return this.intentionRepository.closeIntention(intention);
   }
 
   /**
@@ -150,23 +153,32 @@ export class IntentionService {
   public async actionLifecycle(
     req: Request,
     actionToken: string,
+    outcome: string | undefined,
     type: 'start' | 'end',
   ): Promise<boolean> {
-    const action = await this.persistenceService.getIntentionActionByToken(
+    let action = await this.intentionRepository.getIntentionActionByToken(
       actionToken,
     );
     if (!action) {
-      throw new NotFoundException();
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Action not found',
+      });
     }
     if (
       (type === 'start' &&
         (action.lifecycle === 'started' || action.lifecycle === 'ended')) ||
       (type === 'end' && action.lifecycle === 'ended')
     ) {
-      throw new BadRequestException();
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal lifecycle request',
+        error: `Action's current lifecycle state (${action.lifecycle}) can not do transition: ${type}`,
+      });
     }
-    await this.persistenceService.setIntentionActionLifecycle(
+    action = await this.intentionRepository.setIntentionActionLifecycle(
       actionToken,
+      outcome,
       type,
     );
     this.auditService.recordIntentionActionLifecycle(req, action, type);
@@ -195,7 +207,7 @@ export class IntentionService {
     }
 
     const expiredIntentionArr =
-      await this.persistenceService.findExpiredIntentions();
+      await this.intentionRepository.findExpiredIntentions();
     for (const intention of expiredIntentionArr) {
       await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
     }

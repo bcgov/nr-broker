@@ -52,18 +52,34 @@ export class IntentionController {
       outcome !== 'success' &&
       outcome !== 'unknown'
     ) {
-      throw new BadRequestException();
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal outcome',
+        error:
+          'The outcome parameter must be undefined or be one of failure, success or unknown.',
+      });
     }
     await this.intentionService.close(request, token, outcome, reason);
   }
 
   @Post('action/end')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  async actionEnd(@Req() request: Request) {
+  async actionEnd(
+    @Req() request: Request,
+    @Query('outcome') outcome: string | undefined,
+  ) {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const actionToken =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-    await this.intentionService.actionLifecycle(request, actionToken, 'end');
+    if (outcome === undefined) {
+      outcome = 'success';
+    }
+    await this.intentionService.actionLifecycle(
+      request,
+      actionToken,
+      outcome,
+      'end',
+    );
   }
 
   @Post('action/start')
@@ -72,6 +88,11 @@ export class IntentionController {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const actionToken =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-    await this.intentionService.actionLifecycle(request, actionToken, 'start');
+    await this.intentionService.actionLifecycle(
+      request,
+      actionToken,
+      undefined,
+      'start',
+    );
   }
 }

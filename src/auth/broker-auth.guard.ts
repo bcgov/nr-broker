@@ -1,5 +1,6 @@
 import {
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -23,6 +24,9 @@ export class BrokerAuthGuard extends AuthGuard(['jwt']) {
     const request = context.switchToHttp().getRequest();
     if (err || !user) {
       this.auditService.recordAuth(request, user, 'end', 'failure');
+      if (err instanceof ForbiddenException) {
+        throw err;
+      }
       throw new UnauthorizedException();
     } else {
       this.auditService.recordAuth(request, user, 'end', 'success');
