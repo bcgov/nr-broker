@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
+import { map, tap } from 'rxjs';
 import { ActionUtil } from '../intention/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
-import { map, tap } from 'rxjs';
+import { IntentionDto } from '../intention/dto/intention.dto';
 
 @Injectable()
 export class ProvisionService {
@@ -20,8 +21,12 @@ export class ProvisionService {
    * @param actionDto The action information
    * @returns A wrapped secret id
    */
-  public generateSecretId(req: Request, actionDto: ActionDto) {
-    this.auditService.recordIntentionActionUsage(req, actionDto, {
+  public generateSecretId(
+    req: Request,
+    intentionDto: IntentionDto,
+    actionDto: ActionDto,
+  ) {
+    this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
         action: 'generate-secret-id',
         category: 'configuration',
@@ -36,16 +41,21 @@ export class ProvisionService {
       )
       .pipe(
         tap((response) => {
-          this.auditService.recordIntentionActionUsage(req, actionDto, {
-            auth: {
-              client_token: response.audit.clientToken,
+          this.auditService.recordIntentionActionUsage(
+            req,
+            intentionDto,
+            actionDto,
+            {
+              auth: {
+                client_token: response.audit.clientToken,
+              },
+              event: {
+                action: 'generate-secret-id',
+                category: 'configuration',
+                type: 'creation',
+              },
             },
-            event: {
-              action: 'generate-secret-id',
-              category: 'configuration',
-              type: 'creation',
-            },
-          });
+          );
         }),
         map((response) => {
           return response.wrappedToken;
@@ -59,8 +69,13 @@ export class ProvisionService {
    * @param roleId The role id
    * @returns A wrapped token
    */
-  public generateToken(req: Request, actionDto: ActionDto, roleId: string) {
-    this.auditService.recordIntentionActionUsage(req, actionDto, {
+  public generateToken(
+    req: Request,
+    intentionDto: IntentionDto,
+    actionDto: ActionDto,
+    roleId: string,
+  ) {
+    this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
         action: 'generate-token',
         category: 'configuration',
@@ -76,16 +91,21 @@ export class ProvisionService {
       )
       .pipe(
         tap((response) => {
-          this.auditService.recordIntentionActionUsage(req, actionDto, {
-            auth: {
-              client_token: response.audit.clientToken,
+          this.auditService.recordIntentionActionUsage(
+            req,
+            intentionDto,
+            actionDto,
+            {
+              auth: {
+                client_token: response.audit.clientToken,
+              },
+              event: {
+                action: 'generate-token',
+                category: 'configuration',
+                type: 'creation',
+              },
             },
-            event: {
-              action: 'generate-token',
-              category: 'configuration',
-              type: 'creation',
-            },
-          });
+          );
         }),
         map((response) => {
           return response.wrappedToken;

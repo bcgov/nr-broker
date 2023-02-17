@@ -14,6 +14,8 @@ import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
 import { BrokerAuthGuard } from '../auth/broker-auth.guard';
+import { ActionGuardRequest } from './action-guard-request.interface';
+import { ActionGuard } from './action.guard';
 
 @Controller({
   path: 'intention',
@@ -64,19 +66,18 @@ export class IntentionController {
 
   @Post('action/end')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @UseGuards(ActionGuard)
   async actionEnd(
-    @Req() request: Request,
+    @Req() request: ActionGuardRequest,
     @Query('outcome') outcome: string | undefined,
   ) {
-    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
-    const actionToken =
-      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
     if (outcome === undefined) {
       outcome = 'success';
     }
     await this.intentionService.actionLifecycle(
       request,
-      actionToken,
+      request.brokerIntentionDto,
+      request.brokerActionDto,
       outcome,
       'end',
     );
@@ -84,13 +85,12 @@ export class IntentionController {
 
   @Post('action/start')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  async actionStart(@Req() request: Request) {
-    const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
-    const actionToken =
-      typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
+  @UseGuards(ActionGuard)
+  async actionStart(@Req() request: ActionGuardRequest) {
     await this.intentionService.actionLifecycle(
       request,
-      actionToken,
+      request.brokerIntentionDto,
+      request.brokerActionDto,
       undefined,
       'start',
     );

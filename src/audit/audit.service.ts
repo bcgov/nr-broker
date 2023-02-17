@@ -204,6 +204,7 @@ export class AuditService {
    */
   public recordIntentionActionLifecycle(
     req: any,
+    intention: IntentionDto,
     action: ActionDto,
     type: 'start' | 'end',
   ) {
@@ -218,8 +219,10 @@ export class AuditService {
           end: action.trace.end,
           kind: 'event',
           outcome: action.trace.outcome,
+          provider: intention.event.provider,
           start: action.trace.start,
           type,
+          url: intention.event.url,
         },
         user: {
           id: action.user.id,
@@ -250,6 +253,7 @@ export class AuditService {
    */
   public recordIntentionActionUsage(
     req: any,
+    intention: IntentionDto,
     action: ActionDto,
     mergeObj: any,
   ) {
@@ -259,6 +263,8 @@ export class AuditService {
         event: {
           dataset: 'broker.audit',
           kind: 'event',
+          provider: intention.event.provider,
+          url: intention.event.url,
         },
         user: {
           id: action.user.id,

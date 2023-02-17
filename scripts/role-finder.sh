@@ -8,6 +8,9 @@ cd "$this_dir"
 #  $2: project name
 #  $3: service name
 
+# Caution: The environment in the command is the broker environment and NOT the service's environment.
+#          If you intent to use the JWT to access real secrets then this will be 'prod'.
+
 source ./setenv-common.sh $1
 if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
 

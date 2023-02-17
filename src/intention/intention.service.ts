@@ -20,6 +20,7 @@ import { ActionService } from './action.service';
 import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { ActionDto } from './dto/action.dto';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -152,13 +153,11 @@ export class IntentionService {
    */
   public async actionLifecycle(
     req: Request,
-    actionToken: string,
+    intention: IntentionDto,
+    action: ActionDto,
     outcome: string | undefined,
     type: 'start' | 'end',
   ): Promise<boolean> {
-    let action = await this.intentionRepository.getIntentionActionByToken(
-      actionToken,
-    );
     if (!action) {
       throw new NotFoundException({
         statusCode: 404,
@@ -177,11 +176,16 @@ export class IntentionService {
       });
     }
     action = await this.intentionRepository.setIntentionActionLifecycle(
-      actionToken,
+      action.trace.token,
       outcome,
       type,
     );
-    this.auditService.recordIntentionActionLifecycle(req, action, type);
+    this.auditService.recordIntentionActionLifecycle(
+      req,
+      intention,
+      action,
+      type,
+    );
     return true;
   }
 
