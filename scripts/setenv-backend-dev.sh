@@ -16,6 +16,7 @@ fi
 source $this_dir/setenv-common.sh local
 if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
 
+export AUDIT_URL_TEMPLATE="https://audit.example/dashboard?from=<%= intention.transaction.start %>&to=<%= intention.transaction.end %>&hash=<%= intention.transaction.hash %>"
 export VAULT_TOKEN=$(eval $VAULT_TOKEN_CMD)
 BROKER_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/role-id | jq -r '.data.role_id')
 BROKER_SECRET_ID=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/secret-id | jq -r '.data.secret_id')

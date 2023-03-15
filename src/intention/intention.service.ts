@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
+import ejs from 'ejs';
 import { IntentionDto } from './dto/intention.dto';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
@@ -31,6 +32,10 @@ export interface IntentionOpenResponse {
 
 @Injectable()
 export class IntentionService {
+  private readonly AUDIT_URL_TEMPLATE = process.env.AUDIT_URL_TEMPLATE
+    ? process.env.AUDIT_URL_TEMPLATE
+    : '';
+
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
@@ -116,7 +121,7 @@ export class IntentionService {
     token: string,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
-  ): Promise<boolean> {
+  ): Promise<IntentionDto> {
     const intention: IntentionDto =
       await this.intentionRepository.getIntentionByToken(token);
     if (!intention) {
@@ -125,7 +130,8 @@ export class IntentionService {
         message: 'Intention not found',
       });
     }
-    return this.finalizeIntention(intention, outcome, reason, req);
+    await this.finalizeIntention(intention, outcome, reason, req);
+    return intention;
   }
 
   private finalizeIntention(
@@ -187,6 +193,15 @@ export class IntentionService {
       type,
     );
     return true;
+  }
+
+  /**
+   * Renders the audit url for the intention passed in
+   * @param intention The intention to create the audit url for
+   * @returns The audit url string
+   */
+  public auditUrlForIntention(intention: IntentionDto): string {
+    return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 
   /**

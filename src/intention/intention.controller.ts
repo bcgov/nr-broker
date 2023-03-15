@@ -61,7 +61,17 @@ export class IntentionController {
           'The outcome parameter must be undefined or be one of failure, success or unknown.',
       });
     }
-    await this.intentionService.close(request, token, outcome, reason);
+    const intention = await this.intentionService.close(
+      request,
+      token,
+      outcome,
+      reason,
+    );
+    return {
+      statusCode: 200,
+      message: 'Intention closed',
+      audit: this.intentionService.auditUrlForIntention(intention),
+    };
   }
 
   @Post('action/end')
