@@ -195,7 +195,12 @@ export class IntentionService {
     return true;
   }
 
-  public auditUrlForIntention(intention: IntentionDto) {
+  /**
+   * Renders the audit url for the intention passed in
+   * @param intention The intention to create the audit url for
+   * @returns The audit url string
+   */
+  public auditUrlForIntention(intention: IntentionDto): string {
     return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 
