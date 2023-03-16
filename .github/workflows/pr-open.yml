@@ -97,6 +97,7 @@ jobs:
           npm run test:cov
 
       - name: Report code coverage
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
           title: Backend coverage report
