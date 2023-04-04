@@ -11,6 +11,7 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Vault Broker')
     .setDescription('Application secret provisioner')

@@ -14,6 +14,7 @@ import { AccessLogsMiddleware } from './access-logs.middleware';
 import { KinesisModule } from './kinesis/kinesis.module';
 import { IntentionModule } from './intention/intention.module';
 import { PersistenceModule } from './persistence/persistence.module';
+import { GraphModule } from './graph/graph.module';
 
 /**
  * Convenience function for converting an environment variable to an object
@@ -71,6 +72,7 @@ function envToObj(key: string, envName: string) {
     AuthModule,
     KinesisModule,
     PersistenceModule,
+    GraphModule,
   ],
   controllers: [AppController],
   providers: [AppService],

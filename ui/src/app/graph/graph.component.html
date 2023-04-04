@@ -1,0 +1,11 @@
+<div class="graph-flex-container">
+  <div class="graph-flex-graph">
+    <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refreshData()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <app-echarts [data]="data" (selected)="onSelected($event)"></app-echarts>
+  </div>
+  <div class="graph-flex-inspector">
+    <app-inspector [data]="data" (selected)="onSelected($event)" [target]="selected"></app-inspector>
+  </div>
+</div>
