@@ -29,7 +29,7 @@ export class GraphComponent {
       takeUntil(this.ngUnsubscribe),
       switchMap(() => this.getData()),
       map((data: any) => {
-        data.idToNode = data.nodes.reduce(
+        data.idToVertex = data.vertices.reduce(
           (previousValue: any, currentValue: any) => {
             previousValue[currentValue.id] = currentValue;
             return previousValue;

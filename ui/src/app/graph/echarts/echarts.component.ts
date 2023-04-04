@@ -34,8 +34,8 @@ export class EchartsComponent implements OnInit {
               name: 'CMDB',
               type: 'graph',
               layout: 'force',
-              data: graph.nodes, // links: graph.links,
-              edges: graph.links.map((e: any) => {
+              data: graph.vertices, // links: graph.links,
+              edges: graph.edges.map((e: any) => {
                 // console.log(e);
                 return e;
               }),

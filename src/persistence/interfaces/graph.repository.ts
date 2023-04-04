@@ -1,3 +1,3 @@
 export abstract class GraphRepository {
-  public abstract getData(includeNodeData: boolean): Promise<string>;
+  public abstract getData(includeCollection: boolean): Promise<string>;
 }

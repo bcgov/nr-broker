@@ -4,7 +4,7 @@
       <mat-card-header>
         <mat-card-subtitle>
           <ng-container *ngIf="!target">Click graph item to view</ng-container>
-          <ng-container *ngIf="target">{{target.dataType}}:{{target.id}}</ng-container>
+          <ng-container *ngIf="target">{{target.dataType | titlecase}}</ng-container>
         </mat-card-subtitle>
         <mat-card-title>
           <ng-container *ngIf="target && target.dataType === 'vertex'">{{target.name}}</ng-container>
@@ -20,16 +20,13 @@
       </button>
       <mat-menu #menu="matMenu">
         <button mat-menu-item>
-          <mat-icon>dialpad</mat-icon>
-          <span>Redial</span>
+          <mat-icon>edit</mat-icon>
+          <span>Edit</span>
         </button>
-        <button mat-menu-item disabled>
-          <mat-icon>voicemail</mat-icon>
-          <span>Check voice mail</span>
-        </button>
+        <mat-divider></mat-divider>
         <button mat-menu-item>
-          <mat-icon>notifications_off</mat-icon>
-          <span>Disable alerts</span>
+          <mat-icon>delete</mat-icon>
+          <span>Delete</span>
         </button>
       </mat-menu>
       <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="getTargetId()">
@@ -46,14 +43,11 @@
       <div *ngIf="target.dataType === 'edge'">
 
         <h3 class="edge-heading">Source</h3>
-        <div class="wrapper">
+        <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
-            <mat-list>
-              <mat-list-item>
-                <span matListItemTitle>{{(outboundConnections | async)[0].connectedVertex.name}}</span>
-                <span matListItemLine>{{target.source}}</span>
-              </mat-list-item>
-            </mat-list>
+            <mat-chip-listbox [selectable]="false">
+              <mat-chip-option (click)="selectVertex(target.source)">{{(outboundConnections | async)[0].connectedVertex.name}}</mat-chip-option>
+            </mat-chip-listbox>
           </div>
 
           <div class="fields-wrapper">
@@ -65,14 +59,11 @@
 
         <h3 class="edge-heading">Target</h3>
 
-        <div class="wrapper">
+        <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
-            <mat-list>
-              <mat-list-item>
-                <span matListItemTitle>{{(inboundConnections | async)[0].connectedVertex.name}}</span>
-                <span matListItemLine>{{target.target}}</span>
-              </mat-list-item>
-            </mat-list>
+            <mat-chip-listbox [selectable]="false">
+              <mat-chip-option (click)="selectVertex(target.target)">{{(inboundConnections | async)[0].connectedVertex.name}}</mat-chip-option>
+            </mat-chip-listbox>
           </div>
 
           <div class="fields-wrapper">
@@ -100,7 +91,7 @@
         <div class="vertex-edge-type-container" *ngFor="let group of $any(inboundConnections | async | keyvalue)">
           <h5>{{group.key | titlecase}}</h5>
           <mat-chip-listbox [selectable]="false">
-            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.data.vertex)">{{item.connectedVertex.name}}</mat-chip-option>
+            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.id)">{{item.connectedVertex.name}}</mat-chip-option>
           </mat-chip-listbox>
         </div>
 
@@ -119,8 +110,8 @@
 
         <div class="vertex-edge-type-container" *ngFor="let group of $any(outboundConnections | async | keyvalue)">
           <h5>{{group.key | titlecase}}</h5>
-          <mat-chip-listbox  [selectable]="false">
-            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.data.vertex)">{{item.connectedVertex.name}}</mat-chip-option>
+          <mat-chip-listbox [selectable]="false">
+            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.id)">{{item.connectedVertex.name}}</mat-chip-option>
           </mat-chip-listbox>
         </div>
         <mat-divider></mat-divider>

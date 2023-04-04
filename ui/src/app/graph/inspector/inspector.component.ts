@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import {
   Component,
   EventEmitter,
@@ -6,7 +7,14 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { BehaviorSubject, map, Observable, withLatestFrom } from 'rxjs';
+import {
+  BehaviorSubject,
+  map,
+  Observable,
+  of,
+  switchMap,
+  withLatestFrom,
+} from 'rxjs';
 
 @Component({
   selector: 'app-inspector',
@@ -18,10 +26,13 @@ export class InspectorComponent implements OnChanges {
   @Input() target!: any;
   @Output() inboundConnections!: Observable<any>;
   @Output() outboundConnections!: Observable<any>;
+  @Output() collectionData!: Observable<any>;
   @Output() selected = new EventEmitter<any>();
   propDisplayedColumns: string[] = ['key', 'value'];
   targetSubject = new BehaviorSubject<any>(true);
   latestData: any;
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.inboundConnections = this.targetSubject.pipe(
@@ -36,13 +47,21 @@ export class InspectorComponent implements OnChanges {
         return this.gatherConnections(target, data, 'source');
       }),
     );
+    this.collectionData = this.targetSubject.pipe(
+      switchMap((target: any) => {
+        console.log(target);
+        return this.getCollectionData(target);
+      }),
+    );
+    this.collectionData.subscribe((data) => {
+      console.log(data);
+    });
     this.data.subscribe((data) => {
       this.latestData = data;
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log(changes);
     if (changes['target']) {
       this.target = changes['target'].currentValue;
       this.targetSubject.next(this.target);
@@ -51,12 +70,12 @@ export class InspectorComponent implements OnChanges {
 
   gatherConnections(target: any, data: any, direction: string): Array<any> {
     if (target.dataType === 'vertex') {
-      return data.links
-        .filter((link: any) => link[direction] === target.id)
+      return data.edges
+        .filter((edge: any) => edge[direction] === target.id)
         .map((edge: any) => ({
           ...edge,
           connectedVertex:
-            data.idToNode[edge[direction === 'source' ? 'target' : 'source']],
+            data.idToVertex[edge[direction === 'source' ? 'target' : 'source']],
         }))
         .reduce((previousValue: any, currentValue: any) => {
           if (!previousValue[currentValue.label]) {
@@ -68,7 +87,7 @@ export class InspectorComponent implements OnChanges {
     } else if (target.dataType === 'edge') {
       return [
         {
-          connectedVertex: data.idToNode[target[direction]],
+          connectedVertex: data.idToVertex[target[direction]],
         },
       ];
     } else {
@@ -98,22 +117,49 @@ export class InspectorComponent implements OnChanges {
   }
 
   selectEdge(id: string) {
-    console.log(id);
+    // console.log(id);
+    if (this.latestData && this.latestData.idToEdge[id]) {
+      const edge = this.latestData.idToEdge[id];
+      this.selected.emit({
+        id,
+        dataType: 'edge',
+        label: edge.label,
+        prop: edge.prop,
+        source: edge.source,
+        target: edge.target,
+      });
+    }
     return;
   }
 
   selectVertex(id: string) {
-    console.log(id);
-    console.log(this.latestData);
-    if (this.latestData && this.latestData.idToNode[id]) {
-      const node = this.latestData.idToNode[id];
+    // console.log(id);
+    if (this.latestData && this.latestData.idToVertex[id]) {
+      const vertex = this.latestData.idToVertex[id];
       this.selected.emit({
         id,
         dataType: 'vertex',
-        type: node.type,
-        name: node.name,
-        prop: node.prop,
+        type: vertex.type,
+        name: vertex.name,
+        prop: vertex.prop,
       });
     }
+  }
+
+  getCollectionData(target: any) {
+    console.log(target);
+    if (!target || target.dataType !== 'vertex') {
+      return of({});
+    }
+
+    return this.http.get<any>(
+      `http://localhost:3000/v1/graph/${target.type.replace(
+        /[A-Z]/g,
+        (letter: string) => `-${letter.toLowerCase()}`,
+      )}?vertex=${target.id}`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 }

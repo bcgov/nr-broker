@@ -14,18 +14,18 @@ export class GraphMongoRepository implements GraphRepository {
     private vertexRepository: MongoRepository<VertexDto>,
   ) {}
 
-  public async getData(includeNodeData: boolean): Promise<string> {
-    const nodes = [
-      ...(await this.aggregateNode('project', 0, includeNodeData)),
-      ...(await this.aggregateNode('service', 1, includeNodeData)),
-      ...(await this.aggregateNode('serviceInstance', 2, includeNodeData)),
-      ...(await this.aggregateNode('environment', 3, includeNodeData)),
+  public async getData(includeCollection: boolean): Promise<string> {
+    const vertices = [
+      ...(await this.aggregateVertex('project', 0, includeCollection)),
+      ...(await this.aggregateVertex('service', 1, includeCollection)),
+      ...(await this.aggregateVertex('serviceInstance', 2, includeCollection)),
+      ...(await this.aggregateVertex('environment', 3, includeCollection)),
     ];
-    const links = await this.edgeRepository.find();
-    console.log(links);
+    const edges = await this.edgeRepository.find();
+    // console.log(edges);
     return JSON.stringify({
-      links,
-      nodes,
+      edges,
+      vertices,
       categories: [
         { name: 'Project' },
         { name: 'Service' },
@@ -35,7 +35,7 @@ export class GraphMongoRepository implements GraphRepository {
     });
   }
 
-  private async aggregateNode(
+  private async aggregateVertex(
     type: string,
     category: number,
     includeData: boolean,
@@ -54,17 +54,17 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository
       .aggregate(aggregateArr)
       .toArray()
-      .then((nodes) =>
-        nodes.map((node) => ({
-          id: node._id,
+      .then((vertices) =>
+        vertices.map((vertex) => ({
+          id: vertex._id,
           category,
           data:
-            Array.isArray(node.data) && node.data.length > 0
-              ? node.data[0]
+            Array.isArray(vertex.data) && vertex.data.length > 0
+              ? vertex.data[0]
               : undefined,
-          name: node.prop?.label ?? node._id,
-          prop: node.prop,
-          type: node.type,
+          name: vertex.prop?.label ?? vertex._id,
+          prop: vertex.prop,
+          type: vertex.type,
         })),
       );
   }

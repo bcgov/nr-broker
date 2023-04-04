@@ -13,8 +13,8 @@ export class GraphController {
   @Get('data')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  getData() {
-    return this.graph.getData();
+  getData(@Query('collection') collection: string) {
+    return this.graph.getData(collection === 'true');
   }
 
   @Get('project')
@@ -38,7 +38,7 @@ export class GraphController {
     return await this.graph.getEnvironmentByVertexId(id);
   }
 
-  @Get('service_instance')
+  @Get('service-instance')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
   async getServiceInstanceByVertexId(@Query('vertex') id: string) {

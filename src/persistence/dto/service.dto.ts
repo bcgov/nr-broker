@@ -12,5 +12,5 @@ export class ServiceDto extends VertexPointerDto {
   name: string;
 
   @Column()
-  key: string;
+  configuration: any;
 }
