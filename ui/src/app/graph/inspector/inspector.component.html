@@ -4,11 +4,12 @@
       <mat-card-header>
         <mat-card-subtitle>
           <ng-container *ngIf="!target">Click graph item to view</ng-container>
-          <ng-container *ngIf="target">{{target.dataType | titlecase}}</ng-container>
+          <ng-container *ngIf="target">{{target.type | titlecase}}</ng-container>
+          <ng-container *ngIf="target && target.type === 'vertex'"> - {{target.data.collection | camelToTitle}}</ng-container>
         </mat-card-subtitle>
         <mat-card-title>
-          <ng-container *ngIf="target && target.dataType === 'vertex'">{{target.name}}</ng-container>
-          <ng-container *ngIf="target && target.dataType === 'edge'">{{target.label | titlecase}}</ng-container>
+          <ng-container *ngIf="target && target.type === 'vertex'">{{target.data.name}}</ng-container>
+          <ng-container *ngIf="target && target.type === 'edge'">{{target.data.name | titlecase}}</ng-container>
           <ng-container *ngIf="!target">Inspector</ng-container>
         </mat-card-title>
       </mat-card-header>
@@ -19,12 +20,12 @@
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item>
+        <button mat-menu-item (click)="editTarget()">
           <mat-icon>edit</mat-icon>
           <span>Edit</span>
         </button>
         <mat-divider></mat-divider>
-        <button mat-menu-item>
+        <button mat-menu-item (click)="deleteTarget()">
           <mat-icon>delete</mat-icon>
           <span>Delete</span>
         </button>
@@ -40,13 +41,12 @@
 
     <div *ngIf="target">
 
-      <div *ngIf="target.dataType === 'edge'">
-
+      <div *ngIf="target.type === 'edge'">
         <h3 class="edge-heading">Source</h3>
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
             <mat-chip-listbox [selectable]="false">
-              <mat-chip-option (click)="selectVertex(target.source)">{{(outboundConnections | async)[0].connectedVertex.name}}</mat-chip-option>
+              <mat-chip-option (click)="selectVertex(target.data.source)">{{(edgeConnections | async)?.sourceVertex?.name}}</mat-chip-option>
             </mat-chip-listbox>
           </div>
 
@@ -62,7 +62,7 @@
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
             <mat-chip-listbox [selectable]="false">
-              <mat-chip-option (click)="selectVertex(target.target)">{{(inboundConnections | async)[0].connectedVertex.name}}</mat-chip-option>
+              <mat-chip-option (click)="selectVertex(target.data.target)">{{(edgeConnections | async)?.targetVertex?.name}}</mat-chip-option>
             </mat-chip-listbox>
           </div>
 
@@ -72,26 +72,53 @@
             </button>
           </div>
         </div>
-
       </div>
 
-      <div *ngIf="target.dataType === 'vertex'">
+      <div *ngIf="target.type === 'vertex'">
+
+        <ng-container *ngIf="(collectionData | async | collectionFilter | keyvalue).length > 0">
+          <table mat-table [dataSource]="collectionData | async | collectionFilter | keyvalue">
+
+            <!-- Key Column -->
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef> Key </th>
+              <td mat-cell *matCellDef="let element"> {{element.key}} </td>
+            </ng-container>
+
+            <!-- Value Column -->
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef> Value </th>
+              <td mat-cell *matCellDef="let element" [ngSwitch]="COLLECTION_CONFIG[target.data.collection].fields[element.key].type">
+                <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                <ng-container *ngSwitchCase="'json'"><a (click)="viewCollectionJson(element.value)">view</a></ng-container>
+                <ng-container *ngSwitchDefault></ng-container>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
+          </table>
+
+          <mat-divider></mat-divider>
+        </ng-container>
 
         <div class="wrapper vertex-edge-container">
           <div class="fields-wrapper">
             <h3 class="vertex-heading">Inbound</h3>
           </div>
 
-          <div class="fields-wrapper">
+          <!--<div class="fields-wrapper">
             <button mat-button>Delete</button>
             <button mat-button>Add</button>
-          </div>
+          </div>-->
         </div>
 
-        <div class="vertex-edge-type-container" *ngFor="let group of $any(inboundConnections | async | keyvalue)">
+        <p *ngIf="((inboundConnections | async)?.connections | keyvalue)?.length == 0" class="vertex-edge-type-container">None</p>
+
+        <div class="vertex-edge-type-container" *ngFor="let group of $any((inboundConnections | async)?.connections | keyvalue)">
           <h5>{{group.key | titlecase}}</h5>
           <mat-chip-listbox [selectable]="false">
-            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.id)">{{item.connectedVertex.name}}</mat-chip-option>
+            <mat-chip-option *ngFor="let item of group.value" (click)="navigateConnection(item)"><ng-container *ngIf="item.vertex.parentName">{{ item.vertex.parentName}} &gt; </ng-container>{{item.vertex.name}}</mat-chip-option>
           </mat-chip-listbox>
         </div>
 
@@ -102,25 +129,27 @@
             <h3 class="vertex-heading">Outbound</h3>
           </div>
 
-          <div class="fields-wrapper">
+          <div class="fields-wrapper" *ngIf="COLLECTION_CONFIG[target.data.collection].edges.length > 0" >
             <button mat-button>Delete</button>
             <button mat-button>Add</button>
           </div>
         </div>
 
-        <div class="vertex-edge-type-container" *ngFor="let group of $any(outboundConnections | async | keyvalue)">
+        <p *ngIf="((outboundConnections | async)?.connections | keyvalue)?.length == 0" class="vertex-edge-type-container">None</p>
+
+        <div class="vertex-edge-type-container" *ngFor="let group of $any((outboundConnections | async)?.connections | keyvalue)">
           <h5>{{group.key | titlecase}}</h5>
           <mat-chip-listbox [selectable]="false">
-            <mat-chip-option *ngFor="let item of group.value" (click)="selectVertex(item.connectedVertex.id)">{{item.connectedVertex.name}}</mat-chip-option>
+            <mat-chip-option *ngFor="let item of group.value" (click)="navigateConnection(item)"><ng-container *ngIf="item.vertex.parentName">{{ item.vertex.parentName}} &gt; </ng-container> {{item.vertex.name}}</mat-chip-option>
           </mat-chip-listbox>
         </div>
         <mat-divider></mat-divider>
       </div>
 
-      <div *ngIf="target.prop">
+      <div *ngIf="target && target.data.prop">
         <h3 class="property-heading">Properties</h3>
 
-        <table mat-table [dataSource]="target.prop | keyvalue">
+        <table mat-table [dataSource]="target.data.prop | keyvalue">
 
           <!-- Key Column -->
           <ng-container matColumnDef="key">

@@ -1,6 +1,7 @@
 import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
 import { EChartsOption } from 'echarts';
 import { map, Observable } from 'rxjs';
+import { ChartClickTarget } from '../graph.types';
 
 @Component({
   selector: 'app-echarts',
@@ -9,7 +10,7 @@ import { map, Observable } from 'rxjs';
 })
 export class EchartsComponent implements OnInit {
   @Input() data!: Observable<any>;
-  @Output() selected = new EventEmitter<any>();
+  @Output() selected = new EventEmitter<ChartClickTarget>();
   options!: Observable<EChartsOption>;
   loading!: boolean;
 
@@ -69,20 +70,13 @@ export class EchartsComponent implements OnInit {
   onChartClick(event: any) {
     if (event.dataType === 'node') {
       this.selected.emit({
-        id: event.data.id,
-        dataType: 'vertex',
-        type: event.data.type,
-        name: event.data.name,
-        prop: event.data.prop,
+        type: 'vertex',
+        data: event.data,
       });
     } else if (event.dataType === 'edge') {
       this.selected.emit({
-        id: event.data.id,
-        dataType: 'edge',
-        label: event.data.label,
-        prop: event.data.prop,
-        source: event.data.source,
-        target: event.data.target,
+        type: 'edge',
+        data: event.data,
       });
     }
   }

@@ -36,15 +36,15 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   private async aggregateVertex(
-    type: string,
+    collection: string,
     category: number,
     includeData: boolean,
   ): Promise<any> {
-    const aggregateArr: any = [{ $match: { type } }];
+    const aggregateArr: any = [{ $match: { collection } }];
     if (includeData) {
       aggregateArr.push({
         $lookup: {
-          from: type,
+          from: collection,
           localField: '_id',
           foreignField: 'vertex',
           as: 'data',
@@ -62,9 +62,9 @@ export class GraphMongoRepository implements GraphRepository {
             Array.isArray(vertex.data) && vertex.data.length > 0
               ? vertex.data[0]
               : undefined,
-          name: vertex.prop?.label ?? vertex._id,
+          name: vertex.name ?? vertex._id,
           prop: vertex.prop,
-          type: vertex.type,
+          collection: vertex.collection,
         })),
       );
   }

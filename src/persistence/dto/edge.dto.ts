@@ -6,7 +6,10 @@ export class EdgeDto {
   id: ObjectID;
 
   @Column()
-  label: string;
+  name: string;
+
+  @Column()
+  path: number[];
 
   @Column()
   prop?: any;
