@@ -13,6 +13,6 @@ export class JsonViewDialogComponent {
   ) {}
 
   closeDialog() {
-    this.dialogRef.close('Pizza!');
+    this.dialogRef.close();
   }
 }

@@ -8,6 +8,11 @@ import { MaterialModule } from '../../material.module';
 import { CollectionFilterPipe } from './collection-filter.pipe';
 import { CamelToTitlePipe } from './camel-to-title.pipe';
 import { JsonViewDialogComponent } from './json-view-dialog/json-view-dialog.component';
+import { AddEdgeDialogComponent } from './add-edge-dialog/add-edge-dialog.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
+import { VertexFormFieldComponent } from './vertex-form-field/vertex-form-field.component';
+import { VertexFormBuilderComponent } from './vertex-form-builder/vertex-form-builder.component';
 
 @NgModule({
   declarations: [
@@ -17,8 +22,18 @@ import { JsonViewDialogComponent } from './json-view-dialog/json-view-dialog.com
     CollectionFilterPipe,
     CamelToTitlePipe,
     JsonViewDialogComponent,
+    AddEdgeDialogComponent,
+    VertexDialogComponent,
+    VertexFormFieldComponent,
+    VertexFormBuilderComponent,
   ],
-  imports: [CommonModule, MaterialModule, NgxEchartsModule.forChild()],
+  imports: [
+    CommonModule,
+    MaterialModule,
+    NgxEchartsModule.forChild(),
+    FormsModule,
+    ReactiveFormsModule,
+  ],
   exports: [GraphComponent],
 })
 export class GraphModule {}

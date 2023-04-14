@@ -23,6 +23,7 @@ import {
 import { CanvasRenderer } from 'echarts/renderers';
 import { GraphModule } from './graph/graph.module';
 import { MaterialModule } from '../material.module';
+import { ReactiveFormsModule } from '@angular/forms';
 
 echarts.use([
   TitleComponent,
@@ -43,6 +44,7 @@ echarts.use([
     MaterialModule,
     NgxEchartsModule.forRoot({ echarts }),
     HttpClientModule,
+    ReactiveFormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

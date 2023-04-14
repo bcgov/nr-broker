@@ -1,11 +1,11 @@
-import { ApiHideProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
 import { VertexPointerDto } from './vertex-pointer.dto';
 
 @Entity({ name: 'project' })
 export class ProjectDto extends VertexPointerDto {
   @ObjectIdColumn()
-  @ApiHideProperty()
+  @ApiProperty({ type: () => String })
   id: ObjectID;
 
   @Column()

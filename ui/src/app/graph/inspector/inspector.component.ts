@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import {
   Component,
   EventEmitter,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
@@ -12,11 +12,10 @@ import {
   map,
   Observable,
   of,
+  shareReplay,
   switchMap,
   withLatestFrom,
 } from 'rxjs';
-import { GraphUtilService } from '../graph-util.service';
-import { COLLECTION_CONFIG } from '../graph.constants';
 import {
   ChartClickTarget,
   Connection,
@@ -25,68 +24,74 @@ import {
   VertexNavigation,
   ChartClickTargetVertex,
   EdgeNavigation,
+  GraphDataConfig,
+  CollectionConfigMap,
+  GraphDataVertex,
+  ConnectionDirection,
 } from '../graph.types';
-import { environment } from '../../../environments/environment';
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { GraphApiService } from '../graph-api.service';
+import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
 
 @Component({
   selector: 'app-inspector',
   templateUrl: './inspector.component.html',
   styleUrls: ['./inspector.component.scss'],
 })
-export class InspectorComponent implements OnChanges {
-  @Input() data!: Observable<GraphData>;
+export class InspectorComponent implements OnChanges, OnInit {
+  @Input() dataConfig!: Observable<GraphDataConfig>;
   @Input() target!: ChartClickTarget | undefined;
   @Output() inboundConnections!: Observable<VertexNavigation | null>;
   @Output() outboundConnections!: Observable<VertexNavigation | null>;
   @Output() edgeConnections!: Observable<EdgeNavigation | null>;
-  @Output() collectionData!: Observable<any>;
+  collectionData: any = null;
   @Output() selected = new EventEmitter<ChartClickTarget>();
+  @Output() graphChanged = new EventEmitter<boolean>();
   propDisplayedColumns: string[] = ['key', 'value'];
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
-  latestData: any;
+  latestData: GraphData | undefined;
+  latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
 
-  COLLECTION_CONFIG = COLLECTION_CONFIG;
-
-  constructor(
-    private http: HttpClient,
-    private util: GraphUtilService,
-    private dialog: MatDialog,
-  ) {}
+  constructor(private graphApi: GraphApiService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.inboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.data),
-      map(([target, data]) => {
+      withLatestFrom(this.dataConfig),
+      map(([target, dataConfig]) => {
+        const data = dataConfig.data;
         if (!target || target.type === 'edge') {
           return null;
         }
         return {
           vertex: target.data,
-          direction: 'forward',
+          direction: 'forward' as ConnectionDirection,
           connections: this.gatherConnections(target, data, 'target'),
         };
       }),
+      shareReplay(1),
     );
     this.outboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.data),
-      map(([target, data]) => {
+      withLatestFrom(this.dataConfig),
+      map(([target, dataConfig]) => {
+        const data = dataConfig.data;
         if (!target || target.type === 'edge') {
           return null;
         }
         return {
           vertex: target.data,
-          direction: 'forward',
+          direction: 'forward' as ConnectionDirection,
           connections: this.gatherConnections(target, data, 'source'),
         };
       }),
+      shareReplay(1),
     );
 
     this.edgeConnections = this.targetSubject.pipe(
-      withLatestFrom(this.data),
-      map(([target, data]) => {
+      withLatestFrom(this.dataConfig),
+      map(([target, dataConfig]) => {
+        const data = dataConfig.data;
         if (!target || target.type === 'vertex') {
           return null;
         }
@@ -98,21 +103,25 @@ export class InspectorComponent implements OnChanges {
       }),
     );
 
-    this.collectionData = this.targetSubject.pipe(
-      switchMap((target) => {
-        return this.getCollectionData(target);
-      }),
-    );
-    // this.collectionData.subscribe((data) => {
-    //   // console.log(data);
-    // });
-    this.data.subscribe((data) => {
-      this.latestData = data;
+    this.targetSubject
+      .pipe(
+        switchMap((target) => {
+          return this.getCollectionData(target);
+        }),
+      )
+      .subscribe((data) => {
+        this.collectionData = data;
+      });
+
+    this.dataConfig.subscribe((dataConfig) => {
+      this.latestData = dataConfig.data;
+      this.latestConfig = dataConfig.config;
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['target']) {
+      this.collectionData = null;
       this.target = changes['target'].currentValue;
       if (this.target) {
         this.targetSubject.next(this.target);
@@ -129,7 +138,6 @@ export class InspectorComponent implements OnChanges {
     // const reverseDirection: ConnectionDirection = direction === 'forward' ? 'reverse' : 'forward';
     const invertedVertexKey = edgeKey === 'target' ? 'source' : 'target';
     const direction = edgeKey === 'target' ? 'forward' : 'reverse';
-
     return data.edges
       .filter((edge) => {
         const edgeId = edgeKey === 'target' ? edge.target : edge.source;
@@ -148,10 +156,13 @@ export class InspectorComponent implements OnChanges {
         };
       })
       .map((connection) => {
+        if (!this.latestConfig) {
+          return connection;
+        }
         const configEdges =
           direction === 'reverse'
-            ? this.COLLECTION_CONFIG[target.data.collection].edges
-            : this.COLLECTION_CONFIG[
+            ? this.latestConfig[target.data.collection].edges
+            : this.latestConfig[
                 data.idToVertex[connection.edge.source].collection
               ].edges;
         const config = configEdges.find(
@@ -210,7 +221,6 @@ export class InspectorComponent implements OnChanges {
   }
 
   selectEdge(id: string) {
-    // console.log(id);
     if (this.latestData && this.latestData.idToEdge[id]) {
       const edge = this.latestData.idToEdge[id];
       this.selected.emit({
@@ -222,7 +232,6 @@ export class InspectorComponent implements OnChanges {
   }
 
   selectVertex(id: string) {
-    // console.log(id);
     if (this.latestData && this.latestData.idToVertex[id]) {
       const vertex = this.latestData.idToVertex[id];
       this.selected.emit({
@@ -246,8 +255,42 @@ export class InspectorComponent implements OnChanges {
     console.log('editTarget');
   }
 
+  addEdgeToVertex(vertex: GraphDataVertex) {
+    if (!this.latestConfig || !this.latestData) {
+      return;
+    }
+
+    this.dialog
+      .open(AddEdgeDialogComponent, {
+        height: '400px',
+        width: '600px',
+        data: {
+          config: this.latestConfig[vertex.collection],
+          vertices: this.latestData.vertices,
+          vertex,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          this.graphChanged.emit(true);
+        }
+      });
+  }
+
   deleteTarget() {
-    console.log('deleteTarget');
+    if (!this.target) {
+      return;
+    }
+
+    const obs =
+      this.target.type === 'vertex'
+        ? this.graphApi.deleteVertex(this.target.data.id)
+        : this.graphApi.deleteEdge(this.target.data.id);
+
+    obs.subscribe(() => {
+      this.graphChanged.emit(true);
+    });
   }
 
   navigateConnection(item: Connection) {
@@ -266,13 +309,16 @@ export class InspectorComponent implements OnChanges {
     }
     const vertex = target.data;
 
-    return this.http.get<any>(
-      `${environment.apiUrl}/v1/graph/${this.util.snakecase(
-        vertex.collection,
-      )}?vertex=${vertex.id}`,
-      {
-        responseType: 'json',
-      },
-    );
+    return this.graphApi.getCollectionData(vertex.collection, vertex.id);
+  }
+
+  getFieldType(key: string) {
+    if (!this.target || !this.latestConfig || this.target.type !== 'vertex') {
+      return '';
+    }
+    // console.log(key);
+    // console.log(this.latestConfig[this.target.data.collection]);
+    // console.log(this.latestConfig[this.target.data.collection].fields[key]);
+    return this.latestConfig[this.target.data.collection].fields[key].type;
   }
 }

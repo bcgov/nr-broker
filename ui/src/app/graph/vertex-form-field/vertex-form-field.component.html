@@ -1,0 +1,17 @@
+<div class="form-group row" [formGroup]="form">
+  <ng-container [ngSwitch]="field.type">
+
+    <mat-form-field *ngSwitchCase="'string'" appearance="fill">
+      <mat-label *ngIf="field.name">{{field.name}}</mat-label>
+      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+      <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field *ngSwitchCase="'json'" appearance="fill">
+      <mat-label *ngIf="field.name">{{field.name}}</mat-label>
+      <textarea matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
+      <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
+    </mat-form-field>
+
+  </ng-container>
+</div>

@@ -7,9 +7,9 @@
     <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refreshData()">
       <mat-icon>refresh</mat-icon>
     </button>
-    <app-echarts [data]="data" (selected)="onSelected($event)"></app-echarts>
+    <app-echarts [dataConfig]="data" (selected)="onSelected($event)"></app-echarts>
   </div>
   <div class="graph-flex-inspector">
-    <app-inspector [data]="data" (selected)="onSelected($event)" [target]="selected"></app-inspector>
+    <app-inspector [dataConfig]="data" (graphChanged)="refreshData()" (selected)="onSelected($event)" [target]="selected"></app-inspector>
   </div>
 </div>

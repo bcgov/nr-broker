@@ -23,10 +23,14 @@ import { JwtValidationMongoRepository } from './mongo/jwt-validation-mongo.repos
 import { ProjectMongoRepository } from './mongo/project-mongo.repository';
 import { ServiceInstanceMongoRepository } from './mongo/service-instance-mongo.repository';
 import { ServiceMongoRepository } from './mongo/service-mongo.repository';
+import { CollectionConfigDto } from './dto/collection-config.dto';
+import { CollectionConfigMongoRepository } from './mongo/collection-config-mongo.repository';
+import { CollectionConfigRepository } from './interfaces/collection-config.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      CollectionConfigDto,
       EdgeDto,
       EnvironmentDto,
       IntentionDto,
@@ -61,6 +65,11 @@ import { ServiceMongoRepository } from './mongo/service-mongo.repository';
       provide: EnvironmentRepository,
       useExisting: EnvironmentMongoRepository,
     },
+    CollectionConfigMongoRepository,
+    {
+      provide: CollectionConfigRepository,
+      useExisting: CollectionConfigMongoRepository,
+    },
     ServiceMongoRepository,
     {
       provide: ServiceRepository,
@@ -73,6 +82,7 @@ import { ServiceMongoRepository } from './mongo/service-mongo.repository';
     },
   ],
   exports: [
+    CollectionConfigRepository,
     GraphRepository,
     IntentionRepository,
     JwtValidationRepository,

@@ -1,7 +1,7 @@
 import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
 import { EChartsOption } from 'echarts';
 import { map, Observable } from 'rxjs';
-import { ChartClickTarget } from '../graph.types';
+import { ChartClickTarget, GraphDataConfig } from '../graph.types';
 
 @Component({
   selector: 'app-echarts',
@@ -9,16 +9,16 @@ import { ChartClickTarget } from '../graph.types';
   styleUrls: ['./echarts.component.scss'],
 })
 export class EchartsComponent implements OnInit {
-  @Input() data!: Observable<any>;
+  @Input() dataConfig!: Observable<GraphDataConfig>;
   @Output() selected = new EventEmitter<ChartClickTarget>();
   options!: Observable<EChartsOption>;
   loading!: boolean;
 
   ngOnInit(): void {
-    // console.log(this.data);
     this.loading = true;
-    this.options = this.data.pipe(
-      map((graph) => {
+    this.options = this.dataConfig.pipe(
+      map((dataConfig) => {
+        const graph = dataConfig.data;
         this.loading = false;
         return {
           tooltip: {},

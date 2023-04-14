@@ -1,12 +1,13 @@
 export type collectionNames =
+  | 'environment'
   | 'project'
   | 'service'
-  | 'serviceInstance'
-  | 'environment';
+  | 'serviceInstance';
 
-interface CollectionEdgeConfig {
+export interface CollectionEdgeConfig {
   collection: collectionNames;
   name: string;
+  onDelete?: 'cascade';
   relation: 'oneToMany' | 'oneToOne';
   inboundName?: string;
   namePath?: string;
@@ -16,21 +17,27 @@ interface CollectionFieldConfig {
   type: 'string' | 'json';
 }
 
+export interface CollectionFieldConfigMap {
+  [key: string]: CollectionFieldConfig;
+}
+
 interface CollectionVertexConfig {
   property: {
     [key: string]: string;
   };
 }
 
-export type CollectionConfig = {
-  [key in collectionNames]: {
-    edges: Array<CollectionEdgeConfig>;
-    fields: {
-      [key: string]: CollectionFieldConfig;
-    };
-    vertex: CollectionVertexConfig;
-  };
+export type CollectionConfigMap = {
+  [key in collectionNames]: CollectionConfig;
 };
+
+export interface CollectionConfig {
+  collection: collectionNames;
+  index: number;
+  edges: CollectionEdgeConfig[];
+  fields: CollectionFieldConfigMap;
+  vertex: CollectionVertexConfig;
+}
 
 export type ChartClickTarget = ChartClickTargetVertex | ChartClickTargetEdge;
 
@@ -62,9 +69,18 @@ export interface GraphDataVertex {
   prop?: any;
 }
 
+export interface GraphDataConfig {
+  data: GraphData;
+  config: CollectionConfigMap;
+}
+
 export interface GraphData {
+  categories: any[];
   edges: Array<GraphDataEdge>;
   vertices: Array<GraphDataVertex>;
+  idToEdge: {
+    [key: string]: GraphDataEdge;
+  };
   idToVertex: {
     [key: string]: GraphDataVertex;
   };
