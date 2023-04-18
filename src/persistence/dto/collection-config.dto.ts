@@ -14,10 +14,9 @@ interface CollectionFieldConfig {
   type: 'string' | 'json';
 }
 
-interface CollectionVertexConfig {
-  property: {
-    [key: string]: string;
-  };
+export class CollectionMap {
+  getPath: string;
+  setPath: string;
 }
 
 @Entity({ name: 'collectionConfig' })
@@ -41,5 +40,8 @@ export class CollectionConfigDto {
   };
 
   @Column()
-  vertex: CollectionVertexConfig;
+  name: string;
+
+  @Column()
+  collectionMapper: CollectionMap[];
 }

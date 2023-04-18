@@ -5,13 +5,14 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { BrokerAuthGuard } from '../auth/broker-auth.guard';
 import { GraphService } from './graph.service';
 import { EdgeDto } from '../persistence/dto/edge.dto';
-import { VertexDto } from 'src/persistence/dto/vertex.dto';
+import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
 
 @Controller({
   path: 'graph',
@@ -58,8 +59,15 @@ export class GraphController {
   @Post('vertex')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  addVertex(@Body() vertex: VertexDto) {
+  addVertex(@Body() vertex: VertexCollectionDto) {
     return this.graph.addVertex(vertex);
+  }
+
+  @Put('vertex/:id')
+  //@UseGuards(BrokerAuthGuard)
+  //@ApiBearerAuth()
+  editVertex(@Param('id') id: string, @Body() vertex: VertexCollectionDto) {
+    return this.graph.editVertex(id, vertex);
   }
 
   @Get('vertex/:id')

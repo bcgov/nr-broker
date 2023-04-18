@@ -30,7 +30,7 @@
   </div>
 </mat-dialog-content>
 
-<mat-dialog-actions>
+<mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
   <button mat-button [disabled]="!edgeControl.value || !vertexControl.value" (click)="addEdge()">Add</button>
 </mat-dialog-actions>

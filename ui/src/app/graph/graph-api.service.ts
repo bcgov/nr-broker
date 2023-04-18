@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { GraphUtilService } from './graph-util.service';
+import { CollectionConfig, GraphDataVertex } from './graph.types';
 
 @Injectable({
   providedIn: 'root',
@@ -42,6 +43,33 @@ export class GraphApiService {
     return this.http.delete<any>(`${environment.apiUrl}/v1/graph/edge/${id}`, {
       responseType: 'json',
     });
+  }
+
+  addVertex(collection: CollectionConfig, data: any) {
+    console.log('addVertex');
+    return this.http.post<any>(
+      `${environment.apiUrl}/v1/graph/vertex`,
+      {
+        collection: collection.collection,
+        data,
+      },
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  editVertex(vertex: GraphDataVertex, data: any) {
+    return this.http.put<any>(
+      `${environment.apiUrl}/v1/graph/vertex/${vertex.id}`,
+      {
+        collection: vertex.collection,
+        data,
+      },
+      {
+        responseType: 'json',
+      },
+    );
   }
 
   deleteVertex(id: string) {

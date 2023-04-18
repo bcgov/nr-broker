@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { CollectionFieldConfigNameMapped } from '../graph.types';
 
 @Component({
   selector: 'app-vertex-form-field',
@@ -7,8 +8,9 @@ import { FormGroup } from '@angular/forms';
   styleUrls: ['./vertex-form-field.component.scss'],
 })
 export class VertexFormFieldComponent {
-  @Input() field: any;
+  @Input() field!: CollectionFieldConfigNameMapped;
   @Input() form!: FormGroup;
+  @Output() onSubmit = new EventEmitter();
 
   get isValid() {
     return this.form.controls[this.field.name].valid;

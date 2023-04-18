@@ -8,7 +8,10 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CollectionFieldConfigMap } from '../graph.types';
+import {
+  CollectionFieldConfigMap,
+  CollectionFieldConfigNameMapped,
+} from '../graph.types';
 
 @Component({
   selector: 'app-vertex-form-builder',
@@ -17,50 +20,58 @@ import { CollectionFieldConfigMap } from '../graph.types';
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();
-  @Input() fields!: CollectionFieldConfigMap;
-  @Input() form!: FormGroup;
-  @Input() values!: FormGroup;
-  parsedFields!: any[];
+  @Input() fieldMap!: CollectionFieldConfigMap;
+  @Input() data!: any;
+  form!: FormGroup;
+  fieldConfigs!: CollectionFieldConfigNameMapped[];
 
   ngOnInit() {
-    const fieldsCtrls: any = {};
-    const parsedFields: any = [];
-    for (const name of Object.keys(this.fields)) {
-      parsedFields.push({
+    const fieldCtrls: { [key: string]: FormGroup | FormControl } = {};
+    const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
+
+    for (const name of Object.keys(this.fieldMap)) {
+      fieldConfigs.push({
         name,
-        ...this.fields[name],
+        ...this.fieldMap[name],
       });
     }
-    console.log(parsedFields);
+    // console.log(fieldConfigs);
+    // console.log(this.data);
 
-    for (const f of parsedFields) {
-      if (f.type != 'checkbox') {
-        fieldsCtrls[f.name] = new FormControl(
-          f.value || '',
+    for (const f of fieldConfigs) {
+      if (f.type === 'string') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] ? this.data[f.name] : '',
           Validators.required,
         );
-      } else {
-        //if checkbox, it need mulitple
-        const opts: any = {};
-        for (const opt of f.options) {
-          opts[opt.key] = new FormControl(opt.value);
-        }
-        fieldsCtrls[f.name] = new FormGroup(opts);
       }
+      if (f.type === 'json') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name]
+            ? JSON.stringify(this.data[f.name], undefined, 4)
+            : '',
+        );
+      }
+      // else {
+      //   // If checkbox, it needs mulitple
+      //   const opts: { [key: string]: FormControl } = {};
+      //   for (const opt of f.options) {
+      //     opts[opt.key] = new FormControl(opt.value);
+      //   }
+      //   fieldCtrls[f.name] = new FormGroup(opts);
+      // }
     }
-    this.parsedFields = parsedFields;
-    this.form = new FormGroup(fieldsCtrls);
-
-    this.form.valueChanges.subscribe((update) => {
-      console.log(update);
-      //this.fields = JSON.parse(update.fields);
-    });
-    console.log(this.form);
+    this.fieldConfigs = fieldConfigs;
+    this.form = new FormGroup(fieldCtrls);
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['fields']) {
+    if (changes['fieldMap']) {
       this.ngOnInit();
     }
+  }
+
+  submitForm() {
+    this.onSubmit.emit();
   }
 }

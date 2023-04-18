@@ -1,6 +1,7 @@
 import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
+import { VertexPointerDto } from './vertex-pointer.dto';
 
 @Entity({ name: 'vertex' })
 export class VertexDto {
@@ -22,4 +23,9 @@ export class VertexDto {
    */
   @Column()
   prop?: any;
+}
+
+export class VertexCollectionDto extends VertexDto {
+  @ApiProperty({ type: () => VertexPointerDto })
+  data: VertexPointerDto;
 }

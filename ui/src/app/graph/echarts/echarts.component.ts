@@ -13,6 +13,7 @@ export class EchartsComponent implements OnInit {
   @Output() selected = new EventEmitter<ChartClickTarget>();
   options!: Observable<EChartsOption>;
   loading!: boolean;
+  echartsInstance: any;
 
   ngOnInit(): void {
     this.loading = true;
@@ -21,7 +22,9 @@ export class EchartsComponent implements OnInit {
         const graph = dataConfig.data;
         this.loading = false;
         return {
-          tooltip: {},
+          tooltip: {
+            formatter: '{c}',
+          },
           legend: [
             {
               // selectedMode: 'single',
@@ -30,24 +33,38 @@ export class EchartsComponent implements OnInit {
               }),
             },
           ],
+          animation: true,
+          animationdurationupdate: 1500,
+          animationEasingUpdate: 'quinticInOut',
           series: [
             {
               name: 'CMDB',
               type: 'graph',
               layout: 'force',
-              data: graph.vertices, // links: graph.links,
+              data: graph.vertices.map((e) => {
+                // console.log(e);
+                return {
+                  category: e.category,
+                  name: e.id,
+                  value: e.name,
+                };
+              }),
               edges: graph.edges.map((e: any) => {
                 // console.log(e);
                 return e;
               }),
+              emphasis: {
+                focus: 'adjacency',
+                label: { position: 'right', show: true },
+              },
               roam: true,
               categories: graph.categories,
               edgeSymbol: ['none', 'arrow'],
-              edgeSymbolSize: 5,
+              edgeSymbolSize: 7,
               label: {
                 show: true,
                 position: 'right',
-                formatter: '{b}',
+                formatter: '{c}',
               },
               labelLayout: {
                 hideOverlap: false,
@@ -55,6 +72,17 @@ export class EchartsComponent implements OnInit {
               scaleLimit: {
                 min: 0.4,
                 max: 8,
+              },
+              // Disabled because it was selecting everything with same name
+              selectedMode: 'single',
+              select: {
+                itemStyle: {
+                  borderColor: '#000',
+                  borderWidth: 2,
+                },
+              },
+              tooltip: {
+                formatter: '{c}',
               },
               lineStyle: {
                 color: 'source',
@@ -79,5 +107,9 @@ export class EchartsComponent implements OnInit {
         data: event.data,
       });
     }
+  }
+
+  onChartInit(ec: any) {
+    this.echartsInstance = ec;
   }
 }

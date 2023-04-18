@@ -62,7 +62,19 @@ export class GraphService {
 
   public async addVertex(vertex: VertexDto): Promise<boolean> {
     try {
-      return this.addVertex(vertex);
+      return this.graphRepository.addVertex(vertex);
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
+  public async editVertex(id: string, vertex: VertexDto): Promise<boolean> {
+    try {
+      return this.graphRepository.editVertex(id, vertex);
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

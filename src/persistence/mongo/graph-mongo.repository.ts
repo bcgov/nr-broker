@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MongoRepository } from 'typeorm';
+import { DataSource, MongoRepository, Repository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 import { EdgeDto } from '../dto/edge.dto';
-import { VertexDto } from '../dto/vertex.dto';
+import { VertexCollectionDto, VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
@@ -24,29 +24,35 @@ export class GraphMongoRepository implements GraphRepository {
   ) {}
 
   public async getData(includeCollection: boolean): Promise<string> {
-    const vertices = [
-      ...(await this.aggregateVertex('project', 0, includeCollection)),
-      ...(await this.aggregateVertex('service', 1, includeCollection)),
-      ...(await this.aggregateVertex('serviceInstance', 2, includeCollection)),
-      ...(await this.aggregateVertex('environment', 3, includeCollection)),
-    ];
+    const configs = await this.collectionConfigRepository.find();
+    const verticeArrs = await Promise.all(
+      configs.map((config, category: number) => {
+        return this.aggregateVertex(
+          config.collection,
+          category,
+          config.index,
+          includeCollection,
+        );
+      }),
+    );
+
     const edges = await this.edgeRepository.find();
     // console.log(edges);
     return JSON.stringify({
       edges,
-      vertices,
-      categories: [
-        { name: 'Project' },
-        { name: 'Service' },
-        { name: 'Instance' },
-        { name: 'Environment' },
-      ],
+      vertices: [].concat(...verticeArrs),
+      categories: configs.map((config) => {
+        return {
+          name: config.name,
+        };
+      }),
     });
   }
 
   private async aggregateVertex(
     collection: string,
     category: number,
+    index: number,
     includeData: boolean,
   ): Promise<any> {
     const aggregateArr: any = [{ $match: { collection } }];
@@ -67,6 +73,7 @@ export class GraphMongoRepository implements GraphRepository {
         vertices.map((vertex) => ({
           id: vertex._id,
           category,
+          index,
           data:
             Array.isArray(vertex.data) && vertex.data.length > 0
               ? vertex.data[0]
@@ -106,10 +113,6 @@ export class GraphMongoRepository implements GraphRepository {
     const srcVertex = await this.getVertex(edge.source);
     const config = await this.getCollectionConfig(srcVertex.collection);
     const edgeConfig = config.edges.find((ec) => ec.name === edge.name);
-    // console.log(edge);
-    // console.log(srcVertex);
-    // console.log(config);
-    // console.log(edgeConfig);
     if (edgeConfig.onDelete === 'cascade') {
       await this.deleteVertex(edge.target);
     }
@@ -143,15 +146,39 @@ export class GraphMongoRepository implements GraphRepository {
     const entry = await collectionRepository.findOne({
       where: { vertex: ObjectID(vertex.id) },
     });
-    console.log(entry);
+    // console.log(entry);
     await collectionRepository.delete(entry.id);
     // Delete vertex
     const result = await this.vertexRepository.delete(id);
     return result.affected === 1;
   }
 
-  public async addVertex(vertex: VertexDto): Promise<boolean> {
+  public async addVertex(vertex: VertexCollectionDto): Promise<boolean> {
+    const collectionData = vertex.data;
+    delete vertex.data;
+    const config = await this.getCollectionConfig(vertex.collection);
+    for (const map of config.collectionMapper) {
+      vertex[map.setPath] = collectionData[map.getPath];
+    }
+    const vertResult = await this.vertexRepository.insertOne(vertex);
+    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    collectionData.vertex = vertResult.insertedId;
+    console.log(collectionData);
+    const collResult = await repository.insertOne(collectionData);
+    console.log(collResult);
+    return vertResult.insertedCount === 1;
+  }
+
+  public async editVertex(
+    id: string,
+    vertex: VertexCollectionDto,
+  ): Promise<boolean> {
+    const collectionData = vertex.data;
+    delete vertex.data;
     const result = await this.vertexRepository.insertOne(vertex);
+    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    collectionData.vertex = result.insertedId;
+    repository.insertOne(collectionData);
     return result.insertedCount === 1;
   }
 
@@ -161,16 +188,16 @@ export class GraphMongoRepository implements GraphRepository {
     });
   }
 
-  private getRepositoryFromCollectionName(name: string) {
+  private getRepositoryFromCollectionName(name: string): MongoRepository<any> {
     switch (name) {
       case 'environment':
-        return this.dataSource.getRepository(EnvironmentDto);
+        return this.dataSource.getMongoRepository(EnvironmentDto);
       case 'project':
-        return this.dataSource.getRepository(ProjectDto);
+        return this.dataSource.getMongoRepository(ProjectDto);
       case 'serviceInstance':
-        return this.dataSource.getRepository(ServiceInstanceDto);
+        return this.dataSource.getMongoRepository(ServiceInstanceDto);
       case 'service':
-        return this.dataSource.getRepository(ServiceDto);
+        return this.dataSource.getMongoRepository(ServiceDto);
       default:
         throw Error();
     }

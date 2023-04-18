@@ -10,6 +10,7 @@ export abstract class GraphRepository {
   public abstract getEdge(id: string): Promise<EdgeDto>;
   // Vertex
   public abstract addVertex(vertex: VertexDto): Promise<boolean>;
+  public abstract editVertex(id: string, vertex: VertexDto): Promise<boolean>;
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto>;
 }

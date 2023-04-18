@@ -1,4 +1,4 @@
-import { Component, Output } from '@angular/core';
+import { Component, Output, ViewChild } from '@angular/core';
 import {
   BehaviorSubject,
   combineLatest,
@@ -12,6 +12,7 @@ import {
 } from 'rxjs';
 import {
   ChartClickTarget,
+  ChartClickTargetVertex,
   CollectionConfig,
   CollectionConfigMap,
   GraphData,
@@ -20,6 +21,7 @@ import {
 import { GraphApiService } from './graph-api.service';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { EchartsComponent } from './echarts/echarts.component';
 
 @Component({
   selector: 'app-graph',
@@ -29,10 +31,13 @@ import { MatDialog } from '@angular/material/dialog';
 export class GraphComponent {
   @Output() data!: Observable<GraphDataConfig>;
   @Output() selected: ChartClickTarget | undefined = undefined;
+  @ViewChild(EchartsComponent)
+  private echartsComponent!: EchartsComponent;
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
-  private latestConfig: CollectionConfig[] | null = null;
+  private latestConfig: CollectionConfigMap | null = null;
+  private latestData: GraphData | null = null;
 
   constructor(private graphApi: GraphApiService, private dialog: MatDialog) {}
 
@@ -45,7 +50,6 @@ export class GraphComponent {
       map(([data, config]: [GraphData, CollectionConfig[]]) => {
         // console.log(data);
         // console.log(config);
-        this.latestConfig = config;
         data.idToVertex = data.vertices.reduce(
           (previousValue: any, currentValue) => {
             previousValue[currentValue.id] = currentValue;
@@ -67,6 +71,8 @@ export class GraphComponent {
           },
           {} as CollectionConfigMap,
         );
+        this.latestConfig = configMap;
+        this.latestData = data;
 
         return {
           data,
@@ -82,14 +88,45 @@ export class GraphComponent {
 
   onSelected(event: ChartClickTarget | undefined): void {
     this.selected = event;
+    if (event?.type === 'vertex') {
+      this.echartsComponent.echartsInstance.dispatchAction({
+        type: 'select',
+
+        // Find  by index or id or name.
+        // Can be an array to find multiple components.
+        seriesIndex: 0,
+
+        // data index; could assign by name attribute when not defined
+        dataIndex: this.latestData?.vertices.findIndex(
+          (vertex) =>
+            event.data.id === vertex.id &&
+            event.data.category === vertex.category,
+        ),
+      });
+    }
+  }
+
+  onGraphSelected(event: any): void {
+    if (event?.type === 'edge') {
+      this.selected = event;
+    }
+    if (event?.type === 'vertex') {
+      // console.log(event);
+      this.selected = {
+        type: 'vertex',
+        data: this.latestData?.vertices.find(
+          (vertex) =>
+            vertex.id === event.data.name &&
+            vertex.category === event.data.category,
+        ),
+      } as ChartClickTargetVertex;
+    }
   }
 
   addVertex() {
-    console.log('addVertex');
     this.dialog
       .open(VertexDialogComponent, {
-        height: '700px',
-        width: '600px',
+        width: '500px',
         data: {
           config: this.latestConfig,
         },

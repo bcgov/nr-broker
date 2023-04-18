@@ -9,7 +9,10 @@
 
     <mat-form-field *ngSwitchCase="'json'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
-      <textarea matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
+      <textarea matInput cdkTextareaAutosize
+      #autosize="cdkTextareaAutosize"
+      cdkAutosizeMinRows="7"
+      cdkAutosizeMaxRows="10" [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 

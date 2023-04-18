@@ -17,6 +17,17 @@ interface CollectionFieldConfig {
   type: 'string' | 'json';
 }
 
+interface CollectionFieldConfig {
+  hint?: string;
+  placeholder?: string;
+  type: 'string' | 'json';
+  value?: string;
+}
+
+export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
+  name: string;
+}
+
 export interface CollectionFieldConfigMap {
   [key: string]: CollectionFieldConfig;
 }

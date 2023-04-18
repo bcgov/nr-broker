@@ -33,6 +33,7 @@ import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.co
 import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../graph-api.service';
 import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
+import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -243,8 +244,7 @@ export class InspectorComponent implements OnChanges, OnInit {
 
   viewCollectionJson(json: any) {
     this.dialog.open(JsonViewDialogComponent, {
-      height: '400px',
-      width: '600px',
+      width: '500px',
       data: {
         json: JSON.stringify(json, undefined, 4),
       },
@@ -252,6 +252,29 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   editTarget() {
+    if (
+      !this.latestConfig ||
+      !this.collectionData ||
+      !this.target ||
+      !(this.target.type === 'vertex')
+    ) {
+      return;
+    }
+    this.dialog
+      .open(VertexDialogComponent, {
+        width: '500px',
+        data: {
+          config: this.latestConfig,
+          target: this.target,
+          data: this.collectionData,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          this.graphChanged.emit(true);
+        }
+      });
     console.log('editTarget');
   }
 
@@ -262,8 +285,7 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     this.dialog
       .open(AddEdgeDialogComponent, {
-        height: '400px',
-        width: '600px',
+        width: '500px',
         data: {
           config: this.latestConfig[vertex.collection],
           vertices: this.latestData.vertices,

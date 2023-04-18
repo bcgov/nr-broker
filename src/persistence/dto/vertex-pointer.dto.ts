@@ -1,9 +1,8 @@
-import { Column } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { Column, ObjectID } from 'typeorm';
 
 export abstract class VertexPointerDto {
-  @Column()
-  deleted: boolean;
-
-  @Column()
-  vertex: string;
+  @Column(() => ObjectID)
+  @ApiProperty({ type: () => String })
+  vertex: ObjectID;
 }
