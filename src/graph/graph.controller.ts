@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { BrokerAuthGuard } from '../auth/broker-auth.guard';
 import { GraphService } from './graph.service';
@@ -38,8 +40,8 @@ export class GraphController {
   @Post('edge')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  addEdge(@Body() edge: EdgeDto) {
-    return this.graph.addEdge(edge);
+  addEdge(@Req() request: Request, @Body() edge: EdgeDto) {
+    return this.graph.addEdge(request, edge);
   }
 
   @Get('edge/:id')
@@ -52,22 +54,26 @@ export class GraphController {
   @Delete('edge/:id')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  deleteEdge(@Param('id') id: string) {
-    return this.graph.deleteEdge(id);
+  deleteEdge(@Req() request: Request, @Param('id') id: string) {
+    return this.graph.deleteEdge(request, id);
   }
 
   @Post('vertex')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  addVertex(@Body() vertex: VertexCollectionDto) {
-    return this.graph.addVertex(vertex);
+  addVertex(@Req() request: Request, @Body() vertex: VertexCollectionDto) {
+    return this.graph.addVertex(request, vertex);
   }
 
   @Put('vertex/:id')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  editVertex(@Param('id') id: string, @Body() vertex: VertexCollectionDto) {
-    return this.graph.editVertex(id, vertex);
+  editVertex(
+    @Req() request: Request,
+    @Param('id') id: string,
+    @Body() vertex: VertexCollectionDto,
+  ) {
+    return this.graph.editVertex(request, id, vertex);
   }
 
   @Get('vertex/:id')
@@ -80,8 +86,8 @@ export class GraphController {
   @Delete('vertex/:id')
   //@UseGuards(BrokerAuthGuard)
   //@ApiBearerAuth()
-  deleteVertex(@Param('id') id: string) {
-    return this.graph.deleteVertex(id);
+  deleteVertex(@Req() request: Request, @Param('id') id: string) {
+    return this.graph.deleteVertex(request, id);
   }
 
   @Get('project')

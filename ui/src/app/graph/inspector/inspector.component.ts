@@ -275,7 +275,6 @@ export class InspectorComponent implements OnChanges, OnInit {
           this.graphChanged.emit(true);
         }
       });
-    console.log('editTarget');
   }
 
   addEdgeToVertex(vertex: GraphDataVertex) {

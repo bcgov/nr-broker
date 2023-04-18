@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MongoRepository, Repository } from 'typeorm';
+import { DataSource, MongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 import { EdgeDto } from '../dto/edge.dto';
 import { VertexCollectionDto, VertexDto } from '../dto/vertex.dto';
@@ -87,14 +87,14 @@ export class GraphMongoRepository implements GraphRepository {
 
   private async getCollectionConfig(
     collection: string,
-  ): Promise<CollectionConfigDto> {
+  ): Promise<CollectionConfigDto | null> {
     return this.collectionConfigRepository.findOne({
       where: { collection },
     });
   }
 
   // Edge
-  public async addEdge(edge: EdgeDto): Promise<boolean> {
+  public async addEdge(edge: EdgeDto): Promise<EdgeDto> {
     const sourceVertex = await this.getVertex(edge.source);
     const targetVertex = await this.getVertex(edge.target);
     const sourceConfig = await this.getCollectionConfig(
@@ -103,9 +103,25 @@ export class GraphMongoRepository implements GraphRepository {
     const targetConfig = await this.getCollectionConfig(
       targetVertex.collection,
     );
+    if (
+      sourceVertex === null ||
+      targetVertex === null ||
+      sourceConfig === null ||
+      targetConfig === null
+    ) {
+      throw new Error();
+    }
     edge.st = [sourceConfig.index, targetConfig.index];
     const result = await this.edgeRepository.insertOne(edge);
-    return result.insertedCount === 1;
+    if (result.insertedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getEdge(result.insertedId.toString());
+    if (rval === null) {
+      throw new Error();
+    }
+
+    return rval;
   }
 
   public async deleteEdge(id: string): Promise<boolean> {
@@ -113,14 +129,25 @@ export class GraphMongoRepository implements GraphRepository {
     const srcVertex = await this.getVertex(edge.source);
     const config = await this.getCollectionConfig(srcVertex.collection);
     const edgeConfig = config.edges.find((ec) => ec.name === edge.name);
+    if (
+      edge === null ||
+      srcVertex === null ||
+      config === null ||
+      edgeConfig === null
+    ) {
+      throw new Error();
+    }
     if (edgeConfig.onDelete === 'cascade') {
       await this.deleteVertex(edge.target);
     }
     const result = await this.edgeRepository.delete(id);
-    return result.affected === 1;
+    if (result.affected !== 1) {
+      throw new Error();
+    }
+    return true;
   }
 
-  public getEdge(id: string): Promise<EdgeDto> {
+  public getEdge(id: string): Promise<EdgeDto | null> {
     return this.edgeRepository.findOne({
       where: { _id: ObjectID(id) },
     });
@@ -129,6 +156,9 @@ export class GraphMongoRepository implements GraphRepository {
   // Vertex
   public async deleteVertex(id: string): Promise<boolean> {
     const vertex = await this.getVertex(id);
+    if (vertex === null) {
+      throw new Error();
+    }
 
     // Find and delete all edges using vertex as a source
     const edges = await this.edgeRepository.find({
@@ -147,42 +177,115 @@ export class GraphMongoRepository implements GraphRepository {
       where: { vertex: ObjectID(vertex.id) },
     });
     // console.log(entry);
-    await collectionRepository.delete(entry.id);
+    if (entry !== null) {
+      await collectionRepository.delete(entry.id);
+    }
     // Delete vertex
     const result = await this.vertexRepository.delete(id);
     return result.affected === 1;
   }
 
-  public async addVertex(vertex: VertexCollectionDto): Promise<boolean> {
+  public async addVertex(vertex: VertexCollectionDto): Promise<VertexDto> {
+    const config = await this.getCollectionConfig(vertex.collection);
+    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+
     const collectionData = vertex.data;
     delete vertex.data;
-    const config = await this.getCollectionConfig(vertex.collection);
+
+    if (config === null) {
+      throw new Error();
+    }
+
     for (const map of config.collectionMapper) {
       vertex[map.setPath] = collectionData[map.getPath];
     }
     const vertResult = await this.vertexRepository.insertOne(vertex);
-    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    if (vertResult.insertedCount !== 1) {
+      throw new Error();
+    }
     collectionData.vertex = vertResult.insertedId;
-    console.log(collectionData);
+    //console.log(collectionData);
     const collResult = await repository.insertOne(collectionData);
-    console.log(collResult);
-    return vertResult.insertedCount === 1;
+    //console.log(collResult);
+
+    if (collResult.insertedCount !== 1) {
+      throw new Error();
+    }
+
+    const rval = await this.getVertex(vertResult.insertedId.toString());
+    if (rval === null) {
+      throw new Error();
+    }
+    return rval;
   }
 
   public async editVertex(
     id: string,
     vertex: VertexCollectionDto,
-  ): Promise<boolean> {
+  ): Promise<VertexDto> {
+    const curVertex = this.getVertex(id);
+    // console.log(vertex);
+    if (curVertex === null || vertex.id.toString() !== id) {
+      throw new Error();
+    }
+    const config = await this.getCollectionConfig(vertex.collection);
+    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    const collectionObj = await repository.findOne({
+      where: { vertex: ObjectID(id) },
+    });
+
     const collectionData = vertex.data;
     delete vertex.data;
-    const result = await this.vertexRepository.insertOne(vertex);
-    const repository = this.getRepositoryFromCollectionName(vertex.collection);
-    collectionData.vertex = result.insertedId;
-    repository.insertOne(collectionData);
-    return result.insertedCount === 1;
+
+    if (config === null) {
+      throw new Error();
+    }
+    // console.log(config.collectionMapper);
+    for (const map of config.collectionMapper) {
+      vertex[map.setPath] = collectionData[map.getPath];
+    }
+    // console.log(vertex);
+    const vertResult = await this.vertexRepository.updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          name: vertex.name,
+        },
+      },
+    );
+    // console.log(vertResult);
+    if (vertResult.modifiedCount !== 1) {
+      throw new Error();
+    }
+    if (collectionObj === null) {
+      collectionData.vertex = ObjectID(id);
+      const collResult = await repository.insertOne(collectionData);
+      //console.log(collResult);
+
+      if (collResult.insertedCount !== 1) {
+        throw new Error();
+      }
+    } else {
+      // console.log(collectionObj);
+      // console.log(collectionData);
+      const collResult = await repository.updateOne(
+        { vertex: ObjectID(id) },
+        {
+          $set: collectionData,
+        },
+      );
+      if (collResult.modifiedCount !== 1) {
+        throw new Error();
+      }
+    }
+    const rval = await this.getVertex(id);
+    if (rval === null) {
+      throw new Error();
+    }
+    return rval;
   }
 
-  public getVertex(id: string): Promise<VertexDto> {
+  public getVertex(id: string): Promise<VertexDto | null> {
     return this.vertexRepository.findOne({
       where: { _id: ObjectID(id) },
     });

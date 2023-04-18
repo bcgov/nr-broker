@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, ObjectID } from 'typeorm';
+import { Column } from 'typeorm';
+import { ObjectID } from 'mongodb';
 
 export abstract class VertexPointerDto {
-  @Column(() => ObjectID)
+  // vertex should be defined as ObjectID but typeorm can't handle a non-id being a ObjectID.
+  @Column()
   @ApiProperty({ type: () => String })
   vertex: ObjectID;
 }

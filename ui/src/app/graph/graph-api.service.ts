@@ -46,7 +46,6 @@ export class GraphApiService {
   }
 
   addVertex(collection: CollectionConfig, data: any) {
-    console.log('addVertex');
     return this.http.post<any>(
       `${environment.apiUrl}/v1/graph/vertex`,
       {
@@ -60,12 +59,18 @@ export class GraphApiService {
   }
 
   editVertex(vertex: GraphDataVertex, data: any) {
+    const vertexData: any = {
+      id: vertex.id,
+      collection: vertex.collection,
+      name: vertex.name,
+      data,
+    };
+    if (vertex.prop) {
+      vertexData.prop = vertex.prop;
+    }
     return this.http.put<any>(
       `${environment.apiUrl}/v1/graph/vertex/${vertex.id}`,
-      {
-        collection: vertex.collection,
-        data,
-      },
+      vertexData,
       {
         responseType: 'json',
       },

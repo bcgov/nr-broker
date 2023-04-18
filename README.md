@@ -70,7 +70,7 @@ mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB
 If at any time you need to wipe the graph database, you can drop the tables by using mongosh and then reinstall.
 
 ```
-brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();db.collectionConfig.drop();
+brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
 ```
 
 #### Updating JWT allow/block list

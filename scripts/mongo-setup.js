@@ -5,6 +5,7 @@ if (
   db.jwtAllow.insertOne({});
 }
 
+db.collectionConfig.drop();
 result = db.collectionConfig.insertOne({
   collection: 'environment',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],

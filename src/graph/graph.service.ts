@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { ProjectRepository } from '../persistence/interfaces/project.repository';
 import { ServiceRepository } from '../persistence/interfaces/service.repository';
@@ -12,10 +16,13 @@ import { VertexDto } from '../persistence/dto/vertex.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { CollectionConfigRepository } from '../persistence/interfaces/collection-config.repository';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
+import { AuditService } from '../audit/audit.service';
+import { Request } from 'express';
 
 @Injectable()
 export class GraphService {
   constructor(
+    private readonly auditService: AuditService,
     private readonly collectionConfigRepository: CollectionConfigRepository,
     private readonly environmentRepository: EnvironmentRepository,
     private readonly graphRepository: GraphRepository,
@@ -32,13 +39,38 @@ export class GraphService {
     return this.collectionConfigRepository.getAll();
   }
 
-  public async addEdge(edge: EdgeDto): Promise<boolean> {
-    return this.graphRepository.addEdge(edge);
+  public async addEdge(req: Request, edge: EdgeDto): Promise<EdgeDto> {
+    try {
+      const resp = await this.graphRepository.addEdge(edge);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-add',
+        null,
+        'success',
+      );
+      return resp;
+    } catch (e) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-add',
+        null,
+        'failure',
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
   }
 
   public async getEdge(id: string): Promise<EdgeDto> {
     try {
-      return this.graphRepository.getEdge(id);
+      const edge = await this.graphRepository.getEdge(id);
+      if (edge === null) {
+        throw new Error();
+      }
+      return edge;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -48,37 +80,79 @@ export class GraphService {
     }
   }
 
-  public async deleteEdge(id: string): Promise<boolean> {
+  public async deleteEdge(req: Request, id: string): Promise<boolean> {
     try {
-      return this.graphRepository.deleteEdge(id);
+      const resp = this.graphRepository.deleteEdge(id);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-delete',
+        null,
+        'success',
+      );
+      return resp;
     } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-delete',
+        null,
+        'failure',
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
         error: '',
       });
     }
   }
 
-  public async addVertex(vertex: VertexDto): Promise<boolean> {
+  public async addVertex(req: Request, vertex: VertexDto): Promise<VertexDto> {
     try {
-      return this.graphRepository.addVertex(vertex);
+      const resp = await this.graphRepository.addVertex(vertex);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-add',
+        null,
+        'success',
+      );
+      return resp;
     } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-add',
+        null,
+        'failure',
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
         error: '',
       });
     }
   }
 
-  public async editVertex(id: string, vertex: VertexDto): Promise<boolean> {
+  public async editVertex(
+    req: Request,
+    id: string,
+    vertex: VertexDto,
+  ): Promise<VertexDto> {
     try {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-edit',
+        null,
+        'success',
+      );
       return this.graphRepository.editVertex(id, vertex);
     } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-edit',
+        null,
+        'failure',
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
         error: '',
       });
     }
@@ -86,7 +160,11 @@ export class GraphService {
 
   public async getVertex(id: string): Promise<VertexDto> {
     try {
-      return this.graphRepository.getVertex(id);
+      const vertex = await this.graphRepository.getVertex(id);
+      if (vertex === null) {
+        throw new Error();
+      }
+      return vertex;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -96,10 +174,23 @@ export class GraphService {
     }
   }
 
-  public async deleteVertex(id: string): Promise<boolean> {
+  public async deleteVertex(req: Request, id: string): Promise<boolean> {
     try {
-      return this.graphRepository.deleteVertex(id);
+      const resp = await this.graphRepository.deleteVertex(id);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-delete',
+        null,
+        'success',
+      );
+      return resp;
     } catch (error) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-delete',
+        null,
+        'failure',
+      );
       throw new NotFoundException({
         statusCode: 404,
         message: 'Not found',
