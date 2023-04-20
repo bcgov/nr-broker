@@ -29,7 +29,7 @@ export class CollectionConfigDto {
   collection: string;
 
   @Column()
-  index: number;
+  collectionMapper: CollectionMap[];
 
   @Column()
   edges: CollectionEdgeConfig[];
@@ -40,8 +40,20 @@ export class CollectionConfigDto {
   };
 
   @Column()
+  index: number;
+
+  @Column()
   name: string;
 
   @Column()
-  collectionMapper: CollectionMap[];
+  parent: {
+    edgeName: string;
+  };
+
+  @Column()
+  permissions: {
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+  };
 }

@@ -112,6 +112,30 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     edge.st = [sourceConfig.index, targetConfig.index];
+    const edgeConfig = sourceConfig.edges.find(
+      (edgeConfig) => edgeConfig.name === edge.name,
+    );
+
+    // No duplicate edges
+    const relationCnt = await this.edgeRepository.count({
+      source: ObjectID(edge.source),
+      target: ObjectID(edge.target),
+      name: edge.name,
+    });
+    if (relationCnt > 0) {
+      throw new Error();
+    }
+
+    if (edgeConfig.relation === 'oneToOne') {
+      // No additional edges
+      const relationCnt = await this.edgeRepository.count({
+        source: ObjectID(edge.source),
+        name: edge.name,
+      });
+      if (relationCnt > 0) {
+        throw new Error();
+      }
+    }
     const result = await this.edgeRepository.insertOne(edge);
     if (result.insertedCount !== 1) {
       throw new Error();
@@ -124,7 +148,7 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
-  public async deleteEdge(id: string): Promise<boolean> {
+  public async deleteEdge(id: string, cascade = true): Promise<boolean> {
     const edge = await this.getEdge(id);
     const srcVertex = await this.getVertex(edge.source);
     const config = await this.getCollectionConfig(srcVertex.collection);
@@ -137,9 +161,14 @@ export class GraphMongoRepository implements GraphRepository {
     ) {
       throw new Error();
     }
-    if (edgeConfig.onDelete === 'cascade') {
+    if (
+      edgeConfig.onDelete === 'cascade' &&
+      cascade &&
+      (await this.getEdgeTargetCount(edge.target)) === 1
+    ) {
       await this.deleteVertex(edge.target);
     }
+    // console.log(`edgeRepository.delete(${id})`);
     const result = await this.edgeRepository.delete(id);
     if (result.affected !== 1) {
       throw new Error();
@@ -153,20 +182,49 @@ export class GraphMongoRepository implements GraphRepository {
     });
   }
 
+  public getEdgeTargetCount(target: string): Promise<number> {
+    return this.edgeRepository.count({
+      target,
+    });
+  }
+
   // Vertex
   public async deleteVertex(id: string): Promise<boolean> {
     const vertex = await this.getVertex(id);
     if (vertex === null) {
       throw new Error();
     }
+    const config = await this.getCollectionConfig(vertex.collection);
+    if (config === null || !config.permissions.delete) {
+      throw new Error();
+    }
+
+    // Find and delete all edges using vertex as a target
+    const tarEdges = await this.edgeRepository.find({
+      where: { target: ObjectID(vertex.id) },
+    });
+    // console.log('tarEdges');
+    // console.log(tarEdges);
+    for (const edge of tarEdges) {
+      try {
+        await this.deleteEdge(edge.id.toString(), false);
+      } catch (e) {
+        // Ignore not found errors
+      }
+    }
 
     // Find and delete all edges using vertex as a source
-    const edges = await this.edgeRepository.find({
+    const srcEdges = await this.edgeRepository.find({
       where: { source: ObjectID(vertex.id) },
     });
-
-    for (const edge of edges) {
-      await this.deleteEdge(edge.id.toString());
+    // console.log('srcEdges');
+    // console.log(srcEdges);
+    for (const edge of srcEdges) {
+      try {
+        await this.deleteEdge(edge.id.toString());
+      } catch (e) {
+        // Ignore not found errors
+      }
     }
 
     // Delete associated collection
@@ -192,7 +250,7 @@ export class GraphMongoRepository implements GraphRepository {
     const collectionData = vertex.data;
     delete vertex.data;
 
-    if (config === null) {
+    if (config === null || !config.permissions.create) {
       throw new Error();
     }
 
@@ -236,8 +294,7 @@ export class GraphMongoRepository implements GraphRepository {
 
     const collectionData = vertex.data;
     delete vertex.data;
-
-    if (config === null) {
+    if (config === null || !config.permissions.update) {
       throw new Error();
     }
     // console.log(config.collectionMapper);
@@ -254,13 +311,14 @@ export class GraphMongoRepository implements GraphRepository {
       },
     );
     // console.log(vertResult);
-    if (vertResult.modifiedCount !== 1) {
+    if (vertResult.matchedCount !== 1) {
       throw new Error();
     }
+    // console.log(collectionObj);
     if (collectionObj === null) {
       collectionData.vertex = ObjectID(id);
       const collResult = await repository.insertOne(collectionData);
-      //console.log(collResult);
+      // console.log(collResult);
 
       if (collResult.insertedCount !== 1) {
         throw new Error();
@@ -274,7 +332,7 @@ export class GraphMongoRepository implements GraphRepository {
           $set: collectionData,
         },
       );
-      if (collResult.modifiedCount !== 1) {
+      if (collResult.matchedCount !== 1) {
         throw new Error();
       }
     }

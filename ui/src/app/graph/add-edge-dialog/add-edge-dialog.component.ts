@@ -33,8 +33,6 @@ export class AddEdgeDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // console.log(this.data.config);
-    // console.log(this.data.vertex);
     this.filteredOptions = this.vertexControl.valueChanges.pipe(
       startWith(''),
       map((value) => {
@@ -50,24 +48,31 @@ export class AddEdgeDialogComponent implements OnInit {
   private _filter(value: string): GraphDataVertex[] {
     const filterValue = value.toLowerCase();
 
-    return this.targetVertices.filter((option) =>
-      option.name.toLowerCase().includes(filterValue),
+    return this.targetVertices.filter(
+      (option) =>
+        option.name.toLowerCase().includes(filterValue) ||
+        (option.parentName &&
+          option.parentName.toLocaleLowerCase().includes(filterValue)),
     );
   }
 
   displayFn(vertex: GraphDataVertex): string {
-    return vertex && vertex.name ? vertex.name : '';
+    if (vertex) {
+      return vertex.parentName
+        ? `${vertex.parentName} > ${vertex.name}`
+        : vertex.name;
+    } else {
+      return '';
+    }
   }
 
   configChanged() {
     const edge = this.edgeControl.value;
     if (!!edge && typeof edge !== 'string') {
-      // console.log(this.selectedEdge);
       this.targetVertices = this.data.vertices.filter(
         (vertex) => edge.collection === vertex.collection,
       );
       this.vertexControl.enable();
-      // console.log(this.targetVertices);
     } else {
       this.vertexControl.disable();
     }

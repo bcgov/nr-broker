@@ -42,12 +42,27 @@ export type CollectionConfigMap = {
   [key in collectionNames]: CollectionConfig;
 };
 
+export interface CollectionMap {
+  getPath: string;
+  setPath: string;
+}
+
 export interface CollectionConfig {
   collection: collectionNames;
-  index: number;
+  collectionMapper: CollectionMap[];
   edges: CollectionEdgeConfig[];
   fields: CollectionFieldConfigMap;
+  index: number;
+  name: string;
   vertex: CollectionVertexConfig;
+  parent?: {
+    edgeName: string;
+  };
+  permissions: {
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+  };
 }
 
 export type ChartClickTarget = ChartClickTargetVertex | ChartClickTargetEdge;

@@ -47,9 +47,16 @@ export class GraphComponent {
       switchMap(() =>
         combineLatest([this.graphApi.getData(), this.graphApi.getConfig()]),
       ),
-      map(([data, config]: [GraphData, CollectionConfig[]]) => {
+      map(([data, configArr]: [GraphData, CollectionConfig[]]) => {
         // console.log(data);
         // console.log(config);
+        const configMap: CollectionConfigMap = configArr.reduce(
+          (previousValue, currentValue) => {
+            previousValue[currentValue.collection] = currentValue;
+            return previousValue;
+          },
+          {} as CollectionConfigMap,
+        );
         data.idToVertex = data.vertices.reduce(
           (previousValue: any, currentValue) => {
             previousValue[currentValue.id] = currentValue;
@@ -64,13 +71,15 @@ export class GraphComponent {
           },
           {},
         );
-        const configMap: CollectionConfigMap = config.reduce(
-          (previousValue, currentValue) => {
-            previousValue[currentValue.collection] = currentValue;
-            return previousValue;
-          },
-          {} as CollectionConfigMap,
-        );
+        for (const edge of data.edges) {
+          const targetVertex = data.idToVertex[edge.target];
+          const parentEdgeName =
+            configMap[targetVertex.collection]?.parent?.edgeName;
+          if (parentEdgeName && edge.name === parentEdgeName) {
+            const sourceVertex = data.idToVertex[edge.source];
+            targetVertex.parentName = sourceVertex.name;
+          }
+        }
         this.latestConfig = configMap;
         this.latestData = data;
 

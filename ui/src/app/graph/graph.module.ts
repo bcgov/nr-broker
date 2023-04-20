@@ -13,6 +13,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { VertexFormFieldComponent } from './vertex-form-field/vertex-form-field.component';
 import { VertexFormBuilderComponent } from './vertex-form-builder/vertex-form-builder.component';
+import { VertexNameComponent } from './vertex-name/vertex-name.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { VertexFormBuilderComponent } from './vertex-form-builder/vertex-form-bu
     VertexDialogComponent,
     VertexFormFieldComponent,
     VertexFormBuilderComponent,
+    VertexNameComponent,
   ],
   imports: [
     CommonModule,

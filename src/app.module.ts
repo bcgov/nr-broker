@@ -2,6 +2,8 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -63,6 +65,9 @@ function envToObj(key: string, envName: string) {
       ...envToObj('sslPass', 'DB_SSL_PASS'),
       ...envToObj('sslCRL', 'DB_SSL_CRL'),
       ...envToObj('replicaSet', 'DB_REPLICA_SET'),
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'ui/dist/ui'),
     }),
     HealthModule,
     IntentionModule,

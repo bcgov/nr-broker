@@ -13,6 +13,11 @@ result = db.collectionConfig.insertOne({
   edges: [],
   fields: { name: { type: 'string' }, short: { type: 'string' } },
   name: 'Environment',
+  permissions: {
+    create: false,
+    update: false,
+    delete: false,
+  },
 });
 result = db.collectionConfig.insertOne({
   collection: 'project',
@@ -25,6 +30,11 @@ result = db.collectionConfig.insertOne({
     configuration: { type: 'json' },
   },
   name: 'Project',
+  permissions: {
+    create: true,
+    update: true,
+    delete: true,
+  },
 });
 result = db.collectionConfig.insertOne({
   collection: 'service',
@@ -40,6 +50,11 @@ result = db.collectionConfig.insertOne({
   ],
   fields: { name: { type: 'string' }, configuration: { type: 'json' } },
   name: 'Service',
+  permissions: {
+    create: true,
+    update: true,
+    delete: true,
+  },
 });
 result = db.collectionConfig.insertOne({
   collection: 'serviceInstance',
@@ -50,17 +65,23 @@ result = db.collectionConfig.insertOne({
       collection: 'environment',
       name: 'deploy-type',
       inboundName: 'Instance',
-      namePath: 'instance',
       relation: 'oneToOne',
     },
     {
       collection: 'serviceInstance',
       name: 'requires',
       inboundName: 'Required By',
-      namePath: 'instance',
       relation: 'oneToMany',
     },
   ],
   fields: { name: { type: 'string' }, key: { type: 'string' } },
   name: 'Instance',
+  parent: {
+    edgeName: 'instance',
+  },
+  permissions: {
+    create: true,
+    update: true,
+    delete: true,
+  },
 });
