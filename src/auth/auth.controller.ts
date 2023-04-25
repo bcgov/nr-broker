@@ -1,5 +1,5 @@
 import { Controller, Get, Request, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
 
 import { BrokerOidcRedirectGuard } from './broker-oidc-redirect.guard';
 import { Issuer } from 'openid-client';
@@ -29,9 +29,10 @@ export class AuthController {
    * @param res
    */
   @Get('/logout')
-  async logout(@Request() req, @Res() res: Response) {
-    const id_token = req.user ? req.user.id_token : undefined;
-    req.logout();
+  async logout(@Request() req: ExpressRequest, @Res() res: Response) {
+    const id_token = req.user ? (req.user as any).id_token : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    req.logout(() => {});
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req.session.destroy(async (error: any) => {
       const TrustIssuer = await Issuer.discover(

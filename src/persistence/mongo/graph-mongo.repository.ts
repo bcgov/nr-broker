@@ -10,6 +10,7 @@ import { ServiceInstanceDto } from '../dto/service-instance.dto';
 import { ServiceDto } from '../dto/service.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { EnvironmentDto } from '../dto/environment.dto';
+import { UserDto } from '../dto/user.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -243,14 +244,17 @@ export class GraphMongoRepository implements GraphRepository {
     return result.affected === 1;
   }
 
-  public async addVertex(vertex: VertexCollectionDto): Promise<VertexDto> {
+  public async addVertex(
+    vertex: VertexCollectionDto,
+    ignorePermissions = false,
+  ): Promise<VertexDto> {
     const config = await this.getCollectionConfig(vertex.collection);
     const repository = this.getRepositoryFromCollectionName(vertex.collection);
 
     const collectionData = vertex.data;
     delete vertex.data;
 
-    if (config === null || !config.permissions.create) {
+    if (!ignorePermissions && (config === null || !config.permissions.create)) {
       throw new Error();
     }
 
@@ -359,6 +363,8 @@ export class GraphMongoRepository implements GraphRepository {
         return this.dataSource.getMongoRepository(ServiceInstanceDto);
       case 'service':
         return this.dataSource.getMongoRepository(ServiceDto);
+      case 'user':
+        return this.dataSource.getMongoRepository(UserDto);
       default:
         throw Error();
     }

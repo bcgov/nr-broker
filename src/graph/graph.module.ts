@@ -8,5 +8,6 @@ import { GraphService } from './graph.service';
   imports: [AuditModule, PersistenceModule],
   controllers: [GraphController],
   providers: [GraphService],
+  exports: [GraphService],
 })
 export class GraphModule {}

@@ -5,6 +5,7 @@ if (
   db.jwtAllow.insertOne({});
 }
 
+db.user.drop();
 db.collectionConfig.drop();
 result = db.collectionConfig.insertOne({
   collection: 'environment',
@@ -82,6 +83,40 @@ result = db.collectionConfig.insertOne({
   permissions: {
     create: true,
     update: true,
+    delete: true,
+  },
+});
+result = db.collectionConfig.insertOne({
+  collection: 'user',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  index: 3,
+  edges: [
+    {
+      collection: 'project',
+      name: 'developer',
+      relation: 'oneToMany',
+    },
+    {
+      collection: 'project',
+      name: 'lead-developer',
+      relation: 'oneToMany',
+    },
+    {
+      collection: 'project',
+      name: 'dba',
+      relation: 'oneToMany',
+    },
+  ],
+  fields: {
+    email: { type: 'string' },
+    guid: { type: 'string' },
+    name: { type: 'string' },
+    username: { type: 'string' },
+  },
+  name: 'User',
+  permissions: {
+    create: false,
+    update: false,
     delete: true,
   },
 });

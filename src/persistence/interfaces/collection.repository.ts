@@ -11,4 +11,10 @@ export abstract class CollectionRepository {
     type: string,
     id: string,
   ): Promise<any>;
+
+  public abstract getCollectionByKeyValue(
+    type: string,
+    key: string,
+    value: string,
+  ): Promise<any>;
 }

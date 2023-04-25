@@ -86,9 +86,16 @@ export class GraphService {
     }
   }
 
-  public async addVertex(req: Request, vertex: VertexDto): Promise<VertexDto> {
+  public async addVertex(
+    req: Request,
+    vertex: VertexDto,
+    ignorePermissions = false,
+  ): Promise<VertexDto> {
     try {
-      const resp = await this.graphRepository.addVertex(vertex);
+      const resp = await this.graphRepository.addVertex(
+        vertex,
+        ignorePermissions,
+      );
       this.auditService.recordGraphAction(
         req,
         'graph-vertex-add',
@@ -97,6 +104,7 @@ export class GraphService {
       );
       return resp;
     } catch (error) {
+      console.log(error);
       this.auditService.recordGraphAction(
         req,
         'graph-vertex-add',

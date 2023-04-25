@@ -1,6 +1,7 @@
 import {
   Component,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
   OnInit,
@@ -28,12 +29,14 @@ import {
   CollectionConfigMap,
   GraphDataVertex,
   ConnectionDirection,
+  UserDto,
 } from '../graph.types';
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../graph-api.service';
 import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
+import { CURRENT_USER } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-inspector',
@@ -55,7 +58,11 @@ export class InspectorComponent implements OnChanges, OnInit {
   latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
 
-  constructor(private graphApi: GraphApiService, private dialog: MatDialog) {}
+  constructor(
+    private graphApi: GraphApiService,
+    private dialog: MatDialog,
+    @Inject(CURRENT_USER) public user: UserDto,
+  ) {}
 
   ngOnInit(): void {
     this.inboundConnections = this.targetSubject.pipe(

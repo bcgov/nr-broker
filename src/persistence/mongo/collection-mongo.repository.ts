@@ -8,6 +8,7 @@ import { EnvironmentDto } from '../dto/environment.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
 import { ServiceDto } from '../dto/service.dto';
+import { UserDto } from '../dto/user.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -36,6 +37,17 @@ export class CollectionMongoRepository implements CollectionRepository {
     });
   }
 
+  public async getCollectionByKeyValue(
+    type: string,
+    key: string,
+    value: string,
+  ): Promise<any> {
+    const repo = this.getRepositoryFromCollectionName(type);
+    return repo.findOne({
+      where: { [key]: value } as any,
+    });
+  }
+
   private getRepositoryFromCollectionName(name: string): MongoRepository<any> {
     switch (name) {
       case 'environment':
@@ -46,6 +58,8 @@ export class CollectionMongoRepository implements CollectionRepository {
         return this.dataSource.getMongoRepository(ServiceInstanceDto);
       case 'service':
         return this.dataSource.getMongoRepository(ServiceDto);
+      case 'user':
+        return this.dataSource.getMongoRepository(UserDto);
       default:
         throw Error();
     }

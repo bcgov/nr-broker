@@ -1,4 +1,4 @@
-import { Component, Output, ViewChild } from '@angular/core';
+import { Component, Inject, Output, ViewChild } from '@angular/core';
 import {
   BehaviorSubject,
   combineLatest,
@@ -17,11 +17,13 @@ import {
   CollectionConfigMap,
   GraphData,
   GraphDataConfig,
+  UserDto,
 } from './graph.types';
 import { GraphApiService } from './graph-api.service';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { EchartsComponent } from './echarts/echarts.component';
+import { CURRENT_USER } from '../app-initialize.factory';
 
 @Component({
   selector: 'app-graph',
@@ -39,7 +41,11 @@ export class GraphComponent {
   private latestConfig: CollectionConfigMap | null = null;
   private latestData: GraphData | null = null;
 
-  constructor(private graphApi: GraphApiService, private dialog: MatDialog) {}
+  constructor(
+    private graphApi: GraphApiService,
+    private dialog: MatDialog,
+    @Inject(CURRENT_USER) public user: UserDto,
+  ) {}
 
   ngOnInit(): void {
     this.data = this.triggerRefresh.pipe(
