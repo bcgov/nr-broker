@@ -16,6 +16,7 @@ import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
+import { Roles } from '../roles.decorator';
 
 @Controller({
   path: 'graph',
@@ -32,6 +33,7 @@ export class GraphController {
   }
 
   @Post('edge')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   addEdge(@Req() request: Request, @Body() edge: EdgeDto) {
@@ -46,6 +48,7 @@ export class GraphController {
   }
 
   @Delete('edge/:id')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   deleteEdge(@Req() request: Request, @Param('id') id: string) {
@@ -53,6 +56,7 @@ export class GraphController {
   }
 
   @Post('vertex')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   addVertex(@Req() request: Request, @Body() vertex: VertexCollectionDto) {
@@ -60,6 +64,7 @@ export class GraphController {
   }
 
   @Put('vertex/:id')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   editVertex(
@@ -78,38 +83,10 @@ export class GraphController {
   }
 
   @Delete('vertex/:id')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   deleteVertex(@Req() request: Request, @Param('id') id: string) {
     return this.graph.deleteVertex(request, id);
   }
-  /*
-  @Get('project')
-  @UseGuards(BrokerOidcAuthGuard)
-  @ApiBearerAuth()
-  async getProjectByVertexId(@Query('vertex') id: string) {
-    return await this.graph.getProjectByVertexId(id);
-  }
-
-  @Get('service')
-  @UseGuards(BrokerOidcAuthGuard)
-  @ApiBearerAuth()
-  async getServiceByVertexId(@Query('vertex') id: string) {
-    return await this.graph.getServiceByVertexId(id);
-  }
-
-  @Get('environment')
-  @UseGuards(BrokerOidcAuthGuard)
-  @ApiBearerAuth()
-  async getEnvironmentByVertexId(@Query('vertex') id: string) {
-    return await this.graph.getEnvironmentByVertexId(id);
-  }
-
-  @Get('service-instance')
-  @UseGuards(BrokerOidcAuthGuard)
-  @ApiBearerAuth()
-  async getServiceInstanceByVertexId(@Query('vertex') id: string) {
-    return await this.graph.getServiceInstanceByVertexId(id);
-  }
-  */
 }

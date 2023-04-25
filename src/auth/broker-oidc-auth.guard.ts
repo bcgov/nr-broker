@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 
 /**
@@ -13,7 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
-  constructor() {
+  constructor(private reflector: Reflector) {
     super();
   }
 
@@ -22,6 +23,14 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     if (!request.isAuthenticated()) {
       throw new UnauthorizedException();
     }
-    return true;
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!roles) {
+      return true;
+    }
+    // console.log(request.user);
+    return (
+      request.user.userinfo.client_roles &&
+      roles.every((role) => request.user.userinfo.client_roles.includes(role))
+    );
   }
 }

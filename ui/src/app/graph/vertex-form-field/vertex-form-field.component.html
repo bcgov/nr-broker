@@ -11,8 +11,8 @@
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
       <textarea matInput cdkTextareaAutosize
       #autosize="cdkTextareaAutosize"
-      cdkAutosizeMinRows="7"
-      cdkAutosizeMaxRows="10" [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
+      cdkAutosizeMinRows="12"
+      cdkAutosizeMaxRows="15" [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
