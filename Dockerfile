@@ -1,6 +1,8 @@
 ARG REPO_LOCATION=
 FROM ${REPO_LOCATION}node:18 as builder
 
+RUN npm i -g @nestjs/cli
+
 ### --------------------------------- Build: Backend
 # Install packages and build
 WORKDIR /app
