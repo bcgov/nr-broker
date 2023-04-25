@@ -52,7 +52,11 @@ export class CollectionService {
       vertex.data = loggedInUser;
       console.log(vertex);
 
-      const insertedVertex = await this.graphService.addVertex(req, vertex, true);
+      const insertedVertex = await this.graphService.addVertex(
+        req,
+        vertex,
+        true,
+      );
       console.log(insertedVertex);
       const insertedUser =
         await this.collectionRepository.getCollectionByVertexId(
