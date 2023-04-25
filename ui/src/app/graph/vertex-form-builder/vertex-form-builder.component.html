@@ -1,0 +1,5 @@
+<form (ngSubmit)="onSubmit.emit(this.form.value)" [formGroup]="form">
+  <div class="vertex-form" *ngFor="let field of fieldConfigs">
+    <app-vertex-form-field [field]="field" [form]="form" (onSubmit)="submitForm()"></app-vertex-form-field>
+  </div>
+</form>

@@ -288,6 +288,41 @@ export class AuditService {
       });
   }
 
+  public recordGraphAction(
+    req: any,
+    action: string,
+    user: any,
+    outcome: 'success' | 'failure' | 'unknown',
+  ) {
+    from([
+      {
+        event: {
+          action,
+          category: 'database',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type: 'change',
+          outcome,
+        },
+      },
+    ])
+      .pipe(
+        map(this.addAuthFunc(user)),
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataAuthFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc()),
+        map(this.addUserAgentFunc(req)),
+      )
+      .subscribe((ecsObj) => {
+        this.logger.debug(JSON.stringify(ecsObj));
+        this.kinesisService.putRecord(ecsObj);
+      });
+  }
+
   /**
    * Records authorization events in the audit activity log
    * @param req The initiating http request

@@ -1,0 +1,46 @@
+myChart.showLoading();
+$.getJSON(ROOT_PATH + '/data/asset/data/les-miserables.json', function (graph) {
+  myChart.hideLoading();
+  graph = {"links":[{"id":"641cd952476e24d9fce30914","predicate":"has","source":"641cd952476e24d9fce30913","target":"641cd952476e24d9fce30911"},{"id":"641cd952476e24d9fce30919","predicate":"has","source":"641cd952476e24d9fce30918","target":"641cd952476e24d9fce30916"},{"id":"641cd952476e24d9fce3091e","predicate":"has","source":"641cd952476e24d9fce3091d","target":"641cd952476e24d9fce3091b"},{"id":"641cd952476e24d9fce30923","predicate":"has","source":"641cd952476e24d9fce30922","target":"641cd952476e24d9fce30920"},{"id":"641cd952476e24d9fce30928","predicate":"has","source":"641cd952476e24d9fce30927","target":"641cd952476e24d9fce30925"},{"id":"641cd952476e24d9fce3092d","predicate":"has","source":"641cd952476e24d9fce3092c","target":"641cd952476e24d9fce3092a"},{"id":"641cd952476e24d9fce30932","predicate":"has","source":"641cd952476e24d9fce30931","target":"641cd952476e24d9fce3092f"},{"id":"641cd952476e24d9fce30935","predicate":"has","source":"641cd952476e24d9fce30918","target":"641cd952476e24d9fce30934"},{"id":"641cd952476e24d9fce30938","predicate":"has","source":"641cd952476e24d9fce30918","target":"641cd952476e24d9fce30937"},{"id":"641cd952476e24d9fce3093d","predicate":"has","source":"641cd952476e24d9fce3093c","target":"641cd952476e24d9fce3093a"},{"id":"641cd952476e24d9fce30942","predicate":"has","source":"641cd952476e24d9fce30941","target":"641cd952476e24d9fce3093f"},{"id":"641cd952476e24d9fce30945","predicate":"has","source":"641cd952476e24d9fce3093c","target":"641cd952476e24d9fce30944"},{"id":"641cd952476e24d9fce3094a","predicate":"has","source":"641cd952476e24d9fce30949","target":"641cd952476e24d9fce30947"},{"id":"641cd952476e24d9fce3094d","predicate":"has","source":"641cd952476e24d9fce3093c","target":"641cd952476e24d9fce3094c"},{"id":"641cd952476e24d9fce30952","predicate":"has","source":"641cd952476e24d9fce30951","target":"641cd952476e24d9fce3094f"},{"id":"641cd952476e24d9fce30957","predicate":"has","source":"641cd952476e24d9fce30956","target":"641cd952476e24d9fce30954"},{"id":"641cd952476e24d9fce3095c","predicate":"has","source":"641cd952476e24d9fce3095b","target":"641cd952476e24d9fce30959"},{"id":"641cd952476e24d9fce30961","predicate":"has","source":"641cd952476e24d9fce30960","target":"641cd952476e24d9fce3095e"},{"id":"641cd952476e24d9fce30966","predicate":"has","source":"641cd952476e24d9fce30965","target":"641cd952476e24d9fce30963"}],"nodes":[{"id":"641cd952476e24d9fce30911","name":"app-fidq","type":"service","category":0},{"id":"641cd952476e24d9fce30916","name":"aws-automation","type":"service","category":0},{"id":"641cd952476e24d9fce3091b","name":"cfsweb-db","type":"service","category":0},{"id":"641cd952476e24d9fce30920","name":"edqa-war","type":"service","category":0},{"id":"641cd952476e24d9fce30925","name":"ffs-db","type":"service","category":0},{"id":"641cd952476e24d9fce3092a","name":"fluent-bit","type":"service","category":0},{"id":"641cd952476e24d9fce3092f","name":"fsbwhse-db","type":"service","category":0},{"id":"641cd952476e24d9fce30934","name":"jenkins-isss","type":"service","category":0},{"id":"641cd952476e24d9fce30937","name":"jenkins-polaris","type":"service","category":0},{"id":"641cd952476e24d9fce3093a","name":"knox","type":"service","category":0},{"id":"641cd952476e24d9fce3093f","name":"npe-cfsweb-db","type":"service","category":0},{"id":"641cd952476e24d9fce30944","name":"nr-broker","type":"service","category":0},{"id":"641cd952476e24d9fce30947","name":"cwi-spi-dc-db","type":"service","category":0},{"id":"641cd952476e24d9fce3094c","name":"vsync","type":"service","category":0},{"id":"641cd952476e24d9fce3094f","name":"fta-automatedb-datafix","type":"service","category":0},{"id":"641cd952476e24d9fce30954","name":"rrs-automatedb-datafix","type":"service","category":0},{"id":"641cd952476e24d9fce30959","name":"sncsc-automatedb-datafix","type":"service","category":0},{"id":"641cd952476e24d9fce3095e","name":"app-spar","type":"service","category":0},{"id":"641cd952476e24d9fce30963","name":"app-client","type":"service","category":0},{"id":"641cd952476e24d9fce30913","name":"fidq","type":"project","category":1},{"id":"641cd952476e24d9fce30918","name":"jenkins","type":"project","category":1},{"id":"641cd952476e24d9fce3091d","name":"CFSWEB","type":"project","category":1},{"id":"641cd952476e24d9fce30922","name":"EDQA","type":"project","category":1},{"id":"641cd952476e24d9fce30927","name":"FFS","type":"project","category":1},{"id":"641cd952476e24d9fce3092c","name":"fluent","type":"project","category":1},{"id":"641cd952476e24d9fce30931","name":"FSBWHSE","type":"project","category":1},{"id":"641cd952476e24d9fce3093c","name":"vault","type":"project","category":1},{"id":"641cd952476e24d9fce30941","name":"NPE","type":"project","category":1},{"id":"641cd952476e24d9fce30949","name":"SPI","type":"project","category":1},{"id":"641cd952476e24d9fce30951","name":"FTA","type":"project","category":1},{"id":"641cd952476e24d9fce30956","name":"RRS","type":"project","category":1},{"id":"641cd952476e24d9fce3095b","name":"SNCSC","type":"project","category":1},{"id":"641cd952476e24d9fce30960","name":"SPAR","type":"project","category":1},{"id":"641cd952476e24d9fce30965","name":"CLIENT","type":"project","category":1}],"categories":[{"name":"Service"},{"name":"Project"}]};
+  option = {
+    tooltip: {},
+    legend: [
+      {
+        // selectedMode: 'single',
+        data: graph.categories.map(function (a) {
+          return a.name;
+        })
+      }
+    ],
+    series: [
+      {
+        name: 'Les Miserables',
+        type: 'graph',
+        layout: 'force',
+        data: graph.nodes,
+        links: graph.links,
+        roam: true,
+        categories: graph.categories,
+        edgeSymbol: ['none', 'arrow'],
+        edgeSymbolSize: 5,
+        label: {
+          show: true,
+          position: 'right',
+          formatter: '{b}'
+        },
+        labelLayout: {
+          hideOverlap: false
+        },
+        scaleLimit: {
+          min: 0.4,
+          max: 2
+        },
+        lineStyle: {
+          color: 'source',
+          curveness: 0.3
+        }
+      }
+    ]
+  };
+  myChart.setOption(option);
+});

@@ -1,0 +1,177 @@
+<mat-card class="inspector-card">
+  <div class="wrapper">
+    <div class="fields-wrapper">
+      <mat-card-header>
+        <mat-card-subtitle>
+          <ng-container *ngIf="!target">Click graph item to view</ng-container>
+          <ng-container *ngIf="target">{{target.type | titlecase}}</ng-container>
+          <ng-container *ngIf="target && target.type === 'vertex'"> - {{target.data.collection | camelToTitle}}</ng-container>
+        </mat-card-subtitle>
+        <mat-card-title>
+          <ng-container *ngIf="target && target.type === 'vertex'">{{target.data.name}}</ng-container>
+          <ng-container *ngIf="target && target.type === 'edge'">{{target.data.name | titlecase}}</ng-container>
+          <ng-container *ngIf="!target">Inspector</ng-container>
+        </mat-card-title>
+      </mat-card-header>
+    </div>
+
+    <div *ngIf="target" class="fields-wrapper">
+
+      <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Inspector menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item [disabled]="!user.roles.includes('admin') || target.type !== 'vertex' || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
+          <mat-icon>edit</mat-icon>
+          <span>Edit</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item [disabled]="!user.roles.includes('admin') || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.delete)" (click)="deleteTarget()">
+          <mat-icon>delete</mat-icon>
+          <span>Delete</span>
+        </button>
+      </mat-menu>
+
+      <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="getTargetId()">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <mat-divider></mat-divider>
+
+    <div *ngIf="target">
+
+      <div *ngIf="target.type === 'edge'">
+        <h3 class="edge-heading">Source</h3>
+        <div class="wrapper vertex-edge-type-container">
+          <div class="fields-wrapper">
+            <mat-chip-listbox [selectable]="false">
+              <mat-chip-option (click)="selectVertex(target.data.source)">
+                <app-vertex-name [vertex]="(edgeConnections | async)?.sourceVertex"></app-vertex-name>
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <div class="fields-wrapper">
+            <button *ngIf="target" mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="getEdgeSourceId()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="edge-heading">Target</h3>
+
+        <div class="wrapper vertex-edge-type-container">
+          <div class="fields-wrapper">
+            <mat-chip-listbox [selectable]="false">
+              <mat-chip-option (click)="selectVertex(target.data.target)">
+                <app-vertex-name [vertex]="(edgeConnections | async)?.targetVertex"></app-vertex-name>
+              </mat-chip-option>
+            </mat-chip-listbox>
+          </div>
+
+          <div class="fields-wrapper">
+            <button *ngIf="target" mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="getEdgeTargetId()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="target.type === 'vertex'">
+
+        <ng-container *ngIf="(collectionData | collectionFilter | keyvalue).length > 0">
+          <table mat-table [dataSource]="collectionData | collectionFilter | keyvalue">
+
+            <!-- Key Column -->
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef> Key </th>
+              <td mat-cell *matCellDef="let element" > {{element.key}} </td>
+            </ng-container>
+
+            <!-- Value Column -->
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef> Value </th>
+              <td mat-cell *matCellDef="let element" [ngSwitch]="getFieldType(element.key)">
+                <span class="ellipsis">
+                  <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                  <ng-container *ngSwitchCase="'json'"><a mat-stroked-button (click)="viewCollectionJson(element.value)">View</a></ng-container>
+                  <ng-container *ngSwitchDefault></ng-container>
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
+          </table>
+
+          <mat-divider></mat-divider>
+        </ng-container>
+
+        <div class="wrapper vertex-edge-container">
+          <div class="fields-wrapper">
+            <h3 class="vertex-heading">Inbound</h3>
+          </div>
+
+        </div>
+
+        <p *ngIf="((inboundConnections | async)?.connections | keyvalue)?.length == 0" class="vertex-edge-type-container">None</p>
+
+        <div class="vertex-edge-type-container" *ngFor="let group of $any((inboundConnections | async)?.connections | keyvalue)">
+          <h5>{{group.key | titlecase}}</h5>
+          <mat-chip-listbox [selectable]="false">
+            <mat-chip-option *ngFor="let item of group.value" (click)="navigateConnection(item)"><ng-container *ngIf="item.vertex.parentName">{{ item.vertex.parentName}} &gt; </ng-container>{{item.vertex.name}}</mat-chip-option>
+          </mat-chip-listbox>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="wrapper vertex-edge-container">
+          <div class="fields-wrapper">
+            <h3 class="vertex-heading">Outbound</h3>
+          </div>
+
+          <div class="fields-wrapper" *ngIf="latestConfig && latestConfig[target.data.collection].edges.length > 0" >
+            <button mat-button (click)="addEdgeToVertex(target.data)" [disabled]="!user.roles.includes('admin')">Add</button>
+          </div>
+        </div>
+
+        <p *ngIf="((outboundConnections | async)?.connections | keyvalue)?.length == 0" class="vertex-edge-type-container">None</p>
+
+        <div class="vertex-edge-type-container" *ngFor="let group of $any((outboundConnections | async)?.connections | keyvalue)">
+          <h5>{{group.key | titlecase}}</h5>
+          <mat-chip-listbox [selectable]="false">
+            <mat-chip-option *ngFor="let item of group.value" (click)="navigateConnection(item)"><ng-container *ngIf="item.vertex.parentName">{{ item.vertex.parentName}} &gt; </ng-container> {{item.vertex.name}}</mat-chip-option>
+          </mat-chip-listbox>
+        </div>
+        <mat-divider></mat-divider>
+      </div>
+
+      <div *ngIf="target && target.data.prop">
+        <h3 class="property-heading">Properties</h3>
+
+        <table mat-table [dataSource]="target.data.prop | keyvalue">
+
+          <!-- Key Column -->
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef> Key </th>
+            <td mat-cell *matCellDef="let element"> {{element.key}} </td>
+          </ng-container>
+
+          <!-- Value Column -->
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef> Value </th>
+            <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
+        </table>
+      </div>
+    </div>
+  </mat-card-content>
+
+</mat-card>

@@ -1,0 +1,59 @@
+:host {
+  height: 100%;
+}
+
+.mat-mdc-card {
+  border-radius: 0;
+}
+
+.mat-mdc-card-content {
+  height: calc(100vh - 150px);
+  overflow-y: scroll;
+}
+
+.edge-heading, .property-heading {
+  margin: 16px 0 0 16px;
+}
+
+.vertex-heading {
+  margin: 8px 0;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.fields-wrapper {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.vertex-edge-type-container {
+  margin-bottom: 16px;
+}
+
+.vertex-edge-container, .vertex-edge-type-container {
+  margin-left: 16px;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.mat-column-key {
+  width: 30%;
+}
+
+.mat-column-value {
+  width: 70%;
+}
+
+.mat-column-value > span.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}

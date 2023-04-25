@@ -7,7 +7,7 @@ import {
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { Entity, ObjectID, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectId, ObjectIdColumn, Column } from 'typeorm';
 import { ActionDto } from './action.dto';
 import { actionFactory } from './action.util';
 import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
@@ -55,7 +55,7 @@ export class IntentionDto {
 
   @ObjectIdColumn()
   @ApiHideProperty()
-  id: ObjectID;
+  id: ObjectId;
 
   @ValidateNested()
   @IsDefined()

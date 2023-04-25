@@ -36,3 +36,13 @@ export USER_DBA=dba@idir
 export USER_DEVELOPER=dev1@idir,dev2@idir
 
 export HOSTNAME=nr-broker-app-0
+
+export NESTJS_UI_ROOT_PATH=ui/dist/ui
+
+export OAUTH2_CLIENT_REGISTRATION_LOGIN_REDIRECT_URI=http://localhost:3000/auth/callback
+export OAUTH2_CLIENT_REGISTRATION_LOGIN_POST_LOGOUT_REDIRECT_URI=http://localhost:3000
+export OAUTH2_CLIENT_SESSION_SECRET=super+secret+session+key
+
+export MONGODB_URL="mongodb://{{username}}:{{password}}@localhost:27017/brokerDB?authSource=admin"
+export MONGODB_USERNAME="mongoadmin"
+export MONGODB_PASSWORD="secret"

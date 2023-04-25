@@ -1,0 +1,36 @@
+<mat-toolbar color="primary">
+  <!--
+  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  -->
+  <span>NR Broker UI</span>
+  <span class="app-spacer"></span>
+  <!--
+  <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
+    <mat-icon>favorite</mat-icon>
+  </button>
+  -->
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" class="example-icon" aria-label="Example icon-button with share icon">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item disabled>
+      <mat-icon>account_circle</mat-icon>
+      <span>{{user.name}}</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item>
+      <mat-icon>view_list</mat-icon>
+      <span>View roles</span>
+    </button>
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Log out</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<app-graph></app-graph>
+
+<router-outlet></router-outlet>
