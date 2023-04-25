@@ -1,6 +1,10 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import {
+  HTTP_INTERCEPTORS,
+  HttpClient,
+  HttpClientModule,
+} from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -24,6 +28,8 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { GraphModule } from './graph/graph.module';
 import { MaterialModule } from '../material.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { appInitializeFactory } from './app-initialize.factory';
+import { AuthInterceptor } from './auth.interceptor';
 
 echarts.use([
   TitleComponent,
@@ -46,7 +52,15 @@ echarts.use([
     HttpClientModule,
     ReactiveFormsModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializeFactory,
+      deps: [HttpClient],
+      multi: true,
+    },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

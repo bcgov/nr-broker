@@ -13,7 +13,7 @@ import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
-import { BrokerAuthGuard } from '../auth/broker-auth.guard';
+import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ActionGuard } from './action.guard';
 
@@ -25,7 +25,7 @@ export class IntentionController {
   constructor(private readonly intentionService: IntentionService) {}
 
   @Post('open')
-  @UseGuards(BrokerAuthGuard)
+  @UseGuards(BrokerJwtAuthGuard)
   @ApiBearerAuth()
   openIntention(
     @Req() request: Request,

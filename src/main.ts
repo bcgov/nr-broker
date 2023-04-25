@@ -3,8 +3,10 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
-import * as session from 'express-session';
 import passport from 'passport';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import { getMongoDbConnectionUrl } from './persistence/mongo/connection.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -17,24 +19,20 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Vault Broker')
     .setDescription('Application secret provisioner')
-    .setVersion('1.8')
+    .setVersion('2.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  app.use(
-    helmet.contentSecurityPolicy({
-      directives: {
-        'script-src': ["'self'"],
-        upgradeInsecureRequests: null,
-      },
-    }),
-  );
-  /*
+  if (process.env.NESTJS_HELMET_ON) {
+    app.use(helmet());
+  }
   app.use(
     session({
-      // store: new MongoStore({ url: process.env.MONGODB_URL }), // where session will be stored
-      secret: process.env.SESSION_SECRET, // to sign session id
+      store: new MongoStore({
+        mongoUrl: getMongoDbConnectionUrl(),
+      }), // where session will be stored
+      secret: process.env.OAUTH2_CLIENT_SESSION_SECRET, // to sign session id
       resave: false, // will default to false in near future: https://github.com/expressjs/session#resave
       saveUninitialized: false, // will default to false in near future: https://github.com/expressjs/session#saveuninitialized
       rolling: true, // keep session alive
@@ -46,7 +44,7 @@ async function bootstrap() {
   );
   app.use(passport.initialize());
   app.use(passport.session());
-*/
+
   await app.listen(3000);
 }
 bootstrap();

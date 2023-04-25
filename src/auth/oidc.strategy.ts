@@ -39,7 +39,7 @@ export class OidcStrategy extends PassportStrategy(Strategy, 'oidc') {
 
   async validate(tokenset: TokenSet): Promise<any> {
     const userinfo: UserinfoResponse = await this.client.userinfo(tokenset);
-
+    console.log(userinfo);
     try {
       const id_token = tokenset.id_token;
       const access_token = tokenset.access_token;

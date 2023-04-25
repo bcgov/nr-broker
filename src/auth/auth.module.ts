@@ -10,7 +10,6 @@ import { OidcStrategy, buildOpenIdClient } from './oidc.strategy';
 import { SessionSerializer } from './session.serializer';
 import { AuthService } from './auth.service';
 
-/*
 const OidcStrategyFactory = {
   provide: 'OidcStrategy',
   useFactory: async (authService: AuthService) => {
@@ -20,18 +19,18 @@ const OidcStrategyFactory = {
   },
   inject: [AuthService],
 };
-*/
+
 @Module({
   imports: [
     AuditModule,
     ConfigModule,
     PersistenceModule,
-    // PassportModule.register({ session: true, defaultStrategy: 'oidc' }),
+    PassportModule.register({ session: true, defaultStrategy: 'oidc' }),
     JwtModule.register({
       secret: 'secret',
     }),
   ],
-  providers: [JwtStrategy, SessionSerializer, AuthService],
+  providers: [JwtStrategy, SessionSerializer, OidcStrategyFactory, AuthService],
   controllers: [AuthController],
 })
 export class AuthModule {}

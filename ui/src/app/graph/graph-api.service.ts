@@ -17,14 +17,14 @@ export class GraphApiService {
   }
 
   getConfig() {
-    return this.http.get<any>(`${environment.apiUrl}/v1/graph/config`, {
+    return this.http.get<any>(`${environment.apiUrl}/v1/collection/config`, {
       responseType: 'json',
     });
   }
 
   getCollectionData(collection: string, id: string) {
     return this.http.get<any>(
-      `${environment.apiUrl}/v1/graph/${this.util.snakecase(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         collection,
       )}?vertex=${id}`,
       {

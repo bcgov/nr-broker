@@ -1,4 +1,4 @@
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
 import { VertexPointerDto } from './vertex-pointer.dto';
@@ -7,7 +7,7 @@ import { VertexPointerDto } from './vertex-pointer.dto';
 export class VertexDto {
   @ObjectIdColumn()
   @ApiProperty({ type: () => String })
-  id: ObjectID;
+  id: ObjectId;
 
   @Column()
   collection: string;

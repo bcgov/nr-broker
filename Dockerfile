@@ -1,6 +1,7 @@
 ARG REPO_LOCATION=
 FROM ${REPO_LOCATION}node:18 as builder
 
+### --------------------------------- Build: Backend
 # Install packages and build
 WORKDIR /app
 COPY . ./
@@ -9,6 +10,19 @@ RUN npm ci && \
 
 # Keep only prod packages
 RUN npm ci --omit=dev --no-audit
+
+### --------------------------------- Build: Frontend
+WORKDIR /app/ui
+
+RUN npm ci
+RUN npm run build -- --configuration development && \
+    mv dist/ui dist-development
+
+RUN npm run build -- --configuration test && \
+    mv dist/ui dist-test
+
+RUN npm run build -- --configuration production && \
+    mv dist/ui dist-production
 
 # Deployment container
 FROM ${REPO_LOCATION}node:18
@@ -24,6 +38,10 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/env.hcl /config/envconsul/env.hcl
+
+COPY --from=builder /app/ui/dist-development ./ui-development
+COPY --from=builder /app/ui/dist-test ./ui-test
+COPY --from=builder /app/ui/dist-production ./ui-production
 
 # Expose port - mostly a convention, for readability
 EXPOSE 3000

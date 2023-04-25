@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, MongoRepository } from 'typeorm';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { EdgeDto } from '../dto/edge.dto';
 import { VertexCollectionDto, VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
@@ -69,7 +69,7 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository
       .aggregate(aggregateArr)
       .toArray()
-      .then((vertices) =>
+      .then((vertices: any[]) =>
         vertices.map((vertex) => ({
           id: vertex._id,
           category,
@@ -118,8 +118,8 @@ export class GraphMongoRepository implements GraphRepository {
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
-      source: ObjectID(edge.source),
-      target: ObjectID(edge.target),
+      source: new ObjectId(edge.source),
+      target: new ObjectId(edge.target),
       name: edge.name,
     });
     if (relationCnt > 0) {
@@ -129,7 +129,7 @@ export class GraphMongoRepository implements GraphRepository {
     if (edgeConfig.relation === 'oneToOne') {
       // No additional edges
       const relationCnt = await this.edgeRepository.count({
-        source: ObjectID(edge.source),
+        source: new ObjectId(edge.source),
         name: edge.name,
       });
       if (relationCnt > 0) {
@@ -137,7 +137,7 @@ export class GraphMongoRepository implements GraphRepository {
       }
     }
     const result = await this.edgeRepository.insertOne(edge);
-    if (result.insertedCount !== 1) {
+    if (!result.acknowledged) {
       throw new Error();
     }
     const rval = await this.getEdge(result.insertedId.toString());
@@ -178,7 +178,7 @@ export class GraphMongoRepository implements GraphRepository {
 
   public getEdge(id: string): Promise<EdgeDto | null> {
     return this.edgeRepository.findOne({
-      where: { _id: ObjectID(id) },
+      where: { _id: new ObjectId(id) },
     });
   }
 
@@ -201,7 +201,7 @@ export class GraphMongoRepository implements GraphRepository {
 
     // Find and delete all edges using vertex as a target
     const tarEdges = await this.edgeRepository.find({
-      where: { target: ObjectID(vertex.id) },
+      where: { target: new ObjectId(vertex.id) },
     });
     // console.log('tarEdges');
     // console.log(tarEdges);
@@ -215,7 +215,7 @@ export class GraphMongoRepository implements GraphRepository {
 
     // Find and delete all edges using vertex as a source
     const srcEdges = await this.edgeRepository.find({
-      where: { source: ObjectID(vertex.id) },
+      where: { source: new ObjectId(vertex.id) },
     });
     // console.log('srcEdges');
     // console.log(srcEdges);
@@ -232,7 +232,7 @@ export class GraphMongoRepository implements GraphRepository {
       vertex.collection,
     );
     const entry = await collectionRepository.findOne({
-      where: { vertex: ObjectID(vertex.id) },
+      where: { vertex: new ObjectId(vertex.id) },
     });
     // console.log(entry);
     if (entry !== null) {
@@ -258,7 +258,7 @@ export class GraphMongoRepository implements GraphRepository {
       vertex[map.setPath] = collectionData[map.getPath];
     }
     const vertResult = await this.vertexRepository.insertOne(vertex);
-    if (vertResult.insertedCount !== 1) {
+    if (!vertResult.acknowledged) {
       throw new Error();
     }
     collectionData.vertex = vertResult.insertedId;
@@ -266,7 +266,7 @@ export class GraphMongoRepository implements GraphRepository {
     const collResult = await repository.insertOne(collectionData);
     //console.log(collResult);
 
-    if (collResult.insertedCount !== 1) {
+    if (!collResult.acknowledged) {
       throw new Error();
     }
 
@@ -289,7 +289,7 @@ export class GraphMongoRepository implements GraphRepository {
     const config = await this.getCollectionConfig(vertex.collection);
     const repository = this.getRepositoryFromCollectionName(vertex.collection);
     const collectionObj = await repository.findOne({
-      where: { vertex: ObjectID(id) },
+      where: { vertex: new ObjectId(id) },
     });
 
     const collectionData = vertex.data;
@@ -303,7 +303,7 @@ export class GraphMongoRepository implements GraphRepository {
     }
     // console.log(vertex);
     const vertResult = await this.vertexRepository.updateOne(
-      { _id: ObjectID(id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           name: vertex.name,
@@ -316,18 +316,18 @@ export class GraphMongoRepository implements GraphRepository {
     }
     // console.log(collectionObj);
     if (collectionObj === null) {
-      collectionData.vertex = ObjectID(id);
+      collectionData.vertex = new ObjectId(id);
       const collResult = await repository.insertOne(collectionData);
       // console.log(collResult);
 
-      if (collResult.insertedCount !== 1) {
+      if (!collResult.acknowledged) {
         throw new Error();
       }
     } else {
       // console.log(collectionObj);
       // console.log(collectionData);
       const collResult = await repository.updateOne(
-        { vertex: ObjectID(id) },
+        { vertex: new ObjectId(id) },
         {
           $set: collectionData,
         },
@@ -345,7 +345,7 @@ export class GraphMongoRepository implements GraphRepository {
 
   public getVertex(id: string): Promise<VertexDto | null> {
     return this.vertexRepository.findOne({
-      where: { _id: ObjectID(id) },
+      where: { _id: new ObjectId(id) },
     });
   }
 

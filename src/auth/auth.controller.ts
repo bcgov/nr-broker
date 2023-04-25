@@ -1,31 +1,38 @@
 import { Controller, Get, Request, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 
-import { BrokerOidcGuard } from './broker-oidc.guard';
+import { BrokerOidcRedirectGuard } from './broker-oidc-redirect.guard';
 import { Issuer } from 'openid-client';
 
 @Controller('auth')
 export class AuthController {
-  @UseGuards(BrokerOidcGuard)
+  @UseGuards(BrokerOidcRedirectGuard)
   @Get('/login')
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   login() {}
 
+  @UseGuards(BrokerOidcRedirectGuard)
   @Get('/user')
-  user(@Request() req) {
+  user(@Request() req: any) {
     return req.user;
   }
 
-  @UseGuards(BrokerOidcGuard)
+  @UseGuards(BrokerOidcRedirectGuard)
   @Get('/callback')
   loginCallback(@Res() res: Response) {
     res.redirect('/');
   }
 
+  /**
+   * Logout user from OIDC
+   * @param req
+   * @param res
+   */
   @Get('/logout')
   async logout(@Request() req, @Res() res: Response) {
     const id_token = req.user ? req.user.id_token : undefined;
     req.logout();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req.session.destroy(async (error: any) => {
       const TrustIssuer = await Issuer.discover(
         `${process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER}/.well-known/openid-configuration`,

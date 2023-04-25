@@ -1,11 +1,11 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
-import { Column, ObjectIdColumn, ObjectID } from 'typeorm';
+import { Column, ObjectIdColumn, ObjectId } from 'typeorm';
 
 export abstract class JwtDto {
   @ObjectIdColumn()
   @ApiHideProperty()
-  id: ObjectID;
+  id: ObjectId;
 
   @Column()
   @IsString()

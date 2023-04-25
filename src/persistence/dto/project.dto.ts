@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
 import { VertexPointerDto } from './vertex-pointer.dto';
 
 @Entity({ name: 'project' })
 export class ProjectDto extends VertexPointerDto {
   @ObjectIdColumn()
   @ApiProperty({ type: () => String })
-  id: ObjectID;
+  id: ObjectId;
 
   @Column()
   name: string;

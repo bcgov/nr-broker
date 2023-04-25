@@ -3,19 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ProjectDto } from '../persistence/dto/project.dto';
-import { ProjectRepository } from '../persistence/interfaces/project.repository';
-import { ServiceRepository } from '../persistence/interfaces/service.repository';
-import { EnvironmentRepository } from '../persistence/interfaces/environment.repository';
-import { ServiceInstanceRepository } from '../persistence/interfaces/service-instance.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
-import { ServiceDto } from '../persistence/dto/service.dto';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
-import { CollectionConfigRepository } from '../persistence/interfaces/collection-config.repository';
-import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
 
@@ -23,20 +13,11 @@ import { Request } from 'express';
 export class GraphService {
   constructor(
     private readonly auditService: AuditService,
-    private readonly collectionConfigRepository: CollectionConfigRepository,
-    private readonly environmentRepository: EnvironmentRepository,
     private readonly graphRepository: GraphRepository,
-    private readonly projectRepository: ProjectRepository,
-    private readonly serviceRepository: ServiceRepository,
-    private readonly serviceInstanceRepository: ServiceInstanceRepository,
   ) {}
 
   public async getData(includeCollection: boolean): Promise<string> {
     return this.graphRepository.getData(includeCollection);
-  }
-
-  public async getCollectionConfig(): Promise<CollectionConfigDto[]> {
-    return this.collectionConfigRepository.getAll();
   }
 
   public async addEdge(req: Request, edge: EdgeDto): Promise<EdgeDto> {
@@ -199,6 +180,7 @@ export class GraphService {
     }
   }
 
+  /*
   public async getEnvironmentByVertexId(id: string): Promise<EnvironmentDto> {
     try {
       return this.environmentRepository.getEnvironmentByVertexId(id);
@@ -248,4 +230,5 @@ export class GraphService {
       });
     }
   }
+  */
 }
