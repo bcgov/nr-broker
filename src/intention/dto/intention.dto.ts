@@ -2,12 +2,13 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDefined,
   IsNumber,
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { Entity, ObjectId, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectId, ObjectIdColumn, Column, Index } from 'typeorm';
 import { ActionDto } from './action.dto';
 import { actionFactory } from './action.util';
 import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
@@ -89,5 +90,13 @@ export class IntentionDto {
   @IsNumber()
   @ApiHideProperty()
   @Column()
+  @Index()
   expiry?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiHideProperty()
+  @Column()
+  @Index()
+  closed?: boolean;
 }

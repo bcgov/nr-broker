@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { HEADER_BROKER_TOKEN } from '../constants';
@@ -18,10 +19,16 @@ export class ActionGuard implements CanActivate {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-
-    const intention = IntentionDto.plainToInstance(
-      await this.intentionRepository.getIntentionByActionToken(token),
+    const intObj = await this.intentionRepository.getIntentionByActionToken(
+      token,
     );
+    if (!intObj) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Intention not found',
+      });
+    }
+    const intention = IntentionDto.plainToInstance(intObj);
     const action = IntentionDto.projectAction(intention, token);
     const errors = await validate(action, {
       whitelist: true,

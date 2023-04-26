@@ -30,6 +30,7 @@ import { MaterialModule } from '../material.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { appInitializeFactory } from './app-initialize.factory';
 import { AuthInterceptor } from './auth.interceptor';
+import { ToolbarModule } from './toolbar/toolbar.module';
 
 echarts.use([
   TitleComponent,
@@ -47,6 +48,7 @@ echarts.use([
     BrowserModule,
     AppRoutingModule,
     GraphModule,
+    ToolbarModule,
     MaterialModule,
     NgxEchartsModule.forRoot({ echarts }),
     HttpClientModule,

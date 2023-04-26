@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 
 @Entity({ name: 'edge' })
+@Index(['source', 'name'])
 export class EdgeDto {
   @ObjectIdColumn()
   @ApiProperty({ type: () => String })
@@ -20,5 +21,6 @@ export class EdgeDto {
   source: string;
 
   @Column()
+  @Index()
   target: string;
 }

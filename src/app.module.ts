@@ -16,7 +16,7 @@ import { IntentionModule } from './intention/intention.module';
 import { PersistenceModule } from './persistence/persistence.module';
 import { GraphModule } from './graph/graph.module';
 import { CollectionModule } from './collection/collection.module';
-import { getMongoDbConnectionUrl } from './persistence/mongo/connection.util';
+import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
 
 /**
  * Convenience function for converting an environment variable to an object

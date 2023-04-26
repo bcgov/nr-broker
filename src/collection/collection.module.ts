@@ -3,9 +3,10 @@ import { CollectionController } from './collection.controller';
 import { CollectionService } from './collection.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { GraphModule } from '../graph/graph.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PersistenceModule, GraphModule],
+  imports: [AuthModule, PersistenceModule, GraphModule],
   controllers: [CollectionController],
   providers: [CollectionService],
 })

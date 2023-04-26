@@ -38,6 +38,7 @@ export USER_DEVELOPER=dev1@idir,dev2@idir
 export HOSTNAME=nr-broker-app-0
 
 export NESTJS_UI_ROOT_PATH=ui/dist/ui
+export NESTJS_HELMET_HSTS=off
 
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_REDIRECT_URI=http://localhost:3000/auth/callback
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_POST_LOGOUT_REDIRECT_URI=http://localhost:3000

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 
 interface CollectionEdgeConfig {
   collection: string;
@@ -26,6 +26,7 @@ export class CollectionConfigDto {
   id: ObjectId;
 
   @Column()
+  @Index()
   collection: string;
 
   @Column()
