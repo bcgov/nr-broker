@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 import passport from 'passport';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
-import { getMongoDbConnectionUrl } from './persistence/mongo/connection.util';
+import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,6 +16,8 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
   app.enableCors();
+
+  // Swagger docs
   const config = new DocumentBuilder()
     .setTitle('Vault Broker')
     .setDescription('Application secret provisioner')
@@ -24,9 +26,32 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  if (process.env.NESTJS_HELMET_ON) {
-    app.use(helmet());
+
+  // Helmet setup
+  const cspOptions = helmet.contentSecurityPolicy.getDefaultDirectives();
+  if (process.env.NESTJS_HELMET_HSTS === 'off') {
+    delete cspOptions['upgrade-insecure-requests'];
   }
+  cspOptions['default-src'] = ["'self'"];
+  cspOptions['style-src'] = [
+    "'self'",
+    "'unsafe-inline'",
+    'fonts.googleapis.com',
+  ];
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+          ...cspOptions,
+        },
+        reportOnly: false,
+      },
+      hsts: process.env.NESTJS_HELMET_HSTS !== 'off',
+    }),
+  );
+
+  // OIDC Setup
   app.use(
     session({
       store: new MongoStore({

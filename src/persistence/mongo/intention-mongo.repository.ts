@@ -4,6 +4,7 @@ import { MongoRepository } from 'typeorm';
 import { ActionDto } from '../../intention/dto/action.dto';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 import { IntentionRepository } from '../interfaces/intention.repository';
+import { extractId } from './mongo.util';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -17,13 +18,15 @@ export class IntentionMongoRepository implements IntentionRepository {
   }
 
   public async findAllIntention(): Promise<IntentionDto[]> {
-    return this.intentionRepository.find();
+    return this.intentionRepository.find({
+      where: { closed: { $ne: true } },
+    });
   }
 
   public async findExpiredIntentions(): Promise<IntentionDto[]> {
     const currentTime = new Date().valueOf();
     return this.intentionRepository.find({
-      where: { expiry: { $lt: currentTime } } as any,
+      where: { expiry: { $lt: currentTime }, closed: { $ne: true } } as any,
     });
   }
 
@@ -31,7 +34,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     token: string,
   ): Promise<IntentionDto | null> {
     return await this.intentionRepository.findOne({
-      where: { 'transaction.token': token } as any,
+      where: { 'transaction.token': token, closed: { $ne: true } } as any,
     });
   }
 
@@ -39,7 +42,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     token: string,
   ): Promise<IntentionDto | null> {
     return await this.intentionRepository.findOne({
-      where: { 'actions.trace.token': token } as any,
+      where: { 'actions.trace.token': token, closed: { $ne: true } } as any,
     });
   }
 
@@ -48,7 +51,7 @@ export class IntentionMongoRepository implements IntentionRepository {
   ): Promise<ActionDto | null> {
     const action = await this.intentionRepository
       .findOne({
-        where: { 'actions.trace.token': token } as any,
+        where: { 'actions.trace.token': token, closed: { $ne: true } } as any,
       })
       // project the matching ActionDto
       .then((intention) =>
@@ -65,8 +68,11 @@ export class IntentionMongoRepository implements IntentionRepository {
     type: 'start' | 'end',
   ): Promise<ActionDto> {
     const intention = await this.intentionRepository.findOne({
-      where: { 'actions.trace.token': token } as any,
+      where: { 'actions.trace.token': token, closed: { $ne: true } } as any,
     });
+    if (intention === null) {
+      throw new Error();
+    }
 
     const action = intention.actions
       .filter((action) => action.trace.token === token)
@@ -89,10 +95,8 @@ export class IntentionMongoRepository implements IntentionRepository {
           Date.parse(action.trace.start).valueOf();
       }
     }
-    await this.intentionRepository.findOneAndReplace(
-      { _id: intention.id },
-      intention,
-    );
+    const id = extractId(intention);
+    await this.intentionRepository.replaceOne({ _id: id }, intention);
     return action;
   }
 
@@ -103,8 +107,13 @@ export class IntentionMongoRepository implements IntentionRepository {
 
   public async closeIntention(intention: IntentionDto): Promise<boolean> {
     if (intention) {
-      const result = await this.intentionRepository.delete(intention.id);
-      return result.affected === 1;
+      intention.closed = true;
+      const id = extractId(intention);
+      const result = await this.intentionRepository.replaceOne(
+        { _id: id },
+        intention,
+      );
+      return result.modifiedCount === 1;
     }
     return false;
   }

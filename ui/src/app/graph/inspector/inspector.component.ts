@@ -142,8 +142,6 @@ export class InspectorComponent implements OnChanges, OnInit {
     data: GraphData,
     edgeKey: GraphDataEdgeVertexKeys,
   ): { [key: string]: Connection[] } {
-    // const reverseDirection: ConnectionDirection = direction === 'forward' ? 'reverse' : 'forward';
-    // const reverseDirection: ConnectionDirection = direction === 'forward' ? 'reverse' : 'forward';
     const invertedVertexKey = edgeKey === 'target' ? 'source' : 'target';
     const direction = edgeKey === 'target' ? 'forward' : 'reverse';
     return data.edges
@@ -179,23 +177,9 @@ export class InspectorComponent implements OnChanges, OnInit {
             config.collection ===
               data.idToVertex[connection.edge.target].collection,
         );
-        // let parentName;
         if (config && config.inboundName && direction === 'forward') {
           connection.edge.name = config.inboundName;
         }
-        // if (config && config.namePath) {
-        //   const parentEdges = data.edges.filter(
-        //     (dataEdge) =>
-        //       dataEdge.target ===
-        //         data.idToVertex[connection.edge[invertedVertexKey]].id &&
-        //       dataEdge.name === config.namePath,
-        //   );
-        //   // parentName =
-        //   //   parentEdges.length === 1
-        //   //     ? data.idToVertex[parentEdges[0].source].name
-        //   //     : '';
-        //   // connection.vertex.parentName = parentName;
-        // }
         return connection;
       })
       .reduce((previousValue: any, currentValue: any) => {

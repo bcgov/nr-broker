@@ -9,6 +9,8 @@ import { AuthController } from './auth.controller';
 import { OidcStrategy, buildOpenIdClient } from './oidc.strategy';
 import { SessionSerializer } from './session.serializer';
 import { AuthService } from './auth.service';
+import { BrokerOidcAuthGuard } from './broker-oidc-auth.guard';
+import { BrokerJwtAuthGuard } from './broker-jwt-auth.guard';
 
 const OidcStrategyFactory = {
   provide: 'OidcStrategy',
@@ -30,7 +32,15 @@ const OidcStrategyFactory = {
       secret: 'secret',
     }),
   ],
-  providers: [JwtStrategy, SessionSerializer, OidcStrategyFactory, AuthService],
+  providers: [
+    BrokerOidcAuthGuard,
+    BrokerJwtAuthGuard,
+    JwtStrategy,
+    SessionSerializer,
+    OidcStrategyFactory,
+    AuthService,
+  ],
   controllers: [AuthController],
+  exports: [BrokerOidcAuthGuard, BrokerJwtAuthGuard],
 })
 export class AuthModule {}

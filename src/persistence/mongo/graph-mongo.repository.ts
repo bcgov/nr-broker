@@ -6,11 +6,7 @@ import { EdgeDto } from '../dto/edge.dto';
 import { VertexCollectionDto, VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { ServiceInstanceDto } from '../dto/service-instance.dto';
-import { ServiceDto } from '../dto/service.dto';
-import { ProjectDto } from '../dto/project.dto';
-import { EnvironmentDto } from '../dto/environment.dto';
-import { UserDto } from '../dto/user.dto';
+import { getRepositoryFromCollectionName } from './mongo.util';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -229,7 +225,8 @@ export class GraphMongoRepository implements GraphRepository {
     }
 
     // Delete associated collection
-    const collectionRepository = this.getRepositoryFromCollectionName(
+    const collectionRepository = getRepositoryFromCollectionName(
+      this.dataSource,
       vertex.collection,
     );
     const entry = await collectionRepository.findOne({
@@ -249,7 +246,10 @@ export class GraphMongoRepository implements GraphRepository {
     ignorePermissions = false,
   ): Promise<VertexDto> {
     const config = await this.getCollectionConfig(vertex.collection);
-    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    const repository = getRepositoryFromCollectionName(
+      this.dataSource,
+      vertex.collection,
+    );
 
     const collectionData = vertex.data;
     delete vertex.data;
@@ -291,7 +291,10 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     const config = await this.getCollectionConfig(vertex.collection);
-    const repository = this.getRepositoryFromCollectionName(vertex.collection);
+    const repository = getRepositoryFromCollectionName(
+      this.dataSource,
+      vertex.collection,
+    );
     const collectionObj = await repository.findOne({
       where: { vertex: new ObjectId(id) },
     });
@@ -351,22 +354,5 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository.findOne({
       where: { _id: new ObjectId(id) },
     });
-  }
-
-  private getRepositoryFromCollectionName(name: string): MongoRepository<any> {
-    switch (name) {
-      case 'environment':
-        return this.dataSource.getMongoRepository(EnvironmentDto);
-      case 'project':
-        return this.dataSource.getMongoRepository(ProjectDto);
-      case 'serviceInstance':
-        return this.dataSource.getMongoRepository(ServiceInstanceDto);
-      case 'service':
-        return this.dataSource.getMongoRepository(ServiceDto);
-      case 'user':
-        return this.dataSource.getMongoRepository(UserDto);
-      default:
-        throw Error();
-    }
   }
 }

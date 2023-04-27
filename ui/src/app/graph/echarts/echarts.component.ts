@@ -28,6 +28,7 @@ export class EchartsComponent implements OnInit {
           legend: [
             {
               // selectedMode: 'single',
+              bottom: 0,
               data: graph.categories.map(function (a: any) {
                 return a.name;
               }),
@@ -40,9 +41,7 @@ export class EchartsComponent implements OnInit {
             {
               name: 'CMDB',
               type: 'graph',
-              layout: 'force',
               data: graph.vertices.map((e) => {
-                // console.log(e);
                 return {
                   category: e.category,
                   name: e.id,
@@ -50,14 +49,12 @@ export class EchartsComponent implements OnInit {
                 };
               }),
               edges: graph.edges.map((e: any) => {
-                // console.log(e);
                 return e;
               }),
               emphasis: {
                 focus: 'adjacency',
                 label: { position: 'right', show: true },
               },
-              roam: true,
               categories: graph.categories,
               edgeSymbol: ['none', 'arrow'],
               edgeSymbolSize: 7,
@@ -69,9 +66,15 @@ export class EchartsComponent implements OnInit {
               labelLayout: {
                 hideOverlap: false,
               },
+              layout: 'force',
+              lineStyle: {
+                color: 'source',
+                curveness: 0,
+              },
+              roam: true,
               scaleLimit: {
-                min: 0.4,
-                max: 8,
+                min: 1,
+                max: 5,
               },
               // Disabled because it was selecting everything with same name
               selectedMode: 'single',
@@ -84,10 +87,7 @@ export class EchartsComponent implements OnInit {
               tooltip: {
                 formatter: '{c}',
               },
-              lineStyle: {
-                color: 'source',
-                curveness: 0,
-              },
+              zoom: 2,
             },
           ],
         };

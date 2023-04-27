@@ -17,6 +17,7 @@ import { GraphService } from './graph.service';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
 import { Roles } from '../roles.decorator';
+import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 
 @Controller({
   path: 'graph',
@@ -26,7 +27,7 @@ export class GraphController {
   constructor(private graph: GraphService) {}
 
   @Get('data')
-  @UseGuards(BrokerOidcAuthGuard)
+  @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   getData(@Query('collection') collection: string) {
     return this.graph.getData(collection === 'true');
@@ -41,7 +42,7 @@ export class GraphController {
   }
 
   @Get('edge/:id')
-  @UseGuards(BrokerOidcAuthGuard)
+  @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   getEdge(@Param('id') id: string) {
     return this.graph.getEdge(id);
@@ -76,7 +77,7 @@ export class GraphController {
   }
 
   @Get('vertex/:id')
-  @UseGuards(BrokerOidcAuthGuard)
+  @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   getVertex(@Param('id') id: string) {
     return this.graph.getVertex(id);

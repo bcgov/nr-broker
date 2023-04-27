@@ -1,0 +1,10 @@
+<h2 mat-dialog-title>Roles</h2>
+<mat-dialog-content>
+  <h4>Roles you are currently assigned.</h4>
+
+  <div *ngFor="let role of user.roles">{{role}}</div>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>
