@@ -12,7 +12,10 @@ result = db.collectionConfig.insertOne({
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   index: 0,
   edges: [],
-  fields: { name: { type: 'string' }, short: { type: 'string' } },
+  fields: {
+    name: { required: true, type: 'string' },
+    short: { required: true, type: 'string' },
+  },
   name: 'Environment',
   permissions: {
     create: false,
@@ -24,10 +27,15 @@ result = db.collectionConfig.insertOne({
   collection: 'project',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   index: 1,
-  edges: [{ collection: 'service', name: 'component', relation: 'oneToMany' }],
+  edges: [
+    { collection: 'service', name: 'component', relation: 'oneToMany' },
+    { collection: 'project', name: 'owns', relation: 'oneToMany' },
+  ],
   fields: {
-    name: { type: 'string' },
-    key: { type: 'string' },
+    name: { required: true, type: 'string' },
+    key: { required: true, type: 'string' },
+    website: { type: 'url' },
+    email: { type: 'email' },
     configuration: { type: 'json' },
   },
   name: 'Project',
@@ -49,7 +57,10 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
     },
   ],
-  fields: { name: { type: 'string' }, configuration: { type: 'json' } },
+  fields: {
+    name: { required: true, type: 'string' },
+    configuration: { type: 'json' },
+  },
   name: 'Service',
   permissions: {
     create: true,
@@ -75,7 +86,10 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
     },
   ],
-  fields: { name: { type: 'string' }, key: { type: 'string' } },
+  fields: {
+    name: { required: true, type: 'string' },
+    key: { required: true, type: 'string' },
+  },
   name: 'Instance',
   parent: {
     edgeName: 'instance',
@@ -108,10 +122,10 @@ result = db.collectionConfig.insertOne({
     },
   ],
   fields: {
-    email: { type: 'string' },
-    guid: { type: 'string' },
-    name: { type: 'string' },
-    username: { type: 'string' },
+    email: { required: true, type: 'string' },
+    guid: { required: true, type: 'string' },
+    name: { required: true, type: 'string' },
+    username: { required: true, type: 'string' },
   },
   name: 'User',
   permissions: {

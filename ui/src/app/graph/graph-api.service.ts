@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { GraphUtilService } from './graph-util.service';
-import { CollectionConfig, GraphDataVertex } from './graph.types';
+import { GraphDataVertex } from './graph.types';
+import { GraphDataResponseDto } from './dto/graph-data.dto';
+import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -11,9 +13,12 @@ export class GraphApiService {
   constructor(private util: GraphUtilService, private http: HttpClient) {}
 
   getData() {
-    return this.http.get<any>(`${environment.apiUrl}/v1/graph/data`, {
-      responseType: 'json',
-    });
+    return this.http.get<GraphDataResponseDto>(
+      `${environment.apiUrl}/v1/graph/data`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 
   getConfig() {
@@ -45,7 +50,7 @@ export class GraphApiService {
     });
   }
 
-  addVertex(collection: CollectionConfig, data: any) {
+  addVertex(collection: CollectionConfigResponseDto, data: any) {
     return this.http.post<any>(
       `${environment.apiUrl}/v1/graph/vertex`,
       {

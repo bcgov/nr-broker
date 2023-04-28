@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import { GraphDataResponseEdgeDto } from './graph-data.dto';
+import { EdgeInsertDto } from './edge-rest.dto';
 
 @Entity({ name: 'edge' })
 @Index(['source', 'name'])
@@ -15,12 +18,37 @@ export class EdgeDto {
   prop?: any;
 
   @Column()
-  st?: number[];
+  st: number[];
 
   @Column()
-  source: string;
+  @ApiProperty({ type: () => String })
+  source: ObjectId;
 
   @Column()
+  @ApiProperty({ type: () => String })
   @Index()
-  target: string;
+  target: ObjectId;
+
+  static upgradeInsertDto(value: EdgeInsertDto): EdgeDto {
+    const edge = new EdgeDto();
+    edge.name = value.name;
+    if (value.prop) {
+      edge.prop = value.prop;
+    }
+    edge.source = new ObjectId(value.source);
+    edge.target = new ObjectId(value.target);
+
+    return edge;
+  }
+
+  public toEdgeResponse(): GraphDataResponseEdgeDto {
+    return {
+      id: this.id.toString(),
+      name: this.name,
+      prop: this.prop,
+      st: this.st,
+      source: this.source.toString(),
+      target: this.target.toString(),
+    };
+  }
 }

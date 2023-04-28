@@ -8,6 +8,11 @@ import { VertexDto } from '../persistence/dto/vertex.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
+import {
+  GraphDataResponseDto,
+  GraphDataResponseEdgeDto,
+} from '../persistence/dto/graph-data.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 
 @Injectable()
 export class GraphService {
@@ -16,11 +21,16 @@ export class GraphService {
     private readonly graphRepository: GraphRepository,
   ) {}
 
-  public async getData(includeCollection: boolean): Promise<string> {
+  public async getData(
+    includeCollection: boolean,
+  ): Promise<GraphDataResponseDto> {
     return this.graphRepository.getData(includeCollection);
   }
 
-  public async addEdge(req: Request, edge: EdgeDto): Promise<EdgeDto> {
+  public async addEdge(
+    req: Request,
+    edge: EdgeDto,
+  ): Promise<GraphDataResponseEdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge);
       this.auditService.recordGraphAction(
@@ -29,7 +39,7 @@ export class GraphService {
         null,
         'success',
       );
-      return resp;
+      return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
         req,
@@ -45,13 +55,13 @@ export class GraphService {
     }
   }
 
-  public async getEdge(id: string): Promise<EdgeDto> {
+  public async getEdge(id: string): Promise<GraphDataResponseEdgeDto> {
     try {
       const edge = await this.graphRepository.getEdge(id);
       if (edge === null) {
         throw new Error();
       }
-      return edge;
+      return edge.toEdgeResponse();
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -88,7 +98,7 @@ export class GraphService {
 
   public async addVertex(
     req: Request,
-    vertex: VertexDto,
+    vertex: VertexInsertDto,
     ignorePermissions = false,
   ): Promise<VertexDto> {
     try {
@@ -104,7 +114,6 @@ export class GraphService {
       );
       return resp;
     } catch (error) {
-      console.log(error);
       this.auditService.recordGraphAction(
         req,
         'graph-vertex-add',
@@ -122,7 +131,7 @@ export class GraphService {
   public async editVertex(
     req: Request,
     id: string,
-    vertex: VertexDto,
+    vertex: VertexInsertDto,
   ): Promise<VertexDto> {
     try {
       this.auditService.recordGraphAction(
@@ -187,56 +196,4 @@ export class GraphService {
       });
     }
   }
-
-  /*
-  public async getEnvironmentByVertexId(id: string): Promise<EnvironmentDto> {
-    try {
-      return this.environmentRepository.getEnvironmentByVertexId(id);
-    } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
-        error: '',
-      });
-    }
-  }
-
-  public async getProjectByVertexId(id: string): Promise<ProjectDto> {
-    try {
-      return this.projectRepository.getProjectByVertexId(id);
-    } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
-        error: '',
-      });
-    }
-  }
-
-  public async getServiceByVertexId(id: string): Promise<ServiceDto> {
-    try {
-      return this.serviceRepository.getServiceByVertexId(id);
-    } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
-        error: '',
-      });
-    }
-  }
-
-  public async getServiceInstanceByVertexId(
-    id: string,
-  ): Promise<ServiceInstanceDto> {
-    try {
-      return this.serviceInstanceRepository.getServiceInstanceByVertexId(id);
-    } catch (error) {
-      throw new NotFoundException({
-        statusCode: 404,
-        message: 'Not found',
-        error: '',
-      });
-    }
-  }
-  */
 }

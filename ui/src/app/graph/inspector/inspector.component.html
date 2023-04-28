@@ -97,8 +97,10 @@
               <th mat-header-cell *matHeaderCellDef> Value </th>
               <td mat-cell *matCellDef="let element" [ngSwitch]="getFieldType(element.key)">
                 <span class="ellipsis">
-                  <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                  <ng-container *ngSwitchCase="'email'">{{element.value}}</ng-container>
                   <ng-container *ngSwitchCase="'json'"><a mat-stroked-button (click)="viewCollectionJson(element.value)">View</a></ng-container>
+                  <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                  <ng-container *ngSwitchCase="'url'">{{element.value}}</ng-container>
                   <ng-container *ngSwitchDefault></ng-container>
                 </span>
               </td>

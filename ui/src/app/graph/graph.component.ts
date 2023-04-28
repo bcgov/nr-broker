@@ -13,7 +13,6 @@ import {
 import {
   ChartClickTarget,
   ChartClickTargetVertex,
-  CollectionConfig,
   CollectionConfigMap,
   GraphData,
   GraphDataConfig,
@@ -24,6 +23,8 @@ import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
+import { GraphDataResponseDto } from './dto/graph-data.dto';
+import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-graph',
@@ -53,47 +54,53 @@ export class GraphComponent {
       switchMap(() =>
         combineLatest([this.graphApi.getData(), this.graphApi.getConfig()]),
       ),
-      map(([data, configArr]: [GraphData, CollectionConfig[]]) => {
-        // console.log(data);
-        // console.log(config);
-        const configMap: CollectionConfigMap = configArr.reduce(
-          (previousValue, currentValue) => {
-            previousValue[currentValue.collection] = currentValue;
-            return previousValue;
-          },
-          {} as CollectionConfigMap,
-        );
-        data.idToVertex = data.vertices.reduce(
-          (previousValue: any, currentValue) => {
-            previousValue[currentValue.id] = currentValue;
-            return previousValue;
-          },
-          {},
-        );
-        data.idToEdge = data.edges.reduce(
-          (previousValue: any, currentValue) => {
-            previousValue[currentValue.id] = currentValue;
-            return previousValue;
-          },
-          {},
-        );
-        for (const edge of data.edges) {
-          const targetVertex = data.idToVertex[edge.target];
-          const parentEdgeName =
-            configMap[targetVertex.collection]?.parent?.edgeName;
-          if (parentEdgeName && edge.name === parentEdgeName) {
-            const sourceVertex = data.idToVertex[edge.source];
-            targetVertex.parentName = sourceVertex.name;
-          }
-        }
-        this.latestConfig = configMap;
-        this.latestData = data;
+      map(
+        ([data, configArr]: [
+          GraphDataResponseDto,
+          CollectionConfigResponseDto[],
+        ]) => {
+          // console.log(data);
+          // console.log(config);
+          const configMap: CollectionConfigMap = configArr.reduce(
+            (previousValue, currentValue) => {
+              previousValue[currentValue.collection] = currentValue;
+              return previousValue;
+            },
+            {} as CollectionConfigMap,
+          );
+          const graphData: GraphData = {
+            ...data,
+            idToVertex: data.vertices.reduce(
+              (previousValue: any, currentValue) => {
+                previousValue[currentValue.id] = currentValue;
+                return previousValue;
+              },
+              {},
+            ),
+            idToEdge: data.edges.reduce((previousValue: any, currentValue) => {
+              previousValue[currentValue.id] = currentValue;
+              return previousValue;
+            }, {}),
+          };
 
-        return {
-          data,
-          config: configMap,
-        };
-      }),
+          for (const edge of graphData.edges) {
+            const targetVertex = graphData.idToVertex[edge.target];
+            const parentEdgeName =
+              configMap[targetVertex.collection]?.parent?.edgeName;
+            if (parentEdgeName && edge.name === parentEdgeName) {
+              const sourceVertex = graphData.idToVertex[edge.source];
+              targetVertex.parentName = sourceVertex.name;
+            }
+          }
+          this.latestConfig = configMap;
+          this.latestData = graphData;
+
+          return {
+            data: graphData,
+            config: configMap,
+          };
+        },
+      ),
       tap(() => {
         this.onSelected(undefined);
       }),

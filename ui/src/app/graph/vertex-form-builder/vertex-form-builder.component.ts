@@ -7,11 +7,14 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
 import {
-  CollectionFieldConfigMap,
-  CollectionFieldConfigNameMapped,
-} from '../graph.types';
+  FormControl,
+  FormGroup,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { CollectionFieldConfigNameMapped } from '../graph.types';
+import { CollectionFieldConfigMap } from '../dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-vertex-form-builder',
@@ -39,17 +42,38 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     // console.log(this.data);
 
     for (const f of fieldConfigs) {
+      const validators: ValidatorFn[] = [];
+      if (f.required) {
+        validators.push(Validators.required);
+      }
       if (f.type === 'string') {
         fieldCtrls[f.name] = new FormControl(
           this.data && this.data[f.name] ? this.data[f.name] : '',
-          Validators.required,
+          validators,
         );
       }
+
+      if (f.type === 'email') {
+        validators.push(Validators.email);
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] ? this.data[f.name] : '',
+          validators,
+        );
+      }
+
+      if (f.type === 'url') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] ? this.data[f.name] : '',
+          validators,
+        );
+      }
+
       if (f.type === 'json') {
         fieldCtrls[f.name] = new FormControl(
           this.data && this.data[f.name]
             ? JSON.stringify(this.data[f.name], undefined, 4)
             : '',
+          validators,
         );
       }
       // else {
@@ -62,6 +86,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       // }
     }
     this.fieldConfigs = fieldConfigs;
+    console.log(this.fieldConfigs);
     this.form = new FormGroup(fieldCtrls);
   }
 

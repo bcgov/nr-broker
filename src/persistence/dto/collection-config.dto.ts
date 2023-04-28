@@ -1,23 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
-
-interface CollectionEdgeConfig {
-  collection: string;
-  name: string;
-  onDelete?: 'cascade';
-  relation: 'oneToMany' | 'oneToOne';
-  inboundName?: string;
-  namePath?: string;
-}
-
-interface CollectionFieldConfig {
-  type: 'string' | 'json';
-}
-
-export class CollectionMap {
-  getPath: string;
-  setPath: string;
-}
+import {
+  CollectionEdgeConfig,
+  CollectionFieldConfigMap,
+  CollectionMap,
+} from './collection-config-rest.dto';
 
 @Entity({ name: 'collectionConfig' })
 export class CollectionConfigDto {
@@ -36,9 +23,7 @@ export class CollectionConfigDto {
   edges: CollectionEdgeConfig[];
 
   @Column()
-  fields: {
-    [key: string]: CollectionFieldConfig;
-  };
+  fields: CollectionFieldConfigMap;
 
   @Column()
   index: number;

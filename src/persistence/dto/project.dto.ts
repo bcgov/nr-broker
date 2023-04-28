@@ -9,6 +9,9 @@ export class ProjectDto extends VertexPointerDto {
   id: ObjectId;
 
   @Column()
+  email?: string;
+
+  @Column()
   name: string;
 
   @Column()
@@ -16,4 +19,7 @@ export class ProjectDto extends VertexPointerDto {
 
   @Column()
   configuration: any;
+
+  @Column()
+  website?: string;
 }

@@ -7,6 +7,18 @@
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
+    <mat-form-field *ngSwitchCase="'email'" appearance="fill">
+      <mat-label *ngIf="field.name">{{field.name}}</mat-label>
+      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="email" value="">
+      <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field *ngSwitchCase="'url'" appearance="fill">
+      <mat-label *ngIf="field.name">{{field.name}}</mat-label>
+      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="url" value="">
+      <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
+    </mat-form-field>
+
     <mat-form-field *ngSwitchCase="'json'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
       <textarea matInput cdkTextareaAutosize

@@ -1,13 +1,10 @@
 import { ChangeDetectorRef, Component, Inject, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {
-  ChartClickTargetVertex,
-  CollectionConfig,
-  CollectionConfigMap,
-} from '../graph.types';
+import { ChartClickTargetVertex, CollectionConfigMap } from '../graph.types';
 import { GraphApiService } from '../graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
+import { CollectionConfigResponseDto } from '../dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -15,8 +12,8 @@ import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-b
   styleUrls: ['./vertex-dialog.component.scss'],
 })
 export class VertexDialogComponent {
-  collectionControl = new FormControl<string | CollectionConfig>('');
-  configs!: CollectionConfig[];
+  collectionControl = new FormControl<string | CollectionConfigResponseDto>('');
+  configs!: CollectionConfigResponseDto[];
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
@@ -64,13 +61,16 @@ export class VertexDialogComponent {
     const config = this.collectionControl.value;
     if (this.isCollectionConfig(config)) {
       for (const fieldKey of Object.keys(config.fields)) {
+        const val = (vertexData[fieldKey] as string).trim();
         if (config.fields[fieldKey].type === 'json') {
-          const val = (vertexData[fieldKey] as string).trim();
           if (val !== '') {
             vertexData[fieldKey] = JSON.parse(val);
           } else {
             delete vertexData[fieldKey];
           }
+        }
+        if (!config.fields[fieldKey].required && val === '') {
+          delete vertexData[fieldKey];
         }
       }
     }
@@ -83,7 +83,10 @@ export class VertexDialogComponent {
         });
     } else {
       this.graphApi
-        .addVertex(this.collectionControl.value as CollectionConfig, vertexData)
+        .addVertex(
+          this.collectionControl.value as CollectionConfigResponseDto,
+          vertexData,
+        )
         .subscribe(() => {
           this.dialogRef.close({ refresh: true });
         });
@@ -98,7 +101,7 @@ export class VertexDialogComponent {
     return !this.formComponent?.form?.valid;
   }
 
-  isCollectionConfig(cc: any): cc is CollectionConfig {
+  isCollectionConfig(cc: any): cc is CollectionConfigResponseDto {
     return cc.fields !== undefined;
   }
 }
