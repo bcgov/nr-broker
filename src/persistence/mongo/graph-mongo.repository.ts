@@ -7,7 +7,10 @@ import { VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
-import { GraphDataResponseDto } from '../dto/graph-data.dto';
+import {
+  GraphDataResponseDto,
+  UpstreamResponseDto,
+} from '../dto/graph-data.dto';
 import { VertexInsertDto } from '../dto/vertex-rest.dto';
 
 @Injectable()
@@ -346,7 +349,6 @@ export class GraphMongoRepository implements GraphRepository {
       { upsert: true },
     );
     if (collResult.matchedCount !== 1 && collResult.upsertedCount !== 1) {
-      console.log(collResult);
       throw new Error();
     }
     const rval = await this.getVertex(id);
@@ -360,5 +362,51 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository.findOne({
       where: { _id: new ObjectId(id) },
     });
+  }
+
+  public async getUpstreamVertex(
+    id: string,
+    index: number,
+  ): Promise<UpstreamResponseDto[]> {
+    const config = await this.collectionConfigRepository.findOne({
+      where: {
+        index,
+      },
+    });
+    if (config === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'source',
+            connectToField: 'target',
+            as: 'path',
+          },
+        },
+        { $unwind: { path: '$path' } },
+        { $match: { 'path.is': index } },
+        {
+          $lookup: {
+            from: config.collection,
+            localField: 'path.source',
+            foreignField: 'vertex',
+            as: 'collection',
+          },
+        },
+      ])
+      .toArray()
+      .then((upstreamArr: any[]) => {
+        return upstreamArr.map((upstream) => {
+          return {
+            collection: upstream.collection[0],
+            path: upstream.path,
+          };
+        });
+      });
   }
 }

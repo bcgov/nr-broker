@@ -196,4 +196,8 @@ export class GraphService {
       });
     }
   }
+
+  async getUpstreamVertex(id: string, index: number) {
+    return this.graphRepository.getUpstreamVertex(id, index);
+  }
 }

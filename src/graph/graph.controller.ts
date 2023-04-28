@@ -91,4 +91,11 @@ export class GraphController {
   deleteVertex(@Req() request: Request, @Param('id') id: string) {
     return this.graph.deleteVertex(request, id);
   }
+
+  @Post('vertex/:id/upstream/:index')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getUpstreamVertex(@Param('id') id: string, @Param('index') index: string) {
+    return this.graph.getUpstreamVertex(id, Number.parseInt(index));
+  }
 }

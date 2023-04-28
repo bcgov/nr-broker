@@ -1,5 +1,8 @@
 import { EdgeDto } from '../dto/edge.dto';
-import { GraphDataResponseDto } from '../dto/graph-data.dto';
+import {
+  GraphDataResponseDto,
+  UpstreamResponseDto,
+} from '../dto/graph-data.dto';
 import { VertexInsertDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
 
@@ -23,4 +26,8 @@ export abstract class GraphRepository {
   ): Promise<VertexDto>;
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;
+  public abstract getUpstreamVertex(
+    id: string,
+    index: number,
+  ): Promise<UpstreamResponseDto[]>;
 }

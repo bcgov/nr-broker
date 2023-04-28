@@ -41,7 +41,6 @@ export class CollectionService {
         'guid',
         loggedInUser.guid,
       );
-    console.log(existingUser);
     if (existingUser) {
       // TODO: update part of upsert
       existingUser.roles = userInfo.client_roles ? userInfo.client_roles : [];
@@ -50,35 +49,19 @@ export class CollectionService {
       const vertex = new VertexCollectionDto();
       vertex.collection = 'user';
       vertex.data = loggedInUser;
-      console.log(vertex);
 
       const insertedVertex = await this.graphService.addVertex(
         req,
         vertex,
         true,
       );
-      console.log(insertedVertex);
       const insertedUser =
         await this.collectionRepository.getCollectionByVertexId(
           'user',
           insertedVertex.id.toString(),
         );
-      console.log(insertedUser);
       insertedUser.roles = userInfo.client_roles ? userInfo.client_roles : [];
       return insertedUser;
     }
   }
-
-  //   "userinfo": {
-  //     "idir_user_guid": "483CFF50E3E94A22BDB082B56DE564B6",
-  //     "sub": "483cff50e3e94a22bdb082b56de564b6@azureidir",
-  //     "idir_username": "MBYSTEDT",
-  //     "email_verified": false,
-  //     "name": "Bystedt, Matthew WLRS:EX",
-  //     "preferred_username": "483cff50e3e94a22bdb082b56de564b6@azureidir",
-  //     "given_name": "Matthew",
-  //     "display_name": "Bystedt, Matthew WLRS:EX",
-  //     "family_name": "Bystedt",
-  //     "email": "matthew.bystedt@gov.bc.ca"
-  // }
 }

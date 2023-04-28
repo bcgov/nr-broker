@@ -73,23 +73,23 @@ export class VertexDialogComponent {
           delete vertexData[fieldKey];
         }
       }
-    }
 
-    if (this.data.target) {
-      this.graphApi
-        .editVertex(this.data.target.data, vertexData)
-        .subscribe(() => {
-          this.dialogRef.close({ refresh: true });
-        });
-    } else {
-      this.graphApi
-        .addVertex(
-          this.collectionControl.value as CollectionConfigResponseDto,
-          vertexData,
-        )
-        .subscribe(() => {
-          this.dialogRef.close({ refresh: true });
-        });
+      if (this.data.target) {
+        this.graphApi
+          .editVertex(this.data.target.data, vertexData)
+          .subscribe(() => {
+            this.dialogRef.close({ refresh: true });
+          });
+      } else {
+        this.graphApi
+          .addVertex({
+            collection: config.collection,
+            data: vertexData,
+          })
+          .subscribe(() => {
+            this.dialogRef.close({ refresh: true });
+          });
+      }
     }
   }
 

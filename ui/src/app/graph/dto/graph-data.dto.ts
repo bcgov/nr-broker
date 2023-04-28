@@ -27,3 +27,8 @@ export interface GraphDataResponseDto {
   vertices: GraphDataResponseVertexDto[];
   categories: GraphDataResponseCategoryDto[];
 }
+
+export interface UpstreamResponseDto<T = any> {
+  collection: T;
+  path: GraphDataResponseEdgeDto;
+}

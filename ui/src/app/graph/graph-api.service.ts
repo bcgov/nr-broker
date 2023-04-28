@@ -3,8 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { GraphUtilService } from './graph-util.service';
 import { GraphDataVertex } from './graph.types';
-import { GraphDataResponseDto } from './dto/graph-data.dto';
+import {
+  GraphDataResponseDto,
+  UpstreamResponseDto,
+} from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
+import { EdgeInsertDto } from './dto/edge-rest.dto';
+import { VertexInsertDto } from './dto/vertex-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -22,13 +27,16 @@ export class GraphApiService {
   }
 
   getConfig() {
-    return this.http.get<any>(`${environment.apiUrl}/v1/collection/config`, {
-      responseType: 'json',
-    });
+    return this.http.get<CollectionConfigResponseDto[]>(
+      `${environment.apiUrl}/v1/collection/config`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 
-  getCollectionData(collection: string, id: string) {
-    return this.http.get<any>(
+  getCollectionData<T = any>(collection: string, id: string) {
+    return this.http.get<T>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         collection,
       )}?vertex=${id}`,
@@ -38,7 +46,7 @@ export class GraphApiService {
     );
   }
 
-  addEdge(edge: any) {
+  addEdge(edge: EdgeInsertDto) {
     return this.http.post<any>(`${environment.apiUrl}/v1/graph/edge`, edge, {
       responseType: 'json',
     });
@@ -50,13 +58,10 @@ export class GraphApiService {
     });
   }
 
-  addVertex(collection: CollectionConfigResponseDto, data: any) {
+  addVertex(vertex: VertexInsertDto) {
     return this.http.post<any>(
       `${environment.apiUrl}/v1/graph/vertex`,
-      {
-        collection: collection.collection,
-        data,
-      },
+      vertex,
       {
         responseType: 'json',
       },
@@ -85,6 +90,15 @@ export class GraphApiService {
   deleteVertex(id: string) {
     return this.http.delete<any>(
       `${environment.apiUrl}/v1/graph/vertex/${id}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getUpstream<T = any>(id: string, index: number) {
+    return this.http.post<UpstreamResponseDto<T>[]>(
+      `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}`,
       {
         responseType: 'json',
       },

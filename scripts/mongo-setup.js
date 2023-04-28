@@ -103,7 +103,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'user',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
-  index: 3,
+  index: 4,
   edges: [
     {
       collection: 'project',
