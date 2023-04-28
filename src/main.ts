@@ -39,6 +39,7 @@ async function bootstrap() {
     'fonts.googleapis.com',
   ];
   cspOptions['script-src'] = ["'self'", "'unsafe-inline'"];
+  cspOptions['script-src-attr'] = ["'unsafe-inline'"];
   app.use(
     helmet({
       contentSecurityPolicy: {
