@@ -1,69 +1,27 @@
+import {
+  CollectionConfigResponseDto,
+  CollectionFieldConfig,
+} from './dto/collection-config-rest.dto';
+import {
+  GraphDataResponseEdgeDto,
+  GraphDataResponseDto,
+  GraphDataResponseVertexDto,
+} from './dto/graph-data.dto';
+
 export type collectionNames =
   | 'environment'
   | 'project'
   | 'service'
-  | 'serviceInstance';
-
-export interface CollectionEdgeConfig {
-  collection: collectionNames;
-  name: string;
-  onDelete?: 'cascade';
-  relation: 'oneToMany' | 'oneToOne';
-  inboundName?: string;
-  namePath?: string;
-}
-
-interface CollectionFieldConfig {
-  type: 'string' | 'json';
-}
-
-interface CollectionFieldConfig {
-  hint?: string;
-  placeholder?: string;
-  type: 'string' | 'json';
-  value?: string;
-}
+  | 'serviceInstance'
+  | 'user';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   name: string;
 }
 
-export interface CollectionFieldConfigMap {
-  [key: string]: CollectionFieldConfig;
-}
-
-interface CollectionVertexConfig {
-  property: {
-    [key: string]: string;
-  };
-}
-
 export type CollectionConfigMap = {
-  [key in collectionNames]: CollectionConfig;
+  [key: string]: CollectionConfigResponseDto;
 };
-
-export interface CollectionMap {
-  getPath: string;
-  setPath: string;
-}
-
-export interface CollectionConfig {
-  collection: collectionNames;
-  collectionMapper: CollectionMap[];
-  edges: CollectionEdgeConfig[];
-  fields: CollectionFieldConfigMap;
-  index: number;
-  name: string;
-  vertex: CollectionVertexConfig;
-  parent?: {
-    edgeName: string;
-  };
-  permissions: {
-    create: boolean;
-    update: boolean;
-    delete: boolean;
-  };
-}
 
 export type ChartClickTarget = ChartClickTargetVertex | ChartClickTargetEdge;
 
@@ -74,23 +32,10 @@ export interface ChartClickTargetVertex {
 
 export interface ChartClickTargetEdge {
   type: 'edge';
-  data: GraphDataEdge;
+  data: GraphDataResponseEdgeDto;
 }
 
-export interface GraphDataEdge {
-  id: string;
-  name: string;
-  st: number[];
-  source: string;
-  target: string;
-  prop?: any;
-}
-
-export interface GraphDataVertex {
-  id: string;
-  category: number;
-  collection: collectionNames;
-  name: string;
+export interface GraphDataVertex extends GraphDataResponseVertexDto {
   parentName?: string;
   prop?: any;
 }
@@ -100,12 +45,9 @@ export interface GraphDataConfig {
   config: CollectionConfigMap;
 }
 
-export interface GraphData {
-  categories: any[];
-  edges: Array<GraphDataEdge>;
-  vertices: Array<GraphDataVertex>;
+export interface GraphData extends GraphDataResponseDto {
   idToEdge: {
-    [key: string]: GraphDataEdge;
+    [key: string]: GraphDataResponseEdgeDto;
   };
   idToVertex: {
     [key: string]: GraphDataVertex;
@@ -125,12 +67,12 @@ export interface VertexNavigation {
 }
 
 export interface Connection {
-  edge: GraphDataEdge;
+  edge: GraphDataResponseEdgeDto;
   vertex: GraphDataVertex;
 }
 
 export interface EdgeNavigation {
-  edge: GraphDataEdge;
+  edge: GraphDataResponseEdgeDto;
   sourceVertex: GraphDataVertex;
   targetVertex: GraphDataVertex;
 }

@@ -1,13 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {
-  CollectionConfig,
-  CollectionEdgeConfig,
-  GraphDataVertex,
-} from '../graph.types';
+import { GraphDataVertex } from '../graph.types';
 import { FormControl } from '@angular/forms';
 import { Observable, map, startWith } from 'rxjs';
 import { GraphApiService } from '../graph-api.service';
+import {
+  CollectionConfigResponseDto,
+  CollectionEdgeConfig,
+} from '../dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-add-edge-dialog',
@@ -24,7 +24,7 @@ export class AddEdgeDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: {
-      config: CollectionConfig;
+      config: CollectionConfigResponseDto;
       vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
     },

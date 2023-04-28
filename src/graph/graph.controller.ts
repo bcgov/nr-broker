@@ -15,9 +15,10 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
 import { EdgeDto } from '../persistence/dto/edge.dto';
-import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
+import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 
 @Controller({
   path: 'graph',
@@ -37,8 +38,8 @@ export class GraphController {
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  addEdge(@Req() request: Request, @Body() edge: EdgeDto) {
-    return this.graph.addEdge(request, edge);
+  addEdge(@Req() request: Request, @Body() edge: EdgeInsertDto) {
+    return this.graph.addEdge(request, EdgeDto.upgradeInsertDto(edge));
   }
 
   @Get('edge/:id')
@@ -60,7 +61,7 @@ export class GraphController {
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  addVertex(@Req() request: Request, @Body() vertex: VertexCollectionDto) {
+  addVertex(@Req() request: Request, @Body() vertex: VertexInsertDto) {
     return this.graph.addVertex(request, vertex);
   }
 
@@ -71,7 +72,7 @@ export class GraphController {
   editVertex(
     @Req() request: Request,
     @Param('id') id: string,
-    @Body() vertex: VertexCollectionDto,
+    @Body() vertex: VertexInsertDto,
   ) {
     return this.graph.editVertex(request, id, vertex);
   }
@@ -89,5 +90,12 @@ export class GraphController {
   @ApiBearerAuth()
   deleteVertex(@Req() request: Request, @Param('id') id: string) {
     return this.graph.deleteVertex(request, id);
+  }
+
+  @Post('vertex/:id/upstream/:index')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getUpstreamVertex(@Param('id') id: string, @Param('index') index: string) {
+    return this.graph.getUpstreamVertex(id, Number.parseInt(index));
   }
 }

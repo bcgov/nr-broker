@@ -50,9 +50,11 @@ export class InspectorComponent implements OnChanges, OnInit {
   @Output() outboundConnections!: Observable<VertexNavigation | null>;
   @Output() edgeConnections!: Observable<EdgeNavigation | null>;
   collectionData: any = null;
+  collectionPeople: any = null;
   @Output() selected = new EventEmitter<ChartClickTarget>();
   @Output() graphChanged = new EventEmitter<boolean>();
   propDisplayedColumns: string[] = ['key', 'value'];
+  propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
   latestData: GraphData | undefined;
   latestConfig: CollectionConfigMap | undefined;
@@ -121,6 +123,15 @@ export class InspectorComponent implements OnChanges, OnInit {
         this.collectionData = data;
       });
 
+    this.targetSubject
+      .pipe(
+        switchMap((target) => {
+          return this.getUpstreamUsers(target);
+        }),
+      )
+      .subscribe((data) => {
+        this.collectionPeople = data;
+      });
     this.dataConfig.subscribe((dataConfig) => {
       this.latestData = dataConfig.data;
       this.latestConfig = dataConfig.config;
@@ -324,13 +335,28 @@ export class InspectorComponent implements OnChanges, OnInit {
     return this.graphApi.getCollectionData(vertex.collection, vertex.id);
   }
 
+  getUpstreamUsers(target: ChartClickTarget | undefined) {
+    // console.log(!['service', 'project'].includes((target as any).data.collection));
+    if (
+      !target ||
+      target.type !== 'vertex' ||
+      !this.latestConfig ||
+      !['service', 'project'].includes(target.data.collection)
+    ) {
+      return of([]);
+    }
+    const vertex = target.data;
+
+    return this.graphApi.getUpstream(
+      vertex.id,
+      this.latestConfig['user'].index,
+    );
+  }
+
   getFieldType(key: string) {
     if (!this.target || !this.latestConfig || this.target.type !== 'vertex') {
       return '';
     }
-    // console.log(key);
-    // console.log(this.latestConfig[this.target.data.collection]);
-    // console.log(this.latestConfig[this.target.data.collection].fields[key]);
     return this.latestConfig[this.target.data.collection].fields[key].type;
   }
 }

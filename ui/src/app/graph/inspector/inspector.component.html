@@ -45,7 +45,7 @@
     <div *ngIf="target">
 
       <div *ngIf="target.type === 'edge'">
-        <h3 class="edge-heading">Source</h3>
+        <h3 class="edge-heading">Source<ng-container *ngIf="latestData && target"> - {{latestData.idToVertex[target.data.source].collection | camelToTitle}}</ng-container></h3>
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
             <mat-chip-listbox [selectable]="false">
@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <h3 class="edge-heading">Target</h3>
+        <h3 class="edge-heading">Target<ng-container *ngIf="latestData && target"> - {{latestData.idToVertex[target.data.target].collection | camelToTitle}}</ng-container></h3>
 
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
@@ -97,8 +97,10 @@
               <th mat-header-cell *matHeaderCellDef> Value </th>
               <td mat-cell *matCellDef="let element" [ngSwitch]="getFieldType(element.key)">
                 <span class="ellipsis">
-                  <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                  <ng-container *ngSwitchCase="'email'">{{element.value}}</ng-container>
                   <ng-container *ngSwitchCase="'json'"><a mat-stroked-button (click)="viewCollectionJson(element.value)">View</a></ng-container>
+                  <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
+                  <ng-container *ngSwitchCase="'url'">{{element.value}}</ng-container>
                   <ng-container *ngSwitchDefault></ng-container>
                 </span>
               </td>
@@ -148,6 +150,39 @@
           </mat-chip-listbox>
         </div>
         <mat-divider></mat-divider>
+
+        <div class="wrapper vertex-edge-container" *ngIf="latestData && collectionPeople && collectionPeople.length > 0">
+
+          <div class="fields-wrapper">
+            <h3 class="vertex-heading">People</h3>
+          </div>
+
+          <table mat-table [dataSource]="collectionPeople">
+
+            <!-- Type Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef> Role </th>
+              <td mat-cell *matCellDef="let element"> {{element.path.name}} </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Name </th>
+              <td mat-cell *matCellDef="let element"> {{element.collection.name}} </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="via">
+              <th mat-header-cell *matHeaderCellDef> Via </th>
+              <td mat-cell *matCellDef="let element"> {{latestData.idToVertex[element.path.target].name}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: propPeopleDisplayedColumns;"></tr>
+          </table>
+
+          <mat-divider></mat-divider>
+        </div>
       </div>
 
       <div *ngIf="target && target.data.prop">
