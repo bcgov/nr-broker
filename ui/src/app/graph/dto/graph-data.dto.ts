@@ -1,8 +1,10 @@
+// Shared DTO: Copy in backend and frontend should be identical
 export interface GraphDataResponseEdgeDto {
   id: string;
+  is: number;
+  it: number;
   name: string;
   prop?: any;
-  st: number[];
   source: string;
   target: string;
 }

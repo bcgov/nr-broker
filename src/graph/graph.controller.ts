@@ -15,7 +15,6 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
 import { EdgeDto } from '../persistence/dto/edge.dto';
-import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';

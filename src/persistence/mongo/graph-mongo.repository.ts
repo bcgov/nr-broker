@@ -112,7 +112,8 @@ export class GraphMongoRepository implements GraphRepository {
     ) {
       throw new Error();
     }
-    edge.st = [sourceConfig.index, targetConfig.index];
+    edge.is = sourceConfig.index;
+    edge.it = targetConfig.index;
     const edgeConfig = sourceConfig.edges.find(
       (edgeConfig) => edgeConfig.name === edge.name,
     );

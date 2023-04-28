@@ -1,3 +1,4 @@
+// Shared DTO: Copy in backend and frontend should be identical
 export interface CollectionEdgeConfig {
   collection: string;
   name: string;

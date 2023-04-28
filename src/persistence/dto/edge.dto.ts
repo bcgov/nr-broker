@@ -12,13 +12,16 @@ export class EdgeDto {
   id: ObjectId;
 
   @Column()
+  is: number;
+
+  @Column()
+  it: number;
+
+  @Column()
   name: string;
 
   @Column()
   prop?: any;
-
-  @Column()
-  st: number[];
 
   @Column()
   @ApiProperty({ type: () => String })
@@ -44,9 +47,10 @@ export class EdgeDto {
   public toEdgeResponse(): GraphDataResponseEdgeDto {
     return {
       id: this.id.toString(),
+      is: this.is,
+      it: this.it,
       name: this.name,
       prop: this.prop,
-      st: this.st,
       source: this.source.toString(),
       target: this.target.toString(),
     };

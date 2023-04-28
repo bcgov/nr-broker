@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { AuditService } from '../audit/audit.service';
-import { Request } from 'express';
 import {
   GraphDataResponseDto,
   GraphDataResponseEdgeDto,
