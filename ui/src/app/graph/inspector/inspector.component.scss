@@ -6,6 +6,16 @@
   border-radius: 0;
 }
 
+mat-card-header {
+  display: flow-root;
+}
+
+.text-oneline {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .mat-mdc-card-content {
   height: calc(100vh - 150px);
   overflow-y: scroll;

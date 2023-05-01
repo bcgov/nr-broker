@@ -59,6 +59,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   latestData: GraphData | undefined;
   latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
+  titleWidth = 0;
 
   constructor(
     private graphApi: GraphApiService,
@@ -136,6 +137,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       this.latestData = dataConfig.data;
       this.latestConfig = dataConfig.config;
     });
+    window.dispatchEvent(new Event('resize'));
   }
 
   ngOnChanges(changes: SimpleChanges) {

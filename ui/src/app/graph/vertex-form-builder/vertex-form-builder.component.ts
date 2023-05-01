@@ -38,8 +38,6 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         ...this.fieldMap[name],
       });
     }
-    // console.log(fieldConfigs);
-    // console.log(this.data);
 
     for (const f of fieldConfigs) {
       const validators: ValidatorFn[] = [];
@@ -86,7 +84,6 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       // }
     }
     this.fieldConfigs = fieldConfigs;
-    console.log(this.fieldConfigs);
     this.form = new FormGroup(fieldCtrls);
   }
 

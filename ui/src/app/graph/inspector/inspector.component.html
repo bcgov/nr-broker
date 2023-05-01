@@ -1,13 +1,13 @@
 <mat-card class="inspector-card">
-  <div class="wrapper">
+  <div #card (window:resize)="titleWidth=card.getBoundingClientRect().width" class="wrapper">
     <div class="fields-wrapper">
       <mat-card-header>
-        <mat-card-subtitle>
+        <mat-card-subtitle class="text-oneline" [style.width.px]="titleWidth - 130">
           <ng-container *ngIf="!target">Click graph item to view</ng-container>
           <ng-container *ngIf="target">{{target.type | titlecase}}</ng-container>
           <ng-container *ngIf="target && target.type === 'vertex'"> - {{target.data.collection | camelToTitle}}</ng-container>
         </mat-card-subtitle>
-        <mat-card-title>
+        <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
           <ng-container *ngIf="target && target.type === 'vertex'">{{target.data.name}}</ng-container>
           <ng-container *ngIf="target && target.type === 'edge'">{{target.data.name | titlecase}}</ng-container>
           <ng-container *ngIf="!target">Inspector</ng-container>

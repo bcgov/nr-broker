@@ -69,9 +69,9 @@ export class AddEdgeDialogComponent implements OnInit {
   configChanged() {
     const edge = this.edgeControl.value;
     if (!!edge && typeof edge !== 'string') {
-      this.targetVertices = this.data.vertices.filter(
-        (vertex) => edge.collection === vertex.collection,
-      );
+      this.targetVertices = this.data.vertices
+        .filter((vertex) => edge.collection === vertex.collection)
+        .sort((a, b) => a.name.localeCompare(b.name));
       this.vertexControl.enable();
     } else {
       this.vertexControl.disable();
