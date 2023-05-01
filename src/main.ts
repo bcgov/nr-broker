@@ -2,10 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { VersioningType } from '@nestjs/common';
-import { AppModule } from './app.module';
 import passport from 'passport';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
+import { AppModule } from './app.module';
 import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
 
 async function bootstrap() {

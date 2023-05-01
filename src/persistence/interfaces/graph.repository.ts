@@ -1,3 +1,4 @@
+import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { EdgeDto } from '../dto/edge.dto';
 import {
   GraphDataResponseDto,
@@ -12,7 +13,7 @@ export abstract class GraphRepository {
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto>;
   // Edge
-  public abstract addEdge(edge: EdgeDto): Promise<EdgeDto>;
+  public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
   public abstract deleteEdge(id: string): Promise<boolean>;
   public abstract getEdge(id: string): Promise<EdgeDto | null>;
   // Vertex

@@ -4,43 +4,84 @@ NR Broker handles the business logic of authenticating and validating requests f
 
 NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 
-## Dev setup
+## Development requirements
 
-You must have mongosh, node and podman installed. Run the following command to setup the node dependencies.
+The following are expected to be installed.
 
-```bash
-$ npm ci
-```
+* node (v18)
+* mongosh
+* podman
+
+## Development Setup
 
 ### Setup setenv-common.sh
 
-A template for [setenv-common.sh](./scripts/setenv-common.sh.tmp) is provided. A script file like that one needs to be copied to ./scripts/setenv-common.sh. The other scripts rely on this file to set their environment varibles.
+The other scripts rely on `./scripts/setenv-common.sh` to set their environment varibles. A template for [setenv-common.sh](./scripts/setenv-common.sh.tmp) is provided.
+
+Your team may have built one customized for the deployment. The template or your team's custom version needs to be copied to `./scripts/setenv-common.sh`.
+
+### Setup OIDC
+
+It is assumed that you have access to an OIDC server. You must configure your client id and secret in the setenv file to run the backend. Please setup `http://localhost:3000/*` as a redirect url for your client. Developers may wish to setup thing own client or use the same client as your development server.
+
+### Setup Node
+
+The backend and the ui are separate node projects. You must setup their dependencies before they can be run.
+
+```bash
+$ npm ci
+$ cd ui; npm ci
+```
 
 ### Setup mongodb
 
+The development setup assumes you are using podman to run mongo db.
+
 ```bash
 # Start up local mongodb
-podman run \
+$ podman run \
   -p 27017:27017 \
   --name broker-mongo \
   -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
 	-e MONGO_INITDB_ROOT_PASSWORD=secret \
-  -d mongo
+  -d mongo:6
 ```
 
-### Setup vault
+Once started, you can must the mongo setup script to bootstrap the database.
+
 ```bash
-# Start up local vault
-$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault vault
-# Configure the local vault with basic setup
-$ ./scripts/vault-setup.sh
 # Configure the local mongo with basic setup
 $ ./scripts/mongo-setup.sh
 ```
 
-## Running the server
+### Setup vault
 
-This assumes mongodb and vault are running locally.
+```bash
+# Start up local vault
+$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault vault
+```
+
+Once started, you must run the vault setup script to bootstrap it.
+
+```
+# Configure the local vault with basic setup
+$ ./scripts/vault-setup.sh
+```
+
+## Running Locally
+
+The following assumes the setup steps have occurred and the databases have been successfully bootstrapped.
+
+### Building the UI
+
+```bash
+$ cd ui
+$ npm run watch
+```
+
+The UI should be built before starting the backend server.
+
+### Running the backend server
 
 ```bash
 # ENV setup
@@ -59,13 +100,13 @@ $ source ./scripts/setenv-backend-dev.sh kinesis
 $ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
-### Connect to MongoDB
+## Connect to MongoDB
 
 ```
 mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB
 ```
 
-#### Wiping graph database
+### Wiping the graph database
 
 If at any time you need to wipe the graph database, you can drop the tables by using mongosh and then reinstall.
 
@@ -73,7 +114,7 @@ If at any time you need to wipe the graph database, you can drop the tables by u
 brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
 ```
 
-#### Updating JWT allow/block list
+### Updating JWT allow/block list
 
 The JWT allow and block lists are stored in the collections jwtAllow and jwtBlock, respectively. The lists allow you to filter on the cliams 'jti', 'sub' and 'client_id'. Allowing or blocking is specified by adding a document to the associated collection with any, all or none of those cliams specified. Keys that are not present are considered to match. This means you can allow (or block) all JWTs by adding an empty object. An allow document of `{"sub":"cool@person.tv"}` means all JWT cliams with a sub matching "cool@person.tv" will be allowed. If you add a JTI key/value as well then both the JTI and sub will need to match. The block list works similarly.
 
@@ -137,3 +178,7 @@ The dockerfile can be built locally by setting the REPO_LOCATION.
 </p>
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+# License
+
+See: [LICENSE](./LICENSE)

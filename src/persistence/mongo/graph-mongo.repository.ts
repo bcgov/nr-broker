@@ -12,6 +12,7 @@ import {
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexInsertDto } from '../dto/vertex-rest.dto';
+import { EdgeInsertDto } from '../dto/edge-rest.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -98,9 +99,9 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   // Edge
-  public async addEdge(edge: EdgeDto): Promise<EdgeDto> {
-    const sourceVertex = await this.getVertex(edge.source.toString());
-    const targetVertex = await this.getVertex(edge.target.toString());
+  public async addEdge(edgeInsert: EdgeInsertDto): Promise<EdgeDto> {
+    const sourceVertex = await this.getVertex(edgeInsert.source);
+    const targetVertex = await this.getVertex(edgeInsert.target);
     const sourceConfig = await this.getCollectionConfig(
       sourceVertex.collection,
     );
@@ -115,16 +116,22 @@ export class GraphMongoRepository implements GraphRepository {
     ) {
       throw new Error();
     }
+    const edgeConfig = sourceConfig.edges.find(
+      (edgeConfig) => edgeConfig.name === edgeInsert.name,
+    );
+
+    // No edges to self
+    if (edgeInsert.source === edgeInsert.target) {
+      throw new Error();
+    }
+    const edge = EdgeDto.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
-    const edgeConfig = sourceConfig.edges.find(
-      (edgeConfig) => edgeConfig.name === edge.name,
-    );
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
-      source: new ObjectId(edge.source),
-      target: new ObjectId(edge.target),
+      source: edge.source,
+      target: edge.target,
       name: edge.name,
     });
     if (relationCnt > 0) {
@@ -134,7 +141,7 @@ export class GraphMongoRepository implements GraphRepository {
     if (edgeConfig.relation === 'oneToOne') {
       // No additional edges
       const relationCnt = await this.edgeRepository.count({
-        source: new ObjectId(edge.source),
+        source: edge.source,
         name: edge.name,
       });
       if (relationCnt > 0) {
