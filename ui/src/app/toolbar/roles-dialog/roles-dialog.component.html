@@ -2,6 +2,7 @@
 <mat-dialog-content>
   <h4>Roles you are currently assigned.</h4>
 
+  <div *ngIf="user.roles.length === 0">None</div>
   <div *ngFor="let role of user.roles">{{role}}</div>
 
 </mat-dialog-content>
