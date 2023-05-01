@@ -6,13 +6,13 @@ import {
 import { Request } from 'express';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
-import { EdgeDto } from '../persistence/dto/edge.dto';
 import { AuditService } from '../audit/audit.service';
 import {
   GraphDataResponseDto,
   GraphDataResponseEdgeDto,
 } from '../persistence/dto/graph-data.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 
 @Injectable()
 export class GraphService {
@@ -29,7 +29,7 @@ export class GraphService {
 
   public async addEdge(
     req: Request,
-    edge: EdgeDto,
+    edge: EdgeInsertDto,
   ): Promise<GraphDataResponseEdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge);

@@ -3,7 +3,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserDto } from '../persistence/dto/user.dto';
 import { GraphService } from '../graph/graph.service';
-import { VertexCollectionDto } from '../persistence/dto/vertex.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { Request } from 'express';
 
 @Injectable()
@@ -35,6 +35,7 @@ export class CollectionService {
     loggedInUser.guid = userInfo.idir_user_guid;
     loggedInUser.name = userInfo.display_name;
     loggedInUser.username = userInfo.idir_username.toLowerCase();
+
     const existingUser =
       await this.collectionRepository.getCollectionByKeyValue(
         'user',
@@ -46,9 +47,10 @@ export class CollectionService {
       existingUser.roles = userInfo.client_roles ? userInfo.client_roles : [];
       return existingUser;
     } else {
-      const vertex = new VertexCollectionDto();
-      vertex.collection = 'user';
-      vertex.data = loggedInUser;
+      const vertex: VertexInsertDto = {
+        collection: 'user',
+        data: loggedInUser,
+      };
 
       const insertedVertex = await this.graphService.addVertex(
         req,

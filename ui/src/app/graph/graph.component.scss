@@ -11,6 +11,9 @@
 
 .graph-flex-inspector {
   flex: 1;
+  flex-grow: 1;
+  min-width: 200px;
+  height: 100%
 }
 
 .add {

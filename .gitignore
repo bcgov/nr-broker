@@ -35,5 +35,5 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 /env-prod.hcl
-/scripts/mongo-setup-ext.js
+/scripts/db/mongo-setup-ext.js
 /scripts/setenv-common.sh

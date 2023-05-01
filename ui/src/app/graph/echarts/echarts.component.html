@@ -1,6 +1,7 @@
 <div echarts
   [options]="options | async"
   [loading]="loading"
+  [autoResize]="true"
   (chartClick)="onChartClick($event)"
   (chartInit)="onChartInit($event)"
   class="chart"></div>
