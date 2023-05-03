@@ -1,5 +1,7 @@
 import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { EChartsOption } from 'echarts';
+import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';
 import { map, Observable } from 'rxjs';
 import { ChartClickTarget, GraphDataConfig } from '../graph.types';
 
@@ -7,6 +9,14 @@ import { ChartClickTarget, GraphDataConfig } from '../graph.types';
   selector: 'app-echarts',
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
+  standalone: true,
+  imports: [NgxEchartsModule, AsyncPipe],
+  providers: [
+    {
+      provide: NGX_ECHARTS_CONFIG,
+      useFactory: () => ({ echarts: () => import('echarts') }),
+    },
+  ],
 })
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;

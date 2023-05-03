@@ -8,8 +8,8 @@ describe('VertexFormFieldComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ VertexFormFieldComponent ]
-    })
+    imports: [VertexFormFieldComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(VertexFormFieldComponent);

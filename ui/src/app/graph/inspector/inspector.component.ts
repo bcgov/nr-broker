@@ -8,6 +8,25 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
+import { MatChipsModule } from '@angular/material/chips';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import {
+  NgIf,
+  NgSwitch,
+  NgSwitchCase,
+  NgSwitchDefault,
+  NgFor,
+  AsyncPipe,
+  TitleCasePipe,
+  KeyValuePipe,
+} from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
   map,
@@ -32,16 +51,40 @@ import {
   UserDto,
 } from '../graph.types';
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../graph-api.service';
 import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 import { CURRENT_USER } from '../../app-initialize.factory';
+import { CamelToTitlePipe } from '../camel-to-title.pipe';
+import { CollectionFilterPipe } from '../collection-filter.pipe';
+import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 
 @Component({
   selector: 'app-inspector',
   templateUrl: './inspector.component.html',
   styleUrls: ['./inspector.component.scss'],
+  standalone: true,
+  imports: [
+    MatCardModule,
+    NgIf,
+    MatButtonModule,
+    MatMenuModule,
+    MatIconModule,
+    MatDividerModule,
+    ClipboardModule,
+    MatChipsModule,
+    VertexNameComponent,
+    MatTableModule,
+    NgSwitch,
+    NgSwitchCase,
+    NgSwitchDefault,
+    NgFor,
+    AsyncPipe,
+    TitleCasePipe,
+    KeyValuePipe,
+    CollectionFilterPipe,
+    CamelToTitlePipe,
+  ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;

@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { GraphDataVertex } from '../graph.types';
 
 @Component({
@@ -9,6 +10,8 @@ import { GraphDataVertex } from '../graph.types';
     >{{ vertex.name }}</ng-container
   >`,
   styles: [],
+  standalone: true,
+  imports: [NgIf],
 })
 export class VertexNameComponent {
   @Input() vertex: GraphDataVertex | undefined;

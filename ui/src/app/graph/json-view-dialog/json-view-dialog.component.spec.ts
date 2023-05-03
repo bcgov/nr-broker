@@ -8,8 +8,8 @@ describe('JsonViewDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ JsonViewDialogComponent ]
-    })
+    imports: [JsonViewDialogComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(JsonViewDialogComponent);

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RolesDialogComponent } from './roles-dialog.component';
+import { PageNotFoundComponent } from './page-not-found.component';
 
-describe('RolesDialogComponent', () => {
-  let component: RolesDialogComponent;
-  let fixture: ComponentFixture<RolesDialogComponent>;
+describe('PageNotFoundComponent', () => {
+  let component: PageNotFoundComponent;
+  let fixture: ComponentFixture<PageNotFoundComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RolesDialogComponent]
+    imports: [PageNotFoundComponent]
 })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RolesDialogComponent);
+    fixture = TestBed.createComponent(PageNotFoundComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

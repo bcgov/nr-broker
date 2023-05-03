@@ -8,8 +8,8 @@ describe('VertexDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ VertexDialogComponent ]
-    })
+    imports: [VertexDialogComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(VertexDialogComponent);

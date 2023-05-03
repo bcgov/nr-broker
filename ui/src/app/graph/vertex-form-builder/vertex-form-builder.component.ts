@@ -7,19 +7,25 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { NgFor } from '@angular/common';
 import {
   FormControl,
   FormGroup,
   ValidatorFn,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { CollectionFieldConfigNameMapped } from '../graph.types';
 import { CollectionFieldConfigMap } from '../dto/collection-config-rest.dto';
+import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
 
 @Component({
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
   styleUrls: ['./vertex-form-builder.component.scss'],
+  standalone: true,
+  imports: [FormsModule, ReactiveFormsModule, NgFor, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();
