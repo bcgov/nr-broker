@@ -4,29 +4,28 @@
   <mat-sidenav-container class="app-sidenav-container" [hasBackdrop]="true">
     <mat-sidenav #snav [(opened)]="sidenavOpen" [mode]="'over'">
       <mat-list class="app-sidenav-list">
-          <mat-list-item matRipple>
-            <mat-icon matListItemIcon>home</mat-icon>
-            <div matListItemTitle>Home</div>
-          </mat-list-item>
-        <mat-list-item matRipple>
+        <!-- <mat-list-item matRipple routerLink="/">
+          <mat-icon matListItemIcon>home</mat-icon>
+          <div matListItemTitle>Home</div>
+        </mat-list-item> -->
+        <mat-list-item matRipple routerLink="/graph">
           <mat-icon matListItemIcon>account_tree</mat-icon>
           <div matListItemTitle>Graph</div>
         </mat-list-item>
 
-        <div mat-subheader>Intention</div>
+        <!-- <div mat-subheader>Intention</div>
 
-        <mat-list-item matRipple>
+        <mat-list-item matRipple routerLink="/intention/monitoring">
           <mat-icon matListItemIcon>monitoring</mat-icon>
           <div matListItemTitle>Monitor</div>
         </mat-list-item>
-        <mat-list-item matRipple>
+        <mat-list-item matRipple routerLink="/intention/history">
           <mat-icon matListItemIcon>history</mat-icon>
           <div matListItemTitle>History</div>
-        </mat-list-item>
+        </mat-list-item> -->
       </mat-list>
     </mat-sidenav>
     <mat-sidenav-content>
-      <app-graph></app-graph>
       <router-outlet></router-outlet>
     </mat-sidenav-content>
   </mat-sidenav-container>

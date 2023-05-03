@@ -1,3 +1,7 @@
+@use '@angular/material' as mat;
+
+$my-palette: mat.define-palette(mat.$indigo-palette);
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -17,6 +21,14 @@
   mat-list-item {
     padding-left: 12px;
     cursor: pointer;
+  }
+
+  mat-list-item:hover {
+    background-color: mat.get-color-from-palette($my-palette, 500);
+  }
+
+  mat-list-item:hover * {
+    color: mat.get-color-from-palette($my-palette, '500-contrast');
   }
 }
 

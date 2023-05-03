@@ -19,6 +19,8 @@ import {
 } from '@angular/common/http';
 import { appInitializeFactory } from './app/app-initialize.factory';
 import { MatDialogModule } from '@angular/material/dialog';
+import { RouterModule } from '@angular/router';
+import { ROUTES } from './routes';
 
 if (environment.production) {
   enableProdMode();
@@ -31,6 +33,7 @@ bootstrapApplication(AppComponent, {
       AppRoutingModule,
       MatDialogModule,
       ReactiveFormsModule,
+      RouterModule.forRoot(ROUTES),
     ),
     {
       provide: APP_INITIALIZER,
