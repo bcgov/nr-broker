@@ -1,0 +1,37 @@
+@use '@angular/material' as mat;
+
+$my-palette: mat.define-palette(mat.$indigo-palette);
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.app-sidenav-container {
+  flex:1;
+}
+
+.app-sidenav-list {
+  min-width: 200px;
+  mat-list-item {
+    padding-left: 12px;
+    cursor: pointer;
+  }
+
+  mat-list-item:hover {
+    background-color: mat.get-color-from-palette($my-palette, 500);
+  }
+
+  mat-list-item:hover * {
+    color: mat.get-color-from-palette($my-palette, '500-contrast');
+  }
+}
+
+.app-sidenav-list mat-icon {
+  margin-right: 20px;
+}

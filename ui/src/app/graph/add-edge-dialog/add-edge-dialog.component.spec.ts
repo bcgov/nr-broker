@@ -8,8 +8,8 @@ describe('AddEdgeDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AddEdgeDialogComponent ]
-    })
+    imports: [AddEdgeDialogComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(AddEdgeDialogComponent);

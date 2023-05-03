@@ -1,10 +1,9 @@
-<mat-toolbar color="primary">
-  <!--
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+<mat-toolbar class="app-toolbar" color="primary">
+  <button (click)="openSidebar()" mat-icon-button aria-label="Menu icon">
     <mat-icon>menu</mat-icon>
   </button>
-  -->
-  <span>NR Broker UI</span>
+
+  <span class="app-name">NR Broker UI</span>
   <span class="app-spacer"></span>
 
   <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Account menu button">

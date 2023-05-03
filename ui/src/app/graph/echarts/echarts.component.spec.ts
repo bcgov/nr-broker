@@ -8,8 +8,8 @@ describe('EchartsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EchartsComponent],
-    }).compileComponents();
+    imports: [EchartsComponent]
+}).compileComponents();
 
     fixture = TestBed.createComponent(EchartsComponent);
     component = fixture.componentInstance;

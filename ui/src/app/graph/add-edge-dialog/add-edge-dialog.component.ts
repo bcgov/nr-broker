@@ -1,18 +1,48 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { GraphDataVertex } from '../graph.types';
-import { FormControl } from '@angular/forms';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { NgFor, AsyncPipe } from '@angular/common';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+
 import { Observable, map, startWith } from 'rxjs';
+import { GraphDataVertex } from '../graph.types';
 import { GraphApiService } from '../graph-api.service';
 import {
   CollectionConfigResponseDto,
   CollectionEdgeConfig,
 } from '../dto/collection-config-rest.dto';
+import { CamelToTitlePipe } from '../camel-to-title.pipe';
+import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 
 @Component({
   selector: 'app-add-edge-dialog',
   templateUrl: './add-edge-dialog.component.html',
   styleUrls: ['./add-edge-dialog.component.scss'],
+  standalone: true,
+  imports: [
+    MatDialogModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+    MatOptionModule,
+    NgFor,
+    MatInputModule,
+    MatAutocompleteModule,
+    VertexNameComponent,
+    MatButtonModule,
+    AsyncPipe,
+    CamelToTitlePipe,
+  ],
 })
 export class AddEdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');

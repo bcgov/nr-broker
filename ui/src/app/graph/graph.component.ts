@@ -1,4 +1,7 @@
 import { Component, Inject, Output, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import {
   BehaviorSubject,
   combineLatest,
@@ -20,16 +23,22 @@ import {
 } from './graph.types';
 import { GraphApiService } from './graph-api.service';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
-
+import { InspectorComponent } from './inspector/inspector.component';
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.scss'],
+  standalone: true,
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    EchartsComponent,
+    InspectorComponent,
+  ],
 })
 export class GraphComponent {
   @Output() data!: Observable<GraphDataConfig>;

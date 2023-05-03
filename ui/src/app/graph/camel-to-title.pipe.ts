@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'camelToTitle',
+  standalone: true,
 })
 export class CamelToTitlePipe implements PipeTransform {
   transform(value: string): unknown {
