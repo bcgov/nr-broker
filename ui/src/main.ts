@@ -17,7 +17,10 @@ import {
   withInterceptorsFromDi,
   provideHttpClient,
 } from '@angular/common/http';
-import { appInitializeFactory } from './app/app-initialize.factory';
+import {
+  appInitializePrefFactory,
+  appInitializeUserFactory,
+} from './app/app-initialize.factory';
 import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { ROUTES } from './routes';
@@ -37,7 +40,13 @@ bootstrapApplication(AppComponent, {
     ),
     {
       provide: APP_INITIALIZER,
-      useFactory: appInitializeFactory,
+      useFactory: appInitializePrefFactory,
+      deps: [HttpClient],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializeUserFactory,
       deps: [HttpClient],
       multi: true,
     },

@@ -11,14 +11,15 @@ import { ServiceDto } from './dto/service.dto';
 import { VertexDto } from './dto/vertex.dto';
 import { GraphRepository } from './interfaces/graph.repository';
 import { IntentionRepository } from './interfaces/intention.repository';
-import { JwtValidationRepository } from './interfaces/jwt-validation.reposity';
 import { GraphMongoRepository } from './mongo/graph-mongo.repository';
 import { IntentionMongoRepository } from './mongo/intention-mongo.repository';
-import { JwtValidationMongoRepository } from './mongo/jwt-validation-mongo.repository';
 import { CollectionConfigDto } from './dto/collection-config.dto';
 import { CollectionMongoRepository } from './mongo/collection-mongo.repository';
 import { CollectionRepository } from './interfaces/collection.repository';
 import { UserDto } from './dto/user.dto';
+import { PreferenceDto } from './dto/preference.dto';
+import { SystemMongoRepository } from './mongo/system-mongo.repository';
+import { SystemRepository } from './interfaces/system.repository';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UserDto } from './dto/user.dto';
       JwtBlockDto,
       ServiceDto,
       ServiceInstanceDto,
+      PreferenceDto,
       ProjectDto,
       UserDto,
       VertexDto,
@@ -49,17 +51,17 @@ import { UserDto } from './dto/user.dto';
     },
     IntentionMongoRepository,
     { provide: IntentionRepository, useExisting: IntentionMongoRepository },
-    JwtValidationMongoRepository,
+    SystemMongoRepository,
     {
-      provide: JwtValidationRepository,
-      useExisting: JwtValidationMongoRepository,
+      provide: SystemRepository,
+      useExisting: SystemMongoRepository,
     },
   ],
   exports: [
     CollectionRepository,
     GraphRepository,
     IntentionRepository,
-    JwtValidationRepository,
+    SystemRepository,
   ],
 })
 export class PersistenceModule {}

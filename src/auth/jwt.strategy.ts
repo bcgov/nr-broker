@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JWT_MAX_AGE } from '../constants';
-import { JwtValidationRepository } from '../persistence/interfaces/jwt-validation.reposity';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   constructor(
     readonly configService: ConfigService,
-    private jwtValidationRepository: JwtValidationRepository,
+    private systemRepository: SystemRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   public async validate(_req: any, payload: any) {
     if (
       !this.JWT_SKIP_VALIDATION &&
-      !(await this.jwtValidationRepository.matchesAllowed(payload))
+      !(await this.systemRepository.jwtMatchesAllowed(payload))
     ) {
       throw new ForbiddenException({
         statusCode: 403,
@@ -39,7 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     if (
       !this.JWT_SKIP_VALIDATION &&
-      (await this.jwtValidationRepository.matchesBlocked(payload))
+      (await this.systemRepository.jwtMatchesBlocked(payload))
     ) {
       throw new ForbiddenException({
         statusCode: 403,

@@ -1,6 +1,6 @@
 import { PointGeom } from './point.geom';
 
-// Shared DTO: Copy in backend and frontend should be identical
+// Shared DTO: Copy in back-end and front-end should be identical
 
 export interface VertexInsertDto {
   collection: string;
