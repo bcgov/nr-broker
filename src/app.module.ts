@@ -17,6 +17,7 @@ import { PersistenceModule } from './persistence/persistence.module';
 import { GraphModule } from './graph/graph.module';
 import { CollectionModule } from './collection/collection.module';
 import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
+import { PreferenceModule } from './preference/preference.module';
 
 /**
  * Convenience function for converting an environment variable to an object
@@ -72,6 +73,7 @@ function envToObj(key: string, envName: string) {
     PersistenceModule,
     GraphModule,
     CollectionModule,
+    PreferenceModule,
   ],
   controllers: [],
   providers: [],

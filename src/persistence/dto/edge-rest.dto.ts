@@ -1,4 +1,4 @@
-// Shared DTO: Copy in backend and frontend should be identical
+// Shared DTO: Copy in back-end and front-end should be identical
 
 export interface EdgeInsertDto {
   name: string;

@@ -1,5 +1,5 @@
 ARG REPO_LOCATION=
-FROM ${REPO_LOCATION}node:18 as builder
+FROM ${REPO_LOCATION}node:20 as builder
 
 RUN npm i -g @nestjs/cli
 

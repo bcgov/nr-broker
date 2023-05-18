@@ -8,7 +8,7 @@ NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 
 The following are expected to be installed.
 
-* node (v18)
+* node (v20)
 * mongosh
 * podman
 
@@ -44,7 +44,8 @@ $ podman run \
   --name broker-mongo \
   -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
 	-e MONGO_INITDB_ROOT_PASSWORD=secret \
-  -d mongo:6
+  -d mongo:6 \
+  --wiredTigerCacheSizeGB 0.25
 ```
 
 Once started, you can must the mongo setup script to bootstrap the database.
