@@ -4,7 +4,7 @@
     || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 cd "$this_dir"
 
-# ./jwt-allocate.sh prod oneteam@victoria1.gov.bc.ca client_id
+# ./jwt-allocate.sh prod NRIDS.OneTeam@gov.bc.ca client_id
 #  $1: environment
 #  $2: team email (subject)
 #  $3: client_id (optional)
