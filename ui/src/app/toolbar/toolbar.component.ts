@@ -11,7 +11,8 @@ import { UserDto } from '../service/graph.types';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthstatusService } from '../healthstatus.service';
-import { interval, Observable, Subscription } from 'rxjs';
+import { interval, Observable, Subscription, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-toolbar',
@@ -38,32 +39,37 @@ export class ToolbarComponent implements OnInit, OnDestroy{
   ) {}
 
   healthStatus: boolean | undefined;
-  private healthCheckSubscription: Subscription | undefined;
+  private unsubscribe = new Subject<void>();
   isHovered: boolean | undefined;
   statusText: string | undefined;
 
-  ngOnInit() {
-    this.healthCheckSubscription = interval(5000).subscribe(() => {
-      this.getHealthCheck();
-    });
+  ngOnInit() : void {
+    interval(5000)
+      .pipe(takeUntil(this.unsubscribe))
+      .subscribe(() => {
+        this.getHealthCheck();
+      });
+
+    // Initial health check
+    this.getHealthCheck();
   }
 
-  ngOnDestroy() {
-    if (this.healthCheckSubscription) {
-      this.healthCheckSubscription.unsubscribe();
-    }
+  ngOnDestroy(): void {
+    this.unsubscribe.next();
+    this.unsubscribe.complete();
   } 
 
   getHealthCheck() : any {
-    this.healthservice.healthCheck().subscribe(
-      (res: any) =>{ 
+    this.healthservice.healthCheck().subscribe({
+      error: () => {
+        console.error('Error occurred while checking health:'); 
+        this.healthStatus = false;
+      },
+      next:(res) =>{
         console.log(res);
         this.healthStatus=res.status === 'ok';
-      },
-      (error: any) => {
-        console.error('Error occurred while checking health:', error);        
-        this.healthStatus = false;        
-      });
+      }
+    });
   }
   
   showStatusText(isHovered: boolean) {
