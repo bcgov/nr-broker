@@ -6,3 +6,19 @@
 .app-name {
   margin-left: 8px;
 }
+
+.offline {
+  color: rgb(255,0,0);
+}
+
+.online {
+  color: rgb(0,255,0);
+}
+
+.status-text {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
