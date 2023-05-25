@@ -58,6 +58,7 @@ import { CURRENT_USER } from '../../app-initialize.factory';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { CollectionFilterPipe } from '../collection-filter.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-inspector',
@@ -107,6 +108,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   constructor(
     private graphApi: GraphApiService,
     private dialog: MatDialog,
+    private preferences: PreferencesService,
     @Inject(CURRENT_USER) public user: UserDto,
   ) {}
 
@@ -181,6 +183,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       this.latestConfig = dataConfig.config;
     });
     window.dispatchEvent(new Event('resize'));
+    this.navigationFollows = this.preferences.get('graphFollows');
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -362,12 +365,17 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   navigateConnection(item: Connection) {
-    this.selectVertex(item.vertex.id);
+    if(this.navigationFollows === 'edge') {
+      this.selectEdge(item.edge.id);
+    } else {
+      this.selectVertex(item.vertex.id);
+    }    
   }
 
   toggleNavigationFollows() {
     this.navigationFollows =
       this.navigationFollows === 'vertex' ? 'edge' : 'vertex';
+    this.preferences.set('graphFollows', this.navigationFollows);
   }
 
   getCollectionData(target: ChartClickTarget | undefined) {
