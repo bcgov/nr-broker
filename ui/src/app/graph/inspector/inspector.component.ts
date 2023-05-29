@@ -365,11 +365,11 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   navigateConnection(item: Connection) {
-    if(this.navigationFollows === 'edge') {
+    if (this.navigationFollows === 'edge') {
       this.selectEdge(item.edge.id);
     } else {
       this.selectVertex(item.vertex.id);
-    }    
+    }
   }
 
   toggleNavigationFollows() {
