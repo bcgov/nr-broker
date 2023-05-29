@@ -27,7 +27,7 @@
             <mat-icon>edit</mat-icon>
             <span>Edit</span>
           </button>
-          <button mat-menu-item [disabled]="!user.roles.includes('admin') || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.delete)" (click)="toggleNavigationFollows()">
+          <button mat-menu-item (click)="toggleNavigationFollows()">
             <mat-icon>{{this.navigationFollows === 'vertex' ? 'east' : 'radio_button_unchecked' }}</mat-icon>
             <span>{{this.navigationFollows === 'vertex' ? 'Follow Edge' : 'Follow Vertex'}}</span>
           </button>
