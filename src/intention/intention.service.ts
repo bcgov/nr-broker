@@ -134,6 +134,14 @@ export class IntentionService {
     return intention;
   }
 
+  public async search(whereClause: string, offset = 0, limit = 5) {
+    return this.intentionRepository.searchIntentions(
+      JSON.parse(whereClause),
+      offset,
+      limit,
+    );
+  }
+
   private finalizeIntention(
     intention: IntentionDto,
     outcome: 'failure' | 'success' | 'unknown',

@@ -8,14 +8,15 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
+import { MatTableModule } from '@angular/material/table';
 import {
   NgIf,
   NgSwitch,
@@ -25,10 +26,12 @@ import {
   AsyncPipe,
   TitleCasePipe,
   KeyValuePipe,
+  DatePipe,
 } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
+  from,
   map,
   Observable,
   of,
@@ -66,10 +69,12 @@ import { PreferencesService } from '../../preferences.service';
   styleUrls: ['./inspector.component.scss'],
   standalone: true,
   imports: [
+    DatePipe,
     MatCardModule,
     NgIf,
     MatButtonModule,
     MatMenuModule,
+    MatListModule,
     MatIconModule,
     MatDividerModule,
     ClipboardModule,
@@ -104,6 +109,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
   titleWidth = 0;
+  recentIntentions: any[] = [];
 
   constructor(
     private graphApi: GraphApiService,
@@ -177,6 +183,23 @@ export class InspectorComponent implements OnChanges, OnInit {
       )
       .subscribe((data) => {
         this.collectionPeople = data;
+      });
+
+    this.targetSubject
+      .pipe(
+        switchMap((target) => {
+          if (
+            target?.type === 'vertex' &&
+            target.data.collection === 'service'
+          ) {
+            return this.graphApi.searchIntentions(target.data.name, 0, 5);
+          }
+          // Not a service vertex
+          return from([[]]);
+        }),
+      )
+      .subscribe((data) => {
+        this.recentIntentions = data;
       });
     this.dataConfig.subscribe((dataConfig) => {
       this.latestData = dataConfig.data;

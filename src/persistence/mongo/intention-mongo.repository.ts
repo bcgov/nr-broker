@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MongoRepository } from 'typeorm';
+import { FindOptionsWhere, MongoRepository } from 'typeorm';
 import { ActionDto } from '../../intention/dto/action.dto';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 import { IntentionRepository } from '../interfaces/intention.repository';
@@ -116,5 +116,27 @@ export class IntentionMongoRepository implements IntentionRepository {
       return result.modifiedCount === 1;
     }
     return false;
+  }
+
+  public async searchIntentions(
+    where: FindOptionsWhere<IntentionDto> | FindOptionsWhere<IntentionDto>[],
+    offset: number,
+    limit: number,
+  ): Promise<IntentionDto[]> {
+    return this.intentionRepository
+      .aggregate([
+        { $match: where },
+        { $sort: { 'transaction.start': -1 } },
+        { $skip: offset },
+        { $limit: limit },
+        {
+          $unset: [
+            'actions.transaction',
+            'actions.trace.token',
+            'transaction.token',
+          ],
+        },
+      ])
+      .toArray();
   }
 }

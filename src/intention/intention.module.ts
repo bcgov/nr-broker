@@ -5,9 +5,10 @@ import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
 import { ActionUtil } from './action.util';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PersistenceModule, AuditModule],
+  imports: [PersistenceModule, AuthModule, AuditModule],
   controllers: [IntentionController],
   providers: [IntentionService, ActionService, ActionUtil],
   exports: [ActionUtil],

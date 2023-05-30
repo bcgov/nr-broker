@@ -5,6 +5,7 @@ if (
   db.jwtAllow.insertOne({});
 }
 
+db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
 db.user.drop();
 db.collectionConfig.drop();
 result = db.collectionConfig.insertOne({
