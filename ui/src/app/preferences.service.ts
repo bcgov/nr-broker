@@ -20,11 +20,11 @@ export class PreferencesService {
   set(key: keyof PreferenceRestDto, value: PreferenceRestDto[typeof key]) {
     this.preferences[key] = value;
 
-    this.writePreferences();
+    this.writePreferences().subscribe();
   }
 
   private writePreferences() {
-    this.http.post<boolean>(
+    return this.http.post<boolean>(
       `${environment.apiUrl}/v1/preference/self`,
       this.preferences,
       {
