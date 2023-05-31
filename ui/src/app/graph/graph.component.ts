@@ -12,6 +12,8 @@ import {
   switchMap,
   takeUntil,
   tap,
+  of,
+  delay,
 } from 'rxjs';
 import {
   ChartClickTarget,
@@ -28,6 +30,7 @@ import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
+import { ActivatedRoute, Router } from '@angular/router';
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
@@ -54,6 +57,8 @@ export class GraphComponent {
   constructor(
     private graphApi: GraphApiService,
     private dialog: MatDialog,
+    private route: ActivatedRoute,
+    private router: Router,
     @Inject(CURRENT_USER) public user: UserDto,
   ) {}
 
@@ -111,13 +116,25 @@ export class GraphComponent {
         },
       ),
       tap(() => {
-        this.onSelected(undefined);
+        of(this.route.snapshot.params)
+          .pipe(delay(100))
+          .subscribe((params) => {
+            if (params['selected']) {
+              this.onSelected(JSON.parse(params['selected']));
+            } else {
+              this.onSelected(undefined);
+            }
+          });
       }),
       shareReplay(1),
     );
   }
 
   onSelected(event: ChartClickTarget | undefined): void {
+    if (!this.echartsComponent.echartsInstance) {
+      setTimeout(() => this.onSelected(event), 100);
+      return;
+    }
     this.selected = event;
     if (event?.type === 'vertex') {
       this.echartsComponent.echartsInstance.dispatchAction({
@@ -135,6 +152,8 @@ export class GraphComponent {
         ),
       });
     }
+
+    this.updateRoute();
   }
 
   onGraphSelected(event: any): void {
@@ -142,7 +161,6 @@ export class GraphComponent {
       this.selected = event;
     }
     if (event?.type === 'vertex') {
-      // console.log(event);
       this.selected = {
         type: 'vertex',
         data: this.latestData?.vertices.find(
@@ -151,6 +169,19 @@ export class GraphComponent {
             vertex.category === event.data.category,
         ),
       } as ChartClickTargetVertex;
+    }
+
+    this.updateRoute();
+  }
+
+  updateRoute() {
+    if (this.selected) {
+      this.router.navigate(
+        ['/graph', { selected: JSON.stringify(this.selected) }],
+        {
+          replaceUrl: true,
+        },
+      );
     }
   }
 

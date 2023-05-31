@@ -6,6 +6,8 @@ import {
   Query,
   Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -16,6 +18,8 @@ import { IntentionService } from './intention.service';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ActionGuard } from './action.guard';
+import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
+import { SearchIntentionQuery } from './dto/intention-search-query.dto';
 
 @Controller({
   path: 'intention',
@@ -104,5 +108,13 @@ export class IntentionController {
       undefined,
       'start',
     );
+  }
+
+  @Post('search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  search(@Query() query: SearchIntentionQuery) {
+    return this.intentionService.search(query.where, query.offset, query.limit);
   }
 }
