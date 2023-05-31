@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf, NgFor } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../graph/graph.types';
+import { UserDto } from '../../service/graph.types';
 @Component({
   selector: 'app-roles-dialog',
   templateUrl: './roles-dialog.component.html',

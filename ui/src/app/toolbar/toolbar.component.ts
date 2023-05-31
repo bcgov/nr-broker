@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDialog } from '@angular/material/dialog';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { UserDto } from '../graph/graph.types';
+import { UserDto } from '../service/graph.types';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 

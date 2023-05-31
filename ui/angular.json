@@ -6,8 +6,21 @@
     "ui": {
       "projectType": "application",
       "schematics": {
+        "@schematics/angular:application": {
+          "standalone": true
+        },
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "standalone": true
+        },
+        "@schematics/angular:directive": {
+          "standalone": true
+        },
+        "@schematics/angular:library": {
+          "standalone": true
+        },
+        "@schematics/angular:ng-new": {
+          "standalone": true
         }
       },
       "root": "",

@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { EChartsOption } from 'echarts';
 import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';
 import { map, Observable } from 'rxjs';
-import { ChartClickTarget, GraphDataConfig } from '../graph.types';
+import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 
 @Component({
   selector: 'app-echarts',

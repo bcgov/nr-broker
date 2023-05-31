@@ -7,6 +7,11 @@ export const ROUTES: Route[] = [
     loadChildren: () =>
       import('./app/graph/routes').then((mod) => mod.GRAPH_ROUTES),
   },
+  {
+    path: 'intention',
+    loadChildren: () =>
+      import('./app/intention/routes').then((mod) => mod.INTENTION_ROUTES),
+  },
   { path: '', redirectTo: '/graph', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent },
 ];

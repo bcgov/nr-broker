@@ -52,9 +52,9 @@ import {
   GraphDataVertex,
   ConnectionDirection,
   UserDto,
-} from '../graph.types';
+} from '../../service/graph.types';
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
-import { GraphApiService } from '../graph-api.service';
+import { GraphApiService } from '../../service/graph-api.service';
 import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 import { CURRENT_USER } from '../../app-initialize.factory';
@@ -195,11 +195,15 @@ export class InspectorComponent implements OnChanges, OnInit {
             return this.graphApi.searchIntentions(target.data.name, 0, 5);
           }
           // Not a service vertex
-          return from([[]]);
+          return from([undefined]);
         }),
       )
       .subscribe((data) => {
-        this.recentIntentions = data;
+        if (data) {
+          this.recentIntentions = data.data;
+        } else {
+          this.recentIntentions = [];
+        }
       });
     this.dataConfig.subscribe((dataConfig) => {
       this.latestData = dataConfig.data;
