@@ -1,3 +1,4 @@
+import { FindOptionsWhere } from 'typeorm';
 import { ActionDto } from '../../intention/dto/action.dto';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 
@@ -29,4 +30,10 @@ export abstract class IntentionRepository {
   public abstract closeIntentionByToken(token: string): Promise<boolean>;
 
   public abstract closeIntention(intention: IntentionDto): Promise<boolean>;
+
+  public abstract searchIntentions(
+    where: FindOptionsWhere<IntentionDto> | FindOptionsWhere<IntentionDto>[],
+    offset: number,
+    limit: number,
+  ): Promise<IntentionDto[]>;
 }
