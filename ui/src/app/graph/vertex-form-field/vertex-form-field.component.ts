@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
-import { CollectionFieldConfigNameMapped } from '../graph.types';
+import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 
 @Component({
   selector: 'app-vertex-form-field',

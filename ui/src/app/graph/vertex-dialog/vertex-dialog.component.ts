@@ -12,10 +12,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgIf, NgFor } from '@angular/common';
 
-import { ChartClickTargetVertex, CollectionConfigMap } from '../graph.types';
-import { GraphApiService } from '../graph-api.service';
+import {
+  ChartClickTargetVertex,
+  CollectionConfigMap,
+} from '../../service/graph.types';
+import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
-import { CollectionConfigResponseDto } from '../dto/collection-config-rest.dto';
+import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
 
 @Component({

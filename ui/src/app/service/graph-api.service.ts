@@ -10,6 +10,7 @@ import {
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto } from './dto/vertex-rest.dto';
+import { IntentionSearchResult } from './dto/intention-search-result.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -109,7 +110,7 @@ export class GraphApiService {
     const whereQuery = encodeURIComponent(
       JSON.stringify({ 'actions.service.name': serviceName }),
     );
-    return this.http.post<any[]>(
+    return this.http.post<IntentionSearchResult>(
       `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
       {
         responseType: 'json',

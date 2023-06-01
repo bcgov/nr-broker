@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { NgIf } from '@angular/common';
-import { GraphDataVertex } from '../graph.types';
+import { GraphDataVertex } from '../../service/graph.types';
 
 @Component({
   selector: 'app-vertex-name',

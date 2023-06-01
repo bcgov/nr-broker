@@ -19,7 +19,7 @@ import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ActionGuard } from './action.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
-import { SearchIntentionQuery } from './dto/intention-search-query.dto';
+import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 
 @Controller({
   path: 'intention',
@@ -114,7 +114,7 @@ export class IntentionController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @UsePipes(new ValidationPipe({ transform: true }))
-  search(@Query() query: SearchIntentionQuery) {
+  search(@Query() query: IntentionSearchQuery) {
     return this.intentionService.search(query.where, query.offset, query.limit);
   }
 }

@@ -16,8 +16,8 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { CollectionFieldConfigNameMapped } from '../graph.types';
-import { CollectionFieldConfigMap } from '../dto/collection-config-rest.dto';
+import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
+import { CollectionFieldConfigMap } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
 
 @Component({

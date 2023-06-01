@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsString } from 'class-validator';
 
-export class SearchIntentionQuery {
+export class IntentionSearchQuery {
   @IsString()
   where: string;
 

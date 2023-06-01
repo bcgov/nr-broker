@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { InjectionToken } from '@angular/core';
 import { Observable, catchError, tap } from 'rxjs';
 import { environment } from '../environments/environment';
-import { UserDto } from './graph/graph.types';
+import { UserDto } from './service/graph.types';
 import { PreferenceRestDto } from './preference-rest.dto';
 
 let userInfo: UserDto;

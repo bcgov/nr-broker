@@ -14,12 +14,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { Observable, map, startWith } from 'rxjs';
-import { GraphDataVertex } from '../graph.types';
-import { GraphApiService } from '../graph-api.service';
+import { GraphDataVertex } from '../../service/graph.types';
+import { GraphApiService } from '../../service/graph-api.service';
 import {
   CollectionConfigResponseDto,
   CollectionEdgeConfig,
-} from '../dto/collection-config-rest.dto';
+} from '../../service/dto/collection-config-rest.dto';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 

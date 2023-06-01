@@ -22,13 +22,13 @@ import {
   GraphData,
   GraphDataConfig,
   UserDto,
-} from './graph.types';
-import { GraphApiService } from './graph-api.service';
+} from '../service/graph.types';
+import { GraphApiService } from '../service/graph-api.service';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { GraphDataResponseDto } from './dto/graph-data.dto';
-import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
+import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
+import { CollectionConfigResponseDto } from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { ActivatedRoute, Router } from '@angular/router';
 @Component({

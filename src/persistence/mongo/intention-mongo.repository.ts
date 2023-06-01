@@ -5,6 +5,7 @@ import { ActionDto } from '../../intention/dto/action.dto';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
+import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -122,21 +123,31 @@ export class IntentionMongoRepository implements IntentionRepository {
     where: FindOptionsWhere<IntentionDto> | FindOptionsWhere<IntentionDto>[],
     offset: number,
     limit: number,
-  ): Promise<IntentionDto[]> {
+  ): Promise<IntentionSearchResult> {
     return this.intentionRepository
       .aggregate([
         { $match: where },
-        { $sort: { 'transaction.start': -1 } },
-        { $skip: offset },
-        { $limit: limit },
         {
-          $unset: [
-            'actions.transaction',
-            'actions.trace.token',
-            'transaction.token',
-          ],
+          $facet: {
+            data: [
+              { $skip: offset },
+              { $limit: limit },
+              {
+                $unset: [
+                  'actions.transaction',
+                  'actions.trace.token',
+                  'transaction.token',
+                ],
+              },
+            ],
+            meta: [{ $count: 'total' }],
+          },
         },
+        { $unwind: '$meta' },
       ])
-      .toArray();
+      .toArray()
+      .then((array) => {
+        return array[0] as unknown as IntentionSearchResult;
+      });
   }
 }
