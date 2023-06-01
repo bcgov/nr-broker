@@ -10,7 +10,7 @@
       "id": "login",
       "provision": ["token/self"],
       "service": {
-        "name": "jenkins_isss",
+        "name": "jenkins-isss",
         "project": "jenkins",
         "environment": "production"
       }

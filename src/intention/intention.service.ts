@@ -135,11 +135,20 @@ export class IntentionService {
   }
 
   public async search(whereClause: string, offset = 0, limit = 5) {
-    return this.intentionRepository.searchIntentions(
-      JSON.parse(whereClause),
-      offset,
-      limit,
-    );
+    try {
+      // must await to catch error
+      return await this.intentionRepository.searchIntentions(
+        JSON.parse(whereClause),
+        offset,
+        limit,
+      );
+    } catch (e) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal search arguement',
+        error: `Check parameters for errors`,
+      });
+    }
   }
 
   private finalizeIntention(

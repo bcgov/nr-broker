@@ -1,5 +1,27 @@
 
 <div class="history-flex-container">
+    <form>
+      <mat-form-field>
+        <mat-label>Field</mat-label>
+        <mat-select [(ngModel)]="selectedField" name="field">
+          <mat-option *ngFor="let field of fields" [value]="field.value">
+            {{field.viewValue}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Value</mat-label>
+        <input matInput placeholder="Value" name="value" [(ngModel)]="fieldValue">
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" aria-label="Filter" (click)="filter()">
+        Filter
+      </button>
+      <button mat-stroked-button aria-label="Clear" (click)="clear()">
+        Clear
+      </button>
+    </form>
+
     <div class="history-loader">
       <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
     </div>

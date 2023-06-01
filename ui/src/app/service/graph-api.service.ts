@@ -106,10 +106,8 @@ export class GraphApiService {
     );
   }
 
-  searchIntentions(serviceName: string, offset = 0, limit = 5) {
-    const whereQuery = encodeURIComponent(
-      JSON.stringify({ 'actions.service.name': serviceName }),
-    );
+  searchIntentions(whereClause: any, offset = 0, limit = 5) {
+    const whereQuery = encodeURIComponent(JSON.stringify(whereClause));
     return this.http.post<IntentionSearchResult>(
       `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
       {
