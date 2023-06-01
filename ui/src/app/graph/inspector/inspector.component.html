@@ -120,19 +120,7 @@
         </ng-container>
 
         <ng-container *ngIf="target.data.collection === 'service'">
-          <div class="vertex-edge-container">
-            <h3 class="vertex-heading">Recent Intentions</h3>
-          </div>
-
-          <div class="vertex-edge-container" *ngIf="recentIntentions.length == 0">None</div>
-
-          <mat-action-list>
-            <mat-list-item *ngFor="let item of recentIntentions; index as i">
-              <span matListItemTitle>{{item.transaction.start | date:'medium' }}</span>
-              <span matListItemLine>{{item.event.reason}}</span>
-            </mat-list-item>
-          </mat-action-list>
-          <mat-divider></mat-divider>
+          <app-inspector-intentions [target]="target"></app-inspector-intentions>
         </ng-container>
 
         <div class="wrapper vertex-edge-container">

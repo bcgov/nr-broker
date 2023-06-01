@@ -6,6 +6,7 @@ import { IntentionDto } from '../../intention/dto/intention.dto';
 import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -124,6 +125,9 @@ export class IntentionMongoRepository implements IntentionRepository {
     offset: number,
     limit: number,
   ): Promise<IntentionSearchResult> {
+    if (where['_id']) {
+      where['_id'] = new ObjectId(where['_id']);
+    }
     return this.intentionRepository
       .aggregate([
         { $match: where },
@@ -147,7 +151,14 @@ export class IntentionMongoRepository implements IntentionRepository {
       ])
       .toArray()
       .then((array) => {
-        return array[0] as unknown as IntentionSearchResult;
+        if (array[0]) {
+          return array[0] as unknown as IntentionSearchResult;
+        } else {
+          return {
+            data: [],
+            meta: { total: 0 },
+          };
+        }
       });
   }
 }

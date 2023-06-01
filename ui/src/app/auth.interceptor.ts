@@ -18,8 +18,9 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((e) => {
         if (e.status === 401) {
           window.location.href = `${environment.apiUrl}/auth/login`;
+          return of();
         }
-        return of();
+        throw e;
       }),
     );
   }
