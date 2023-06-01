@@ -17,7 +17,7 @@ import { CURRENT_USER } from '../app-initialize.factory';
 import { UserDto } from '../service/graph.types';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
-import { HealthstatusService } from '../healthstatus.service';
+import { HealthStatusService } from '../service/health-status.service';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 
@@ -40,7 +40,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private dialog: MatDialog,
-    private healthservice: HealthstatusService,
+    private healthService: HealthStatusService,
     @Inject(CURRENT_USER) public user: UserDto,
   ) {}
 
@@ -71,7 +71,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   getHealthCheck(): any {
     try {
-      this.healthservice
+      this.healthService
         .healthCheck()
         .pipe(
           catchError((error: any) => {
