@@ -10,8 +10,8 @@
       "id": "database",
       "provision": ["token/self"],
       "service": {
-        "name": "fluent-bit",
-        "project": "fluent",
+        "name": "superapp-db-sync",
+        "project": "superapp",
         "environment": "production"
       }
     }

@@ -20,6 +20,7 @@ import { UserDto } from './dto/user.dto';
 import { PreferenceDto } from './dto/preference.dto';
 import { SystemMongoRepository } from './mongo/system-mongo.repository';
 import { SystemRepository } from './interfaces/system.repository';
+import { IntentionSyncService } from './intention-sync.service';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { SystemRepository } from './interfaces/system.repository';
     },
     IntentionMongoRepository,
     { provide: IntentionRepository, useExisting: IntentionMongoRepository },
+    IntentionSyncService,
     SystemMongoRepository,
     {
       provide: SystemRepository,
@@ -61,6 +63,7 @@ import { SystemRepository } from './interfaces/system.repository';
     CollectionRepository,
     GraphRepository,
     IntentionRepository,
+    IntentionSyncService,
     SystemRepository,
   ],
 })

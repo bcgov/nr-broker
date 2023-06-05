@@ -134,6 +134,7 @@ export class IntentionMongoRepository implements IntentionRepository {
         {
           $facet: {
             data: [
+              { $sort: { 'transaction.start': -1 } },
               { $skip: offset },
               { $limit: limit },
               {

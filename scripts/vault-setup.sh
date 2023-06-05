@@ -26,5 +26,5 @@ vault write -force auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE
 vault audit enable file file_path=/tmp/vault-audit.txt
 
 # Sample approles for demo
-vault write -force auth/$VAULT_APPROLE_PATH/role/jenkins_jenkins-isss_prod policies=default
-vault write -force auth/$VAULT_APPROLE_PATH/role/fluent_fluent-bit_prod policies=default
+vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-db-sync_prod policies=default
+vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-backend_prod policies=default
