@@ -75,7 +75,7 @@ export class IntentionSyncService {
       );
       if (project && service) {
         try {
-          this.graphRepository.addEdge({
+          await this.graphRepository.addEdge({
             name: 'component',
             source: project.vertex,
             target: service.vertex,
