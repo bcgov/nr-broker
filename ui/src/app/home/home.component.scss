@@ -1,0 +1,28 @@
+body {
+  overflow-x: hidden;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+mat-card {
+  flex: 0 1 calc(75% - 1em);
+  margin: 5px;
+  max-width: 400px;
+}
+
+@media only screen and (min-width: 600px) {
+  .cards {
+    flex-direction: row;  
+    align-items: auto;
+    align-content: start
+  }
+
+  mat-card {
+    flex: 0 0 auto;
+  }
+}
