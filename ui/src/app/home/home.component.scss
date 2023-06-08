@@ -7,6 +7,11 @@ body {
   margin-top: 16px;
 }
 
+.content h2 {
+  text-align: center;
+  margin-top: 16px;
+}
+
 .content .cards {
   display: flex;
   flex-direction: column;
@@ -14,19 +19,20 @@ body {
   justify-content: center;
 }
 
-.content .opensearch {
-  cursor: pointer;
-}
-
 mat-card {
   flex: 0 1 calc(75% - 1em);
   margin: 15px;
   max-width: 400px;
   transition: all .2s ease-in-out;
+  cursor: pointer;
 }
 
 mat-card:hover {
   transform: scale(1.1);
+}
+
+mat-card a {
+  all: unset;
 }
 
 mat-card-header {
