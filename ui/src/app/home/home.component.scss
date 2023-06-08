@@ -20,8 +20,13 @@ body {
 
 mat-card {
   flex: 0 1 calc(75% - 1em);
-  margin: 5px;
+  margin: 15px;
   max-width: 400px;
+  transition: all .2s ease-in-out;
+}
+
+mat-card:hover {
+  transform: scale(1.1);
 }
 
 mat-card-header {
