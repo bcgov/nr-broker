@@ -2,11 +2,20 @@ body {
   overflow-x: hidden;
 }
 
-.cards {
+.content h1 {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.content .cards {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.content .opensearch {
+  cursor: pointer;
 }
 
 mat-card {
@@ -15,8 +24,12 @@ mat-card {
   max-width: 400px;
 }
 
+mat-card-header {
+  justify-content: center;
+}
+
 @media only screen and (min-width: 600px) {
-  .cards {
+  .content .cards {
     flex-direction: row;  
     align-items: auto;
     align-content: start
