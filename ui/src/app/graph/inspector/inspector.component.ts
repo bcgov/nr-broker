@@ -51,6 +51,7 @@ import {
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
 import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
+import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
@@ -338,6 +339,22 @@ export class InspectorComponent implements OnChanges, OnInit {
           config: this.latestConfig[vertex.collection],
           vertices: this.latestData.vertices,
           vertex,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          this.graphChanged.emit(true);
+        }
+      });
+  }
+
+  openDeleteEdgeDialog(targetConnections: Observable<VertexNavigation | null>) {
+    this.dialog
+      .open(DeleteEdgeDialogComponent, {
+        width: '500px',
+        data: {
+          connections: targetConnections,
         },
       })
       .afterClosed()
