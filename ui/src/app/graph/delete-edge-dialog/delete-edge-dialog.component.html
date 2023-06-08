@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Delete Edge</h2>
+<mat-dialog-content>
+  <mat-selection-list #connections>
+    <ng-container *ngFor="let group of $any((data.connections | async)?.connections | keyvalue)">
+      <div mat-subheader class="mat-subheader"><b>{{ group.key | titlecase }}</b></div>
+      <mat-list-option *ngFor="let item of group.value" [value]="item">
+        {{ item.vertex.name }}
+      </mat-list-option>
+    </ng-container>
+  </mat-selection-list>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button (click)="deleteEdge()">Delete</button>
+</mat-dialog-actions>
