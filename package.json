@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@aws-sdk/client-kinesis": "^3.335.0",
+    "@aws-sdk/client-kinesis": "^3.348.0",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.4.1",
     "@nestjs/config": "^2.3.2",
