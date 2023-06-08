@@ -137,12 +137,14 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   clear() {
+    this.pageIndex = 0;
     this.selectedField = 'id';
     this.fieldValue = '';
     this.refresh();
   }
 
   filter() {
+    this.pageIndex = 0;
     this.refresh();
   }
 

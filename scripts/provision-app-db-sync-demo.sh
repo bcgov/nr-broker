@@ -10,7 +10,7 @@ echo "===> Intention open"
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
-    -d @<(cat provision-db-intention.json | \
+    -d @<(cat provision-app-db-sync-intention.json | \
         jq ".event.url=\"http://sample.com/job\" \
         " \
     ))
@@ -28,14 +28,14 @@ INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 echo "===> DB provision"
 
 # Get token for provisioning a db access
-DB_INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.actions.database.token')
-echo "DB_INTENTION_TOKEN: $DB_INTENTION_TOKEN"
+ACTIONS_DATABASE_TOKEN=$(echo $RESPONSE | jq -r '.actions.database.token')
+echo "ACTIONS_DATABASE_TOKEN: $ACTIONS_DATABASE_TOKEN"
 
 # Start db action
-curl -s -X POST $BROKER_URL/v1/intention/action/start -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"''
+curl -s -X POST $BROKER_URL/v1/intention/action/start -H 'X-Broker-Token: '"$ACTIONS_DATABASE_TOKEN"''
 
 # Get wrapped id for db access
-VAULT_TOKEN_WRAP=$(curl -s -X POST $BROKER_URL/v1/provision/token/self -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"'' -H 'X-Vault-Role-Id: '"$PROVISION_ROLE_ID"'')
+VAULT_TOKEN_WRAP=$(curl -s -X POST $BROKER_URL/v1/provision/token/self -H 'X-Broker-Token: '"$ACTIONS_DATABASE_TOKEN"'' -H 'X-Vault-Role-Id: '"$SUPERAPP_DB_SYNC_ROLE_ID"'')
 echo "$BROKER_URL/v1/provision/token/self:"
 echo $VAULT_TOKEN_WRAP | jq '.'
 WRAPPED_VAULT_TOKEN=$(echo $VAULT_TOKEN_WRAP | jq -r '.wrap_info.token')
@@ -51,7 +51,7 @@ RESPONSE=$(curl -s -X GET $VAULT_ADDR/v1/auth/token/lookup-self -H 'X-Vault-Toke
 echo "===> Intention close"
 
 # End db action
-curl -s -X POST $BROKER_URL/v1/intention/action/end -H 'X-Broker-Token: '"$DB_INTENTION_TOKEN"''
+curl -s -X POST $BROKER_URL/v1/intention/action/end -H 'X-Broker-Token: '"$ACTIONS_DATABASE_TOKEN"''
 
 # Use saved intention token to close intention
 curl -s -X POST $BROKER_URL/v1/intention/close -H 'X-Broker-Token: '"$INTENTION_TOKEN"''

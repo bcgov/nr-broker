@@ -21,6 +21,7 @@ import { ActionService } from './action.service';
 import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { IntentionSyncService } from '../persistence/intention-sync.service';
 import { ActionDto } from './dto/action.dto';
 
 export interface IntentionOpenResponse {
@@ -40,6 +41,7 @@ export class IntentionService {
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
     private readonly intentionRepository: IntentionRepository,
+    private readonly intentionSync: IntentionSyncService,
   ) {}
 
   /**
@@ -164,6 +166,9 @@ export class IntentionService {
     intention.transaction.outcome = outcome;
 
     this.auditService.recordIntentionClose(req, intention, reason);
+    if (outcome === 'success') {
+      this.intentionSync.sync(intention);
+    }
     return this.intentionRepository.closeIntention(intention);
   }
 
