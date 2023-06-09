@@ -119,6 +119,10 @@
           <mat-divider></mat-divider>
         </ng-container>
 
+        <ng-container *ngIf="target.data.collection === 'account'">
+          <app-inspector-account [account]="collectionData"></app-inspector-account>
+        </ng-container>
+
         <ng-container *ngIf="target.data.collection === 'service'">
           <app-inspector-intentions [target]="target"></app-inspector-intentions>
         </ng-container>

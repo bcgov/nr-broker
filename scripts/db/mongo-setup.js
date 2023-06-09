@@ -5,7 +5,16 @@ if (
   db.jwtAllow.insertOne({});
 }
 
-db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
+db.service.drop();
+db.vertex.drop();
+db.edge.drop();
+db.account.drop();
+db.project.drop();
+db.environment.drop();
+db.jwtRegistry.drop();
+db.jwtAllow.drop();
+db.jwtBlock.drop();
+db.serviceInstance.drop();
 db.user.drop();
 db.collectionConfig.drop();
 result = db.collectionConfig.insertOne({
@@ -107,6 +116,12 @@ result = db.collectionConfig.insertOne({
   index: 4,
   edges: [
     {
+      collection: 'account',
+      name: 'administrator',
+      inboundName: 'administrators',
+      relation: 'oneToMany',
+    },
+    {
       collection: 'project',
       name: 'developer',
       relation: 'oneToMany',
@@ -132,6 +147,48 @@ result = db.collectionConfig.insertOne({
   permissions: {
     create: false,
     update: false,
+    delete: true,
+  },
+});
+
+result = db.collectionConfig.insertOne({
+  collection: 'account',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  index: 5,
+  edges: [
+    {
+      collection: 'project',
+      name: 'authorized',
+      relation: 'oneToMany',
+    },
+    {
+      collection: 'service',
+      name: 'authorized',
+      relation: 'oneToMany',
+    },
+  ],
+  fields: {
+    name: {
+      required: true,
+      type: 'string',
+      hint: 'A descriptive name for the account',
+    },
+    email: {
+      required: true,
+      type: 'string',
+      hint: 'Email address to use as the sub claim in generated JWT',
+    },
+    clientId: {
+      required: true,
+      init: 'uuid',
+      type: 'string',
+      hint: 'Generated UUID used to uniquely identify all generated JWTs',
+    },
+  },
+  name: 'Account',
+  permissions: {
+    create: true,
+    update: true,
     delete: true,
   },
 });

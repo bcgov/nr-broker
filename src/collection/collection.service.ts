@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Request } from 'express';
+import { GraphService } from '../graph/graph.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserDto } from '../persistence/dto/user.dto';
-import { GraphService } from '../graph/graph.service';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { Request } from 'express';
+import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
 
 @Injectable()
 export class CollectionService {
@@ -17,7 +18,10 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigs();
   }
 
-  async getCollectionByVertexId(type: string, id: string) {
+  async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ) {
     try {
       return this.collectionRepository.getCollectionByVertexId(type, id);
     } catch (error) {

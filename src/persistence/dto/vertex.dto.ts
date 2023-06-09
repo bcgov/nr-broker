@@ -3,6 +3,7 @@ import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
 import { VertexPointerDto } from './vertex-pointer.dto';
 import { VertexInsertDto } from './vertex-rest.dto';
+import { CollectionDtoUnion } from './collection-dto-union.type';
 
 @Entity({ name: 'vertex' })
 export class VertexDto {
@@ -11,7 +12,8 @@ export class VertexDto {
   id: ObjectId;
 
   @Column()
-  collection: string;
+  @ApiProperty({ type: () => String })
+  collection: keyof CollectionDtoUnion;
 
   @Column(() => PointGeom)
   geo?: PointGeom;

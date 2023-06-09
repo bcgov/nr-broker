@@ -25,7 +25,7 @@ export const VAULT_PROVISIONED_ACTION_SET = new Set([
   ACTION_PROVISION_APPROLE_SECRET_ID,
 ]);
 
-export const IS_PRIMARY_NODE = process.env.HOSTNAME === 'nr-broker-app-0';
+export const IS_PRIMARY_NODE = process.env.HOSTNAME.endsWith('-0');
 
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
@@ -33,3 +33,7 @@ export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 
 export const JWT_MAX_AGE = '90d';
+export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
+
+export const MILLISECONDS_IN_SECOND = 1000;
+export const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;

@@ -51,7 +51,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     try {
-      interval(5000)
+      interval(60000)
         .pipe(takeUntil(this.unsubscribe))
         .subscribe(() => {
           this.getHealthCheck();

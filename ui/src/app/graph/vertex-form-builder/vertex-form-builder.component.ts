@@ -16,6 +16,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 import { CollectionFieldConfigMap } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
@@ -88,6 +89,14 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   }
       //   fieldCtrls[f.name] = new FormGroup(opts);
       // }
+      if (f.init && f.init === 'uuid') {
+        if (!this.data) {
+          this.data = {};
+        }
+        if (!this.data[f.name]) {
+          this.data[f.name] = uuidv4();
+        }
+      }
     }
     this.fieldConfigs = fieldConfigs;
     this.form = new FormGroup(fieldCtrls);

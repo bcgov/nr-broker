@@ -15,6 +15,11 @@ export abstract class JwtDto {
   @Column()
   @IsString()
   @IsOptional()
+  expiry?: string;
+
+  @Column()
+  @IsString()
+  @IsOptional()
   jti?: string;
 
   @Column()

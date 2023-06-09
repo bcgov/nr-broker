@@ -1,7 +1,16 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { CollectionService } from './collection.service';
 import { ApiBearerAuth, ApiOAuth2 } from '@nestjs/swagger';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
+import { AccountDto } from '../persistence/dto/account.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
@@ -10,13 +19,17 @@ import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserDto } from '../persistence/dto/user.dto';
 import { Request as ExpressRequest } from 'express';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
+import { AccountService } from './account.service';
 
 @Controller({
   path: 'collection',
   version: '1',
 })
 export class CollectionController {
-  constructor(private service: CollectionService) {}
+  constructor(
+    private accountService: AccountService,
+    private service: CollectionService,
+  ) {}
 
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
@@ -30,6 +43,25 @@ export class CollectionController {
   @ApiBearerAuth()
   getCollectionConfig(): Promise<CollectionConfigDto[]> {
     return this.service.getCollectionConfig();
+  }
+
+  @Get('account')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async getAccountByVertexId(@Query('vertex') id: string): Promise<AccountDto> {
+    return this.service.getCollectionByVertexId('account', id);
+  }
+
+  @Post('account/:id/token')
+  @UseGuards(BrokerOidcAuthGuard)
+  async generateAccountToken(
+    @Param('id') id: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return this.accountService.generateAccountToken(
+      req,
+      id,
+      (req.user as any).userinfo.idir_user_guid,
+    );
   }
 
   @Get('environment')

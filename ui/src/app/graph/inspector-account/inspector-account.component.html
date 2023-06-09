@@ -1,0 +1,7 @@
+<ng-container *ngIf="account">
+  <div class="edge-container">
+    <h3 class="heading">Accounts</h3>
+
+    <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin')">Generate</button>
+  </div>
+</ng-container>

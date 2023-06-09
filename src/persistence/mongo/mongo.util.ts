@@ -1,9 +1,19 @@
 import { DataSource, MongoRepository, ObjectId } from 'typeorm';
+import { AccountDto } from '../dto/account.dto';
 import { EnvironmentDto } from '../dto/environment.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
 import { ServiceDto } from '../dto/service.dto';
 import { UserDto } from '../dto/user.dto';
+
+type CollectionDtoUnion = {
+  account: AccountDto;
+  environment: EnvironmentDto;
+  project: ProjectDto;
+  serviceInstance: ServiceInstanceDto;
+  service: ServiceDto;
+  user: UserDto;
+};
 
 export function getMongoDbConnectionUrl() {
   return process.env.MONGODB_URL.replace(
@@ -12,21 +22,34 @@ export function getMongoDbConnectionUrl() {
   ).replace('{{password}}', process.env.MONGODB_PASSWORD);
 }
 
-export function getRepositoryFromCollectionName(
-  dataSource: DataSource,
-  name: string,
-): MongoRepository<any> {
+export function getRepositoryFromCollectionName<
+  T extends keyof CollectionDtoUnion,
+>(dataSource: DataSource, name: T): MongoRepository<CollectionDtoUnion[T]> {
   switch (name) {
+    case 'account':
+      return dataSource.getMongoRepository(AccountDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     case 'environment':
-      return dataSource.getMongoRepository(EnvironmentDto);
+      return dataSource.getMongoRepository(EnvironmentDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     case 'project':
-      return dataSource.getMongoRepository(ProjectDto);
+      return dataSource.getMongoRepository(ProjectDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     case 'serviceInstance':
-      return dataSource.getMongoRepository(ServiceInstanceDto);
+      return dataSource.getMongoRepository(
+        ServiceInstanceDto,
+      ) as MongoRepository<CollectionDtoUnion[T]>;
     case 'service':
-      return dataSource.getMongoRepository(ServiceDto);
+      return dataSource.getMongoRepository(ServiceDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     case 'user':
-      return dataSource.getMongoRepository(UserDto);
+      return dataSource.getMongoRepository(UserDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     default:
       throw Error();
   }

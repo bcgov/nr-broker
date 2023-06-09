@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { EdgeDto } from './dto/edge.dto';
+import { AccountDto } from './dto/account.dto';
 import { EnvironmentDto } from './dto/environment.dto';
 import { JwtAllowDto } from './dto/jwt-allow.dto';
 import { JwtBlockDto } from './dto/jwt-block.dto';
+import { JwtRegistryDto } from './dto/jwt-registry.dto';
 import { ProjectDto } from './dto/project.dto';
 import { ServiceInstanceDto } from './dto/service-instance.dto';
 import { ServiceDto } from './dto/service.dto';
@@ -25,12 +27,14 @@ import { IntentionSyncService } from './intention-sync.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      AccountDto,
       CollectionConfigDto,
       EdgeDto,
       EnvironmentDto,
       IntentionDto,
       JwtAllowDto,
       JwtBlockDto,
+      JwtRegistryDto,
       ServiceDto,
       ServiceInstanceDto,
       PreferenceDto,

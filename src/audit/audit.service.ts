@@ -288,6 +288,45 @@ export class AuditService {
       });
   }
 
+  public recordAccountTokenLifecycle(
+    req: any,
+    user: any,
+    message: string,
+    type: 'creation' | 'info' | 'deletion',
+    outcome: 'success' | 'failure' | 'unknown',
+    tags: string[],
+  ) {
+    from([
+      {
+        message,
+        event: {
+          action: 'token-generation',
+          category: 'iam',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+          outcome,
+          tags,
+        },
+      },
+    ])
+      .pipe(
+        map(this.addAuthFunc(user)),
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataAuthFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc()),
+        map(this.addUserAgentFunc(req)),
+      )
+      .subscribe((ecsObj) => {
+        this.logger.debug(JSON.stringify(ecsObj));
+        this.kinesisService.putRecord(ecsObj);
+      });
+  }
+
   public recordGraphAction(
     req: any,
     action: string,
@@ -443,7 +482,7 @@ export class AuditService {
   }
 
   /**
-   * Map function generator for adding user auth fields to ECS document
+   * Map function generator for adding auth fields to ECS document
    * @param user The action DTO
    * @returns Function to manipulate the ECS document
    */

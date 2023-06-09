@@ -61,9 +61,9 @@ export class VertexDialogComponent {
   ) {}
 
   ngOnInit() {
-    this.configs = Object.values(this.data.config).filter(
-      (config) => config.permissions.create,
-    );
+    this.configs = Object.values(this.data.config)
+      .filter((config) => config.permissions.create)
+      .sort((a, b) => a.name.localeCompare(b.name));
     if (this.data.target) {
       const vData = this.data.target.data;
       const config = this.data.config[vData.collection];

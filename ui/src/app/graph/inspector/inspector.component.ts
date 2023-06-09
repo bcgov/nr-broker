@@ -59,6 +59,7 @@ import { CollectionFilterPipe } from '../collection-filter.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
+import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 
 @Component({
   selector: 'app-inspector',
@@ -84,6 +85,7 @@ import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-
     CollectionFilterPipe,
     CamelToTitlePipe,
     InspectorIntentionsComponent,
+    InspectorAccountComponent,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {

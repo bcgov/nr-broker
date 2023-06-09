@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Generate JWT</h2>
+<mat-dialog-content>
+  <p>This will generate a JWT token useuable with this account's authorized services.</p>
+
+  <p>The token will be displayed only once. It should be treated as a secret.</p>
+
+  <p>Existing tokens will be disabled within 24 hours.</p>
+
+  <div class="generate-panel">
+    <mat-form-field>
+      <input matInput type="text" [(ngModel)]="token">
+      <button *ngIf="token !== ''" matSuffix mat-icon-button (click)="copyToClipboard()" aria-label="Copy to clipboard">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <button mat-button color="primary" (click)="generate()">Generate</button>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

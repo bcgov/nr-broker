@@ -85,20 +85,19 @@ The UI should be built before starting the backend server.
 ### Running the backend server
 
 ```bash
-# ENV setup
-$ source ./scripts/setenv-backend-dev.sh
-
 # Run server in watch mode
+# Will source ./scripts/setenv-backend-dev.sh for environment vars
 $ npm run watch
 ```
 
 If you want to do end-to-end testing of the auditing then you need to request the Fluentbit token from your production vault and start the server using envconsul.
 
 ```bash
+# Manually source ./scripts/setenv-backend-dev.sh
 $ source ./scripts/setenv-backend-dev.sh kinesis
 
 # Watch mode. The env-prod.hcl file is a copy of env.hcl with production values.
-$ envconsul -config=env-prod.hcl npm run watch
+$ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
 ## Connect to MongoDB
