@@ -4,11 +4,11 @@
   <mat-sidenav-container class="app-sidenav-container" [hasBackdrop]="true">
     <mat-sidenav #snav [(opened)]="sidenavOpen" [mode]="'over'">
       <mat-list class="app-sidenav-list">
-        <!-- <mat-list-item matRipple routerLink="/">
+        <mat-list-item matRipple routerLink="/" routerLinkActive="active">
           <mat-icon matListItemIcon>home</mat-icon>
           <div matListItemTitle>Home</div>
-        </mat-list-item> -->
-        <mat-list-item matRipple routerLink="/graph">
+        </mat-list-item>
+        <mat-list-item matRipple routerLink="/graph" routerLinkActive="active">
           <mat-icon matListItemIcon>account_tree</mat-icon>
           <div matListItemTitle>Graph</div>
         </mat-list-item>
