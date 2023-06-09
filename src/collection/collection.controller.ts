@@ -20,6 +20,7 @@ import { UserDto } from '../persistence/dto/user.dto';
 import { Request as ExpressRequest } from 'express';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
+import { Roles } from '../roles.decorator';
 
 @Controller({
   path: 'collection',
@@ -52,6 +53,7 @@ export class CollectionController {
   }
 
   @Post('account/:id/token')
+  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
     @Param('id') id: string,

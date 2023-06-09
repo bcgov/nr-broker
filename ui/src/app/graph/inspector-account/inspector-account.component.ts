@@ -23,7 +23,7 @@ export class InspectorAccountComponent {
 
   openGenerateDialog() {
     this.dialog.open(AccountGenerateDialogComponent, {
-      width: '500px',
+      width: '600px',
       data: {
         accountId: this.account.id,
       },
