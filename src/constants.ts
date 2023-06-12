@@ -25,7 +25,7 @@ export const VAULT_PROVISIONED_ACTION_SET = new Set([
   ACTION_PROVISION_APPROLE_SECRET_ID,
 ]);
 
-export const IS_PRIMARY_NODE = process.env.HOSTNAME.endsWith('-0');
+export const IS_PRIMARY_NODE = process.env.HOSTNAME?.endsWith('-0') ?? false;
 
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
