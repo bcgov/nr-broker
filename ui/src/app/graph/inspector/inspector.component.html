@@ -120,7 +120,7 @@
         </ng-container>
 
         <ng-container *ngIf="target.data.collection === 'brokerAccount'">
-          <app-inspector-account [account]="collectionData"></app-inspector-account>
+          <app-inspector-account [account]="collectionData" [userIndex]="latestConfig?.['user']?.index"></app-inspector-account>
         </ng-container>
 
         <ng-container *ngIf="target.data.collection === 'service'">

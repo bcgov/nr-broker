@@ -14,6 +14,7 @@ import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
+import { UserUpstream } from '../user-upstream.decorator';
 
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
@@ -57,7 +58,6 @@ export class CollectionController {
   }
 
   @Get('broker-account/:id/token')
-  @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   async getAccounts(@Param('id') id: string) {
     return this.accountService.getRegisteryJwts(id);
@@ -65,6 +65,11 @@ export class CollectionController {
 
   @Post('broker-account/:id/token')
   @Roles('admin')
+  @UserUpstream({
+    collection: 'brokerAccount',
+    edgeName: 'administrator',
+    param: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
     @Param('id') id: string,

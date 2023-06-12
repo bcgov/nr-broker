@@ -18,6 +18,12 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigs();
   }
 
+  public async getCollectionConfigByname(
+    collection: keyof CollectionDtoUnion,
+  ): Promise<CollectionConfigDto | null> {
+    return this.collectionRepository.getCollectionConfigByname(collection);
+  }
+
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
     id: string,

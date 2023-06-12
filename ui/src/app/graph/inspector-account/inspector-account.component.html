@@ -2,7 +2,7 @@
   <div class="edge-container">
     <h3 class="heading">Token</h3>
 
-    <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin')">Generate</button>
+    <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin') && !isAdministrator">Generate</button>
   </div>
 
   <table mat-table *ngIf="lastJwtTokenData" [dataSource]="lastJwtTokenData | keyvalue">

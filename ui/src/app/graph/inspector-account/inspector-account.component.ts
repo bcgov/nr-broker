@@ -10,6 +10,7 @@ import { AccountGenerateDialogComponent } from '../account-generate-dialog/accou
 import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
+import { GraphApiService } from '../../service/graph-api.service';
 
 @Component({
   selector: 'app-inspector-account',
@@ -20,18 +21,21 @@ import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
 })
 export class InspectorAccountComponent implements OnChanges, OnInit {
   @Input() account!: BrokerAccountRestDto;
+  @Input() userIndex!: number | undefined;
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   propDisplayedColumns: string[] = ['key', 'value'];
+  isAdministrator = false;
 
   constructor(
     private dialog: MatDialog,
+    private graphApi: GraphApiService,
     private systemApi: SystemApiService,
     @Inject(CURRENT_USER) public user: UserDto,
   ) {}
 
   ngOnInit(): void {
-    if (this.account) {
+    if (this.account && this.userIndex) {
       this.systemApi.getAccountTokens(this.account.id).subscribe((data) => {
         this.jwtTokens = data;
         const lastJwtToken = this.jwtTokens.pop();
@@ -42,12 +46,23 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
           };
         }
       });
+
+      this.graphApi
+        .getUpstream(this.account.vertex, this.userIndex, ['administrator'])
+        .subscribe((data) => {
+          this.isAdministrator =
+            data.filter((data) => {
+              return data.collection.guid === this.user.guid;
+            }).length > 0;
+          console.log(this.isAdministrator);
+        });
     }
   }
 
   ngOnChanges(): void {
     this.jwtTokens = undefined;
     this.lastJwtTokenData = undefined;
+    this.isAdministrator = false;
     this.ngOnInit();
   }
 
