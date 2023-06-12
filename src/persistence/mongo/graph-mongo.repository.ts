@@ -374,6 +374,7 @@ export class GraphMongoRepository implements GraphRepository {
   public async getUpstreamVertex(
     id: string,
     index: number,
+    matchEdgeNames: string[] | null = null,
   ): Promise<UpstreamResponseDto[]> {
     const config = await this.collectionConfigRepository.findOne({
       where: {
@@ -396,7 +397,16 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         { $unwind: { path: '$path' } },
-        { $match: { 'path.is': index } },
+        {
+          $match: {
+            'path.is': index,
+            ...(matchEdgeNames
+              ? {
+                  'path.name': { $in: matchEdgeNames },
+                }
+              : {}),
+          },
+        },
         {
           $lookup: {
             from: config.collection,

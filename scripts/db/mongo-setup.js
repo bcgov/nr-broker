@@ -8,13 +8,14 @@ if (
 db.service.drop();
 db.vertex.drop();
 db.edge.drop();
-db.account.drop();
+db.brokerAccount.drop();
 db.project.drop();
 db.environment.drop();
 db.jwtRegistry.drop();
 db.jwtAllow.drop();
 db.jwtBlock.drop();
 db.serviceInstance.drop();
+db.team.drop();
 db.user.drop();
 db.collectionConfig.drop();
 result = db.collectionConfig.insertOne({
@@ -23,8 +24,16 @@ result = db.collectionConfig.insertOne({
   index: 0,
   edges: [],
   fields: {
-    name: { required: true, type: 'string' },
-    short: { required: true, type: 'string' },
+    name: {
+      required: true,
+      type: 'string',
+      hint: 'A unique machine friendly key for the environment',
+    },
+    short: {
+      required: true,
+      type: 'string',
+      hint: 'A shortened unique machine friendly key for the environment',
+    },
   },
   name: 'Environment',
   permissions: {
@@ -42,10 +51,21 @@ result = db.collectionConfig.insertOne({
     { collection: 'project', name: 'owns', relation: 'oneToMany' },
   ],
   fields: {
-    name: { required: true, type: 'string' },
-    key: { required: true, type: 'string' },
-    website: { type: 'url' },
-    email: { type: 'email' },
+    name: {
+      required: true,
+      type: 'string',
+      hint: 'A descriptive name for the project',
+    },
+    key: {
+      required: true,
+      type: 'string',
+      hint: 'A unique machine friendly key for the project',
+    },
+    website: { type: 'url', hint: 'The website documenting this project' },
+    email: {
+      type: 'email',
+      hint: 'The email address to contact those running this project',
+    },
     configuration: { type: 'json' },
   },
   name: 'Project',
@@ -97,8 +117,16 @@ result = db.collectionConfig.insertOne({
     },
   ],
   fields: {
-    name: { required: true, type: 'string' },
-    key: { required: true, type: 'string' },
+    name: {
+      required: true,
+      type: 'string',
+      hint: 'A descriptive name for the service',
+    },
+    key: {
+      required: true,
+      type: 'string',
+      hint: 'A unique machine friendly key for the service',
+    },
   },
   name: 'Instance',
   parent: {
@@ -116,7 +144,7 @@ result = db.collectionConfig.insertOne({
   index: 4,
   edges: [
     {
-      collection: 'account',
+      collection: 'brokerAccount',
       name: 'administrator',
       inboundName: 'administrators',
       relation: 'oneToMany',
@@ -127,13 +155,18 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
     },
     {
+      collection: 'team',
+      name: 'developer',
+      relation: 'oneToMany',
+    },
+    {
       collection: 'project',
       name: 'lead-developer',
       relation: 'oneToMany',
     },
     {
-      collection: 'project',
-      name: 'dba',
+      collection: 'team',
+      name: 'lead-developer',
       relation: 'oneToMany',
     },
   ],
@@ -152,7 +185,7 @@ result = db.collectionConfig.insertOne({
 });
 
 result = db.collectionConfig.insertOne({
-  collection: 'account',
+  collection: 'brokerAccount',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   index: 5,
   edges: [
@@ -185,7 +218,38 @@ result = db.collectionConfig.insertOne({
       hint: 'Generated UUID used to uniquely identify all generated JWTs',
     },
   },
-  name: 'Account',
+  name: 'Broker Account',
+  permissions: {
+    create: true,
+    update: true,
+    delete: true,
+  },
+});
+
+result = db.collectionConfig.insertOne({
+  collection: 'team',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  index: 6,
+  edges: [
+    {
+      collection: 'brokerAccount',
+      name: 'owns',
+      relation: 'oneToMany',
+    },
+  ],
+  fields: {
+    name: {
+      required: true,
+      type: 'string',
+      hint: 'A descriptive name for the team',
+    },
+    email: {
+      required: true,
+      type: 'string',
+      hint: 'The email address to contact the team at',
+    },
+  },
+  name: 'Team',
   permissions: {
     create: true,
     update: true,

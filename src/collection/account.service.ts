@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
+import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import {
   DAYS_90_IN_SECONDS,
   IS_PRIMARY_NODE,
@@ -23,6 +24,10 @@ export class AccountService {
     private readonly systemRepository: SystemRepository,
   ) {}
 
+  async getRegisteryJwts(accountId: string): Promise<JwtRegistryDto[]> {
+    return this.systemRepository.getRegisteryJwts(accountId);
+  }
+
   async generateAccountToken(
     req: any,
     id: string,
@@ -36,7 +41,7 @@ export class AccountService {
     const ISSUED_AT = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
 
     const account = await this.collectionRepository.getCollectionById(
-      'account',
+      'brokerAccount',
       id,
     );
     const user = await this.collectionRepository.getCollectionByKeyValue(
@@ -97,7 +102,7 @@ export class AccountService {
       return;
     }
 
-    const expiredJwtArr = await this.systemRepository.findExpiredAccounts(
+    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
       CURRENT_TIME_S,
     );
     for (const expiredJwt of expiredJwtArr) {
@@ -136,7 +141,7 @@ export class AccountService {
       return;
     }
 
-    const expiredJwtArr = await this.systemRepository.findExpiredAccounts(
+    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
       CURRENT_TIME_S + 60 * 60 * 24 * 7,
     );
 
@@ -145,7 +150,7 @@ export class AccountService {
         continue;
       }
       const account = await this.collectionRepository.getCollectionById(
-        'account',
+        'brokerAccount',
         expiredJwt.accountId.toString(),
       );
 

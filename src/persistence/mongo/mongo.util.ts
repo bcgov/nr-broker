@@ -1,19 +1,12 @@
 import { DataSource, MongoRepository, ObjectId } from 'typeorm';
-import { AccountDto } from '../dto/account.dto';
+import { BrokerAccountDto } from '../dto/broker-account.dto';
 import { EnvironmentDto } from '../dto/environment.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
 import { ServiceDto } from '../dto/service.dto';
 import { UserDto } from '../dto/user.dto';
-
-type CollectionDtoUnion = {
-  account: AccountDto;
-  environment: EnvironmentDto;
-  project: ProjectDto;
-  serviceInstance: ServiceInstanceDto;
-  service: ServiceDto;
-  user: UserDto;
-};
+import { TeamDto } from '../dto/team.dto';
+import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 
 export function getMongoDbConnectionUrl() {
   return process.env.MONGODB_URL.replace(
@@ -26,8 +19,8 @@ export function getRepositoryFromCollectionName<
   T extends keyof CollectionDtoUnion,
 >(dataSource: DataSource, name: T): MongoRepository<CollectionDtoUnion[T]> {
   switch (name) {
-    case 'account':
-      return dataSource.getMongoRepository(AccountDto) as MongoRepository<
+    case 'brokerAccount':
+      return dataSource.getMongoRepository(BrokerAccountDto) as MongoRepository<
         CollectionDtoUnion[T]
       >;
     case 'environment':
@@ -44,6 +37,10 @@ export function getRepositoryFromCollectionName<
       ) as MongoRepository<CollectionDtoUnion[T]>;
     case 'service':
       return dataSource.getMongoRepository(ServiceDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
+    case 'team':
+      return dataSource.getMongoRepository(TeamDto) as MongoRepository<
         CollectionDtoUnion[T]
       >;
     case 'user':

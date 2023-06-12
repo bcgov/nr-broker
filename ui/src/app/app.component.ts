@@ -23,7 +23,11 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
 })
 export class AppComponent {
   sidenavOpen = false;
-  openSidebar() {
+  toggleSidebar() {
     this.sidenavOpen = !this.sidenavOpen;
+  }
+
+  closeSidebar() {
+    this.sidenavOpen = false;
   }
 }

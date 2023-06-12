@@ -7,20 +7,22 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { CollectionService } from './collection.service';
-import { ApiBearerAuth, ApiOAuth2 } from '@nestjs/swagger';
-import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
-import { AccountDto } from '../persistence/dto/account.dto';
-import { ProjectDto } from '../persistence/dto/project.dto';
-import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
-import { ServiceDto } from '../persistence/dto/service.dto';
-import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
-import { UserDto } from '../persistence/dto/user.dto';
 import { Request as ExpressRequest } from 'express';
+import { ApiBearerAuth, ApiOAuth2 } from '@nestjs/swagger';
+import { CollectionService } from './collection.service';
+import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
+
+import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
+import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { ProjectDto } from '../persistence/dto/project.dto';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { ServiceDto } from '../persistence/dto/service.dto';
+import { TeamDto } from '../persistence/dto/team.dto';
+import { UserDto } from '../persistence/dto/user.dto';
 
 @Controller({
   path: 'collection',
@@ -46,13 +48,22 @@ export class CollectionController {
     return this.service.getCollectionConfig();
   }
 
-  @Get('account')
+  @Get('broker-account')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getAccountByVertexId(@Query('vertex') id: string): Promise<AccountDto> {
-    return this.service.getCollectionByVertexId('account', id);
+  async getAccountByVertexId(
+    @Query('vertex') id: string,
+  ): Promise<BrokerAccountDto> {
+    return this.service.getCollectionByVertexId('brokerAccount', id);
   }
 
-  @Post('account/:id/token')
+  @Get('broker-account/:id/token')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  async getAccounts(@Param('id') id: string) {
+    return this.accountService.getRegisteryJwts(id);
+  }
+
+  @Post('broker-account/:id/token')
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
@@ -92,6 +103,12 @@ export class CollectionController {
     @Query('vertex') id: string,
   ): Promise<ServiceInstanceDto> {
     return this.service.getCollectionByVertexId('serviceInstance', id);
+  }
+
+  @Get('team')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async getTeamByVertexId(@Query('vertex') id: string): Promise<TeamDto> {
+    return this.service.getCollectionByVertexId('team', id);
   }
 
   @Get('user')

@@ -1,8 +1,8 @@
 <h2 mat-dialog-title>Generate JWT</h2>
 <mat-dialog-content>
-  <p>The token will be displayed only once. It should be treated as a secret.</p>
 
-  <p>Existing tokens will be blocked after 1 hour.</p>
+  <p>Clicking generate will create a new token valid for 90 days. The current token (if any)
+    will be blocked after 1 hour. All other tokens will be blocked immediately.</p>
 
   <div class="generate-panel">
     <mat-form-field >
@@ -12,8 +12,10 @@
       </button>
     </mat-form-field>
 
-    <button mat-button color="primary" (click)="generate()">Generate</button>
+    <button mat-button color="primary" [disabled]="!!token" (click)="generate()">Generate</button>
   </div>
+
+  <p>The token will be displayed only once in this dialog. It should be treated as a secret.</p>
 
 </mat-dialog-content>
 

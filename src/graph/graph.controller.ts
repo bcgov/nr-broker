@@ -94,7 +94,15 @@ export class GraphController {
   @Post('vertex/:id/upstream/:index')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getUpstreamVertex(@Param('id') id: string, @Param('index') index: string) {
-    return this.graph.getUpstreamVertex(id, Number.parseInt(index));
+  getUpstreamVertex(
+    @Param('id') id: string,
+    @Param('index') index: string,
+    @Query('matchEdgeNames') matchEdgeNames: string,
+  ) {
+    return this.graph.getUpstreamVertex(
+      id,
+      Number.parseInt(index),
+      matchEdgeNames ? matchEdgeNames.split(',') : null,
+    );
   }
 }

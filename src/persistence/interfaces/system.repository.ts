@@ -11,7 +11,10 @@ export abstract class SystemRepository {
     payload: any,
     creator: string,
   ): Promise<boolean>;
-  public abstract findExpiredAccounts(
+  public abstract getRegisteryJwts(
+    accountId: string,
+  ): Promise<JwtRegistryDto[]>;
+  public abstract findExpiredRegistryJwts(
     currentTime: number,
   ): Promise<JwtRegistryDto[]>;
   public abstract deleteRegistryJwt(jwt: JwtRegistryDto): Promise<boolean>;

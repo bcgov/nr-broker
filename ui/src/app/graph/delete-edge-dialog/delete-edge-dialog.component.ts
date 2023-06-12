@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -31,7 +31,7 @@ import { VertexNavigation } from '../../service/graph.types';
     CommonModule,
   ],
 })
-export class DeleteEdgeDialogComponent implements OnInit {
+export class DeleteEdgeDialogComponent {
   @ViewChild(MatSelectionList) private selectionComponent!: MatSelectionList;
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -41,10 +41,6 @@ export class DeleteEdgeDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
     private graphApi: GraphApiService,
   ) {}
-
-  ngOnInit(): void {
-    console.log(this.data);
-  }
 
   deleteEdge() {
     const edges = this.selectionComponent.selectedOptions.selected;
