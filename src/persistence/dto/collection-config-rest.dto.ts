@@ -14,6 +14,7 @@ export interface CollectionFieldConfigMap {
 
 export interface CollectionFieldConfig {
   hint?: string;
+  init?: 'uuid';
   placeholder?: string;
   required: boolean;
   type: 'email' | 'json' | 'string' | 'url';

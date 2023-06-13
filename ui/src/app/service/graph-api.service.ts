@@ -97,9 +97,15 @@ export class GraphApiService {
     );
   }
 
-  getUpstream<T = any>(id: string, index: number) {
+  getUpstream<T = any>(
+    id: string,
+    index: number,
+    matchEdgeNames: string[] | null = null,
+  ) {
     return this.http.post<UpstreamResponseDto<T>[]>(
-      `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}`,
+      `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}${
+        matchEdgeNames ? `?matchEdgeNames=${matchEdgeNames.join(',')}` : ''
+      }`,
       {
         responseType: 'json',
       },

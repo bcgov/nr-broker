@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
+import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 
@@ -26,18 +27,31 @@ export class CollectionMongoRepository implements CollectionRepository {
     });
   }
 
-  public async getCollectionByVertexId(type: string, id: string): Promise<any> {
+  public async getCollectionById<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ): Promise<CollectionDtoUnion[T] | null> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo.findOne({
+      where: { _id: new ObjectId(id) } as any,
+    });
+  }
+
+  public async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ): Promise<CollectionDtoUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne({
       where: { vertex: new ObjectId(id) } as any,
     });
   }
 
-  public async getCollectionByKeyValue(
-    type: string,
+  public async getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
+    type: T,
     key: string,
     value: string,
-  ): Promise<any> {
+  ): Promise<CollectionDtoUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne({
       where: { [key]: value } as any,

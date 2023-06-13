@@ -1,0 +1,11 @@
+.generate-panel {
+  display: flex;
+  align-items: baseline;
+}
+.generate-panel .mat-mdc-form-field {
+  flex: 1;
+}
+
+.generate-panel .mdc-button {
+  margin-left: 16px;
+}

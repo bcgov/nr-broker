@@ -1,0 +1,29 @@
+.edge-container {
+  margin-left: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.heading {
+  margin: 8px 0;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.mat-column-key {
+  width: 30%;
+}
+
+.mat-column-value {
+  width: 70%;
+}
+
+.mat-column-value > span.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}

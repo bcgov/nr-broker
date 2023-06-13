@@ -30,5 +30,6 @@ export abstract class GraphRepository {
   public abstract getUpstreamVertex(
     id: string,
     index: number,
+    matchEdgeNames: string[] | null,
   ): Promise<UpstreamResponseDto[]>;
 }

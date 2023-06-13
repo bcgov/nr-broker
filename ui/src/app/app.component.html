@@ -1,14 +1,14 @@
 <div class="app-container">
-  <app-toolbar (sidebarClick)="openSidebar()"></app-toolbar>
+  <app-toolbar (sidebarClick)="toggleSidebar()"></app-toolbar>
 
   <mat-sidenav-container class="app-sidenav-container" [hasBackdrop]="true">
     <mat-sidenav #snav [(opened)]="sidenavOpen" [mode]="'over'">
       <mat-list class="app-sidenav-list">
-        <mat-list-item matRipple routerLink="/" routerLinkActive="active">
+        <mat-list-item matRipple routerLink="/" (click)="closeSidebar()" routerLinkActive="active">
           <mat-icon matListItemIcon>home</mat-icon>
           <div matListItemTitle>Home</div>
         </mat-list-item>
-        <mat-list-item matRipple routerLink="/graph" routerLinkActive="active">
+        <mat-list-item matRipple routerLink="/graph" (click)="closeSidebar()" routerLinkActive="active">
           <mat-icon matListItemIcon>account_tree</mat-icon>
           <div matListItemTitle>Graph</div>
         </mat-list-item>
@@ -19,7 +19,7 @@
           <mat-icon matListItemIcon>monitoring</mat-icon>
           <div matListItemTitle>Monitor</div>
         </mat-list-item> -->
-        <mat-list-item matRipple routerLink="/intention/history">
+        <mat-list-item matRipple routerLink="/intention/history" (click)="closeSidebar()">
           <mat-icon matListItemIcon>history</mat-icon>
           <div matListItemTitle>History</div>
         </mat-list-item>

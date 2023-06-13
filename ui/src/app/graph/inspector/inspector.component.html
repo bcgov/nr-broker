@@ -119,6 +119,10 @@
           <mat-divider></mat-divider>
         </ng-container>
 
+        <ng-container *ngIf="target.data.collection === 'brokerAccount'">
+          <app-inspector-account [account]="collectionData" [userIndex]="latestConfig?.['user']?.index"></app-inspector-account>
+        </ng-container>
+
         <ng-container *ngIf="target.data.collection === 'service'">
           <app-inspector-intentions [target]="target"></app-inspector-intentions>
         </ng-container>
@@ -128,14 +132,14 @@
             <h3 class="vertex-heading">Inbound</h3>
           </div>
           <div class="fields-wrapper" *ngIf="latestConfig && latestConfig[target.data.collection].edges.length > 0" >
-            <button mat-button (click)="openDeleteEdgeDialog(inboundConnections)" [disabled]="!user.roles.includes('admin') || 
+            <button mat-button (click)="openDeleteEdgeDialog(inboundConnections)" [disabled]="!user.roles.includes('admin') ||
             ((inboundConnections | async)?.connections | keyvalue)?.length == 0">Delete</button>
           </div>
-          
+
         </div>
 
         <p *ngIf="((inboundConnections | async)?.connections | keyvalue)?.length == 0" class="vertex-edge-type-container">None</p>
-        
+
         <div class="vertex-edge-type-container" *ngFor="let group of $any((inboundConnections | async)?.connections | keyvalue)">
           <h5>{{group.key | titlecase}}</h5>
           <mat-chip-listbox [selectable]="false">
@@ -143,7 +147,7 @@
           </mat-chip-listbox>
         </div>
 
-        
+
 
         <mat-divider></mat-divider>
 
@@ -154,7 +158,7 @@
 
           <div class="fields-wrapper" *ngIf="latestConfig && latestConfig[target.data.collection].edges.length > 0" >
             <button mat-button (click)="addEdgeToVertex(target.data)" [disabled]="!user.roles.includes('admin')">Add</button>
-            <button mat-button (click)="openDeleteEdgeDialog(outboundConnections)" [disabled]="!user.roles.includes('admin') || 
+            <button mat-button (click)="openDeleteEdgeDialog(outboundConnections)" [disabled]="!user.roles.includes('admin') ||
             ((outboundConnections | async)?.connections | keyvalue)?.length == 0">Delete</button>
           </div>
         </div>
@@ -192,7 +196,7 @@
             <!-- Name Column -->
             <ng-container matColumnDef="via">
               <th mat-header-cell *matHeaderCellDef> Via </th>
-              <td mat-cell *matCellDef="let element"> {{latestData.idToVertex[element.path.target].name}} </td>
+              <td mat-cell *matCellDef="let element"> {{latestData.idToVertex[element.path.target].name}} ({{latestData.idToVertex[element.path.target].collection}}) </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns"></tr>

@@ -1,22 +1,19 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
   MatDialogModule,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatInputModule } from '@angular/material/input';
-import { NgFor, AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { GraphApiService } from '../../service/graph-api.service';
+import { MatListModule, MatSelectionList } from '@angular/material/list';
 import { Observable } from 'rxjs';
+import { GraphApiService } from '../../service/graph-api.service';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { VertexNavigation } from '../../service/graph.types';
-import { MatListModule, MatSelectionList } from '@angular/material/list';
 
 @Component({
   selector: 'app-delete-edge-dialog',
@@ -26,20 +23,15 @@ import { MatListModule, MatSelectionList } from '@angular/material/list';
   imports: [
     MatDialogModule,
     MatFormFieldModule,
-    MatSelectModule,
     MatOptionModule,
     MatListModule,
-    NgFor,
-    MatInputModule,
-    MatAutocompleteModule,
     VertexNameComponent,
     MatButtonModule,
-    AsyncPipe,
     CamelToTitlePipe,
     CommonModule,
   ],
 })
-export class DeleteEdgeDialogComponent implements OnInit {
+export class DeleteEdgeDialogComponent {
   @ViewChild(MatSelectionList) private selectionComponent!: MatSelectionList;
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -49,10 +41,6 @@ export class DeleteEdgeDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
     private graphApi: GraphApiService,
   ) {}
-
-  ngOnInit(): void {
-    console.log(this.data);
-  }
 
   deleteEdge() {
     const edges = this.selectionComponent.selectedOptions.selected;

@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Request } from 'express';
+import { GraphService } from '../graph/graph.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserDto } from '../persistence/dto/user.dto';
-import { GraphService } from '../graph/graph.service';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { Request } from 'express';
+import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  OAUTH2_CLIENT_MAP_EMAIL,
+  OAUTH2_CLIENT_MAP_GUID,
+  OAUTH2_CLIENT_MAP_NAME,
+  OAUTH2_CLIENT_MAP_USERNAME,
+} from '../constants';
 
 @Injectable()
 export class CollectionService {
@@ -17,7 +24,16 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigs();
   }
 
-  async getCollectionByVertexId(type: string, id: string) {
+  public async getCollectionConfigByname(
+    collection: keyof CollectionDtoUnion,
+  ): Promise<CollectionConfigDto | null> {
+    return this.collectionRepository.getCollectionConfigByname(collection);
+  }
+
+  async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ) {
     try {
       return this.collectionRepository.getCollectionByVertexId(type, id);
     } catch (error) {
@@ -31,10 +47,10 @@ export class CollectionService {
 
   async upsertUser(req: Request, userInfo: any): Promise<UserDto> {
     const loggedInUser = new UserDto();
-    loggedInUser.email = userInfo.email;
-    loggedInUser.guid = userInfo.idir_user_guid;
-    loggedInUser.name = userInfo.display_name;
-    loggedInUser.username = userInfo.idir_username.toLowerCase();
+    loggedInUser.email = userInfo[OAUTH2_CLIENT_MAP_EMAIL];
+    loggedInUser.guid = userInfo[OAUTH2_CLIENT_MAP_GUID];
+    loggedInUser.name = userInfo[OAUTH2_CLIENT_MAP_NAME];
+    loggedInUser.username = userInfo[OAUTH2_CLIENT_MAP_USERNAME].toLowerCase();
 
     const existingUser =
       await this.collectionRepository.getCollectionByKeyValue(

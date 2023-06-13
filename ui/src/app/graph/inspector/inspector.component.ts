@@ -59,6 +59,7 @@ import { CollectionFilterPipe } from '../collection-filter.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
+import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 
 @Component({
   selector: 'app-inspector',
@@ -66,24 +67,25 @@ import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-
   styleUrls: ['./inspector.component.scss'],
   standalone: true,
   imports: [
-    DatePipe,
-    MatCardModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatListModule,
-    MatIconModule,
-    MatDividerModule,
-    ClipboardModule,
-    MatChipsModule,
-    VertexNameComponent,
-    MatTableModule,
-    CommonModule,
     AsyncPipe,
-    TitleCasePipe,
-    KeyValuePipe,
-    CollectionFilterPipe,
     CamelToTitlePipe,
+    CollectionFilterPipe,
+    CommonModule,
+    ClipboardModule,
+    DatePipe,
+    InspectorAccountComponent,
     InspectorIntentionsComponent,
+    KeyValuePipe,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatIconModule,
+    MatListModule,
+    MatMenuModule,
+    MatTableModule,
+    MatChipsModule,
+    TitleCasePipe,
+    VertexNameComponent,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
@@ -419,6 +421,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     return this.graphApi.getUpstream(
       vertex.id,
       this.latestConfig['user'].index,
+      ['developer', 'lead-developer'],
     );
   }
 
