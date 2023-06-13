@@ -54,7 +54,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
             data.filter((data) => {
               return data.collection.guid === this.user.guid;
             }).length > 0;
-          console.log(this.isAdministrator);
         });
     }
   }

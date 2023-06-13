@@ -5,6 +5,8 @@
     <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin') && !isAdministrator">Generate</button>
   </div>
 
+  <p *ngIf="!lastJwtTokenData" class="edge-container">No token found. Click generate to create a token.</p>
+
   <table mat-table *ngIf="lastJwtTokenData" [dataSource]="lastJwtTokenData | keyvalue">
 
     <!-- Key Column -->

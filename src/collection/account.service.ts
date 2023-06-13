@@ -117,8 +117,19 @@ export class AccountService {
       const expireTime =
         account.createdAt[count - 1].valueOf() +
         JWT_GENERATE_BLOCK_GRACE_PERIOD;
-      for (let i = 0; i < count - 1; i++) {
+      const accountCollection =
+        await this.collectionRepository.getCollectionById(
+          'brokerAccount',
+          account._id.accountId.toString(),
+        );
+      for (let i = 0; i < count; i++) {
         if (account.blocked[i]) {
+          continue;
+        }
+
+        if (!accountCollection) {
+          // Block all if the account was deleted.
+          await this.systemRepository.blockJwtByJti(account.jti[i]);
           continue;
         }
 

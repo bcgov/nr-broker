@@ -1,10 +1,3 @@
-if (
-  db.getCollectionNames().indexOf('jwtAllow') === -1 ||
-  db.jwtAllow.countDocuments() === 0
-) {
-  db.jwtAllow.insertOne({});
-}
-
 db.service.drop();
 db.vertex.drop();
 db.edge.drop();
@@ -12,12 +5,14 @@ db.brokerAccount.drop();
 db.project.drop();
 db.environment.drop();
 db.jwtRegistry.drop();
-db.jwtAllow.drop();
 db.jwtBlock.drop();
 db.serviceInstance.drop();
 db.team.drop();
 db.user.drop();
 db.collectionConfig.drop();
+
+db.jwtAllow.insertOne({});
+
 result = db.collectionConfig.insertOne({
   collection: 'environment',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
