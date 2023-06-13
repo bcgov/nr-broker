@@ -37,3 +37,12 @@ export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 
 export const MILLISECONDS_IN_SECOND = 1000;
 export const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;
+
+export const OAUTH2_CLIENT_MAP_EMAIL =
+  process.env.OAUTH2_CLIENT_MAP_EMAIL ?? 'email';
+export const OAUTH2_CLIENT_MAP_GUID =
+  process.env.OAUTH2_CLIENT_MAP_GUID ?? 'idir_user_guid';
+export const OAUTH2_CLIENT_MAP_NAME =
+  process.env.OAUTH2_CLIENT_MAP_NAME ?? 'display_name';
+export const OAUTH2_CLIENT_MAP_USERNAME =
+  process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';

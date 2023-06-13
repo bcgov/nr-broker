@@ -6,6 +6,12 @@ import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserDto } from '../persistence/dto/user.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  OAUTH2_CLIENT_MAP_EMAIL,
+  OAUTH2_CLIENT_MAP_GUID,
+  OAUTH2_CLIENT_MAP_NAME,
+  OAUTH2_CLIENT_MAP_USERNAME,
+} from '../constants';
 
 @Injectable()
 export class CollectionService {
@@ -41,10 +47,10 @@ export class CollectionService {
 
   async upsertUser(req: Request, userInfo: any): Promise<UserDto> {
     const loggedInUser = new UserDto();
-    loggedInUser.email = userInfo.email;
-    loggedInUser.guid = userInfo.idir_user_guid;
-    loggedInUser.name = userInfo.display_name;
-    loggedInUser.username = userInfo.idir_username.toLowerCase();
+    loggedInUser.email = userInfo[OAUTH2_CLIENT_MAP_EMAIL];
+    loggedInUser.guid = userInfo[OAUTH2_CLIENT_MAP_GUID];
+    loggedInUser.name = userInfo[OAUTH2_CLIENT_MAP_NAME];
+    loggedInUser.username = userInfo[OAUTH2_CLIENT_MAP_USERNAME].toLowerCase();
 
     const existingUser =
       await this.collectionRepository.getCollectionByKeyValue(

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 
+import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PreferenceService } from './preference.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { PreferenceRestDto } from 'src/persistence/dto/preference-rest.dto';
@@ -23,7 +24,7 @@ export class PreferenceController {
   @Get('self')
   @UseGuards(BrokerOidcAuthGuard)
   async getSelf(@Request() req: ExpressRequest): Promise<PreferenceRestDto> {
-    const guid: string = (req.user as any).userinfo.idir_user_guid;
+    const guid: string = (req.user as any).userinfo[OAUTH2_CLIENT_MAP_GUID];
     if (!guid) {
       throw new BadRequestException();
     }
@@ -36,7 +37,7 @@ export class PreferenceController {
     @Request() req: ExpressRequest,
     @Body() preference: PreferenceRestDto,
   ): Promise<boolean> {
-    const guid: string = (req.user as any).userinfo.idir_user_guid;
+    const guid: string = (req.user as any).userinfo[OAUTH2_CLIENT_MAP_GUID];
     if (!guid) {
       throw new BadRequestException();
     }

@@ -10,6 +10,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { UserUpstreamArgs } from '../user-upstream.decorator';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.
@@ -60,7 +61,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       if (
         upstream.filter(
           (data) =>
-            data.collection.guid === request.user.userinfo.idir_user_guid,
+            data.collection.guid ===
+            request.user.userinfo[OAUTH2_CLIENT_MAP_GUID],
         ).length > 0
       ) {
         return true;

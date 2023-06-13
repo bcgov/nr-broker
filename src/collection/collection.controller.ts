@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth, ApiOAuth2 } from '@nestjs/swagger';
+import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { CollectionService } from './collection.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
@@ -78,7 +79,7 @@ export class CollectionController {
     return this.accountService.generateAccountToken(
       req,
       id,
-      (req.user as any).userinfo.idir_user_guid,
+      (req.user as any).userinfo[OAUTH2_CLIENT_MAP_GUID],
     );
   }
 
