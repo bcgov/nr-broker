@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { from, map } from 'rxjs';
-import { assign } from 'radash';
+import merge from 'lodash.merge';
 import os from 'os';
 
 import { ActionDto } from '../intention/dto/action.dto';
@@ -459,7 +459,7 @@ export class AuditService {
    */
   private addActionFunc(action: ActionDto) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         cloud: action.cloud,
         labels: {
           action_id: action.id,
@@ -491,7 +491,7 @@ export class AuditService {
       if (!user) {
         return ecsObj;
       }
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         auth: this.removeUndefined({
           client_id: user?.client_id,
           exp: user?.exp,
@@ -513,7 +513,7 @@ export class AuditService {
    * @returns The manipulated ECS document
    */
   private addEcsFunc(ecsObj: any) {
-    return assign(ecsObj, {
+    return merge(ecsObj, {
       ecs: {
         version: '8.4.0',
       },
@@ -526,7 +526,7 @@ export class AuditService {
    * @returns The manipulated ECS document
    */
   private addHostFunc(ecsObj: any) {
-    return assign(ecsObj, hostInfo);
+    return merge(ecsObj, hostInfo);
   }
 
   /**
@@ -536,7 +536,7 @@ export class AuditService {
    */
   private addHttpRequestFunc(req: any) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         http: {
           request: this.removeUndefined({
             method: req.method,
@@ -557,7 +557,7 @@ export class AuditService {
    */
   private addHttpResponseFunc(resp: any) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         http: {
           response: {
             status_code: resp.statusCode,
@@ -575,7 +575,7 @@ export class AuditService {
    * @returns The manipulated ECS document
    */
   private addLabelsFunc(ecsObj: any) {
-    return assign(ecsObj, {
+    return merge(ecsObj, {
       labels: {
         project: 'nr-broker',
       },
@@ -589,7 +589,7 @@ export class AuditService {
    */
   private addassignFunc(obj: any) {
     return (ecsObj: any) => {
-      return assign(ecsObj, obj);
+      return merge(ecsObj, obj);
     };
   }
 
@@ -599,7 +599,7 @@ export class AuditService {
    * @returns Function to generate partial ECS document
    */
   private addMetadataIntentionActivityFunc() {
-    return (ecsObj: any) => assign(ecsObj, this.metadataIntentionActivity);
+    return (ecsObj: any) => merge(ecsObj, this.metadataIntentionActivity);
   }
 
   /**
@@ -608,7 +608,7 @@ export class AuditService {
    * @returns Function to generate partial ECS document
    */
   private addMetadataAuthFunc() {
-    return (ecsObj: any) => assign(ecsObj, this.metadataAuth);
+    return (ecsObj: any) => merge(ecsObj, this.metadataAuth);
   }
 
   /**
@@ -617,7 +617,7 @@ export class AuditService {
    * @returns Function to generate partial ECS document
    */
   private addMetadataHttpAccessFunc() {
-    return (ecsObj: any) => assign(ecsObj, this.metadataHttpAccess);
+    return (ecsObj: any) => merge(ecsObj, this.metadataHttpAccess);
   }
 
   /**
@@ -626,7 +626,7 @@ export class AuditService {
    * @returns The manipulated ECS document
    */
   private addServiceFunc(ecsObj: any) {
-    return assign(ecsObj, {
+    return merge(ecsObj, {
       service: {
         name: 'nr-broker-backend',
         environment: process.env.APP_ENVIRONMENT
@@ -647,7 +647,7 @@ export class AuditService {
     }
 
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         source: {
           ip: req.headers['x-forwarded-for']
             ? req.headers['x-forwarded-for']
@@ -664,7 +664,7 @@ export class AuditService {
    */
   private addTimestampFunc(timestamp: Date = new Date()) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         '@timestamp': timestamp.toISOString(),
       });
     };
@@ -677,7 +677,7 @@ export class AuditService {
    */
   private addUrlFunc(req: any) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         url: {
           original: `${req.protocol}://${req.headers.host}${req.url}`,
         },
@@ -692,7 +692,7 @@ export class AuditService {
    */
   private addUserAgentFunc(req: any) {
     return (ecsObj: any) => {
-      return assign(ecsObj, {
+      return merge(ecsObj, {
         user_agent: this.removeUndefined({
           original: req.headers['user-agent'],
         }),
