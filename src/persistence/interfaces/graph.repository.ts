@@ -16,6 +16,11 @@ export abstract class GraphRepository {
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
   public abstract deleteEdge(id: string): Promise<boolean>;
   public abstract getEdge(id: string): Promise<EdgeDto | null>;
+  public abstract getEdgeByNameAndVertices(
+    name: string,
+    sourceId: string,
+    targetId: string,
+  ): Promise<EdgeDto>;
   // Vertex
   public abstract addVertex(
     vertex: VertexInsertDto,
@@ -24,6 +29,11 @@ export abstract class GraphRepository {
   public abstract editVertex(
     id: string,
     vertex: VertexInsertDto,
+  ): Promise<VertexDto>;
+  public abstract upsertVertex(
+    vertexInsert: VertexInsertDto,
+    targetBy: 'id' | 'parentId' | 'name',
+    target: string | null,
   ): Promise<VertexDto>;
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;

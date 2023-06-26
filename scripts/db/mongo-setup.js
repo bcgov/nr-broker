@@ -13,33 +13,75 @@ db.collectionConfig.drop();
 
 db.jwtAllow.insertOne({});
 
+// ==> Environments
+result = db.vertex.insertOne({ collection: 'environment', name: 'production' });
+db.environment.insertOne({
+  name: 'production',
+  short: 'prod',
+  aliases: [],
+  vertex: result.insertedId,
+});
+result = db.vertex.insertOne({ collection: 'environment', name: 'test' });
+db.environment.insertOne({
+  name: 'test',
+  short: 'test',
+  aliases: [],
+  vertex: result.insertedId,
+});
+result = db.vertex.insertOne({
+  collection: 'environment',
+  name: 'development',
+});
+db.environment.insertOne({
+  name: 'development',
+  short: 'dev',
+  aliases: [],
+  vertex: result.insertedId,
+});
+db.environment.insertOne({
+  name: 'tools',
+  short: 'tools',
+  aliases: [],
+  vertex: result.insertedId,
+});
+
+// ==> Collection Configs
 result = db.collectionConfig.insertOne({
   collection: 'environment',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 0,
   edges: [],
   fields: {
     name: {
       required: true,
       type: 'string',
+      unique: true,
       hint: 'A unique machine friendly key for the environment',
     },
     short: {
       required: true,
       type: 'string',
-      hint: 'A shortened unique machine friendly key for the environment',
+      unique: true,
+      hint: 'A short unique machine friendly key for the environment',
+    },
+    aliases: {
+      required: true,
+      type: 'stringArray',
+      hint: 'A set of environment alias names to automatically map to this environment',
     },
   },
   name: 'Environment',
   permissions: {
     create: false,
-    update: false,
+    update: true,
     delete: false,
   },
 });
 result = db.collectionConfig.insertOne({
   collection: 'project',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 1,
   edges: [
     { collection: 'service', name: 'component', relation: 'oneToMany' },
@@ -49,12 +91,8 @@ result = db.collectionConfig.insertOne({
     name: {
       required: true,
       type: 'string',
-      hint: 'A descriptive name for the project',
-    },
-    key: {
-      required: true,
-      type: 'string',
-      hint: 'A unique machine friendly key for the project',
+      unique: true,
+      hint: 'A unique name for the project',
     },
     website: { type: 'url', hint: 'The website documenting this project' },
     email: {
@@ -73,6 +111,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'service',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 2,
   edges: [
     {
@@ -83,7 +122,7 @@ result = db.collectionConfig.insertOne({
     },
   ],
   fields: {
-    name: { required: true, type: 'string' },
+    name: { required: true, type: 'string', unique: true },
     configuration: { type: 'json' },
   },
   name: 'Service',
@@ -96,6 +135,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'serviceInstance',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 3,
   edges: [
     {
@@ -115,12 +155,10 @@ result = db.collectionConfig.insertOne({
     name: {
       required: true,
       type: 'string',
-      hint: 'A descriptive name for the service',
+      hint: 'A name for the service instance',
     },
-    key: {
-      required: true,
-      type: 'string',
-      hint: 'A unique machine friendly key for the service',
+    pkgInstallHistory: {
+      type: 'embeddedDocArray',
     },
   },
   name: 'Instance',
@@ -136,6 +174,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'user',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 4,
   edges: [
     {
@@ -182,6 +221,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'brokerAccount',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 5,
   edges: [
     {
@@ -199,6 +239,7 @@ result = db.collectionConfig.insertOne({
     name: {
       required: true,
       type: 'string',
+      unique: true,
       hint: 'A descriptive name for the account',
     },
     email: {
@@ -224,6 +265,7 @@ result = db.collectionConfig.insertOne({
 result = db.collectionConfig.insertOne({
   collection: 'team',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
   index: 6,
   edges: [
     {
@@ -236,6 +278,7 @@ result = db.collectionConfig.insertOne({
     name: {
       required: true,
       type: 'string',
+      unique: true,
       hint: 'A descriptive name for the team',
     },
     email: {

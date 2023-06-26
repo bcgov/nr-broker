@@ -12,5 +12,8 @@ export class EnvironmentDto extends VertexPointerDto {
   name: string;
 
   @Column()
-  key: string;
+  short: string;
+
+  @Column()
+  aliases: string[];
 }

@@ -57,6 +57,12 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
           validators,
         );
       }
+      if (f.type === 'stringArray') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] ? this.data[f.name].join(', ') : '',
+          validators,
+        );
+      }
 
       if (f.type === 'email') {
         validators.push(Validators.email);

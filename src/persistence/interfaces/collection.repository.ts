@@ -23,4 +23,8 @@ export abstract class CollectionRepository {
     key: string,
     value: string,
   ): Promise<CollectionDtoUnion[T] | null>;
+
+  public abstract getCollections<T extends keyof CollectionDtoUnion>(
+    type: T,
+  ): Promise<CollectionDtoUnion[T][]>;
 }

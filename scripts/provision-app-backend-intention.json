@@ -12,7 +12,9 @@
       "service": {
         "project": "superapp",
         "name": "superapp-backend",
-        "environment": "production",
+        "environment": "production"
+      },
+      "package": {
         "version": "2.73.2"
       }
     },

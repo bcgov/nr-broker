@@ -20,6 +20,9 @@ export class CollectionConfigDto {
   collectionMapper: CollectionMap[];
 
   @Column()
+  collectionVertexName: string;
+
+  @Column()
   edges: CollectionEdgeConfig[];
 
   @Column()

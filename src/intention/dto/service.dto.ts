@@ -7,6 +7,12 @@ export class ServiceDto {
   @Column()
   environment: string;
 
+  // Defaults to environment
+  @IsString()
+  @IsOptional()
+  @Column()
+  instanceName?: string;
+
   @IsString()
   @Column()
   name: string;
@@ -15,6 +21,7 @@ export class ServiceDto {
   @Column()
   project: string;
 
+  // TODO: Remove
   @IsString()
   @IsOptional()
   @Column()
