@@ -103,6 +103,10 @@
               <th mat-header-cell *matHeaderCellDef> Value </th>
               <td mat-cell *matCellDef="let element" [ngSwitch]="getFieldType(element.key)">
                 <span class="ellipsis">
+                  <ng-container *ngSwitchCase="'boolean'">
+                    <ng-container *ngIf="element.value">Yes</ng-container>
+                    <ng-container *ngIf="!element.value">No</ng-container>
+                  </ng-container>
                   <ng-container *ngSwitchCase="'email'">{{element.value}}</ng-container>
                   <ng-container *ngSwitchCase="'json'"><a mat-stroked-button (click)="viewCollectionJson(element.value)">View</a></ng-container>
                   <ng-container *ngSwitchCase="'string'">{{element.value}}</ng-container>
@@ -128,6 +132,10 @@
 
         <ng-container *ngIf="target.data.collection === 'service'">
           <app-inspector-intentions [target]="target"></app-inspector-intentions>
+        </ng-container>
+
+        <ng-container *ngIf="target.data.collection === 'serviceInstance'">
+          <app-inspector-installs [target]="target"></app-inspector-installs>
         </ng-container>
 
         <div class="wrapper vertex-edge-container">

@@ -19,6 +19,11 @@
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
+    <section *ngSwitchCase="'boolean'" appearance="fill">
+      <mat-checkbox matTooltip="{{field.hint}}" [formControlName]="field.name"> {{field.name}}</mat-checkbox>
+      <!-- <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint> -->
+    </section>
+
     <mat-form-field *ngSwitchCase="'url'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
       <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="url" value="">

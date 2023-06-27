@@ -1,6 +1,7 @@
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { EdgeDto } from '../dto/edge.dto';
 import {
+  BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
@@ -42,4 +43,12 @@ export abstract class GraphRepository {
     index: number,
     matchEdgeNames: string[] | null,
   ): Promise<UpstreamResponseDto[]>;
+  public abstract getDownstreamVertex(
+    id: string,
+    index: number,
+    maxDepth: number,
+  ): Promise<UpstreamResponseDto[]>;
+  public abstract getBrokerAccountServices(
+    id: string,
+  ): Promise<BrokerAccountProjectMapDto>;
 }

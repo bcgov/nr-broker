@@ -23,6 +23,11 @@ import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../persistence/intention-sync.service';
 import { ActionDto } from './dto/action.dto';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -40,8 +45,11 @@ export class IntentionService {
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
-    private readonly intentionRepository: IntentionRepository,
     private readonly intentionSync: IntentionSyncService,
+    private readonly graphRepository: GraphRepository,
+    private readonly collectionRepository: CollectionRepository,
+    private readonly intentionRepository: IntentionRepository,
+    private readonly systemRepository: SystemRepository,
   ) {}
 
   /**
@@ -73,10 +81,37 @@ export class IntentionService {
     };
     intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
     intentionDto.expiry = startDate.valueOf() + ttl * 1000;
+    const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
+      intentionDto.jwt.jti,
+    );
+    let accountBoundProjects: BrokerAccountProjectMapDto | null = null;
+    if (registryJwt && registryJwt.blocked) {
+      // JWT should by in block list anyway
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Authorization failed',
+        error: actionFailures,
+      });
+    }
+    const account = await this.getAccount(registryJwt);
+    intentionDto.requireRoleId = true;
+    if (account) {
+      intentionDto.accountId = registryJwt.accountId;
+      intentionDto.requireRoleId = account.requireRoleId;
+      accountBoundProjects =
+        await this.graphRepository.getBrokerAccountServices(
+          account.vertex.toString(),
+        );
+      // console.log(accountBoundProjects);
+    }
+
     for (const action of intentionDto.actions) {
       const validationResult = this.actionService.validate(
         intentionDto,
         action,
+        accountBoundProjects,
+        account && !!account.requireProjectExists,
+        account && !!account.requireServiceExists,
       );
       action.valid = validationResult === null;
       if (!action.valid) {
@@ -252,5 +287,15 @@ export class IntentionService {
     for (const intention of expiredIntentionArr) {
       await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
     }
+  }
+
+  private async getAccount(registryJwt: JwtRegistryDto) {
+    if (!registryJwt) {
+      return null;
+    }
+    return this.collectionRepository.getCollectionById(
+      'brokerAccount',
+      registryJwt.accountId.toString(),
+    );
   }
 }

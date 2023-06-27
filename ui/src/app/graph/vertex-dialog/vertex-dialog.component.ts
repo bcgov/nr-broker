@@ -94,7 +94,10 @@ export class VertexDialogComponent {
         if (config.fields[fieldKey].type === 'embeddedDocArray') {
           continue;
         }
-        const val = (vertexData[fieldKey] as string).trim();
+        const val =
+          typeof vertexData[fieldKey] === 'string'
+            ? vertexData[fieldKey].trim()
+            : vertexData[fieldKey];
         if (config.fields[fieldKey].type === 'json') {
           if (val !== '') {
             vertexData[fieldKey] = JSON.parse(val);
@@ -103,7 +106,7 @@ export class VertexDialogComponent {
           }
         }
         if (config.fields[fieldKey].type === 'stringArray') {
-          vertexData[fieldKey] = val.split(',').map((s) => s.trim());
+          vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
         }
         if (!config.fields[fieldKey].required && val === '') {
           delete vertexData[fieldKey];

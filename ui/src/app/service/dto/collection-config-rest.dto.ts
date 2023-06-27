@@ -18,6 +18,7 @@ export interface CollectionFieldConfig {
   placeholder?: string;
   required: boolean;
   type:
+    | 'boolean'
     | 'email'
     | 'embeddedDocArray'
     | 'json'

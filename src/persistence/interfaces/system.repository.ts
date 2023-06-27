@@ -14,6 +14,9 @@ export abstract class SystemRepository {
   public abstract getRegisteryJwts(
     accountId: string,
   ): Promise<JwtRegistryDto[]>;
+  public abstract getRegisteryJwtByClaimJti(
+    jti: string,
+  ): Promise<JwtRegistryDto>;
   public abstract findExpiredRegistryJwts(
     currentTime: number,
   ): Promise<JwtRegistryDto[]>;

@@ -253,6 +253,23 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'Generated UUID used to uniquely identify all generated JWTs',
     },
+    requireRoleId: {
+      required: true,
+      type: 'boolean',
+      hint: 'Must send Vault service role id to use actions. Recommended when JWT is shared by teams.',
+    },
+    requireProjectExists: {
+      required: true,
+      type: 'boolean',
+      hint: 'Require project to be owned by account',
+      value: true,
+    },
+    requireServiceExists: {
+      required: false,
+      type: 'boolean',
+      hint: 'Require service to be owned by account',
+      value: false,
+    },
   },
   name: 'Broker Account',
   permissions: {

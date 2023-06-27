@@ -8,6 +8,7 @@ import { GraphRepository } from '../interfaces/graph.repository';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import {
+  BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
@@ -361,7 +362,10 @@ export class GraphMongoRepository implements GraphRepository {
         unsetFields[fkey] = '';
       }
       if (config.fields[fkey].type === 'embeddedDocArray') {
-        pushFields[fkey] = collectionData[fkey];
+        pushFields[fkey] = {
+          $each: [collectionData[fkey]],
+          $slice: -5,
+        };
         delete collectionData[fkey];
       }
     }
@@ -545,6 +549,130 @@ export class GraphMongoRepository implements GraphRepository {
             path: upstream.path,
           };
         });
+      });
+  }
+
+  public async getDownstreamVertex(
+    id: string,
+    index: number,
+    maxDepth: number,
+  ): Promise<UpstreamResponseDto[]> {
+    const config = await this.collectionConfigRepository.findOne({
+      where: {
+        index,
+      },
+    });
+    if (config === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'path',
+            maxDepth,
+          },
+        },
+        { $unwind: { path: '$path' } },
+        {
+          $match: {
+            'path.it': index,
+          },
+        },
+        {
+          $lookup: {
+            from: config.collection,
+            localField: 'path.target',
+            foreignField: 'vertex',
+            as: 'collection',
+          },
+        },
+      ])
+      .toArray()
+      .then((upstreamArr: any[]) => {
+        return upstreamArr.map((upstream) => {
+          return {
+            collection: upstream.collection[0],
+            path: upstream.path,
+          };
+        });
+      });
+  }
+
+  public async getBrokerAccountServices(
+    id: string,
+  ): Promise<BrokerAccountProjectMapDto> {
+    const serviceConfig = await this.getCollectionConfig('service');
+    const projectConfig = await this.getCollectionConfig('project');
+    if (serviceConfig === null || projectConfig === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'path',
+            maxDepth: 2,
+            restrictSearchWithMatch: {
+              it: { $in: [serviceConfig.index, projectConfig.index] },
+            },
+          },
+        },
+        { $unwind: { path: '$path' } },
+        { $match: { 'path.it': serviceConfig.index } },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'path.target',
+            foreignField: '_id',
+            as: 'service',
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'path.target',
+            foreignField: 'target',
+            as: 'project_edge',
+            pipeline: [{ $match: { is: projectConfig.index } }],
+          },
+        },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'project_edge.source',
+            foreignField: '_id',
+            as: 'project',
+          },
+        },
+      ])
+      .toArray()
+      .then((servProjArr: any[]) => {
+        console.log(JSON.stringify(servProjArr));
+        const acc: BrokerAccountProjectMapDto = {};
+        for (const servProj of servProjArr) {
+          if (!acc[servProj.project[0].name]) {
+            acc[servProj.project[0].name] = {
+              name: servProj.project[0].name,
+              services: [],
+            };
+          }
+          for (const service of servProj.service) {
+            acc[servProj.project[0].name].services.push(service.name);
+          }
+        }
+        console.log(acc);
+        return acc;
       });
   }
 }

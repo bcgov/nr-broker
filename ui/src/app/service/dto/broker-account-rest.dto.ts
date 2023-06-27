@@ -4,4 +4,7 @@ export interface BrokerAccountRestDto {
   clientId: string;
   name: string;
   vertex: string;
+  requireRoleId: boolean;
+  requireProjectExists: boolean;
+  requireServiceExists: boolean;
 }

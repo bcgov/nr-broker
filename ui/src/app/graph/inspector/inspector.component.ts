@@ -60,6 +60,7 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
+import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 
 @Component({
   selector: 'app-inspector',
@@ -74,6 +75,7 @@ import { InspectorAccountComponent } from '../inspector-account/inspector-accoun
     ClipboardModule,
     DatePipe,
     InspectorAccountComponent,
+    InspectorInstallsComponent,
     InspectorIntentionsComponent,
     KeyValuePipe,
     MatButtonModule,
