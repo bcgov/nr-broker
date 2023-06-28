@@ -7,7 +7,7 @@ export class PackageInstallationHistoryDto {
   architecture?: string;
 
   @Column()
-  build_version?: string;
+  buildVersion?: string;
 
   @Column()
   checksum?: string;

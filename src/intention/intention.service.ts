@@ -67,6 +67,7 @@ export class IntentionService {
     const startDate = new Date();
     const actions = {};
     const actionFailures: ActionError[] = [];
+    const envMap = await this.intentionSync.getEnvMap();
     if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
       throw new BadRequestException({
         statusCode: 400,
@@ -125,6 +126,17 @@ export class IntentionService {
         trace_id: action.trace.hash,
         outcome: validationResult === null ? 'success' : 'failure',
       };
+      const envDto = envMap[action.service.environment];
+      if (
+        action.vaultEnvironment === undefined &&
+        envDto &&
+        (envDto.name === 'production' ||
+          envDto.name === 'test' ||
+          envDto.name === 'development' ||
+          envDto.name === 'tools')
+      ) {
+        action.vaultEnvironment = envDto.name;
+      }
     }
     const isSuccessfulOpen = actionFailures.length === 0;
     this.auditService.recordIntentionOpen(req, intentionDto, isSuccessfulOpen);

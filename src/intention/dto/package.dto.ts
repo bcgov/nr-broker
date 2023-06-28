@@ -11,7 +11,7 @@ export class PackageDto {
   @IsString()
   @IsOptional()
   @Column()
-  build_version?: string;
+  buildVersion?: string;
 
   @IsString()
   @IsOptional()

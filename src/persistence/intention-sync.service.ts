@@ -33,7 +33,7 @@ export class IntentionSyncService {
     private readonly graphRepository: GraphRepository,
   ) {}
 
-  public async sync(intention: IntentionDto) {
+  public async getEnvMap() {
     const envs = await this.collectionRepository.getCollections('environment');
     const envMap: { [key: string]: EnvironmentDto } = {};
     for (const env of envs) {
@@ -45,6 +45,11 @@ export class IntentionSyncService {
         envMap[name] = env;
       }
     }
+    return envMap;
+  }
+
+  public async sync(intention: IntentionDto) {
+    const envMap = await this.getEnvMap();
     for (const action of intention.actions) {
       const context = {
         action,
@@ -152,7 +157,6 @@ export class IntentionSyncService {
         data = set(data, config.key, config.value);
       }
     }
-    console.log(data);
     return this.graphRepository.upsertVertex(
       {
         collection,

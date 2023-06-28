@@ -363,7 +363,7 @@ export class GraphMongoRepository implements GraphRepository {
       }
       if (config.fields[fkey].type === 'embeddedDocArray') {
         pushFields[fkey] = {
-          $each: [collectionData[fkey]],
+          $each: collectionData[fkey],
           $slice: -5,
         };
         delete collectionData[fkey];
@@ -406,7 +406,6 @@ export class GraphMongoRepository implements GraphRepository {
         vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
       }
     }
-    console.log(vertex);
 
     if (targetBy === 'id') {
       return this.editVertex(target, vertexInsert);
@@ -658,7 +657,6 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .toArray()
       .then((servProjArr: any[]) => {
-        console.log(JSON.stringify(servProjArr));
         const acc: BrokerAccountProjectMapDto = {};
         for (const servProj of servProjArr) {
           if (!acc[servProj.project[0].name]) {
@@ -671,7 +669,6 @@ export class GraphMongoRepository implements GraphRepository {
             acc[servProj.project[0].name].services.push(service.name);
           }
         }
-        console.log(acc);
         return acc;
       });
   }

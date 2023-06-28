@@ -116,7 +116,7 @@ export class ActionDto {
   @IsOptional()
   @IsString()
   @Column()
-  vaultEnvironment?: 'production' | 'test' | 'development';
+  vaultEnvironment?: 'production' | 'test' | 'development' | 'tools';
 
   @IsOptional()
   @IsString()

@@ -203,6 +203,16 @@ result = db.collectionConfig.insertOne({
       name: 'lead-developer',
       relation: 'oneToMany',
     },
+    {
+      collection: 'project',
+      name: 'owner',
+      relation: 'oneToMany',
+    },
+    {
+      collection: 'team',
+      name: 'owner',
+      relation: 'oneToMany',
+    },
   ],
   fields: {
     email: { required: true, type: 'string' },
