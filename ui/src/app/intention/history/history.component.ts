@@ -94,7 +94,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
             )
             .pipe(
               catchError(() => {
-                console.log('catchError');
                 // Ignore errors for now
                 return of({
                   data: [],
@@ -105,7 +104,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((data) => {
-        console.log(data);
         this.intentionData = data.data;
         this.intentionTotal = data.meta.total;
         this.loading = false;

@@ -1,10 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-vertex-form-field',
@@ -18,7 +20,9 @@ import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
     NgSwitchCase,
     MatFormFieldModule,
     NgIf,
+    MatCheckboxModule,
     MatInputModule,
+    MatTooltipModule,
     TextFieldModule,
   ],
 })

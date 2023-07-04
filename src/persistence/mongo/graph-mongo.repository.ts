@@ -8,11 +8,13 @@ import { GraphRepository } from '../interfaces/graph.repository';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import {
+  BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexInsertDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
+import { get, set } from 'radash';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -194,6 +196,20 @@ export class GraphMongoRepository implements GraphRepository {
     });
   }
 
+  public getEdgeByNameAndVertices(
+    name: string,
+    sourceId: string,
+    targetId: string,
+  ): Promise<EdgeDto> {
+    return this.edgeRepository.findOne({
+      where: {
+        name,
+        source: new ObjectId(sourceId),
+        target: new ObjectId(targetId),
+      },
+    });
+  }
+
   public getEdgeTargetCount(target: string): Promise<number> {
     return this.edgeRepository.count({
       target,
@@ -333,17 +349,27 @@ export class GraphMongoRepository implements GraphRepository {
     if (vertResult.matchedCount !== 1) {
       throw new Error();
     }
+
+    // Don't allow vertex or _id to be set
+    delete collectionData.id;
+    delete collectionData._id;
+    delete collectionData.vertex;
+
     const unsetFields = {};
-    for (const fkey of Object.keys(config.fields)) {
-      if (collectionData[fkey] === undefined) {
+    const pushFields = {};
+    for (const fkey of Object.keys(collectionData)) {
+      if (config.fields[fkey] === undefined) {
         unsetFields[fkey] = '';
+      }
+      if (config.fields[fkey].type === 'embeddedDocArray') {
+        pushFields[fkey] = {
+          $each: collectionData[fkey],
+          $slice: -5,
+        };
+        delete collectionData[fkey];
       }
     }
     // TODO: Check collectionData conforms on collection
-    // Don't allow vertex or _id to be set
-    delete collectionData._id;
-    delete collectionData.vertex;
-    // console.log(collectionData);
     const collResult = await repository.updateOne(
       { vertex: new ObjectId(id) },
       {
@@ -351,6 +377,7 @@ export class GraphMongoRepository implements GraphRepository {
         $setOnInsert: {
           vertex: new ObjectId(id),
         },
+        $push: pushFields,
         $unset: unsetFields,
       },
       { upsert: true },
@@ -363,6 +390,103 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     return rval;
+  }
+
+  public async upsertVertex(
+    vertexInsert: VertexInsertDto,
+    targetBy: 'id' | 'parentId' | 'name',
+    target: string | null,
+  ): Promise<VertexDto> {
+    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
+    const config = await this.getCollectionConfig(vertex.collection);
+    const collectionData = vertexInsert.data;
+
+    for (const map of config.collectionMapper) {
+      if (get(collectionData, map.getPath)) {
+        vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
+      }
+    }
+
+    if (targetBy === 'id') {
+      return this.editVertex(target, vertexInsert);
+    } else if (targetBy === 'parentId') {
+      // Must have name set
+      if (!vertex.name) {
+        throw new Error();
+      }
+
+      const curVertex = await this.getVertexByParentIdAndName(
+        vertex.collection,
+        target,
+        vertex.name,
+      );
+      if (curVertex) {
+        return this.editVertex(curVertex.id.toString(), vertexInsert);
+      } else {
+        return this.addVertex(vertexInsert, true);
+      }
+    } else if (targetBy === 'name') {
+      // Must have name set
+      if (!vertex.name) {
+        throw new Error();
+      }
+      // Must be unique name
+      if (
+        !config.fields[config.collectionVertexName] ||
+        !config.fields[config.collectionVertexName].unique
+      ) {
+        throw new Error();
+      }
+
+      const curVertex = await this.getVertexByName(
+        vertex.collection,
+        vertex.name,
+      );
+      if (curVertex) {
+        return this.editVertex(curVertex.id.toString(), vertexInsert);
+      } else {
+        return this.addVertex(vertexInsert, true);
+      }
+    } else {
+      throw new Error();
+    }
+  }
+
+  private async getVertexByName(
+    collection: string,
+    name: string,
+  ): Promise<VertexDto | null> {
+    return this.vertexRepository.findOne({
+      where: { name, collection },
+    });
+  }
+
+  private async getVertexByParentIdAndName(
+    collection: string,
+    parentId: string,
+    name: string,
+  ): Promise<VertexDto | null> {
+    const vertices = await this.edgeRepository
+      .aggregate([
+        { $match: { source: new ObjectId(parentId) } },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'target',
+            foreignField: '_id',
+            as: 'vertices',
+            pipeline: [{ $match: { name, collection } }],
+          },
+        },
+        { $unwind: '$vertices' },
+        { $replaceRoot: { newRoot: '$vertices' } },
+      ])
+      .toArray();
+    if (vertices.length === 1) {
+      vertices[0].id = (vertices[0] as any)._id;
+      delete (vertices[0] as any)._id;
+      return vertices[0] as unknown as VertexDto;
+    }
   }
 
   public getVertex(id: string): Promise<VertexDto | null> {
@@ -424,6 +548,128 @@ export class GraphMongoRepository implements GraphRepository {
             path: upstream.path,
           };
         });
+      });
+  }
+
+  public async getDownstreamVertex(
+    id: string,
+    index: number,
+    maxDepth: number,
+  ): Promise<UpstreamResponseDto[]> {
+    const config = await this.collectionConfigRepository.findOne({
+      where: {
+        index,
+      },
+    });
+    if (config === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'path',
+            maxDepth,
+          },
+        },
+        { $unwind: { path: '$path' } },
+        {
+          $match: {
+            'path.it': index,
+          },
+        },
+        {
+          $lookup: {
+            from: config.collection,
+            localField: 'path.target',
+            foreignField: 'vertex',
+            as: 'collection',
+          },
+        },
+      ])
+      .toArray()
+      .then((upstreamArr: any[]) => {
+        return upstreamArr.map((upstream) => {
+          return {
+            collection: upstream.collection[0],
+            path: upstream.path,
+          };
+        });
+      });
+  }
+
+  public async getBrokerAccountServices(
+    id: string,
+  ): Promise<BrokerAccountProjectMapDto> {
+    const serviceConfig = await this.getCollectionConfig('service');
+    const projectConfig = await this.getCollectionConfig('project');
+    if (serviceConfig === null || projectConfig === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'path',
+            maxDepth: 2,
+            restrictSearchWithMatch: {
+              it: { $in: [serviceConfig.index, projectConfig.index] },
+            },
+          },
+        },
+        { $unwind: { path: '$path' } },
+        { $match: { 'path.it': serviceConfig.index } },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'path.target',
+            foreignField: '_id',
+            as: 'service',
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'path.target',
+            foreignField: 'target',
+            as: 'project_edge',
+            pipeline: [{ $match: { is: projectConfig.index } }],
+          },
+        },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'project_edge.source',
+            foreignField: '_id',
+            as: 'project',
+          },
+        },
+      ])
+      .toArray()
+      .then((servProjArr: any[]) => {
+        const acc: BrokerAccountProjectMapDto = {};
+        for (const servProj of servProjArr) {
+          if (!acc[servProj.project[0].name]) {
+            acc[servProj.project[0].name] = {
+              name: servProj.project[0].name,
+              services: [],
+            };
+          }
+          for (const service of servProj.service) {
+            acc[servProj.project[0].name].services.push(service.name);
+          }
+        }
+        return acc;
       });
   }
 }

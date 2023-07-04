@@ -15,9 +15,6 @@ export class ProjectDto extends VertexPointerDto {
   name: string;
 
   @Column()
-  key: string;
-
-  @Column()
   configuration: any;
 
   @Column()

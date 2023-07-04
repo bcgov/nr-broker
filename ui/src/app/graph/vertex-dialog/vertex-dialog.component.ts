@@ -91,13 +91,22 @@ export class VertexDialogComponent {
     const config = this.collectionControl.value;
     if (this.isCollectionConfig(config)) {
       for (const fieldKey of Object.keys(config.fields)) {
-        const val = (vertexData[fieldKey] as string).trim();
+        if (config.fields[fieldKey].type === 'embeddedDocArray') {
+          continue;
+        }
+        const val =
+          typeof vertexData[fieldKey] === 'string'
+            ? vertexData[fieldKey].trim()
+            : vertexData[fieldKey];
         if (config.fields[fieldKey].type === 'json') {
           if (val !== '') {
             vertexData[fieldKey] = JSON.parse(val);
           } else {
             delete vertexData[fieldKey];
           }
+        }
+        if (config.fields[fieldKey].type === 'stringArray') {
+          vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
         }
         if (!config.fields[fieldKey].required && val === '') {
           delete vertexData[fieldKey];

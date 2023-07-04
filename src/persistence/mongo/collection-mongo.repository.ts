@@ -57,4 +57,11 @@ export class CollectionMongoRepository implements CollectionRepository {
       where: { [key]: value } as any,
     });
   }
+
+  public async getCollections<T extends keyof CollectionDtoUnion>(
+    type: T,
+  ): Promise<CollectionDtoUnion[T][]> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo.find();
+  }
 }

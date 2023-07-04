@@ -1,3 +1,7 @@
 .vertex-form {
   margin-top: 22px;
 }
+
+.vertex-form.boolean + .vertex-form.boolean {
+  margin-top: 0;
+}

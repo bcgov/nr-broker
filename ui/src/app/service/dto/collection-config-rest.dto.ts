@@ -17,7 +17,15 @@ export interface CollectionFieldConfig {
   init?: 'uuid';
   placeholder?: string;
   required: boolean;
-  type: 'email' | 'json' | 'string' | 'url';
+  type:
+    | 'boolean'
+    | 'email'
+    | 'embeddedDocArray'
+    | 'json'
+    | 'string'
+    | 'stringArray'
+    | 'url';
+  unique?: boolean;
   value?: string;
 }
 
@@ -30,6 +38,7 @@ export interface CollectionConfigResponseDto {
   id: string;
   collection: string;
   collectionMapper: CollectionMap[];
+  collectionVertexName: string;
   edges: CollectionEdgeConfig[];
   fields: CollectionFieldConfigMap;
   index: number;

@@ -1,4 +1,4 @@
-import { ApiHideProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   IsArray,
@@ -8,7 +8,8 @@ import {
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { Entity, ObjectId, ObjectIdColumn, Column, Index } from 'typeorm';
+import { Entity, ObjectIdColumn, Column, Index } from 'typeorm';
+import { ObjectId } from 'mongodb';
 import { ActionDto } from './action.dto';
 import { actionFactory } from './action.util';
 import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
@@ -55,8 +56,12 @@ export class IntentionDto {
   }
 
   @ObjectIdColumn()
-  @ApiHideProperty()
+  @ApiProperty({ type: () => String })
   id: ObjectId;
+
+  @Column()
+  @ApiProperty({ type: () => String })
+  accountId?: ObjectId;
 
   @ValidateNested()
   @IsDefined()
@@ -99,4 +104,8 @@ export class IntentionDto {
   @Column()
   @Index()
   closed?: boolean;
+
+  @Column()
+  @ApiProperty()
+  requireRoleId?: boolean;
 }

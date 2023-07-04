@@ -100,6 +100,14 @@ export class SystemMongoRepository implements SystemRepository {
     });
   }
 
+  public async getRegisteryJwtByClaimJti(jti: string): Promise<JwtRegistryDto> {
+    return this.jwtRegistryRepository.findOne({
+      where: {
+        'claims.jti': jti,
+      },
+    });
+  }
+
   public async findExpiredRegistryJwts(
     currentTime: number,
   ): Promise<JwtRegistryDto[]> {

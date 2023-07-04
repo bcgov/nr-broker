@@ -51,9 +51,23 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       if (f.required) {
         validators.push(Validators.required);
       }
+      if (f.type === 'boolean') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] !== undefined
+            ? this.data[f.name]
+            : !!f.value,
+          validators,
+        );
+      }
       if (f.type === 'string') {
         fieldCtrls[f.name] = new FormControl(
           this.data && this.data[f.name] ? this.data[f.name] : '',
+          validators,
+        );
+      }
+      if (f.type === 'stringArray') {
+        fieldCtrls[f.name] = new FormControl(
+          this.data && this.data[f.name] ? this.data[f.name].join(', ') : '',
           validators,
         );
       }

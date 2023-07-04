@@ -2,6 +2,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { BackupActionDto } from './backup.action.dto';
 import { DatabaseAccessActionDto } from './database-access-action.dto';
+import { PackageBuildActionDto } from './package-build-action.dto';
 import { PackageConfigureActionDto } from './package-configure-action.dto';
 import { PackageInstallationActionDto } from './package-installation-action.dto';
 import { PackageProvisionActionDto } from './package-provision-action.dto';
@@ -26,6 +27,11 @@ export function actionFactory(object: any) {
     return plainToInstance(
       ServerAccessActionDto,
       ServerAccessActionDto.plainToInstance(object),
+    );
+  } else if (object.action === 'package-build') {
+    return plainToInstance(
+      PackageBuildActionDto,
+      PackageBuildActionDto.plainToInstance(object),
     );
   } else if (object.action === 'package-configure') {
     return plainToInstance(

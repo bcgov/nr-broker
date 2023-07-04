@@ -4,6 +4,7 @@ import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
+import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 
 const DATABASE_ACCESS_DEVELOPER_ENV = ['development'];
 
@@ -28,6 +29,9 @@ export class ActionService {
   public validate(
     intention: IntentionDto,
     action: ActionDto,
+    accountBoundProjects: BrokerAccountProjectMapDto | null,
+    requireProjectExists: boolean,
+    requireServiceExists: boolean,
   ): ActionError | null {
     if (
       this.actionUtil.isProvisioned(action) &&
@@ -44,20 +48,37 @@ export class ActionService {
         },
       };
     }
-    // Temporary
-    if (
-      intention.jwt.projects &&
-      intention.jwt.projects.indexOf(action.service.project) === -1
-    ) {
-      return {
-        message: 'Token not authorized for this project',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'action.service.project',
-          value: action.service.project,
-        },
-      };
+
+    if (accountBoundProjects) {
+      const projectFound = !!accountBoundProjects[action.service.project];
+      const serviceFound =
+        projectFound &&
+        accountBoundProjects[action.service.project].services.indexOf(
+          action.service.name,
+        ) !== -1;
+
+      if (!projectFound && requireProjectExists) {
+        return {
+          message: 'Token not authorized for this project',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.service.project',
+            value: action.service.project,
+          },
+        };
+      }
+      if (!serviceFound && requireServiceExists) {
+        return {
+          message: 'Token not authorized for this service',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.service.name',
+            value: action.service.name,
+          },
+        };
+      }
     }
     if (action instanceof DatabaseAccessActionDto) {
       // Temporary

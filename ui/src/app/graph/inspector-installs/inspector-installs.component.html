@@ -1,0 +1,20 @@
+<div class="edge-container">
+  <h3 class="heading">Recent Installs</h3>
+</div>
+
+<ng-container *ngIf="instance">
+  <div *ngIf="instance.pkgInstallHistory.length == 0" class="edge-container">None</div>
+  <div *ngIf="instance.pkgInstallHistory.length > 0">
+
+    <mat-list>
+      <mat-list-item *ngFor="let item of instance.pkgInstallHistory; index as i">
+        <span matListItemTitle>{{item.installed | date:'medium' }}</span>
+        <span matListItemLine>Version: {{item.version}}</span>
+        <span matListItemLine>User: {{item.userId}}</span>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
+</ng-container>
+
+<mat-divider></mat-divider>

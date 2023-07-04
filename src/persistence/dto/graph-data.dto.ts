@@ -32,3 +32,12 @@ export interface UpstreamResponseDto<T = any> {
   collection: T;
   path: GraphDataResponseEdgeDto;
 }
+
+export interface BrokerAccountProjectMapDto {
+  [key: string]: BrokerAccountProjectDto;
+}
+
+export interface BrokerAccountProjectDto {
+  name: string;
+  services: string[];
+}

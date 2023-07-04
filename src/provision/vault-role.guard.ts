@@ -11,8 +11,10 @@ import { TokenService } from '../token/token.service';
 import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ActionDto } from '../intention/dto/action.dto';
 import { ActionUtil } from '../intention/action.util';
+import { IntentionDto } from '../intention/dto/intention.dto';
 
 export interface RoleGuardRequest extends Request {
+  brokerIntentionDto?: IntentionDto;
   brokerActionDto?: ActionDto;
 }
 
@@ -36,9 +38,28 @@ export class VaultRoleGuard implements CanActivate {
       const request = context.switchToHttp().getRequest<RoleGuardRequest>();
 
       const action: ActionDto = request.brokerActionDto;
+      const intention = request.brokerIntentionDto;
       const application = action?.service?.name;
       const project = action?.service?.project;
       const environment = this.actionUtil.resolveVaultEnvironment(action);
+
+      if (
+        action &&
+        application &&
+        project &&
+        environment &&
+        !intention.requireRoleId
+      ) {
+        const vaultRoleId = await lastValueFrom(
+          this.tokenService.getRoleIdForApplication(
+            project,
+            application,
+            environment,
+          ),
+        );
+        request.headers[HEADER_VAULT_ROLE_ID] = vaultRoleId;
+        return true;
+      }
 
       if (
         !action ||
