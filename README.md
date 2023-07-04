@@ -59,7 +59,7 @@ $ ./scripts/mongo-setup.sh
 
 ```bash
 # Start up local vault
-$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault vault
+$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault hashicorp/vault
 ```
 
 Once started, you must run the vault setup script to bootstrap it.
