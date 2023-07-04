@@ -38,6 +38,7 @@ db.environment.insertOne({
   aliases: [],
   vertex: result.insertedId,
 });
+result = db.vertex.insertOne({ collection: 'environment', name: 'tools' });
 db.environment.insertOne({
   name: 'tools',
   short: 'tools',
