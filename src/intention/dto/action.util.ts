@@ -8,6 +8,8 @@ import { PackageInstallationActionDto } from './package-installation-action.dto'
 import { PackageProvisionActionDto } from './package-provision-action.dto';
 import { ServerAccessActionDto } from './server-access-action.dto';
 import { UnknownActionBadRequestException } from './unknown-action-bad-request.exception';
+import { ProcessStartActionDto } from './process-start-action.dto';
+import { ProcessEndActionDto } from './process-end-action.dto';
 
 export function actionFactory(object: any) {
   if (!object || typeof object !== 'object') {
@@ -47,6 +49,16 @@ export function actionFactory(object: any) {
     return plainToInstance(
       PackageProvisionActionDto,
       PackageProvisionActionDto.plainToInstance(object),
+    );
+  } else if (object.action === 'process-end') {
+    return plainToInstance(
+      ProcessEndActionDto,
+      ProcessEndActionDto.plainToInstance(object),
+    );
+  } else if (object.action === 'process-start') {
+    return plainToInstance(
+      ProcessStartActionDto,
+      ProcessStartActionDto.plainToInstance(object),
     );
   }
   throw new UnknownActionBadRequestException(

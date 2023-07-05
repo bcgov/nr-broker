@@ -5,6 +5,8 @@ import { PackageInstallationActionDto } from './dto/package-installation-action.
 import { ActionDto } from './dto/action.dto';
 import { PackageConfigureActionDto } from './dto/package-configure-action.dto';
 import { PackageBuildActionDto } from './dto/package-build-action.dto';
+import { ProcessStartActionDto } from './dto/process-start-action.dto';
+import { ProcessEndActionDto } from './dto/process-end-action.dto';
 
 export interface IntentionFingerprint {
   name: string;
@@ -42,5 +44,15 @@ export const FINGERPRINTS: IntentionFingerprint[] = [
     name: 'PackageProvision',
     dtoClass: PackageProvisionActionDto,
     roles: ['provision', 'provision/approle/secret-id'],
+  },
+  {
+    name: 'ProcessStart',
+    dtoClass: ProcessStartActionDto,
+    roles: [],
+  },
+  {
+    name: 'ProcessEnd',
+    dtoClass: ProcessEndActionDto,
+    roles: [],
   },
 ];
