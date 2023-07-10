@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { GraphDataResponseEdgeDto } from './dto/graph-data.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -12,5 +13,9 @@ export class GraphUtilService {
       /[A-Z]/g,
       (letter: string) => `-${letter.toLowerCase()}`,
     );
+  }
+
+  edgeToMapString(e: GraphDataResponseEdgeDto) {
+    return `${e.is}>${e.it}:${e.name}`;
   }
 }

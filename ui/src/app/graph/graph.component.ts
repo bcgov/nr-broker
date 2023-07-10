@@ -1,4 +1,5 @@
 import { Component, Inject, Output, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,6 +20,7 @@ import {
   ChartClickTarget,
   ChartClickTargetVertex,
   CollectionConfigMap,
+  CollectionEdgeConfigMap,
   GraphData,
   GraphDataConfig,
   UserDto,
@@ -30,7 +32,8 @@ import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
 import { CollectionConfigResponseDto } from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { PreferencesService } from '../preferences.service';
+
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
@@ -55,10 +58,11 @@ export class GraphComponent {
   private latestData: GraphData | null = null;
 
   constructor(
-    private graphApi: GraphApiService,
     private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
+    private graphApi: GraphApiService,
+    private preferences: PreferencesService,
     @Inject(CURRENT_USER) public user: UserDto,
   ) {}
 
@@ -81,6 +85,19 @@ export class GraphComponent {
               return previousValue;
             },
             {} as CollectionConfigMap,
+          );
+          const configSrcTarMap: CollectionEdgeConfigMap = configArr.reduce(
+            (previousValue, currentValue, currentIndex) => {
+              for (const edge of currentValue.edges) {
+                previousValue[
+                  `${currentIndex}>${configMap[edge.collection].index}:${
+                    edge.name
+                  }`
+                ] = edge;
+              }
+              return previousValue;
+            },
+            {} as CollectionEdgeConfigMap,
           );
           const graphData: GraphData = {
             ...data,
@@ -112,6 +129,7 @@ export class GraphComponent {
           return {
             data: graphData,
             config: configMap,
+            configSrcTarMap,
           };
         },
       ),
@@ -199,6 +217,15 @@ export class GraphComponent {
           this.refreshData();
         }
       });
+  }
+
+  showMenu() {
+    const currentValue = this.preferences.get('graphVertexVisibility')[
+      'environment'
+    ];
+    this.preferences.set('graphVertexVisibility', {
+      environment: !currentValue,
+    });
   }
 
   refreshData() {
