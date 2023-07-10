@@ -37,20 +37,27 @@ export class EchartsComponent implements OnInit {
           },
           legend: [
             {
+              selected: Object.keys(dataConfig.config).reduce((pv, key) => {
+                pv[dataConfig.config[key].name] = dataConfig.config[key].show;
+                return pv;
+              }, {} as { [key: string]: boolean }),
               // selectedMode: 'single',
               bottom: 0,
               data: graph.categories.map(function (a: any) {
-                return a.name;
+                return { name: a.name };
               }),
             },
           ],
           animation: true,
-          animationdurationupdate: 1500,
+          animationDurationUpdate: 1500,
           animationEasingUpdate: 'quinticInOut',
           series: [
             {
               name: 'CMDB',
               type: 'graph',
+              categories: graph.categories.map(function (a: any) {
+                return { name: a.name };
+              }),
               data: graph.vertices.map((e) => {
                 return {
                   category: e.category,
@@ -65,7 +72,6 @@ export class EchartsComponent implements OnInit {
                 focus: 'adjacency',
                 label: { position: 'right', show: true },
               },
-              categories: graph.categories,
               edgeSymbol: ['none', 'arrow'],
               edgeSymbolSize: 7,
               label: {
@@ -102,6 +108,9 @@ export class EchartsComponent implements OnInit {
           ],
         };
       }),
+      // tap((v) => {
+      //   console.log(v);
+      // }),
     );
   }
 

@@ -4,6 +4,7 @@ export interface CollectionEdgeConfig {
   name: string;
   onDelete?: 'cascade';
   relation: 'oneToMany' | 'oneToOne';
+  show: true;
   inboundName?: string;
   namePath?: string;
 }
@@ -15,6 +16,7 @@ export interface CollectionFieldConfigMap {
 export interface CollectionFieldConfig {
   hint?: string;
   init?: 'uuid';
+  name: string;
   placeholder?: string;
   required: boolean;
   type:
@@ -51,4 +53,5 @@ export interface CollectionConfigResponseDto {
     update: boolean;
     delete: boolean;
   };
+  show: true;
 }

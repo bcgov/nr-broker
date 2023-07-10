@@ -16,7 +16,7 @@ export type collectionNames =
   | 'user';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
-  name: string;
+  key: string;
 }
 
 export type CollectionConfigMap = {

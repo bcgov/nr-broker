@@ -39,10 +39,10 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     const fieldCtrls: { [key: string]: FormGroup | FormControl } = {};
     const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
 
-    for (const name of Object.keys(this.fieldMap)) {
+    for (const key of Object.keys(this.fieldMap)) {
       fieldConfigs.push({
-        name,
-        ...this.fieldMap[name],
+        key,
+        ...this.fieldMap[key],
       });
     }
 
@@ -52,45 +52,45 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         validators.push(Validators.required);
       }
       if (f.type === 'boolean') {
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name] !== undefined
-            ? this.data[f.name]
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] !== undefined
+            ? this.data[f.key]
             : !!f.value,
           validators,
         );
       }
       if (f.type === 'string') {
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name] ? this.data[f.name] : '',
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key] : '',
           validators,
         );
       }
       if (f.type === 'stringArray') {
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name] ? this.data[f.name].join(', ') : '',
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key].join(', ') : '',
           validators,
         );
       }
 
       if (f.type === 'email') {
         validators.push(Validators.email);
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name] ? this.data[f.name] : '',
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key] : '',
           validators,
         );
       }
 
       if (f.type === 'url') {
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name] ? this.data[f.name] : '',
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key] : '',
           validators,
         );
       }
 
       if (f.type === 'json') {
-        fieldCtrls[f.name] = new FormControl(
-          this.data && this.data[f.name]
-            ? JSON.stringify(this.data[f.name], undefined, 4)
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key]
+            ? JSON.stringify(this.data[f.key], undefined, 4)
             : '',
           validators,
         );
@@ -101,14 +101,14 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   for (const opt of f.options) {
       //     opts[opt.key] = new FormControl(opt.value);
       //   }
-      //   fieldCtrls[f.name] = new FormGroup(opts);
+      //   fieldCtrls[f.key] = new FormGroup(opts);
       // }
       if (f.init && f.init === 'uuid') {
         if (!this.data) {
           this.data = {};
         }
-        if (!this.data[f.name]) {
-          this.data[f.name] = uuidv4();
+        if (!this.data[f.key]) {
+          this.data[f.key] = uuidv4();
         }
       }
     }
