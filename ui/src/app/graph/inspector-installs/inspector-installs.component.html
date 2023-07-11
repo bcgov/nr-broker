@@ -3,8 +3,8 @@
 </div>
 
 <ng-container *ngIf="instance">
-  <div *ngIf="instance.pkgInstallHistory.length == 0" class="edge-container">None</div>
-  <div *ngIf="instance.pkgInstallHistory.length > 0">
+  <div *ngIf="!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0" class="edge-container edge-container-margin-left">None</div>
+  <div *ngIf="instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0">
 
     <mat-list>
       <mat-list-item *ngFor="let item of instance.pkgInstallHistory; index as i">

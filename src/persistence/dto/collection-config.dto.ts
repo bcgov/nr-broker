@@ -45,4 +45,7 @@ export class CollectionConfigDto {
     update: boolean;
     delete: boolean;
   };
+
+  @Column()
+  show: boolean;
 }

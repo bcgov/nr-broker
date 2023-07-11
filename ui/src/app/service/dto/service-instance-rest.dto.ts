@@ -18,5 +18,5 @@ export interface PackageInstallationHistoryRestDto {
 export interface BrokerServiceInstanceRestDto {
   id: string;
   name: string;
-  pkgInstallHistory: PackageInstallationHistoryRestDto[];
+  pkgInstallHistory?: PackageInstallationHistoryRestDto[];
 }

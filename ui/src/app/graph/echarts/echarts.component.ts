@@ -2,8 +2,18 @@ import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { EChartsOption } from 'echarts';
 import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';
-import { map, Observable } from 'rxjs';
+import {
+  BehaviorSubject,
+  map,
+  Observable,
+  Subject,
+  Subscription,
+  switchMap,
+  takeUntil,
+} from 'rxjs';
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
+import { GraphUtilService } from '../../service/graph-util.service';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-echarts',
@@ -24,33 +34,68 @@ export class EchartsComponent implements OnInit {
   options!: Observable<EChartsOption>;
   loading!: boolean;
   echartsInstance: any;
+  private triggerRefresh = new BehaviorSubject(true);
+  private ngUnsubscribe: Subject<any> = new Subject();
+  private prefSubscription!: Subscription;
+
+  constructor(
+    private graphUtil: GraphUtilService,
+    private preferences: PreferencesService,
+  ) {}
 
   ngOnInit(): void {
     this.loading = true;
-    this.options = this.dataConfig.pipe(
+    this.prefSubscription = this.preferences.onSet.subscribe((pref) => {
+      if (
+        pref.key === 'graphEdgeSrcTarVisibility' ||
+        pref.key === 'graphVertexVisibility'
+      ) {
+        this.triggerRefresh.next(true);
+      }
+    });
+    this.options = this.triggerRefresh.pipe(
+      takeUntil(this.ngUnsubscribe),
+      switchMap(() => this.dataConfig),
       map((dataConfig) => {
         const graph = dataConfig.data;
         this.loading = false;
+        const graphVertexVisibility = this.preferences.get(
+          'graphVertexVisibility',
+        );
+        const graphEdgeSrcTarVisibility = this.preferences.get(
+          'graphEdgeSrcTarVisibility',
+        );
         return {
           tooltip: {
             formatter: '{c}',
           },
           legend: [
             {
+              selected: Object.keys(dataConfig.config).reduce((pv, key) => {
+                pv[dataConfig.config[key].name] =
+                  graphVertexVisibility &&
+                  graphVertexVisibility[key] !== undefined
+                    ? graphVertexVisibility[key]
+                    : dataConfig.config[key].show;
+                return pv;
+              }, {} as { [key: string]: boolean }),
               // selectedMode: 'single',
               bottom: 0,
               data: graph.categories.map(function (a: any) {
-                return a.name;
+                return { name: a.name };
               }),
             },
           ],
           animation: true,
-          animationdurationupdate: 1500,
+          animationDurationUpdate: 1500,
           animationEasingUpdate: 'quinticInOut',
           series: [
             {
               name: 'CMDB',
               type: 'graph',
+              categories: graph.categories.map(function (a: any) {
+                return { name: a.name };
+              }),
               data: graph.vertices.map((e) => {
                 return {
                   category: e.category,
@@ -58,14 +103,26 @@ export class EchartsComponent implements OnInit {
                   value: e.name,
                 };
               }),
-              edges: graph.edges.map((e: any) => {
-                return e;
-              }),
+              edges: graph.edges
+                .map((e) => {
+                  return e;
+                })
+                .filter((e) => {
+                  const edgeMap = this.graphUtil.edgeToMapString(e);
+                  const config = dataConfig.configSrcTarMap[edgeMap];
+                  if (config) {
+                    return graphEdgeSrcTarVisibility &&
+                      graphEdgeSrcTarVisibility[edgeMap] !== undefined
+                      ? graphEdgeSrcTarVisibility[edgeMap]
+                      : config.show;
+                  }
+                  console.log('Missing edge config ' + edgeMap);
+                  return true;
+                }),
               emphasis: {
                 focus: 'adjacency',
                 label: { position: 'right', show: true },
               },
-              categories: graph.categories,
               edgeSymbol: ['none', 'arrow'],
               edgeSymbolSize: 7,
               label: {
@@ -102,7 +159,10 @@ export class EchartsComponent implements OnInit {
           ],
         };
       }),
-    );
+      // tap((v) => {
+      //   console.log(v);
+      // }),
+    ); // as any;
   }
 
   onChartClick(event: any) {
@@ -121,5 +181,11 @@ export class EchartsComponent implements OnInit {
 
   onChartInit(ec: any) {
     this.echartsInstance = ec;
+  }
+
+  ngOnDestroy() {
+    this.prefSubscription.unsubscribe();
+    this.ngUnsubscribe.next(true);
+    this.ngUnsubscribe.complete();
   }
 }

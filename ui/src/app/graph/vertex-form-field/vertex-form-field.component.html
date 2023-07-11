@@ -3,30 +3,30 @@
 
     <mat-form-field *ngSwitchCase="'string'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
-      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+      <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
     <mat-form-field *ngSwitchCase="'stringArray'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
-      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+      <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
     <mat-form-field *ngSwitchCase="'email'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
-      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="email" value="">
+      <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="email" value="">
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
     <section *ngSwitchCase="'boolean'" appearance="fill">
-      <mat-checkbox matTooltip="{{field.hint}}" [formControlName]="field.name"> {{field.name}}</mat-checkbox>
+      <mat-checkbox matTooltip="{{field.hint}}" [formControlName]="field.key"> {{field.name}}</mat-checkbox>
       <!-- <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint> -->
     </section>
 
     <mat-form-field *ngSwitchCase="'url'" appearance="fill">
       <mat-label *ngIf="field.name">{{field.name}}</mat-label>
-      <input matInput [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="url" value="">
+      <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="url" value="">
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 
@@ -35,7 +35,7 @@
       <textarea matInput cdkTextareaAutosize
       #autosize="cdkTextareaAutosize"
       cdkAutosizeMinRows="12"
-      cdkAutosizeMaxRows="15" [formControlName]="field.name" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
+      cdkAutosizeMaxRows="15" [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
       <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint>
     </mat-form-field>
 

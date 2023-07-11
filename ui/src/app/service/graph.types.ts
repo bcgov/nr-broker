@@ -1,5 +1,6 @@
 import {
   CollectionConfigResponseDto,
+  CollectionEdgeConfig,
   CollectionFieldConfig,
 } from './dto/collection-config-rest.dto';
 import {
@@ -16,11 +17,15 @@ export type collectionNames =
   | 'user';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
-  name: string;
+  key: string;
 }
 
 export type CollectionConfigMap = {
   [key: string]: CollectionConfigResponseDto;
+};
+
+export type CollectionEdgeConfigMap = {
+  [key: string]: CollectionEdgeConfig;
 };
 
 export type ChartClickTarget = ChartClickTargetVertex | ChartClickTargetEdge;
@@ -43,6 +48,7 @@ export interface GraphDataVertex extends GraphDataResponseVertexDto {
 export interface GraphDataConfig {
   data: GraphData;
   config: CollectionConfigMap;
+  configSrcTarMap: CollectionEdgeConfigMap;
 }
 
 export interface GraphData extends GraphDataResponseDto {

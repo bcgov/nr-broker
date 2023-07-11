@@ -27,8 +27,12 @@ RUN npm run build -- --configuration production && \
     mv dist/ui dist-production
 
 # Deployment container
-FROM ${REPO_LOCATION}node:18
-ARG ENVCONSUL_VERSION=0.13.1
+FROM ${REPO_LOCATION}node:20
+ARG ENVCONSUL_VERSION=0.13.2
+
+LABEL org.opencontainers.image.source=https://github.com/bcgov-nr/nr-broker
+LABEL org.opencontainers.image.description="NR Broker handles the business logic of authenticating and validating requests for automated processes to access secrets"
+LABEL org.opencontainers.image.licenses=Apache-2.0
 
 ADD https://releases.hashicorp.com/envconsul/${ENVCONSUL_VERSION}/envconsul_${ENVCONSUL_VERSION}_linux_amd64.zip /tmp/envconsul.zip
 RUN unzip /tmp/envconsul.zip && \

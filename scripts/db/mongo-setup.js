@@ -55,21 +55,24 @@ result = db.collectionConfig.insertOne({
   edges: [],
   fields: {
     name: {
+      name: 'Name',
       required: true,
       type: 'string',
       unique: true,
       hint: 'A unique machine friendly key for the environment',
     },
     short: {
+      name: 'Short Name',
       required: true,
       type: 'string',
       unique: true,
       hint: 'A short unique machine friendly key for the environment',
     },
     aliases: {
+      name: 'Aliases',
       required: true,
       type: 'stringArray',
-      hint: 'A set of environment alias names to automatically map to this environment',
+      hint: 'Set of service instance names to map to this environment',
     },
   },
   name: 'Environment',
@@ -78,6 +81,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: false,
   },
+  show: false,
 });
 result = db.collectionConfig.insertOne({
   collection: 'project',
@@ -85,22 +89,33 @@ result = db.collectionConfig.insertOne({
   collectionVertexName: 'name',
   index: 1,
   edges: [
-    { collection: 'service', name: 'component', relation: 'oneToMany' },
-    { collection: 'project', name: 'owns', relation: 'oneToMany' },
+    {
+      collection: 'service',
+      name: 'component',
+      relation: 'oneToMany',
+      show: true,
+    },
+    { collection: 'project', name: 'owns', relation: 'oneToMany', show: true },
   ],
   fields: {
     name: {
+      name: 'Name',
       required: true,
       type: 'string',
       unique: true,
       hint: 'A unique name for the project',
     },
-    website: { type: 'url', hint: 'The website documenting this project' },
+    website: {
+      name: 'Website URL',
+      type: 'url',
+      hint: 'The website documenting this project',
+    },
     email: {
+      name: 'Email',
       type: 'email',
       hint: 'The email address to contact those running this project',
     },
-    configuration: { type: 'json' },
+    configuration: { name: 'Configuration', type: 'json' },
   },
   name: 'Project',
   permissions: {
@@ -108,6 +123,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
+  show: true,
 });
 result = db.collectionConfig.insertOne({
   collection: 'service',
@@ -120,11 +136,12 @@ result = db.collectionConfig.insertOne({
       name: 'instance',
       onDelete: 'cascade',
       relation: 'oneToMany',
+      show: true,
     },
   ],
   fields: {
-    name: { required: true, type: 'string', unique: true },
-    configuration: { type: 'json' },
+    name: { name: 'Name', required: true, type: 'string', unique: true },
+    configuration: { name: 'Configuration', type: 'json' },
   },
   name: 'Service',
   permissions: {
@@ -132,6 +149,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
+  show: true,
 });
 result = db.collectionConfig.insertOne({
   collection: 'serviceInstance',
@@ -144,16 +162,19 @@ result = db.collectionConfig.insertOne({
       name: 'deploy-type',
       inboundName: 'Instance',
       relation: 'oneToOne',
+      show: true,
     },
     {
       collection: 'serviceInstance',
       name: 'requires',
       inboundName: 'Required By',
       relation: 'oneToMany',
+      show: false,
     },
   ],
   fields: {
     name: {
+      name: 'Name',
       required: true,
       type: 'string',
       hint: 'A name for the service instance',
@@ -171,6 +192,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
+  show: true,
 });
 result = db.collectionConfig.insertOne({
   collection: 'user',
@@ -183,16 +205,19 @@ result = db.collectionConfig.insertOne({
       name: 'administrator',
       inboundName: 'administrators',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'project',
       name: 'developer',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'team',
       name: 'developer',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'project',
@@ -203,23 +228,42 @@ result = db.collectionConfig.insertOne({
       collection: 'team',
       name: 'lead-developer',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'project',
       name: 'owner',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'team',
       name: 'owner',
       relation: 'oneToMany',
+      show: true,
     },
   ],
   fields: {
-    email: { required: true, type: 'string' },
-    guid: { required: true, type: 'string' },
-    name: { required: true, type: 'string' },
-    username: { required: true, type: 'string' },
+    email: {
+      name: 'Email',
+      required: true,
+      type: 'string',
+    },
+    guid: {
+      name: 'GUID',
+      required: true,
+      type: 'string',
+    },
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+    },
+    username: {
+      name: 'Username',
+      required: true,
+      type: 'string',
+    },
   },
   name: 'User',
   permissions: {
@@ -227,6 +271,7 @@ result = db.collectionConfig.insertOne({
     update: false,
     delete: true,
   },
+  show: true,
 });
 
 result = db.collectionConfig.insertOne({
@@ -239,43 +284,51 @@ result = db.collectionConfig.insertOne({
       collection: 'project',
       name: 'authorized',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'service',
       name: 'authorized',
       relation: 'oneToMany',
+      show: true,
     },
   ],
   fields: {
     name: {
+      name: 'Name',
       required: true,
       type: 'string',
       unique: true,
       hint: 'A descriptive name for the account',
     },
     email: {
+      name: 'Email (sub)',
       required: true,
       type: 'string',
       hint: 'Email address to use as the sub claim in generated JWT',
     },
     clientId: {
+      name: 'Client ID',
       required: true,
       init: 'uuid',
       type: 'string',
       hint: 'Generated UUID used to uniquely identify all generated JWTs',
     },
     requireRoleId: {
+      name: 'Require RoleId',
       required: true,
       type: 'boolean',
       hint: 'Must send Vault service role id to use actions. Recommended when JWT is shared by teams.',
     },
     requireProjectExists: {
+      name: 'Require Project Exists',
       required: true,
       type: 'boolean',
       hint: 'Require project to be owned by account',
       value: true,
     },
     requireServiceExists: {
+      name: 'Require Service Exists',
       required: false,
       type: 'boolean',
       hint: 'Require service to be owned by account',
@@ -288,6 +341,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
+  show: true,
 });
 
 result = db.collectionConfig.insertOne({
@@ -300,16 +354,19 @@ result = db.collectionConfig.insertOne({
       collection: 'brokerAccount',
       name: 'owns',
       relation: 'oneToMany',
+      show: true,
     },
   ],
   fields: {
     name: {
+      name: 'Name',
       required: true,
       type: 'string',
       unique: true,
       hint: 'A descriptive name for the team',
     },
     email: {
+      name: 'Email',
       required: true,
       type: 'string',
       hint: 'The email address to contact the team at',
@@ -321,4 +378,5 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
+  show: true,
 });
