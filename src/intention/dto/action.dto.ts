@@ -49,6 +49,8 @@ export class ActionDto {
     'package-configure',
     'package-installation',
     'package-provision',
+    'process-end',
+    'process-start',
   ])
   @Column()
   action:
@@ -58,7 +60,9 @@ export class ActionDto {
     | 'package-build'
     | 'package-configure'
     | 'package-installation'
-    | 'package-provision';
+    | 'package-provision'
+    | 'process-end'
+    | 'process-start';
 
   @IsString()
   @Column()
