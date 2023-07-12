@@ -53,9 +53,9 @@ export class CollectionController {
   @Get('broker-account')
   @UseGuards(BrokerCombinedAuthGuard)
   async getAccountByVertexId(
-    @Query('vertex') id: string,
+    @Query('vertex') vertexId: string,
   ): Promise<BrokerAccountDto> {
-    return this.service.getCollectionByVertexId('brokerAccount', id);
+    return this.service.getCollectionByVertexId('brokerAccount', vertexId);
   }
 
   @Get('broker-account/:id/token')
@@ -86,40 +86,44 @@ export class CollectionController {
   @Get('environment')
   @UseGuards(BrokerCombinedAuthGuard)
   async getEnvironmentByVertexId(
-    @Query('vertex') id: string,
+    @Query('vertex') vertexId: string,
   ): Promise<EnvironmentDto> {
-    return this.service.getCollectionByVertexId('environment', id);
+    return this.service.getCollectionByVertexId('environment', vertexId);
   }
 
   @Get('project')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getProjectByVertexId(@Query('vertex') id: string): Promise<ProjectDto> {
-    return this.service.getCollectionByVertexId('project', id);
+  async getProjectByVertexId(
+    @Query('vertex') vertexId: string,
+  ): Promise<ProjectDto> {
+    return this.service.getCollectionByVertexId('project', vertexId);
   }
 
   @Get('service')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getServiceByVertexId(@Query('vertex') id: string): Promise<ServiceDto> {
-    return this.service.getCollectionByVertexId('service', id);
+  async getServiceByVertexId(
+    @Query('vertex') vertexId: string,
+  ): Promise<ServiceDto> {
+    return this.service.getCollectionByVertexId('service', vertexId);
   }
 
   @Get('service-instance')
   @UseGuards(BrokerCombinedAuthGuard)
   async getServiceInstanceByVertexId(
-    @Query('vertex') id: string,
+    @Query('vertex') vertexId: string,
   ): Promise<ServiceInstanceDto> {
-    return this.service.getCollectionByVertexId('serviceInstance', id);
+    return this.service.getCollectionByVertexId('serviceInstance', vertexId);
   }
 
   @Get('team')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getTeamByVertexId(@Query('vertex') id: string): Promise<TeamDto> {
-    return this.service.getCollectionByVertexId('team', id);
+  async getTeamByVertexId(@Query('vertex') vertexId: string): Promise<TeamDto> {
+    return this.service.getCollectionByVertexId('team', vertexId);
   }
 
   @Get('user')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getUserByVertexId(@Query('vertex') id: string): Promise<UserDto> {
-    return this.service.getCollectionByVertexId('user', id);
+  async getUserByVertexId(@Query('vertex') vertexId: string): Promise<UserDto> {
+    return this.service.getCollectionByVertexId('user', vertexId);
   }
 }

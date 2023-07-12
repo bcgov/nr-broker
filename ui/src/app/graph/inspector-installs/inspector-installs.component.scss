@@ -11,3 +11,17 @@
   margin: 8px 0;
   margin-left: 16px;
 }
+
+.panel-container {
+  display: flex;
+  height: 32px;
+  align-items:center;
+}
+
+.panel-container :nth-child(odd) {
+  flex: 1;
+}
+
+.panel-container :nth-child(even) {
+  flex: 3;
+}

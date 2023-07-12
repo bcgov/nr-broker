@@ -247,7 +247,7 @@ result = db.collectionConfig.insertOne({
     email: {
       name: 'Email',
       required: true,
-      type: 'string',
+      type: 'email',
     },
     guid: {
       name: 'GUID',
@@ -304,7 +304,7 @@ result = db.collectionConfig.insertOne({
     email: {
       name: 'Email (sub)',
       required: true,
-      type: 'string',
+      type: 'email',
       hint: 'Email address to use as the sub claim in generated JWT',
     },
     clientId: {
@@ -368,7 +368,7 @@ result = db.collectionConfig.insertOne({
     email: {
       name: 'Email',
       required: true,
-      type: 'string',
+      type: 'email',
       hint: 'The email address to contact the team at',
     },
   },

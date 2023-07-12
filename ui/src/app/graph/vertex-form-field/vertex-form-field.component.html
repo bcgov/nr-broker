@@ -20,7 +20,7 @@
     </mat-form-field>
 
     <section *ngSwitchCase="'boolean'" appearance="fill">
-      <mat-checkbox matTooltip="{{field.hint}}" [formControlName]="field.key"> {{field.name}}</mat-checkbox>
+      <mat-checkbox matTooltip="{{field.hint}}" matTooltipPosition="after" [formControlName]="field.key"> {{field.name}}</mat-checkbox>
       <!-- <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint> -->
     </section>
 

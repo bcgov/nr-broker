@@ -4,17 +4,32 @@
 
 <ng-container *ngIf="instance">
   <div *ngIf="!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0" class="edge-container edge-container-margin-left">None</div>
-  <div *ngIf="instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0">
+  <div *ngIf="instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0" class="edge-container edge-container-margin-left">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let item of instance.pkgInstallHistory.reverse()">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{item.version}}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{item.installed | date:'short' }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
-    <mat-list>
-      <mat-list-item *ngFor="let item of instance.pkgInstallHistory; index as i">
-        <span matListItemTitle>{{item.installed | date:'medium' }}</span>
-        <span matListItemLine>Version: {{item.version}}</span>
-        <span matListItemLine>User: {{item.userId}}</span>
-      </mat-list-item>
-    </mat-list>
+        <!-- <div class="panel-container">
+          <div>Version</div>
+          <div>{{item.version}}</div>
+        </div>
+        <mat-divider></mat-divider> -->
+
+        <div class="panel-container">
+          <div>User</div>
+          <div>{{item.userId}}</div>
+        </div>
+
+      </mat-expansion-panel>
+    </mat-accordion>
   </div>
-
 </ng-container>
 
 <mat-divider></mat-divider>
