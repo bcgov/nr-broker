@@ -121,12 +121,6 @@ export class CollectionController {
     return this.service.getCollectionByVertexId('team', vertexId);
   }
 
-  // @Get('team/:id/members')
-  // @UseGuards(BrokerCombinedAuthGuard)
-  // async getTeamMembers(@Param('id') id: string): Promise<TeamMemberDto> {
-  //   return this.service.getTeamMembers(id);
-  // }
-
   @Get('user')
   @UseGuards(BrokerCombinedAuthGuard)
   async getUserByVertexId(@Query('vertex') vertexId: string): Promise<UserDto> {

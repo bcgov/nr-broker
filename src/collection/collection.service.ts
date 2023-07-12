@@ -45,10 +45,6 @@ export class CollectionService {
     }
   }
 
-  // async getTeamMembers(id: string) {
-  //   this.graphService.getUpstreamVertex()
-  // }
-
   async upsertUser(req: Request, userInfo: any): Promise<UserDto> {
     const loggedInUser = new UserDto();
     loggedInUser.email = userInfo[OAUTH2_CLIENT_MAP_EMAIL];

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
 import { Roles } from '../roles.decorator';
@@ -94,6 +94,10 @@ export class GraphController {
   @Post('vertex/:id/upstream/:index')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
+  @ApiQuery({
+    name: 'matchEdgeNames',
+    required: false,
+  })
   getUpstreamVertex(
     @Param('id') id: string,
     @Param('index') index: string,
