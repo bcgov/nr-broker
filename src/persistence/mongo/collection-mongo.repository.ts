@@ -19,7 +19,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     return this.collectionConfigRepository.find({});
   }
 
-  public async getCollectionConfigByname(
+  public async getCollectionConfigByName(
     collection: string,
   ): Promise<CollectionConfigDto> {
     return this.collectionConfigRepository.findOne({

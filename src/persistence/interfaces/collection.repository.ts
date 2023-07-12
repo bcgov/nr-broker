@@ -4,7 +4,7 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 export abstract class CollectionRepository {
   public abstract getCollectionConfigs(): Promise<CollectionConfigDto[]>;
 
-  public abstract getCollectionConfigByname(
+  public abstract getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
   ): Promise<CollectionConfigDto>;
 

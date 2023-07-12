@@ -24,18 +24,18 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigs();
   }
 
-  public async getCollectionConfigByname(
+  public async getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
   ): Promise<CollectionConfigDto | null> {
-    return this.collectionRepository.getCollectionConfigByname(collection);
+    return this.collectionRepository.getCollectionConfigByName(collection);
   }
 
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
-    id: string,
+    vertexId: string,
   ) {
     try {
-      return this.collectionRepository.getCollectionByVertexId(type, id);
+      return this.collectionRepository.getCollectionByVertexId(type, vertexId);
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -44,6 +44,10 @@ export class CollectionService {
       });
     }
   }
+
+  // async getTeamMembers(id: string) {
+  //   this.graphService.getUpstreamVertex()
+  // }
 
   async upsertUser(req: Request, userInfo: any): Promise<UserDto> {
     const loggedInUser = new UserDto();
