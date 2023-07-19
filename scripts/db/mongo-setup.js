@@ -380,3 +380,15 @@ result = db.collectionConfig.insertOne({
   },
   show: true,
 });
+
+// ==> User setup
+use("admin");
+if (db.getUser("admin_db_engine") === null) {
+  db.createUser(
+    {
+      user: "admin_db_engine",
+      pwd: "admin_secret",
+      roles: [ { role: "userAdmin", db: "admin" }, { role: "userAdmin", db: "brokerDB" } ]
+    }
+  );
+}

@@ -23,6 +23,21 @@ echo "path \"*\" { capabilities = [\"create\", \"read\", \"update\", \"delete\",
 vault write auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE policies=broker-policy
 vault write -force auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE
 
+mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB db/mongo-reset-admin-pass.js
+MONGODB_ADDR=$(podman inspect -f "{{.NetworkSettings.IPAddress}}" broker-mongo)
+vault secrets enable database
+vault write database/config/my-mongodb-database \
+    plugin_name=mongodb-database-plugin \
+    allowed_roles="broker-role" \
+    connection_url="mongodb://{{username}}:{{password}}@$MONGODB_ADDR:27017/admin" \
+    username="admin_db_engine" \
+    password="admin_secret"
+vault write database/roles/broker-role \
+    db_name=my-mongodb-database \
+    creation_statements='{ "db": "admin", "roles": [{ "role": "readWrite", "db": "brokerDB" }] }' \
+    default_ttl="168h" \
+    max_ttl="168h"
+
 vault audit enable file file_path=/tmp/vault-audit.txt
 
 # Sample approles for demo

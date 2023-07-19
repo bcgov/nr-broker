@@ -11,6 +11,7 @@ The following are expected to be installed.
 * node (v20)
 * mongosh
 * podman
+* vault
 
 ## Development Setup
 
@@ -33,12 +34,12 @@ $ npm ci
 $ cd ui; npm ci
 ```
 
-### Setup mongodb
+### Setup MongoDB
 
-The development setup assumes you are using podman to run mongo db.
+The development setup assumes you are using podman to run MongoDB.
 
 ```bash
-# Start up local mongodb
+# Start up local MongoDB
 $ podman run \
   -p 27017:27017 \
   --name broker-mongo \
@@ -48,21 +49,21 @@ $ podman run \
   --wiredTigerCacheSizeGB 0.25
 ```
 
-Once started, you can must the mongo setup script to bootstrap the database.
+Once started, you must use the MongoDB setup script to bootstrap the database.
 
 ```bash
-# Configure the local mongo with basic setup
+# Configure the local MongoDB with basic setup
 $ ./scripts/mongo-setup.sh
 ```
 
-### Setup vault
+### Setup Vault
 
 ```bash
 # Start up local vault
 $ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault hashicorp/vault
 ```
 
-Once started, you must run the vault setup script to bootstrap it.
+Once started, you must run the vault setup script to bootstrap it. MongoDB must be running and setup before running this.
 
 ```
 # Configure the local vault with basic setup
