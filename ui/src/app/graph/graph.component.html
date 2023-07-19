@@ -7,9 +7,25 @@
     <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refreshData()">
       <mat-icon>refresh</mat-icon>
     </button>
-    <button mat-icon-button class="menu" aria-label="Menu" (click)="showMenu()" [disabled]="true">
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
       <mat-icon>more_vert</mat-icon>
     </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item [matMenuTriggerFor]="vertex">Vertex</button>
+      <button mat-menu-item [matMenuTriggerFor]="edge">Edge</button>
+    </mat-menu>
+
+    <mat-menu #vertex="matMenu">
+      <ng-container *ngFor="let item of latestConfig | keyvalue">
+        <button mat-menu-item (click)="toggleMenu(item.value.collection)">{{item.value.name}}</button>
+      </ng-container>
+    </mat-menu>
+
+    <mat-menu #edge="matMenu">
+      <button mat-menu-item>Birds</button>
+      <button mat-menu-item>Mammals</button>
+    </mat-menu>
     <app-echarts [dataConfig]="data" (selected)="onGraphSelected($event)" (legendChanged)="onLegendChanged($event)"></app-echarts>
   </div>
   <div class="graph-flex-inspector">

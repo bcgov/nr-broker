@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import {MatMenuModule} from '@angular/material/menu';
 import {
   BehaviorSubject,
   combineLatest,
@@ -33,6 +34,7 @@ import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
 import { CollectionConfigResponseDto } from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-graph',
@@ -44,6 +46,8 @@ import { PreferencesService } from '../preferences.service';
     MatIconModule,
     EchartsComponent,
     InspectorComponent,
+    MatMenuModule,
+    CommonModule,
   ],
 })
 export class GraphComponent {
@@ -54,7 +58,7 @@ export class GraphComponent {
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
-  private latestConfig: CollectionConfigMap | null = null;
+  public latestConfig: CollectionConfigMap | null = null;
   private latestData: GraphData | null = null;
 
   constructor(
@@ -124,8 +128,9 @@ export class GraphComponent {
             }
           }
           this.latestConfig = configMap;
+          console.log(this.latestConfig);
           this.latestData = graphData;
-
+          console.log(this.latestData);
           return {
             data: graphData,
             config: configMap,
@@ -258,13 +263,16 @@ export class GraphComponent {
       });
   }
 
-  showMenu() {
+  toggleMenu(collectionName: string) {
     const currentValue = this.preferences.get('graphVertexVisibility')[
-      'environment'
+      collectionName
     ];
+    console.log(currentValue);
     this.preferences.set('graphVertexVisibility', {
-      environment: !currentValue,
+      ...this.preferences.get('graphVertexVisibility'),
+      [collectionName]: !currentValue,
     });
+    console.log(collectionName);
   }
 
   refreshData() {
