@@ -16,7 +16,10 @@ import { IntentionSearchResult } from './dto/intention-search-result.dto';
   providedIn: 'root',
 })
 export class GraphApiService {
-  constructor(private util: GraphUtilService, private http: HttpClient) {}
+  constructor(
+    private util: GraphUtilService,
+    private http: HttpClient,
+  ) {}
 
   getData() {
     return this.http.get<GraphDataResponseDto>(

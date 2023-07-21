@@ -10,6 +10,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { NgFor, AsyncPipe } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
@@ -34,6 +35,7 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
     MatFormFieldModule,
     MatSelectModule,
     ReactiveFormsModule,
+    MatIconModule,
     MatOptionModule,
     NgFor,
     MatInputModule,
@@ -47,6 +49,10 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 export class AddEdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex>('');
+  properties: {
+    key: FormControl<string | null>;
+    value: FormControl<string | null>;
+  }[] = [];
 
   filteredOptions!: Observable<GraphDataVertex[]>;
   targetVertices: GraphDataVertex[] = [];
@@ -108,9 +114,41 @@ export class AddEdgeDialogComponent implements OnInit {
     }
   }
 
+  addProperty() {
+    this.properties.push({
+      key: new FormControl<string>(''),
+      value: new FormControl<string>(''),
+    });
+    return false;
+  }
+
+  removeProperty(property: any) {
+    this.properties = this.properties.filter((p) => {
+      return p !== property;
+    });
+  }
+
+  getPropertyValues() {
+    if (this.properties.length === 0) {
+      return {};
+    }
+    return {
+      prop: this.properties.reduce(
+        (pv, cv) => {
+          if (cv.key.value && cv.value.value) {
+            pv[cv.key.value] = cv.value.value;
+          }
+          return pv;
+        },
+        {} as { [key: string]: string },
+      ),
+    };
+  }
+
   addEdge() {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
+    const prop = this.getPropertyValues();
 
     if (
       !!edge &&
@@ -123,6 +161,7 @@ export class AddEdgeDialogComponent implements OnInit {
           name: edge.name,
           source: this.data.vertex.id,
           target: vertex.id,
+          ...prop,
         })
         .subscribe(() => {
           this.dialogRef.close({ refresh: true });

@@ -95,7 +95,6 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
-    { collection: 'project', name: 'owns', relation: 'oneToMany', show: true },
   ],
   fields: {
     name: {
@@ -356,6 +355,12 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      collection: 'service',
+      name: 'uses',
+      relation: 'oneToMany',
+      show: false,
+    },
   ],
   fields: {
     name: {
@@ -371,6 +376,12 @@ result = db.collectionConfig.insertOne({
       type: 'email',
       hint: 'The email address to contact the team at',
     },
+    website: {
+      name: 'Website',
+      required: false,
+      type: 'url',
+      hint: 'The team website address',
+    },
   },
   name: 'Team',
   permissions: {
@@ -382,13 +393,14 @@ result = db.collectionConfig.insertOne({
 });
 
 // ==> User setup
-use("admin");
-if (db.getUser("admin_db_engine") === null) {
-  db.createUser(
-    {
-      user: "admin_db_engine",
-      pwd: "admin_secret",
-      roles: [ { role: "userAdmin", db: "admin" }, { role: "userAdmin", db: "brokerDB" } ]
-    }
-  );
+use('admin');
+if (db.getUser('admin_db_engine') === null) {
+  db.createUser({
+    user: 'admin_db_engine',
+    pwd: 'admin_secret',
+    roles: [
+      { role: 'userAdmin', db: 'admin' },
+      { role: 'userAdmin', db: 'brokerDB' },
+    ],
+  });
 }

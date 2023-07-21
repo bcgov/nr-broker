@@ -20,10 +20,4 @@ export class ServiceDto {
   @IsString()
   @Column()
   project: string;
-
-  // TODO: Remove
-  @IsString()
-  @IsOptional()
-  @Column()
-  version?: string;
 }
