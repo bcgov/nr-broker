@@ -23,7 +23,7 @@
 
       <mat-menu #menu="matMenu">
         <ng-template matMenuContent>
-          <button mat-menu-item [disabled]="!user.roles.includes('admin') || target.type !== 'vertex' || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
+          <button mat-menu-item [disabled]="!user.roles.includes('admin') || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
             <mat-icon>edit</mat-icon>
             <span>Edit</span>
           </button>

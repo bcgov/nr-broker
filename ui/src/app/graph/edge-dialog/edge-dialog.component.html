@@ -1,0 +1,74 @@
+<h2 mat-dialog-title>
+  <ng-container *ngIf="data.target">Edit</ng-container>
+  <ng-container *ngIf="!data.target">Add</ng-container> Edge</h2>
+<mat-dialog-content>
+  <div class="add-edge-form-panel">
+    <form class="add-edge-form" (submit)="addEditEdge()">
+      <ng-container *ngIf="!data.target">
+        <mat-form-field class="add-edge-full-width" appearance="fill">
+          <mat-label>Collection (type)</mat-label>
+          <mat-select [formControl]="edgeControl"
+            name="edgeConfig"
+            (selectionChange)="configChanged()">
+            <mat-option value="" selected></mat-option>
+            <mat-option *ngFor="let edgeConfig of data.config.edges" [value]="edgeConfig">{{edgeConfig.collection | camelToTitle}} ({{edgeConfig.name}})</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="add-edge-full-width" appearance="fill">
+          <mat-label>Target</mat-label>
+          <input type="text" name="targetVertex"
+                placeholder="Pick one"
+                aria-label="Name"
+                matInput
+                [formControl]="vertexControl"
+                [matAutocomplete]="auto">
+          <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" [displayWith]="displayFn">
+            <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+              <app-vertex-name [vertex]="option"></app-vertex-name>
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </ng-container>
+      <h3>Properties</h3>
+
+      <div *ngFor="let property of properties" class="add-edge-property-fields">
+        <button (click)="removeProperty(property)" mat-mini-fab color="warn" aria-label="Remove property">
+          <mat-icon>delete</mat-icon>
+        </button>
+
+        <mat-form-field class="add-edge-full-width" appearance="fill" >
+          <mat-label>Key</mat-label>
+          <input type="text" name="targetVertex"
+                placeholder=""
+                aria-label="Key"
+                matInput
+                [formControl]="property.key">
+        </mat-form-field>
+
+        <mat-form-field class="add-edge-full-width" appearance="fill" >
+          <mat-label>Value</mat-label>
+          <input type="text" name="targetVertex"
+                placeholder=""
+                aria-label="Value"
+                matInput
+                [formControl]="property.value">
+        </mat-form-field>
+      </div>
+
+      <div class="add-property-btn">
+        <button mat-mini-fab (click)="addProperty()" aria-label="Add property">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </form>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button color="primary" [disabled]="!data.target && (!edgeControl.value || !vertexControl.value)" (click)="addEditEdge()">
+    <ng-container *ngIf="data.target">Edit</ng-container>
+    <ng-container *ngIf="!data.target">Add</ng-container>
+  </button>
+</mat-dialog-actions>

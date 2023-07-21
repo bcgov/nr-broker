@@ -22,7 +22,7 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
+  <button mat-button color="primary" [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
     <ng-container *ngIf="data.target">Edit</ng-container>
     <ng-container *ngIf="!data.target">Add</ng-container>
   </button>

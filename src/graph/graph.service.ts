@@ -55,6 +55,35 @@ export class GraphService {
     }
   }
 
+  public async editEdge(
+    req: Request,
+    id: string,
+    edge: EdgeInsertDto,
+  ): Promise<GraphDataResponseEdgeDto> {
+    try {
+      const resp = await this.graphRepository.editEdge(id, edge);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-edit',
+        null,
+        'success',
+      );
+      return resp.toEdgeResponse();
+    } catch (e) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-edit',
+        null,
+        'failure',
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
+  }
+
   public async getEdge(id: string): Promise<GraphDataResponseEdgeDto> {
     try {
       const edge = await this.graphRepository.getEdge(id);

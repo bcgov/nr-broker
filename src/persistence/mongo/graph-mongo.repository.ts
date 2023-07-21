@@ -163,6 +163,28 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
+  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto> {
+    const result = await this.edgeRepository.updateOne(
+      { _id: new ObjectId(id) },
+      edge.prop
+        ? {
+            $set: {
+              prop: edge.prop,
+            },
+          }
+        : { $unset: { prop: true } },
+    );
+    if (result.matchedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getEdge(id);
+    if (rval === null) {
+      throw new Error();
+    }
+
+    return rval;
+  }
+
   public async deleteEdge(id: string, cascade = true): Promise<boolean> {
     const edge = await this.getEdge(id);
     const srcVertex = await this.getVertex(edge.source.toString());

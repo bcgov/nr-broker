@@ -8,7 +8,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { NgFor, AsyncPipe } from '@angular/common';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,11 +23,12 @@ import {
 } from '../../service/dto/collection-config-rest.dto';
 import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
+import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
 
 @Component({
-  selector: 'app-add-edge-dialog',
-  templateUrl: './add-edge-dialog.component.html',
-  styleUrls: ['./add-edge-dialog.component.scss'],
+  selector: 'app-edge-dialog',
+  templateUrl: './edge-dialog.component.html',
+  styleUrls: ['./edge-dialog.component.scss'],
   standalone: true,
   imports: [
     MatDialogModule,
@@ -37,6 +38,7 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
     ReactiveFormsModule,
     MatIconModule,
     MatOptionModule,
+    NgIf,
     NgFor,
     MatInputModule,
     MatAutocompleteModule,
@@ -46,7 +48,7 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
     CamelToTitlePipe,
   ],
 })
-export class AddEdgeDialogComponent implements OnInit {
+export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex>('');
   properties: {
@@ -63,8 +65,9 @@ export class AddEdgeDialogComponent implements OnInit {
       config: CollectionConfigResponseDto;
       vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
+      target?: GraphDataResponseEdgeDto;
     },
-    public dialogRef: MatDialogRef<AddEdgeDialogComponent>,
+    public dialogRef: MatDialogRef<EdgeDialogComponent>,
     private graphApi: GraphApiService,
   ) {}
 
@@ -79,6 +82,11 @@ export class AddEdgeDialogComponent implements OnInit {
         }
       }),
     );
+    if (this.data.target?.prop) {
+      for (const key of Object.keys(this.data.target.prop)) {
+        this.addProperty(key, this.data.target.prop[key]);
+      }
+    }
   }
 
   private _filter(value: string): GraphDataVertex[] {
@@ -114,10 +122,10 @@ export class AddEdgeDialogComponent implements OnInit {
     }
   }
 
-  addProperty() {
+  addProperty(key = '', value = '') {
     this.properties.push({
-      key: new FormControl<string>(''),
-      value: new FormControl<string>(''),
+      key: new FormControl<string>(key),
+      value: new FormControl<string>(value),
     });
     return false;
   }
@@ -145,12 +153,13 @@ export class AddEdgeDialogComponent implements OnInit {
     };
   }
 
-  addEdge() {
+  addEditEdge() {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
     const prop = this.getPropertyValues();
 
     if (
+      !this.data.target &&
       !!edge &&
       typeof edge !== 'string' &&
       !!vertex &&
@@ -161,6 +170,17 @@ export class AddEdgeDialogComponent implements OnInit {
           name: edge.name,
           source: this.data.vertex.id,
           target: vertex.id,
+          ...prop,
+        })
+        .subscribe(() => {
+          this.dialogRef.close({ refresh: true });
+        });
+    } else if (this.data.target) {
+      this.graphApi
+        .editEdge(this.data.target.id, {
+          name: this.data.target.name,
+          source: this.data.target.source,
+          target: this.data.target.target,
           ...prop,
         })
         .subscribe(() => {

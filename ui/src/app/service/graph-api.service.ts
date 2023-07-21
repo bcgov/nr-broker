@@ -56,6 +56,16 @@ export class GraphApiService {
     });
   }
 
+  editEdge(id: string, edge: EdgeInsertDto) {
+    return this.http.put<any>(
+      `${environment.apiUrl}/v1/graph/edge/${id}`,
+      edge,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   deleteEdge(id: string) {
     return this.http.delete<any>(`${environment.apiUrl}/v1/graph/edge/${id}`, {
       responseType: 'json',
