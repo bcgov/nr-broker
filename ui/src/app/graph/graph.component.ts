@@ -192,6 +192,20 @@ export class GraphComponent {
     this.updateRoute();
   }
 
+  onLegendChanged(event: any): void {
+    if (this.latestConfig) {
+      const collection = Object.values(this.latestConfig).find(
+        (config) => event.name === config.name,
+      );
+      if (collection) {
+        this.preferences.set('graphVertexVisibility', {
+          ...(this.preferences.get('graphVertexVisibility') ?? {}),
+          [collection.collection]: event.selected,
+        });
+      }
+    }
+  }
+
   updateRoute() {
     if (this.selected) {
       this.router.navigate(
