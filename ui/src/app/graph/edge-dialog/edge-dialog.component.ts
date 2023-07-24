@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -8,57 +8,64 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { NgFor, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { Observable, map, startWith } from 'rxjs';
-import { GraphDataVertex } from '../../service/graph.types';
-import { GraphApiService } from '../../service/graph-api.service';
 import {
-  CollectionConfigResponseDto,
-  CollectionEdgeConfig,
-} from '../../service/dto/collection-config-rest.dto';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
+  CollectionConfigMap,
+  GraphDataVertex,
+} from '../../service/graph.types';
+import { GraphApiService } from '../../service/graph-api.service';
+import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
+import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
+import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 
 @Component({
-  selector: 'app-add-edge-dialog',
-  templateUrl: './add-edge-dialog.component.html',
-  styleUrls: ['./add-edge-dialog.component.scss'],
+  selector: 'app-edge-dialog',
+  templateUrl: './edge-dialog.component.html',
+  styleUrls: ['./edge-dialog.component.scss'],
   standalone: true,
   imports: [
-    MatDialogModule,
+    CommonModule,
     FormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatOptionModule,
-    NgFor,
-    MatInputModule,
     MatAutocompleteModule,
-    VertexNameComponent,
     MatButtonModule,
-    AsyncPipe,
-    CamelToTitlePipe,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatOptionModule,
+    MatSelectModule,
+    PropertyEditorComponent,
+    ReactiveFormsModule,
+    VertexNameComponent,
   ],
 })
-export class AddEdgeDialogComponent implements OnInit {
+export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex>('');
 
   filteredOptions!: Observable<GraphDataVertex[]>;
   targetVertices: GraphDataVertex[] = [];
 
+  @ViewChild(PropertyEditorComponent)
+  private propertyEditorComponent!: PropertyEditorComponent;
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: {
-      config: CollectionConfigResponseDto;
+      collection: string;
+      config: CollectionConfigMap;
       vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
+      target?: GraphDataResponseEdgeDto;
     },
-    public dialogRef: MatDialogRef<AddEdgeDialogComponent>,
+    public dialogRef: MatDialogRef<EdgeDialogComponent>,
     private graphApi: GraphApiService,
   ) {}
 
@@ -108,11 +115,13 @@ export class AddEdgeDialogComponent implements OnInit {
     }
   }
 
-  addEdge() {
+  addEditEdge() {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
+    const prop = this.propertyEditorComponent.getPropertyValues();
 
     if (
+      !this.data.target &&
       !!edge &&
       typeof edge !== 'string' &&
       !!vertex &&
@@ -123,6 +132,18 @@ export class AddEdgeDialogComponent implements OnInit {
           name: edge.name,
           source: this.data.vertex.id,
           target: vertex.id,
+          ...prop,
+        })
+        .subscribe(() => {
+          this.dialogRef.close({ refresh: true });
+        });
+    } else if (this.data.target) {
+      this.graphApi
+        .editEdge(this.data.target.id, {
+          name: this.data.target.name,
+          source: this.data.target.source,
+          target: this.data.target.target,
+          ...prop,
         })
         .subscribe(() => {
           this.dialogRef.close({ refresh: true });

@@ -50,11 +50,10 @@ import {
 } from '../../service/graph.types';
 import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { AddEdgeDialogComponent } from '../add-edge-dialog/add-edge-dialog.component';
+import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { CollectionFilterPipe } from '../collection-filter.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PreferencesService } from '../../preferences.service';
@@ -69,7 +68,6 @@ import { InspectorInstallsComponent } from '../inspector-installs/inspector-inst
   standalone: true,
   imports: [
     AsyncPipe,
-    CamelToTitlePipe,
     CollectionFilterPipe,
     CommonModule,
     ClipboardModule,
@@ -306,29 +304,50 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   editTarget() {
-    if (
-      !this.latestConfig ||
-      !this.collectionData ||
-      !this.target ||
-      !(this.target.type === 'vertex')
-    ) {
+    if (!this.latestConfig || !this.collectionData || !this.target) {
       return;
     }
-    this.dialog
-      .open(VertexDialogComponent, {
-        width: '500px',
-        data: {
-          config: this.latestConfig,
-          target: this.target,
-          data: this.collectionData,
-        },
-      })
-      .afterClosed()
-      .subscribe((result) => {
-        if (result && result.refresh) {
-          this.graphChanged.emit(true);
-        }
+    if (this.target.type === 'edge' && this.latestData) {
+      const sourceIndex = this.target.data.is;
+      const config = Object.values(this.latestConfig).find((config) => {
+        return config.index === sourceIndex;
       });
+      if (config) {
+        this.dialog
+          .open(EdgeDialogComponent, {
+            width: '500px',
+            data: {
+              collection: config.collection,
+              config: this.latestConfig,
+              vertices: this.latestData.vertices,
+              vertex: this.latestData.idToVertex[this.target.data.source],
+              target: this.target.data,
+            },
+          })
+          .afterClosed()
+          .subscribe((result) => {
+            if (result && result.refresh) {
+              this.graphChanged.emit(true);
+            }
+          });
+      }
+    } else if (this.target.type === 'vertex') {
+      this.dialog
+        .open(VertexDialogComponent, {
+          width: '500px',
+          data: {
+            config: this.latestConfig,
+            target: this.target,
+            data: this.collectionData,
+          },
+        })
+        .afterClosed()
+        .subscribe((result) => {
+          if (result && result.refresh) {
+            this.graphChanged.emit(true);
+          }
+        });
+    }
   }
 
   addEdgeToVertex(vertex: GraphDataVertex) {
@@ -337,10 +356,11 @@ export class InspectorComponent implements OnChanges, OnInit {
     }
 
     this.dialog
-      .open(AddEdgeDialogComponent, {
+      .open(EdgeDialogComponent, {
         width: '500px',
         data: {
-          config: this.latestConfig[vertex.collection],
+          collection: vertex.collection,
+          config: this.latestConfig,
           vertices: this.latestData.vertices,
           vertex,
         },

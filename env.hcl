@@ -1,6 +1,6 @@
 vault {
-  address = "http://localhost:3000"
-  renew_token = true
+  address = "http://localhost:8200"
+  renew_token = false
   retry {
     enabled = true
     attempts = 12
@@ -11,7 +11,16 @@ vault {
 
 secret {
     no_prefix = true
-    path = "apps/kinesis"
+    path   = "database/creds/broker-role"
+
+    key {
+      name   = "username"
+      format = "MONGODB_USERNAME"
+    }
+    key {
+      name   = "password"
+      format = "MONGODB_PASSWORD"
+    }
 }
 
 exec {

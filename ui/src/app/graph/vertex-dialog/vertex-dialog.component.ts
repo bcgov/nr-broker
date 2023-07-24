@@ -10,7 +10,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgIf, NgFor } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import {
   ChartClickTargetVertex,
@@ -19,7 +19,6 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -27,18 +26,16 @@ import { CamelToTitlePipe } from '../camel-to-title.pipe';
   styleUrls: ['./vertex-dialog.component.scss'],
   standalone: true,
   imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
     MatDialogModule,
-    NgIf,
+    MatDividerModule,
     MatFormFieldModule,
     MatSelectModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatOptionModule,
-    NgFor,
-    MatDividerModule,
+    ReactiveFormsModule,
     VertexFormBuilderComponent,
-    MatButtonModule,
-    CamelToTitlePipe,
   ],
 })
 export class VertexDialogComponent {

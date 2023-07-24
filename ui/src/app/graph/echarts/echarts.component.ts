@@ -31,6 +31,10 @@ import { PreferencesService } from '../../preferences.service';
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;
   @Output() selected = new EventEmitter<ChartClickTarget>();
+  @Output() legendChanged = new EventEmitter<{
+    name: string;
+    selected: boolean;
+  }>();
   options!: Observable<EChartsOption>;
   loading!: boolean;
   echartsInstance: any;
@@ -71,14 +75,17 @@ export class EchartsComponent implements OnInit {
           },
           legend: [
             {
-              selected: Object.keys(dataConfig.config).reduce((pv, key) => {
-                pv[dataConfig.config[key].name] =
-                  graphVertexVisibility &&
-                  graphVertexVisibility[key] !== undefined
-                    ? graphVertexVisibility[key]
-                    : dataConfig.config[key].show;
-                return pv;
-              }, {} as { [key: string]: boolean }),
+              selected: Object.keys(dataConfig.config).reduce(
+                (pv, key) => {
+                  pv[dataConfig.config[key].name] =
+                    graphVertexVisibility &&
+                    graphVertexVisibility[key] !== undefined
+                      ? graphVertexVisibility[key]
+                      : dataConfig.config[key].show;
+                  return pv;
+                },
+                {} as { [key: string]: boolean },
+              ),
               // selectedMode: 'single',
               bottom: 0,
               data: graph.categories.map(function (a: any) {
@@ -181,6 +188,13 @@ export class EchartsComponent implements OnInit {
 
   onChartInit(ec: any) {
     this.echartsInstance = ec;
+  }
+
+  onChartLegendSelectChanged(event: any) {
+    this.legendChanged.emit({
+      name: event.name,
+      selected: event.selected[event.name],
+    });
   }
 
   ngOnDestroy() {

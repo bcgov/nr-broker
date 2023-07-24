@@ -16,7 +16,10 @@ import { IntentionSearchResult } from './dto/intention-search-result.dto';
   providedIn: 'root',
 })
 export class GraphApiService {
-  constructor(private util: GraphUtilService, private http: HttpClient) {}
+  constructor(
+    private util: GraphUtilService,
+    private http: HttpClient,
+  ) {}
 
   getData() {
     return this.http.get<GraphDataResponseDto>(
@@ -51,6 +54,16 @@ export class GraphApiService {
     return this.http.post<any>(`${environment.apiUrl}/v1/graph/edge`, edge, {
       responseType: 'json',
     });
+  }
+
+  editEdge(id: string, edge: EdgeInsertDto) {
+    return this.http.put<any>(
+      `${environment.apiUrl}/v1/graph/edge/${id}`,
+      edge,
+      {
+        responseType: 'json',
+      },
+    );
   }
 
   deleteEdge(id: string) {

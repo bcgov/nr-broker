@@ -13,4 +13,7 @@ export class TeamDto extends VertexPointerDto {
 
   @Column()
   name: string;
+
+  @Column()
+  website?: string;
 }

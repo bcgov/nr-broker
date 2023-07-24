@@ -41,6 +41,18 @@ export class GraphController {
     return this.graph.addEdge(request, edge);
   }
 
+  @Put('edge/:id')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  editEdge(
+    @Req() request: Request,
+    @Param('id') id: string,
+    @Body() edge: EdgeInsertDto,
+  ) {
+    return this.graph.editEdge(request, id, edge);
+  }
+
   @Get('edge/:id')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()

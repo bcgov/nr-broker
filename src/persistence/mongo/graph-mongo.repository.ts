@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import { get, set } from 'radash';
 import { EdgeDto } from '../dto/edge.dto';
 import { VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
@@ -14,7 +15,7 @@ import {
 } from '../dto/graph-data.dto';
 import { VertexInsertDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
-import { get, set } from 'radash';
+import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -162,6 +163,28 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
+  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto> {
+    const result = await this.edgeRepository.updateOne(
+      { _id: new ObjectId(id) },
+      edge.prop
+        ? {
+            $set: {
+              prop: edge.prop,
+            },
+          }
+        : { $unset: { prop: true } },
+    );
+    if (result.matchedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getEdge(id);
+    if (rval === null) {
+      throw new Error();
+    }
+
+    return rval;
+  }
+
   public async deleteEdge(id: string, cascade = true): Promise<boolean> {
     const edge = await this.getEdge(id);
     const srcVertex = await this.getVertex(edge.source.toString());
@@ -276,7 +299,7 @@ export class GraphMongoRepository implements GraphRepository {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
   ): Promise<VertexDto> {
-    const vertex = VertexDto.upgradeInsertDto(vertexInsert);
+    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const config = await this.getCollectionConfig(vertex.collection);
     const repository = getRepositoryFromCollectionName(
       this.dataSource,
@@ -290,19 +313,24 @@ export class GraphMongoRepository implements GraphRepository {
     }
 
     for (const map of config.collectionMapper) {
-      vertex[map.setPath] = collectionData[map.getPath];
+      vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
     }
     const vertResult = await this.vertexRepository.insertOne(vertex);
     if (!vertResult.acknowledged) {
       throw new Error();
     }
     collectionData.vertex = vertResult.insertedId;
-    //console.log(collectionData);
-    const collResult = await repository.insertOne(collectionData);
-    //console.log(collResult);
-
-    if (!collResult.acknowledged) {
-      throw new Error();
+    // console.log(collectionData);
+    try {
+      const collResult = await repository.insertOne(collectionData);
+      // console.log(collResult);
+      if (!collResult.acknowledged) {
+        throw new Error();
+      }
+    } catch (e: any) {
+      // Delete orphan vertex
+      await this.deleteVertex(vertResult.insertedId.toString());
+      throw e;
     }
 
     const rval = await this.getVertex(vertResult.insertedId.toString());
@@ -316,7 +344,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     vertexInsert: VertexInsertDto,
   ): Promise<VertexDto> {
-    const vertex = VertexDto.upgradeInsertDto(vertexInsert);
+    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const curVertex = this.getVertex(id);
     // console.log(vertex);
     if (curVertex === null) {
@@ -332,24 +360,6 @@ export class GraphMongoRepository implements GraphRepository {
     if (config === null || !config.permissions.update) {
       throw new Error();
     }
-    // console.log(config.collectionMapper);
-    for (const map of config.collectionMapper) {
-      vertex[map.setPath] = collectionData[map.getPath];
-    }
-    // console.log(vertex);
-    const vertResult = await this.vertexRepository.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          name: vertex.name,
-        },
-      },
-    );
-    // console.log(vertResult);
-    if (vertResult.matchedCount !== 1) {
-      throw new Error();
-    }
-
     // Don't allow vertex or _id to be set
     delete collectionData.id;
     delete collectionData._id;
@@ -364,7 +374,7 @@ export class GraphMongoRepository implements GraphRepository {
       if (config.fields[fkey].type === 'embeddedDocArray') {
         pushFields[fkey] = {
           $each: collectionData[fkey],
-          $slice: -5,
+          $slice: -COLLECTION_MAX_EMBEDDED,
         };
         delete collectionData[fkey];
       }
@@ -383,6 +393,23 @@ export class GraphMongoRepository implements GraphRepository {
       { upsert: true },
     );
     if (collResult.matchedCount !== 1 && collResult.upsertedCount !== 1) {
+      throw new Error();
+    }
+    // console.log(config.collectionMapper);
+    for (const map of config.collectionMapper) {
+      vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
+    }
+    // console.log(vertex);
+    const vertResult = await this.vertexRepository.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name: vertex.name,
+        },
+      },
+    );
+    // console.log(vertResult);
+    if (vertResult.matchedCount !== 1) {
       throw new Error();
     }
     const rval = await this.getVertex(id);

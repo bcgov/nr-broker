@@ -19,11 +19,6 @@ import { UserUpstream } from '../user-upstream.decorator';
 
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
-import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { ProjectDto } from '../persistence/dto/project.dto';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
-import { ServiceDto } from '../persistence/dto/service.dto';
-import { TeamDto } from '../persistence/dto/team.dto';
 import { UserDto } from '../persistence/dto/user.dto';
 
 @Controller({
@@ -83,47 +78,24 @@ export class CollectionController {
     );
   }
 
-  @Get('environment')
+  @Get(':collection')
   @UseGuards(BrokerCombinedAuthGuard)
-  async getEnvironmentByVertexId(
+  async getCollectionByVertexId(
+    @Param('collection') collection: string,
     @Query('vertex') vertexId: string,
-  ): Promise<EnvironmentDto> {
-    return this.service.getCollectionByVertexId('environment', vertexId);
-  }
-
-  @Get('project')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getProjectByVertexId(
-    @Query('vertex') vertexId: string,
-  ): Promise<ProjectDto> {
-    return this.service.getCollectionByVertexId('project', vertexId);
-  }
-
-  @Get('service')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getServiceByVertexId(
-    @Query('vertex') vertexId: string,
-  ): Promise<ServiceDto> {
-    return this.service.getCollectionByVertexId('service', vertexId);
-  }
-
-  @Get('service-instance')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getServiceInstanceByVertexId(
-    @Query('vertex') vertexId: string,
-  ): Promise<ServiceInstanceDto> {
-    return this.service.getCollectionByVertexId('serviceInstance', vertexId);
-  }
-
-  @Get('team')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getTeamByVertexId(@Query('vertex') vertexId: string): Promise<TeamDto> {
-    return this.service.getCollectionByVertexId('team', vertexId);
-  }
-
-  @Get('user')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getUserByVertexId(@Query('vertex') vertexId: string): Promise<UserDto> {
-    return this.service.getCollectionByVertexId('user', vertexId);
+  ) {
+    switch (collection) {
+      case 'environment':
+      case 'project':
+      case 'service':
+      case 'team':
+      case 'user':
+        return this.service.getCollectionByVertexId(collection, vertexId);
+      case 'service-instance':
+        return this.service.getCollectionByVertexId(
+          'serviceInstance',
+          vertexId,
+        );
+    }
   }
 }

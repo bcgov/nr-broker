@@ -15,6 +15,7 @@ export abstract class GraphRepository {
   ): Promise<GraphDataResponseDto>;
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
+  public abstract editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto>;
   public abstract deleteEdge(id: string): Promise<boolean>;
   public abstract getEdge(id: string): Promise<EdgeDto | null>;
   public abstract getEdgeByNameAndVertices(

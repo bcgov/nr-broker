@@ -9,6 +9,8 @@ export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
 export const TOKEN_SERVICE_WRAP_TTL = 60;
 
+export const COLLECTION_MAX_EMBEDDED = 10;
+
 export const INTENTION_DEFAULT_TTL_SECONDS = 300;
 export const INTENTION_MIN_TTL_SECONDS = 30;
 export const INTENTION_MAX_TTL_SECONDS = 1200;

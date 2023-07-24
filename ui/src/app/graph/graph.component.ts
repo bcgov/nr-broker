@@ -133,12 +133,29 @@ export class GraphComponent {
           };
         },
       ),
-      tap(() => {
+      tap((graphData) => {
         of(this.route.snapshot.params)
           .pipe(delay(100))
           .subscribe((params) => {
             if (params['selected']) {
-              this.onSelected(JSON.parse(params['selected']));
+              const selector = JSON.parse(params['selected']);
+              if (selector.type === 'vertex') {
+                const vertex = graphData.data.idToVertex[selector.id];
+                if (vertex) {
+                  this.onSelected({
+                    type: 'vertex',
+                    data: vertex,
+                  });
+                }
+              } else {
+                const edge = graphData.data.idToEdge[selector.id];
+                if (edge) {
+                  this.onSelected({
+                    type: 'edge',
+                    data: edge,
+                  });
+                }
+              }
             } else {
               this.onSelected(undefined);
             }
@@ -192,10 +209,32 @@ export class GraphComponent {
     this.updateRoute();
   }
 
+  onLegendChanged(event: any): void {
+    if (this.latestConfig) {
+      const collection = Object.values(this.latestConfig).find(
+        (config) => event.name === config.name,
+      );
+      if (collection) {
+        this.preferences.set('graphVertexVisibility', {
+          ...(this.preferences.get('graphVertexVisibility') ?? {}),
+          [collection.collection]: event.selected,
+        });
+      }
+    }
+  }
+
   updateRoute() {
     if (this.selected) {
       this.router.navigate(
-        ['/graph', { selected: JSON.stringify(this.selected) }],
+        [
+          '/graph',
+          {
+            selected: JSON.stringify({
+              id: this.selected.data.id,
+              type: this.selected.type,
+            }),
+          },
+        ],
         {
           replaceUrl: true,
         },
