@@ -7,9 +7,36 @@
     <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refreshData()">
       <mat-icon>refresh</mat-icon>
     </button>
-    <button mat-icon-button class="menu" aria-label="Menu" (click)="showMenu()" [disabled]="true">
+    <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
       <mat-icon>more_vert</mat-icon>
     </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item [matMenuTriggerFor]="vertex">Vertex</button>
+      <button mat-menu-item [matMenuTriggerFor]="edge">Edge</button>
+      <button mat-menu-item (click)="resetGraphVisibility()">Reset</button>
+    </mat-menu>
+
+    <ng-template #toggleOff><mat-icon>check_box_outline_blank</mat-icon></ng-template>
+
+    <mat-menu #vertex="matMenu">
+      <ng-container *ngFor="let item of latestConfig | keyvalue">
+        <button mat-menu-item (click)="toggleVertex(item.value.collection)"><mat-icon *ngIf="isCollectionVisible(item.value.collection); else toggleOff">check_box</mat-icon><span>{{item.value.name}}</span></button>
+      </ng-container>
+    </mat-menu>
+
+    <mat-menu #edge="matMenu">
+      <ng-container *ngIf="latestConfig">
+        <ng-container *ngFor="let item of latestConfig | keyvalue">
+          <button *ngIf="item.value.edges && item.value.edges.length > 0" mat-menu-item [matMenuTriggerFor]="edgeList">{{item.value.name}}</button>
+            <mat-menu #edgeList="matMenu">
+              <ng-container *ngFor="let edge of item.value.edges">
+                <button mat-menu-item (click)="toggleEdge(item.value, edge)"><mat-icon *ngIf="isEdgeVisible(item.value, edge); else toggleOff">check_box</mat-icon><span>{{latestConfig[edge.collection].name}} - {{edge.name}}</span></button>
+              </ng-container>
+            </mat-menu>
+        </ng-container>
+      </ng-container>
+    </mat-menu>
     <app-echarts [dataConfig]="data" (selected)="onGraphSelected($event)" (legendChanged)="onLegendChanged($event)"></app-echarts>
   </div>
   <div class="graph-flex-inspector">

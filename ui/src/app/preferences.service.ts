@@ -10,7 +10,7 @@ import { PreferenceRestDto } from './preference-rest.dto';
 export class PreferencesService {
   public _onSet = new EventEmitter<{
     key: keyof PreferenceRestDto;
-    value: PreferenceRestDto[keyof PreferenceRestDto];
+    value?: PreferenceRestDto[keyof PreferenceRestDto];
   }>();
 
   constructor(
@@ -40,6 +40,17 @@ export class PreferencesService {
       key,
       value,
     });
+
+    this.writePreferences().subscribe();
+  }
+
+  reset<K extends keyof PreferenceRestDto>(keys: K[]) {
+    for (const key of keys) {
+      delete this.preferences[key];
+      this._onSet.emit({
+        key,
+      });
+    }
 
     this.writePreferences().subscribe();
   }

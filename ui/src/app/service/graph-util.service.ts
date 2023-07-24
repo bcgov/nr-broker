@@ -15,7 +15,7 @@ export class GraphUtilService {
     );
   }
 
-  edgeToMapString(e: GraphDataResponseEdgeDto) {
+  edgeToMapString(e: Pick<GraphDataResponseEdgeDto, 'is' | 'it' | 'name'>) {
     return `${e.is}>${e.it}:${e.name}`;
   }
 }

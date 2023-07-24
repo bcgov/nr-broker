@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   BehaviorSubject,
   combineLatest,
@@ -30,9 +31,14 @@ import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
-import { CollectionConfigResponseDto } from '../service/dto/collection-config-rest.dto';
+import {
+  CollectionConfigResponseDto,
+  CollectionEdgeConfig,
+} from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
+import { CommonModule } from '@angular/common';
+import { GraphUtilService } from '../service/graph-util.service';
 
 @Component({
   selector: 'app-graph',
@@ -44,6 +50,8 @@ import { PreferencesService } from '../preferences.service';
     MatIconModule,
     EchartsComponent,
     InspectorComponent,
+    MatMenuModule,
+    CommonModule,
   ],
 })
 export class GraphComponent {
@@ -54,7 +62,8 @@ export class GraphComponent {
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
-  private latestConfig: CollectionConfigMap | null = null;
+  public latestConfig: CollectionConfigMap | null = null;
+  public edgeMapInstance: GraphUtilService = new GraphUtilService();
   private latestData: GraphData | null = null;
 
   constructor(
@@ -125,7 +134,6 @@ export class GraphComponent {
           }
           this.latestConfig = configMap;
           this.latestData = graphData;
-
           return {
             data: graphData,
             config: configMap,
@@ -216,7 +224,6 @@ export class GraphComponent {
       );
       if (collection) {
         this.preferences.set('graphVertexVisibility', {
-          ...(this.preferences.get('graphVertexVisibility') ?? {}),
           [collection.collection]: event.selected,
         });
       }
@@ -258,12 +265,65 @@ export class GraphComponent {
       });
   }
 
-  showMenu() {
-    const currentValue = this.preferences.get('graphVertexVisibility')[
-      'environment'
-    ];
+  resetGraphVisibility() {
+    this.preferences.reset([
+      'graphVertexVisibility',
+      'graphEdgeSrcTarVisibility',
+    ]);
+  }
+
+  isCollectionVisible(collection: string): boolean {
+    if (!this.latestConfig) {
+      return false;
+    }
+    const vertexVisibility = this.preferences.get('graphVertexVisibility');
+    return vertexVisibility && vertexVisibility[collection] !== undefined
+      ? vertexVisibility[collection]
+      : this.latestConfig[collection].show;
+  }
+
+  toggleVertex(collection: string) {
+    if (!this.latestConfig) {
+      return;
+    }
     this.preferences.set('graphVertexVisibility', {
-      environment: !currentValue,
+      [collection]: !this.isCollectionVisible(collection),
+    });
+  }
+
+  isEdgeVisible(
+    colllectionConfig: CollectionConfigResponseDto,
+    edge: CollectionEdgeConfig,
+  ): boolean {
+    if (!this.latestConfig) {
+      return false;
+    }
+    const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
+    const mapString = this.edgeMapInstance.edgeToMapString({
+      is: colllectionConfig.index,
+      it: this.latestConfig[edge.collection].index,
+      name: edge.name,
+    });
+
+    return edgeVisibility && edgeVisibility[mapString] !== undefined
+      ? edgeVisibility[mapString]
+      : edge.show;
+  }
+
+  toggleEdge(
+    colllectionConfig: CollectionConfigResponseDto,
+    edge: CollectionEdgeConfig,
+  ) {
+    if (!this.latestConfig) {
+      return;
+    }
+    const mapString = this.edgeMapInstance.edgeToMapString({
+      is: colllectionConfig.index,
+      it: this.latestConfig[edge.collection].index,
+      name: edge.name,
+    });
+    this.preferences.set('graphEdgeSrcTarVisibility', {
+      [mapString]: !this.isEdgeVisible(colllectionConfig, edge),
     });
   }
 
