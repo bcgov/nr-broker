@@ -222,6 +222,7 @@ result = db.collectionConfig.insertOne({
       collection: 'project',
       name: 'lead-developer',
       relation: 'oneToMany',
+      show: true,
     },
     {
       collection: 'team',

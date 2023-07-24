@@ -17,9 +17,11 @@
       <button mat-menu-item (click)="resetGraphVisibility()">Reset</button>
     </mat-menu>
 
+    <ng-template #toggleOff><mat-icon>check_box_outline_blank</mat-icon></ng-template>
+
     <mat-menu #vertex="matMenu">
       <ng-container *ngFor="let item of latestConfig | keyvalue">
-        <button mat-menu-item (click)="toggleVertex(item.value.collection)">{{item.value.name}}</button>
+        <button mat-menu-item (click)="toggleVertex(item.value.collection)"><mat-icon *ngIf="isCollectionVisible(item.value.collection); else toggleOff">check_box</mat-icon><span>{{item.value.name}}</span></button>
       </ng-container>
     </mat-menu>
 
@@ -29,7 +31,7 @@
           <button *ngIf="item.value.edges && item.value.edges.length > 0" mat-menu-item [matMenuTriggerFor]="edgeList">{{item.value.name}}</button>
             <mat-menu #edgeList="matMenu">
               <ng-container *ngFor="let edge of item.value.edges">
-                <button mat-menu-item (click)="toggleEdge(item.value, edge)">{{latestConfig[edge.collection].name}} - {{edge.name}}</button>
+                <button mat-menu-item (click)="toggleEdge(item.value, edge)"><mat-icon *ngIf="isEdgeVisible(item.value, edge); else toggleOff">check_box</mat-icon><span>{{latestConfig[edge.collection].name}} - {{edge.name}}</span></button>
               </ng-container>
             </mat-menu>
         </ng-container>

@@ -272,17 +272,42 @@ export class GraphComponent {
     ]);
   }
 
+  isCollectionVisible(collection: string): boolean {
+    if (!this.latestConfig) {
+      return false;
+    }
+    const vertexVisibility = this.preferences.get('graphVertexVisibility');
+    return vertexVisibility && vertexVisibility[collection] !== undefined
+      ? vertexVisibility[collection]
+      : this.latestConfig[collection].show;
+  }
+
   toggleVertex(collection: string) {
     if (!this.latestConfig) {
       return;
     }
-    const vertexVisibility = this.preferences.get('graphVertexVisibility');
     this.preferences.set('graphVertexVisibility', {
-      [collection]:
-        vertexVisibility && vertexVisibility[collection] !== undefined
-          ? !vertexVisibility[collection]
-          : !this.latestConfig[collection].show,
+      [collection]: !this.isCollectionVisible(collection),
     });
+  }
+
+  isEdgeVisible(
+    colllectionConfig: CollectionConfigResponseDto,
+    edge: CollectionEdgeConfig,
+  ): boolean {
+    if (!this.latestConfig) {
+      return false;
+    }
+    const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
+    const mapString = this.edgeMapInstance.edgeToMapString({
+      is: colllectionConfig.index,
+      it: this.latestConfig[edge.collection].index,
+      name: edge.name,
+    });
+
+    return edgeVisibility && edgeVisibility[mapString] !== undefined
+      ? edgeVisibility[mapString]
+      : edge.show;
   }
 
   toggleEdge(
@@ -292,20 +317,13 @@ export class GraphComponent {
     if (!this.latestConfig) {
       return;
     }
-    const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
     const mapString = this.edgeMapInstance.edgeToMapString({
       is: colllectionConfig.index,
       it: this.latestConfig[edge.collection].index,
-      id: '',
       name: edge.name,
-      source: '',
-      target: '',
     });
     this.preferences.set('graphEdgeSrcTarVisibility', {
-      [mapString]:
-        edgeVisibility && edgeVisibility[mapString] !== undefined
-          ? !edgeVisibility[mapString]
-          : !edge.show,
+      [mapString]: !this.isEdgeVisible(colllectionConfig, edge),
     });
   }
 
