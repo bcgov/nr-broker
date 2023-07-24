@@ -35,6 +35,7 @@ import { CollectionConfigResponseDto } from '../service/dto/collection-config-re
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
+import { GraphUtilService } from '../service/graph-util.service';
 
 @Component({
   selector: 'app-graph',
@@ -59,6 +60,8 @@ export class GraphComponent {
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
   public latestConfig: CollectionConfigMap | null = null;
+  public latestConfigValue: Array<any> = new Array();
+  public edgeMapInstance: GraphUtilService = new GraphUtilService();
   private latestData: GraphData | null = null;
 
   constructor(
@@ -129,8 +132,9 @@ export class GraphComponent {
           }
           this.latestConfig = configMap;
           console.log(this.latestConfig);
+          this.latestConfigValue = Object.values(this.latestConfig);
+          // console.log(this.newArray);
           this.latestData = graphData;
-          console.log(this.latestData);
           return {
             data: graphData,
             config: configMap,
@@ -263,7 +267,7 @@ export class GraphComponent {
       });
   }
 
-  toggleMenu(collectionName: string) {
+  toggleVertex(collectionName: string) {
     const currentValue = this.preferences.get('graphVertexVisibility')[
       collectionName
     ];
@@ -273,6 +277,37 @@ export class GraphComponent {
       [collectionName]: !currentValue,
     });
     console.log(collectionName);
+  }
+
+  toggleEdge(vertexData: any, edge: any) {
+    const currentValue = this.preferences.get('graphEdgeSrcTarVisibility')[
+      edge.name
+    ];
+    // function getObjectKey(obj: Object, value: any) {
+    //   return Object.keys(obj).find(key => obj[key] === value);
+    // }
+    // const a = (Object.keys(this.latestConfig?[edge.collection]));
+    // const b: GraphUtilService = new GraphUtilService();
+    // 'vertexData.index>secondVertex.index:edge.name'
+    const secondVertex = this.latestConfigValue.find((x: { [x: string]: any; }) => x['collection'] === edge.collection);
+    const edgeMapValue = this.edgeMapInstance.edgeToMapString({
+      is: vertexData.index,
+      it: secondVertex.index,
+      id: '',
+      name: edge.name,
+      source: '',
+      target: ''
+    });
+    console.log(secondVertex.index);
+    console.log(currentValue);
+    console.log("Vertex data:");
+    console.log(vertexData);
+    this.preferences.set('graphEdgeSrcTarVisibility', {
+      ...this.preferences.get('graphEdgeSrcTarVisibility'),
+      [edgeMapValue]: !currentValue,
+    });
+    console.log("Edge data:");
+    console.log(edge);
   }
 
   refreshData() {
