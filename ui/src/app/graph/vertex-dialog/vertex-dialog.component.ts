@@ -10,7 +10,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgIf, NgFor } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import {
   ChartClickTargetVertex,
@@ -26,17 +26,16 @@ import { CollectionConfigResponseDto } from '../../service/dto/collection-config
   styleUrls: ['./vertex-dialog.component.scss'],
   standalone: true,
   imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
     MatDialogModule,
-    NgIf,
+    MatDividerModule,
     MatFormFieldModule,
     MatSelectModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatOptionModule,
-    NgFor,
-    MatDividerModule,
+    ReactiveFormsModule,
     VertexFormBuilderComponent,
-    MatButtonModule,
   ],
 })
 export class VertexDialogComponent {
