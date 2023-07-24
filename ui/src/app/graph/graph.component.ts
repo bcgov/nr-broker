@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import {MatMenuModule} from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   BehaviorSubject,
   combineLatest,
@@ -31,7 +31,10 @@ import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
-import { CollectionConfigResponseDto } from '../service/dto/collection-config-rest.dto';
+import {
+  CollectionConfigResponseDto,
+  CollectionEdgeConfig,
+} from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
@@ -60,7 +63,6 @@ export class GraphComponent {
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
   public latestConfig: CollectionConfigMap | null = null;
-  public latestConfigValue: Array<any> = new Array();
   public edgeMapInstance: GraphUtilService = new GraphUtilService();
   private latestData: GraphData | null = null;
 
@@ -131,9 +133,6 @@ export class GraphComponent {
             }
           }
           this.latestConfig = configMap;
-          console.log(this.latestConfig);
-          this.latestConfigValue = Object.values(this.latestConfig);
-          // console.log(this.newArray);
           this.latestData = graphData;
           return {
             data: graphData,
@@ -225,7 +224,6 @@ export class GraphComponent {
       );
       if (collection) {
         this.preferences.set('graphVertexVisibility', {
-          ...(this.preferences.get('graphVertexVisibility') ?? {}),
           [collection.collection]: event.selected,
         });
       }
@@ -267,47 +265,48 @@ export class GraphComponent {
       });
   }
 
-  toggleVertex(collectionName: string) {
-    const currentValue = this.preferences.get('graphVertexVisibility')[
-      collectionName
-    ];
-    console.log(currentValue);
-    this.preferences.set('graphVertexVisibility', {
-      ...this.preferences.get('graphVertexVisibility'),
-      [collectionName]: !currentValue,
-    });
-    console.log(collectionName);
+  resetGraphVisibility() {
+    this.preferences.reset([
+      'graphVertexVisibility',
+      'graphEdgeSrcTarVisibility',
+    ]);
   }
 
-  toggleEdge(vertexData: any, edge: any) {
-    const currentValue = this.preferences.get('graphEdgeSrcTarVisibility')[
-      edge.name
-    ];
-    // function getObjectKey(obj: Object, value: any) {
-    //   return Object.keys(obj).find(key => obj[key] === value);
-    // }
-    // const a = (Object.keys(this.latestConfig?[edge.collection]));
-    // const b: GraphUtilService = new GraphUtilService();
-    // 'vertexData.index>secondVertex.index:edge.name'
-    const secondVertex = this.latestConfigValue.find((x: { [x: string]: any; }) => x['collection'] === edge.collection);
-    const edgeMapValue = this.edgeMapInstance.edgeToMapString({
-      is: vertexData.index,
-      it: secondVertex.index,
+  toggleVertex(collection: string) {
+    if (!this.latestConfig) {
+      return;
+    }
+    const vertexVisibility = this.preferences.get('graphVertexVisibility');
+    this.preferences.set('graphVertexVisibility', {
+      [collection]:
+        vertexVisibility && vertexVisibility[collection] !== undefined
+          ? !vertexVisibility[collection]
+          : !this.latestConfig[collection].show,
+    });
+  }
+
+  toggleEdge(
+    colllectionConfig: CollectionConfigResponseDto,
+    edge: CollectionEdgeConfig,
+  ) {
+    if (!this.latestConfig) {
+      return;
+    }
+    const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
+    const mapString = this.edgeMapInstance.edgeToMapString({
+      is: colllectionConfig.index,
+      it: this.latestConfig[edge.collection].index,
       id: '',
       name: edge.name,
       source: '',
-      target: ''
+      target: '',
     });
-    console.log(secondVertex.index);
-    console.log(currentValue);
-    console.log("Vertex data:");
-    console.log(vertexData);
     this.preferences.set('graphEdgeSrcTarVisibility', {
-      ...this.preferences.get('graphEdgeSrcTarVisibility'),
-      [edgeMapValue]: !currentValue,
+      [mapString]:
+        edgeVisibility && edgeVisibility[mapString] !== undefined
+          ? !edgeVisibility[mapString]
+          : !edge.show,
     });
-    console.log("Edge data:");
-    console.log(edge);
   }
 
   refreshData() {
