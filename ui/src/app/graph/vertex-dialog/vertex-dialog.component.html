@@ -8,7 +8,7 @@
     <mat-select [formControl]="collectionControl"
       name="type">
       <mat-option value="" selected></mat-option>
-      <mat-option *ngFor="let value of configs" [value]="value">{{value.collection | camelToTitle}}</mat-option>
+      <mat-option *ngFor="let value of configs" [value]="value">{{value.name}}</mat-option>
     </mat-select>
   </mat-form-field>
 

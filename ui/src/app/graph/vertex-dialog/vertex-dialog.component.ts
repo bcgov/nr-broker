@@ -19,7 +19,6 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -38,7 +37,6 @@ import { CamelToTitlePipe } from '../camel-to-title.pipe';
     MatDividerModule,
     VertexFormBuilderComponent,
     MatButtonModule,
-    CamelToTitlePipe,
   ],
 })
 export class VertexDialogComponent {

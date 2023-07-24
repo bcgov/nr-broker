@@ -1,0 +1,18 @@
+
+.property-editor-fields {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.property-editor-fields:nth-child(1) {
+  flex-grow: 0;
+}
+
+.property-editor-fields:nth-child(2) {
+  flex-grow: 2;
+}
+
+.property-editor-fields:nth-child(3) {
+  flex-grow: 3;
+}

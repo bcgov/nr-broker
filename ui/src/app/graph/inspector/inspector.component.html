@@ -5,7 +5,7 @@
         <mat-card-subtitle class="text-oneline" [style.width.px]="titleWidth - 130">
           <ng-container *ngIf="!target">Click graph item to view</ng-container>
           <ng-container *ngIf="target">{{target.type | titlecase}}</ng-container>
-          <ng-container *ngIf="target && target.type === 'vertex'"> - {{target.data.collection | camelToTitle}}</ng-container>
+          <ng-container *ngIf="latestConfig && target && target.type === 'vertex'"> - {{latestConfig[target.data.collection].name}}</ng-container>
         </mat-card-subtitle>
         <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
           <ng-container *ngIf="target && target.type === 'vertex'">{{target.data.name}}</ng-container>
@@ -51,7 +51,7 @@
     <div *ngIf="target">
 
       <div *ngIf="target.type === 'edge'">
-        <h3 class="edge-heading">Source<ng-container *ngIf="latestData && target"> - {{latestData.idToVertex[target.data.source].collection | camelToTitle}}</ng-container></h3>
+        <h3 class="edge-heading">Source<ng-container *ngIf="latestData && target && latestConfig"> - {{latestConfig[latestData.idToVertex[target.data.source].collection].name}}</ng-container></h3>
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">
             <mat-chip-listbox [selectable]="false">
@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        <h3 class="edge-heading">Target<ng-container *ngIf="latestData && target"> - {{latestData.idToVertex[target.data.target].collection | camelToTitle}}</ng-container></h3>
+        <h3 class="edge-heading">Target<ng-container *ngIf="latestData && target && latestConfig"> - {{latestConfig[latestData.idToVertex[target.data.target].collection].name}}</ng-container></h3>
 
         <div class="wrapper vertex-edge-type-container">
           <div class="fields-wrapper">

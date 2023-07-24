@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -8,22 +8,22 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { Observable, map, startWith } from 'rxjs';
-import { GraphDataVertex } from '../../service/graph.types';
-import { GraphApiService } from '../../service/graph-api.service';
 import {
-  CollectionConfigResponseDto,
-  CollectionEdgeConfig,
-} from '../../service/dto/collection-config-rest.dto';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
+  CollectionConfigMap,
+  GraphDataVertex,
+} from '../../service/graph.types';
+import { GraphApiService } from '../../service/graph-api.service';
+import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
+import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 
 @Component({
   selector: 'app-edge-dialog',
@@ -31,38 +31,36 @@ import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
   styleUrls: ['./edge-dialog.component.scss'],
   standalone: true,
   imports: [
-    MatDialogModule,
+    CommonModule,
     FormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-    MatIconModule,
-    MatOptionModule,
-    NgIf,
-    NgFor,
-    MatInputModule,
     MatAutocompleteModule,
-    VertexNameComponent,
     MatButtonModule,
-    AsyncPipe,
-    CamelToTitlePipe,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatOptionModule,
+    MatSelectModule,
+    PropertyEditorComponent,
+    ReactiveFormsModule,
+    VertexNameComponent,
   ],
 })
 export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex>('');
-  properties: {
-    key: FormControl<string | null>;
-    value: FormControl<string | null>;
-  }[] = [];
 
   filteredOptions!: Observable<GraphDataVertex[]>;
   targetVertices: GraphDataVertex[] = [];
 
+  @ViewChild(PropertyEditorComponent)
+  private propertyEditorComponent!: PropertyEditorComponent;
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public data: {
-      config: CollectionConfigResponseDto;
+      collection: string;
+      config: CollectionConfigMap;
       vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
       target?: GraphDataResponseEdgeDto;
@@ -82,11 +80,6 @@ export class EdgeDialogComponent implements OnInit {
         }
       }),
     );
-    if (this.data.target?.prop) {
-      for (const key of Object.keys(this.data.target.prop)) {
-        this.addProperty(key, this.data.target.prop[key]);
-      }
-    }
   }
 
   private _filter(value: string): GraphDataVertex[] {
@@ -122,41 +115,10 @@ export class EdgeDialogComponent implements OnInit {
     }
   }
 
-  addProperty(key = '', value = '') {
-    this.properties.push({
-      key: new FormControl<string>(key),
-      value: new FormControl<string>(value),
-    });
-    return false;
-  }
-
-  removeProperty(property: any) {
-    this.properties = this.properties.filter((p) => {
-      return p !== property;
-    });
-  }
-
-  getPropertyValues() {
-    if (this.properties.length === 0) {
-      return {};
-    }
-    return {
-      prop: this.properties.reduce(
-        (pv, cv) => {
-          if (cv.key.value && cv.value.value) {
-            pv[cv.key.value] = cv.value.value;
-          }
-          return pv;
-        },
-        {} as { [key: string]: string },
-      ),
-    };
-  }
-
   addEditEdge() {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
-    const prop = this.getPropertyValues();
+    const prop = this.propertyEditorComponent.getPropertyValues();
 
     if (
       !this.data.target &&

@@ -11,7 +11,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule, MatSelectionList } from '@angular/material/list';
 import { Observable } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CamelToTitlePipe } from '../camel-to-title.pipe';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { VertexNavigation } from '../../service/graph.types';
 
@@ -27,7 +26,6 @@ import { VertexNavigation } from '../../service/graph.types';
     MatListModule,
     VertexNameComponent,
     MatButtonModule,
-    CamelToTitlePipe,
     CommonModule,
   ],
 })
