@@ -13,7 +13,7 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30 \
     -d @<(cat provision-app-backend-intention.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.id=\"$(whoami)@idir\" | \
-            (.actions[] | select(.id == \"install\") .service.version) |= \"$INSTALL_VERSION\" \
+            (.actions[] | select(.id == \"install\") .package.version) |= \"$INSTALL_VERSION\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"
