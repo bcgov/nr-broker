@@ -6,7 +6,7 @@
   <div *ngIf="!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0" class="edge-container edge-container-margin-left">None</div>
   <div *ngIf="instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0" class="edge-container edge-container-margin-left">
     <mat-accordion>
-      <mat-expansion-panel *ngFor="let item of instance.pkgInstallHistory.reverse()">
+      <mat-expansion-panel *ngFor="let item of instance.pkgInstallHistory">
         <mat-expansion-panel-header>
           <mat-panel-title>
             {{item.version}}
@@ -15,12 +15,6 @@
             {{item.installed | date:'short' }}
           </mat-panel-description>
         </mat-expansion-panel-header>
-
-        <!-- <div class="panel-container">
-          <div>Version</div>
-          <div>{{item.version}}</div>
-        </div>
-        <mat-divider></mat-divider> -->
 
         <div class="panel-container">
           <div>User</div>

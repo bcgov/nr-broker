@@ -12,9 +12,9 @@
     </button>
 
     <mat-menu #menu="matMenu">
-      <button mat-menu-item [matMenuTriggerFor]="vertex">Vertex</button>
-      <button mat-menu-item [matMenuTriggerFor]="edge">Edge</button>
-      <button mat-menu-item (click)="resetGraphVisibility()">Reset</button>
+      <button mat-menu-item [matMenuTriggerFor]="vertex"><mat-icon>scatter_plot</mat-icon>Vertex</button>
+      <button mat-menu-item [matMenuTriggerFor]="edge"><mat-icon>airline_stops</mat-icon>Edge</button>
+      <button mat-menu-item (click)="resetGraphVisibility()"><mat-icon>undo</mat-icon>Reset</button>
     </mat-menu>
 
     <ng-template #toggleOff><mat-icon>check_box_outline_blank</mat-icon></ng-template>
