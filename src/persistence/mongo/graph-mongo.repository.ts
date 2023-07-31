@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MongoRepository } from 'typeorm';
+import { DataSource, MongoRepository, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { get, set } from 'radash';
 import { EdgeDto } from '../dto/edge.dto';
@@ -417,6 +417,35 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     return rval;
+  }
+
+  public async searchVertex(
+    collection: string,
+    edgeName?: string,
+    edgeTarget?: string,
+  ): Promise<VertexDto[]> {
+    const pipeline: ObjectLiteral[] = [{ $match: { collection } }];
+    if (edgeName !== undefined && edgeTarget !== undefined) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: 'edge',
+            localField: '_id',
+            foreignField: 'source',
+            as: 'edge',
+            pipeline: [
+              { $match: { name: edgeName, target: new ObjectId(edgeTarget) } },
+            ],
+          },
+        },
+        { $unwind: '$edge' },
+      );
+    }
+    pipeline.push(
+      { $addFields: { id: '$_id', 'edge.id': '$edge._id' } },
+      { $unset: ['_id', 'edge._id'] },
+    );
+    return this.vertexRepository.aggregate(pipeline).toArray();
   }
 
   public async upsertVertex(

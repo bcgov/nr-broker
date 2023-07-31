@@ -39,6 +39,11 @@ export abstract class GraphRepository {
   ): Promise<VertexDto>;
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;
+  public abstract searchVertex(
+    collection: string,
+    edgeName?: string,
+    edgeTarget?: string,
+  ): Promise<VertexDto[]>;
   public abstract getUpstreamVertex(
     id: string,
     index: number,

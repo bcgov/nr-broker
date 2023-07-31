@@ -201,6 +201,33 @@ export class GraphService {
     }
   }
 
+  async searchVertex(
+    collection: string,
+    edgeName?: string,
+    edgeTarget?: string,
+  ) {
+    if ((edgeName === undefined) !== (edgeTarget === undefined)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
+    try {
+      return await this.graphRepository.searchVertex(
+        collection,
+        edgeName,
+        edgeTarget,
+      );
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
   public async deleteVertex(req: Request, id: string): Promise<boolean> {
     try {
       const resp = await this.graphRepository.deleteVertex(id);
