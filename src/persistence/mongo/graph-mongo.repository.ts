@@ -13,7 +13,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
-import { VertexInsertDto } from '../dto/vertex-rest.dto';
+import { VertexInsertDto, VertexSearchDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 
@@ -423,7 +423,7 @@ export class GraphMongoRepository implements GraphRepository {
     collection: string,
     edgeName?: string,
     edgeTarget?: string,
-  ): Promise<VertexDto[]> {
+  ): Promise<VertexSearchDto[]> {
     const pipeline: ObjectLiteral[] = [{ $match: { collection } }];
     if (edgeName !== undefined && edgeTarget !== undefined) {
       pipeline.push(
@@ -445,7 +445,9 @@ export class GraphMongoRepository implements GraphRepository {
       { $addFields: { id: '$_id', 'edge.id': '$edge._id' } },
       { $unset: ['_id', 'edge._id'] },
     );
-    return this.vertexRepository.aggregate(pipeline).toArray();
+    return this.vertexRepository
+      .aggregate(pipeline)
+      .toArray() as unknown as VertexSearchDto[];
   }
 
   public async upsertVertex(

@@ -1,22 +1,33 @@
-import { CollectionDtoUnion } from './collection-dto-union.type';
 import { PointGeom } from './point.geom';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export interface VertexSearchDto {
-  id: string;
-  collection: string;
-  data: any;
+export class VertexPropDto {
+  [key: string]: string;
+}
+
+type CollectionNames =
+  | 'brokerAccount'
+  | 'environment'
+  | 'project'
+  | 'serviceInstance'
+  | 'service'
+  | 'team'
+  | 'user';
+
+export class VertexSearchDto {
+  id!: string;
+  collection!: CollectionNames;
   geo?: PointGeom;
-  prop?: { [key: string]: string };
-  edge: {
-    prop?: { [key: string]: string };
+  prop?: VertexPropDto;
+  edge!: {
+    prop?: VertexPropDto;
   };
 }
 
-export interface VertexInsertDto {
-  collection: keyof CollectionDtoUnion;
+export class VertexInsertDto {
+  collection!: CollectionNames;
   data: any;
   geo?: PointGeom;
-  prop?: any;
+  prop?: VertexPropDto;
 }
