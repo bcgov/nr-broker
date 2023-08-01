@@ -1,3 +1,4 @@
+import { CollectionNames } from './collection-names.type';
 import { PointGeom } from './point.geom';
 
 // Shared DTO: Copy in back-end and front-end should be identical
@@ -5,15 +6,6 @@ import { PointGeom } from './point.geom';
 export class VertexPropDto {
   [key: string]: string;
 }
-
-type CollectionNames =
-  | 'brokerAccount'
-  | 'environment'
-  | 'project'
-  | 'serviceInstance'
-  | 'service'
-  | 'team'
-  | 'user';
 
 export class VertexSearchDto {
   id!: string;
