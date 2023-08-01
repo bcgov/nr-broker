@@ -1,3 +1,5 @@
+import { CollectionNames } from './collection-names.type';
+
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface GraphDataResponseEdgeDto {
   id: string;
@@ -12,7 +14,7 @@ export interface GraphDataResponseEdgeDto {
 export interface GraphDataResponseVertexDto {
   id: string;
   category: number;
-  collection: string;
+  collection: CollectionNames;
   index: number;
   name: string;
   prop?: any;

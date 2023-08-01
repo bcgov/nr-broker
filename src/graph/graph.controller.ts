@@ -76,6 +76,26 @@ export class GraphController {
     return this.graph.addVertex(request, vertex);
   }
 
+  @Post('vertex/search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'edgeName',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'edgeTarget',
+    required: false,
+  })
+  searchVertex(
+    @Req() request: Request,
+    @Query('collection') collection: string,
+    @Query('edgeName') edgeName?: string,
+    @Query('edgeTarget') edgeTarget?: string,
+  ) {
+    return this.graph.searchVertex(collection, edgeName, edgeTarget);
+  }
+
   @Put('vertex/:id')
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
