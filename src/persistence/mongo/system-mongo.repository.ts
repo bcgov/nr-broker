@@ -9,14 +9,11 @@ import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';
 import { PreferenceDto } from '../dto/preference.dto';
 import { PreferenceRestDto } from '../dto/preference-rest.dto';
-import { BrokerAccountDto } from '../dto/broker-account.dto';
 import { ObjectId } from 'mongodb';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
-    @InjectRepository(BrokerAccountDto)
-    private accountRepository: MongoRepository<BrokerAccountDto>,
     @InjectRepository(JwtAllowDto)
     private jwtAllowRepository: MongoRepository<JwtAllowDto>,
     @InjectRepository(JwtBlockDto)

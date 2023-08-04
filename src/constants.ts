@@ -48,3 +48,5 @@ export const OAUTH2_CLIENT_MAP_NAME =
   process.env.OAUTH2_CLIENT_MAP_NAME ?? 'display_name';
 export const OAUTH2_CLIENT_MAP_USERNAME =
   process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
+export const OAUTH2_CLIENT_MAP_ROLES =
+  process.env.OAUTH2_CLIENT_MAP_ROLES ?? 'client_roles';

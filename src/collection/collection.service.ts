@@ -3,21 +3,16 @@ import { Request } from 'express';
 import { GraphService } from '../graph/graph.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
-import { UserDto } from '../persistence/dto/user.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
-import {
-  OAUTH2_CLIENT_MAP_EMAIL,
-  OAUTH2_CLIENT_MAP_GUID,
-  OAUTH2_CLIENT_MAP_NAME,
-  OAUTH2_CLIENT_MAP_USERNAME,
-} from '../constants';
+import { UserImportDto } from './dto/user-import.dto';
+import { UserRolesDto } from './dto/user-roles.dto';
 
 @Injectable()
 export class CollectionService {
   constructor(
-    private readonly graphService: GraphService,
     private readonly collectionRepository: CollectionRepository,
+    private readonly graphService: GraphService,
   ) {}
 
   public async getCollectionConfig(): Promise<CollectionConfigDto[]> {
@@ -45,41 +40,37 @@ export class CollectionService {
     }
   }
 
-  async upsertUser(req: Request, userInfo: any): Promise<UserDto> {
-    const loggedInUser = new UserDto();
-    loggedInUser.email = userInfo[OAUTH2_CLIENT_MAP_EMAIL];
-    loggedInUser.guid = userInfo[OAUTH2_CLIENT_MAP_GUID];
-    loggedInUser.name = userInfo[OAUTH2_CLIENT_MAP_NAME];
-    loggedInUser.username = userInfo[OAUTH2_CLIENT_MAP_USERNAME].toLowerCase();
+  async extractUserFromRequest(req: Request): Promise<UserRolesDto> {
+    const loggedInUser = new UserRolesDto((req.user as any).userinfo);
+    await this.upsertUser(req, loggedInUser.toUserImportDto());
+    return loggedInUser;
+  }
 
+  async upsertUser(req: Request, userInfo: UserImportDto) {
     const existingUser =
       await this.collectionRepository.getCollectionByKeyValue(
         'user',
         'guid',
-        loggedInUser.guid,
+        userInfo.guid,
       );
-    if (existingUser) {
-      // TODO: update part of upsert
-      existingUser.roles = userInfo.client_roles ? userInfo.client_roles : [];
-      return existingUser;
-    } else {
-      const vertex: VertexInsertDto = {
-        collection: 'user',
-        data: loggedInUser,
-      };
-
-      const insertedVertex = await this.graphService.addVertex(
+    const vertex: VertexInsertDto = {
+      collection: 'user',
+      data: userInfo,
+    };
+    if (
+      existingUser &&
+      (existingUser.email !== userInfo.email ||
+        existingUser.name !== userInfo.name ||
+        existingUser.username !== userInfo.username)
+    ) {
+      await this.graphService.editVertex(
         req,
+        existingUser.vertex.toString(),
         vertex,
         true,
       );
-      const insertedUser =
-        await this.collectionRepository.getCollectionByVertexId(
-          'user',
-          insertedVertex.id.toString(),
-        );
-      insertedUser.roles = userInfo.client_roles ? userInfo.client_roles : [];
-      return insertedUser;
+    } else if (!existingUser) {
+      await this.graphService.addVertex(req, vertex, true);
     }
   }
 }

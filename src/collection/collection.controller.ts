@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -16,10 +17,11 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
 import { UserUpstream } from '../user-upstream.decorator';
-
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
-import { UserDto } from '../persistence/dto/user.dto';
+import { UserImportDto } from './dto/user-import.dto';
+import { UserRolesDto } from './dto/user-roles.dto';
+import { AccountPermission } from '../account-permission.decorator';
 
 @Controller({
   path: 'collection',
@@ -34,8 +36,20 @@ export class CollectionController {
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiOAuth2(['openid', 'profile'])
-  async user(@Request() req: ExpressRequest): Promise<UserDto> {
-    return await this.service.upsertUser(req, (req.user as any).userinfo);
+  async user(@Request() req: ExpressRequest): Promise<UserRolesDto> {
+    return await this.service.extractUserFromRequest(req);
+  }
+
+  @Post('user/import')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @Roles('admin')
+  @AccountPermission('enableUserImport')
+  @ApiBearerAuth()
+  async userImport(
+    @Request() req: ExpressRequest,
+    @Body() userDto: UserImportDto,
+  ): Promise<void> {
+    return this.service.upsertUser(req, userDto);
   }
 
   @Get('config')
