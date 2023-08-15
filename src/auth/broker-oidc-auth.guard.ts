@@ -46,9 +46,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       if (!collection) {
         throw new BadRequestException();
       }
-      const config = await this.collectionRepository.getCollectionConfigByName(
-        'user',
-      );
+      const config =
+        await this.collectionRepository.getCollectionConfigByName('user');
       if (!config) {
         throw new InternalServerErrorException();
       }

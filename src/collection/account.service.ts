@@ -102,9 +102,8 @@ export class AccountService {
       return;
     }
 
-    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
-      CURRENT_TIME_S,
-    );
+    const expiredJwtArr =
+      await this.systemRepository.findExpiredRegistryJwts(CURRENT_TIME_S);
     for (const expiredJwt of expiredJwtArr) {
       await this.systemRepository.deleteRegistryJwt(expiredJwt);
     }

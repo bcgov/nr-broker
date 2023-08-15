@@ -50,9 +50,8 @@ export class BrokerJwtAuthGuard extends AuthGuard('jwt') {
             throw new UnauthorizedException();
           }
 
-          const brokerAccount = await this.persistenceUtilService.getAccount(
-            registryJwt,
-          );
+          const brokerAccount =
+            await this.persistenceUtilService.getAccount(registryJwt);
           if (!brokerAccount) {
             throw new UnauthorizedException();
           }

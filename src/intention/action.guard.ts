@@ -19,9 +19,8 @@ export class ActionGuard implements CanActivate {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
-    const intObj = await this.intentionRepository.getIntentionByActionToken(
-      token,
-    );
+    const intObj =
+      await this.intentionRepository.getIntentionByActionToken(token);
     if (!intObj) {
       throw new NotFoundException({
         statusCode: 404,
