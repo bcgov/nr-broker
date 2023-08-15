@@ -4,9 +4,10 @@ import { AuditModule } from '../audit/audit.module';
 import { TokenModule } from '../token/token.module';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
+import { PersistenceModule } from '../persistence/persistence.module';
 
 @Module({
-  imports: [AuditModule, TerminusModule, TokenModule],
+  imports: [AuditModule, PersistenceModule, TerminusModule, TokenModule],
   controllers: [HealthController],
   providers: [HealthService],
 })

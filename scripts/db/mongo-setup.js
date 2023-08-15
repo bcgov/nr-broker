@@ -314,6 +314,13 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'Generated UUID used to uniquely identify all generated JWTs',
     },
+    enableUserImport: {
+      name: 'Enable user import',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable account to import users',
+      value: false,
+    },
     requireRoleId: {
       name: 'Require RoleId',
       required: true,
@@ -359,6 +366,7 @@ result = db.collectionConfig.insertOne({
     {
       collection: 'service',
       name: 'uses',
+      inboundName: 'used by',
       relation: 'oneToMany',
       show: false,
     },

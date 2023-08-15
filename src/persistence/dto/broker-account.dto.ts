@@ -18,6 +18,9 @@ export class BrokerAccountDto extends VertexPointerDto {
   name: string;
 
   @Column()
+  enableUserImport: boolean;
+
+  @Column()
   requireRoleId: boolean;
 
   @Column()

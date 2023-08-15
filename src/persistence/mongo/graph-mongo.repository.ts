@@ -343,6 +343,7 @@ export class GraphMongoRepository implements GraphRepository {
   public async editVertex(
     id: string,
     vertexInsert: VertexInsertDto,
+    ignorePermissions = false,
   ): Promise<VertexDto> {
     let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const curVertex = this.getVertex(id);
@@ -357,7 +358,7 @@ export class GraphMongoRepository implements GraphRepository {
     );
 
     const collectionData = vertexInsert.data;
-    if (config === null || !config.permissions.update) {
+    if (!ignorePermissions && (config === null || !config.permissions.update)) {
       throw new Error();
     }
     // Don't allow vertex or _id to be set
@@ -379,7 +380,7 @@ export class GraphMongoRepository implements GraphRepository {
         delete collectionData[fkey];
       }
     }
-    // TODO: Check collectionData conforms on collection
+    // TODO: Check collectionData conforms to collection config
     const collResult = await repository.updateOne(
       { vertex: new ObjectId(id) },
       {
@@ -501,7 +502,7 @@ export class GraphMongoRepository implements GraphRepository {
         vertex.name,
       );
       if (curVertex) {
-        return this.editVertex(curVertex.id.toString(), vertexInsert);
+        return this.editVertex(curVertex.id.toString(), vertexInsert, true);
       } else {
         return this.addVertex(vertexInsert, true);
       }

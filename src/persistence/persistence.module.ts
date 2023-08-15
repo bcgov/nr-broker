@@ -26,6 +26,7 @@ import { CollectionMongoRepository } from './mongo/collection-mongo.repository';
 import { CollectionRepository } from './interfaces/collection.repository';
 import { SystemMongoRepository } from './mongo/system-mongo.repository';
 import { SystemRepository } from './interfaces/system.repository';
+import { PersistenceUtilService } from './persistence-util.service';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { SystemRepository } from './interfaces/system.repository';
     IntentionMongoRepository,
     { provide: IntentionRepository, useExisting: IntentionMongoRepository },
     IntentionSyncService,
+    PersistenceUtilService,
     SystemMongoRepository,
     {
       provide: SystemRepository,
@@ -72,6 +74,7 @@ import { SystemRepository } from './interfaces/system.repository';
     GraphRepository,
     IntentionRepository,
     IntentionSyncService,
+    PersistenceUtilService,
     SystemRepository,
   ],
 })

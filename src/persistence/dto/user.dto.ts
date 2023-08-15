@@ -18,8 +18,5 @@ export class UserDto extends VertexPointerDto {
   name: string;
 
   @Column()
-  roles?: string[];
-
-  @Column()
   username: string;
 }

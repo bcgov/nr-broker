@@ -161,6 +161,7 @@ export class GraphService {
     req: Request,
     id: string,
     vertex: VertexInsertDto,
+    ignorePermissions = false,
   ): Promise<VertexDto> {
     try {
       this.auditService.recordGraphAction(
@@ -169,7 +170,7 @@ export class GraphService {
         null,
         'success',
       );
-      return this.graphRepository.editVertex(id, vertex);
+      return this.graphRepository.editVertex(id, vertex, ignorePermissions);
     } catch (error) {
       this.auditService.recordGraphAction(
         req,
