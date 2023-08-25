@@ -11,6 +11,7 @@ export class VertexSearchDto {
   id!: string;
   collection!: CollectionNames;
   geo?: PointGeom;
+  name!: string;
   prop?: VertexPropDto;
   edge!: {
     prop?: VertexPropDto;

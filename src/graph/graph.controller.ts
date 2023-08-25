@@ -80,6 +80,10 @@ export class GraphController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({
+    name: 'typeahead',
+    required: false,
+  })
+  @ApiQuery({
     name: 'edgeName',
     required: false,
   })
@@ -88,12 +92,12 @@ export class GraphController {
     required: false,
   })
   searchVertex(
-    @Req() request: Request,
     @Query('collection') collection: string,
+    @Query('typeahead') typeahead?: string,
     @Query('edgeName') edgeName?: string,
     @Query('edgeTarget') edgeTarget?: string,
   ) {
-    return this.graph.searchVertex(collection, edgeName, edgeTarget);
+    return this.graph.searchVertex(collection, typeahead, edgeName, edgeTarget);
   }
 
   @Put('vertex/:id')

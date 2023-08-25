@@ -40,6 +40,7 @@
     "connect-mongo": "^5.0.0",
     "ejs": "^3.1.9",
     "express-session": "^1.17.3",
+    "file-stream-rotator": "^1.0.0",
     "helmet": "^7.0.0",
     "lodash.merge": "^4.6.2",
     "mongodb": "^5.7.0",

@@ -9,7 +9,7 @@ import {
 } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
-import { VertexInsertDto } from './dto/vertex-rest.dto';
+import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
 import { IntentionSearchResult } from './dto/intention-search-result.dto';
 
 @Injectable({
@@ -129,6 +129,15 @@ export class GraphApiService {
     const whereQuery = encodeURIComponent(JSON.stringify(whereClause));
     return this.http.post<IntentionSearchResult>(
       `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  searchVertex(collection: string, typeahead: string) {
+    return this.http.post<VertexSearchDto[]>(
+      `${environment.apiUrl}/v1/graph/vertex/search?collection=${collection}&typeahead=${typeahead}`,
       {
         responseType: 'json',
       },

@@ -22,8 +22,9 @@ import {
   appInitializeUserFactory,
 } from './app/app-initialize.factory';
 import { MatDialogModule } from '@angular/material/dialog';
-import { RouterModule } from '@angular/router';
+import { RouterModule, TitleStrategy } from '@angular/router';
 import { ROUTES } from './routes';
+import { RouteTitleStrategy } from './route-title.strategy';
 
 if (environment.production) {
   enableProdMode();
@@ -51,6 +52,10 @@ bootstrapApplication(AppComponent, {
       multi: true,
     },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    {
+      provide: TitleStrategy,
+      useClass: RouteTitleStrategy,
+    },
     provideAnimations(),
     provideHttpClient(withInterceptorsFromDi()),
   ],

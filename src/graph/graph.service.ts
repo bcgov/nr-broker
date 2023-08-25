@@ -204,6 +204,7 @@ export class GraphService {
 
   async searchVertex(
     collection: string,
+    typeahead?: string,
     edgeName?: string,
     edgeTarget?: string,
   ) {
@@ -215,11 +216,18 @@ export class GraphService {
       });
     }
     try {
-      return await this.graphRepository.searchVertex(
+      const results = await this.graphRepository.searchVertex(
         collection,
         edgeName,
         edgeTarget,
       );
+      const searchString = typeahead.toLowerCase();
+      if (typeahead) {
+        return results.filter((result) =>
+          result.name.toLocaleLowerCase().includes(searchString),
+        );
+      }
+      return results;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

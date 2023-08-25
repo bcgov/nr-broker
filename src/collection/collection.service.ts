@@ -40,10 +40,26 @@ export class CollectionService {
     }
   }
 
+  async searchCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    upstreamVertex: string | undefined,
+    vertexId: string | undefined,
+    offset: number,
+    limit: number,
+  ) {
+    return this.collectionRepository.searchCollection(
+      type,
+      upstreamVertex,
+      vertexId,
+      offset,
+      limit,
+    );
+  }
+
   async extractUserFromRequest(req: Request): Promise<UserRolesDto> {
-    const loggedInUser = new UserRolesDto((req.user as any).userinfo);
-    await this.upsertUser(req, loggedInUser.toUserImportDto());
-    return loggedInUser;
+    const loggedInUser = new UserRolesDto('', (req.user as any).userinfo);
+    const vertex = await this.upsertUser(req, loggedInUser.toUserImportDto());
+    return new UserRolesDto(vertex.toString(), (req.user as any).userinfo);
   }
 
   async upsertUser(req: Request, userInfo: UserImportDto) {
@@ -63,14 +79,18 @@ export class CollectionService {
         existingUser.name !== userInfo.name ||
         existingUser.username !== userInfo.username)
     ) {
-      await this.graphService.editVertex(
-        req,
-        existingUser.vertex.toString(),
-        vertex,
-        true,
-      );
+      return (
+        await this.graphService.editVertex(
+          req,
+          existingUser.vertex.toString(),
+          vertex,
+          true,
+        )
+      ).id;
     } else if (!existingUser) {
-      await this.graphService.addVertex(req, vertex, true);
+      return (await this.graphService.addVertex(req, vertex, true)).id;
     }
+    console.log(existingUser);
+    return existingUser.vertex;
   }
 }

@@ -90,4 +90,5 @@ export interface UserDto {
   name: string;
   roles: string[];
   username: string;
+  vertex: string;
 }

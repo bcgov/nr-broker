@@ -1,3 +1,4 @@
+import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 
@@ -27,4 +28,12 @@ export abstract class CollectionRepository {
   public abstract getCollections<T extends keyof CollectionDtoUnion>(
     type: T,
   ): Promise<CollectionDtoUnion[T][]>;
+
+  public abstract searchCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    upstreamVertex: string | undefined,
+    vertexId: string | undefined,
+    offset: number,
+    limit: number,
+  ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;
 }
