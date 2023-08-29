@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -13,11 +13,11 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class InspectorTeamComponent {
   @Input() instance!: any | undefined;
+  @Output() graphChanged = new EventEmitter<boolean>();
 
   constructor(private dialog: MatDialog) {}
 
   openMemberDialog() {
-    console.log(this.instance);
     if (!this.instance) {
       return;
     }
@@ -32,7 +32,7 @@ export class InspectorTeamComponent {
       })
       .afterClosed()
       .subscribe(() => {
-        //' this.ngOnInit();
+        this.graphChanged.emit(true);
       });
   }
 }

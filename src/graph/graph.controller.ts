@@ -18,7 +18,7 @@ import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { UserUpstream } from '../user-upstream.decorator';
+import { AllowOwner } from '../allow-owner.decorator';
 
 @Controller({
   path: 'graph',
@@ -36,13 +36,9 @@ export class GraphController {
 
   @Post('edge')
   @Roles('admin')
-  @UserUpstream({
+  @AllowOwner({
     graphObjectType: 'vertex',
-    collection: 'team',
-    requiredSourceVertexName: 'team',
-    requiredEdgetoUserName: 'owner',
-    retrieveCollection: 'byVertex',
-    graphBodyKey: 'target',
+    graphIdFromBodyPath: 'target',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -50,8 +46,23 @@ export class GraphController {
     return this.graph.addEdge(request, edge);
   }
 
+  @Post('edge/search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  searchEdge(
+    @Query('name') name: string,
+    @Query('sourceId') sourceId: string,
+    @Query('targetId') targetId: string,
+  ) {
+    return this.graph.getEdgeByNameAndVertices(name, sourceId, targetId);
+  }
+
   @Put('edge/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'edge',
+    graphIdFromBodyPath: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   editEdge(
@@ -71,11 +82,9 @@ export class GraphController {
 
   @Delete('edge/:id')
   @Roles('admin')
-  @UserUpstream({
+  @AllowOwner({
     graphObjectType: 'edge',
-    requiredSourceVertexName: 'team',
-    requiredEdgetoUserName: 'owner',
-    graphParamKey: 'id',
+    graphIdFromParamKey: 'id',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -117,6 +126,10 @@ export class GraphController {
 
   @Put('vertex/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'vertex',
+    graphIdFromParamKey: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   editVertex(

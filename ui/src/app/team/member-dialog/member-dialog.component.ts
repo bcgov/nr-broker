@@ -1,6 +1,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
@@ -58,10 +62,12 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   private triggerRefresh = new Subject<void>();
   loading = true;
   isOwner = false;
+  modified = false;
 
   constructor(
     private graphApi: GraphApiService,
     private collectionApi: CollectionApiService,
+    public dialogRef: MatDialogRef<MemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: { id: string; vertex: string; name: string },
     @Inject(CURRENT_USER) public user: UserDto,
@@ -118,8 +124,8 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
 
         this.users = users;
         this.loading = false;
-        console.log(this.users['owner']);
-        console.log(this.user);
+        // console.log(this.users['owner']);
+        // console.log(this.user);
         this.isOwner = this.users['owner'].find(
           (user: any) => this.user.vertex == user.vertex,
         );
@@ -147,8 +153,8 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   }
 
   addUser() {
-    console.log(this.userTypeSelected);
-    console.log(this.userControl.value);
+    // console.log(this.userTypeSelected);
+    // console.log(this.userControl.value);
     if (
       this.userControl.value &&
       typeof this.userControl.value !== 'string' &&
@@ -162,6 +168,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         })
         .subscribe(() => {
           this.userControl.setValue(undefined);
+          this.modified = true;
           this.triggerRefresh.next();
         });
     }
@@ -171,6 +178,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     for (const datum of data) {
       const user = datum.value;
       this.graphApi.deleteEdge(user.id).subscribe(() => {
+        this.modified = true;
         this.triggerRefresh.next();
       });
     }

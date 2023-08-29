@@ -149,7 +149,7 @@ export class TeamComponent implements OnInit, OnDestroy {
   }
 
   openMemberDialog(elem: CollectionData<TeamSearchDto>) {
-    console.log(elem);
+    // console.log(elem);
     this.dialog
       .open(MemberDialogComponent, {
         width: '600px',
@@ -157,7 +157,7 @@ export class TeamComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(() => {
-        this.ngOnInit();
+        this.refresh();
       });
   }
 }

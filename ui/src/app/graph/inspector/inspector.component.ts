@@ -32,6 +32,7 @@ import {
   of,
   shareReplay,
   switchMap,
+  tap,
   withLatestFrom,
 } from 'rxjs';
 import {
@@ -174,6 +175,9 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     this.targetSubject
       .pipe(
+        tap(() => {
+          this.isOwner();
+        }),
         switchMap((target) => {
           return this.getUpstreamUsers(target);
         }),
@@ -305,6 +309,23 @@ export class InspectorComponent implements OnChanges, OnInit {
     });
   }
 
+  isOwner() {
+    console.log('isOwner');
+    if (!this.latestConfig || !this.target) {
+      return;
+    }
+
+    const targetId =
+      this.target.type === 'edge'
+        ? this.target.data.target
+        : this.target.data.id;
+    this.graphApi
+      .searchEdge('owner', this.user.vertex, targetId)
+      .subscribe((upstreamData) => {
+        console.log(upstreamData);
+      });
+  }
+
   editTarget() {
     if (!this.latestConfig || !this.collectionData || !this.target) {
       return;
@@ -329,7 +350,7 @@ export class InspectorComponent implements OnChanges, OnInit {
           .afterClosed()
           .subscribe((result) => {
             if (result && result.refresh) {
-              this.graphChanged.emit(true);
+              this.refreshData();
             }
           });
       }
@@ -346,7 +367,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         .afterClosed()
         .subscribe((result) => {
           if (result && result.refresh) {
-            this.graphChanged.emit(true);
+            this.refreshData();
           }
         });
     }
@@ -370,7 +391,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.graphChanged.emit(true);
+          this.refreshData();
         }
       });
   }
@@ -386,7 +407,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.graphChanged.emit(true);
+          this.refreshData();
         }
       });
   }
@@ -402,7 +423,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         : this.graphApi.deleteEdge(this.target.data.id);
 
     obs.subscribe(() => {
-      this.graphChanged.emit(true);
+      this.refreshData();
     });
   }
 
@@ -454,5 +475,9 @@ export class InspectorComponent implements OnChanges, OnInit {
       return '';
     }
     return this.latestConfig[this.target.data.collection].fields[key].type;
+  }
+
+  refreshData() {
+    this.graphChanged.emit(true);
   }
 }

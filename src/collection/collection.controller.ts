@@ -18,13 +18,14 @@ import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
-import { UserUpstream } from '../user-upstream.decorator';
+import { AllowOwner } from '../allow-owner.decorator';
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
+import { get } from 'radash';
 
 @Controller({
   path: 'collection',
@@ -78,12 +79,11 @@ export class CollectionController {
 
   @Post('broker-account/:id/token')
   @Roles('admin')
-  @UserUpstream({
-    collection: 'brokerAccount',
-    graphObjectType: 'vertex',
-    requiredEdgetoUserName: 'administrator',
-    retrieveCollection: 'byId',
-    graphParamKey: 'id',
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    requiredEdgeName: 'administrator',
   })
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
@@ -93,7 +93,7 @@ export class CollectionController {
     return this.accountService.generateAccountToken(
       req,
       id,
-      (req.user as any).userinfo[OAUTH2_CLIENT_MAP_GUID],
+      get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
     );
   }
 

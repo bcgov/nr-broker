@@ -81,6 +81,15 @@ export class GraphApiService {
     });
   }
 
+  searchEdge(name: string, sourceId: string, targetId: string) {
+    return this.http.post<any>(
+      `${environment.apiUrl}/v1/graph/edge/search?name=${name}&sourceId=${sourceId}&targetId=${targetId}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   addVertex(vertex: VertexInsertDto) {
     return this.http.post<any>(
       `${environment.apiUrl}/v1/graph/vertex`,
