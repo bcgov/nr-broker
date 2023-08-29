@@ -138,6 +138,10 @@
           <app-inspector-installs [instance]="collectionData"></app-inspector-installs>
         </ng-container>
 
+        <ng-container *ngIf="target.data.collection === 'team'">
+          <app-inspector-team [instance]="collectionData"></app-inspector-team>
+        </ng-container>
+
         <div class="wrapper vertex-edge-container">
           <div class="fields-wrapper">
             <h3 class="vertex-heading">Inbound</h3>

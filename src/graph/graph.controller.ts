@@ -18,6 +18,7 @@ import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { UserUpstream } from '../user-upstream.decorator';
 
 @Controller({
   path: 'graph',
@@ -35,6 +36,14 @@ export class GraphController {
 
   @Post('edge')
   @Roles('admin')
+  @UserUpstream({
+    graphObjectType: 'vertex',
+    collection: 'team',
+    requiredSourceVertexName: 'team',
+    requiredEdgetoUserName: 'owner',
+    retrieveCollection: 'byVertex',
+    graphBodyKey: 'target',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   addEdge(@Req() request: Request, @Body() edge: EdgeInsertDto) {
@@ -62,6 +71,12 @@ export class GraphController {
 
   @Delete('edge/:id')
   @Roles('admin')
+  @UserUpstream({
+    graphObjectType: 'edge',
+    requiredSourceVertexName: 'team',
+    requiredEdgetoUserName: 'owner',
+    graphParamKey: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   deleteEdge(@Req() request: Request, @Param('id') id: string) {

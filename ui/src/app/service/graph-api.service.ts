@@ -11,6 +11,7 @@ import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
 import { IntentionSearchResult } from './dto/intention-search-result.dto';
+import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -36,6 +37,14 @@ export class GraphApiService {
       {
         responseType: 'json',
       },
+    );
+  }
+
+  getCollectionConfig(collection: string) {
+    return this.getConfig().pipe(
+      map((configs) => {
+        return configs.find((config) => config.collection === collection);
+      }),
     );
   }
 

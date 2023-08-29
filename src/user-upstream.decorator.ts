@@ -1,10 +1,24 @@
 import { SetMetadata } from '@nestjs/common';
 import { CollectionDtoUnion } from './persistence/dto/collection-dto-union.type';
 
-export interface UserUpstreamArgs {
+export type UserUpstreamArgs =
+  | UserUpstreamEdgeArgs
+  | UserUpstreamCollectionArgs;
+export interface UserUpstreamBaseArgs {
+  graphBodyKey?: string;
+  graphParamKey?: string;
+  requiredEdgetoUserName: string;
+  requiredSourceVertexName?: keyof CollectionDtoUnion;
+}
+
+export interface UserUpstreamEdgeArgs extends UserUpstreamBaseArgs {
+  graphObjectType: 'vertex';
   collection: keyof CollectionDtoUnion;
-  edgeName: string;
-  param: string;
+  retrieveCollection: 'byId' | 'byVertex';
+}
+
+export interface UserUpstreamCollectionArgs extends UserUpstreamBaseArgs {
+  graphObjectType: 'edge';
 }
 
 export const UserUpstream = (arg: UserUpstreamArgs) =>

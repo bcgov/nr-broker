@@ -80,8 +80,10 @@ export class CollectionController {
   @Roles('admin')
   @UserUpstream({
     collection: 'brokerAccount',
-    edgeName: 'administrator',
-    param: 'id',
+    graphObjectType: 'vertex',
+    requiredEdgetoUserName: 'administrator',
+    retrieveCollection: 'byId',
+    graphParamKey: 'id',
   })
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(

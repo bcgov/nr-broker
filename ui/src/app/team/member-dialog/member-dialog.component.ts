@@ -8,14 +8,24 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Observable, Subject, startWith, switchMap } from 'rxjs';
+import {
+  Observable,
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  startWith,
+  switchMap,
+} from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexSearchDto } from '../../service/dto/vertex-rest.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
+import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-member-dialog',
@@ -30,6 +40,7 @@ import { UserDto } from '../../service/graph.types';
     MatFormFieldModule,
     MatInputModule,
     MatListModule,
+    MatProgressSpinnerModule,
     MatSelectModule,
     ReactiveFormsModule,
   ],
@@ -37,15 +48,16 @@ import { UserDto } from '../../service/graph.types';
   styleUrls: ['./member-dialog.component.scss'],
 })
 export class MemberDialogComponent implements OnInit, OnDestroy {
-  users: any = [];
-  userMap: any = {};
+  edges: CollectionEdgeConfig[] | undefined;
+  users: any = {};
 
   userTypeSelected = 'developer';
-  userControl = new FormControl<{ id: string } | undefined>(undefined);
+  userControl = new FormControl<{ id: string } | string | undefined>(undefined);
   filteredOptions!: Observable<VertexSearchDto[]>;
 
   private triggerRefresh = new Subject<void>();
   loading = true;
+  isOwner = false;
 
   constructor(
     private graphApi: GraphApiService,
@@ -56,7 +68,12 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    console.log(this.user);
+    this.graphApi.getCollectionConfig('user').subscribe((config) => {
+      if (config) {
+        this.edges = config.edges.filter((edge) => edge.collection === 'team');
+        this.triggerRefresh.next();
+      }
+    });
 
     this.triggerRefresh
       .pipe(
@@ -73,38 +90,70 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       )
       .subscribe((data) => {
         const userMap: any = {};
+        const users: any = {};
+        if (!this.edges) {
+          return;
+        }
+        for (const edge of this.edges) {
+          users[edge.name] = [];
+        }
         for (const upstream of data.data[0].upstream) {
           userMap[upstream._id] = {
             id: upstream._id,
             name: upstream.name,
-            edges: [],
           };
         }
         for (const edge of data.data[0].upstream_edge) {
-          userMap[edge.source].edges.push({
+          users[edge.name].push({
             id: edge._id,
-            name: edge.name,
+            name: userMap[edge.source].name,
+            vertex: edge.source,
           });
         }
-        this.users = Object.values(userMap);
-        this.userMap = userMap;
-        console.log(this.users);
+        for (const edge of this.edges) {
+          users[edge.name] = users[edge.name].sort((a: any, b: any) =>
+            a.name.localeCompare(b.name),
+          );
+        }
+
+        this.users = users;
+        this.loading = false;
+        console.log(this.users['owner']);
+        console.log(this.user);
+        this.isOwner = this.users['owner'].find(
+          (user: any) => this.user.vertex == user.vertex,
+        );
+        //console.log(this.users);
       });
     this.filteredOptions = this.userControl.valueChanges.pipe(
       startWith(undefined),
-      switchMap((value) => this.graphApi.searchVertex('user', value?.id ?? '')),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap((searchTerm) => {
+        if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
+          return this.graphApi.searchVertex('user', searchTerm);
+        }
+        return of([]);
+      }),
     );
-    this.triggerRefresh.next();
   }
 
   ngOnDestroy() {
     this.triggerRefresh.complete();
   }
 
+  isUserSelected() {
+    return this.userControl.value && typeof this.userControl.value !== 'string';
+  }
+
   addUser() {
-    // console.log(this.userTypeSelected);
-    // console.log(this.userControl.value);
-    if (this.userControl.value && this.userControl.value.id) {
+    console.log(this.userTypeSelected);
+    console.log(this.userControl.value);
+    if (
+      this.userControl.value &&
+      typeof this.userControl.value !== 'string' &&
+      this.userControl.value.id
+    ) {
       this.graphApi
         .addEdge({
           name: this.userTypeSelected,
@@ -121,11 +170,9 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   removeUsers(data: any) {
     for (const datum of data) {
       const user = datum.value;
-      for (const edge of user.edges) {
-        this.graphApi.deleteEdge(edge.id).subscribe(() => {
-          this.triggerRefresh.next();
-        });
-      }
+      this.graphApi.deleteEdge(user.id).subscribe(() => {
+        this.triggerRefresh.next();
+      });
     }
   }
 

@@ -1,48 +1,69 @@
 <h2 mat-dialog-title>Members - {{ data.name }}</h2>
 <mat-dialog-content>
 
-  <div class="form-panel">
-    <mat-form-field>
-      <mat-label>Type</mat-label>
-      <mat-select required [(value)]="userTypeSelected">
-        <mat-option value="owner">Owner</mat-option>
-        <mat-option value="developer">Developer</mat-option>
-        <mat-option value="lead-developer">Lead Developer</mat-option>
-      </mat-select>
-    </mat-form-field>
+  <ng-container *ngIf="user.roles.includes('admin') || isOwner">
+    <div class="form-panel">
+      <mat-form-field>
+        <mat-label>Type</mat-label>
+        <mat-select required [(value)]="userTypeSelected">
+          <mat-option *ngFor="let edge of edges" value="{{ edge.name }}">{{ edge.name | titlecase }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>User</mat-label>
-      <input type="text"
-            placeholder="Pick one"
-            aria-label="User"
-            matInput
-            [formControl]="userControl"
-            [matAutocomplete]="auto">
-      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-          {{option.name}}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
+      <mat-form-field>
+        <mat-label>User</mat-label>
+        <input type="text"
+              placeholder="Pick one"
+              aria-label="User"
+              matInput
+              [formControl]="userControl"
+              [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+          <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+            {{ option.name }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
 
-    <button mat-button (click)="addUser()" [disabled]="!userControl.value?.id">Add</button>
-  </div>
+      <button mat-button (click)="addUser()" [disabled]="!isUserSelected()">Add</button>
+    </div>
 
-  <mat-divider></mat-divider>
+    <mat-divider></mat-divider>
+  </ng-container>
 
-  <mat-selection-list #userList>
-    <mat-list-option *ngFor="let searchUser of users" [value]="searchUser" [disabled]="user.vertex == searchUser.id">
-      <span matListItemTitle>{{ searchUser.name }}</span>
-      <span matListItemLine>{{ displayEdgeNames(searchUser.edges) }}</span>
-    </mat-list-option>
-  </mat-selection-list>
+  <mat-spinner *ngIf="loading"></mat-spinner>
 
-  <div class="list-btn-panel">
-    <button mat-button
-      [disabled]="userList.selectedOptions.selected.length == 0"
-      (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
-  </div>
+  <ng-container *ngIf="!loading">
+  <ng-container *ngFor="let edge of edges">
+  <ng-container *ngIf="users[edge.name].length > 0">
+    <ng-container *ngIf="user.roles.includes('admin') || isOwner; else uneditableList">
+      <div class="member-header">
+        <h2>{{ edge.name | titlecase }}</h2>
+
+        <button mat-button
+          [disabled]="userList.selectedOptions.selected.length == 0"
+          (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
+      </div>
+      <mat-selection-list #userList >
+        <mat-list-option *ngFor="let member of users[edge.name]" [value]="member" [disabled]="user.vertex == member.vertex">
+          <span matListItemTitle>{{ member.name }}</span>
+        </mat-list-option>
+      </mat-selection-list>
+    </ng-container>
+    <ng-template #uneditableList>
+      <div class="member-header">
+        <h2>{{ edge.name | titlecase }}</h2>
+      </div>
+      <mat-list role="list">
+        <mat-list-item role="listitem" *ngFor="let member of users[edge.name]">
+          {{ member.name }}
+        </mat-list-item>
+      </mat-list>
+    </ng-template>
+
+  </ng-container>
+  </ng-container>
+  </ng-container>
   <mat-divider></mat-divider>
 </mat-dialog-content>
 

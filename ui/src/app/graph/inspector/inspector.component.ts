@@ -60,6 +60,7 @@ import { PreferencesService } from '../../preferences.service';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
+import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 
 @Component({
   selector: 'app-inspector',
@@ -75,6 +76,7 @@ import { InspectorInstallsComponent } from '../inspector-installs/inspector-inst
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorIntentionsComponent,
+    InspectorTeamComponent,
     KeyValuePipe,
     MatButtonModule,
     MatCardModule,

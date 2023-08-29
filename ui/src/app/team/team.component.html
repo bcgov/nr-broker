@@ -50,11 +50,8 @@
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef> Action </th>
           <td mat-cell *matCellDef="let element">
-            <button mat-button extended color="primary" (click)="openMemberDialog(element)">
+            <button mat-stroked-button extended color="primary" (click)="openMemberDialog(element)">
               Members
-            </button>
-            <button mat-button extended (click)="openMemberDialog(element)">
-              Graph
             </button>
           </td>
         </ng-container>

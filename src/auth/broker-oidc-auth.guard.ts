@@ -38,11 +38,20 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       'user-upstream',
       context.getHandler(),
     );
-    if (userUpstreamData) {
-      const collection = await this.collectionRepository.getCollectionById(
-        userUpstreamData.collection,
-        request.params[userUpstreamData.param],
-      );
+    if (userUpstreamData && userUpstreamData.graphObjectType === 'vertex') {
+      const id = userUpstreamData.graphParamKey
+        ? request.params[userUpstreamData.graphParamKey]
+        : request.body[userUpstreamData.graphBodyKey];
+      const collection =
+        userUpstreamData.retrieveCollection === 'byId'
+          ? await this.collectionRepository.getCollectionById(
+              userUpstreamData.collection,
+              id,
+            )
+          : await this.collectionRepository.getCollectionByVertexId(
+              userUpstreamData.collection,
+              id,
+            );
       if (!collection) {
         throw new BadRequestException();
       }
@@ -55,7 +64,40 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       const upstream = await this.graphRepository.getUpstreamVertex(
         collection.vertex.toString(),
         config.index,
-        [userUpstreamData.edgeName],
+        [userUpstreamData.requiredEdgetoUserName],
+      );
+      if (
+        upstream.filter(
+          (data) =>
+            data.collection.guid ===
+            request.user.userinfo[OAUTH2_CLIENT_MAP_GUID],
+        ).length > 0
+      ) {
+        return true;
+      }
+    } else if (
+      userUpstreamData &&
+      userUpstreamData.graphObjectType === 'edge'
+    ) {
+      const id = userUpstreamData.graphParamKey
+        ? request.params[userUpstreamData.graphParamKey]
+        : request.body[userUpstreamData.graphBodyKey];
+      console.log(request);
+      const edge = await this.graphRepository.getEdge(id);
+      if (!edge) {
+        throw new BadRequestException();
+      }
+
+      const config =
+        await this.collectionRepository.getCollectionConfigByName('user');
+      if (!config) {
+        throw new InternalServerErrorException();
+      }
+
+      const upstream = await this.graphRepository.getUpstreamVertex(
+        edge.target.toString(),
+        config.index,
+        [userUpstreamData.requiredEdgetoUserName],
       );
       if (
         upstream.filter(
