@@ -34,6 +34,7 @@
   <mat-spinner *ngIf="loading"></mat-spinner>
 
   <ng-container *ngIf="!loading">
+  <h2 *ngIf="userCount == 0" class="no-members">No members</h2>
   <ng-container *ngFor="let edge of edges">
   <ng-container *ngIf="users[edge.name].length > 0">
     <ng-container *ngIf="user.roles.includes('admin') || isOwner; else uneditableList">

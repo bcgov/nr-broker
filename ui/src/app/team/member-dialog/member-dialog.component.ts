@@ -61,6 +61,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
 
   private triggerRefresh = new Subject<void>();
   loading = true;
+  userCount = 0;
   isOwner = false;
   modified = false;
 
@@ -100,6 +101,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         if (!this.edges) {
           return;
         }
+        this.userCount = 0;
         for (const edge of this.edges) {
           users[edge.name] = [];
         }
@@ -110,6 +112,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
           };
         }
         for (const edge of data.data[0].upstream_edge) {
+          this.userCount++;
           users[edge.name].push({
             id: edge._id,
             name: userMap[edge.source].name,
@@ -124,12 +127,9 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
 
         this.users = users;
         this.loading = false;
-        // console.log(this.users['owner']);
-        // console.log(this.user);
         this.isOwner = this.users['owner'].find(
           (user: any) => this.user.vertex == user.vertex,
         );
-        //console.log(this.users);
       });
     this.filteredOptions = this.userControl.valueChanges.pipe(
       startWith(undefined),

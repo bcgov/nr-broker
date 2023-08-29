@@ -23,7 +23,7 @@
 
       <mat-menu #menu="matMenu">
         <ng-template matMenuContent>
-          <button mat-menu-item [disabled]="!user.roles.includes('admin') || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
+          <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
             <mat-icon>edit</mat-icon>
             <span>Edit</span>
           </button>
@@ -32,7 +32,7 @@
             <span>{{this.navigationFollows === 'vertex' ? 'Follow Edge' : 'Follow Vertex'}}</span>
           </button>
           <mat-divider></mat-divider>
-          <button mat-menu-item [disabled]="!user.roles.includes('admin') || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.delete)" (click)="deleteTarget()">
+          <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.delete)" (click)="deleteTarget()">
             <mat-icon>delete</mat-icon>
             <span>Delete</span>
           </button>

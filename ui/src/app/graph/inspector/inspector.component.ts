@@ -27,6 +27,7 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
+  catchError,
   map,
   Observable,
   of,
@@ -62,6 +63,7 @@ import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
+import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -108,6 +110,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
   titleWidth = 0;
+  isTargetOwner = false;
 
   constructor(
     private graphApi: GraphApiService,
@@ -176,7 +179,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     this.targetSubject
       .pipe(
         tap(() => {
-          this.isOwner();
+          this.checkIfOwner();
         }),
         switchMap((target) => {
           return this.getUpstreamUsers(target);
@@ -309,8 +312,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     });
   }
 
-  isOwner() {
-    console.log('isOwner');
+  checkIfOwner() {
     if (!this.latestConfig || !this.target) {
       return;
     }
@@ -321,8 +323,18 @@ export class InspectorComponent implements OnChanges, OnInit {
         : this.target.data.id;
     this.graphApi
       .searchEdge('owner', this.user.vertex, targetId)
+      .pipe(
+        catchError((err) => {
+          if (err.status == 404) {
+            this.isTargetOwner = false;
+          }
+          return new Observable();
+        }),
+      )
       .subscribe((upstreamData) => {
-        console.log(upstreamData);
+        if (upstreamData) {
+          this.isTargetOwner = true;
+        }
       });
   }
 
@@ -417,14 +429,23 @@ export class InspectorComponent implements OnChanges, OnInit {
       return;
     }
 
-    const obs =
-      this.target.type === 'vertex'
-        ? this.graphApi.deleteVertex(this.target.data.id)
-        : this.graphApi.deleteEdge(this.target.data.id);
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (this.target && result && result.confirm) {
+          const obs =
+            this.target.type === 'vertex'
+              ? this.graphApi.deleteVertex(this.target.data.id)
+              : this.graphApi.deleteEdge(this.target.data.id);
 
-    obs.subscribe(() => {
-      this.refreshData();
-    });
+          obs.subscribe(() => {
+            this.refreshData();
+          });
+        }
+      });
   }
 
   navigateConnection(item: Connection) {
