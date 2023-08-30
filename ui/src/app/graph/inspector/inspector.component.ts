@@ -474,11 +474,16 @@ export class InspectorComponent implements OnChanges, OnInit {
 
   getUpstreamUsers(target: ChartClickTarget | undefined) {
     // console.log(!['service', 'project'].includes((target as any).data.collection));
+    const mapCollectionToEdgeName: { [key: string]: string[] } = {
+      service: ['developer', 'lead-developer'],
+      project: ['developer', 'lead-developer'],
+      brokerAccount: ['administrator', 'lead-developer'],
+    };
     if (
       !target ||
       target.type !== 'vertex' ||
       !this.latestConfig ||
-      !['service', 'project'].includes(target.data.collection)
+      !Object.keys(mapCollectionToEdgeName).includes(target.data.collection)
     ) {
       return of([]);
     }
@@ -487,7 +492,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     return this.graphApi.getUpstream(
       vertex.id,
       this.latestConfig['user'].index,
-      ['developer', 'lead-developer'],
+      mapCollectionToEdgeName[target.data.collection],
     );
   }
 

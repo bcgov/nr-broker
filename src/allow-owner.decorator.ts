@@ -9,7 +9,8 @@ export type AllowOwnerArgs =
 export interface AllowOwnerBaseArgs {
   graphIdFromBodyPath?: string;
   graphIdFromParamKey?: string;
-  requiredEdgeName?: string; // Default: owner
+  requiredEdgeNames?: string[]; // Default: ['owner']
+  upstreamRecursive?: boolean; // Default: false
 }
 
 export interface AllowOwnerCollectionArgs extends AllowOwnerBaseArgs {

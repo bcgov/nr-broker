@@ -1,6 +1,7 @@
 import {
   ExecutionContext,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -61,7 +62,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       'guid',
       userGuid,
     );
-    const requiredEdgeName = userUpstreamData.requiredEdgeName ?? 'owner';
+    const requiredEdgeNames = userUpstreamData.requiredEdgeNames ?? ['owner'];
+    const upstreamRecursive = userUpstreamData.upstreamRecursive ?? false;
     if (userUpstreamData.graphObjectType === 'collection') {
       const targetCollection =
         await this.collectionRepository.getCollectionById(
@@ -71,109 +73,68 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       if (!targetCollection) {
         return false;
       }
-      const edge = await this.graphRepository.getEdgeByNameAndVertices(
-        requiredEdgeName,
+
+      return await this.testAccess(
+        requiredEdgeNames,
         user.vertex.toString(),
         targetCollection.vertex.toString(),
+        upstreamRecursive,
       );
-
-      return !!edge;
     } else if (userUpstreamData.graphObjectType === 'edge') {
       const targetEdge = await this.graphRepository.getEdge(graphId);
       if (!targetEdge) {
         return false;
       }
-      const edge = await this.graphRepository.getEdgeByNameAndVertices(
-        requiredEdgeName,
+
+      return await this.testAccess(
+        requiredEdgeNames,
         user.vertex.toString(),
         targetEdge.target.toString(),
+        upstreamRecursive,
       );
-
-      return !!edge;
     } else if (userUpstreamData.graphObjectType === 'vertex') {
-      const edge = await this.graphRepository.getEdgeByNameAndVertices(
-        requiredEdgeName,
+      return await this.testAccess(
+        requiredEdgeNames,
         user.vertex.toString(),
         graphId,
+        upstreamRecursive,
       );
-
-      return !!edge;
     }
     return false;
-    //   this.graphRepository.getEdgeByNameAndVertices
-    //   const collection =
-    //     userUpstreamData.retrieveCollection === 'byId'
-    //       ? await this.collectionRepository.getCollectionById(
-    //           userUpstreamData.collection,
-    //           id,
-    //         )
-    //       : await this.collectionRepository.getCollectionByVertexId(
-    //           userUpstreamData.collection,
-    //           id,
-    //         );
-    //   if (!collection) {
-    //     throw new BadRequestException();
-    //   }
-    //   const config =
-    //     await this.collectionRepository.getCollectionConfigByName('user');
-    //   if (!config) {
-    //     throw new InternalServerErrorException();
-    //   }
+  }
 
-    //   const upstream = await this.graphRepository.getUpstreamVertex(
-    //     collection.vertex.toString(),
-    //     config.index,
-    //     [userUpstreamData.requiredEdgetoUserName],
-    //   );
-    //   if (
-    //     upstream.filter(
-    //       (data) =>
-    //         data.collection.guid ===
-    //         request.user.userinfo[OAUTH2_CLIENT_MAP_GUID],
-    //     ).length > 0
-    //   ) {
-    //     return true;
-    //   }
-    // } else if (
-    //   userUpstreamData &&
-    //   userUpstreamData.graphObjectType === 'edge'
-    // ) {
-    //   const id = userUpstreamData.graphIdFromParamKey
-    //     ? request.params[userUpstreamData.graphIdFromParamKey]
-    //     : request.body[userUpstreamData.graphIdFromBodyPath];
-    //   console.log(request);
-    //   const edge = await this.graphRepository.getEdge(id);
-    //   if (!edge) {
-    //     throw new BadRequestException();
-    //   }
+  async testAccess(
+    edges: string[],
+    sourceId: string,
+    targetId: string,
+    upstreamRecursive: boolean,
+  ) {
+    if (upstreamRecursive) {
+      const config =
+        await this.collectionRepository.getCollectionConfigByName('user');
+      if (!config) {
+        throw new InternalServerErrorException();
+      }
 
-    //   const config =
-    //     await this.collectionRepository.getCollectionConfigByName('user');
-    //   if (!config) {
-    //     throw new InternalServerErrorException();
-    //   }
-
-    //   const upstream = await this.graphRepository.getUpstreamVertex(
-    //     edge.target.toString(),
-    //     config.index,
-    //     [userUpstreamData.requiredEdgetoUserName],
-    //   );
-    //   if (
-    //     upstream.filter(
-    //       (data) =>
-    //         data.collection.guid ===
-    //         request.user.userinfo[OAUTH2_CLIENT_MAP_GUID],
-    //     ).length > 0
-    //   ) {
-    //     return true;
-    //   }
-    // }
-    // if (!roles) {
-    //   return true;
-    // }
-    // return (
-    //   request.user.userinfo.client_roles &&
-    //   roles.every((role) => request.user.userinfo.client_roles.includes(role))
-    // );
+      const upstream = await this.graphRepository.getUpstreamVertex(
+        targetId,
+        config.index,
+        edges,
+      );
+      return (
+        upstream.filter(
+          (data) => data.collection.vertex.toString() === sourceId,
+        ).length > 0
+      );
+    } else {
+      return edges.some(async (edgeName) => {
+        const edge = await this.graphRepository.getEdgeByNameAndVertices(
+          edgeName,
+          sourceId,
+          targetId,
+        );
+        return !!edge;
+      });
+    }
   }
 }

@@ -83,7 +83,8 @@ export class CollectionController {
     graphObjectType: 'collection',
     graphObjectCollection: 'brokerAccount',
     graphIdFromParamKey: 'id',
-    requiredEdgeName: 'administrator',
+    requiredEdgeNames: ['administrator', 'lead-developer'],
+    upstreamRecursive: true,
   })
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
