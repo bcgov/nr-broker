@@ -6,6 +6,7 @@ import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
+import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -63,5 +64,106 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<CollectionDtoUnion[T][]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.find();
+  }
+
+  public async searchCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    upstreamVertex: string | undefined,
+    vertexId: string | undefined,
+    offset: number,
+    limit: number,
+  ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+
+    const upstreamQuery = upstreamVertex
+      ? [
+          {
+            $match: {
+              'upstream_edge.source': new ObjectId(upstreamVertex),
+            },
+          },
+        ]
+      : [];
+    const vertexQuery = vertexId
+      ? [
+          {
+            $match: {
+              _id: new ObjectId(vertexId),
+            },
+          },
+        ]
+      : [];
+    return repo
+      .aggregate([
+        ...vertexQuery,
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'vertex',
+            foreignField: 'target',
+            as: 'upstream_edge',
+          },
+        },
+        ...upstreamQuery,
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'upstream_edge.source',
+            foreignField: '_id',
+            as: 'upstream',
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'vertex',
+            foreignField: 'source',
+            as: 'downstream_edge',
+          },
+        },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'downstream_edge.target',
+            foreignField: '_id',
+            as: 'downstream',
+          },
+        },
+        { $sort: { name: -1 } },
+        {
+          $addFields: {
+            id: '$_id',
+          },
+        },
+        {
+          $unset: ['_id'],
+        },
+        {
+          $facet: {
+            data: [
+              { $sort: { name: 1 } },
+              { $skip: offset },
+              { $limit: limit },
+            ],
+            meta: [{ $count: 'total' }],
+          },
+        },
+        { $unwind: '$meta' },
+      ])
+      .toArray()
+      .then((array) => {
+        if (array[0]) {
+          const rval = array[0] as unknown as CollectionSearchResult<
+            CollectionDtoUnion[T]
+          >;
+          // TODO: fix _ids
+          return rval;
+        } else {
+          return {
+            data: [],
+            meta: { total: 0 },
+          };
+        }
+      });
   }
 }

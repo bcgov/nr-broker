@@ -48,7 +48,10 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
       });
 
       this.graphApi
-        .getUpstream(this.account.vertex, this.userIndex, ['administrator'])
+        .getUpstream(this.account.vertex, this.userIndex, [
+          'administrator',
+          'lead-developer',
+        ])
         .subscribe((data) => {
           this.isAdministrator =
             data.filter((data) => {

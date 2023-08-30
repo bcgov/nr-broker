@@ -18,6 +18,7 @@ import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { AllowOwner } from '../allow-owner.decorator';
 
 @Controller({
   path: 'graph',
@@ -35,14 +36,33 @@ export class GraphController {
 
   @Post('edge')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'vertex',
+    graphIdFromBodyPath: 'target',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   addEdge(@Req() request: Request, @Body() edge: EdgeInsertDto) {
     return this.graph.addEdge(request, edge);
   }
 
+  @Post('edge/search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  searchEdge(
+    @Query('name') name: string,
+    @Query('sourceId') sourceId: string,
+    @Query('targetId') targetId: string,
+  ) {
+    return this.graph.getEdgeByNameAndVertices(name, sourceId, targetId);
+  }
+
   @Put('edge/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'edge',
+    graphIdFromBodyPath: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   editEdge(
@@ -62,6 +82,10 @@ export class GraphController {
 
   @Delete('edge/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'edge',
+    graphIdFromParamKey: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   deleteEdge(@Req() request: Request, @Param('id') id: string) {
@@ -80,6 +104,10 @@ export class GraphController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({
+    name: 'typeahead',
+    required: false,
+  })
+  @ApiQuery({
     name: 'edgeName',
     required: false,
   })
@@ -88,16 +116,20 @@ export class GraphController {
     required: false,
   })
   searchVertex(
-    @Req() request: Request,
     @Query('collection') collection: string,
+    @Query('typeahead') typeahead?: string,
     @Query('edgeName') edgeName?: string,
     @Query('edgeTarget') edgeTarget?: string,
   ) {
-    return this.graph.searchVertex(collection, edgeName, edgeTarget);
+    return this.graph.searchVertex(collection, typeahead, edgeName, edgeTarget);
   }
 
   @Put('vertex/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'vertex',
+    graphIdFromParamKey: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   editVertex(

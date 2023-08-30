@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Confirm Deletion</h2>
+<mat-dialog-content>
+  <h4>Are you sure you want to permanently delete this item?</h4>
+
+  <p>You can't undo this action.</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button color="primary" (click)="confirm()">Delete</button>
+</mat-dialog-actions>

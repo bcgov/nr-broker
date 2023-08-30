@@ -19,7 +19,10 @@ export class InspectorIntentionsComponent implements OnChanges {
   intentions: any[] = [];
   total = 0;
 
-  constructor(private graphApi: GraphApiService, private router: Router) {}
+  constructor(
+    private graphApi: GraphApiService,
+    private router: Router,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['target']) {

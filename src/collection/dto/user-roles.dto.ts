@@ -11,7 +11,10 @@ import {
 export class UserRolesDto extends UserImportDto {
   roles!: string[];
 
-  constructor(userInfo: any) {
+  constructor(
+    public vertex: string,
+    userInfo: any,
+  ) {
     super();
     this.email = get(userInfo, OAUTH2_CLIENT_MAP_EMAIL);
     this.guid = get(userInfo, OAUTH2_CLIENT_MAP_GUID);

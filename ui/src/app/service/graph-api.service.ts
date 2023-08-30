@@ -9,8 +9,9 @@ import {
 } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
-import { VertexInsertDto } from './dto/vertex-rest.dto';
+import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
 import { IntentionSearchResult } from './dto/intention-search-result.dto';
+import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -36,6 +37,14 @@ export class GraphApiService {
       {
         responseType: 'json',
       },
+    );
+  }
+
+  getCollectionConfig(collection: string) {
+    return this.getConfig().pipe(
+      map((configs) => {
+        return configs.find((config) => config.collection === collection);
+      }),
     );
   }
 
@@ -70,6 +79,15 @@ export class GraphApiService {
     return this.http.delete<any>(`${environment.apiUrl}/v1/graph/edge/${id}`, {
       responseType: 'json',
     });
+  }
+
+  searchEdge(name: string, sourceId: string, targetId: string) {
+    return this.http.post<any>(
+      `${environment.apiUrl}/v1/graph/edge/search?name=${name}&sourceId=${sourceId}&targetId=${targetId}`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 
   addVertex(vertex: VertexInsertDto) {
@@ -129,6 +147,15 @@ export class GraphApiService {
     const whereQuery = encodeURIComponent(JSON.stringify(whereClause));
     return this.http.post<IntentionSearchResult>(
       `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  searchVertex(collection: string, typeahead: string) {
+    return this.http.post<VertexSearchDto[]>(
+      `${environment.apiUrl}/v1/graph/vertex/search?collection=${collection}&typeahead=${typeahead}`,
       {
         responseType: 'json',
       },

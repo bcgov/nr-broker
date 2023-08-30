@@ -27,11 +27,13 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
+  catchError,
   map,
   Observable,
   of,
   shareReplay,
   switchMap,
+  tap,
   withLatestFrom,
 } from 'rxjs';
 import {
@@ -60,6 +62,8 @@ import { PreferencesService } from '../../preferences.service';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
+import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
+import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -75,6 +79,7 @@ import { InspectorInstallsComponent } from '../inspector-installs/inspector-inst
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorIntentionsComponent,
+    InspectorTeamComponent,
     KeyValuePipe,
     MatButtonModule,
     MatCardModule,
@@ -105,6 +110,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
   titleWidth = 0;
+  isTargetOwner = false;
 
   constructor(
     private graphApi: GraphApiService,
@@ -172,6 +178,9 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     this.targetSubject
       .pipe(
+        tap(() => {
+          this.checkIfOwner();
+        }),
         switchMap((target) => {
           return this.getUpstreamUsers(target);
         }),
@@ -303,6 +312,32 @@ export class InspectorComponent implements OnChanges, OnInit {
     });
   }
 
+  checkIfOwner() {
+    if (!this.latestConfig || !this.target) {
+      return;
+    }
+
+    const targetId =
+      this.target.type === 'edge'
+        ? this.target.data.target
+        : this.target.data.id;
+    this.graphApi
+      .searchEdge('owner', this.user.vertex, targetId)
+      .pipe(
+        catchError((err) => {
+          if (err.status == 404) {
+            this.isTargetOwner = false;
+          }
+          return new Observable();
+        }),
+      )
+      .subscribe((upstreamData) => {
+        if (upstreamData) {
+          this.isTargetOwner = true;
+        }
+      });
+  }
+
   editTarget() {
     if (!this.latestConfig || !this.collectionData || !this.target) {
       return;
@@ -327,7 +362,7 @@ export class InspectorComponent implements OnChanges, OnInit {
           .afterClosed()
           .subscribe((result) => {
             if (result && result.refresh) {
-              this.graphChanged.emit(true);
+              this.refreshData();
             }
           });
       }
@@ -344,7 +379,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         .afterClosed()
         .subscribe((result) => {
           if (result && result.refresh) {
-            this.graphChanged.emit(true);
+            this.refreshData();
           }
         });
     }
@@ -368,7 +403,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.graphChanged.emit(true);
+          this.refreshData();
         }
       });
   }
@@ -384,7 +419,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.graphChanged.emit(true);
+          this.refreshData();
         }
       });
   }
@@ -394,14 +429,23 @@ export class InspectorComponent implements OnChanges, OnInit {
       return;
     }
 
-    const obs =
-      this.target.type === 'vertex'
-        ? this.graphApi.deleteVertex(this.target.data.id)
-        : this.graphApi.deleteEdge(this.target.data.id);
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (this.target && result && result.confirm) {
+          const obs =
+            this.target.type === 'vertex'
+              ? this.graphApi.deleteVertex(this.target.data.id)
+              : this.graphApi.deleteEdge(this.target.data.id);
 
-    obs.subscribe(() => {
-      this.graphChanged.emit(true);
-    });
+          obs.subscribe(() => {
+            this.refreshData();
+          });
+        }
+      });
   }
 
   navigateConnection(item: Connection) {
@@ -430,11 +474,16 @@ export class InspectorComponent implements OnChanges, OnInit {
 
   getUpstreamUsers(target: ChartClickTarget | undefined) {
     // console.log(!['service', 'project'].includes((target as any).data.collection));
+    const mapCollectionToEdgeName: { [key: string]: string[] } = {
+      service: ['developer', 'lead-developer'],
+      project: ['developer', 'lead-developer'],
+      brokerAccount: ['administrator', 'lead-developer'],
+    };
     if (
       !target ||
       target.type !== 'vertex' ||
       !this.latestConfig ||
-      !['service', 'project'].includes(target.data.collection)
+      !Object.keys(mapCollectionToEdgeName).includes(target.data.collection)
     ) {
       return of([]);
     }
@@ -443,7 +492,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     return this.graphApi.getUpstream(
       vertex.id,
       this.latestConfig['user'].index,
-      ['developer', 'lead-developer'],
+      mapCollectionToEdgeName[target.data.collection],
     );
   }
 
@@ -452,5 +501,9 @@ export class InspectorComponent implements OnChanges, OnInit {
       return '';
     }
     return this.latestConfig[this.target.data.collection].fields[key].type;
+  }
+
+  refreshData() {
+    this.graphChanged.emit(true);
   }
 }

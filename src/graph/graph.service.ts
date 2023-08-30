@@ -13,6 +13,7 @@ import {
 } from '../persistence/dto/graph-data.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
+import { EdgeDto } from '../persistence/dto/edge.dto';
 
 @Injectable()
 export class GraphService {
@@ -186,6 +187,30 @@ export class GraphService {
     }
   }
 
+  public async getEdgeByNameAndVertices(
+    name: string,
+    sourceId: string,
+    targetId: string,
+  ): Promise<EdgeDto> {
+    try {
+      const vertex = await this.graphRepository.getEdgeByNameAndVertices(
+        name,
+        sourceId,
+        targetId,
+      );
+      if (vertex === null) {
+        throw new Error();
+      }
+      return vertex;
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
   public async getVertex(id: string): Promise<VertexDto> {
     try {
       const vertex = await this.graphRepository.getVertex(id);
@@ -204,6 +229,7 @@ export class GraphService {
 
   async searchVertex(
     collection: string,
+    typeahead?: string,
     edgeName?: string,
     edgeTarget?: string,
   ) {
@@ -215,11 +241,18 @@ export class GraphService {
       });
     }
     try {
-      return await this.graphRepository.searchVertex(
+      const results = await this.graphRepository.searchVertex(
         collection,
         edgeName,
         edgeTarget,
       );
+      if (typeahead) {
+        const searchString = typeahead.toLowerCase();
+        return results.filter((result) =>
+          result.name.toLocaleLowerCase().includes(searchString),
+        );
+      }
+      return results;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

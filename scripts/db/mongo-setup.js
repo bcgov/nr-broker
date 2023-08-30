@@ -208,13 +208,13 @@ result = db.collectionConfig.insertOne({
     },
     {
       collection: 'project',
-      name: 'developer',
+      name: 'owner',
       relation: 'oneToMany',
       show: true,
     },
     {
       collection: 'team',
-      name: 'developer',
+      name: 'owner',
       relation: 'oneToMany',
       show: true,
     },
@@ -232,13 +232,13 @@ result = db.collectionConfig.insertOne({
     },
     {
       collection: 'project',
-      name: 'owner',
+      name: 'developer',
       relation: 'oneToMany',
       show: true,
     },
     {
       collection: 'team',
-      name: 'owner',
+      name: 'developer',
       relation: 'oneToMany',
       show: true,
     },
@@ -271,7 +271,7 @@ result = db.collectionConfig.insertOne({
     update: false,
     delete: true,
   },
-  show: true,
+  show: false,
 });
 
 result = db.collectionConfig.insertOne({
