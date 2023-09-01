@@ -29,6 +29,11 @@ export const VAULT_PROVISIONED_ACTION_SET = new Set([
 
 export const IS_PRIMARY_NODE = process.env.HOSTNAME?.endsWith('-0') ?? false;
 
+export const AUDIT_LOGSTREAM_DIR = process.env.AUDIT_LOGSTREAM_DIR ?? '/tmp';
+export const AUDIT_LOGSTREAM_SIZE = process.env.AUDIT_LOGSTREAM_SIZE ?? '50M';
+export const AUDIT_LOGSTREAM_MAX_LOGS =
+  process.env.AUDIT_LOGSTREAM_MAX_LOGS ?? '7';
+
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
 export const VAULT_SYNC_APP_AUTH_MOUNT =

@@ -13,7 +13,6 @@ import {
   asyncScheduler,
   lastValueFrom,
 } from 'rxjs';
-import * as FileStreamRotator from 'file-stream-rotator';
 import { KinesisService } from './kinesis.service';
 import {
   AWS_KINESIS_BUFFER_TIME,
@@ -56,17 +55,6 @@ export class AwsKinesisService extends KinesisService {
   constructor() {
     super();
     this.getClient();
-    const rotatingLogStream = FileStreamRotator.getStream({
-      filename: '/tmp/test-%DATE%',
-      frequency: 'daily',
-      date_format: 'YYYY-MM-DD',
-      size: '100M',
-      max_logs: '10',
-      audit_file: '/tmp/audit.json',
-      extension: '.log',
-      create_symlink: true,
-      symlink_name: 'tail-current.log',
-    });
     this.recordSubject
       .pipe(
         bufferTime(AWS_KINESIS_BUFFER_TIME, undefined, AWS_KINESIS_MAX_RECORDS),
@@ -102,10 +90,6 @@ export class AwsKinesisService extends KinesisService {
           // finally.
         }
       });
-    this.recordSubject.subscribe((data) => {
-      console.log('record');
-      rotatingLogStream.write(JSON.stringify(data));
-    });
   }
 
   public putRecord(data: any): void {
