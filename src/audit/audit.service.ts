@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
 import os from 'os';
 
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
-import { KinesisService } from '../kinesis/kinesis.service';
+import { AuditStreamerService } from './audit-streamer.service';
 
 const hostInfo = {
   host: {
@@ -24,16 +24,15 @@ const hostInfo = {
  */
 @Injectable()
 export class AuditService {
-  private readonly logger = new Logger(AuditService.name);
   private readonly metadataIntentionActivity = {};
   private readonly metadataAuth = {};
   private readonly metadataHttpAccess = {};
 
   /**
    * Constructs the audit service
-   * @param kinesisService The Kinesis service to send audit logs to
+   * @param stream The service used to persist audit logs
    */
-  constructor(private readonly kinesisService: KinesisService) {
+  constructor(private readonly stream: AuditStreamerService) {
     if (process.env.BROKER_AUDIT_INDEX_ACTIVITY) {
       this.metadataIntentionActivity['@metadata'] = {
         index: process.env.BROKER_AUDIT_INDEX_ACTIVITY,
@@ -96,8 +95,7 @@ export class AuditService {
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -138,8 +136,7 @@ export class AuditService {
           map(this.addTimestampFunc(now)),
         )
         .subscribe((ecsObj) => {
-          this.logger.debug(JSON.stringify(ecsObj));
-          this.kinesisService.putRecord(ecsObj);
+          this.stream.putRecord(ecsObj);
         });
     }
   }
@@ -191,8 +188,7 @@ export class AuditService {
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -240,8 +236,7 @@ export class AuditService {
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -283,8 +278,7 @@ export class AuditService {
         map(this.addTimestampFunc(now)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -322,8 +316,7 @@ export class AuditService {
         map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -357,8 +350,7 @@ export class AuditService {
         map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -398,8 +390,7 @@ export class AuditService {
         map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
@@ -435,8 +426,7 @@ export class AuditService {
         map(this.addUserAgentFunc(req)),
       )
       .subscribe((ecsObj) => {
-        this.logger.debug(JSON.stringify(ecsObj));
-        this.kinesisService.putRecord(ecsObj);
+        this.stream.putRecord(ecsObj);
       });
   }
 
