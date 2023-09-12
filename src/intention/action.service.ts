@@ -15,6 +15,7 @@ import {
 import { UserDto } from '../persistence/dto/user.dto';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
 
 /**
  * Assists with the validation of intention actions
@@ -22,11 +23,11 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 @Injectable()
 export class ActionService {
   constructor(
-    private actionUtil: ActionUtil,
+    private readonly actionUtil: ActionUtil,
     private readonly collectionRepository: CollectionRepository,
     private readonly userCollectionService: UserCollectionService,
     private readonly graphRepository: GraphRepository,
-    private readonly util: PersistenceUtilService,
+    private readonly persistenceUtil: PersistenceUtilService,
   ) {}
 
   public async bindUserToAction(
@@ -60,6 +61,33 @@ export class ActionService {
       action.user.group.name = account.name;
       action.user.group.domain = 'broker';
     }
+  }
+
+  public async validate(
+    intention: IntentionDto,
+    action: ActionDto,
+    account: BrokerAccountDto | null,
+    accountBoundProjects: BrokerAccountProjectMapDto | null,
+    requireProjectExists: boolean,
+    requireServiceExists: boolean,
+  ): Promise<ActionError> | null {
+    const user = await this.userCollectionService.lookupUserByGuid(
+      action.user?.id,
+    );
+
+    return (
+      (await this.validateUserSet(user, action)) ??
+      (await this.validateVaultEnv(action)) ??
+      (await this.validateAccountBoundProject(
+        action,
+        accountBoundProjects,
+        requireProjectExists,
+        requireServiceExists,
+      )) ??
+      (await this.validateDbAction(user, intention, action)) ??
+      (await this.validatePackageAction(user, intention, action)) ??
+      null
+    );
   }
 
   private async validateUserSet(
@@ -146,13 +174,13 @@ export class ActionService {
   ): Promise<ActionError> | null {
     if (action instanceof DatabaseAccessActionDto) {
       if (
-        (await this.util.testAccess(
+        (await this.persistenceUtil.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_ADMIN,
           false,
         )) ||
-        (await this.util.testAccess(
+        (await this.persistenceUtil.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_DBA,
@@ -161,56 +189,74 @@ export class ActionService {
       ) {
         return null;
       }
+      return this.validateAssistedDelivery(user, intention, action);
+    }
+    return null;
+  }
 
-      const project = await this.collectionRepository.getCollectionByKeyValue(
-        'project',
-        'name',
-        action.service.project,
-      );
-      const service = await this.collectionRepository.getCollectionByKeyValue(
-        'service',
-        'name',
-        action.service.name,
-      );
-
-      if (!project || !service) {
+  private async validatePackageAction(
+    user: any,
+    intention: IntentionDto,
+    action: ActionDto,
+  ): Promise<ActionError> | null {
+    if (action instanceof PackageInstallationActionDto) {
+      if (
+        await this.persistenceUtil.testAccess(
+          ['developer', 'lead-developer'],
+          user.vertex.toString(),
+          ACTION_VALIDATE_TEAM_ADMIN,
+          false,
+        )
+      ) {
         return null;
       }
 
-      if (
-        await this.util.testAccess(
-          ['developer', 'lead-developer'],
-          user.vertex.toString(),
-          service.vertex.toString(),
-          true,
-        )
-      ) {
-        const vertex = await this.graphRepository.getEdgeByNameAndVertices(
-          'component',
-          project.vertex.toString(),
-          service.vertex.toString(),
-        );
+      return this.validateAssistedDelivery(user, intention, action);
+    }
+    return null;
+  }
 
-        if (
-          vertex &&
-          vertex.prop &&
-          vertex.prop[`ad-${action.service.environment}`] === 'true'
-        ) {
-          return {
-            message: 'User is not authorized to access this environment',
-            data: {
-              action: action.action,
-              action_id: action.id,
-              key: 'user.id',
-              value: intention.user.id,
-            },
-          };
-        } else {
-          return null;
-        }
-      } else {
+  private async validateAssistedDelivery(
+    user: any,
+    intention: IntentionDto,
+    action: ActionDto,
+  ): Promise<ActionError> | null {
+    const project = await this.collectionRepository.getCollectionByKeyValue(
+      'project',
+      'name',
+      action.service.project,
+    );
+    const service = await this.collectionRepository.getCollectionByKeyValue(
+      'service',
+      'name',
+      action.service.name,
+    );
+
+    if (!project || !service) {
+      return null;
+    }
+
+    if (
+      await this.persistenceUtil.testAccess(
+        ['developer', 'lead-developer'],
+        user.vertex.toString(),
+        service.vertex.toString(),
+        true,
+      )
+    ) {
+      const vertex = await this.graphRepository.getEdgeByNameAndVertices(
+        'component',
+        project.vertex.toString(),
+        service.vertex.toString(),
+      );
+
+      if (
+        vertex &&
+        vertex.prop &&
+        vertex.prop[`ad-${action.service.environment}`] === 'true'
+      ) {
         return {
-          message: 'User is not authorized to do this action',
+          message: 'User is not authorized to access this environment',
           data: {
             action: action.action,
             action_id: action.id,
@@ -218,33 +264,19 @@ export class ActionService {
             value: intention.user.id,
           },
         };
+      } else {
+        return null;
       }
+    } else {
+      return {
+        message: 'User is not authorized to do this action',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'user.id',
+          value: intention.user.id,
+        },
+      };
     }
-  }
-
-  public async validate(
-    intention: IntentionDto,
-    action: ActionDto,
-    account: BrokerAccountDto | null,
-    accountBoundProjects: BrokerAccountProjectMapDto | null,
-    requireProjectExists: boolean,
-    requireServiceExists: boolean,
-  ): Promise<ActionError> | null {
-    const user = await this.userCollectionService.lookupUserByGuid(
-      action.user?.id,
-    );
-
-    return (
-      (await this.validateUserSet(user, action)) ??
-      (await this.validateVaultEnv(action)) ??
-      (await this.validateAccountBoundProject(
-        action,
-        accountBoundProjects,
-        requireProjectExists,
-        requireServiceExists,
-      )) ??
-      (await this.validateDbAction(user, intention, action)) ??
-      null
-    );
   }
 }
