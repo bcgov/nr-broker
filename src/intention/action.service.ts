@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ActionError } from './action.error';
 import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
@@ -14,6 +14,7 @@ import {
 } from '../constants';
 import { UserDto } from '../persistence/dto/user.dto';
 import { UserCollectionService } from '../collection/user-collection.service';
+import { PersistenceUtilService } from '../persistence/persistence-util.service';
 
 /**
  * Assists with the validation of intention actions
@@ -25,6 +26,7 @@ export class ActionService {
     private readonly collectionRepository: CollectionRepository,
     private readonly userCollectionService: UserCollectionService,
     private readonly graphRepository: GraphRepository,
+    private readonly util: PersistenceUtilService,
   ) {}
 
   public async bindUserToAction(
@@ -144,13 +146,13 @@ export class ActionService {
   ): Promise<ActionError> | null {
     if (action instanceof DatabaseAccessActionDto) {
       if (
-        (await this.testAccess(
+        (await this.util.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_ADMIN,
           false,
         )) ||
-        (await this.testAccess(
+        (await this.util.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_DBA,
@@ -176,7 +178,7 @@ export class ActionService {
       }
 
       if (
-        await this.testAccess(
+        await this.util.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           service.vertex.toString(),
@@ -244,42 +246,5 @@ export class ActionService {
       (await this.validateDbAction(user, intention, action)) ??
       null
     );
-  }
-
-  async testAccess(
-    edges: string[],
-    userId: string,
-    graphId: string,
-    upstreamRecursive: boolean,
-  ) {
-    if (upstreamRecursive) {
-      const config =
-        await this.collectionRepository.getCollectionConfigByName('user');
-      if (!config) {
-        throw new InternalServerErrorException();
-      }
-
-      const upstream = await this.graphRepository.getUpstreamVertex(
-        graphId,
-        config.index,
-        edges,
-      );
-      return (
-        upstream.filter((data) => data.collection.vertex.toString() === userId)
-          .length > 0
-      );
-    } else {
-      for (const edgeName of edges) {
-        const edge = await this.graphRepository.getEdgeByNameAndVertices(
-          edgeName,
-          userId,
-          graphId,
-        );
-        if (!!edge) {
-          return true;
-        }
-      }
-      return false;
-    }
   }
 }
