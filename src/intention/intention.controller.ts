@@ -20,6 +20,7 @@ import { ActionGuardRequest } from './action-guard-request.interface';
 import { ActionGuard } from './action.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { IntentionSearchQuery } from './dto/intention-search-query.dto';
+import { IntentionCloseDto } from './dto/intention-close.dto';
 
 @Controller({
   path: 'intention',
@@ -40,13 +41,25 @@ export class IntentionController {
     return this.intentionService.open(request, intentionDto, ttl);
   }
 
+  @Post('preflight')
+  @UseGuards(BrokerJwtAuthGuard)
+  @ApiBearerAuth()
+  preflightIntention(
+    @Req() request: Request,
+    @Body(new IntentionDtoValidationPipe())
+    intentionDto: IntentionDto,
+    @Query('ttl') ttl: number | undefined,
+  ) {
+    return this.intentionService.open(request, intentionDto, ttl, true);
+  }
+
   @Post('close')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
   async closeIntention(
     @Req() request: Request,
     @Query('outcome') outcome: string | undefined,
     @Query('reason') reason: string | undefined,
-  ) {
+  ): Promise<IntentionCloseDto> {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];

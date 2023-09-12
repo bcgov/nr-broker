@@ -105,8 +105,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
 
   async testAccess(
     edges: string[],
-    sourceId: string,
-    targetId: string,
+    userId: string,
+    graphId: string,
     upstreamRecursive: boolean,
   ) {
     if (upstreamRecursive) {
@@ -117,24 +117,26 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       }
 
       const upstream = await this.graphRepository.getUpstreamVertex(
-        targetId,
+        graphId,
         config.index,
         edges,
       );
       return (
-        upstream.filter(
-          (data) => data.collection.vertex.toString() === sourceId,
-        ).length > 0
+        upstream.filter((data) => data.collection.vertex.toString() === userId)
+          .length > 0
       );
     } else {
-      return edges.some(async (edgeName) => {
+      for (const edgeName of edges) {
         const edge = await this.graphRepository.getEdgeByNameAndVertices(
           edgeName,
-          sourceId,
-          targetId,
+          userId,
+          graphId,
         );
-        return !!edge;
-      });
+        if (!!edge) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }

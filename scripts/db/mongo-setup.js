@@ -244,6 +244,11 @@ result = db.collectionConfig.insertOne({
     },
   ],
   fields: {
+    domain: {
+      name: 'Domain',
+      required: true,
+      type: 'string',
+    },
     email: {
       name: 'Email',
       required: true,

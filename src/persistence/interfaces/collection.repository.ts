@@ -1,3 +1,4 @@
+import { ObjectLiteral, FindOptionsWhere } from 'typeorm';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
@@ -23,6 +24,14 @@ export abstract class CollectionRepository {
     type: T,
     key: string,
     value: string,
+  ): Promise<CollectionDtoUnion[T] | null>;
+
+  public abstract getCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    whereClause:
+      | ObjectLiteral
+      | FindOptionsWhere<CollectionDtoUnion[T]>
+      | FindOptionsWhere<CollectionDtoUnion[T]>[],
   ): Promise<CollectionDtoUnion[T] | null>;
 
   public abstract getCollections<T extends keyof CollectionDtoUnion>(

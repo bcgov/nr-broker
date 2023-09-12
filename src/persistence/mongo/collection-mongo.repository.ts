@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MongoRepository } from 'typeorm';
+import {
+  DataSource,
+  FindOptionsWhere,
+  MongoRepository,
+  ObjectLiteral,
+} from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
@@ -42,10 +47,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     type: T,
     id: string,
   ): Promise<CollectionDtoUnion[T] | null> {
-    const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo.findOne({
-      where: { vertex: new ObjectId(id) } as any,
-    });
+    return this.getCollection(type, { vertex: new ObjectId(id) });
   }
 
   public async getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
@@ -53,9 +55,19 @@ export class CollectionMongoRepository implements CollectionRepository {
     key: string,
     value: string,
   ): Promise<CollectionDtoUnion[T] | null> {
+    return this.getCollection(type, { [key]: value });
+  }
+
+  public async getCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    whereClause:
+      | ObjectLiteral
+      | FindOptionsWhere<CollectionDtoUnion[T]>
+      | FindOptionsWhere<CollectionDtoUnion[T]>[],
+  ): Promise<CollectionDtoUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne({
-      where: { [key]: value } as any,
+      where: whereClause,
     });
   }
 

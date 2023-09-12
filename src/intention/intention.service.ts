@@ -15,6 +15,7 @@ import {
   INTENTION_MAX_TTL_SECONDS,
   INTENTION_MIN_TTL_SECONDS,
   IS_PRIMARY_NODE,
+  TOKEN_SERVICE_ALLOW_ORPHAN,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
@@ -28,6 +29,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
+import { UserCollectionService } from '../collection/user-collection.service';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -50,6 +52,7 @@ export class IntentionService {
     private readonly collectionRepository: CollectionRepository,
     private readonly intentionRepository: IntentionRepository,
     private readonly systemRepository: SystemRepository,
+    private readonly userCollectionService: UserCollectionService,
   ) {}
 
   /**
@@ -57,12 +60,14 @@ export class IntentionService {
    * @param req The associated request object
    * @param intentionDto The intention dto to validate
    * @param ttl The requested time in seconds to live for this intention
+   * @param dryRun Validate the intention without opening it
    * @returns The intention response or throws an error upon validation failure
    */
   public async open(
     req: Request,
     intentionDto: IntentionDto,
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
+    dryRun = false,
   ): Promise<IntentionOpenResponse> {
     const startDate = new Date();
     const actions = {};
@@ -104,6 +109,16 @@ export class IntentionService {
           account.vertex.toString(),
         );
       // console.log(accountBoundProjects);
+    } else if (!TOKEN_SERVICE_ALLOW_ORPHAN) {
+      actionFailures.push({
+        message: 'Token must be bound to a broker account',
+        data: {
+          action: '',
+          action_id: '',
+          key: 'jwt.jti',
+          value: intentionDto.jwt.jti,
+        },
+      });
     }
 
     for (const action of intentionDto.actions) {
@@ -118,19 +133,23 @@ export class IntentionService {
       ) {
         action.vaultEnvironment = envDto.name;
       }
-      const validationResult = this.actionService.validate(
+      if (!action.user) {
+        action.user = intentionDto.user;
+      }
+      await this.actionService.bindUserToAction(account, action);
+      const validationResult = await this.actionService.validate(
         intentionDto,
         action,
+        account,
         accountBoundProjects,
-        account && !!account.requireProjectExists,
-        account && !!account.requireServiceExists,
+        account ? !!account?.requireProjectExists : true,
+        account ? !!account?.requireServiceExists : true,
       );
       action.valid = validationResult === null;
       if (!action.valid) {
         actionFailures.push(validationResult);
       }
       action.transaction = intentionDto.transaction;
-      action.user = intentionDto.user;
       action.trace = this.createTokenAndHash();
       actions[action.id] = {
         token: action.trace.token,
@@ -139,8 +158,14 @@ export class IntentionService {
       };
     }
     const isSuccessfulOpen = actionFailures.length === 0;
-    this.auditService.recordIntentionOpen(req, intentionDto, isSuccessfulOpen);
-    this.auditService.recordActionAuthorization(req, intentionDto);
+    if (!dryRun) {
+      this.auditService.recordIntentionOpen(
+        req,
+        intentionDto,
+        isSuccessfulOpen,
+      );
+      this.auditService.recordActionAuthorization(req, intentionDto);
+    }
     if (!isSuccessfulOpen) {
       throw new BadRequestException({
         statusCode: 400,
@@ -148,7 +173,9 @@ export class IntentionService {
         error: actionFailures,
       });
     }
-    await this.intentionRepository.addIntention(intentionDto);
+    if (!dryRun) {
+      await this.intentionRepository.addIntention(intentionDto);
+    }
     return {
       actions,
       token: intentionDto.transaction.token,

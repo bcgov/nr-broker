@@ -1,38 +1,86 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ActionError } from './action.error';
 import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
-
-const DATABASE_ACCESS_DEVELOPER_ENV = ['development'];
+import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import {
+  ACTION_VALIDATE_TEAM_ADMIN,
+  ACTION_VALIDATE_TEAM_DBA,
+} from '../constants';
+import { UserDto } from '../persistence/dto/user.dto';
+import { UserCollectionService } from '../collection/user-collection.service';
 
 /**
  * Assists with the validation of intention actions
  */
 @Injectable()
 export class ActionService {
-  // Temporarily read from env
-  private readonly USER_ADMIN = process.env.USER_ADMIN
-    ? process.env.USER_ADMIN.split(',')
-    : '';
-  private readonly USER_DBA = process.env.USER_DBA
-    ? process.env.USER_DBA.split(',')
-    : '';
-  private readonly USER_DEVELOPER = process.env.USER_DEVELOPER
-    ? process.env.USER_DEVELOPER.split(',')
-    : '';
+  constructor(
+    private actionUtil: ActionUtil,
+    private readonly collectionRepository: CollectionRepository,
+    private readonly userCollectionService: UserCollectionService,
+    private readonly graphRepository: GraphRepository,
+  ) {}
 
-  constructor(private actionUtil: ActionUtil) {}
-
-  public validate(
-    intention: IntentionDto,
+  public async bindUserToAction(
+    account: BrokerAccountDto | null,
     action: ActionDto,
-    accountBoundProjects: BrokerAccountProjectMapDto | null,
-    requireProjectExists: boolean,
-    requireServiceExists: boolean,
-  ): ActionError | null {
+  ) {
+    let user: UserDto;
+    if (!action.user) {
+      return;
+    }
+
+    if (action.user.id) {
+      user = await this.userCollectionService.lookupUserByGuid(action.user.id);
+    } else if (action.user.name) {
+      user = await this.userCollectionService.lookupUserByName(
+        action.user.name,
+        action.user.domain,
+      );
+    }
+
+    if (user) {
+      action.user.domain = user.domain;
+      action.user.email = user.email;
+      action.user.full_name = user.name;
+      action.user.id = user.guid;
+      action.user.name = user.username;
+    }
+
+    if (account) {
+      action.user.group.id = account.id.toString();
+      action.user.group.name = account.name;
+      action.user.group.domain = 'broker';
+    }
+  }
+
+  private async validateUserSet(
+    user: any,
+    action: ActionDto,
+  ): Promise<ActionError> | null {
+    if (!user) {
+      return {
+        message:
+          'Unknown user. All actions required to have a user id or name and domain set.',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.user.id',
+          value: action.service.environment,
+        },
+      };
+    }
+  }
+
+  private async validateVaultEnv(
+    action: ActionDto,
+  ): Promise<ActionError> | null {
     if (
       this.actionUtil.isProvisioned(action) &&
       !this.actionUtil.isValidVaultEnvironment(action)
@@ -48,7 +96,14 @@ export class ActionService {
         },
       };
     }
+  }
 
+  private async validateAccountBoundProject(
+    action: ActionDto,
+    accountBoundProjects: BrokerAccountProjectMapDto | null,
+    requireProjectExists: boolean,
+    requireServiceExists: boolean,
+  ): Promise<ActionError> | null {
     if (accountBoundProjects) {
       const projectFound = !!accountBoundProjects[action.service.project];
       const serviceFound =
@@ -80,31 +135,65 @@ export class ActionService {
         };
       }
     }
+  }
+
+  private async validateDbAction(
+    user: any,
+    intention: IntentionDto,
+    action: ActionDto,
+  ): Promise<ActionError> | null {
     if (action instanceof DatabaseAccessActionDto) {
-      // Temporary
-      if (intention.user.id === 'unknown') {
-        return {
-          message: 'Database access requires a user to evaluate authorization',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'user.id',
-            value: intention.user.id,
-          },
-        };
-      } else if (
-        !!intention.jwt.delegatedUserAuth ||
-        this.USER_ADMIN.indexOf(intention.user.id) !== -1 ||
-        this.USER_DBA.indexOf(intention.user.id) !== -1
+      if (
+        (await this.testAccess(
+          ['developer', 'lead-developer'],
+          user.vertex.toString(),
+          ACTION_VALIDATE_TEAM_ADMIN,
+          false,
+        )) ||
+        (await this.testAccess(
+          ['developer', 'lead-developer'],
+          user.vertex.toString(),
+          ACTION_VALIDATE_TEAM_DBA,
+          false,
+        ))
       ) {
         return null;
-      } else if (this.USER_DEVELOPER.indexOf(intention.user.id) !== -1) {
+      }
+
+      const project = await this.collectionRepository.getCollectionByKeyValue(
+        'project',
+        'name',
+        action.service.project,
+      );
+      const service = await this.collectionRepository.getCollectionByKeyValue(
+        'service',
+        'name',
+        action.service.name,
+      );
+
+      if (!project || !service) {
+        return null;
+      }
+
+      if (
+        await this.testAccess(
+          ['developer', 'lead-developer'],
+          user.vertex.toString(),
+          service.vertex.toString(),
+          true,
+        )
+      ) {
+        const vertex = await this.graphRepository.getEdgeByNameAndVertices(
+          'component',
+          project.vertex.toString(),
+          service.vertex.toString(),
+        );
+
         if (
-          DATABASE_ACCESS_DEVELOPER_ENV.indexOf(action.service.environment) !==
-          -1
+          vertex &&
+          vertex.prop &&
+          vertex.prop[`ad-${action.service.environment}`] === 'true'
         ) {
-          return null;
-        } else {
           return {
             message: 'User is not authorized to access this environment',
             data: {
@@ -114,6 +203,8 @@ export class ActionService {
               value: intention.user.id,
             },
           };
+        } else {
+          return null;
         }
       } else {
         return {
@@ -127,6 +218,68 @@ export class ActionService {
         };
       }
     }
-    return null;
+  }
+
+  public async validate(
+    intention: IntentionDto,
+    action: ActionDto,
+    account: BrokerAccountDto | null,
+    accountBoundProjects: BrokerAccountProjectMapDto | null,
+    requireProjectExists: boolean,
+    requireServiceExists: boolean,
+  ): Promise<ActionError> | null {
+    const user = await this.userCollectionService.lookupUserByGuid(
+      action.user?.id,
+    );
+
+    return (
+      (await this.validateUserSet(user, action)) ??
+      (await this.validateVaultEnv(action)) ??
+      (await this.validateAccountBoundProject(
+        action,
+        accountBoundProjects,
+        requireProjectExists,
+        requireServiceExists,
+      )) ??
+      (await this.validateDbAction(user, intention, action)) ??
+      null
+    );
+  }
+
+  async testAccess(
+    edges: string[],
+    userId: string,
+    graphId: string,
+    upstreamRecursive: boolean,
+  ) {
+    if (upstreamRecursive) {
+      const config =
+        await this.collectionRepository.getCollectionConfigByName('user');
+      if (!config) {
+        throw new InternalServerErrorException();
+      }
+
+      const upstream = await this.graphRepository.getUpstreamVertex(
+        graphId,
+        config.index,
+        edges,
+      );
+      return (
+        upstream.filter((data) => data.collection.vertex.toString() === userId)
+          .length > 0
+      );
+    } else {
+      for (const edgeName of edges) {
+        const edge = await this.graphRepository.getEdgeByNameAndVertices(
+          edgeName,
+          userId,
+          graphId,
+        );
+        if (!!edge) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 }

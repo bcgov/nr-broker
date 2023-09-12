@@ -8,6 +8,8 @@ export const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
 export const TOKEN_SERVICE_WRAP_TTL = 60;
+export const TOKEN_SERVICE_ALLOW_ORPHAN =
+  process.env.TOKEN_SERVICE_ALLOW_ORPHAN === 'true';
 
 export const COLLECTION_MAX_EMBEDDED = 10;
 
@@ -20,6 +22,10 @@ export const SHORT_ENV_CONVERSION = {
   development: 'dev',
 };
 
+export const ACTION_VALIDATE_TEAM_ADMIN =
+  process.env.ACTION_VALIDATE_TEAM_ADMIN ?? '';
+export const ACTION_VALIDATE_TEAM_DBA =
+  process.env.ACTION_VALIDATE_TEAM_DBA ?? '';
 export const ACTION_PROVISION_TOKEN_SELF = 'token/self';
 export const ACTION_PROVISION_APPROLE_SECRET_ID = 'approle/secret-id';
 export const VAULT_PROVISIONED_ACTION_SET = new Set([
@@ -45,13 +51,16 @@ export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 export const MILLISECONDS_IN_SECOND = 1000;
 export const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;
 
+export const OAUTH2_CLIENT_MAP_DOMAIN =
+  process.env.OAUTH2_CLIENT_MAP_DOMAIN ?? '';
+export const OAUTH2_CLIENT_DOMAIN = process.env.OAUTH2_CLIENT_DOMAIN ?? 'idp';
 export const OAUTH2_CLIENT_MAP_EMAIL =
   process.env.OAUTH2_CLIENT_MAP_EMAIL ?? 'email';
 export const OAUTH2_CLIENT_MAP_GUID =
   process.env.OAUTH2_CLIENT_MAP_GUID ?? 'idir_user_guid';
 export const OAUTH2_CLIENT_MAP_NAME =
   process.env.OAUTH2_CLIENT_MAP_NAME ?? 'display_name';
-export const OAUTH2_CLIENT_MAP_USERNAME =
-  process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
 export const OAUTH2_CLIENT_MAP_ROLES =
   process.env.OAUTH2_CLIENT_MAP_ROLES ?? 'client_roles';
+export const OAUTH2_CLIENT_MAP_USERNAME =
+  process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
