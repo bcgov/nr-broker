@@ -14,8 +14,9 @@ export class PreferencesService {
   }>();
 
   constructor(
-    private http: HttpClient,
-    @Inject(INITIAL_PREFERENCES) private preferences: PreferenceRestDto,
+    private readonly http: HttpClient,
+    @Inject(INITIAL_PREFERENCES)
+    private readonly preferences: PreferenceRestDto,
   ) {}
 
   get onSet() {

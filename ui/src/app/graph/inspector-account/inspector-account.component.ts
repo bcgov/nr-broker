@@ -28,10 +28,10 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
   isAdministrator = false;
 
   constructor(
-    private dialog: MatDialog,
-    private graphApi: GraphApiService,
-    private systemApi: SystemApiService,
-    @Inject(CURRENT_USER) public user: UserDto,
+    private readonly dialog: MatDialog,
+    private readonly graphApi: GraphApiService,
+    private readonly systemApi: SystemApiService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnInit(): void {

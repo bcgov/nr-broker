@@ -7,7 +7,7 @@ import { JwtRegistryDto, TokenCreateDto } from './dto/jwt-registry-rest.dto';
   providedIn: 'root',
 })
 export class SystemApiService {
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getAccountTokens(accountId: string) {
     return this.http.get<JwtRegistryDto[]>(

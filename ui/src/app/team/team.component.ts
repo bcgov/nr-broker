@@ -44,11 +44,11 @@ export class TeamComponent implements OnInit, OnDestroy {
   loading = true;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private collectionApi: CollectionApiService,
-    private dialog: MatDialog,
-    @Inject(CURRENT_USER) public user: UserDto,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly collectionApi: CollectionApiService,
+    private readonly dialog: MatDialog,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   fields = [

@@ -15,7 +15,7 @@ export class InspectorTeamComponent {
   @Input() instance!: any | undefined;
   @Output() graphChanged = new EventEmitter<boolean>();
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private readonly dialog: MatDialog) {}
 
   openMemberDialog() {
     if (!this.instance) {

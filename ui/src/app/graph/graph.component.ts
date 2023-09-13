@@ -67,12 +67,12 @@ export class GraphComponent {
   private latestData: GraphData | null = null;
 
   constructor(
-    private dialog: MatDialog,
-    private route: ActivatedRoute,
-    private router: Router,
-    private graphApi: GraphApiService,
-    private preferences: PreferencesService,
-    @Inject(CURRENT_USER) public user: UserDto,
+    private readonly dialog: MatDialog,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly graphApi: GraphApiService,
+    private readonly preferences: PreferencesService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnInit(): void {

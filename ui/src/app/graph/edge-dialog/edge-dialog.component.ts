@@ -58,15 +58,15 @@ export class EdgeDialogComponent implements OnInit {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: {
+    public readonly data: {
       collection: string;
       config: CollectionConfigMap;
       vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
       target?: GraphDataResponseEdgeDto;
     },
-    public dialogRef: MatDialogRef<EdgeDialogComponent>,
-    private graphApi: GraphApiService,
+    public readonly dialogRef: MatDialogRef<EdgeDialogComponent>,
+    private readonly graphApi: GraphApiService,
   ) {}
 
   ngOnInit(): void {

@@ -47,14 +47,14 @@ export class VertexDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: {
+    public readonly data: {
       config: CollectionConfigMap;
       target?: ChartClickTargetVertex;
       data?: any;
     },
-    public dialogRef: MatDialogRef<VertexDialogComponent>,
-    private graphApi: GraphApiService,
-    private changeDetectorRef: ChangeDetectorRef,
+    public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
+    private readonly graphApi: GraphApiService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {

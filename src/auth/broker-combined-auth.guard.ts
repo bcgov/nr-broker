@@ -12,8 +12,8 @@ import { BrokerOidcAuthGuard } from './broker-oidc-auth.guard';
 @Injectable()
 export class BrokerCombinedAuthGuard extends AuthGuard(['jwt', 'oidc']) {
   constructor(
-    private oidcAuthGuard: BrokerOidcAuthGuard,
-    private jwtAuthGuard: BrokerJwtAuthGuard,
+    private readonly oidcAuthGuard: BrokerOidcAuthGuard,
+    private readonly jwtAuthGuard: BrokerJwtAuthGuard,
   ) {
     super();
   }

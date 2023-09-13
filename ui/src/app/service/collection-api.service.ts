@@ -8,7 +8,7 @@ import { TeamSearchDto } from './dto/team-rest.dto';
   providedIn: 'root',
 })
 export class CollectionApiService {
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   public searchCollection(
     name: string,

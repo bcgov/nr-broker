@@ -30,11 +30,11 @@ export class AccountGenerateDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: {
+    public readonly data: {
       accountId: string;
     },
-    private clipboard: Clipboard,
-    private systemApi: SystemApiService,
+    private readonly clipboard: Clipboard,
+    private readonly systemApi: SystemApiService,
   ) {}
 
   generate() {

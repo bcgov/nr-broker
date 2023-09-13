@@ -20,7 +20,7 @@ import { get } from 'radash';
   version: '1',
 })
 export class PreferenceController {
-  constructor(private service: PreferenceService) {}
+  constructor(private readonly service: PreferenceService) {}
 
   @Get('self')
   @UseGuards(BrokerOidcAuthGuard)

@@ -20,13 +20,13 @@ import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
   constructor(
-    private dataSource: DataSource,
+    private readonly dataSource: DataSource,
     @InjectRepository(CollectionConfigDto)
-    private collectionConfigRepository: MongoRepository<CollectionConfigDto>,
+    private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
     @InjectRepository(EdgeDto)
-    private edgeRepository: MongoRepository<EdgeDto>,
+    private readonly edgeRepository: MongoRepository<EdgeDto>,
     @InjectRepository(VertexDto)
-    private vertexRepository: MongoRepository<VertexDto>,
+    private readonly vertexRepository: MongoRepository<VertexDto>,
   ) {}
 
   public async getData(

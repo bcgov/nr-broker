@@ -60,9 +60,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
   private triggerRefresh = new Subject<void>();
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private intentionApi: IntentionApiService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly intentionApi: IntentionApiService,
   ) {}
 
   ngOnInit(): void {

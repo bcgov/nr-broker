@@ -12,5 +12,5 @@ import { UserDto } from '../../service/graph.types';
   imports: [MatDialogModule, NgIf, NgFor, MatButtonModule],
 })
 export class RolesDialogComponent {
-  constructor(@Inject(CURRENT_USER) public user: UserDto) {}
+  constructor(@Inject(CURRENT_USER) public readonly user: UserDto) {}
 }

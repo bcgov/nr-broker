@@ -25,7 +25,7 @@ import { AllowOwner } from '../allow-owner.decorator';
   version: '1',
 })
 export class GraphController {
-  constructor(private graph: GraphService) {}
+  constructor(private readonly graph: GraphService) {}
 
   @Get('data')
   @UseGuards(BrokerCombinedAuthGuard)

@@ -18,8 +18,8 @@ import { map } from 'rxjs';
 })
 export class GraphApiService {
   constructor(
-    private util: GraphUtilService,
-    private http: HttpClient,
+    private readonly util: GraphUtilService,
+    private readonly http: HttpClient,
   ) {}
 
   getData() {

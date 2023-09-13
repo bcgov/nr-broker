@@ -11,9 +11,9 @@ import { IntentionDto } from '../intention/dto/intention.dto';
 export class ProvisionService {
   private readonly logger = new Logger(TokenService.name);
   constructor(
-    private actionUtil: ActionUtil,
-    private auditService: AuditService,
-    private tokenService: TokenService,
+    private readonly actionUtil: ActionUtil,
+    private readonly auditService: AuditService,
+    private readonly tokenService: TokenService,
   ) {}
 
   /**

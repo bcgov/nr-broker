@@ -43,8 +43,8 @@ export class EchartsComponent implements OnInit {
   private prefSubscription!: Subscription;
 
   constructor(
-    private graphUtil: GraphUtilService,
-    private preferences: PreferencesService,
+    private readonly graphUtil: GraphUtilService,
+    private readonly preferences: PreferencesService,
   ) {}
 
   ngOnInit(): void {

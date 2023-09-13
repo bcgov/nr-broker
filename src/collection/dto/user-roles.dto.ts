@@ -14,8 +14,8 @@ export class UserRolesDto extends UserImportDto {
   roles!: string[];
 
   constructor(
-    public vertex: string,
-    userInfo: any,
+    public readonly vertex: string,
+    readonly userInfo: any,
   ) {
     super();
     // Map or use static value

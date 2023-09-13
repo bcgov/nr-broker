@@ -3,7 +3,7 @@ import { AuditService } from './audit/audit.service';
 
 @Injectable()
 export class AccessLogsMiddleware implements NestMiddleware {
-  constructor(private auditService: AuditService) {}
+  constructor(private readonly auditService: AuditService) {}
 
   use(req: any, res: any, next: () => void) {
     const startDate = new Date();

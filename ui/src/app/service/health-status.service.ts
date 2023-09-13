@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class HealthStatusService {
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   healthCheck() {
     return this.http.get<any>(`${environment.apiUrl}/v1/health`);

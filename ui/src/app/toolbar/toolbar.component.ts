@@ -20,7 +20,6 @@ import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-toolbar',
@@ -40,10 +39,9 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   @Output() sidebarClick = new EventEmitter<boolean>();
 
   constructor(
-    private dialog: MatDialog,
-    private healthService: HealthStatusService,
-    @Inject(CURRENT_USER) public user: UserDto,
-    private route: ActivatedRoute,
+    private readonly dialog: MatDialog,
+    private readonly healthService: HealthStatusService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   healthStatus: boolean | undefined;

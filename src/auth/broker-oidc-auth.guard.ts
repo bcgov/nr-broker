@@ -27,7 +27,7 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly util: PersistenceUtilService,
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
   ) {
     super();
   }

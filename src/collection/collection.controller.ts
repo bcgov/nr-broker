@@ -34,9 +34,9 @@ import { UserCollectionService } from './user-collection.service';
 })
 export class CollectionController {
   constructor(
-    private accountService: AccountService,
-    private service: CollectionService,
-    private userCollectionService: UserCollectionService,
+    private readonly accountService: AccountService,
+    private readonly service: CollectionService,
+    private readonly userCollectionService: UserCollectionService,
   ) {}
 
   @Get('user/self')

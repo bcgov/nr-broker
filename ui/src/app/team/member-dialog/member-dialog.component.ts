@@ -66,12 +66,12 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   modified = false;
 
   constructor(
-    private graphApi: GraphApiService,
-    private collectionApi: CollectionApiService,
-    public dialogRef: MatDialogRef<MemberDialogComponent>,
+    private readonly graphApi: GraphApiService,
+    private readonly collectionApi: CollectionApiService,
+    public readonly dialogRef: MatDialogRef<MemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { id: string; vertex: string; name: string },
-    @Inject(CURRENT_USER) public user: UserDto,
+    public readonly data: { id: string; vertex: string; name: string },
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnInit() {

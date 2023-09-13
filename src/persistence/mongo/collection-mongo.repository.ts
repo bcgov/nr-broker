@@ -16,9 +16,9 @@ import { CollectionSearchResult } from '../../collection/dto/collection-search-r
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
   constructor(
-    private dataSource: DataSource,
+    private readonly dataSource: DataSource,
     @InjectRepository(CollectionConfigDto)
-    private collectionConfigRepository: MongoRepository<CollectionConfigDto>,
+    private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
   ) {}
 
   public getCollectionConfigs(): Promise<CollectionConfigDto[]> {

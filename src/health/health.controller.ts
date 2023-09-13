@@ -10,8 +10,8 @@ import { HealthService } from './health.service';
 })
 export class HealthController {
   constructor(
-    private health: HealthCheckService,
-    private http: HttpHealthIndicator,
+    private readonly health: HealthCheckService,
+    private readonly http: HttpHealthIndicator,
     private readonly healthService: HealthService,
   ) {}
 
