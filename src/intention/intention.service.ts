@@ -29,7 +29,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
-import { UserCollectionService } from '../collection/user-collection.service';
+import { PersistenceUtilService } from '../persistence/persistence-util.service';
 
 export interface IntentionOpenResponse {
   actions: any;
@@ -52,7 +52,7 @@ export class IntentionService {
     private readonly collectionRepository: CollectionRepository,
     private readonly intentionRepository: IntentionRepository,
     private readonly systemRepository: SystemRepository,
-    private readonly userCollectionService: UserCollectionService,
+    private readonly persistenceUtilService: PersistenceUtilService,
   ) {}
 
   /**
@@ -72,7 +72,7 @@ export class IntentionService {
     const startDate = new Date();
     const actions = {};
     const actionFailures: ActionError[] = [];
-    const envMap = await this.intentionSync.getEnvMap();
+    const envMap = await this.persistenceUtilService.getEnvMap();
     if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
       throw new BadRequestException({
         statusCode: 400,

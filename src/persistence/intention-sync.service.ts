@@ -6,7 +6,7 @@ import { CollectionRepository } from './interfaces/collection.repository';
 import { GraphRepository } from './interfaces/graph.repository';
 import { CollectionDtoUnion } from './dto/collection-dto-union.type';
 import { VertexDto } from './dto/vertex.dto';
-import { EnvironmentDto } from './dto/environment.dto';
+import { PersistenceUtilService } from './persistence-util.service';
 
 interface OverlayMapBase {
   key: string;
@@ -31,25 +31,11 @@ export class IntentionSyncService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
+    private readonly persistenceUtilService: PersistenceUtilService,
   ) {}
 
-  public async getEnvMap() {
-    const envs = await this.collectionRepository.getCollections('environment');
-    const envMap: { [key: string]: EnvironmentDto } = {};
-    for (const env of envs) {
-      envMap[env.name] = env;
-      if (env.short) {
-        envMap[env.short] = env;
-      }
-      for (const name of env.aliases) {
-        envMap[name] = env;
-      }
-    }
-    return envMap;
-  }
-
   public async sync(intention: IntentionDto) {
-    const envMap = await this.getEnvMap();
+    const envMap = await this.persistenceUtilService.getEnvMap();
     for (const action of intention.actions) {
       const context = {
         action,

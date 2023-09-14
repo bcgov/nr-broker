@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { EnvironmentDto } from './dto/environment.dto';
 import { JwtRegistryDto } from './dto/jwt-registry.dto';
 import { CollectionRepository } from './interfaces/collection.repository';
 import { GraphRepository } from './interfaces/graph.repository';
@@ -20,7 +21,7 @@ export class PersistenceUtilService {
     );
   }
 
-  async testAccess(
+  public async testAccess(
     edges: string[],
     userId: string,
     graphId: string,
@@ -55,5 +56,20 @@ export class PersistenceUtilService {
       }
       return false;
     }
+  }
+
+  public async getEnvMap() {
+    const envs = await this.collectionRepository.getCollections('environment');
+    const envMap: { [key: string]: EnvironmentDto } = {};
+    for (const env of envs) {
+      envMap[env.name] = env;
+      if (env.short) {
+        envMap[env.short] = env;
+      }
+      for (const name of env.aliases) {
+        envMap[name] = env;
+      }
+    }
+    return envMap;
   }
 }

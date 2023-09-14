@@ -211,6 +211,29 @@ export class ActionService {
         return null;
       }
 
+      const env = (await this.persistenceUtil.getEnvMap())[
+        action.service.environment
+      ];
+
+      if (
+        env &&
+        action.package &&
+        action.package.version &&
+        action.package.version.toLowerCase().endsWith('-snapshot') &&
+        env.name === 'production'
+      ) {
+        return {
+          message:
+            'Only release versions (no snapshot builds) may be installed in production.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.version',
+            value: action.package.version,
+          },
+        };
+      }
+
       return this.validateAssistedDelivery(user, intention, action);
     }
     return null;
