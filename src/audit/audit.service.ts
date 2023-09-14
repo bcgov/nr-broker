@@ -300,8 +300,8 @@ export class AuditService {
           kind: 'event',
           type,
           outcome,
-          tags,
         },
+        tags,
       },
     ])
       .pipe(
