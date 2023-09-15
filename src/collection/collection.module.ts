@@ -6,10 +6,12 @@ import { CollectionController } from './collection.controller';
 import { CollectionService } from './collection.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { AccountService } from './account.service';
+import { UserCollectionService } from './user-collection.service';
 
 @Module({
   imports: [AuditModule, AuthModule, PersistenceModule, GraphModule],
   controllers: [CollectionController],
-  providers: [CollectionService, AccountService],
+  providers: [CollectionService, UserCollectionService, AccountService],
+  exports: [CollectionService, UserCollectionService],
 })
 export class CollectionModule {}

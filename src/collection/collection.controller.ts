@@ -26,6 +26,7 @@ import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
 import { get } from 'radash';
+import { UserCollectionService } from './user-collection.service';
 
 @Controller({
   path: 'collection',
@@ -33,15 +34,16 @@ import { get } from 'radash';
 })
 export class CollectionController {
   constructor(
-    private accountService: AccountService,
-    private service: CollectionService,
+    private readonly accountService: AccountService,
+    private readonly service: CollectionService,
+    private readonly userCollectionService: UserCollectionService,
   ) {}
 
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiOAuth2(['openid', 'profile'])
   async user(@Request() req: ExpressRequest): Promise<UserRolesDto> {
-    return await this.service.extractUserFromRequest(req);
+    return await this.userCollectionService.extractUserFromRequest(req);
   }
 
   @Post('user/import')
@@ -53,7 +55,7 @@ export class CollectionController {
     @Request() req: ExpressRequest,
     @Body() userDto: UserImportDto,
   ): Promise<void> {
-    await this.service.upsertUser(req, userDto);
+    await this.userCollectionService.upsertUser(req, userDto);
   }
 
   @Get('config')

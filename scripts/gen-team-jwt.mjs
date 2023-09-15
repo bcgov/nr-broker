@@ -31,10 +31,6 @@ const payload = {
   nbf: ISSUED_AT,
   jti: randomUUID(),
   sub,
-  // Temporary: Limit token to listed projects (or allow all projects if not present)
-  // projects: ['fluent'],
-  // Temporary: Enable for off-prem projects
-  // delegatedUserAuth: true,
 };
 
 const headerStr = Buffer.from(JSON.stringify(header), 'utf8').toString(

@@ -1,19 +1,19 @@
 import {
   ExecutionContext,
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { get } from 'radash';
 import {
   ALLOW_OWNER_METADATA_KEY,
   AllowOwnerArgs,
 } from '../allow-owner.decorator';
+import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
-import { get } from 'radash';
+import { PersistenceUtilService } from '../persistence/persistence-util.service';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.
@@ -26,7 +26,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
   constructor(
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
-    private reflector: Reflector,
+    private readonly util: PersistenceUtilService,
+    private readonly reflector: Reflector,
   ) {
     super();
   }
@@ -74,7 +75,7 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
         return false;
       }
 
-      return await this.testAccess(
+      return await this.util.testAccess(
         requiredEdgeNames,
         user.vertex.toString(),
         targetCollection.vertex.toString(),
@@ -86,14 +87,14 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
         return false;
       }
 
-      return await this.testAccess(
+      return await this.util.testAccess(
         requiredEdgeNames,
         user.vertex.toString(),
         targetEdge.target.toString(),
         upstreamRecursive,
       );
     } else if (userUpstreamData.graphObjectType === 'vertex') {
-      return await this.testAccess(
+      return await this.util.testAccess(
         requiredEdgeNames,
         user.vertex.toString(),
         graphId,
@@ -101,40 +102,5 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       );
     }
     return false;
-  }
-
-  async testAccess(
-    edges: string[],
-    sourceId: string,
-    targetId: string,
-    upstreamRecursive: boolean,
-  ) {
-    if (upstreamRecursive) {
-      const config =
-        await this.collectionRepository.getCollectionConfigByName('user');
-      if (!config) {
-        throw new InternalServerErrorException();
-      }
-
-      const upstream = await this.graphRepository.getUpstreamVertex(
-        targetId,
-        config.index,
-        edges,
-      );
-      return (
-        upstream.filter(
-          (data) => data.collection.vertex.toString() === sourceId,
-        ).length > 0
-      );
-    } else {
-      return edges.some(async (edgeName) => {
-        const edge = await this.graphRepository.getEdgeByNameAndVertices(
-          edgeName,
-          sourceId,
-          targetId,
-        );
-        return !!edge;
-      });
-    }
   }
 }

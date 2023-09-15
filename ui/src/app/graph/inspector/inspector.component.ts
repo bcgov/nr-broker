@@ -113,10 +113,10 @@ export class InspectorComponent implements OnChanges, OnInit {
   isTargetOwner = false;
 
   constructor(
-    private graphApi: GraphApiService,
-    private dialog: MatDialog,
-    private preferences: PreferencesService,
-    @Inject(CURRENT_USER) public user: UserDto,
+    private readonly graphApi: GraphApiService,
+    private readonly dialog: MatDialog,
+    private readonly preferences: PreferencesService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnInit(): void {

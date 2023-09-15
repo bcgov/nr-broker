@@ -20,8 +20,8 @@ export class InspectorIntentionsComponent implements OnChanges {
   total = 0;
 
   constructor(
-    private graphApi: GraphApiService,
-    private router: Router,
+    private readonly graphApi: GraphApiService,
+    private readonly router: Router,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {

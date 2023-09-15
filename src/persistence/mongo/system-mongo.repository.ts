@@ -15,13 +15,13 @@ import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto'
 export class SystemMongoRepository implements SystemRepository {
   constructor(
     @InjectRepository(JwtAllowDto)
-    private jwtAllowRepository: MongoRepository<JwtAllowDto>,
+    private readonly jwtAllowRepository: MongoRepository<JwtAllowDto>,
     @InjectRepository(JwtBlockDto)
-    private jwtBlockRepository: MongoRepository<JwtBlockDto>,
+    private readonly jwtBlockRepository: MongoRepository<JwtBlockDto>,
     @InjectRepository(JwtRegistryDto)
-    private jwtRegistryRepository: MongoRepository<JwtRegistryDto>,
+    private readonly jwtRegistryRepository: MongoRepository<JwtRegistryDto>,
     @InjectRepository(PreferenceDto)
-    private preferenceRepository: MongoRepository<PreferenceDto>,
+    private readonly preferenceRepository: MongoRepository<PreferenceDto>,
   ) {}
 
   public async jwtMatchesAllowed(jwt: JwtDto): Promise<boolean> {

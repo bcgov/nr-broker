@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   constructor(
     readonly configService: ConfigService,
-    private systemRepository: SystemRepository,
+    private readonly systemRepository: SystemRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

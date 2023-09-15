@@ -33,11 +33,11 @@ export class DeleteEdgeDialogComponent {
   @ViewChild(MatSelectionList) private selectionComponent!: MatSelectionList;
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: {
+    public readonly data: {
       connections: Observable<VertexNavigation>;
     },
-    public dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
-    private graphApi: GraphApiService,
+    public readonly dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
+    private readonly graphApi: GraphApiService,
   ) {}
 
   deleteEdge() {

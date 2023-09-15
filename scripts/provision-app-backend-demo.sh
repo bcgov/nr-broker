@@ -12,7 +12,7 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30 \
     -H "Authorization: Bearer $BROKER_JWT" \
     -d @<(cat provision-app-backend-intention.json | \
         jq ".event.url=\"http://sample.com/job\" | \
-            .user.id=\"$(whoami)@idir\" | \
+            .user.name=\"hgoddard@idp\" | \
             (.actions[] | select(.id == \"install\") .package.version) |= \"$INSTALL_VERSION\" \
         " \
     ))

@@ -15,8 +15,8 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class JsonViewDialogComponent {
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { json: any },
-    public dialogRef: MatDialogRef<JsonViewDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public readonly data: { json: any },
+    public readonly dialogRef: MatDialogRef<JsonViewDialogComponent>,
   ) {}
 
   closeDialog() {

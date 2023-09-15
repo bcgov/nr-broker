@@ -12,7 +12,7 @@ import { ObjectId } from 'mongodb';
 export class IntentionMongoRepository implements IntentionRepository {
   constructor(
     @InjectRepository(IntentionDto)
-    private intentionRepository: MongoRepository<IntentionDto>,
+    private readonly intentionRepository: MongoRepository<IntentionDto>,
   ) {}
 
   public async addIntention(intention: IntentionDto): Promise<any> {

@@ -7,7 +7,7 @@ import { IntentionSearchResult } from './dto/intention-search-result.dto';
   providedIn: 'root',
 })
 export class IntentionApiService {
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   searchIntentions(where: string, offset = 0, limit = 5) {
     const whereQuery = encodeURIComponent(where);

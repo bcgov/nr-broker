@@ -8,7 +8,7 @@ import { RoleGuardRequest } from './vault-role.guard';
  */
 @Injectable()
 export class ProvisionGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>(
       'provision',

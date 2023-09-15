@@ -24,7 +24,7 @@ export class BrokerJwtAuthGuard extends AuthGuard('jwt') {
     private readonly auditService: AuditService,
     private readonly persistenceUtilService: PersistenceUtilService,
     private readonly systemRepository: SystemRepository,
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
   ) {
     super();
   }

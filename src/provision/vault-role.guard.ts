@@ -25,9 +25,9 @@ export interface RoleGuardRequest extends Request {
 @Injectable()
 export class VaultRoleGuard implements CanActivate {
   constructor(
-    private reflector: Reflector,
-    private tokenService: TokenService,
-    private actionUtil: ActionUtil,
+    private readonly reflector: Reflector,
+    private readonly tokenService: TokenService,
+    private readonly actionUtil: ActionUtil,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
