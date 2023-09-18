@@ -57,9 +57,12 @@ export class ActionService {
     }
 
     if (account) {
-      action.user.group.id = account.id.toString();
-      action.user.group.name = account.name;
-      action.user.group.domain = 'broker';
+      action.user.group = {
+        ...(action.user.group ?? {}),
+        id: account.id.toString(),
+        name: account.name,
+        domain: 'broker',
+      };
     }
   }
 
