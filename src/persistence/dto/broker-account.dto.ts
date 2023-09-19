@@ -28,4 +28,7 @@ export class BrokerAccountDto extends VertexPointerDto {
 
   @Column()
   requireServiceExists: boolean;
+
+  @Column()
+  skipUserValidation: boolean;
 }

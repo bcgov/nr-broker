@@ -6,6 +6,7 @@ import os from 'os';
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditStreamerService } from './audit-streamer.service';
+import { UserDto } from '../intention/dto/user.dto';
 
 const hostInfo = {
   host: {
@@ -79,9 +80,6 @@ export class AuditService {
         transaction: {
           id: intention.transaction.hash,
         },
-        user: {
-          id: intention.user.id,
-        },
       },
     ])
       .pipe(
@@ -93,6 +91,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
+        map(this.addUserFunc(intention.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -120,9 +119,6 @@ export class AuditService {
             type: 'info',
             url: intention.event.url,
           },
-          user: {
-            id: intention.user.id,
-          },
         },
       ])
         .pipe(
@@ -134,6 +130,7 @@ export class AuditService {
           map(this.addServiceFunc),
           map(this.addSourceFunc(req)),
           map(this.addTimestampFunc(now)),
+          map(this.addUserFunc(intention.user)),
         )
         .subscribe((ecsObj) => {
           this.stream.putRecord(ecsObj);
@@ -173,9 +170,6 @@ export class AuditService {
         transaction: {
           id: intention.transaction.hash,
         },
-        user: {
-          id: intention.user.id,
-        },
       },
     ])
       .pipe(
@@ -186,6 +180,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
+        map(this.addUserFunc(intention.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -220,9 +215,6 @@ export class AuditService {
           type,
           url: intention.event.url,
         },
-        user: {
-          id: action.user.id,
-        },
       }),
     ])
       .pipe(
@@ -234,6 +226,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
+        map(this.addUserFunc(action.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -261,9 +254,6 @@ export class AuditService {
           provider: intention.event.provider,
           url: intention.event.url,
         },
-        user: {
-          id: action.user.id,
-        },
       }),
     ])
       .pipe(
@@ -276,6 +266,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
+        map(this.addUserFunc(action.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -671,6 +662,36 @@ export class AuditService {
         url: {
           original: `${req.protocol}://${req.headers.host}${req.url}`,
         },
+      });
+    };
+  }
+
+  /**
+   * Map function generator for adding user to ECS document
+   * @param user The user
+   * @returns Function to manipulate the ECS document
+   */
+  private addUserFunc(user: UserDto | null) {
+    if (!user) {
+      return (ecsObj: any) => ecsObj;
+    }
+
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        user: this.removeUndefined({
+          domain: user.domain,
+          email: user.email,
+          full_name: user.full_name,
+          group: user.group
+            ? this.removeUndefined({
+                domain: user.group.domain,
+                id: user.group.id,
+                name: user.group.name,
+              })
+            : undefined,
+          id: user.id,
+          name: user.name,
+        }),
       });
     };
   }

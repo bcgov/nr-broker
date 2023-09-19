@@ -346,6 +346,13 @@ result = db.collectionConfig.insertOne({
       hint: 'Require service to be owned by account',
       value: false,
     },
+    skipUserValidation: {
+      name: 'Skip User Validation',
+      required: true,
+      type: 'boolean',
+      hint: 'Defaults unknown users to developer access',
+      value: false,
+    },
   },
   name: 'Broker Account',
   permissions: {

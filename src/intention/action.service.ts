@@ -79,28 +79,32 @@ export class ActionService {
     );
 
     return (
-      (await this.validateUserSet(user, action)) ??
-      (await this.validateVaultEnv(action)) ??
-      (await this.validateAccountBoundProject(
+      this.validateUserSet(account, user, action) ??
+      this.validateVaultEnv(action) ??
+      this.validateAccountBoundProject(
         action,
         accountBoundProjects,
         requireProjectExists,
         requireServiceExists,
-      )) ??
+      ) ??
       (await this.validateDbAction(user, intention, action)) ??
-      (await this.validatePackageAction(user, intention, action)) ??
+      (await this.validatePackageAction(account, user, intention, action)) ??
       null
     );
   }
 
-  private async validateUserSet(
+  private validateUserSet(
+    account: BrokerAccountDto | null,
     user: any,
     action: ActionDto,
-  ): Promise<ActionError> | null {
+  ): ActionError | null {
+    if (account && account.skipUserValidation) {
+      return null;
+    }
     if (!user) {
       return {
         message:
-          'Unknown user. All actions required to have a user id or name and domain set.',
+          'Unknown user. All actions required to be mapped to user. Does user exist with provided id or name and domain?',
         data: {
           action: action.action,
           action_id: action.id,
@@ -109,11 +113,10 @@ export class ActionService {
         },
       };
     }
+    return null;
   }
 
-  private async validateVaultEnv(
-    action: ActionDto,
-  ): Promise<ActionError> | null {
+  private validateVaultEnv(action: ActionDto): ActionError | null {
     if (
       this.actionUtil.isProvisioned(action) &&
       !this.actionUtil.isValidVaultEnvironment(action)
@@ -131,12 +134,12 @@ export class ActionService {
     }
   }
 
-  private async validateAccountBoundProject(
+  private validateAccountBoundProject(
     action: ActionDto,
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     requireProjectExists: boolean,
     requireServiceExists: boolean,
-  ): Promise<ActionError> | null {
+  ): ActionError | null {
     if (accountBoundProjects) {
       const projectFound = !!accountBoundProjects[action.service.project];
       const serviceFound =
@@ -174,8 +177,13 @@ export class ActionService {
     user: any,
     intention: IntentionDto,
     action: ActionDto,
-  ): Promise<ActionError> | null {
+  ): Promise<ActionError | null> {
     if (action instanceof DatabaseAccessActionDto) {
+      // Ensure user validation done. May have been skipped if option set.
+      const userValidation = this.validateUserSet(null, user, action);
+      if (userValidation) {
+        return userValidation;
+      }
       if (
         (await this.persistenceUtil.testAccess(
           ['developer', 'lead-developer'],
@@ -198,18 +206,20 @@ export class ActionService {
   }
 
   private async validatePackageAction(
+    account: BrokerAccountDto | null,
     user: any,
     intention: IntentionDto,
     action: ActionDto,
-  ): Promise<ActionError> | null {
+  ): Promise<ActionError | null> {
     if (action instanceof PackageInstallationActionDto) {
       if (
-        await this.persistenceUtil.testAccess(
+        (account && account.skipUserValidation) ||
+        (await this.persistenceUtil.testAccess(
           ['developer', 'lead-developer'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_ADMIN,
           false,
-        )
+        ))
       ) {
         return null;
       }
@@ -246,7 +256,7 @@ export class ActionService {
     user: any,
     intention: IntentionDto,
     action: ActionDto,
-  ): Promise<ActionError> | null {
+  ): Promise<ActionError | null> {
     const project = await this.collectionRepository.getCollectionByKeyValue(
       'project',
       'name',
