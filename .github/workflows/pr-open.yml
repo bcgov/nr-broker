@@ -35,17 +35,17 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Backend Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./
           push: true
@@ -56,37 +56,27 @@ jobs:
             REPO_LOCATION=
 
   tests-backend:
-    name: Backend Unit Tests
+    name: Backend Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Get npm cache directory
-        id: npm-cache-dir-backend
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - uses: actions/cache@v3
-        id: npm-cache-backend # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Use Node.js
+        uses: actions/setup-node@v3
         with:
-          path: ${{ steps.npm-cache-dir-backend.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: 18
+          cache: 'npm'
 
-      - name: Cache for test results
-        id: cache-backend
-        uses: actions/cache@v3
-        with:
-          path: coverage
-          key: backend-coverage-${{ github.run_number }}
-          restore-keys: |
-            backend-coverage-
+      - name: npm ci
+        run: npm ci
 
-      - name: Tests
-        run: |
-          npm ci
-          npm run test:cov
+      - name: lint
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: npm run lint
+
+      - name: unit test
+        run: npm run test:cov
 
       - name: Report code coverage
         if: ${{ github.actor != 'dependabot[bot]' }}
@@ -96,3 +86,24 @@ jobs:
           delete-old-comments: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./coverage/lcov.info
+
+  # tests-frontend:
+  #   name: Frontend Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Use Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+  #         cache: 'npm'
+
+  #     - name: npm ci
+  #       run: npm ci
+  #       working-directory: ./ui
+
+  #     - name: unit test
+  #       run: npm run test
+  #       working-directory: ./ui

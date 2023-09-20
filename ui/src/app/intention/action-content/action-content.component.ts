@@ -16,8 +16,9 @@ export class ActionContentComponent implements OnInit {
   values: string[] = [];
 
   ngOnInit(): void {
+    const actions = this.intention?.actions ?? [];
     const valueSet = new Set<string>(
-      this.intention.actions.map((action: any) => {
+      actions.map((action: any) => {
         return get(action, this.key);
       }),
     );
