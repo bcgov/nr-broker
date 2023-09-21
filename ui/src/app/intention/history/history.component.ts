@@ -46,6 +46,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
     { value: 'id', viewValue: 'ID' },
     { value: 'service', viewValue: 'Service' },
     { value: 'action', viewValue: 'Action' },
+    { value: 'username', viewValue: 'Username' },
+  ];
+  selectedStatus: string = 'all';
+  status = [
+    { value: 'all', viewValue: 'All' },
+    { value: 'success', viewValue: 'Success' },
+    { value: 'failure', viewValue: 'Failure' },
   ];
   propDisplayedColumns: string[] = [
     'project',
@@ -71,18 +78,40 @@ export class HistoryComponent implements OnInit, OnDestroy {
         switchMap(() => {
           let whereClause = {};
           this.loading = true;
-          if (this.selectedField && this.fieldValue) {
+          if (this.selectedField) {
             if (this.selectedField === 'id') {
               whereClause = {
-                _id: this.fieldValue.trim(),
+                ...(this.fieldValue ? { _id: this.fieldValue.trim() } : {}),
+                ...(this.selectedStatus !== 'all'
+                  ? { 'transaction.outcome': this.selectedStatus }
+                  : {}),
               };
             } else if (this.selectedField === 'service') {
               whereClause = {
-                'actions.service.name': this.fieldValue.trim(),
+                ...(this.fieldValue
+                  ? { 'actions.service.name': this.fieldValue.trim() }
+                  : {}),
+                ...(this.selectedStatus !== 'all'
+                  ? { 'transaction.outcome': this.selectedStatus }
+                  : {}),
               };
             } else if (this.selectedField === 'action') {
               whereClause = {
-                'actions.action': this.fieldValue.trim(),
+                ...(this.fieldValue
+                  ? { 'actions.action': this.fieldValue.trim() }
+                  : {}),
+                ...(this.selectedStatus !== 'all'
+                  ? { 'transaction.outcome': this.selectedStatus }
+                  : {}),
+              };
+            } else if (this.selectedField === 'username') {
+              whereClause = {
+                ...(this.fieldValue
+                  ? { 'actions.user.name': this.fieldValue.trim() }
+                  : {}),
+                ...(this.selectedStatus !== 'all'
+                  ? { 'transaction.outcome': this.selectedStatus }
+                  : {}),
               };
             }
           }
@@ -121,6 +150,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (params['value']) {
       this.fieldValue = params['value'];
     }
+    if (params['status']) {
+      this.selectedStatus = params['status'];
+    }
     this.refresh();
   }
 
@@ -138,6 +170,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.pageIndex = 0;
     this.selectedField = 'id';
     this.fieldValue = '';
+    this.selectedStatus = 'all';
     this.refresh();
   }
 
@@ -155,6 +188,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
           size: this.pageSize,
           field: this.selectedField ?? 'id',
           value: this.fieldValue ?? '',
+          status: this.selectedStatus ?? 'all',
         },
       ],
       {

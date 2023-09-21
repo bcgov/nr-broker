@@ -1,5 +1,5 @@
 import { Component, Inject, Output, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -63,16 +63,15 @@ export class GraphComponent {
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
   public latestConfig: CollectionConfigMap | null = null;
-  public edgeMapInstance: GraphUtilService = new GraphUtilService();
   private latestData: GraphData | null = null;
 
   constructor(
     private readonly dialog: MatDialog,
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
     private readonly graphApi: GraphApiService,
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
+    public graphUtil: GraphUtilService,
   ) {}
 
   ngOnInit(): void {
@@ -232,20 +231,7 @@ export class GraphComponent {
 
   updateRoute() {
     if (this.selected) {
-      this.router.navigate(
-        [
-          '/graph',
-          {
-            selected: JSON.stringify({
-              id: this.selected.data.id,
-              type: this.selected.type,
-            }),
-          },
-        ],
-        {
-          replaceUrl: true,
-        },
-      );
+      this.graphUtil.openInGraph(this.selected.data.id, this.selected.type);
     }
   }
 
@@ -299,7 +285,7 @@ export class GraphComponent {
       return false;
     }
     const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
-    const mapString = this.edgeMapInstance.edgeToMapString({
+    const mapString = this.graphUtil.edgeToMapString({
       is: colllectionConfig.index,
       it: this.latestConfig[edge.collection].index,
       name: edge.name,
@@ -317,7 +303,7 @@ export class GraphComponent {
     if (!this.latestConfig) {
       return;
     }
-    const mapString = this.edgeMapInstance.edgeToMapString({
+    const mapString = this.graphUtil.edgeToMapString({
       is: colllectionConfig.index,
       it: this.latestConfig[edge.collection].index,
       name: edge.name,

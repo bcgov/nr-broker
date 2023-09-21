@@ -8,6 +8,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { RouterModule } from '@angular/router';
 import { Subject, catchError, of, switchMap } from 'rxjs';
 import { CollectionApiService } from '../service/collection-api.service';
 import { CURRENT_USER } from '../app-initialize.factory';
@@ -17,8 +19,8 @@ import {
   CollectionSearchConnections,
 } from '../service/dto/collection-search-result.dto';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 import { TeamSearchDto } from '../service/dto/team-rest.dto';
+import { GraphUtilService } from '../service/graph-util.service';
 
 @Component({
   selector: 'app-team',
@@ -32,6 +34,7 @@ import { TeamSearchDto } from '../service/dto/team-rest.dto';
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    RouterModule,
   ],
   templateUrl: './team.component.html',
   styleUrls: ['./team.component.scss'],
@@ -49,6 +52,7 @@ export class TeamComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly dialog: MatDialog,
     @Inject(CURRENT_USER) public readonly user: UserDto,
+    public graphUtil: GraphUtilService,
   ) {}
 
   fields = [
@@ -159,5 +163,9 @@ export class TeamComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.refresh();
       });
+  }
+
+  openInGraph(elem: CollectionData<TeamSearchDto>) {
+    this.graphUtil.openInGraph(elem.vertex, 'vertex');
   }
 }

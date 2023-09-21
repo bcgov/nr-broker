@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
 
 import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
@@ -15,7 +16,7 @@ import { GraphApiService } from '../../service/graph-api.service';
 @Component({
   selector: 'app-inspector-account',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatTableModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatTableModule],
   templateUrl: './inspector-account.component.html',
   styleUrls: ['./inspector-account.component.scss'],
 })
@@ -24,6 +25,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
   @Input() userIndex!: number | undefined;
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
+  expired = false;
   propDisplayedColumns: string[] = ['key', 'value'];
   isAdministrator = false;
 
@@ -44,6 +46,9 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
             JTI: lastJwtToken.claims.jti,
             Expiry: new Date(lastJwtToken.claims.exp * 1000),
           };
+
+          this.expired =
+            Date.now() > new Date(lastJwtToken.claims.exp * 1000).valueOf();
         }
       });
 
