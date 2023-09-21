@@ -21,7 +21,11 @@
       <td mat-cell *matCellDef="let element" [ngSwitch]="element.key">
         <span class="ellipsis">
           <ng-container *ngSwitchCase="'JTI'">{{element.value}}</ng-container>
-          <ng-container *ngSwitchCase="'Expiry'">{{element.value | date:'medium'}}</ng-container>
+          <ng-container *ngSwitchCase="'Expiry'">
+            <mat-icon *ngIf="!expired" class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
+            <mat-icon *ngIf="expired" class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
+            {{element.value | date:'medium'}}
+          </ng-container>
           <ng-container *ngSwitchDefault></ng-container>
         </span>
       </td>

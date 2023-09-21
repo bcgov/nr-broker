@@ -1,7 +1,7 @@
 
 <div class="history-flex-container">
     <form>
-      <mat-form-field>
+      <mat-form-field class="field-field">
         <mat-label>Field</mat-label>
         <mat-select [(ngModel)]="selectedField" name="field">
           <mat-option *ngFor="let field of fields" [value]="field.value">
@@ -9,9 +9,17 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field class="field-value">
         <mat-label>Value</mat-label>
         <input matInput placeholder="Value" name="value" [(ngModel)]="fieldValue">
+      </mat-form-field>
+      <mat-form-field class="field-outcome">
+        <mat-label>Outcome</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" name="status">
+          <mat-option *ngFor="let stat of status" [value]="stat.value">
+            {{stat.viewValue}}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
 
       <button mat-raised-button color="primary" aria-label="Filter" (click)="filter()">
@@ -87,7 +95,7 @@
       <!-- User Column -->
       <ng-container matColumnDef="user">
         <th mat-header-cell *matHeaderCellDef> User </th>
-        <td mat-cell *matCellDef="let element"> {{element.user.id}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.user.name ?? element.user.id}} </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>

@@ -5,3 +5,16 @@
 .button-container {
   margin: 16px;
 }
+
+mat-card.warning-panel {
+  width: 600px;
+  margin: auto;
+  margin-top: 50px;
+  p {
+    margin: 1.5em 0 3em;
+  }
+}
+
+.action-buttons button:not(:first-child) {
+  margin-left: .5em;
+}
