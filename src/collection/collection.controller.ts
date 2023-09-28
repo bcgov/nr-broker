@@ -149,6 +149,14 @@ export class CollectionController {
           query.offset,
           query.limit,
         );
+      case 'broker-account':
+        return this.service.searchCollection(
+          'brokerAccount',
+          query.upstreamVertex,
+          query.vertexId,
+          query.offset,
+          query.limit,
+        );
       case 'service-instance':
         return this.service.searchCollection(
           'serviceInstance',

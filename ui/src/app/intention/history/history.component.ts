@@ -40,9 +40,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
   pageIndex = 0;
   pageSize = 10;
   loading = true;
-  selectedField!: string;
+  selectedField: string = '';
   fieldValue!: string;
   fields = [
+    { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
     { value: 'service', viewValue: 'Service' },
     { value: 'action', viewValue: 'Action' },
@@ -168,7 +169,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   clear() {
     this.pageIndex = 0;
-    this.selectedField = 'id';
+    this.selectedField = '';
     this.fieldValue = '';
     this.selectedStatus = 'all';
     this.refresh();

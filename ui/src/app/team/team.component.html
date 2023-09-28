@@ -1,8 +1,25 @@
 <div class="team-flex-container">
+  <h1>Teams</h1>
+</div>
 
-  <h1>My Teams</h1>
+<div class="team-flex-container">
+  <form>
+    <mat-form-field class="field-outcome">
+      <mat-label>Show</mat-label>
+      <mat-select [(ngModel)]="showFilter" (selectionChange)="onFilterChange()" name="status">
+        <mat-option *ngFor="let opt of showFilterOptions" [value]="opt.value">
+          {{opt.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</div>
 
-  <ng-container *ngIf="teamData && teamData.length === 0">
+<div class="teams-table">
+
+  <mat-spinner *ngIf="(!data || data.length === 0) && loading"></mat-spinner>
+
+  <ng-container *ngIf="data && data.length === 0 && !loading">
     <mat-card class="warning-panel">
       <mat-card-header>
         <mat-card-title>No teams found</mat-card-title>
@@ -15,10 +32,10 @@
     </mat-card>
   </ng-container>
 
-  <ng-container *ngIf="teamData && teamData.length > 0">
+  <ng-container *ngIf="data && data.length > 0">
   <mat-card class="team-table">
     <mat-card-content>
-      <table mat-table [dataSource]="teamData">
+      <table mat-table [dataSource]="data">
 
         <!-- Name Column -->
         <ng-container matColumnDef="name">
@@ -77,7 +94,7 @@
         <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
       </table>
 
-      <mat-paginator [length]="teamTotal"
+      <mat-paginator [length]="total"
                     [pageIndex]="pageIndex"
                     [pageSize]="pageSize"
                     [pageSizeOptions]="[5, 10, 25, 100]"
@@ -104,5 +121,5 @@
       <mat-icon>add</mat-icon>
       Team
     </button>
-  </div> -->
-</div>
+  </div>
+</div>-->

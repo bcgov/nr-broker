@@ -1,7 +1,9 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -27,12 +29,14 @@ import { GraphUtilService } from '../service/graph-util.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     MatListModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     MatTableModule,
     RouterModule,
   ],
@@ -40,11 +44,16 @@ import { GraphUtilService } from '../service/graph-util.service';
   styleUrls: ['./team.component.scss'],
 })
 export class TeamComponent implements OnInit, OnDestroy {
-  teamData: CollectionData<TeamSearchDto>[] = [];
-  teamTotal = 0;
+  data: CollectionData<TeamSearchDto>[] = [];
+  total = 0;
   pageIndex = 0;
   pageSize = 10;
   loading = true;
+  showFilter: 'myteams' | 'all' = 'myteams';
+  showFilterOptions = [
+    { value: 'myteams', viewValue: 'My Teams' },
+    { value: 'all', viewValue: 'All' },
+  ];
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -83,7 +92,7 @@ export class TeamComponent implements OnInit, OnDestroy {
           return this.collectionApi
             .searchCollection(
               'team',
-              this.user.vertex,
+              this.showFilter === 'myteams' ? this.user.vertex : null,
               null,
               this.pageIndex * this.pageSize,
               this.pageSize,
@@ -100,8 +109,8 @@ export class TeamComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((data) => {
-        this.teamData = data.data;
-        this.teamTotal = data.meta.total;
+        this.data = data.data;
+        this.total = data.meta.total;
         this.loading = false;
       });
     const params = this.route.snapshot.params;
@@ -110,6 +119,9 @@ export class TeamComponent implements OnInit, OnDestroy {
     }
     if (params['size']) {
       this.pageSize = params['size'];
+    }
+    if (params['showFilter']) {
+      this.showFilter = params['showFilter'];
     }
     this.refresh();
   }
@@ -125,6 +137,7 @@ export class TeamComponent implements OnInit, OnDestroy {
         {
           index: this.pageIndex,
           size: this.pageSize,
+          showFilter: this.showFilter,
         },
       ],
       {
@@ -167,5 +180,10 @@ export class TeamComponent implements OnInit, OnDestroy {
 
   openInGraph(elem: CollectionData<TeamSearchDto>) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
+  }
+
+  onFilterChange() {
+    this.pageIndex = 0;
+    this.refresh();
   }
 }
