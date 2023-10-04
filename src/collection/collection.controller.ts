@@ -51,6 +51,11 @@ export class CollectionController {
   @Roles('admin')
   @AccountPermission('enableUserImport')
   @ApiBearerAuth()
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  )
   async userImport(
     @Request() req: ExpressRequest,
     @Body() userDto: UserImportDto,

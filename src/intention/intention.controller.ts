@@ -34,7 +34,7 @@ export class IntentionController {
   @ApiBearerAuth()
   openIntention(
     @Req() request: Request,
-    @Body(new IntentionDtoValidationPipe())
+    @Body(IntentionDtoValidationPipe)
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
   ) {
@@ -46,7 +46,7 @@ export class IntentionController {
   @ApiBearerAuth()
   preflightIntention(
     @Req() request: Request,
-    @Body(new IntentionDtoValidationPipe())
+    @Body(IntentionDtoValidationPipe)
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
   ) {

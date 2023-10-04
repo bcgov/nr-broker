@@ -3,6 +3,7 @@ import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { GraphDataResponseEdgeDto } from './graph-data.dto';
 import { EdgeInsertDto } from './edge-rest.dto';
+import { EdgePropDto } from './edge-prop.dto';
 
 @Entity({ name: 'edge' })
 @Index(['source', 'name'])
@@ -21,7 +22,7 @@ export class EdgeDto {
   name: string;
 
   @Column()
-  prop?: any;
+  prop?: EdgePropDto;
 
   @Column()
   @ApiProperty({ type: () => String })

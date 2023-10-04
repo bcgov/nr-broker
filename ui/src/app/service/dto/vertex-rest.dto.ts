@@ -1,3 +1,4 @@
+import { IsObject, IsString, IsOptional } from 'class-validator';
 import { CollectionNames } from './collection-names.type';
 import { PointGeom } from './point.geom';
 
@@ -8,19 +9,32 @@ export class VertexPropDto {
 }
 
 export class VertexSearchDto {
+  @IsString()
   id!: string;
+  @IsString()
   collection!: CollectionNames;
+  @IsOptional()
+  @IsObject()
   geo?: PointGeom;
+  @IsString()
   name!: string;
+  @IsOptional()
+  @IsObject()
   prop?: VertexPropDto;
+  @IsObject()
   edge!: {
     prop?: VertexPropDto;
   };
 }
 
 export class VertexInsertDto {
+  @IsString()
   collection!: CollectionNames;
   data: any;
+  @IsOptional()
+  @IsObject()
   geo?: PointGeom;
+  @IsOptional()
+  @IsObject()
   prop?: VertexPropDto;
 }
