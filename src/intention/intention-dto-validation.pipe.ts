@@ -4,12 +4,14 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { validate, ValidationError } from 'class-validator';
+import { validate } from 'class-validator';
 import { IntentionDto } from './dto/intention.dto';
 import { UnknownActionBadRequestException } from './dto/unknown-action-bad-request.exception';
+import { ValidatorUtil } from '../util/validator.util';
 
 @Injectable()
 export class IntentionDtoValidationPipe implements PipeTransform {
+  constructor(private readonly validatorUtil: ValidatorUtil) {}
   async transform(value: any, { metatype }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
@@ -26,7 +28,7 @@ export class IntentionDtoValidationPipe implements PipeTransform {
         throw new BadRequestException({
           statusCode: 400,
           message: 'Intention validation error',
-          error: this.buildFirstFailedPropertyErrorMsg(errors[0]),
+          error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
         });
       }
       return object;
@@ -39,22 +41,6 @@ export class IntentionDtoValidationPipe implements PipeTransform {
       }
       throw new BadRequestException('Validation failed');
     }
-  }
-
-  private buildFirstFailedPropertyErrorMsg(err: ValidationError) {
-    let prop = '';
-    let constraints: unknown;
-    for (let cErr = err; cErr; cErr = cErr.children[0]) {
-      if (Array.isArray(cErr.target)) {
-        prop = `${prop}[${cErr.property}]`;
-      } else {
-        prop = `${prop}.${cErr.property}`;
-      }
-      constraints = cErr.constraints;
-    }
-    return `Property ${prop} has failed the following constraints: ${
-      constraints ? Object.keys(constraints).join(', ') : 'unknown'
-    }`;
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types

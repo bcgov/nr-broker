@@ -319,6 +319,12 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'Generated UUID used to uniquely identify all generated JWTs',
     },
+    website: {
+      name: 'Website',
+      required: false,
+      type: 'url',
+      hint: 'The location the account is used',
+    },
     enableUserImport: {
       name: 'Enable user import',
       required: true,

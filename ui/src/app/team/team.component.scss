@@ -1,4 +1,11 @@
 .team-flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px;
+}
+
+.teams-table {
   margin: 16px;
 }
 

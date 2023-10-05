@@ -51,6 +51,11 @@ export class CollectionController {
   @Roles('admin')
   @AccountPermission('enableUserImport')
   @ApiBearerAuth()
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  )
   async userImport(
     @Request() req: ExpressRequest,
     @Body() userDto: UserImportDto,
@@ -144,6 +149,14 @@ export class CollectionController {
       case 'user':
         return this.service.searchCollection(
           collection,
+          query.upstreamVertex,
+          query.vertexId,
+          query.offset,
+          query.limit,
+        );
+      case 'broker-account':
+        return this.service.searchCollection(
+          'brokerAccount',
           query.upstreamVertex,
           query.vertexId,
           query.offset,

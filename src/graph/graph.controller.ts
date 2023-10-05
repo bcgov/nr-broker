@@ -9,6 +9,8 @@ import {
   Query,
   Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
@@ -42,6 +44,7 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
   addEdge(@Req() request: Request, @Body() edge: EdgeInsertDto) {
     return this.graph.addEdge(request, edge);
   }
@@ -96,6 +99,7 @@ export class GraphController {
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
   addVertex(@Req() request: Request, @Body() vertex: VertexInsertDto) {
     return this.graph.addVertex(request, vertex);
   }
