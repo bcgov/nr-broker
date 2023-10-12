@@ -77,41 +77,37 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.triggerRefresh
       .pipe(
         switchMap(() => {
-          let whereClause = {};
+          let whereClause = {
+            ...(this.selectedStatus !== 'all'
+              ? { 'transaction.outcome': this.selectedStatus }
+              : {}),
+          };
           this.loading = true;
           if (this.selectedField) {
             if (this.selectedField === 'id') {
               whereClause = {
+                ...whereClause,
                 ...(this.fieldValue ? { _id: this.fieldValue.trim() } : {}),
-                ...(this.selectedStatus !== 'all'
-                  ? { 'transaction.outcome': this.selectedStatus }
-                  : {}),
               };
             } else if (this.selectedField === 'service') {
               whereClause = {
+                ...whereClause,
                 ...(this.fieldValue
                   ? { 'actions.service.name': this.fieldValue.trim() }
-                  : {}),
-                ...(this.selectedStatus !== 'all'
-                  ? { 'transaction.outcome': this.selectedStatus }
                   : {}),
               };
             } else if (this.selectedField === 'action') {
               whereClause = {
+                ...whereClause,
                 ...(this.fieldValue
                   ? { 'actions.action': this.fieldValue.trim() }
-                  : {}),
-                ...(this.selectedStatus !== 'all'
-                  ? { 'transaction.outcome': this.selectedStatus }
                   : {}),
               };
             } else if (this.selectedField === 'username') {
               whereClause = {
+                ...whereClause,
                 ...(this.fieldValue
                   ? { 'actions.user.name': this.fieldValue.trim() }
-                  : {}),
-                ...(this.selectedStatus !== 'all'
-                  ? { 'transaction.outcome': this.selectedStatus }
                   : {}),
               };
             }
