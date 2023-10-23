@@ -9,8 +9,11 @@ export class ServiceDto extends VertexPointerDto {
   id: ObjectId;
 
   @Column()
+  description?: string;
+
+  @Column()
   name: string;
 
   @Column()
-  configuration: any;
+  title?: string;
 }
