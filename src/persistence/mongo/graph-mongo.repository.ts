@@ -344,6 +344,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
+    ignoreBlankFields = false,
   ): Promise<VertexDto> {
     let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const curVertex = this.getVertex(id);
@@ -378,6 +379,13 @@ export class GraphMongoRepository implements GraphRepository {
           $slice: -COLLECTION_MAX_EMBEDDED,
         };
         delete collectionData[fkey];
+      }
+    }
+    if (!ignoreBlankFields) {
+      for (const fkey of Object.keys(config.fields)) {
+        if (!collectionData[fkey]) {
+          unsetFields[fkey] = '';
+        }
       }
     }
     // TODO: Check collectionData conforms to collection config

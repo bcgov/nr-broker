@@ -32,6 +32,7 @@ export abstract class GraphRepository {
     id: string,
     vertex: VertexInsertDto,
     ignorePermissions?: boolean,
+    ignoreBlankFields?: boolean,
   ): Promise<VertexDto>;
   public abstract upsertVertex(
     vertexInsert: VertexInsertDto,
