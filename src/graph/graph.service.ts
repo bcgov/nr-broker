@@ -178,9 +178,6 @@ export class GraphService {
       ignorePermissions ? false : 'update',
     );
     try {
-      console.log(id);
-      console.log(vertex);
-      console.log(collection);
       const resp = await this.graphRepository.editVertex(
         id,
         vertex,
@@ -230,7 +227,6 @@ export class GraphService {
       forbidUnknownValues: true,
     });
     if (errors.length > 0) {
-      console.log(errors);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Collection validation error',
