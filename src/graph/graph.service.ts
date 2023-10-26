@@ -209,7 +209,7 @@ export class GraphService {
 
   private async validateVertex(
     vertexInsert: VertexInsertDto,
-    permission: false | 'update' | 'create' = false,
+    checkPermission: false | 'update' | 'create',
   ): Promise<
     [
       vertex: VertexDto,
@@ -234,11 +234,14 @@ export class GraphService {
       });
     }
 
-    if (permission && (config === null || !config.permissions[permission])) {
+    if (
+      checkPermission &&
+      (config === null || !config.permissions[checkPermission])
+    ) {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Permission error',
-        error: `The collection '${vertex.collection}' does not allow the action '${permission}'`,
+        error: `The collection '${vertex.collection}' does not allow the action '${checkPermission}'`,
       });
     }
 

@@ -480,68 +480,6 @@ export class GraphMongoRepository implements GraphRepository {
     }
   }
 
-  /*
-  public async upsertVertex(
-    vertexInsert: VertexInsertDto,
-    targetBy: 'id' | 'parentId' | 'name',
-    target: string | null,
-  ): Promise<VertexDto> {
-    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
-    const config = await this.getCollectionConfig(vertex.collection);
-    const collectionData = vertexInsert.data;
-
-    for (const map of config.collectionMapper) {
-      if (get(collectionData, map.getPath)) {
-        vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
-      }
-    }
-
-    if (targetBy === 'id') {
-      return this.editVertex(target, vertexInsert);
-    } else if (targetBy === 'parentId') {
-      // Must have name set
-      if (!vertex.name) {
-        throw new Error();
-      }
-
-      const curVertex = await this.getVertexByParentIdAndName(
-        vertex.collection,
-        target,
-        vertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(curVertex.id.toString(), vertexInsert);
-      } else {
-        return this.addVertex(vertexInsert, true);
-      }
-    } else if (targetBy === 'name') {
-      // Must have name set
-      if (!vertex.name) {
-        throw new Error();
-      }
-      // Must be unique name
-      if (
-        !config.fields[config.collectionVertexName] ||
-        !config.fields[config.collectionVertexName].unique
-      ) {
-        throw new Error();
-      }
-
-      const curVertex = await this.getVertexByName(
-        vertex.collection,
-        vertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(curVertex.id.toString(), vertexInsert, true);
-      } else {
-        return this.addVertex(vertexInsert, true);
-      }
-    } else {
-      throw new Error();
-    }
-  }
-  */
-
   public async getUpstreamVertex(
     id: string,
     index: number,
