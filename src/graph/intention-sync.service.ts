@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { get, set } from 'radash';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { ActionDto } from '../intention/dto/action.dto';
-import { CollectionRepository } from './interfaces/collection.repository';
-import { GraphRepository } from './interfaces/graph.repository';
-import { CollectionDtoUnion } from './dto/collection-dto-union.type';
-import { VertexDto } from './dto/vertex.dto';
-import { PersistenceUtilService } from './persistence-util.service';
+import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
+import { VertexDto } from '../persistence/dto/vertex.dto';
+import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import { GraphService } from './graph.service';
+import { GraphRepository } from '../persistence/interfaces/graph.repository';
 
 interface OverlayMapBase {
   key: string;
@@ -29,7 +29,7 @@ type OverlayMap = OverlayMapWithPath | OverlayMapWithValue;
 @Injectable()
 export class IntentionSyncService {
   constructor(
-    private readonly collectionRepository: CollectionRepository,
+    private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
     private readonly persistenceUtilService: PersistenceUtilService,
   ) {}
@@ -127,7 +127,7 @@ export class IntentionSyncService {
       action: ActionDto;
       intention: IntentionDto;
     },
-    collection: keyof CollectionDtoUnion,
+    collection: CollectionNames,
     configs: OverlayMap[],
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
@@ -143,7 +143,8 @@ export class IntentionSyncService {
         data = set(data, config.key, config.value);
       }
     }
-    return this.graphRepository.upsertVertex(
+
+    return this.graphService.upsertVertex(
       {
         collection,
         data,
@@ -182,7 +183,7 @@ export class IntentionSyncService {
         return curr;
       }
       try {
-        return await this.graphRepository.addEdge({
+        return await this.graphService.addEdge(null, {
           name,
           source: sourceId,
           target: targetId,

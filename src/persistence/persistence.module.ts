@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IntentionSyncService } from './intention-sync.service';
 
 import { BrokerAccountDto } from './dto/broker-account.dto';
 import { CollectionConfigDto } from './dto/collection-config.dto';
@@ -61,7 +60,6 @@ import { PersistenceUtilService } from './persistence-util.service';
     },
     IntentionMongoRepository,
     { provide: IntentionRepository, useExisting: IntentionMongoRepository },
-    IntentionSyncService,
     PersistenceUtilService,
     SystemMongoRepository,
     {
@@ -73,7 +71,6 @@ import { PersistenceUtilService } from './persistence-util.service';
     CollectionRepository,
     GraphRepository,
     IntentionRepository,
-    IntentionSyncService,
     PersistenceUtilService,
     SystemRepository,
   ],

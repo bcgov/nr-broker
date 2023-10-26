@@ -15,3 +15,5 @@ export type CollectionDtoUnion = {
   team: TeamDto;
   user: UserDto;
 };
+
+export type CollectionNames = keyof CollectionDtoUnion;

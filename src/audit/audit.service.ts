@@ -623,7 +623,7 @@ export class AuditService {
    * @returns Function to generate partial ECS document
    */
   private addSourceFunc(req: any) {
-    if (req === undefined) {
+    if (!req) {
       return (ecsObj: any) => ecsObj;
     }
 
@@ -657,6 +657,9 @@ export class AuditService {
    * @returns Function to manipulate the ECS document
    */
   private addUrlFunc(req: any) {
+    if (!req) {
+      return (ecsObj: any) => ecsObj;
+    }
     return (ecsObj: any) => {
       return merge(ecsObj, {
         url: {
@@ -702,6 +705,9 @@ export class AuditService {
    * @returns Function to manipulate the ECS document
    */
   private addUserAgentFunc(req: any) {
+    if (!req) {
+      return (ecsObj: any) => ecsObj;
+    }
     return (ecsObj: any) => {
       return merge(ecsObj, {
         user_agent: this.removeUndefined({

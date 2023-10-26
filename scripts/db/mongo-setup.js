@@ -219,7 +219,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
-  show: true,
+  show: false,
 });
 result = db.collectionConfig.insertOne({
   collection: 'user',
