@@ -145,6 +145,7 @@ export class IntentionSyncService {
     }
 
     return this.graphService.upsertVertex(
+      null,
       {
         collection,
         data,

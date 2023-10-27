@@ -7,6 +7,11 @@ import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditStreamerService } from './audit-streamer.service';
 import { UserDto } from '../intention/dto/user.dto';
+import { EdgeDto } from '../persistence/dto/edge.dto';
+import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { VertexDto } from '../persistence/dto/vertex.dto';
+import { UserRolesDto } from '../collection/dto/user-roles.dto';
 
 const hostInfo = {
   host: {
@@ -261,7 +266,7 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addassignFunc(assignObj)),
+        map(this.addAssignFunc(assignObj)),
         map(this.addMetadataIntentionActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
@@ -316,6 +321,8 @@ export class AuditService {
     action: string,
     user: any,
     outcome: 'success' | 'failure' | 'unknown',
+    set: 'vertex' | 'edge',
+    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
   ) {
     from([
       {
@@ -332,9 +339,11 @@ export class AuditService {
       .pipe(
         map(this.addAuthFunc(user)),
         map(this.addEcsFunc),
+        map(this.addGraphObjectFunc(set, graphObj)),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addMetadataAuthFunc()),
+        map(this.addRequestUserFunc(req)),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
@@ -410,6 +419,7 @@ export class AuditService {
         map(this.addHttpResponseFunc(resp)),
         map(this.addLabelsFunc),
         map(this.addMetadataHttpAccessFunc()),
+        // map(this.addRequestUserFunc(req)),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(startDate)),
@@ -502,6 +512,72 @@ export class AuditService {
   }
 
   /**
+   * Map function generator for graph objects to ECS document
+   * @param resp The http response
+   * @returns Function to manipulate the ECS document
+   */
+  private addGraphObjectFunc(
+    set: 'vertex' | 'edge',
+    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
+  ) {
+    if (!graphObj) {
+      return (ecsObj: any) => ecsObj;
+    }
+    if (typeof graphObj === 'string') {
+      return (ecsObj: any) => {
+        return merge(ecsObj, {
+          graph: {
+            id: graphObj,
+            set,
+          },
+        });
+      };
+    } else if (
+      graphObj instanceof VertexDto ||
+      graphObj instanceof VertexInsertDto
+    ) {
+      return (ecsObj: any) => {
+        return merge(ecsObj, {
+          graph: {
+            ...(graphObj instanceof VertexDto
+              ? {
+                  id: graphObj.id.toString(),
+                  name: graphObj.name,
+                }
+              : {}),
+            ...{
+              set: 'vertex',
+              vertex: {
+                collection: graphObj.collection,
+              },
+            },
+          },
+        });
+      };
+    } else {
+      return (ecsObj: any) => {
+        return merge(ecsObj, {
+          graph: {
+            ...(graphObj instanceof EdgeDto
+              ? {
+                  id: graphObj.id.toString(),
+                }
+              : {}),
+            ...{
+              name: graphObj.name,
+              set: 'edge',
+              edge: {
+                source: graphObj.source.toString(),
+                target: graphObj.target.toString(),
+              },
+            },
+          },
+        });
+      };
+    }
+  }
+
+  /**
    * Map function for adding host info to ECS document
    * @param ecsObj The ECS document to manipulate
    * @returns The manipulated ECS document
@@ -568,7 +644,7 @@ export class AuditService {
    * @param obj The object to assign
    * @returns Function to manipulate the ECS document
    */
-  private addassignFunc(obj: any) {
+  private addAssignFunc(obj: any) {
     return (ecsObj: any) => {
       return merge(ecsObj, obj);
     };
@@ -599,6 +675,31 @@ export class AuditService {
    */
   private addMetadataHttpAccessFunc() {
     return (ecsObj: any) => merge(ecsObj, this.metadataHttpAccess);
+  }
+
+  /**
+   * Map function generator for adding request user to ECS document
+   * @param req The http request
+   * @returns Function to generate partial ECS document
+   */
+  private addRequestUserFunc(req: any) {
+    if (!req || !req.user) {
+      return (ecsObj: any) => ecsObj;
+    }
+
+    return (ecsObj: any) => {
+      const loggedInUser = new UserRolesDto('', (req.user as any).userinfo);
+      return merge(ecsObj, {
+        user: this.removeUndefined({
+          domain: loggedInUser.domain,
+          email: loggedInUser.email,
+          full_name: loggedInUser.name,
+          id: loggedInUser.guid,
+          name: loggedInUser.username,
+          roles: loggedInUser.roles,
+        }),
+      });
+    };
   }
 
   /**

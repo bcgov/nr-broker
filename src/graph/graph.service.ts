@@ -47,6 +47,8 @@ export class GraphService {
         'graph-edge-add',
         null,
         'success',
+        'edge',
+        resp,
       );
       return resp.toEdgeResponse();
     } catch (e) {
@@ -55,6 +57,8 @@ export class GraphService {
         'graph-edge-add',
         null,
         'failure',
+        'edge',
+        edge,
       );
       throw new BadRequestException({
         statusCode: 400,
@@ -76,6 +80,8 @@ export class GraphService {
         'graph-edge-edit',
         null,
         'success',
+        'edge',
+        resp,
       );
       return resp.toEdgeResponse();
     } catch (e) {
@@ -84,6 +90,8 @@ export class GraphService {
         'graph-edge-edit',
         null,
         'failure',
+        'edge',
+        edge,
       );
       throw new BadRequestException({
         statusCode: 400,
@@ -117,6 +125,8 @@ export class GraphService {
         'graph-edge-delete',
         null,
         'success',
+        'edge',
+        id,
       );
       return resp;
     } catch (error) {
@@ -125,6 +135,8 @@ export class GraphService {
         'graph-edge-delete',
         null,
         'failure',
+        'edge',
+        id,
       );
       throw new BadRequestException({
         statusCode: 400,
@@ -150,6 +162,8 @@ export class GraphService {
         'graph-vertex-add',
         null,
         'success',
+        'vertex',
+        resp,
       );
       return resp;
     } catch (error) {
@@ -158,6 +172,8 @@ export class GraphService {
         'graph-vertex-add',
         null,
         'failure',
+        'vertex',
+        vertexInsert,
       );
       throw new BadRequestException({
         statusCode: 400,
@@ -189,6 +205,8 @@ export class GraphService {
         'graph-vertex-edit',
         null,
         'success',
+        'vertex',
+        resp,
       );
 
       return resp;
@@ -198,6 +216,8 @@ export class GraphService {
         'graph-vertex-edit',
         null,
         'failure',
+        'vertex',
+        vertexInsert,
       );
       throw new BadRequestException({
         statusCode: 400,
@@ -262,6 +282,7 @@ export class GraphService {
   }
 
   public async upsertVertex(
+    req: Request,
     vertexInsert: VertexInsertDto,
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
@@ -269,7 +290,7 @@ export class GraphService {
     const vertex = VertexDto.upgradeInsertDto(vertexInsert);
 
     if (targetBy === 'id') {
-      return this.editVertex(null, target, vertexInsert, true);
+      return this.editVertex(req, target, vertexInsert, true);
     } else if (targetBy === 'parentId') {
       const config = await this.collectionRepository.getCollectionConfigByName(
         vertex.collection,
@@ -291,13 +312,13 @@ export class GraphService {
       );
       if (curVertex) {
         return this.editVertex(
-          null,
+          req,
           curVertex.id.toString(),
           vertexInsert,
           true,
         );
       } else {
-        return this.addVertex(null, vertexInsert, true);
+        return this.addVertex(req, vertexInsert, true);
       }
     } else if (targetBy === 'name') {
       const config = await this.collectionRepository.getCollectionConfigByName(
@@ -329,13 +350,13 @@ export class GraphService {
       );
       if (curVertex) {
         return this.editVertex(
-          null,
+          req,
           curVertex.id.toString(),
           vertexInsert,
           true,
         );
       } else {
-        return this.addVertex(null, vertexInsert, true);
+        return this.addVertex(req, vertexInsert, true);
       }
     }
   }
@@ -423,6 +444,8 @@ export class GraphService {
         'graph-vertex-delete',
         null,
         'success',
+        'vertex',
+        id,
       );
       return resp;
     } catch (error) {
@@ -431,6 +454,8 @@ export class GraphService {
         'graph-vertex-delete',
         null,
         'failure',
+        'vertex',
+        id,
       );
       throw new NotFoundException({
         statusCode: 404,

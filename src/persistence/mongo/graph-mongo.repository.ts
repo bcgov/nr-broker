@@ -336,7 +336,6 @@ export class GraphMongoRepository implements GraphRepository {
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
     const curVertex = await this.getVertex(id);
-    console.log(curVertex);
     if (curVertex === null) {
       throw new Error();
     }
