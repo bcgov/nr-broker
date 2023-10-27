@@ -119,6 +119,20 @@ brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop()
 
 The JWT allow and block lists are stored in the collections jwtAllow and jwtBlock, respectively. The lists allow you to filter on the cliams 'jti', 'sub' and 'client_id'. Allowing or blocking is specified by adding a document to the associated collection with any, all or none of those cliams specified. Keys that are not present are considered to match. This means you can allow (or block) all JWTs by adding an empty object. An allow document of `{"sub":"cool@person.tv"}` means all JWT cliams with a sub matching "cool@person.tv" will be allowed. If you add a JTI key/value as well then both the JTI and sub will need to match. The block list works similarly.
 
+## Adding an automation user
+
+Automation users can be added to the database so that teams can include them on their teams. The following is an example JSON to send to `/v1/collection/user/import` to add an internal user. You should generate your own guid.
+
+```
+{
+  "domain": "internal",
+  "email": "",
+  "guid": "7cf679ad-3924-4093-839a-f1f9a650b5e2",
+  "name": "GitHub Action",
+  "username": "github"
+}
+```
+
 ## API demonstrations
 
 There are a handful of demonstration curl commands in the scripts folder.
@@ -129,10 +143,10 @@ $ cd scripts
 $ source ./setenv-curl-local.sh
 # Health check
 $ ./health.sh
-# Get token
-$ ./provision-db-demo.sh
-# Get secret id for provisioning fluentbit
-$ ./provision-fluentbit-demo.sh
+# Demo installation and provision of secret id for application
+$ ./provision-app-backend-demo.sh
+# Demo direct access of secrets for an activity like liquibase or flyway sync
+$ ./provision-app-db-sync-demo.sh
 ```
 
 ## Test

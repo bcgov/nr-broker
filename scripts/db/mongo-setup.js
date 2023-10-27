@@ -102,7 +102,19 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'string',
       unique: true,
-      hint: 'A unique name for the project',
+      hint: 'A unique name for the project that must be lowercase kebab',
+    },
+    title: {
+      name: 'Title',
+      required: false,
+      type: 'string',
+      hint: 'A freeform non-technical alternative to the name',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the entity',
     },
     website: {
       name: 'Website URL',
@@ -114,7 +126,6 @@ result = db.collectionConfig.insertOne({
       type: 'email',
       hint: 'The email address to contact those running this project',
     },
-    configuration: { name: 'Configuration', type: 'json' },
   },
   name: 'Project',
   permissions: {
@@ -139,8 +150,25 @@ result = db.collectionConfig.insertOne({
     },
   ],
   fields: {
-    name: { name: 'Name', required: true, type: 'string', unique: true },
-    configuration: { name: 'Configuration', type: 'json' },
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'A unique name for the service that must be lowercase kebab',
+    },
+    title: {
+      name: 'Title',
+      required: false,
+      type: 'string',
+      hint: 'A freeform non-technical alternative to the name',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the entity',
+    },
   },
   name: 'Service',
   permissions: {
@@ -191,7 +219,7 @@ result = db.collectionConfig.insertOne({
     update: true,
     delete: true,
   },
-  show: true,
+  show: false,
 });
 result = db.collectionConfig.insertOne({
   collection: 'user',

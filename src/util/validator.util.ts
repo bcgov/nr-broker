@@ -6,7 +6,7 @@ export class ValidatorUtil {
   public buildFirstFailedPropertyErrorMsg(err: ValidationError) {
     let prop = '';
     let constraints: unknown;
-    for (let cErr = err; cErr; cErr = cErr.children[0]) {
+    for (let cErr = err; cErr; cErr = cErr.children ? cErr.children[0] : cErr) {
       if (Array.isArray(cErr.target)) {
         prop = `${prop}[${cErr.property}]`;
       } else {

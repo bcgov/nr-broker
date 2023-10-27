@@ -19,7 +19,6 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
 import { AllowOwner } from '../allow-owner.decorator';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
@@ -70,14 +69,6 @@ export class CollectionController {
     return this.service.getCollectionConfig();
   }
 
-  @Get('broker-account')
-  @UseGuards(BrokerCombinedAuthGuard)
-  async getAccountByVertexId(
-    @Query('vertex') vertexId: string,
-  ): Promise<BrokerAccountDto> {
-    return this.service.getCollectionByVertexId('brokerAccount', vertexId);
-  }
-
   @Get('broker-account/:id/token')
   @UseGuards(BrokerOidcAuthGuard)
   async getAccounts(@Param('id') id: string) {
@@ -123,6 +114,8 @@ export class CollectionController {
           'serviceInstance',
           vertexId,
         );
+      case 'broker-account':
+        return this.service.getCollectionByVertexId('brokerAccount', vertexId);
     }
   }
 

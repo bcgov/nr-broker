@@ -22,7 +22,7 @@ import { ActionService } from './action.service';
 import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
-import { IntentionSyncService } from '../persistence/intention-sync.service';
+import { IntentionSyncService } from '../graph/intention-sync.service';
 import { ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';

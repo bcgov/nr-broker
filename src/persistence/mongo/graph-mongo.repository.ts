@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, MongoRepository, ObjectLiteral } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { get, set } from 'radash';
 import { EdgeDto } from '../dto/edge.dto';
 import { VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
@@ -13,9 +12,10 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
-import { VertexInsertDto, VertexSearchDto } from '../dto/vertex-rest.dto';
+import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
+import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -296,33 +296,22 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   public async addVertex(
-    vertexInsert: VertexInsertDto,
-    ignorePermissions = false,
+    vertex: VertexDto,
+    collection: CollectionDtoUnion[typeof vertex.collection],
   ): Promise<VertexDto> {
-    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
-    const config = await this.getCollectionConfig(vertex.collection);
     const repository = getRepositoryFromCollectionName(
       this.dataSource,
       vertex.collection,
     );
 
-    const collectionData = vertexInsert.data;
-
-    if (!ignorePermissions && (config === null || !config.permissions.create)) {
-      throw new Error();
-    }
-
-    for (const map of config.collectionMapper) {
-      vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
-    }
     const vertResult = await this.vertexRepository.insertOne(vertex);
     if (!vertResult.acknowledged) {
       throw new Error();
     }
-    collectionData.vertex = vertResult.insertedId;
-    // console.log(collectionData);
+    collection.vertex = vertResult.insertedId;
+    // console.log(collection);
     try {
-      const collResult = await repository.insertOne(collectionData);
+      const collResult = await repository.insertOne(collection);
       // console.log(collResult);
       if (!collResult.acknowledged) {
         throw new Error();
@@ -342,12 +331,11 @@ export class GraphMongoRepository implements GraphRepository {
 
   public async editVertex(
     id: string,
-    vertexInsert: VertexInsertDto,
-    ignorePermissions = false,
+    vertex: VertexDto,
+    collection: CollectionDtoUnion[typeof vertex.collection],
+    ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
-    const curVertex = this.getVertex(id);
-    // console.log(vertex);
+    const curVertex = await this.getVertex(id);
     if (curVertex === null) {
       throw new Error();
     }
@@ -356,35 +344,36 @@ export class GraphMongoRepository implements GraphRepository {
       this.dataSource,
       vertex.collection,
     );
-
-    const collectionData = vertexInsert.data;
-    if (!ignorePermissions && (config === null || !config.permissions.update)) {
-      throw new Error();
-    }
-    // Don't allow vertex or _id to be set
-    delete collectionData.id;
-    delete collectionData._id;
-    delete collectionData.vertex;
+    // Don't allow vertex or id to be set
+    delete collection.id;
+    delete collection.vertex;
 
     const unsetFields = {};
     const pushFields = {};
-    for (const fkey of Object.keys(collectionData)) {
+    for (const fkey of Object.keys(collection)) {
       if (config.fields[fkey] === undefined) {
         unsetFields[fkey] = '';
       }
       if (config.fields[fkey].type === 'embeddedDocArray') {
         pushFields[fkey] = {
-          $each: collectionData[fkey],
+          $each: collection[fkey],
           $slice: -COLLECTION_MAX_EMBEDDED,
         };
-        delete collectionData[fkey];
+        delete collection[fkey];
       }
     }
-    // TODO: Check collectionData conforms to collection config
+    if (!ignoreBlankFields) {
+      for (const fkey of Object.keys(config.fields)) {
+        if (pushFields[fkey] === undefined && collection[fkey] === undefined) {
+          unsetFields[fkey] = '';
+        }
+      }
+    }
+
     const collResult = await repository.updateOne(
       { vertex: new ObjectId(id) },
       {
-        $set: collectionData,
+        $set: collection,
         $setOnInsert: {
           vertex: new ObjectId(id),
         },
@@ -395,10 +384,6 @@ export class GraphMongoRepository implements GraphRepository {
     );
     if (collResult.matchedCount !== 1 && collResult.upsertedCount !== 1) {
       throw new Error();
-    }
-    // console.log(config.collectionMapper);
-    for (const map of config.collectionMapper) {
-      vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
     }
     // console.log(vertex);
     const vertResult = await this.vertexRepository.updateOne(
@@ -418,6 +403,21 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     return rval;
+  }
+
+  public getVertex(id: string): Promise<VertexDto | null> {
+    return this.vertexRepository.findOne({
+      where: { _id: new ObjectId(id) },
+    });
+  }
+
+  public async getVertexByName(
+    collection: string,
+    name: string,
+  ): Promise<VertexDto | null> {
+    return this.vertexRepository.findOne({
+      where: { name, collection },
+    });
   }
 
   public async searchVertex(
@@ -451,76 +451,7 @@ export class GraphMongoRepository implements GraphRepository {
       .toArray() as unknown as VertexSearchDto[];
   }
 
-  public async upsertVertex(
-    vertexInsert: VertexInsertDto,
-    targetBy: 'id' | 'parentId' | 'name',
-    target: string | null,
-  ): Promise<VertexDto> {
-    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
-    const config = await this.getCollectionConfig(vertex.collection);
-    const collectionData = vertexInsert.data;
-
-    for (const map of config.collectionMapper) {
-      if (get(collectionData, map.getPath)) {
-        vertex = set(vertex, map.setPath, get(collectionData, map.getPath));
-      }
-    }
-
-    if (targetBy === 'id') {
-      return this.editVertex(target, vertexInsert);
-    } else if (targetBy === 'parentId') {
-      // Must have name set
-      if (!vertex.name) {
-        throw new Error();
-      }
-
-      const curVertex = await this.getVertexByParentIdAndName(
-        vertex.collection,
-        target,
-        vertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(curVertex.id.toString(), vertexInsert);
-      } else {
-        return this.addVertex(vertexInsert, true);
-      }
-    } else if (targetBy === 'name') {
-      // Must have name set
-      if (!vertex.name) {
-        throw new Error();
-      }
-      // Must be unique name
-      if (
-        !config.fields[config.collectionVertexName] ||
-        !config.fields[config.collectionVertexName].unique
-      ) {
-        throw new Error();
-      }
-
-      const curVertex = await this.getVertexByName(
-        vertex.collection,
-        vertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(curVertex.id.toString(), vertexInsert, true);
-      } else {
-        return this.addVertex(vertexInsert, true);
-      }
-    } else {
-      throw new Error();
-    }
-  }
-
-  private async getVertexByName(
-    collection: string,
-    name: string,
-  ): Promise<VertexDto | null> {
-    return this.vertexRepository.findOne({
-      where: { name, collection },
-    });
-  }
-
-  private async getVertexByParentIdAndName(
+  public async getVertexByParentIdAndName(
     collection: string,
     parentId: string,
     name: string,
@@ -546,12 +477,6 @@ export class GraphMongoRepository implements GraphRepository {
       delete (vertices[0] as any)._id;
       return vertices[0] as unknown as VertexDto;
     }
-  }
-
-  public getVertex(id: string): Promise<VertexDto | null> {
-    return this.vertexRepository.findOne({
-      where: { _id: new ObjectId(id) },
-    });
   }
 
   public async getUpstreamVertex(

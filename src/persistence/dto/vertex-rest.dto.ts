@@ -1,5 +1,5 @@
 import { IsObject, IsString, IsOptional } from 'class-validator';
-import { CollectionNames } from './collection-names.type';
+import { CollectionNames } from './collection-dto-union.type';
 import { PointGeom } from './point.geom';
 
 // Shared DTO: Copy in back-end and front-end should be identical

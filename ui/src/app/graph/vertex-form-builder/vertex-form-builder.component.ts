@@ -20,7 +20,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 import { CollectionFieldConfigMap } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
-
 @Component({
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
@@ -81,6 +80,16 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       }
 
       if (f.type === 'url') {
+        const pattern = new RegExp(
+          '^(https?:\\/\\/)?' + // protocol
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+            '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+            '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+            '(\\#[-a-z\\d_]*)?$', // fragment locator
+          'i',
+        );
+        validators.push(Validators.pattern(pattern));
         fieldCtrls[f.key] = new FormControl(
           this.data && this.data[f.key] ? this.data[f.key] : '',
           validators,

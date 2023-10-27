@@ -1,7 +1,7 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import { Entity, ObjectIdColumn, ObjectId, Column } from 'typeorm';
+import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { VertexPointerDto } from './vertex-pointer.dto';
-import { IsOptional } from 'class-validator';
 
 export class UserGroupDto {
   @Column()
@@ -20,9 +20,13 @@ export class UserDto extends VertexPointerDto {
   @ApiHideProperty()
   id: ObjectId;
 
+  @IsDefined()
+  @IsString()
   @Column()
   domain: string;
 
+  @IsDefined()
+  @IsString()
   @Column()
   email: string;
 
@@ -30,12 +34,18 @@ export class UserDto extends VertexPointerDto {
   @IsOptional()
   group?: UserGroupDto;
 
+  @IsDefined()
+  @IsString()
   @Column()
   guid: string;
 
+  @IsDefined()
+  @IsString()
   @Column()
   name: string;
 
+  @IsDefined()
+  @IsString()
   @Column()
   username: string;
 }

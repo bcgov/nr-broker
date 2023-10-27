@@ -136,6 +136,7 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
   editVertex(
     @Req() request: Request,
     @Param('id') id: string,

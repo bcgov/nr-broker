@@ -1,3 +1,4 @@
+import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { EdgeDto } from '../dto/edge.dto';
 import {
@@ -5,7 +6,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
-import { VertexInsertDto, VertexSearchDto } from '../dto/vertex-rest.dto';
+import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
 
 export abstract class GraphRepository {
@@ -25,26 +26,31 @@ export abstract class GraphRepository {
   ): Promise<EdgeDto>;
   // Vertex
   public abstract addVertex(
-    vertex: VertexInsertDto,
-    ignorePermissions?: boolean,
+    vertex: VertexDto,
+    collection: CollectionDtoUnion[typeof vertex.collection],
   ): Promise<VertexDto>;
   public abstract editVertex(
     id: string,
-    vertex: VertexInsertDto,
-    ignorePermissions?: boolean,
-  ): Promise<VertexDto>;
-  public abstract upsertVertex(
-    vertexInsert: VertexInsertDto,
-    targetBy: 'id' | 'parentId' | 'name',
-    target: string | null,
+    vertex: VertexDto,
+    collection: CollectionDtoUnion[typeof vertex.collection],
+    ignoreBlankFields?: boolean,
   ): Promise<VertexDto>;
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;
+  public abstract getVertexByName(
+    collection: string,
+    name: string,
+  ): Promise<VertexDto | null>;
   public abstract searchVertex(
     collection: string,
     edgeName?: string,
     edgeTarget?: string,
   ): Promise<VertexSearchDto[]>;
+  public abstract getVertexByParentIdAndName(
+    collection: string,
+    parentId: string,
+    name: string,
+  ): Promise<VertexDto | null>;
   public abstract getUpstreamVertex(
     id: string,
     index: number,
