@@ -1,5 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -15,31 +15,10 @@ import { ServiceDto } from './service.dto';
 import { TransactionDto } from './transaction.dto';
 import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
+import { UrlDto } from './url.dto';
 
 @Entity()
 export class ActionDto {
-  static plainToInstance(object: any): ActionDto {
-    if (object.cloud) {
-      object.cloud = CloudDto.plainToInstance(object.cloud);
-    }
-    if (object.package) {
-      object.package = plainToInstance(PackageDto, object.package);
-    }
-    if (object.service) {
-      object.service = plainToInstance(ServiceDto, object.service);
-    }
-    if (object.transaction) {
-      object.transaction = plainToInstance(TransactionDto, object.transaction);
-    }
-    if (object.trace) {
-      object.trace = plainToInstance(TransactionDto, object.trace);
-    }
-    if (object.user) {
-      object.user = plainToInstance(UserDto, object.user);
-    }
-    return object;
-  }
-
   @IsString()
   @IsIn([
     'backup',
@@ -75,11 +54,13 @@ export class ActionDto {
   @ValidateNested()
   @IsOptional()
   @Column(() => CloudDto)
+  @Type(() => CloudDto)
   cloud?: CloudDto;
 
   @ValidateNested()
   @IsDefined()
   @Column(() => ServiceDto)
+  @Type(() => ServiceDto)
   service: ServiceDto;
 
   @IsOptional()
@@ -91,19 +72,28 @@ export class ActionDto {
   @ValidateNested()
   @IsOptional()
   @Column(() => PackageDto)
+  @Type(() => PackageDto)
   package?: PackageDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
   @Column(() => TransactionDto)
+  @Type(() => TransactionDto)
   transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
   @Column(() => TransactionDto)
+  @Type(() => TransactionDto)
   trace?: TransactionDto;
+
+  @ValidateNested()
+  @IsOptional()
+  @Column(() => UrlDto)
+  @Type(() => UrlDto)
+  url?: UrlDto;
 
   @ValidateNested()
   @IsOptional()

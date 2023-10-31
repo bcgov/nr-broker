@@ -8,6 +8,7 @@ import {
   IsString,
 } from 'class-validator';
 import { VertexPointerDto } from './vertex-pointer.dto';
+import { Type } from 'class-transformer';
 
 export class PackageInstallationHistoryDto {
   @IsOptional()
@@ -94,5 +95,6 @@ export class ServiceInstanceDto extends VertexPointerDto {
 
   @IsOptional()
   @Column(() => PackageInstallationHistoryDto)
+  @Type(() => PackageInstallationHistoryDto)
   pkgInstallHistory?: PackageInstallationHistoryDto[];
 }
