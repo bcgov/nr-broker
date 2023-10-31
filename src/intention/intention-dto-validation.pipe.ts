@@ -8,6 +8,7 @@ import { validate } from 'class-validator';
 import { IntentionDto } from './dto/intention.dto';
 import { UnknownActionBadRequestException } from './dto/unknown-action-bad-request.exception';
 import { ValidatorUtil } from '../util/validator.util';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class IntentionDtoValidationPipe implements PipeTransform {
@@ -18,7 +19,7 @@ export class IntentionDtoValidationPipe implements PipeTransform {
     }
     // Validate as a generic intention
     try {
-      const object = IntentionDto.plainToInstance(value);
+      const object = plainToInstance(IntentionDto, value);
       const errors = await validate(object, {
         whitelist: true,
         forbidNonWhitelisted: true,

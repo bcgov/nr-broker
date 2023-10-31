@@ -8,10 +8,7 @@ import { BrokerAccountDto } from './broker-account.dto';
 import { plainToInstance } from 'class-transformer';
 import { EnvironmentDto } from './environment.dto';
 import { ProjectDto } from './project.dto';
-import {
-  PackageInstallationHistoryDto,
-  ServiceInstanceDto,
-} from './service-instance.dto';
+import { ServiceInstanceDto } from './service-instance.dto';
 import { ServiceDto } from './service.dto';
 import { TeamDto } from './team.dto';
 import { UserDto } from './user.dto';
@@ -63,12 +60,7 @@ export class VertexDto {
       case 'project':
         return plainToInstance(ProjectDto, vertex.data);
       case 'serviceInstance':
-        const obj = plainToInstance(ServiceInstanceDto, vertex.data);
-        obj.pkgInstallHistory = plainToInstance(
-          PackageInstallationHistoryDto,
-          obj.pkgInstallHistory,
-        );
-        return obj;
+        return plainToInstance(ServiceInstanceDto, vertex.data);
       case 'service':
         return plainToInstance(ServiceDto, vertex.data);
       case 'team':

@@ -1,4 +1,4 @@
-import { plainToInstance } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Entity, Column } from 'typeorm';
 
@@ -57,30 +57,10 @@ class CloudObjectServiceDto {
 
 @Entity()
 export class CloudObjectDto {
-  static plainToInstance(object: any): CloudObjectDto {
-    if (object.account) {
-      object.account = plainToInstance(CloudObjectAccountDto, object.account);
-    }
-    if (object.instance) {
-      object.instance = plainToInstance(
-        CloudObjectInstanceDto,
-        object.instance,
-      );
-    }
-    if (object.machine) {
-      object.machine = plainToInstance(CloudObjectMachineDto, object.machine);
-    }
-    if (object.project) {
-      object.project = plainToInstance(CloudObjectProjectDto, object.project);
-    }
-    if (object.service) {
-      object.service = plainToInstance(CloudObjectServiceDto, object.service);
-    }
-    return plainToInstance(CloudObjectDto, object);
-  }
   @ValidateNested()
   @IsOptional()
   @Column(() => CloudObjectAccountDto)
+  @Type(() => CloudObjectAccountDto)
   account?: CloudObjectAccountDto;
 
   @IsString()
@@ -91,16 +71,19 @@ export class CloudObjectDto {
   @ValidateNested()
   @IsOptional()
   @Column(() => CloudObjectInstanceDto)
+  @Type(() => CloudObjectInstanceDto)
   instance?: CloudObjectInstanceDto;
 
   @ValidateNested()
   @IsOptional()
   @Column(() => CloudObjectMachineDto)
+  @Type(() => CloudObjectMachineDto)
   machine?: CloudObjectMachineDto;
 
   @ValidateNested()
   @IsOptional()
   @Column(() => CloudObjectProjectDto)
+  @Type(() => CloudObjectProjectDto)
   project?: CloudObjectProjectDto;
 
   @IsString()
@@ -116,5 +99,6 @@ export class CloudObjectDto {
   @ValidateNested()
   @IsOptional()
   @Column()
+  @Type(() => CloudObjectServiceDto)
   service?: CloudObjectServiceDto;
 }

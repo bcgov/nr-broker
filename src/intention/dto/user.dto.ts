@@ -1,6 +1,7 @@
 import { IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Entity, Column } from 'typeorm';
 import { UserGroupDto } from './user-group.dto';
+import { Type } from 'class-transformer';
 
 @Entity()
 export class UserDto {
@@ -38,6 +39,7 @@ export class UserDto {
   @ValidateNested()
   @Column(() => UserGroupDto)
   @IsOptional()
+  @Type(() => UserGroupDto)
   group?: UserGroupDto;
 
   /**

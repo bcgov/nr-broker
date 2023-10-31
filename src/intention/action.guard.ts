@@ -10,6 +10,7 @@ import { HEADER_BROKER_TOKEN } from '../constants';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionDto } from '../intention/dto/intention.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ActionGuard implements CanActivate {
@@ -27,7 +28,7 @@ export class ActionGuard implements CanActivate {
         message: 'Intention not found',
       });
     }
-    const intention = IntentionDto.plainToInstance(intObj);
+    const intention = plainToInstance(IntentionDto, intObj);
     const action = IntentionDto.projectAction(intention, token);
     const errors = await validate(action, {
       whitelist: true,
