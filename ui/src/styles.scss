@@ -1,4 +1,106 @@
 /* You can add global styles to this file, and also import other style files */
 
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$off-black: #000001;
+$off-white: #fefeff;
+
+$dark-primary-text: rgba($off-black, 0.87);
+$dark-secondary-text: rgba($off-black, 0.54);
+$dark-disabled-text: rgba($off-black, 0.38);
+$dark-dividers: rgba($off-black, 0.12);
+$dark-focused: rgba($off-black, 0.12);
+$light-primary-text: white;
+$light-secondary-text: rgba($off-white, 0.7);
+$light-disabled-text: rgba($off-white, 0.5);
+$light-dividers: rgba($off-white, 0.12);
+$light-focused: rgba($off-white, 0.12);
+
+$bc-primary-palette: (
+  50: #e5e9ef,
+  100: #bcc7d9,
+  200: #91a3bf,
+  300: #6780a6,
+  400: #456595,
+  500: #1d4d86,
+  600: #15457d,
+  700: #083c72,
+  800: #003366,
+  900: #00234f,
+  A100: #bebee0,
+  A200: #9495cb,
+  A400: #4c4ea9,
+  A700: #1e1f85,
+  contrast: (
+    50: $dark-primary-text,
+    100: $dark-primary-text,
+    200: $dark-primary-text,
+    300: $light-primary-text,
+    400: $light-primary-text,
+    500: $light-primary-text,
+    600: $light-primary-text,
+    700: $light-primary-text,
+    800: $light-primary-text,
+    900: $light-primary-text,
+    A100: $dark-primary-text,
+    A200: $light-primary-text,
+    A400: $light-primary-text,
+    A700: $light-primary-text,
+  )
+);
+
+$bc-accent-palette: (
+  50: #fffce6,
+  100: #fff8c1,
+  200: #fff397,
+  300: #ffee6d,
+  400: #fde94a,
+  500: #fbe421,
+  600: #fdd421,
+  700: #fcbc19,
+  800: #fba310,
+  900: #f87801,
+  A100: #fdd421,
+  A200: #fcbc19,
+  A400: #fba310,
+  A700: #f87801,
+  contrast: (
+    50: $dark-primary-text,
+    100: $dark-primary-text,
+    200: $dark-primary-text,
+    300: $light-primary-text,
+    400: $light-primary-text,
+    500: $light-primary-text,
+    600: $light-primary-text,
+    700: $light-primary-text,
+    800: $light-primary-text,
+    900: $light-primary-text,
+    A100: $dark-primary-text,
+    A200: $light-primary-text,
+    A400: $light-primary-text,
+    A700: $light-primary-text,
+  )
+);
+
+
+$primary: mat.define-palette($bc-primary-palette);
+$accent: mat.define-palette($bc-accent-palette, A200, A100, A400);
+
+$theme: mat.define-light-theme((
+ color: (
+   primary: $primary,
+   accent: $accent,
+ ),
+ typography: mat.define-typography-config(
+  $font-family: "'BCSans', 'Noto Sans', Verdana, Arial, sans-serif"
+ ),
+ density: 0,
+));
+
+@include mat.all-component-themes($theme);
+@include mat.typography-hierarchy($theme);
+
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: 'BCSans', 'Noto Sans', Verdana, Arial, sans-serif; }

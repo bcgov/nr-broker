@@ -47,10 +47,15 @@
               "src/favicon.ico",
               "src/favicon.png",
               "src/site.webmanifest",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@bcgov/bc-sans/fonts",
+                "output": "./"
+              }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
+              "@bcgov/bc-sans/css/BCSans.css",
               "src/styles.scss"
             ],
             "scripts": []

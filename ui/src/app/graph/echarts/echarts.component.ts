@@ -70,6 +70,9 @@ export class EchartsComponent implements OnInit {
           'graphEdgeSrcTarVisibility',
         );
         return {
+          textStyle: {
+            fontStyle: "'BCSans', 'Noto Sans', Verdana, Arial, sans-serif",
+          },
           tooltip: {
             formatter: '{c}',
           },
@@ -164,7 +167,7 @@ export class EchartsComponent implements OnInit {
               zoom: 2,
             },
           ],
-        };
+        } as unknown as EChartsOption;
       }),
       // tap((v) => {
       //   console.log(v);
