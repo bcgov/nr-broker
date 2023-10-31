@@ -1,0 +1,25 @@
+{
+  "event": {
+    "provider": "github-action-demo",
+    "reason": "Job triggered",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "package-build",
+      "id": "build",
+      "provision": [],
+      "service": {
+        "project": "superapp",
+        "name": "superapp-backend",
+        "environment": "tools"
+      },
+      "package": {
+        "version": "2.73.2-snapshot"
+      }
+    }
+  ],
+  "user": {
+    "name": "USER_ID@IDP"
+  }
+}

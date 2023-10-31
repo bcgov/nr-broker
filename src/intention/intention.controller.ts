@@ -32,13 +32,22 @@ export class IntentionController {
   @Post('open')
   @UseGuards(BrokerJwtAuthGuard)
   @ApiBearerAuth()
-  openIntention(
+  async openIntention(
     @Req() request: Request,
     @Body(IntentionDtoValidationPipe)
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
+    @Query('quickStart') quickStart: boolean | undefined,
   ) {
-    return this.intentionService.open(request, intentionDto, ttl);
+    const intention = await this.intentionService.open(
+      request,
+      intentionDto,
+      ttl,
+    );
+    if (quickStart) {
+      this.intentionService.quickStart(request, intention);
+    }
+    return intention;
   }
 
   @Post('preflight')

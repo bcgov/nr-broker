@@ -32,7 +32,13 @@ import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 
 export interface IntentionOpenResponse {
-  actions: any;
+  actions: {
+    [key: string]: {
+      token: string;
+      trace_id: string;
+      outcome: string;
+    };
+  };
   token: string;
   transaction_id: string;
   expiry: string;
@@ -185,6 +191,39 @@ export class IntentionService {
   }
 
   /**
+   * Quick start an intention with a single action
+   * @param req The associated request object
+   * @param req The intention open response to quick start
+   */
+  public async quickStart(req: Request, openResp: IntentionOpenResponse) {
+    if (openResp.actions && Object.keys(openResp.actions).length !== 1) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Quick start failure',
+        error: ` Quick start intentions must have 1 action`,
+      });
+    }
+    const intention = await this.intentionRepository.getIntentionByToken(
+      openResp.token,
+    );
+    if (
+      !(await this.actionLifecycle(
+        req,
+        intention,
+        intention.actions[0],
+        undefined,
+        'start',
+      ))
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Quick start failure',
+        error: ` Quick start could not start action`,
+      });
+    }
+  }
+
+  /**
    * Closes the intention.
    * @param req The associated request object
    * @param token The intention token
@@ -227,7 +266,7 @@ export class IntentionService {
     }
   }
 
-  private finalizeIntention(
+  private async finalizeIntention(
     intention: IntentionDto,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
@@ -239,6 +278,12 @@ export class IntentionService {
     intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
     intention.transaction.outcome = outcome;
 
+    for (const action of intention.actions) {
+      if (action.lifecycle === 'started') {
+        await this.actionLifecycle(req, intention, action, outcome, 'end');
+      }
+    }
+
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {
       this.intentionSync.sync(intention);
@@ -249,7 +294,8 @@ export class IntentionService {
   /**
    * Logs the start and end of an action
    * @param req The associated request object
-   * @param token The intention action token
+   * @param intention The intention to start the action for
+   * @param outcome The outcome of the action
    * @param type Start or end of action
    * @returns Promise returning true if successfully logged and false otherwise
    */
