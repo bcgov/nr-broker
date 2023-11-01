@@ -1,0 +1,22 @@
+{
+  "event": {
+    "provider": "github-action",
+    "reason": "Job triggered",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "server-access",
+      "id": "access",
+      "provision": ["token/self"],
+      "service": {
+        "name": "cool-app",
+        "project": "cool",
+        "environment": "production"
+      }
+    }
+  ],
+  "user": {
+    "name": "ACTOR@IDP"
+  }
+}
