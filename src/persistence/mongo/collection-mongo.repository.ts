@@ -52,7 +52,7 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public async getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
     type: T,
-    key: string,
+    key: keyof CollectionDtoUnion[T],
     value: string,
   ): Promise<CollectionDtoUnion[T] | null> {
     return this.getCollection(type, { [key]: value });

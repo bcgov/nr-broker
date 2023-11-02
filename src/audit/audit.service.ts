@@ -461,6 +461,18 @@ export class AuditService {
             name: action.service.name,
             environment: action.service.environment,
           },
+          ...(action.service.target
+            ? {
+                source: {
+                  name: action.service.name,
+                  environment: action.service.environment,
+                },
+                target: {
+                  name: action.service.target.name,
+                  environment: action.service.target.environment,
+                },
+              }
+            : {}),
         },
         trace: {
           id: action.trace.hash,

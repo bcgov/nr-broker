@@ -84,8 +84,12 @@ export class ProvisionService {
     });
     return this.tokenService
       .provisionToken(
-        actionDto.service.project,
-        actionDto.service.name,
+        actionDto.service.target
+          ? actionDto.service.target.project
+          : actionDto.service.project,
+        actionDto.service.target
+          ? actionDto.service.target.name
+          : actionDto.service.name,
         this.actionUtil.resolveVaultEnvironment(actionDto),
         roleId,
       )

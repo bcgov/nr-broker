@@ -71,6 +71,7 @@ export class ActionService {
     action: ActionDto,
     account: BrokerAccountDto | null,
     accountBoundProjects: BrokerAccountProjectMapDto | null,
+    targetServices: string[],
     requireProjectExists: boolean,
     requireServiceExists: boolean,
   ): Promise<ActionError> | null {
@@ -87,6 +88,7 @@ export class ActionService {
         requireProjectExists,
         requireServiceExists,
       ) ??
+      this.validateTargetService(action, targetServices) ??
       (await this.validateDbAction(user, intention, action)) ??
       (await this.validatePackageAction(account, user, intention, action)) ??
       null
@@ -109,7 +111,7 @@ export class ActionService {
           action: action.action,
           action_id: action.id,
           key: 'action.user.id',
-          value: action.service.environment,
+          value: action.user.id,
         },
       };
     }
@@ -127,8 +129,12 @@ export class ActionService {
         data: {
           action: action.action,
           action_id: action.id,
-          key: 'action.service.environment',
-          value: action.service.environment,
+          key: action.service.target.environment
+            ? 'action.service.target.environment'
+            : 'action.service.environment',
+          value: action.service.target.environment
+            ? action.service.target.environment
+            : action.service.environment,
         },
       };
     }
@@ -141,12 +147,12 @@ export class ActionService {
     requireServiceExists: boolean,
   ): ActionError | null {
     if (accountBoundProjects) {
-      const projectFound = !!accountBoundProjects[action.service.project];
+      const service = action.service;
+      const projectFound = !!accountBoundProjects[service.project];
       const serviceFound =
         projectFound &&
-        accountBoundProjects[action.service.project].services.indexOf(
-          action.service.name,
-        ) !== -1;
+        accountBoundProjects[service.project].services.indexOf(service.name) !==
+          -1;
 
       if (!projectFound && requireProjectExists) {
         return {
@@ -155,7 +161,7 @@ export class ActionService {
             action: action.action,
             action_id: action.id,
             key: 'action.service.project',
-            value: action.service.project,
+            value: service.project,
           },
         };
       }
@@ -166,10 +172,34 @@ export class ActionService {
             action: action.action,
             action_id: action.id,
             key: 'action.service.name',
-            value: action.service.name,
+            value: service.name,
           },
         };
       }
+    }
+  }
+
+  private validateTargetService(
+    action: ActionDto,
+    targetServices: string[],
+  ): ActionError | null {
+    if (!action.service.target) {
+      return null;
+    }
+    const targetServiceFound =
+      targetServices.indexOf(action.service.target.name) !== -1;
+    if (targetServiceFound) {
+      return null;
+    } else {
+      return {
+        message: 'Service not configured for target',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.service.target.name',
+          value: action.service.target.name,
+        },
+      };
     }
   }
 

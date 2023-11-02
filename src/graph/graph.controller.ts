@@ -21,6 +21,7 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { AllowOwner } from '../allow-owner.decorator';
+import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
 
 @Controller({
   path: 'graph',
@@ -120,7 +121,7 @@ export class GraphController {
     required: false,
   })
   searchVertex(
-    @Query('collection') collection: string,
+    @Query('collection') collection: keyof CollectionDtoUnion,
     @Query('typeahead') typeahead?: string,
     @Query('edgeName') edgeName?: string,
     @Query('edgeTarget') edgeTarget?: string,

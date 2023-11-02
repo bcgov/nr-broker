@@ -5,7 +5,11 @@ import { ActionDto } from './dto/action.dto';
 @Injectable()
 export class ActionUtil {
   public resolveVaultEnvironment(action: ActionDto): string | undefined {
-    return action.vaultEnvironment ?? action.service.environment;
+    return (
+      action.vaultEnvironment ??
+      action.service.target.environment ??
+      action.service.environment
+    );
   }
 
   public isValidVaultEnvironment(action: ActionDto): boolean {
