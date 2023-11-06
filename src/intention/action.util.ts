@@ -7,7 +7,7 @@ export class ActionUtil {
   public resolveVaultEnvironment(action: ActionDto): string | undefined {
     return (
       action.vaultEnvironment ??
-      action.service.target.environment ??
+      (action.service.target && action.service.target.environment) ??
       action.service.environment
     );
   }
