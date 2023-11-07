@@ -563,6 +563,7 @@ export class AuditService {
                 collection: graphObj.collection,
               },
             },
+            ...(graphObj.prop ? { prop: graphObj.prop } : {}),
           },
         });
       };
@@ -582,6 +583,7 @@ export class AuditService {
                 source: graphObj.source.toString(),
                 target: graphObj.target.toString(),
               },
+              ...(graphObj.prop ? { prop: graphObj.prop } : {}),
             },
           },
         });
