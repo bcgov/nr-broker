@@ -30,6 +30,7 @@ import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import { ServiceDto } from '../persistence/dto/service.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -128,7 +129,10 @@ export class IntentionService {
     }
 
     for (const action of intentionDto.actions) {
-      const envDto = envMap[action.service.environment];
+      const env = action.service.target
+        ? action.service.target.environment
+        : action.service.environment;
+      const envDto = envMap[env];
       if (
         action.vaultEnvironment === undefined &&
         envDto &&
@@ -143,11 +147,31 @@ export class IntentionService {
         action.user = intentionDto.user;
       }
       await this.actionService.bindUserToAction(account, action);
+      let targetServices = [];
+      if (action.service.target) {
+        const colObj = await this.collectionRepository.getCollectionByKeyValue(
+          'service',
+          'name',
+          action.service.name,
+        );
+        if (colObj) {
+          const targetSearch =
+            await this.graphRepository.getDownstreamVertex<ServiceDto>(
+              colObj.vertex.toString(),
+              2,
+              1,
+            );
+
+          targetServices = targetSearch.map((t) => t.collection.name);
+          console.log(targetServices);
+        }
+      }
       const validationResult = await this.actionService.validate(
         intentionDto,
         action,
         account,
         accountBoundProjects,
+        targetServices,
         account ? !!account?.requireProjectExists : true,
         account ? !!account?.requireServiceExists : true,
       );
@@ -193,7 +217,7 @@ export class IntentionService {
   /**
    * Quick start an intention with a single action
    * @param req The associated request object
-   * @param req The intention open response to quick start
+   * @param openResp The intention open response to quick start
    */
   public async quickStart(req: Request, openResp: IntentionOpenResponse) {
     if (openResp.actions && Object.keys(openResp.actions).length !== 1) {

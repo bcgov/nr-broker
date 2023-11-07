@@ -1,3 +1,5 @@
+import { VertexPointerDto } from './vertex-pointer.dto';
+
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface GraphDataResponseEdgeDto {
   id: string;
@@ -28,7 +30,7 @@ export interface GraphDataResponseDto {
   categories: GraphDataResponseCategoryDto[];
 }
 
-export interface UpstreamResponseDto<T = any> {
+export interface UpstreamResponseDto<T extends VertexPointerDto> {
   collection: T;
   path: GraphDataResponseEdgeDto;
 }

@@ -39,8 +39,12 @@ export class VaultRoleGuard implements CanActivate {
 
       const action: ActionDto = request.brokerActionDto;
       const intention = request.brokerIntentionDto;
-      const application = action?.service?.name;
-      const project = action?.service?.project;
+      const application = action?.service?.target
+        ? action?.service?.target?.name
+        : action?.service?.name;
+      const project = action?.service?.target
+        ? action?.service?.target?.project
+        : action?.service?.project;
       const environment = this.actionUtil.resolveVaultEnvironment(action);
 
       if (

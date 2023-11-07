@@ -148,6 +148,13 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      collection: 'service',
+      name: 'provision-token',
+      onDelete: 'cascade',
+      relation: 'oneToMany',
+      show: true,
+    },
   ],
   fields: {
     name: {

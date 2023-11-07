@@ -16,6 +16,7 @@ import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -412,7 +413,7 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   public async getVertexByName(
-    collection: string,
+    collection: keyof CollectionDtoUnion,
     name: string,
   ): Promise<VertexDto | null> {
     return this.vertexRepository.findOne({
@@ -479,11 +480,11 @@ export class GraphMongoRepository implements GraphRepository {
     }
   }
 
-  public async getUpstreamVertex(
+  public async getUpstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     matchEdgeNames: string[] | null = null,
-  ): Promise<UpstreamResponseDto[]> {
+  ): Promise<UpstreamResponseDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       where: {
         index,
@@ -535,11 +536,11 @@ export class GraphMongoRepository implements GraphRepository {
       });
   }
 
-  public async getDownstreamVertex(
+  public async getDownstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     maxDepth: number,
-  ): Promise<UpstreamResponseDto[]> {
+  ): Promise<UpstreamResponseDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       where: {
         index,

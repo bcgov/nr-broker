@@ -22,7 +22,7 @@ export abstract class CollectionRepository {
 
   public abstract getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
     type: T,
-    key: string,
+    key: keyof CollectionDtoUnion[T],
     value: string,
   ): Promise<CollectionDtoUnion[T] | null>;
 

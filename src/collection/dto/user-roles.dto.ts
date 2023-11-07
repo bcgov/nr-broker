@@ -30,10 +30,13 @@ export class UserRolesDto extends UserImportDto {
   }
 
   toUserImportDto(): UserImportDto {
-    const dto: UserRolesDto = {
-      ...this,
+    const dto: UserImportDto = {
+      domain: this.domain,
+      email: this.email,
+      guid: this.guid,
+      name: this.name,
+      username: this.username,
     };
-    delete dto.roles;
     return dto;
   }
 }

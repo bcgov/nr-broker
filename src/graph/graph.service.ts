@@ -402,7 +402,7 @@ export class GraphService {
   }
 
   async searchVertex(
-    collection: string,
+    collection: keyof CollectionDtoUnion,
     typeahead?: string,
     edgeName?: string,
     edgeTarget?: string,

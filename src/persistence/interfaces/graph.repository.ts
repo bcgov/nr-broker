@@ -6,6 +6,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
+import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
 
@@ -38,29 +39,29 @@ export abstract class GraphRepository {
   public abstract deleteVertex(id: string): Promise<boolean>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;
   public abstract getVertexByName(
-    collection: string,
+    collection: keyof CollectionDtoUnion,
     name: string,
   ): Promise<VertexDto | null>;
   public abstract searchVertex(
-    collection: string,
+    collection: keyof CollectionDtoUnion,
     edgeName?: string,
     edgeTarget?: string,
   ): Promise<VertexSearchDto[]>;
   public abstract getVertexByParentIdAndName(
-    collection: string,
+    collection: keyof CollectionDtoUnion,
     parentId: string,
     name: string,
   ): Promise<VertexDto | null>;
-  public abstract getUpstreamVertex(
+  public abstract getUpstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     matchEdgeNames: string[] | null,
-  ): Promise<UpstreamResponseDto[]>;
-  public abstract getDownstreamVertex(
+  ): Promise<UpstreamResponseDto<T>[]>;
+  public abstract getDownstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     maxDepth: number,
-  ): Promise<UpstreamResponseDto[]>;
+  ): Promise<UpstreamResponseDto<T>[]>;
   public abstract getBrokerAccountServices(
     id: string,
   ): Promise<BrokerAccountProjectMapDto>;
