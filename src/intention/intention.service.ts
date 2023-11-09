@@ -188,20 +188,29 @@ export class IntentionService {
       };
     }
     const isSuccessfulOpen = actionFailures.length === 0;
+    const exception = !isSuccessfulOpen
+      ? new BadRequestException({
+          statusCode: 400,
+          message: 'Authorization failed',
+          error: actionFailures,
+        })
+      : null;
+
     if (!dryRun) {
       this.auditService.recordIntentionOpen(
         req,
         intentionDto,
         isSuccessfulOpen,
+        exception,
       );
-      this.auditService.recordActionAuthorization(req, intentionDto);
+      this.auditService.recordActionAuthorization(
+        req,
+        intentionDto,
+        actionFailures,
+      );
     }
     if (!isSuccessfulOpen) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Authorization failed',
-        error: actionFailures,
-      });
+      throw exception;
     }
     if (!dryRun) {
       await this.intentionRepository.addIntention(intentionDto);
