@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
 import os from 'os';
@@ -12,6 +12,7 @@ import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
+import { ActionError } from '../intention/action.error';
 
 const hostInfo = {
   host: {
@@ -66,6 +67,7 @@ export class AuditService {
     req: any,
     intention: IntentionDto,
     success: boolean,
+    exception: HttpException | null,
   ) {
     const now = new Date();
     from([
@@ -90,6 +92,7 @@ export class AuditService {
       .pipe(
         map(this.addAuthFunc(intention.jwt)),
         map(this.addEcsFunc),
+        map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addMetadataIntentionActivityFunc()),
@@ -108,9 +111,17 @@ export class AuditService {
    * @param req The initiating http request
    * @param intention The intention DTO
    */
-  public recordActionAuthorization(req: any, intention: IntentionDto) {
+  public recordActionAuthorization(
+    req: any,
+    intention: IntentionDto,
+    actionFailures: ActionError[],
+  ) {
     const now = new Date();
     for (const action of intention.actions) {
+      const failure = actionFailures.find(
+        (failure) => action.id === failure.data.action_id,
+      );
+
       from([
         {
           event: {
@@ -129,6 +140,16 @@ export class AuditService {
         .pipe(
           map(this.addActionFunc(action)),
           map(this.addEcsFunc),
+          map(
+            this.addErrorFunc(
+              failure
+                ? new BadRequestException({
+                    message: failure.message,
+                    error: failure.data,
+                  })
+                : null,
+            ),
+          ),
           map(this.addHostFunc),
           map(this.addLabelsFunc),
           map(this.addMetadataIntentionActivityFunc()),
@@ -444,6 +465,31 @@ export class AuditService {
   }
 
   /**
+   * Map function generator for adding http exceptions to ECS document
+   * @param exception The HttpException to add as error
+   * @returns Function to manipulate the ECS document
+   */
+  private addErrorFunc(exception: HttpException | null) {
+    return (ecsObj: any) => {
+      if (!exception) {
+        return ecsObj;
+      }
+      const response = exception.getResponse();
+      return merge(ecsObj, {
+        error: {
+          code: exception.getStatus(),
+          message: exception.message,
+          structured_data:
+            typeof response === 'object'
+              ? { error: (response as any).error }
+              : response,
+          type: exception.name,
+        },
+      });
+    };
+  }
+
+  /**
    * Map function generator for adding intention action fields to ECS document
    * @param action The action DTO
    * @returns Function to manipulate the ECS document
@@ -454,7 +500,9 @@ export class AuditService {
         cloud: action.cloud,
         labels: {
           action_id: action.id,
-          target_project: action.service.project,
+          target_project: action.service.target
+            ? action.service.target.project
+            : action.service.project,
         },
         service: {
           target: {
@@ -463,7 +511,7 @@ export class AuditService {
           },
           ...(action.service.target
             ? {
-                source: {
+                origin: {
                   name: action.service.name,
                   environment: action.service.environment,
                 },
