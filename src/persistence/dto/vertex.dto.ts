@@ -2,7 +2,7 @@ import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
 import { VertexPointerDto } from './vertex-pointer.dto';
-import { VertexInsertDto } from './vertex-rest.dto';
+import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
 import { CollectionDtoUnion } from './collection-dto-union.type';
 import { BrokerAccountDto } from './broker-account.dto';
 import { plainToInstance } from 'class-transformer';
@@ -34,7 +34,7 @@ export class VertexDto {
    * prop.label: Special case for labeling a vertex
    */
   @Column()
-  prop?: any;
+  prop?: VertexPropDto;
 
   static upgradeInsertDto(value: VertexInsertDto): VertexDto {
     const vertex = new VertexDto();
