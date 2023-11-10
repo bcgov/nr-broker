@@ -270,6 +270,7 @@ export class AuditService {
     intention: IntentionDto,
     action: ActionDto,
     assignObj: any,
+    exception: HttpException | null = null,
   ) {
     const now = new Date();
     from([
@@ -285,6 +286,7 @@ export class AuditService {
       .pipe(
         map(this.addActionFunc(action)),
         map(this.addEcsFunc),
+        map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addAssignFunc(assignObj)),

@@ -12,6 +12,7 @@ import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ActionDto } from '../intention/dto/action.dto';
 import { ActionUtil } from '../intention/action.util';
 import { IntentionDto } from '../intention/dto/intention.dto';
+import { AuditService } from '../audit/audit.service';
 
 export interface RoleGuardRequest extends Request {
   brokerIntentionDto?: IntentionDto;
@@ -28,6 +29,7 @@ export class VaultRoleGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly tokenService: TokenService,
     private readonly actionUtil: ActionUtil,
+    private readonly auditService: AuditService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
@@ -85,11 +87,25 @@ export class VaultRoleGuard implements CanActivate {
       const receivedRoleId = request.headers[HEADER_VAULT_ROLE_ID];
 
       if (vaultRoleId !== receivedRoleId) {
-        throw new BadRequestException({
+        const exception = new BadRequestException({
           statusCode: 403,
           message: 'Broker forbidden access',
           error: `Request (header: ${HEADER_VAULT_ROLE_ID}) must match role id in Vault for ${project} : ${application} : ${environment}`,
         });
+        this.auditService.recordIntentionActionUsage(
+          request,
+          intention,
+          action,
+          {
+            event: {
+              action: 'test-role-id',
+              category: 'api',
+              type: 'denied',
+            },
+          },
+          exception,
+        );
+        throw exception;
       }
 
       return true;
