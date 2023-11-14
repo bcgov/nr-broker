@@ -93,6 +93,28 @@
                 }
               ]
             },
+            "bcgov": {
+              "assets": [
+                "src/android-chrome-192x192.png",
+                "src/android-chrome-512x512.png",
+                "src/apple-touch-icon.png",
+                "src/favicon-16x16.png",
+                "src/favicon-32x32.png",
+                "src/favicon.ico",
+                "src/favicon.png",
+                "src/site.webmanifest",
+                "src/assets",
+                {
+                  "glob": "**/*",
+                  "input": "./node_modules/@bcgov/bc-sans/fonts",
+                  "output": "./"
+                }
+              ],
+              "styles": [
+                "@bcgov/bc-sans/css/BCSans.css",
+                "src/styles-bcgov.scss"
+              ]
+            },
             "local": {
               "buildOptimizer": false,
               "optimization": false,

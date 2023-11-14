@@ -1,4 +1,5 @@
 ARG REPO_LOCATION=
+ARG NG_BUILD_CONFIG=
 FROM ${REPO_LOCATION}node:20 as builder
 
 RUN npm i -g @nestjs/cli
@@ -17,13 +18,13 @@ RUN npm ci --omit=dev --no-audit
 WORKDIR /app/ui
 
 RUN npm ci
-RUN npm run build -- --configuration development && \
+RUN npm run build -- --configuration development${NG_BUILD_CONFIG} && \
     mv dist/ui dist-development
 
-RUN npm run build -- --configuration test && \
+RUN npm run build -- --configuration test${NG_BUILD_CONFIG} && \
     mv dist/ui dist-test
 
-RUN npm run build -- --configuration production && \
+RUN npm run build -- --configuration production${NG_BUILD_CONFIG} && \
     mv dist/ui dist-production
 
 # Deployment container

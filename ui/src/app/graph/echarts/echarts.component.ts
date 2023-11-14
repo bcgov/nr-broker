@@ -1,4 +1,11 @@
-import { Component, Input, Output, OnInit, EventEmitter } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  Output,
+  OnInit,
+  EventEmitter,
+} from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { EChartsOption } from 'echarts';
 import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';
@@ -45,6 +52,7 @@ export class EchartsComponent implements OnInit {
   constructor(
     private readonly graphUtil: GraphUtilService,
     private readonly preferences: PreferencesService,
+    private readonly elRef: ElementRef,
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +78,9 @@ export class EchartsComponent implements OnInit {
           'graphEdgeSrcTarVisibility',
         );
         return {
+          textStyle: {
+            fontFamily: getComputedStyle(this.elRef.nativeElement).fontFamily,
+          },
           tooltip: {
             formatter: '{c}',
           },
@@ -164,7 +175,7 @@ export class EchartsComponent implements OnInit {
               zoom: 2,
             },
           ],
-        };
+        } as EChartsOption;
       }),
       // tap((v) => {
       //   console.log(v);
