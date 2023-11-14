@@ -54,6 +54,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             REPO_LOCATION=
+            NG_BUILD_CONFIG=${{ vars.NG_BUILD_CONFIG }}
 
   tests-backend:
     name: Backend Tests
