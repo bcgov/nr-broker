@@ -19,7 +19,7 @@ async function bootstrap() {
 
   // Swagger docs
   const config = new DocumentBuilder()
-    .setTitle('Vault Broker')
+    .setTitle('NR Broker')
     .setDescription('Application secret provisioner')
     .setVersion('2.0')
     .addBearerAuth()

@@ -21,6 +21,7 @@ import { ActionGuard } from './action.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 import { IntentionCloseDto } from './dto/intention-close.dto';
+import { ArtifactDto } from './dto/artifact.dto';
 
 @Controller({
   path: 'intention',
@@ -116,6 +117,30 @@ export class IntentionController {
       request.brokerActionDto,
       outcome,
       'end',
+    );
+  }
+
+  @Post('action/artifact')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @UseGuards(ActionGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async actionArtifactRegister(
+    @Req() request: ActionGuardRequest,
+    @Body() artifact: ArtifactDto,
+  ) {
+    if (!['backup', 'package-build'].includes(request.brokerActionDto.action)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal action',
+        error:
+          'Artifacts can only be attached to backup or package-build actions',
+      });
+    }
+    await this.intentionService.actionArtifactRegister(
+      request,
+      request.brokerIntentionDto,
+      request.brokerActionDto,
+      artifact,
     );
   }
 

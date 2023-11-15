@@ -7,6 +7,7 @@ import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ObjectId } from 'mongodb';
+import { ArtifactDto } from 'src/intention/dto/artifact.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -97,6 +98,33 @@ export class IntentionMongoRepository implements IntentionRepository {
           Date.parse(action.trace.start).valueOf();
       }
     }
+    const id = extractId(intention);
+    await this.intentionRepository.replaceOne({ _id: id }, intention);
+    return action;
+  }
+
+  public async addIntentionActionArtifact(
+    token: string,
+    artifact: ArtifactDto,
+  ): Promise<ActionDto> {
+    const intention = await this.intentionRepository.findOne({
+      where: { 'actions.trace.token': token, closed: { $ne: true } } as any,
+    });
+    if (intention === null) {
+      throw new Error();
+    }
+
+    const action = intention.actions
+      .filter((action) => action.trace.token === token)
+      // There will only ever be one
+      .find(() => true);
+
+    if (action.artifacts) {
+      action.artifacts.push(artifact);
+    } else {
+      action.artifacts = [artifact];
+    }
+
     const id = extractId(intention);
     await this.intentionRepository.replaceOne({ _id: id }, intention);
     return action;

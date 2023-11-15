@@ -31,6 +31,8 @@ import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
+import { ActionGuardRequest } from './action-guard-request.interface';
+import { ArtifactDto } from './dto/artifact.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -328,6 +330,7 @@ export class IntentionService {
    * Logs the start and end of an action
    * @param req The associated request object
    * @param intention The intention to start the action for
+   * @param action The action to log the lifecycle for
    * @param outcome The outcome of the action
    * @param type Start or end of action
    * @returns Promise returning true if successfully logged and false otherwise
@@ -366,6 +369,47 @@ export class IntentionService {
       intention,
       action,
       type,
+    );
+    return true;
+  }
+
+  /**
+   * Registers an artifact with an action
+   * @param req The associated request object
+   * @param intention The intention containing the action
+   * @param action The action to register the artifact with
+   * @param artifact The artifact to register
+   */
+  public async actionArtifactRegister(
+    req: ActionGuardRequest,
+    intention: IntentionDto,
+    action: ActionDto,
+    artifact: ArtifactDto,
+  ) {
+    if (action.lifecycle !== 'started') {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal artifact register',
+        error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
+      });
+    }
+    this.auditService.recordIntentionActionUsage(
+      req,
+      intention,
+      action,
+      {
+        event: {
+          action: 'artifact-register',
+          category: 'configuration',
+          type: 'creation',
+        },
+      },
+      null,
+      artifact,
+    );
+    await this.intentionRepository.addIntentionActionArtifact(
+      action.trace.token,
+      artifact,
     );
     return true;
   }
