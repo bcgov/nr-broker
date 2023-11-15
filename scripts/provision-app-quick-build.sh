@@ -29,8 +29,15 @@ INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 
 echo "===> Build"
 
-# Not shown: Build superapp
+# Not shown: Build superapp and create artifact (build.zip)
 echo "===> ..."
+echo "===> Build - Success!"
+# Add artifact to action
+ACTIONS_BUILD_TOKEN=$(echo $RESPONSE | jq -r '.actions.build.token')
+curl -s -X POST $BROKER_URL/v1/intention/action/artifact \
+        -H 'Content-Type: application/json' \
+        -H 'X-Broker-Token: '"$ACTIONS_BUILD_TOKEN"'' \
+        -d '{"checksum": "sha256:1db1bf6ca413a9294ab0348fa8193d6646a8f201ebd8ac3a3de373d712900636", "name": "build.zip", "size": 1234 }'
 
 echo "===> Intention close"
 

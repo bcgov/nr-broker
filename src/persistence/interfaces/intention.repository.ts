@@ -2,6 +2,7 @@ import { FindOptionsWhere } from 'typeorm';
 import { ActionDto } from '../../intention/dto/action.dto';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
+import { ArtifactDto } from 'src/intention/dto/artifact.dto';
 
 export abstract class IntentionRepository {
   public abstract addIntention(intention: IntentionDto): Promise<any>;
@@ -26,6 +27,11 @@ export abstract class IntentionRepository {
     token: string,
     outcome: string | undefined,
     type: 'start' | 'end',
+  ): Promise<ActionDto>;
+
+  public abstract addIntentionActionArtifact(
+    token: string,
+    artifact: ArtifactDto,
   ): Promise<ActionDto>;
 
   public abstract closeIntentionByToken(token: string): Promise<boolean>;

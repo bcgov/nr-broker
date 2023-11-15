@@ -13,6 +13,7 @@ import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
 import { ActionError } from '../intention/action.error';
+import { ArtifactDto } from '../intention/dto/artifact.dto';
 
 const hostInfo = {
   host: {
@@ -271,6 +272,7 @@ export class AuditService {
     action: ActionDto,
     assignObj: any,
     exception: HttpException | null = null,
+    artifact: ArtifactDto | null = null,
   ) {
     const now = new Date();
     from([
@@ -284,7 +286,7 @@ export class AuditService {
       }),
     ])
       .pipe(
-        map(this.addActionFunc(action)),
+        map(this.addActionFunc(action, artifact)),
         map(this.addEcsFunc),
         map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
@@ -467,6 +469,20 @@ export class AuditService {
   }
 
   /**
+   * Removes undefined or empty keys from object (shallow)
+   * @param obj The object to manipulate
+   * @returns The object with no undefined keys
+   */
+  private removeEmpty(obj: any) {
+    Object.keys(obj).forEach(
+      (key) =>
+        (obj[key] === undefined || Object.keys(obj[key]).length === 0) &&
+        delete obj[key],
+    );
+    return obj;
+  }
+
+  /**
    * Map function generator for adding http exceptions to ECS document
    * @param exception The HttpException to add as error
    * @returns Function to manipulate the ECS document
@@ -496,41 +512,48 @@ export class AuditService {
    * @param action The action DTO
    * @returns Function to manipulate the ECS document
    */
-  private addActionFunc(action: ActionDto) {
+  private addActionFunc(action: ActionDto, artifact: ArtifactDto = undefined) {
     return (ecsObj: any) => {
-      return merge(ecsObj, {
-        cloud: action.cloud,
-        labels: {
-          action_id: action.id,
-          target_project: action.service.target
-            ? action.service.target.project
-            : action.service.project,
-        },
-        service: {
-          target: {
-            name: action.service.name,
-            environment: action.service.environment,
+      return merge(
+        ecsObj,
+        this.removeEmpty({
+          cloud: action.cloud,
+          labels: {
+            action_id: action.id,
+            target_project: action.service.target
+              ? action.service.target.project
+              : action.service.project,
           },
-          ...(action.service.target
-            ? {
-                origin: {
-                  name: action.service.name,
-                  environment: action.service.environment,
-                },
-                target: {
-                  name: action.service.target.name,
-                  environment: action.service.target.environment,
-                },
-              }
-            : {}),
-        },
-        trace: {
-          id: action.trace.hash,
-        },
-        transaction: {
-          id: action.transaction.hash,
-        },
-      });
+          package: {
+            ...(artifact ?? {}),
+            ...(action.package ?? {}),
+          },
+          service: {
+            target: {
+              name: action.service.name,
+              environment: action.service.environment,
+            },
+            ...(action.service.target
+              ? {
+                  origin: {
+                    name: action.service.name,
+                    environment: action.service.environment,
+                  },
+                  target: {
+                    name: action.service.target.name,
+                    environment: action.service.target.environment,
+                  },
+                }
+              : {}),
+          },
+          trace: {
+            id: action.trace.hash,
+          },
+          transaction: {
+            id: action.transaction.hash,
+          },
+        }),
+      );
     };
   }
 

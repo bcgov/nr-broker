@@ -16,6 +16,7 @@ import { TransactionDto } from './transaction.dto';
 import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
 import { UrlDto } from './url.dto';
+import { ArtifactDto } from './artifact.dto';
 
 @Entity()
 export class ActionDto {
@@ -46,6 +47,13 @@ export class ActionDto {
   @IsString()
   @Column()
   id: string;
+
+  @ValidateNested()
+  @IsOptional()
+  @IsArray()
+  @Column(() => ArtifactDto)
+  @Type(() => ArtifactDto)
+  artifacts?: ArtifactDto[];
 
   @IsArray()
   @Column()
