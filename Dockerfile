@@ -19,13 +19,13 @@ WORKDIR /app/ui
 
 RUN npm ci
 RUN npm run build -- --configuration development${NG_BUILD_CONFIG} && \
-    mv dist/ui dist-development
+    mv dist/ui/browser dist-development
 
 RUN npm run build -- --configuration test${NG_BUILD_CONFIG} && \
-    mv dist/ui dist-test
+    mv dist/ui/browser dist-test
 
 RUN npm run build -- --configuration production${NG_BUILD_CONFIG} && \
-    mv dist/ui dist-production
+    mv dist/ui/browser dist-production
 
 # Deployment container
 FROM ${REPO_LOCATION}node:20
