@@ -38,7 +38,7 @@ export class IntentionController {
     @Body(IntentionDtoValidationPipe)
     intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
-    @Query('quickStart') quickStart: boolean | undefined,
+    @Query('quickstart') quickStart: boolean | undefined,
   ) {
     const intention = await this.intentionService.open(
       request,
