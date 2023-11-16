@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { catchError, map, Observable, switchMap } from 'rxjs';
@@ -178,6 +183,12 @@ export class TokenService {
               statusCode: 403,
               message: 'Vault forbidden access',
               error: `Check broker access to ${projectName} : ${appName}`,
+            });
+          } else if (err.response.status === 404) {
+            throw new NotFoundException({
+              statusCode: 404,
+              message: 'Not Found',
+              error: `Check approle exists for ${projectName} : ${appName} : ${environment}`,
             });
           } else {
             throw err;
