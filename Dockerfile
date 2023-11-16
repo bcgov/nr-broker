@@ -1,6 +1,6 @@
 ARG REPO_LOCATION=
-ARG NG_BUILD_CONFIG=
 FROM ${REPO_LOCATION}node:20 as builder
+ARG NG_BUILD_CONFIG=
 
 RUN npm i -g @nestjs/cli
 
