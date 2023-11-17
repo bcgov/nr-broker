@@ -37,3 +37,4 @@ lerna-debug.log*
 /env-prod.hcl
 /scripts/db/mongo-setup-ext.js
 /scripts/setenv-common.sh
+/scripts/provision-app-quick-build.artifact.sha256

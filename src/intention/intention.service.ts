@@ -165,9 +165,9 @@ export class IntentionService {
             );
 
           targetServices = targetSearch.map((t) => t.collection.name);
-          console.log(targetServices);
         }
       }
+      await this.actionService.annotate(action);
       const validationResult = await this.actionService.validate(
         intentionDto,
         action,
@@ -309,15 +309,18 @@ export class IntentionService {
   ): Promise<boolean> {
     const endDate = new Date();
     const startDate = new Date(intention.transaction.start);
-    intention.transaction.end = endDate.toISOString();
-    intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
-    intention.transaction.outcome = outcome;
 
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
         await this.actionLifecycle(req, intention, action, outcome, 'end');
+        intention = await this.intentionRepository.getIntentionByToken(
+          intention.transaction.token,
+        );
       }
     }
+    intention.transaction.end = endDate.toISOString();
+    intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
+    intention.transaction.outcome = outcome;
 
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {

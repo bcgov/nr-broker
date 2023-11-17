@@ -3,19 +3,18 @@
     || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 cd "$this_dir"
 
-BUILD_VERSION="12.0.3"
-sha256=($(echo $RANDOM $RANDOM $RANDOM | shasum -a 256))
-echo -n $sha256 > provision-app-quick-build.artifact.sha256
+BUILD_CHECKSUM="sha256:$(cat provision-app-quick-build.artifact.sha256)"
+echo $BUILD_CHECKSUM
 
 echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
-    -d @<(cat provision-app-quick-build.json | \
+    -d @<(cat provision-app-quick-install.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
-            (.actions[] | select(.id == \"build\") .package.version) |= \"$BUILD_VERSION\" \
+            (.actions[] | select(.id == \"install\") .package.checksum) |= \"$BUILD_CHECKSUM\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"
@@ -29,18 +28,11 @@ fi
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 # echo "Hashed transaction.id: $(echo -n $INTENTION_TOKEN | shasum -a 256)"
 
-echo "===> Build"
+echo "===> Install"
 
-# Not shown: Build superapp and create artifact (build.zip)
+# Not shown: Install superapp
 echo "===> ..."
-echo "===> Build - Success!"
-# Add artifact to action
-ACTIONS_BUILD_TOKEN=$(echo $RESPONSE | jq -r '.actions.build.token')
-curl -s -X POST $BROKER_URL/v1/intention/action/artifact \
-        -H 'Content-Type: application/json' \
-        -H 'X-Broker-Token: '"$ACTIONS_BUILD_TOKEN"'' \
-        -d '{"checksum": "sha256:'$sha256'", "name": "build.zip", "size": '$RANDOM' }'
-
+echo "===> Install - Success!"
 echo "===> Intention close"
 
 # Use saved intention token to close intention

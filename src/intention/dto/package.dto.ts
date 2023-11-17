@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator';
 import { Entity, Column } from 'typeorm';
 
 @Entity()
@@ -59,6 +59,7 @@ export class PackageDto {
   type?: string;
 
   @IsString()
+  @ValidateIf((o) => !o.checksum)
   @Column()
   version: string;
 }

@@ -8,6 +8,7 @@ import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ObjectId } from 'mongodb';
 import { ArtifactDto } from 'src/intention/dto/artifact.dto';
+import { ArtifactSearchResult } from 'src/intention/dto/artifact-search-result.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -189,5 +190,44 @@ export class IntentionMongoRepository implements IntentionRepository {
           };
         }
       });
+  }
+
+  public async searchArtifacts(
+    checksum: string,
+    service: string,
+    offset: number,
+    limit: number,
+  ): Promise<ArtifactSearchResult> {
+    const result = await this.searchIntentions(
+      {
+        'actions.service.name': service,
+        'actions.artifacts.checksum': checksum,
+      } as FindOptionsWhere<IntentionDto>,
+      offset,
+      limit,
+    );
+
+    result.data = result.data
+      .map((intention) => {
+        return this.findArtifact(intention, checksum);
+      })
+      .filter((intention) => intention);
+
+    result.meta.total = result.data.length;
+    return result;
+  }
+
+  private findArtifact(
+    intention: IntentionDto | null,
+    checksum: string,
+  ): { action: ActionDto; artifact: ArtifactDto } {
+    for (const action of intention.actions) {
+      const artifact = action.artifacts.find(
+        (artifact) => artifact.checksum === checksum,
+      );
+      if (artifact) {
+        return { action, artifact };
+      }
+    }
   }
 }
