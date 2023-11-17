@@ -301,6 +301,29 @@ export class IntentionService {
     }
   }
 
+  public async artifactSearch(
+    checksum: string,
+    service: string,
+    offset = 0,
+    limit = 5,
+  ) {
+    try {
+      // must await to catch error
+      return await this.intentionRepository.searchArtifacts(
+        checksum,
+        service,
+        offset,
+        limit,
+      );
+    } catch (e) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal search arguement',
+        error: `Check parameters for errors`,
+      });
+    }
+  }
+
   private async finalizeIntention(
     intention: IntentionDto,
     outcome: 'failure' | 'success' | 'unknown',
