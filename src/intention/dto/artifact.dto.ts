@@ -44,4 +44,9 @@ export class ArtifactDto {
   @IsDefined()
   @IsNumber()
   size: number;
+
+  @Column()
+  @IsDefined()
+  @IsString()
+  type: string;
 }

@@ -137,7 +137,7 @@ export class IntentionController {
           'Artifacts can only be attached to backup or package-build actions',
       });
     }
-    await this.intentionService.actionArtifactRegister(
+    return await this.intentionService.actionArtifactRegister(
       request,
       request.brokerIntentionDto,
       request.brokerActionDto,
@@ -151,7 +151,10 @@ export class IntentionController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async artifactSearch(@Query() query: ArtifactSearchQuery) {
     return await this.intentionService.artifactSearch(
+      query.buildGuid,
       query.checksum,
+      query.name,
+      query.type,
       query.service,
       query.offset,
       query.limit,

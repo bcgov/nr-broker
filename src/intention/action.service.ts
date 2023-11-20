@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { ActionError } from './action.error';
 import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
@@ -69,21 +70,33 @@ export class ActionService {
   }
 
   public async annotate(action: ActionDto) {
+    if (action.action === 'package-build' || action.action === 'backup') {
+      if (action.package && !action.package.buildGuid) {
+        action.package.buildGuid = crypto.randomUUID();
+      }
+    }
     if (action.action === 'package-installation') {
-      if (action.package && action.package.checksum) {
+      if (action.package) {
         const foundArtifact = await this.intentionRepository.searchArtifacts(
+          action.package.buildGuid,
           action.package.checksum,
+          action.package.name,
+          action.package.type,
           action.service.name,
           0,
           1,
         );
-        if (foundArtifact.meta.total === 0) {
+        if (
+          foundArtifact.meta.total !== 1 &&
+          foundArtifact.artifacts.length !== 1
+        ) {
+          // Skip: Could not uniquely identify artifact based on package
           return;
         }
 
         action.package = {
-          ...(foundArtifact.data[0].action.package ?? {}),
-          ...foundArtifact.data[0].artifact,
+          ...(foundArtifact.artifacts[0].action.package ?? {}),
+          ...foundArtifact.artifacts[0].artifact,
           ...action.package,
         };
       }

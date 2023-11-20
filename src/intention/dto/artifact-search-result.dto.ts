@@ -2,14 +2,15 @@
 
 import { ActionDto } from './action.dto';
 import { ArtifactDto } from './artifact.dto';
+import { IntentionDto } from './intention.dto';
 
-class ArtifactSearchResultDatum {
+export class ArtifactActionCombo {
   action!: ActionDto;
   artifact!: ArtifactDto;
 }
-
 export class ArtifactSearchResult {
-  data!: ArtifactSearchResultDatum[];
+  data!: IntentionDto[];
+  artifacts!: ArtifactActionCombo[];
   meta!: {
     total: number;
   };

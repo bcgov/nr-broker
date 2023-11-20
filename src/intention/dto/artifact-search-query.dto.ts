@@ -1,9 +1,18 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class ArtifactSearchQuery {
   @IsString()
-  checksum: string;
+  @IsOptional()
+  buildGuid?: string;
+
+  @IsString()
+  @IsOptional()
+  checksum?: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
 
   @IsString()
   service: string;
@@ -11,6 +20,10 @@ export class ArtifactSearchQuery {
   @IsInt()
   @Type(() => Number)
   offset: number;
+
+  @IsString()
+  @IsOptional()
+  type?: string;
 
   @IsInt()
   @Type(() => Number)

@@ -302,20 +302,28 @@ export class IntentionService {
   }
 
   public async artifactSearch(
-    checksum: string,
-    service: string,
+    packageGuid: string | null,
+    artifactChecksum: string | null,
+    artifactName: string | null,
+    artifactType: string | null,
+    service: string | null,
     offset = 0,
     limit = 5,
   ) {
     try {
       // must await to catch error
-      return await this.intentionRepository.searchArtifacts(
-        checksum,
+      const result = await this.intentionRepository.searchArtifacts(
+        packageGuid,
+        artifactChecksum,
+        artifactName,
+        artifactType,
         service,
         offset,
         limit,
       );
+      return result;
     } catch (e) {
+      console.log(e);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search arguement',
@@ -437,7 +445,7 @@ export class IntentionService {
       action.trace.token,
       artifact,
     );
-    return true;
+    return action.package?.buildGuid;
   }
 
   /**
