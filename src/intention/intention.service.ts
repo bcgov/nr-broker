@@ -165,9 +165,9 @@ export class IntentionService {
             );
 
           targetServices = targetSearch.map((t) => t.collection.name);
-          console.log(targetServices);
         }
       }
+      await this.actionService.annotate(action);
       const validationResult = await this.actionService.validate(
         intentionDto,
         action,
@@ -301,6 +301,37 @@ export class IntentionService {
     }
   }
 
+  public async artifactSearch(
+    packageGuid: string | null,
+    artifactChecksum: string | null,
+    artifactName: string | null,
+    artifactType: string | null,
+    service: string | null,
+    offset = 0,
+    limit = 5,
+  ) {
+    try {
+      // must await to catch error
+      const result = await this.intentionRepository.searchArtifacts(
+        packageGuid,
+        artifactChecksum,
+        artifactName,
+        artifactType,
+        service,
+        offset,
+        limit,
+      );
+      return result;
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal search arguement',
+        error: `Check parameters for errors`,
+      });
+    }
+  }
+
   private async finalizeIntention(
     intention: IntentionDto,
     outcome: 'failure' | 'success' | 'unknown',
@@ -309,15 +340,18 @@ export class IntentionService {
   ): Promise<boolean> {
     const endDate = new Date();
     const startDate = new Date(intention.transaction.start);
-    intention.transaction.end = endDate.toISOString();
-    intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
-    intention.transaction.outcome = outcome;
 
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
         await this.actionLifecycle(req, intention, action, outcome, 'end');
+        intention = await this.intentionRepository.getIntentionByToken(
+          intention.transaction.token,
+        );
       }
     }
+    intention.transaction.end = endDate.toISOString();
+    intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
+    intention.transaction.outcome = outcome;
 
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {
@@ -411,7 +445,7 @@ export class IntentionService {
       action.trace.token,
       artifact,
     );
-    return true;
+    return action.package?.buildGuid;
   }
 
   /**

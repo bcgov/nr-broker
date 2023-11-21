@@ -19,7 +19,7 @@ import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type
 import { validate } from 'class-validator';
 import { ValidatorUtil } from '../util/validator.util';
 import { get, set } from 'radash';
-import { CollectionConfigDto } from 'src/persistence/dto/collection-config.dto';
+import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 
 @Injectable()
 export class GraphService {

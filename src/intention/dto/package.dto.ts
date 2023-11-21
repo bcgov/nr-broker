@@ -11,6 +11,16 @@ export class PackageDto {
   @IsString()
   @IsOptional()
   @Column()
+  buildGuid?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Column()
+  buildNumber?: number;
+
+  @IsString()
+  @IsOptional()
+  @Column()
   buildVersion?: string;
 
   @IsString()
@@ -59,6 +69,7 @@ export class PackageDto {
   type?: string;
 
   @IsString()
+  @IsOptional()
   @Column()
-  version: string;
+  version?: string;
 }

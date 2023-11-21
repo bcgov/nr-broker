@@ -2,6 +2,7 @@ import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { from, map } from 'rxjs';
 import merge from 'lodash.merge';
 import os from 'os';
+import snakecaseKeys from 'snakecase-keys';
 
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
@@ -524,10 +525,10 @@ export class AuditService {
               ? action.service.target.project
               : action.service.project,
           },
-          package: {
+          package: snakecaseKeys({
             ...(artifact ?? {}),
             ...(action.package ?? {}),
-          },
+          }),
           service: {
             target: {
               name: action.service.name,

@@ -22,6 +22,7 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 import { IntentionCloseDto } from './dto/intention-close.dto';
 import { ArtifactDto } from './dto/artifact.dto';
+import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 
 @Controller({
   path: 'intention',
@@ -136,11 +137,27 @@ export class IntentionController {
           'Artifacts can only be attached to backup or package-build actions',
       });
     }
-    await this.intentionService.actionArtifactRegister(
+    return await this.intentionService.actionArtifactRegister(
       request,
       request.brokerIntentionDto,
       request.brokerActionDto,
       artifact,
+    );
+  }
+
+  @Post('artifact-search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async artifactSearch(@Query() query: ArtifactSearchQuery) {
+    return await this.intentionService.artifactSearch(
+      query.buildGuid,
+      query.checksum,
+      query.name,
+      query.type,
+      query.service,
+      query.offset,
+      query.limit,
     );
   }
 

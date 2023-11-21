@@ -7,7 +7,8 @@ import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ObjectId } from 'mongodb';
-import { ArtifactDto } from 'src/intention/dto/artifact.dto';
+import { ArtifactDto } from '../../intention/dto/artifact.dto';
+import { ArtifactSearchResult } from '../../intention/dto/artifact-search-result.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -189,5 +190,64 @@ export class IntentionMongoRepository implements IntentionRepository {
           };
         }
       });
+  }
+
+  public async searchArtifacts(
+    traceHash: string | null,
+    artifactChecksum: string | null,
+    artifactName: string | null,
+    artifactType: string | null,
+    service: string | null,
+    offset: number,
+    limit: number,
+  ): Promise<ArtifactSearchResult> {
+    const result = await this.searchIntentions(
+      {
+        'actions.artifacts': { $exists: true },
+        ...(service ? { 'actions.service.name': service } : {}),
+        ...(traceHash ? { 'actions.trace.hash': traceHash } : {}),
+        ...(artifactChecksum
+          ? { 'actions.artifacts.checksum': artifactChecksum }
+          : {}),
+        ...(artifactName ? { 'actions.artifacts.name': artifactName } : {}),
+        ...(artifactType ? { 'actions.artifacts.type': artifactType } : {}),
+      } as FindOptionsWhere<IntentionDto>,
+      offset,
+      limit,
+    );
+
+    return {
+      artifacts: result.data
+        .map((intention) => {
+          return this.findArtifacts(
+            intention,
+            artifactChecksum,
+            artifactName,
+            artifactType,
+          );
+        })
+        .reduce((pv, cv) => pv.concat(cv), []),
+      ...result,
+    };
+  }
+
+  private findArtifacts(
+    intention: IntentionDto | null,
+    artifactChecksum: string | null,
+    artifactName: string | null,
+    artifactType: string | null,
+  ): { action: ActionDto; artifact: ArtifactDto }[] {
+    for (const action of intention.actions) {
+      if (!action.artifacts) {
+        return;
+      }
+      const artifacts = action.artifacts.filter(
+        (artifact) =>
+          (!artifactChecksum || artifact.checksum === artifactChecksum) &&
+          (!artifactName || artifact.name === artifactName) &&
+          (!artifactType || artifact.type === artifactType),
+      );
+      return artifacts.map((artifact) => ({ action, artifact }));
+    }
   }
 }

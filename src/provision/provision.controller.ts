@@ -24,7 +24,7 @@ export class ProvisionController {
   @SetMetadata('provision', [ACTION_PROVISION_APPROLE_SECRET_ID])
   @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  @ApiHeader({ name: HEADER_VAULT_ROLE_ID, required: true })
+  @ApiHeader({ name: HEADER_VAULT_ROLE_ID })
   async provisionIntentionSecretId(@Req() request: ActionGuardRequest) {
     return this.provisionService.generateSecretId(
       request,
@@ -38,7 +38,7 @@ export class ProvisionController {
   @SetMetadata('provision', [ACTION_PROVISION_TOKEN_SELF])
   @UseGuards(ActionGuard, VaultRoleGuard, ProvisionGuard)
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  @ApiHeader({ name: HEADER_VAULT_ROLE_ID, required: true })
+  @ApiHeader({ name: HEADER_VAULT_ROLE_ID })
   async provisionIntentionToken(@Req() request: ActionGuardRequest) {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];

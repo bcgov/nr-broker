@@ -1,0 +1,25 @@
+{
+  "event": {
+    "provider": "github-action-demo",
+    "reason": "Job triggered",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "package-installation",
+      "id": "install",
+      "provision": [],
+      "service": {
+        "project": "superapp",
+        "name": "superapp-backend",
+        "environment": "development"
+      },
+      "package": {
+        "type": "zip"
+      }
+    }
+  ],
+  "user": {
+    "name": "USER_ID@IDP"
+  }
+}

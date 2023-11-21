@@ -12,7 +12,7 @@ import { Request as ExpressRequest } from 'express';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PreferenceService } from './preference.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
-import { PreferenceRestDto } from 'src/persistence/dto/preference-rest.dto';
+import { PreferenceRestDto } from '../persistence/dto/preference-rest.dto';
 import { get } from 'radash';
 
 @Controller({
