@@ -27,6 +27,7 @@ import { ServerAccessActionDto } from './server-access-action.dto';
 import { UrlDto } from './url.dto';
 
 @Entity({ name: 'intention' })
+// @Index(['actions.transaction.hash'])
 export class IntentionDto {
   static projectAction(
     intention: IntentionDto,

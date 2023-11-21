@@ -28,6 +28,8 @@ fi
 
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
+BUILD_TRACE_ID=$(echo $RESPONSE | jq -r '.actions.build.trace_id')
+echo -n $BUILD_TRACE_ID > provision-app-quick-build.trace.id
 # echo "Hashed transaction.id: $(echo -n $INTENTION_TOKEN | shasum -a 256)"
 
 echo "===> Build"
@@ -37,12 +39,10 @@ echo "===> ..."
 echo "===> Build - Success!"
 # Add artifact to action
 ACTIONS_BUILD_TOKEN=$(echo $RESPONSE | jq -r '.actions.build.token')
-ARTIFACT_RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/action/artifact \
+curl -s -X POST $BROKER_URL/v1/intention/action/artifact \
         -H 'Content-Type: application/json' \
         -H 'X-Broker-Token: '"$ACTIONS_BUILD_TOKEN"'' \
-        -d '{"checksum": "sha256:'$sha256'", "name": "build.zip", "size": '$RANDOM', "type": "zip" }' \
-        )
-echo -n $ARTIFACT_RESPONSE > provision-app-quick-build.build.guid
+        -d '{"checksum": "sha256:'$sha256'", "name": "build.zip", "size": '$RANDOM', "type": "zip" }'
 
 echo "===> Intention close"
 

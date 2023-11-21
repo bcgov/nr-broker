@@ -46,7 +46,7 @@ export abstract class IntentionRepository {
   ): Promise<IntentionSearchResult>;
 
   public abstract searchArtifacts(
-    packageGuid: string | null,
+    traceHash: string | null,
     artifactChecksum: string | null,
     artifactName: string | null,
     artifactType: string | null,

@@ -7,8 +7,8 @@ import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ObjectId } from 'mongodb';
-import { ArtifactDto } from 'src/intention/dto/artifact.dto';
-import { ArtifactSearchResult } from 'src/intention/dto/artifact-search-result.dto';
+import { ArtifactDto } from '../../intention/dto/artifact.dto';
+import { ArtifactSearchResult } from '../../intention/dto/artifact-search-result.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -193,7 +193,7 @@ export class IntentionMongoRepository implements IntentionRepository {
   }
 
   public async searchArtifacts(
-    packageGuid: string | null,
+    traceHash: string | null,
     artifactChecksum: string | null,
     artifactName: string | null,
     artifactType: string | null,
@@ -205,7 +205,7 @@ export class IntentionMongoRepository implements IntentionRepository {
       {
         'actions.artifacts': { $exists: true },
         ...(service ? { 'actions.service.name': service } : {}),
-        ...(packageGuid ? { 'actions.package.buildGuid': packageGuid } : {}),
+        ...(traceHash ? { 'actions.trace.hash': traceHash } : {}),
         ...(artifactChecksum
           ? { 'actions.artifacts.checksum': artifactChecksum }
           : {}),

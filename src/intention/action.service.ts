@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { ActionError } from './action.error';
 import { ActionUtil } from './action.util';
 import { ActionDto } from './dto/action.dto';
@@ -70,11 +69,6 @@ export class ActionService {
   }
 
   public async annotate(action: ActionDto) {
-    if (action.action === 'package-build' || action.action === 'backup') {
-      if (action.package && !action.package.buildGuid) {
-        action.package.buildGuid = crypto.randomUUID();
-      }
-    }
     if (action.action === 'package-installation') {
       if (action.package) {
         const foundArtifact = await this.intentionRepository.searchArtifacts(

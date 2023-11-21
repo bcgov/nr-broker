@@ -5,7 +5,7 @@ cd "$this_dir"
 
 BUILD_CHECKSUM="sha256:$(cat provision-app-quick-build.artifact.sha256)"
 echo $BUILD_CHECKSUM
-BUILD_GUID="$(cat provision-app-quick-build.build.guid)"
+BUILD_GUID="$(cat provision-app-quick-build.trace.id)"
 echo $BUILD_GUID
 
 echo "===> Intention open"
@@ -17,7 +17,6 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
             (.actions[] | select(.id == \"install\") .package.buildGuid) |= \"$BUILD_GUID\" | \
-            (.actions[] | select(.id == \"install\") .package.checksum) |= \"$BUILD_CHECKSUM\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"

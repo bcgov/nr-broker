@@ -15,7 +15,7 @@
         "environment": "development"
       },
       "package": {
-        "checksum": "sha256:1db1bf6ca413a9294ab0348fa8193d6646a8f201ebd8ac3a3de373d712900636"
+        "type": "zip"
       }
     }
   ],
