@@ -132,6 +132,9 @@
 
         <ng-container *ngIf="target.data.collection === 'service'">
           <app-inspector-intentions [target]="target"></app-inspector-intentions>
+          <app-inspector-service-secure
+            [service]="collectionData"
+            [userIndex]="latestConfig?.['user']?.index"></app-inspector-service-secure>
         </ng-container>
 
         <ng-container *ngIf="target.data.collection === 'serviceInstance'">

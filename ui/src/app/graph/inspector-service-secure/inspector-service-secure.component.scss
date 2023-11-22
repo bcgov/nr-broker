@@ -1,0 +1,19 @@
+
+.edge-container {
+  margin-left: 16px;
+}
+
+.heading {
+  margin-top: 8px;
+  display: flex;
+}
+
+.heading h3 {
+  flex-grow: 1;
+  margin: 0;
+}
+
+.heading :last-child {
+  flex: 1;
+  flex-grow: 0;
+}

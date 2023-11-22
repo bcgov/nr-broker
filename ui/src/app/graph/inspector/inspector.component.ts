@@ -64,6 +64,7 @@ import { InspectorAccountComponent } from '../inspector-account/inspector-accoun
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
+import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
 
 @Component({
   selector: 'app-inspector',
@@ -79,6 +80,7 @@ import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-co
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorIntentionsComponent,
+    InspectorServiceSecureComponent,
     InspectorTeamComponent,
     KeyValuePipe,
     MatButtonModule,

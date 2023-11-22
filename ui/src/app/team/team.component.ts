@@ -21,7 +21,7 @@ import {
   CollectionSearchConnections,
 } from '../service/dto/collection-search-result.dto';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
-import { TeamSearchDto } from '../service/dto/team-rest.dto';
+import { TeamRestDto } from '../service/dto/team-rest.dto';
 import { GraphUtilService } from '../service/graph-util.service';
 
 @Component({
@@ -44,7 +44,7 @@ import { GraphUtilService } from '../service/graph-util.service';
   styleUrls: ['./team.component.scss'],
 })
 export class TeamComponent implements OnInit, OnDestroy {
-  data: CollectionData<TeamSearchDto>[] = [];
+  data: CollectionData<TeamRestDto>[] = [];
   total = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -165,7 +165,7 @@ export class TeamComponent implements OnInit, OnDestroy {
     this.refresh();
   }
 
-  openMemberDialog(elem: CollectionData<TeamSearchDto>) {
+  openMemberDialog(elem: CollectionData<TeamRestDto>) {
     // console.log(elem);
     this.dialog
       .open(MemberDialogComponent, {
@@ -178,7 +178,7 @@ export class TeamComponent implements OnInit, OnDestroy {
       });
   }
 
-  openInGraph(elem: CollectionData<TeamSearchDto>) {
+  openInGraph(elem: CollectionData<TeamRestDto>) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
   }
 
