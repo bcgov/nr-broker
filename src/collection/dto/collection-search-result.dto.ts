@@ -8,7 +8,7 @@ export class CollectionSearchConnections {
 }
 
 export class CollectionSearchResult<T> {
-  data!: (T | CollectionSearchConnections)[];
+  data!: (T & CollectionSearchConnections)[];
   meta!: {
     total: number;
   };

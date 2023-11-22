@@ -41,7 +41,18 @@ export const AUDIT_LOGSTREAM_MAX_LOGS =
   process.env.AUDIT_LOGSTREAM_MAX_LOGS ?? '7';
 
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
-export const VAULT_ENVIRONMENTS = ['production', 'test', 'development'];
+export const VAULT_ENVIRONMENTS = Object.freeze([
+  'production',
+  'test',
+  'development',
+  'tools',
+]);
+export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
+  'prod',
+  'test',
+  'dev',
+  'tools',
+]);
 export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 

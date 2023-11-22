@@ -528,9 +528,16 @@ export class GraphMongoRepository implements GraphRepository {
       .toArray()
       .then((upstreamArr: any[]) => {
         return upstreamArr.map((upstream) => {
+          const collection = upstream.collection[0];
+          collection.id = collection._id;
+          delete collection._id;
+
+          const path = upstream.path;
+          path.id = path._id;
+          delete path._id;
           return {
-            collection: upstream.collection[0],
-            path: upstream.path,
+            collection,
+            path,
           };
         });
       });

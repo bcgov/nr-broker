@@ -96,6 +96,20 @@ export class CollectionController {
     );
   }
 
+  @Get('service/:id/secure')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    requiredEdgeNames: ['administrator', 'lead-developer'],
+    upstreamRecursive: true,
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async getServiceSecureInfo(@Param('id') id: string) {
+    return this.service.getServiceSecureInfo(id);
+  }
+
   @Get(':collection')
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionByVertexId(
