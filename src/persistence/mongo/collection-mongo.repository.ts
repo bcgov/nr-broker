@@ -168,7 +168,13 @@ export class CollectionMongoRepository implements CollectionRepository {
           const rval = array[0] as unknown as CollectionSearchResult<
             CollectionDtoUnion[T]
           >;
-          // TODO: fix _ids
+
+          for (const datum of rval.data) {
+            this.arrayIdFixer(datum.downstream);
+            this.arrayIdFixer(datum.downstream_edge);
+            this.arrayIdFixer(datum.upstream);
+            this.arrayIdFixer(datum.upstream_edge);
+          }
           return rval;
         } else {
           return {
@@ -177,5 +183,12 @@ export class CollectionMongoRepository implements CollectionRepository {
           };
         }
       });
+  }
+
+  private arrayIdFixer(array: any[]) {
+    for (const item of array) {
+      item.id = item._id;
+      delete item._id;
+    }
   }
 }

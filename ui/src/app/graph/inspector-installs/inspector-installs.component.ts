@@ -4,7 +4,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { BrokerServiceInstanceRestDto } from '../../service/dto/service-instance-rest.dto';
+import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.dto';
 
 @Component({
   selector: 'app-inspector-installs',
@@ -20,5 +20,5 @@ import { BrokerServiceInstanceRestDto } from '../../service/dto/service-instance
   styleUrls: ['./inspector-installs.component.scss'],
 })
 export class InspectorInstallsComponent {
-  @Input() instance!: BrokerServiceInstanceRestDto | undefined;
+  @Input() instance!: ServiceInstanceRestDto | undefined;
 }

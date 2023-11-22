@@ -1,4 +1,4 @@
-import { CollectionNames } from './collection-names.type';
+import { CollectionNames } from './collection-dto-union.type';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface CollectionEdgeConfig {

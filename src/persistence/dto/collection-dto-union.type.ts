@@ -1,10 +1,10 @@
 import { BrokerAccountDto } from './broker-account.dto';
-import { EnvironmentDto } from '../dto/environment.dto';
-import { ProjectDto } from '../dto/project.dto';
-import { ServiceInstanceDto } from '../dto/service-instance.dto';
-import { ServiceDto } from '../dto/service.dto';
+import { EnvironmentDto } from './environment.dto';
+import { ProjectDto } from './project.dto';
+import { ServiceInstanceDto } from './service-instance.dto';
+import { ServiceDto } from './service.dto';
 import { TeamDto } from './team.dto';
-import { UserDto } from '../dto/user.dto';
+import { UserDto } from './user.dto';
 
 export type CollectionDtoUnion = {
   brokerAccount: BrokerAccountDto;

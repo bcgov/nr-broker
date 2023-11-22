@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
 import { GraphUtilService } from './graph-util.service';
 import { GraphDataVertex } from './graph.types';
@@ -11,7 +16,6 @@ import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
 import { IntentionSearchResult } from './dto/intention-search-result.dto';
-import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -40,7 +44,7 @@ export class GraphApiService {
     );
   }
 
-  getCollectionConfig(collection: string) {
+  getCollectionConfig(collection: CollectionNames) {
     return this.getConfig().pipe(
       map((configs) => {
         return configs.find((config) => config.collection === collection);
@@ -48,11 +52,14 @@ export class GraphApiService {
     );
   }
 
-  getCollectionData<T = any>(collection: string, id: string) {
+  getCollectionData<T extends keyof CollectionDtoUnion>(
+    collection: T,
+    vertexId: string,
+  ) {
     return this.http.get<T>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         collection,
-      )}?vertex=${id}`,
+      )}?vertex=${vertexId}`,
       {
         responseType: 'json',
       },

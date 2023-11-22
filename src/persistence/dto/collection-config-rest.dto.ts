@@ -1,6 +1,8 @@
+import { CollectionNames } from './collection-dto-union.type';
+
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface CollectionEdgeConfig {
-  collection: string;
+  collection: CollectionNames;
   name: string;
   onDelete?: 'cascade';
   relation: 'oneToMany' | 'oneToOne';
@@ -38,7 +40,7 @@ export interface CollectionMap {
 
 export interface CollectionConfigResponseDto {
   id: string;
-  collection: string;
+  collection: CollectionNames;
   collectionMapper: CollectionMap[];
   collectionVertexName: string;
   edges: CollectionEdgeConfig[];

@@ -1,0 +1,34 @@
+<ng-container *ngIf="user.roles.includes('admin') || isAdministrator">
+  <div class="edge-container">
+    <div class="heading">
+      <h3>Vault Role Ids</h3>
+      <mat-slide-toggle matTooltip="Role ids should not be shared"
+      matTooltipPosition="left" [(ngModel)]="reveal">Show</mat-slide-toggle>
+    </div>
+  </div>
+
+  <mat-list>
+    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.prod">
+      <span matListItemTitle>Production</span>
+      <span matListItemLine *ngIf="reveal">{{ data.roleIds.prod }}</span>
+      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
+    </mat-list-item>
+    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.test">
+      <span matListItemTitle>Test</span>
+      <span matListItemLine *ngIf="reveal">{{ data.roleIds.test }}</span>
+      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
+    </mat-list-item>
+    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.dev">
+      <span matListItemTitle>Development</span>
+      <span matListItemLine *ngIf="reveal">{{ data.roleIds.dev }}</span>
+      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
+    </mat-list-item>
+    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.tools">
+      <span matListItemTitle>Tools</span>
+      <span matListItemLine *ngIf="reveal">{{ data.roleIds.tools }}</span>
+      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
+    </mat-list-item>
+  </mat-list>
+
+  <mat-divider></mat-divider>
+</ng-container>

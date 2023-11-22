@@ -106,15 +106,15 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
           users[edge.name] = [];
         }
         for (const upstream of data.data[0].upstream) {
-          userMap[upstream._id] = {
-            id: upstream._id,
+          userMap[upstream.id] = {
+            id: upstream.id,
             name: upstream.name,
           };
         }
         for (const edge of data.data[0].upstream_edge) {
           this.userCount++;
           users[edge.name].push({
-            id: edge._id,
+            id: edge.id,
             name: userMap[edge.source].name,
             vertex: edge.source,
           });

@@ -7,9 +7,16 @@ import { CollectionService } from './collection.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { AccountService } from './account.service';
 import { UserCollectionService } from './user-collection.service';
+import { TokenModule } from '../token/token.module';
 
 @Module({
-  imports: [AuditModule, AuthModule, PersistenceModule, GraphModule],
+  imports: [
+    AuditModule,
+    AuthModule,
+    PersistenceModule,
+    GraphModule,
+    TokenModule,
+  ],
   controllers: [CollectionController],
   providers: [CollectionService, UserCollectionService, AccountService],
   exports: [CollectionService, UserCollectionService],
