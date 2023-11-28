@@ -38,13 +38,10 @@ export class GanttGraphComponent implements OnInit {
           type: 'shadow',
         },
         formatter: function (params: any) {
-          let tar;
-          if (params[1] && params[1].value !== '-') {
-            tar = params[1];
-          } else {
-            tar = params[2];
-          }
-          return tar && tar.name + '<br/>' + 'Duration : ' + tar.value;
+          const tar = params[1];
+          return `<b>${tar && tar.name}</b><br/>${
+            tar.axisValue
+          }<br/>Duration : ${tar.value}`;
         },
       },
       legend: {
@@ -96,9 +93,10 @@ export class GanttGraphComponent implements OnInit {
             show: false,
             position: 'bottom',
           },
-          data: this.data.actions.map(
-            (action: any) => action.trace.duration ?? 0,
-          ),
+          data: this.data.actions.map((action: any) => ({
+            name: action.service.name,
+            value: action.trace.duration ?? 0,
+          })),
         },
       ],
     };
