@@ -76,10 +76,11 @@ export class GanttGraphComponent implements OnInit {
               color: 'transparent',
             },
           },
-          data: this.data.actions.map(
-            (action: any) =>
-              new Date(action.start).valueOf() -
-              new Date(this.data.transaction.start).valueOf(),
+          data: this.data.actions.map((action: any) =>
+            action.start && this.data.transaction.start
+              ? new Date(action.start).valueOf() -
+                new Date(this.data.transaction.start).valueOf()
+              : 0,
           ),
         },
         {
@@ -90,7 +91,9 @@ export class GanttGraphComponent implements OnInit {
             show: false,
             position: 'bottom',
           },
-          data: this.data.actions.map((action: any) => action.trace.duration),
+          data: this.data.actions.map(
+            (action: any) => action.trace.duration ?? 0,
+          ),
         },
       ],
     };
