@@ -18,8 +18,8 @@ import {
   ALLOW_BODY_VALUE_METADATA_KEY,
   AllowBodyValueArgs,
 } from '../allow-body-value.decorator';
-import { ROLES_METADATA_KEY } from 'src/roles.decorator';
-import { ALLOW_EMPTY_EDGE_METADATA_KEY } from 'src/allow-empty-edges.decorator';
+import { ROLES_METADATA_KEY } from '../roles.decorator';
+import { ALLOW_EMPTY_EDGE_METADATA_KEY } from '../allow-empty-edges.decorator';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.
