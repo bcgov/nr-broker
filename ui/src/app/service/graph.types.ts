@@ -49,6 +49,7 @@ export interface GraphDataConfig {
   data: GraphData;
   config: CollectionConfigMap;
   configSrcTarMap: CollectionEdgeConfigMap;
+  ownedVertex: string[];
 }
 
 export interface GraphData extends GraphDataResponseDto {

@@ -323,7 +323,6 @@ export class IntentionService {
       );
       return result;
     } catch (e) {
-      console.log(e);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search arguement',

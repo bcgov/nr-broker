@@ -6,6 +6,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
+import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
@@ -22,9 +23,14 @@ export abstract class GraphRepository {
   public abstract getEdge(id: string): Promise<EdgeDto | null>;
   public abstract getEdgeByNameAndVertices(
     name: string,
-    sourceId: string,
-    targetId: string,
+    source: string,
+    target: string,
   ): Promise<EdgeDto>;
+  public abstract searchEdgesShallow(
+    name: string,
+    source?: string,
+    target?: string,
+  ): Promise<EdgeDto[]>;
   // Vertex
   public abstract addVertex(
     vertex: VertexDto,
@@ -42,6 +48,7 @@ export abstract class GraphRepository {
     collection: keyof CollectionDtoUnion,
     name: string,
   ): Promise<VertexDto | null>;
+  public abstract getVertexInfo(id: string): Promise<VertexInfoDto>;
   public abstract searchVertex(
     collection: keyof CollectionDtoUnion,
     edgeName?: string,

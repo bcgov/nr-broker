@@ -27,13 +27,11 @@ import {
 import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
-  catchError,
   map,
   Observable,
   of,
   shareReplay,
   switchMap,
-  tap,
   withLatestFrom,
 } from 'rxjs';
 import {
@@ -180,15 +178,23 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     this.targetSubject
       .pipe(
-        tap(() => {
-          this.checkIfOwner();
-        }),
         switchMap((target) => {
           return this.getUpstreamUsers(target);
         }),
       )
       .subscribe((data) => {
         this.collectionPeople = data;
+      });
+
+    this.targetSubject
+      .pipe(withLatestFrom(this.dataConfig))
+      .subscribe(([target, dataConfig]) => {
+        if (!target || !dataConfig) {
+          return;
+        }
+        const targetId =
+          target.type === 'edge' ? target.data.target : target.data.id;
+        this.isTargetOwner = dataConfig.ownedVertex.indexOf(targetId) !== -1;
       });
 
     this.dataConfig.subscribe((dataConfig) => {
@@ -312,32 +318,6 @@ export class InspectorComponent implements OnChanges, OnInit {
         json: JSON.stringify(json, undefined, 4),
       },
     });
-  }
-
-  checkIfOwner() {
-    if (!this.latestConfig || !this.target) {
-      return;
-    }
-
-    const targetId =
-      this.target.type === 'edge'
-        ? this.target.data.target
-        : this.target.data.id;
-    this.graphApi
-      .searchEdge('owner', this.user.vertex, targetId)
-      .pipe(
-        catchError((err) => {
-          if (err.status == 404) {
-            this.isTargetOwner = false;
-          }
-          return new Observable();
-        }),
-      )
-      .subscribe((upstreamData) => {
-        if (upstreamData) {
-          this.isTargetOwner = true;
-        }
-      });
   }
 
   editTarget() {
