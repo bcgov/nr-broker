@@ -20,6 +20,14 @@ import { FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatNativeDateModule } from '@angular/material/core';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
+import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
 
 @Component({
   selector: 'app-history',
@@ -41,8 +49,19 @@ import { MatNativeDateModule } from '@angular/material/core';
     ReactiveFormsModule,
     JsonPipe,
     ActionContentComponent,
+    GanttGraphComponent,
   ],
   templateUrl: './history.component.html',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
+      ),
+    ]),
+  ],
   styleUrls: ['./history.component.scss'],
 })
 export class HistoryComponent implements OnInit, OnDestroy {
@@ -70,17 +89,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
     'project',
     'service',
     'action',
-    'reason',
     'start',
-    'duration',
     'outcome',
     'user',
+  ];
+  propDisplayedColumnsWithExpand: string[] = [
+    ...this.propDisplayedColumns,
+    'expand',
   ];
   range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
   private triggerRefresh = new Subject<void>();
+  expandedElement: any | null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -92,7 +114,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.triggerRefresh
       .pipe(
         switchMap(() => {
-          console.log(this.range.value);
           let whereClause: any = {
             ...(this.selectedStatus !== 'all'
               ? { 'transaction.outcome': this.selectedStatus }
