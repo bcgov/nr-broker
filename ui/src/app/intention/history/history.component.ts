@@ -75,6 +75,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   fields = [
     { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
+    { value: 'project', viewValue: 'Project' },
     { value: 'service', viewValue: 'Service' },
     { value: 'action', viewValue: 'Action' },
     { value: 'username', viewValue: 'Username' },
@@ -131,6 +132,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
                 ...whereClause,
                 ...(this.fieldValue
                   ? { 'actions.service.name': this.fieldValue.trim() }
+                  : {}),
+              };
+            } else if (this.selectedField === 'project') {
+              whereClause = {
+                ...whereClause,
+                ...(this.fieldValue
+                  ? { 'actions.service.project': this.fieldValue.trim() }
                   : {}),
               };
             } else if (this.selectedField === 'action') {

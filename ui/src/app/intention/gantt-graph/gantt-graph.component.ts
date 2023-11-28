@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxEchartsModule, NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
@@ -20,11 +20,16 @@ export class GanttGraphComponent implements OnInit {
   @Input() data: any;
   options!: EChartsOption;
 
+  constructor(private readonly elRef: ElementRef) {}
+
   ngOnInit(): void {
     this.options = {
       title: {
         text: 'Actions',
         show: false,
+      },
+      textStyle: {
+        fontFamily: getComputedStyle(this.elRef.nativeElement).fontFamily,
       },
       tooltip: {
         appendToBody: true,
