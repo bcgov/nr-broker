@@ -2,6 +2,7 @@ import { Component, ElementRef, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxEchartsModule, NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
+import prettyMilliseconds from 'pretty-ms';
 
 @Component({
   selector: 'app-gantt-graph',
@@ -41,7 +42,7 @@ export class GanttGraphComponent implements OnInit {
           const tar = params[1];
           return `<b>${tar && tar.name}</b><br/>${
             tar.axisValue
-          }<br/>Duration : ${tar.value}`;
+          }<br/>Duration : ${prettyMilliseconds(tar.value)}`;
         },
       },
       legend: {
@@ -61,6 +62,11 @@ export class GanttGraphComponent implements OnInit {
       },
       xAxis: {
         type: 'value',
+        axisLabel: {
+          formatter: (value) => {
+            return prettyMilliseconds(value);
+          },
+        },
       },
       series: [
         {

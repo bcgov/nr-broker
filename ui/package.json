@@ -27,6 +27,7 @@
     "echarts": "^5.4.3",
     "filesize": "^10.1.0",
     "ngx-echarts": "^17.1.0",
+    "pretty-ms": "^8.0.0",
     "radash": "^11.0.0",
     "rxjs": "^7.8.1",
     "tslib": "^2.6.2",
