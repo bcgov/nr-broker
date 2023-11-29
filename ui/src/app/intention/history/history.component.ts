@@ -28,6 +28,7 @@ import {
   animate,
 } from '@angular/animations';
 import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
+import { FilesizePipe } from '../../util/filesize.pipe';
 
 @Component({
   selector: 'app-history',
@@ -50,6 +51,7 @@ import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
     JsonPipe,
     ActionContentComponent,
     GanttGraphComponent,
+    FilesizePipe,
   ],
   templateUrl: './history.component.html',
   animations: [

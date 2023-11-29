@@ -36,45 +36,42 @@ table {
   width: 100%;
 }
 
-tr.example-detail-row {
+tr.history-detail-row {
   height: 0;
 }
 
-tr.example-element-row:not(.example-expanded-row):hover {
+tr.history-element-row:not(.history-expanded-row):hover {
   background: whitesmoke;
 }
 
-tr.example-element-row:not(.example-expanded-row):active {
+tr.history-element-row:not(.history-expanded-row):active {
   background: #efefef;
 }
 
-.example-element-row td {
+.history-element-row td {
   border-bottom-width: 0;
 }
 
-.example-element-detail {
+.element-detail {
   overflow: hidden;
 }
 
-.example-element-diagram {
-  min-width: 80px;
-  border: 2px solid black;
-  padding: 8px;
-  font-weight: lighter;
-  margin: 8px 0;
-  height: 104px;
+.expanded-header-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px 0;
 }
 
-.example-element-symbol {
-  font-weight: bold;
-  font-size: 40px;
-  line-height: normal;
+.artifact-container {
+  display: flex;
+  margin: 12px 0;
 }
 
-.example-element-description {
-  padding: 16px;
+.artifact-details {
+  display: flex;
+  flex-wrap: wrap;
 }
 
-.example-element-description-attribution {
-  opacity: 0.5;
+.artifact-card {
+  background: whitesmoke;
 }
