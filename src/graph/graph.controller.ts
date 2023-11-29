@@ -22,6 +22,8 @@ import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { AllowOwner } from '../allow-owner.decorator';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import { AllowBodyValue } from '../allow-body-value.decorator';
+import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
 
 @Controller({
   path: 'graph',
@@ -39,6 +41,7 @@ export class GraphController {
 
   @Post('edge')
   @Roles('admin')
+  @AllowEmptyEdges('team')
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromBodyPath: 'target',
@@ -50,15 +53,39 @@ export class GraphController {
     return this.graph.addEdge(request, edge);
   }
 
-  @Post('edge/search')
+  @Post('edge/find')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  searchEdge(
+  getEdgeByNameAndVertices(
     @Query('name') name: string,
-    @Query('sourceId') sourceId: string,
-    @Query('targetId') targetId: string,
+    @Query('source') source: string,
+    @Query('target') target: string,
   ) {
-    return this.graph.getEdgeByNameAndVertices(name, sourceId, targetId);
+    return this.graph.getEdgeByNameAndVertices(name, source, target);
+  }
+
+  @Post('edge/shallow-search')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'source',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'target',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'map',
+    required: false,
+  })
+  searchEdgesShallow(
+    @Query('name') name: string,
+    @Query('map') map: 'id' | 'source' | 'target' | '' = '',
+    @Query('source') source?: string,
+    @Query('target') target?: string,
+  ) {
+    return this.graph.searchEdgesShallow(name, map, source, target);
   }
 
   @Put('edge/:id')
@@ -98,6 +125,12 @@ export class GraphController {
 
   @Post('vertex')
   @Roles('admin')
+  @AllowBodyValue([
+    {
+      path: 'collection',
+      value: 'team',
+    },
+  ])
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -155,6 +188,10 @@ export class GraphController {
 
   @Delete('vertex/:id')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'vertex',
+    graphIdFromParamKey: 'id',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   deleteVertex(@Req() request: Request, @Param('id') id: string) {

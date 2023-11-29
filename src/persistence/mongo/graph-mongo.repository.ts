@@ -222,15 +222,35 @@ export class GraphMongoRepository implements GraphRepository {
 
   public getEdgeByNameAndVertices(
     name: string,
-    sourceId: string,
-    targetId: string,
+    source: string,
+    target: string,
   ): Promise<EdgeDto> {
     return this.edgeRepository.findOne({
       where: {
         name,
-        source: new ObjectId(sourceId),
-        target: new ObjectId(targetId),
+        source: new ObjectId(source),
+        target: new ObjectId(target),
       },
+    });
+  }
+
+  public async searchEdgesShallow(
+    name: string,
+    source?: string,
+    target?: string,
+  ): Promise<EdgeDto[]> {
+    return this.edgeRepository.find({
+      where: {
+        name,
+        ...(source ? { source: new ObjectId(source) } : {}),
+        ...(target ? { target: new ObjectId(target) } : {}),
+      },
+    });
+  }
+
+  public getEdgeSourceCount(source: string): Promise<number> {
+    return this.edgeRepository.count({
+      source,
     });
   }
 
@@ -419,6 +439,13 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository.findOne({
       where: { name, collection },
     });
+  }
+
+  public async getVertexInfo(id: string) {
+    return {
+      incoming: await this.getEdgeTargetCount(id),
+      outgoing: await this.getEdgeSourceCount(id),
+    };
   }
 
   public async searchVertex(

@@ -7,7 +7,6 @@ import {
 } from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
 import { GraphUtilService } from './graph-util.service';
-import { GraphDataVertex } from './graph.types';
 import {
   GraphDataResponseDto,
   UpstreamResponseDto,
@@ -59,7 +58,7 @@ export class GraphApiService {
     return this.http.get<T>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         collection,
-      )}?vertex=${vertexId}`,
+      )}?vertex=${encodeURIComponent(vertexId)}`,
       {
         responseType: 'json',
       },
@@ -74,7 +73,7 @@ export class GraphApiService {
 
   editEdge(id: string, edge: EdgeInsertDto) {
     return this.http.put<any>(
-      `${environment.apiUrl}/v1/graph/edge/${id}`,
+      `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
       edge,
       {
         responseType: 'json',
@@ -83,14 +82,40 @@ export class GraphApiService {
   }
 
   deleteEdge(id: string) {
-    return this.http.delete<any>(`${environment.apiUrl}/v1/graph/edge/${id}`, {
-      responseType: 'json',
-    });
+    return this.http.delete<any>(
+      `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 
-  searchEdge(name: string, sourceId: string, targetId: string) {
+  findEdge(name: string, source: string, target: string) {
     return this.http.post<any>(
-      `${environment.apiUrl}/v1/graph/edge/search?name=${name}&sourceId=${sourceId}&targetId=${targetId}`,
+      `${environment.apiUrl}/v1/graph/edge/find?name=${encodeURIComponent(
+        name,
+      )}&source=${encodeURIComponent(source)}&target=${encodeURIComponent(
+        target,
+      )}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  searchEdgesShallow(
+    name: string,
+    map: 'id' | 'source' | 'target' | '',
+    source?: string,
+    target?: string,
+  ) {
+    return this.http.post<any>(
+      `${
+        environment.apiUrl
+      }/v1/graph/edge/shallow-search?name=${encodeURIComponent(name)}` +
+        (source ? `&source=${encodeURIComponent(source)}` : '') +
+        (target ? `&target=${encodeURIComponent(target)}` : '') +
+        (map ? `&map=${encodeURIComponent(map)}` : ''),
       {
         responseType: 'json',
       },
@@ -107,19 +132,10 @@ export class GraphApiService {
     );
   }
 
-  editVertex(vertex: GraphDataVertex, data: any) {
-    const vertexData: any = {
-      id: vertex.id,
-      collection: vertex.collection,
-      name: vertex.name,
-      data,
-    };
-    if (vertex.prop) {
-      vertexData.prop = vertex.prop;
-    }
+  editVertex(id: string, vertex: VertexInsertDto) {
     return this.http.put<any>(
-      `${environment.apiUrl}/v1/graph/vertex/${vertex.id}`,
-      vertexData,
+      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
+      vertex,
       {
         responseType: 'json',
       },
@@ -128,7 +144,7 @@ export class GraphApiService {
 
   deleteVertex(id: string) {
     return this.http.delete<any>(
-      `${environment.apiUrl}/v1/graph/vertex/${id}`,
+      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
       {
         responseType: 'json',
       },
@@ -142,7 +158,9 @@ export class GraphApiService {
   ) {
     return this.http.post<UpstreamResponseDto<T>[]>(
       `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}${
-        matchEdgeNames ? `?matchEdgeNames=${matchEdgeNames.join(',')}` : ''
+        matchEdgeNames
+          ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
+          : ''
       }`,
       {
         responseType: 'json',
@@ -162,7 +180,11 @@ export class GraphApiService {
 
   searchVertex(collection: string, typeahead: string) {
     return this.http.post<VertexSearchDto[]>(
-      `${environment.apiUrl}/v1/graph/vertex/search?collection=${collection}&typeahead=${typeahead}`,
+      `${
+        environment.apiUrl
+      }/v1/graph/vertex/search?collection=${encodeURIComponent(
+        collection,
+      )}&typeahead=${typeahead}`,
       {
         responseType: 'json',
       },

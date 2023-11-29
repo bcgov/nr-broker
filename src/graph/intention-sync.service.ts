@@ -169,16 +169,12 @@ export class IntentionSyncService {
     }
   }
 
-  private async overlayEdgeById(
-    name: string,
-    sourceId: string,
-    targetId: string,
-  ) {
-    if (sourceId && targetId) {
+  private async overlayEdgeById(name: string, source: string, target: string) {
+    if (source && target) {
       const curr = await this.graphRepository.getEdgeByNameAndVertices(
         name,
-        sourceId,
-        targetId,
+        source,
+        target,
       );
       if (curr) {
         return curr;
@@ -186,8 +182,8 @@ export class IntentionSyncService {
       try {
         return await this.graphService.addEdge(null, {
           name,
-          source: sourceId,
-          target: targetId,
+          source: source,
+          target: target,
         });
       } catch (e) {}
     }

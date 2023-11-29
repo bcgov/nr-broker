@@ -363,14 +363,14 @@ export class GraphService {
 
   public async getEdgeByNameAndVertices(
     name: string,
-    sourceId: string,
-    targetId: string,
+    source: string,
+    target: string,
   ): Promise<EdgeDto> {
     try {
       const vertex = await this.graphRepository.getEdgeByNameAndVertices(
         name,
-        sourceId,
-        targetId,
+        source,
+        target,
       );
       if (vertex === null) {
         throw new Error();
@@ -383,6 +383,23 @@ export class GraphService {
         error: '',
       });
     }
+  }
+
+  public async searchEdgesShallow(
+    name: string,
+    map: 'id' | 'source' | 'target' | '',
+    source?: string,
+    target?: string,
+  ): Promise<string[] | EdgeDto[]> {
+    const results = await this.graphRepository.searchEdgesShallow(
+      name,
+      source,
+      target,
+    );
+    if (map !== '') {
+      return results.map((edge) => get(edge, map).toString());
+    }
+    return results;
   }
 
   public async getVertex(id: string): Promise<VertexDto> {

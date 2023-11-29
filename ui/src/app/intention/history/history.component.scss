@@ -31,3 +31,47 @@
 .field-outcome {
   width: 9em;
 }
+
+table {
+  width: 100%;
+}
+
+tr.history-detail-row {
+  height: 0;
+}
+
+tr.history-element-row:not(.history-expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.history-element-row:not(.history-expanded-row):active {
+  background: #efefef;
+}
+
+.history-element-row td {
+  border-bottom-width: 0;
+}
+
+.element-detail {
+  overflow: hidden;
+}
+
+.expanded-header-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.artifact-container {
+  display: flex;
+  margin: 12px 0;
+}
+
+.artifact-details {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.artifact-card {
+  background: whitesmoke;
+}

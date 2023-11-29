@@ -19,6 +19,7 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
+import { GraphUtilService } from '../../service/graph-util.service';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -54,6 +55,7 @@ export class VertexDialogComponent {
     },
     public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
     private readonly graphApi: GraphApiService,
+    private readonly graphUtil: GraphUtilService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
@@ -82,37 +84,19 @@ export class VertexDialogComponent {
     if (this.isFormInvalid()) {
       return;
     }
-    const vertexData = {
-      ...this.formComponent.form.value,
-    };
     const config = this.collectionControl.value;
     if (this.isCollectionConfig(config)) {
-      for (const fieldKey of Object.keys(config.fields)) {
-        if (config.fields[fieldKey].type === 'embeddedDocArray') {
-          continue;
-        }
-        const val =
-          typeof vertexData[fieldKey] === 'string'
-            ? vertexData[fieldKey].trim()
-            : vertexData[fieldKey];
-        if (config.fields[fieldKey].type === 'json') {
-          if (val !== '') {
-            vertexData[fieldKey] = JSON.parse(val);
-          } else {
-            delete vertexData[fieldKey];
-          }
-        }
-        if (config.fields[fieldKey].type === 'stringArray') {
-          vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
-        }
-        if (!config.fields[fieldKey].required && val === '') {
-          delete vertexData[fieldKey];
-        }
-      }
+      const vertexData = this.graphUtil.extractVertexData(
+        config,
+        this.formComponent.form.value,
+      );
 
       if (this.data.target) {
         this.graphApi
-          .editVertex(this.data.target.data, vertexData)
+          .editVertex(this.data.target.data.id, {
+            collection: config.collection,
+            data: vertexData,
+          })
           .subscribe(() => {
             this.dialogRef.close({ refresh: true });
           });
@@ -122,8 +106,8 @@ export class VertexDialogComponent {
             collection: config.collection,
             data: vertexData,
           })
-          .subscribe(() => {
-            this.dialogRef.close({ refresh: true });
+          .subscribe((response) => {
+            this.dialogRef.close({ refresh: true, id: response.id });
           });
       }
     }

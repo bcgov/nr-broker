@@ -287,11 +287,15 @@ export class IntentionService {
   public async search(whereClause: string, offset = 0, limit = 5) {
     try {
       // must await to catch error
-      return await this.intentionRepository.searchIntentions(
+      const intentions = await this.intentionRepository.searchIntentions(
         JSON.parse(whereClause),
         offset,
         limit,
       );
+      for (const intention of intentions.data) {
+        intention.auditUrl = this.auditUrlForIntention(intention);
+      }
+      return intentions;
     } catch (e) {
       throw new BadRequestException({
         statusCode: 400,
@@ -323,7 +327,6 @@ export class IntentionService {
       );
       return result;
     } catch (e) {
-      console.log(e);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search arguement',

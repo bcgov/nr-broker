@@ -166,11 +166,13 @@ export class IntentionMongoRepository implements IntentionRepository {
               { $sort: { 'transaction.start': -1 } },
               { $skip: offset },
               { $limit: limit },
+              { $addFields: { id: '$_id' } },
               {
                 $unset: [
                   'actions.transaction',
                   'actions.trace.token',
                   'transaction.token',
+                  '_id',
                 ],
               },
             ],

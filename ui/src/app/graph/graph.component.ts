@@ -78,15 +78,21 @@ export class GraphComponent {
     this.data = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() =>
-        combineLatest([this.graphApi.getData(), this.graphApi.getConfig()]),
+        combineLatest([
+          this.graphApi.getData(),
+          this.graphApi.getConfig(),
+          this.graphApi.searchEdgesShallow('owner', 'target', this.user.vertex),
+        ]),
       ),
       map(
-        ([data, configArr]: [
+        ([data, configArr, ownedVertex]: [
           GraphDataResponseDto,
           CollectionConfigResponseDto[],
+          string[],
         ]) => {
           // console.log(data);
           // console.log(config);
+          // console.log(ownedVertex);
           const configMap: CollectionConfigMap = configArr.reduce(
             (previousValue, currentValue) => {
               previousValue[currentValue.collection] = currentValue;
@@ -137,6 +143,7 @@ export class GraphComponent {
             data: graphData,
             config: configMap,
             configSrcTarMap,
+            ownedVertex,
           };
         },
       ),
@@ -247,6 +254,9 @@ export class GraphComponent {
       .subscribe((result) => {
         if (result && result.refresh) {
           this.refreshData();
+        }
+        if (result && result.id) {
+          this.graphUtil.openInGraph(result.id, 'vertex');
         }
       });
   }

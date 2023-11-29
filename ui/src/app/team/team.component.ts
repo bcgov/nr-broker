@@ -12,7 +12,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import { Subject, catchError, of, switchMap } from 'rxjs';
+import { Subject, catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 import { CollectionApiService } from '../service/collection-api.service';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { UserDto } from '../service/graph.types';
@@ -23,6 +23,8 @@ import {
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
 import { TeamRestDto } from '../service/dto/team-rest.dto';
 import { GraphUtilService } from '../service/graph-util.service';
+import { AddTeamDialogComponent } from './add-team-dialog/add-team-dialog.component';
+import { GraphApiService } from '../service/graph-api.service';
 
 @Component({
   selector: 'app-team',
@@ -39,12 +41,14 @@ import { GraphUtilService } from '../service/graph-util.service';
     MatSelectModule,
     MatTableModule,
     RouterModule,
+    AddTeamDialogComponent,
   ],
   templateUrl: './team.component.html',
   styleUrls: ['./team.component.scss'],
 })
 export class TeamComponent implements OnInit, OnDestroy {
   data: CollectionData<TeamRestDto>[] = [];
+  ownedVertex: string[] = [];
   total = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -58,6 +62,7 @@ export class TeamComponent implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly dialog: MatDialog,
     @Inject(CURRENT_USER) public readonly user: UserDto,
@@ -87,30 +92,40 @@ export class TeamComponent implements OnInit, OnDestroy {
     // console.log(this.user);
     this.triggerRefresh
       .pipe(
-        switchMap(() => {
+        tap(() => {
           this.loading = true;
-          return this.collectionApi
-            .searchCollection(
-              'team',
-              this.showFilter === 'myteams' ? this.user.vertex : null,
-              null,
-              this.pageIndex * this.pageSize,
-              this.pageSize,
-            )
-            .pipe(
-              catchError(() => {
-                // Ignore errors for now
-                return of({
-                  data: [],
-                  meta: { total: 0 },
-                });
-              }),
-            );
+        }),
+        switchMap(() => {
+          return combineLatest([
+            this.collectionApi
+              .searchCollection(
+                'team',
+                this.showFilter === 'myteams' ? this.user.vertex : null,
+                null,
+                this.pageIndex * this.pageSize,
+                this.pageSize,
+              )
+              .pipe(
+                catchError(() => {
+                  // Ignore errors for now
+                  return of({
+                    data: [],
+                    meta: { total: 0 },
+                  });
+                }),
+              ),
+            this.graphApi.searchEdgesShallow(
+              'owner',
+              'target',
+              this.user.vertex,
+            ),
+          ]);
         }),
       )
-      .subscribe((data) => {
+      .subscribe(([data, ownedVertex]) => {
         this.data = data.data;
         this.total = data.meta.total;
+        this.ownedVertex = ownedVertex;
         this.loading = false;
       });
     const params = this.route.snapshot.params;
@@ -185,5 +200,24 @@ export class TeamComponent implements OnInit, OnDestroy {
   onFilterChange() {
     this.pageIndex = 0;
     this.refresh();
+  }
+
+  isTargetOwner(elem: TeamRestDto) {
+    return this.ownedVertex.indexOf(elem.vertex) !== -1;
+  }
+
+  openTeamDialog(elem?: TeamRestDto) {
+    this.dialog
+      .open(AddTeamDialogComponent, {
+        width: '600px',
+        data: {
+          team: elem,
+        },
+      })
+      .afterClosed()
+      .subscribe(() => {
+        this.refresh();
+      });
+    console.log('openTeamDialog');
   }
 }

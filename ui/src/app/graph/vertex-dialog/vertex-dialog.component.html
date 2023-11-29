@@ -15,7 +15,10 @@
   <mat-divider></mat-divider>
 
   <ng-container *ngIf="isCollectionConfig(collectionControl.value)">
-    <app-vertex-form-builder [fieldMap]="collectionControl.value.fields" [data]="data.data" (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
+    <app-vertex-form-builder
+      [fieldMap]="collectionControl.value.fields"
+      [data]="data.data"
+      (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
     <mat-divider></mat-divider>
   </ng-container>
 

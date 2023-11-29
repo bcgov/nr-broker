@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, JsonPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +15,20 @@ import { Subject, catchError, of, switchMap } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { ActionContentComponent } from '../action-content/action-content.component';
+import { FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatNativeDateModule } from '@angular/material/core';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
+import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
+import { FilesizePipe } from '../../util/filesize.pipe';
 
 @Component({
   selector: 'app-history',
@@ -23,15 +38,32 @@ import { ActionContentComponent } from '../action-content/action-content.compone
     FormsModule,
     MatButtonModule,
     MatCardModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatNativeDateModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTableModule,
+    ReactiveFormsModule,
+    JsonPipe,
     ActionContentComponent,
+    GanttGraphComponent,
+    FilesizePipe,
   ],
   templateUrl: './history.component.html',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
+      ),
+    ]),
+  ],
   styleUrls: ['./history.component.scss'],
 })
 export class HistoryComponent implements OnInit, OnDestroy {
@@ -45,6 +77,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   fields = [
     { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
+    { value: 'project', viewValue: 'Project' },
     { value: 'service', viewValue: 'Service' },
     { value: 'action', viewValue: 'Action' },
     { value: 'username', viewValue: 'Username' },
@@ -59,13 +92,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
     'project',
     'service',
     'action',
-    'reason',
     'start',
-    'duration',
     'outcome',
     'user',
   ];
+  propDisplayedColumnsWithExpand: string[] = [
+    ...this.propDisplayedColumns,
+    'expand',
+  ];
+  range = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null),
+  });
   private triggerRefresh = new Subject<void>();
+  expandedElement: any | null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -77,7 +117,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.triggerRefresh
       .pipe(
         switchMap(() => {
-          let whereClause = {
+          let whereClause: any = {
             ...(this.selectedStatus !== 'all'
               ? { 'transaction.outcome': this.selectedStatus }
               : {}),
@@ -96,6 +136,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
                   ? { 'actions.service.name': this.fieldValue.trim() }
                   : {}),
               };
+            } else if (this.selectedField === 'project') {
+              whereClause = {
+                ...whereClause,
+                ...(this.fieldValue
+                  ? { 'actions.service.project': this.fieldValue.trim() }
+                  : {}),
+              };
             } else if (this.selectedField === 'action') {
               whereClause = {
                 ...whereClause,
@@ -111,6 +158,18 @@ export class HistoryComponent implements OnInit, OnDestroy {
                   : {}),
               };
             }
+          }
+          if (this.range.value.start && this.range.value.end) {
+            // Add 1 day to end date to be inclusive of the day
+            const endData = new Date(this.range.value.end.getTime());
+            endData.setDate(endData.getDate() + 1);
+            whereClause = {
+              ...whereClause,
+              'transaction.start': {
+                $gte: this.range.value.start,
+                $lt: endData,
+              },
+            };
           }
           return this.intentionApi
             .searchIntentions(
@@ -168,6 +227,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.selectedField = '';
     this.fieldValue = '';
     this.selectedStatus = 'all';
+    this.range.reset();
     this.refresh();
   }
 

@@ -14,6 +14,12 @@ import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import {
+  ALLOW_BODY_VALUE_METADATA_KEY,
+  AllowBodyValueArgs,
+} from '../allow-body-value.decorator';
+import { ROLES_METADATA_KEY } from '../roles.decorator';
+import { ALLOW_EMPTY_EDGE_METADATA_KEY } from '../allow-empty-edges.decorator';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.
@@ -37,7 +43,10 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     if (!request.isAuthenticated()) {
       throw new UnauthorizedException();
     }
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    const roles = this.reflector.get<string[]>(
+      ROLES_METADATA_KEY,
+      context.getHandler(),
+    );
     if (
       !roles ||
       (request.user.userinfo.client_roles &&
@@ -47,6 +56,39 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     ) {
       return true;
     }
+    const allowBodyValues = this.reflector.get<AllowBodyValueArgs[]>(
+      ALLOW_BODY_VALUE_METADATA_KEY,
+      context.getHandler(),
+    );
+    if (
+      allowBodyValues &&
+      allowBodyValues.some(
+        (test) => get(request.body, test.path) === test.value,
+      )
+    ) {
+      return true;
+    }
+
+    const emptyEdges = this.reflector.get<string[]>(
+      ALLOW_EMPTY_EDGE_METADATA_KEY,
+      context.getHandler(),
+    );
+    if (emptyEdges && request.body && request.body.target) {
+      const vertex = await this.graphRepository.getVertex(request.body.target);
+      const info = await this.graphRepository.getVertexInfo(
+        request.body.target,
+      );
+
+      if (
+        vertex &&
+        info.incoming === 0 &&
+        info.outgoing === 0 &&
+        emptyEdges.indexOf(vertex.collection) !== -1
+      ) {
+        return true;
+      }
+    }
+
     const userUpstreamData = this.reflector.get<AllowOwnerArgs>(
       ALLOW_OWNER_METADATA_KEY,
       context.getHandler(),
