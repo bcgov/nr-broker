@@ -138,7 +138,8 @@
               [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
               <div class="expanded-header-container">
                 <h3>Actions</h3>
-                <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit</a>
+                <a *ngIf="element.event.url" mat-stroked-button href="{{element.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+                <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
               </div>
 
               <app-gantt-graph *ngIf="element == expandedElement" [data]="element"></app-gantt-graph>

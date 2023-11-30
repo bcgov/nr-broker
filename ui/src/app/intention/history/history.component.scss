@@ -62,6 +62,13 @@ tr.history-element-row:not(.history-expanded-row):active {
   margin-top: 12px;
 }
 
+.expanded-header-container h3 {
+  flex: 1;
+}
+.expanded-header-container a {
+  margin-left: 12px;
+}
+
 .artifact-container {
   display: flex;
   margin: 12px 0;
