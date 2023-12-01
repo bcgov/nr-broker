@@ -16,7 +16,7 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true
     -d @<(cat provision-app-quick-install.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
-            (.actions[] | select(.id == \"install\") .package.buildGuid) |= \"$BUILD_GUID\" | \
+            (.actions[] | select(.id == \"install\") .package.buildGuid) |= \"$BUILD_GUID\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"
