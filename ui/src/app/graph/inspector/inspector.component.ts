@@ -10,12 +10,13 @@ import {
 } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import {
   CommonModule,
@@ -24,7 +25,6 @@ import {
   KeyValuePipe,
   DatePipe,
 } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import {
   BehaviorSubject,
   map,

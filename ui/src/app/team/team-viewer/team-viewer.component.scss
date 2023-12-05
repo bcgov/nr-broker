@@ -1,0 +1,18 @@
+.team-flex-container {
+  display: flex;
+  align-items: center;
+  margin: 16px;
+}
+
+.team-flex-container * {
+  margin: 0;
+  margin-right: 12px;
+}
+
+.team-body {
+  margin: 16px;
+}
+
+.team-body > h2 {
+  margin-top: 24px;
+}

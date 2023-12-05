@@ -10,7 +10,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { CommonModule } from '@angular/common';
 
 import {
   ChartClickTargetVertex,
@@ -27,7 +26,6 @@ import { GraphUtilService } from '../../service/graph-util.service';
   styleUrls: ['./vertex-dialog.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatButtonModule,
     MatDialogModule,

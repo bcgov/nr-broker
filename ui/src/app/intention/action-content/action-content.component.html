@@ -1,3 +1,9 @@
-<ng-container *ngIf="values.length === 0">none</ng-container>
-<ng-container *ngIf="values.length === 1">{{ values[0] }}</ng-container>
-<ng-container *ngIf="values.length > 1"><span matTooltip="{{ values.join(', ') }}">multiple</span></ng-container>
+@if (values.length === 0) {
+  none
+}
+@if (values.length === 1) {
+  {{ values[0] }}
+}
+@if (values.length > 1) {
+  <span matTooltip="{{ values.join(', ') }}">multiple</span>
+}

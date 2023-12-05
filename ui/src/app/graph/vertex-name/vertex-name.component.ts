@@ -1,17 +1,18 @@
 import { Component, Input } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { GraphDataVertex } from '../../service/graph.types';
 
 @Component({
   selector: 'app-vertex-name',
-  template: `<ng-container *ngIf="vertex"
-    ><ng-container *ngIf="vertex.parentName"
-      >{{ vertex.parentName }} &gt; </ng-container
-    >{{ vertex.name }}</ng-container
-  >`,
+  template: `@if (vertex) {
+    @if (vertex.parentName) {
+      {{ vertex.parentName }} &gt;
+    }
+    {{ vertex.name }}
+  }`,
   styles: [],
   standalone: true,
-  imports: [NgIf],
+  imports: [],
 })
 export class VertexNameComponent {
   @Input() vertex: GraphDataVertex | undefined;

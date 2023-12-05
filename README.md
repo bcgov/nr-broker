@@ -119,9 +119,11 @@ brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop()
 
 The JWT allow and block lists are stored in the collections jwtAllow and jwtBlock, respectively. The lists allow you to filter on the cliams 'jti', 'sub' and 'client_id'. Allowing or blocking is specified by adding a document to the associated collection with any, all or none of those cliams specified. Keys that are not present are considered to match. This means you can allow (or block) all JWTs by adding an empty object. An allow document of `{"sub":"cool@person.tv"}` means all JWT cliams with a sub matching "cool@person.tv" will be allowed. If you add a JTI key/value as well then both the JTI and sub will need to match. The block list works similarly.
 
-## Adding an automation user
+## Adding internal users for automated processes
 
-Automation users can be added to the database so that teams can include them on their teams. The following is an example JSON to send to `/v1/collection/user/import` to add an internal user. You should generate your own guid.
+Internal users can be added to the database so that teams have the option to include them on their teams. The main use case for this is automated processes. You may want to add a single internal user for use with all automation or multiple. In either case, teams need to add them like any other user.
+
+The following is an example JSON to send to `/v1/collection/user/import` to add an internal user. You should generate your own guid.
 
 ```
 {
@@ -132,6 +134,8 @@ Automation users can be added to the database so that teams can include them on 
   "username": "github"
 }
 ```
+
+ Teams should be encouraged to use the most appropriate user (internal or real) for their use case.
 
 ## API demonstrations
 
@@ -147,6 +151,12 @@ $ ./health.sh
 $ ./provision-app-backend-demo.sh
 # Demo direct access of secrets for an activity like liquibase or flyway sync
 $ ./provision-app-db-sync-demo.sh
+# Demo quickstart and setting of package details with a build
+$ ./provision-app-quick-build.sh
+# Demo quickstart and attachment of install to build using transaction id
+$ ./provision-app-quick-install.sh
+```
+
 ```
 
 ## Test
@@ -167,6 +177,15 @@ $ npm run test:cov
 The dockerfile can be built locally by setting the REPO_LOCATION.
 
 `podman build . -t nr-broker`
+
+## Province of British Columbia Palette and Font
+
+The UI defaults to Material's indigo-pink styling. The Angular build configuration 'bcgov' can be combined with an environment configuration to create a build using the BC Government Colour palette and font.
+
+```bash
+$ cd ui
+$ npm run watch:bcgov
+```
 
 ## Built with NestJS
 

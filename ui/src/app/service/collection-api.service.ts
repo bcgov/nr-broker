@@ -10,6 +10,18 @@ import { CollectionDtoUnion } from './dto/collection-dto-union.type';
 export class CollectionApiService {
   constructor(private readonly http: HttpClient) {}
 
+  public getCollectionById<T extends keyof CollectionDtoUnion>(
+    name: T,
+    id: string,
+  ) {
+    return this.http.get<CollectionDtoUnion[T]>(
+      `${environment.apiUrl}/v1/collection/${name}/${id}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public searchCollection<T extends keyof CollectionDtoUnion>(
     name: T,
     upstreamVertex: string | null = null,

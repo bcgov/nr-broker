@@ -5,7 +5,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
@@ -21,7 +21,6 @@ import { GraphApiService } from '../../service/graph-api.service';
   selector: 'app-inspector-service-secure',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatDividerModule,
     MatListModule,

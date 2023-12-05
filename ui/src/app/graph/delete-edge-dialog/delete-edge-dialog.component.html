@@ -1,16 +1,20 @@
 <h2 mat-dialog-title>Delete Edge</h2>
 <mat-dialog-content>
   <mat-selection-list #connections>
-    <ng-container *ngFor="let group of $any((data.connections | async)?.connections | keyvalue)">
+    @for (group of $any((data.connections | async)?.connections | keyvalue); track group) {
       <div mat-subheader class="mat-subheader"><b>{{ group.key | titlecase }}</b></div>
-      <mat-list-option *ngFor="let item of group.value" [value]="item">
-        <ng-container *ngIf="item.vertex.parentName">{{ item.vertex.parentName}} &gt; </ng-container> {{ item.vertex.name }}
-      </mat-list-option>
-    </ng-container>
-  </mat-selection-list>
-</mat-dialog-content>
+      @for (item of group.value; track item) {
+        <mat-list-option [value]="item">
+          @if (item.vertex.parentName) {
+            {{ item.vertex.parentName}} &gt;
+            } {{ item.vertex.name }}
+          </mat-list-option>
+        }
+      }
+    </mat-selection-list>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button color="primary" (click)="deleteEdge()">Delete</button>
-</mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button color="primary" (click)="deleteEdge()">Delete</button>
+  </mat-dialog-actions>

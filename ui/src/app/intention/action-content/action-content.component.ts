@@ -1,12 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { get } from 'radash';
 
 @Component({
   selector: 'app-action-content',
   standalone: true,
-  imports: [CommonModule, MatTooltipModule],
+  imports: [MatTooltipModule],
   templateUrl: './action-content.component.html',
   styleUrls: ['./action-content.component.scss'],
 })

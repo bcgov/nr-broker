@@ -7,115 +7,117 @@
     <mat-form-field class="field-outcome">
       <mat-label>Show</mat-label>
       <mat-select [(ngModel)]="showFilter" (selectionChange)="onFilterChange()" name="status">
-        <mat-option *ngFor="let opt of showFilterOptions" [value]="opt.value">
-          {{opt.viewValue}}
-        </mat-option>
+        @for (opt of showFilterOptions; track opt) {
+          <mat-option [value]="opt.value">
+            {{opt.viewValue}}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
   </form>
-  <button mat-raised-button color="primary" (click)="openTeamDialog()">
+  <button mat-raised-button color="primary" (click)="openTeamDialog($event)">
     Create
   </button>
 </div>
 
 <div class="teams-table">
-
-  <mat-spinner *ngIf="(!data || data.length === 0) && loading"></mat-spinner>
-
-  <ng-container *ngIf="data && data.length === 0 && !loading">
+  @if ((!data || data.length === 0) && loading) {
+    <mat-spinner></mat-spinner>
+  }
+  @if (data && data.length === 0 && !loading) {
     <mat-card class="warning-panel">
       <mat-card-header>
         <mat-card-title>No teams found</mat-card-title>
       </mat-card-header>
-
       <mat-card-content>
         <p>Your account is not on any team.</p>
         <a mat-flat-button color="accent" routerLink="/">Go to home</a>
       </mat-card-content>
     </mat-card>
-  </ng-container>
+  }
+  @if (data && data.length > 0) {
+    <mat-card class="team-table">
+      <mat-card-content>
+        <table mat-table [dataSource]="data">
 
-  <ng-container *ngIf="data && data.length > 0">
-  <mat-card class="team-table">
-    <mat-card-content>
-      <table mat-table [dataSource]="data">
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.name }}
+            </td>
+          </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef> Name </th>
-          <td mat-cell *matCellDef="let element">
-            {{ element.name }}
-          </td>
-        </ng-container>
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef> Email </th>
+            <td mat-cell *matCellDef="let element">
+              <a href="mailto:{{ element.email }}">{{ element.email }}</a>
+            </td>
+          </ng-container>
 
-        <!-- Email Column -->
-        <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef> Email </th>
-          <td mat-cell *matCellDef="let element">
-            <a href="mailto:{{ element.email }}">{{ element.email }}</a>
-          </td>
-        </ng-container>
+          <!-- Owner -->
+          <ng-container matColumnDef="owners">
+            <th mat-header-cell *matHeaderCellDef> Owners </th>
+            <td mat-cell *matCellDef="let element">
+              {{ countUpstream(element, ['owner']) }}
+            </td>
+          </ng-container>
 
-        <!-- Owner -->
-        <ng-container matColumnDef="owners">
-          <th mat-header-cell *matHeaderCellDef> Owners </th>
-          <td mat-cell *matCellDef="let element">
-            {{ countUpstream(element, ['owner']) }}
-          </td>
-        </ng-container>
+          <!-- Developers -->
+          <ng-container matColumnDef="developers">
+            <th mat-header-cell *matHeaderCellDef> Developers </th>
+            <td mat-cell *matCellDef="let element">
+              {{ countUpstream(element, ['developer', 'lead-developer']) }}
+            </td>
+          </ng-container>
 
-        <!-- Developers -->
-        <ng-container matColumnDef="developers">
-          <th mat-header-cell *matHeaderCellDef> Developers </th>
-          <td mat-cell *matCellDef="let element">
-            {{ countUpstream(element, ['developer', 'lead-developer']) }}
-          </td>
-        </ng-container>
+          <!-- Accounts -->
+          <ng-container matColumnDef="accounts">
+            <th mat-header-cell *matHeaderCellDef> Accounts </th>
+            <td mat-cell *matCellDef="let element">
+              {{ countDownstream(element, ['owns']) }}
+            </td>
+          </ng-container>
 
-        <!-- Accounts -->
-        <ng-container matColumnDef="accounts">
-          <th mat-header-cell *matHeaderCellDef> Accounts </th>
-          <td mat-cell *matCellDef="let element">
-            {{ countDownstream(element, ['owns']) }}
-          </td>
-        </ng-container>
+          <!-- Action Column -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef> Action </th>
+            <td mat-cell *matCellDef="let element" class="action-buttons">
+              <button mat-stroked-button extended color="primary"
+                (click)="openMemberDialog($event, element)">
+                Members
+              </button>
+              <button mat-stroked-button extended color="primary"
+                [disabled]="!user.roles.includes('admin') && !isTargetOwner(element)"
+                (click)="openTeamDialog($event, element)">
+                Edit
+              </button>
+              <button mat-stroked-button extended color="primary"
+                (click)="openInGraph($event, element)">
+                View
+              </button>
+            </td>
+          </ng-container>
 
-        <!-- Action Column -->
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef> Action </th>
-          <td mat-cell *matCellDef="let element" class="action-buttons">
-            <button mat-stroked-button extended color="primary" (click)="openMemberDialog(element)">
-              Members
-            </button>
-            <button mat-stroked-button extended color="primary"
-              [disabled]="!user.roles.includes('admin') && !isTargetOwner(element)"
-              (click)="openTeamDialog(element)">
-              Edit
-            </button>
-            <button mat-stroked-button extended color="primary" (click)="openInGraph(element)">
-              View
-            </button>
-          </td>
-        </ng-container>
+          <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"
+            class="element-row"
+          (click)="openTeamPage(row)"></tr>
+        </table>
 
-        <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
-      </table>
+        <mat-paginator [length]="total"
+          [pageIndex]="pageIndex"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page">
+        </mat-paginator>
+      </mat-card-content>
 
-      <mat-paginator [length]="total"
-                    [pageIndex]="pageIndex"
-                    [pageSize]="pageSize"
-                    [pageSizeOptions]="[5, 10, 25, 100]"
-                    (page)="handlePageEvent($event)"
-                    aria-label="Select page">
-      </mat-paginator>
-    </mat-card-content>
-
-
-  </mat-card>
-  </ng-container>
-
-<!--
+    </mat-card>
+  }
+  <!--
   <div class="button-container">
     <button mat-raised-button extended color="primary">
       <mat-icon>add</mat-icon>
@@ -123,7 +125,6 @@
     </button>
   </div>
   <h1>Request to Join</h1>
-
   <div class="button-container">
     <button mat-raised-button extended color="primary">
       <mat-icon>add</mat-icon>

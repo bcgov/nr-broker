@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { NgFor } from '@angular/common';
+
 import {
   FormControl,
   FormGroup,
@@ -25,7 +25,7 @@ import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field
   templateUrl: './vertex-form-builder.component.html',
   styleUrls: ['./vertex-form-builder.component.scss'],
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, NgFor, VertexFormFieldComponent],
+  imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();

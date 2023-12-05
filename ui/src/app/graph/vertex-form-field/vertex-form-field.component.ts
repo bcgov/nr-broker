@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
+
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -16,10 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgSwitch,
-    NgSwitchCase,
     MatFormFieldModule,
-    NgIf,
     MatCheckboxModule,
     MatInputModule,
     MatTooltipModule,

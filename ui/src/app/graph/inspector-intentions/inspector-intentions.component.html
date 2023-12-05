@@ -1,18 +1,21 @@
 <div class="edge-container">
   <h3 class="heading">Recent Intentions</h3>
 </div>
-
-<div class="edge-container" *ngIf="total == 0">None</div>
-
+@if (total == 0) {
+  <div class="edge-container">None</div>
+}
 <mat-action-list>
-  <mat-list-item *ngFor="let item of intentions; index as i" (click)="navigateHistoryById(item._id)">
-    <span matListItemTitle>{{item.transaction.start | date:'medium' }}</span>
-    <span matListItemLine>{{item.event.reason}}</span>
-  </mat-list-item>
+  @for (item of intentions; track item; let i = $index) {
+    <mat-list-item (click)="navigateHistoryById(item._id)">
+      <span matListItemTitle>{{item.transaction.start | date:'medium' }}</span>
+      <span matListItemLine>{{item.event.reason}}</span>
+    </mat-list-item>
+  }
 </mat-action-list>
-<div *ngIf="total > 0" class="more-panel">
-  <div>{{total}} Total</div>
-  <button mat-button (click)="navigateHistoryByService()">More</button>
-</div>
-
+@if (total > 0) {
+  <div class="more-panel">
+    <div>{{total}} Total</div>
+    <button mat-button (click)="navigateHistoryByService()">More</button>
+  </div>
+}
 <mat-divider></mat-divider>

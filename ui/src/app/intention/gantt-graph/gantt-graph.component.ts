@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { NgxEchartsModule, NGX_ECHARTS_CONFIG } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import prettyMilliseconds from 'pretty-ms';
@@ -7,7 +7,7 @@ import prettyMilliseconds from 'pretty-ms';
 @Component({
   selector: 'app-gantt-graph',
   standalone: true,
-  imports: [NgxEchartsModule, CommonModule],
+  imports: [NgxEchartsModule],
   providers: [
     {
       provide: NGX_ECHARTS_CONFIG,

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -26,6 +27,7 @@ import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
 import { get } from 'radash';
 import { UserCollectionService } from './user-collection.service';
+import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 
 @Controller({
   path: 'collection',
@@ -116,21 +118,22 @@ export class CollectionController {
     @Param('collection') collection: string,
     @Query('vertex') vertexId: string,
   ) {
-    switch (collection) {
-      case 'environment':
-      case 'project':
-      case 'service':
-      case 'team':
-      case 'user':
-        return this.service.getCollectionByVertexId(collection, vertexId);
-      case 'service-instance':
-        return this.service.getCollectionByVertexId(
-          'serviceInstance',
-          vertexId,
-        );
-      case 'broker-account':
-        return this.service.getCollectionByVertexId('brokerAccount', vertexId);
-    }
+    return this.service.getCollectionByVertexId(
+      this.parseCollectionApi(collection),
+      vertexId,
+    );
+  }
+
+  @Get(':collection/:id')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async getCollectionById(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+  ) {
+    return this.service.getCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+    );
   }
 
   @Post(':collection/search')
@@ -148,35 +151,33 @@ export class CollectionController {
     @Param('collection') collection: string,
     @Query() query: CollectionSearchQuery,
   ) {
+    return this.service.searchCollection(
+      this.parseCollectionApi(collection),
+      query.upstreamVertex,
+      query.vertexId,
+      query.offset,
+      query.limit,
+    );
+  }
+
+  private parseCollectionApi(collection: string): CollectionNames {
     switch (collection) {
       case 'environment':
       case 'project':
       case 'service':
       case 'team':
       case 'user':
-        return this.service.searchCollection(
-          collection,
-          query.upstreamVertex,
-          query.vertexId,
-          query.offset,
-          query.limit,
-        );
+        return collection;
       case 'broker-account':
-        return this.service.searchCollection(
-          'brokerAccount',
-          query.upstreamVertex,
-          query.vertexId,
-          query.offset,
-          query.limit,
-        );
+        return 'brokerAccount';
       case 'service-instance':
-        return this.service.searchCollection(
-          'serviceInstance',
-          query.upstreamVertex,
-          query.vertexId,
-          query.offset,
-          query.limit,
-        );
+        return 'serviceInstance';
+      default:
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Bad request',
+          error: '',
+        });
     }
   }
 }
