@@ -13,7 +13,6 @@ import {
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
-import { IntentionSearchResult } from './dto/intention-search-result.dto';
 import { GraphUtilService } from './graph-util.service';
 
 @Injectable({
@@ -162,16 +161,6 @@ export class GraphApiService {
           ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
           : ''
       }`,
-      {
-        responseType: 'json',
-      },
-    );
-  }
-
-  searchIntentions(whereClause: any, offset = 0, limit = 5) {
-    const whereQuery = encodeURIComponent(JSON.stringify(whereClause));
-    return this.http.post<IntentionSearchResult>(
-      `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
       {
         responseType: 'json',
       },

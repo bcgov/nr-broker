@@ -49,7 +49,9 @@
     <app-inspector-account [account]="collectionData" [userIndex]="collectionConfig?.['user']?.index"></app-inspector-account>
   }
   @if (collection === 'service') {
-    <app-inspector-intentions [name]="collectionData.name"></app-inspector-intentions>
+    <app-inspector-intentions
+      [id]="collectionData.id"
+      [name]="collectionData.name"></app-inspector-intentions>
     <app-inspector-service-secure
       [service]="collectionData"
     [userIndex]="collectionConfig?.['user']?.index"></app-inspector-service-secure>

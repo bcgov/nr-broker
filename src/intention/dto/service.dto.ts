@@ -7,6 +7,8 @@ import {
 } from 'class-validator';
 import { Entity, Column } from 'typeorm';
 import { ServiceTargetDto } from './service-target.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { ObjectId } from 'mongodb';
 
 @Entity()
 export class ServiceDto {
@@ -14,6 +16,11 @@ export class ServiceDto {
   @IsDefined()
   @Column()
   environment: string;
+
+  @Column()
+  @IsOptional()
+  @ApiProperty({ type: () => String })
+  id?: ObjectId;
 
   // Defaults to environment
   @IsString()

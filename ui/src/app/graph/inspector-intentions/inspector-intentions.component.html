@@ -6,7 +6,7 @@
 }
 <mat-action-list>
   @for (item of intentions; track item; let i = $index) {
-    <mat-list-item (click)="navigateHistoryById(item._id)">
+    <mat-list-item (click)="navigateHistoryById(item.id)">
       <span matListItemTitle>{{item.transaction.start | date:'medium' }}</span>
       <span matListItemLine>{{item.event.reason}}</span>
     </mat-list-item>

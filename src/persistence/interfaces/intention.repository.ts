@@ -50,6 +50,7 @@ export abstract class IntentionRepository {
     artifactChecksum: string | null,
     artifactName: string | null,
     artifactType: string | null,
+    serviceId: string | null,
     service: string | null,
     offset: number,
     limit: number,

@@ -10,6 +10,7 @@ db.serviceInstance.drop();
 db.team.drop();
 db.user.drop();
 db.collectionConfig.drop();
+db.intention.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -175,6 +176,12 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'string',
       hint: 'A short human readable description of the entity',
+    },
+    scmUrl: {
+      name: 'SCM URL',
+      required: false,
+      type: 'url',
+      hint: 'Source control management url',
     },
   },
   name: 'Service',

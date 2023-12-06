@@ -76,6 +76,7 @@ export class ActionService {
           action.package.checksum,
           action.package.name,
           action.package.type,
+          action.service.id?.toString(),
           action.service.name,
           0,
           1,
@@ -93,6 +94,7 @@ export class ActionService {
           ...foundArtifact.artifacts[0].artifact,
           ...action.package,
         };
+        action.sourceIntention = foundArtifact.data[0].id;
       }
     }
   }

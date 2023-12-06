@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
-import { GraphApiService } from '../../service/graph-api.service';
+import { IntentionApiService } from '../../service/intention-api.service';
 
 @Component({
   selector: 'app-inspector-intentions',
@@ -14,12 +14,13 @@ import { GraphApiService } from '../../service/graph-api.service';
   styleUrls: ['./inspector-intentions.component.scss'],
 })
 export class InspectorIntentionsComponent implements OnChanges {
+  @Input() id!: string;
   @Input() name!: string;
   intentions: any[] = [];
   total = 0;
 
   constructor(
-    private readonly graphApi: GraphApiService,
+    private readonly intentionApi: IntentionApiService,
     private readonly router: Router,
   ) {}
 
@@ -50,8 +51,8 @@ export class InspectorIntentionsComponent implements OnChanges {
   }
 
   private loadIntentions() {
-    this.graphApi
-      .searchIntentions({ 'actions.service.name': this.name }, 0, 5)
+    this.intentionApi
+      .searchIntentions(JSON.stringify({ 'actions.service.id': this.id }), 0, 5)
       .subscribe((data) => {
         if (data) {
           this.intentions = data.data;
