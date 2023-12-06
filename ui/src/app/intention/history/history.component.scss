@@ -72,13 +72,30 @@ tr.element-row:not(.expanded-row):active {
 .artifact-container {
   display: flex;
   margin: 12px 0;
-}
-
-.artifact-details {
-  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .artifact-card {
+  display: flex;
+  width: 33%;
+}
+
+.artifact-card {
   background: whitesmoke;
+}
+
+.package-info {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.package-info .info-name {
+  width:20%;
+}
+.package-info .info-value {
+  width:80%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

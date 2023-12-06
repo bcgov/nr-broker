@@ -159,10 +159,30 @@
                       <mat-card-title>{{artifact.name}}</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
+                      <div class="package-info">
                       @if (artifact.size) {
-                        <div>{{artifact.size | filesize}}</div>
+                        <div class="info-name">Size</div><div class="info-value">{{artifact.size | filesize}}</div>
                       }
-                      <div>{{artifact.checksum}}</div>
+                      <div class="info-name">Hash</div><div class="info-value">{{artifact.checksum}}</div>
+                      <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                    </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+                @if (action.action == "package-installation") {
+                  <mat-card class="artifact-card">
+                    <mat-card-header>
+                      <mat-card-subtitle>{{action.action}}</mat-card-subtitle>
+                      <mat-card-title>{{action.package.name}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="package-info">
+                      @if (action.package.size) {
+                        <div class="info-name">Size</div><div class="info-value">{{action.package.size | filesize}}</div>
+                      }
+                      <div class="info-name">Hash</div><div class="info-value">{{action.package.checksum}}</div>
+                      <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                      </div>
                     </mat-card-content>
                   </mat-card>
                 }

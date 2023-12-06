@@ -4,15 +4,36 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   <h1>{{ team.name }}</h1>
+  <span class="spacer"></span>
+
+  <button mat-stroked-button extended color="primary"
+    (click)="openInGraph(team)">
+    View in Graph
+  </button>
 </div>
+
 
 <div class="team-body">
 
   <mat-divider></mat-divider>
 
-  <h2>Services</h2>
+  <div class="team-details">
 
-  <mat-card class="example-card">
+    @if (team.website) {
+    <div>
+      <b>Url</b><span><a href="{{team.website}}" target="_blank">{{team.website}}</a></span>
+    </div>
+    }
+    @if (team.email) {
+    <div>
+      <b>Email</b><span><a href="mailto:{{team.email}}">{{team.email}}</a></span>
+    </div>
+    }
+  </div>
+
+  <!-- <h2>Services</h2>
+
+  <mat-card class="service-card">
     <mat-card-header>
       <mat-card-subtitle>Dog Breed</mat-card-subtitle>
       <mat-card-title>Shiba Inu</mat-card-title>
@@ -26,7 +47,32 @@
       <button mat-button>LIKE</button>
       <button mat-button>SHARE</button>
     </mat-card-actions>
-  </mat-card>
+  </mat-card> -->
+
+  <h2>Accounts</h2>
+
+  @if (accountSearch$ | async; as accountSearch) {
+    <div class="card-container">
+    @for (account of accountSearch.data; track account.id) {
+      <mat-card class="account-card">
+        <mat-card-header>
+          <mat-card-title>{{account.name}}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+
+          <app-inspector-vertex
+            [collection]="'brokerAccount'"
+            [collectionConfig]="latestConfig$ | async"
+            [collectionData]="account"
+          ></app-inspector-vertex>
+        </mat-card-content>
+      </mat-card>
+    }
+    </div>
+    @if (accountSearch.meta.total === 0) {
+      <h3>No Accounts</h3>
+    }
+  }
 
 </div>
 } @else {

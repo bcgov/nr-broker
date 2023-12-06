@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { GraphDataResponseEdgeDto } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
+import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
 
 @Injectable({
   providedIn: 'root',
@@ -9,15 +10,38 @@ import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
+  configArrToMap(
+    configArr: CollectionConfigResponseDto[],
+  ): CollectionConfigMap {
+    return configArr.reduce((previousValue, currentValue) => {
+      previousValue[currentValue.collection] = currentValue;
+      return previousValue;
+    }, {} as CollectionConfigMap);
+  }
+
+  configArrToSrcTarMap(
+    configArr: CollectionConfigResponseDto[],
+    configMap: CollectionConfigMap,
+  ): CollectionEdgeConfigMap {
+    return configArr.reduce((previousValue, currentValue, currentIndex) => {
+      for (const edge of currentValue.edges) {
+        previousValue[
+          `${currentIndex}>${configMap[edge.collection].index}:${edge.name}`
+        ] = edge;
+      }
+      return previousValue;
+    }, {} as CollectionEdgeConfigMap);
+  }
+
+  edgeToMapString(e: Pick<GraphDataResponseEdgeDto, 'is' | 'it' | 'name'>) {
+    return `${e.is}>${e.it}:${e.name}`;
+  }
+
   snakecase(str: string) {
     return str.replace(
       /[A-Z]/g,
       (letter: string) => `-${letter.toLowerCase()}`,
     );
-  }
-
-  edgeToMapString(e: Pick<GraphDataResponseEdgeDto, 'is' | 'it' | 'name'>) {
-    return `${e.is}>${e.it}:${e.name}`;
   }
 
   openInGraph(id: string, type: 'edge' | 'vertex') {

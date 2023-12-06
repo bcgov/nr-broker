@@ -1,8 +1,8 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -167,17 +167,15 @@ export class CollectionController {
       case 'service':
       case 'team':
       case 'user':
+      case 'brokerAccount':
+      case 'serviceInstance':
         return collection;
       case 'broker-account':
         return 'brokerAccount';
       case 'service-instance':
         return 'serviceInstance';
       default:
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Bad request',
-          error: '',
-        });
+        throw new NotFoundException();
     }
   }
 }

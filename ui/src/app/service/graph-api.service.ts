@@ -6,7 +6,6 @@ import {
   CollectionNames,
 } from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
-import { GraphUtilService } from './graph-util.service';
 import {
   GraphDataResponseDto,
   UpstreamResponseDto,
@@ -15,6 +14,7 @@ import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
 import { IntentionSearchResult } from './dto/intention-search-result.dto';
+import { GraphUtilService } from './graph-util.service';
 
 @Injectable({
   providedIn: 'root',
