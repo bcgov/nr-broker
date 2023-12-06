@@ -69,7 +69,7 @@
             (vertexSelected)="selectVertex($event)"
           ></app-inspector-edge>
         }
-        @if (target.type === 'vertex' && latestConfig && latestData) {
+        @if (target.type === 'vertex' && latestConfig && latestData && collectionData) {
           <app-inspector-vertex
             [collection]="target.data.collection"
             [collectionConfig]="latestConfig"
