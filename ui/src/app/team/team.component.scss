@@ -25,3 +25,9 @@ mat-card.warning-panel {
 .action-buttons button:not(:first-child) {
   margin-left: .5em;
 }
+
+tr.element-row:not(.expanded-row):hover {
+  background: whitesmoke;
+  cursor: pointer;
+}
+

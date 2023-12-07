@@ -3,7 +3,8 @@
     || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 cd "$this_dir"
 
-BUILD_VERSION="12.0.3"
+PACKAGE_BUILD_VERSION=$(git rev-parse --verify HEAD)
+PACKAGE_VERSION="12.0.3"
 sha256=($(echo $RANDOM $RANDOM $RANDOM | shasum -a 256))
 echo -n $sha256 > provision-app-quick-build.artifact.sha256
 echo "sha256: $sha256"
@@ -16,7 +17,8 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true
     -d @<(cat provision-app-quick-build.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
-            (.actions[] | select(.id == \"build\") .package.version) |= \"$BUILD_VERSION\" \
+            (.actions[] | select(.id == \"build\") .package.buildVersion) |= \"$PACKAGE_BUILD_VERSION\" | \
+            (.actions[] | select(.id == \"build\") .package.version) |= \"$PACKAGE_VERSION\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"

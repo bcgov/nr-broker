@@ -10,21 +10,14 @@ import {
 } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
-import {
-  CommonModule,
-  AsyncPipe,
-  TitleCasePipe,
-  KeyValuePipe,
-  DatePipe,
-} from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { AsyncPipe, TitleCasePipe, KeyValuePipe } from '@angular/common';
 import {
   BehaviorSubject,
   map,
@@ -54,15 +47,10 @@ import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionFilterPipe } from '../collection-filter.pipe';
-import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PreferencesService } from '../../preferences.service';
-import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
-import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
-import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
-import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
-import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
+import { InspectorEdgeComponent } from '../inspector-edge/inspector-edge.component';
+import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.component';
 
 @Component({
   selector: 'app-inspector',
@@ -71,26 +59,18 @@ import { InspectorServiceSecureComponent } from '../inspector-service-secure/ins
   standalone: true,
   imports: [
     AsyncPipe,
-    CollectionFilterPipe,
-    CommonModule,
     ClipboardModule,
-    DatePipe,
-    InspectorAccountComponent,
-    InspectorInstallsComponent,
-    InspectorIntentionsComponent,
-    InspectorServiceSecureComponent,
-    InspectorTeamComponent,
+    InspectorEdgeComponent,
+    InspectorVertexComponent,
     KeyValuePipe,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
     MatIconModule,
-    MatListModule,
     MatMenuModule,
     MatTableModule,
     MatChipsModule,
     TitleCasePipe,
-    VertexNameComponent,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
@@ -149,21 +129,6 @@ export class InspectorComponent implements OnChanges, OnInit {
         };
       }),
       shareReplay(1),
-    );
-
-    this.edgeConnections = this.targetSubject.pipe(
-      withLatestFrom(this.dataConfig),
-      map(([target, dataConfig]) => {
-        const data = dataConfig.data;
-        if (!target || target.type === 'vertex') {
-          return null;
-        }
-        return {
-          edge: target.data,
-          sourceVertex: data.idToVertex[target.data.source],
-          targetVertex: data.idToVertex[target.data.target],
-        };
-      }),
     );
 
     this.targetSubject

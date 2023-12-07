@@ -1,4 +1,4 @@
-import { ApiHideProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -17,6 +17,7 @@ import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
 import { UrlDto } from './url.dto';
 import { ArtifactDto } from './artifact.dto';
+import { ObjectId } from 'mongodb';
 
 @Entity()
 export class ActionDto {
@@ -82,6 +83,11 @@ export class ActionDto {
   @Column(() => PackageDto)
   @Type(() => PackageDto)
   package?: PackageDto;
+
+  @Column()
+  @IsOptional()
+  @ApiProperty({ type: () => String })
+  sourceIntention?: ObjectId;
 
   @ValidateNested()
   @IsOptional()

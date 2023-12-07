@@ -1,47 +1,56 @@
 <h2 mat-dialog-title>
-  <ng-container *ngIf="data.target">Edit</ng-container>
-  <ng-container *ngIf="!data.target">Add</ng-container> Edge</h2>
-<mat-dialog-content>
-  <div class="edge-editor-form-panel">
-    <form class="edge-editor-form" (submit)="addEditEdge()">
-      <ng-container *ngIf="!data.target">
-        <mat-form-field class="edge-editor-full-width" appearance="fill">
-          <mat-label>Collection (type)</mat-label>
-          <mat-select [formControl]="edgeControl"
-            name="edgeConfig"
-            (selectionChange)="configChanged()">
-            <mat-option value="" selected></mat-option>
-            <mat-option *ngFor="let edgeConfig of data.config[data.collection].edges" [value]="edgeConfig">{{data.config[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
-          </mat-select>
-        </mat-form-field>
+  @if (data.target) {
+    Edit
+  } @else {
+    Add
+  } Edge</h2>
+  <mat-dialog-content>
+    <div class="edge-editor-form-panel">
+      <form class="edge-editor-form" (submit)="addEditEdge()">
+        @if (!data.target) {
+          <mat-form-field class="edge-editor-full-width" appearance="fill">
+            <mat-label>Collection (type)</mat-label>
+            <mat-select [formControl]="edgeControl"
+              name="edgeConfig"
+              (selectionChange)="configChanged()">
+              <mat-option value="" selected></mat-option>
+              @for (edgeConfig of data.config[data.collection].edges; track edgeConfig) {
+                <mat-option [value]="edgeConfig">{{data.config[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field class="edge-editor-full-width" appearance="fill">
-          <mat-label>Target</mat-label>
-          <input type="text" name="targetVertex"
-                placeholder="Pick one"
-                aria-label="Name"
-                matInput
-                [formControl]="vertexControl"
-                [matAutocomplete]="auto">
-          <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" [displayWith]="displayFn">
-            <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-              <app-vertex-name [vertex]="option"></app-vertex-name>
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-      </ng-container>
-
-      <app-property-editor
+          <mat-form-field class="edge-editor-full-width" appearance="fill">
+            <mat-label>Target</mat-label>
+            <input type="text" name="targetVertex"
+              placeholder="Pick one"
+              aria-label="Name"
+              matInput
+              [formControl]="vertexControl"
+              [matAutocomplete]="auto">
+            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" [displayWith]="displayFn">
+              @for (option of filteredOptions | async; track option) {
+                <mat-option [value]="option">
+                  <app-vertex-name [vertex]="option"></app-vertex-name>
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        }
+        <app-property-editor
         [graphProperties]="data.target?.prop"></app-property-editor>
 
-    </form>
-  </div>
-</mat-dialog-content>
+      </form>
+    </div>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button color="primary" [disabled]="!data.target && (!edgeControl.value || !vertexControl.value)" (click)="addEditEdge()">
-    <ng-container *ngIf="data.target">Edit</ng-container>
-    <ng-container *ngIf="!data.target">Add</ng-container>
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button color="primary" [disabled]="!data.target && (!edgeControl.value || !vertexControl.value)" (click)="addEditEdge()">
+      @if (data.target) {
+        Edit
+      } @else {
+        Add
+      }
+    </button>
+  </mat-dialog-actions>

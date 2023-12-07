@@ -40,15 +40,15 @@ tr.history-detail-row {
   height: 0;
 }
 
-tr.history-element-row:not(.history-expanded-row):hover {
+tr.element-row:not(.expanded-row):hover {
   background: whitesmoke;
 }
 
-tr.history-element-row:not(.history-expanded-row):active {
+tr.element-row:not(.expanded-row):active {
   background: #efefef;
 }
 
-.history-element-row td {
+.element-row td {
   border-bottom-width: 0;
 }
 
@@ -72,13 +72,30 @@ tr.history-element-row:not(.history-expanded-row):active {
 .artifact-container {
   display: flex;
   margin: 12px 0;
-}
-
-.artifact-details {
-  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .artifact-card {
+  display: flex;
+  width: 33%;
+}
+
+.artifact-card {
   background: whitesmoke;
+}
+
+.package-info {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.package-info .info-name {
+  width:20%;
+}
+.package-info .info-value {
+  width:80%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

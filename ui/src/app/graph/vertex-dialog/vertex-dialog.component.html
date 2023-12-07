@@ -1,32 +1,36 @@
 <h2 mat-dialog-title>
-  <ng-container *ngIf="data.target">Edit</ng-container>
-  <ng-container *ngIf="!data.target">Add</ng-container> Vertex</h2>
-<mat-dialog-content class="mat-typography">
-
-  <mat-form-field class="vertex-full-width">
-    <mat-label>Collection (type)</mat-label>
-    <mat-select [formControl]="collectionControl"
-      name="type">
-      <mat-option value="" selected></mat-option>
-      <mat-option *ngFor="let value of configs" [value]="value">{{value.name}}</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-divider></mat-divider>
-
-  <ng-container *ngIf="isCollectionConfig(collectionControl.value)">
-    <app-vertex-form-builder
-      [fieldMap]="collectionControl.value.fields"
-      [data]="data.data"
-      (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
+  @if (data.target) {
+    Edit
+  } @else {
+    Add
+  } Vertex</h2>
+  <mat-dialog-content class="mat-typography">
+    <mat-form-field class="vertex-full-width">
+      <mat-label>Collection (type)</mat-label>
+      <mat-select [formControl]="collectionControl"
+        name="type">
+        <mat-option value="" selected></mat-option>
+        @for (value of configs; track value) {
+          <mat-option [value]="value">{{value.name}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
     <mat-divider></mat-divider>
-  </ng-container>
-
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button color="primary" [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
-    <ng-container *ngIf="data.target">Edit</ng-container>
-    <ng-container *ngIf="!data.target">Add</ng-container>
-  </button>
-</mat-dialog-actions>
+    @if (isCollectionConfig(collectionControl.value)) {
+      <app-vertex-form-builder
+        [fieldMap]="collectionControl.value.fields"
+        [data]="data.data"
+      (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
+      <mat-divider></mat-divider>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button color="primary" [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
+      @if (data.target) {
+        Edit
+      } @else {
+        Add
+      }
+    </button>
+  </mat-dialog-actions>

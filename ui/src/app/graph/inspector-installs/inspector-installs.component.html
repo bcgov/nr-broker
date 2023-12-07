@@ -1,29 +1,33 @@
 <div class="edge-container">
   <h3 class="heading">Recent Installs</h3>
 </div>
+@if (instance) {
+  @if (!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0) {
+    <div class="edge-container edge-container-margin-left">None</div>
+  }
+  @if (instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0) {
+    <div class="edge-container edge-container-margin-left">
+      <mat-accordion>
+        @for (item of instance.pkgInstallHistory; track item) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{item.version}}
+              </mat-panel-title>
+              <mat-panel-description>
+                {{item.installed | date:'short' }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
 
-<ng-container *ngIf="instance">
-  <div *ngIf="!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0" class="edge-container edge-container-margin-left">None</div>
-  <div *ngIf="instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0" class="edge-container edge-container-margin-left">
-    <mat-accordion>
-      <mat-expansion-panel *ngFor="let item of instance.pkgInstallHistory">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            {{item.version}}
-          </mat-panel-title>
-          <mat-panel-description>
-            {{item.installed | date:'short' }}
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+            <div class="panel-container">
+              <div>User</div>
+              <div>{{item.userId}}</div>
+            </div>
 
-        <div class="panel-container">
-          <div>User</div>
-          <div>{{item.userId}}</div>
-        </div>
-
-      </mat-expansion-panel>
-    </mat-accordion>
-  </div>
-</ng-container>
-
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    </div>
+  }
+}
 <mat-divider></mat-divider>

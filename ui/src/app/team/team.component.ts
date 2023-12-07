@@ -1,5 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,7 +30,6 @@ import { GraphApiService } from '../service/graph-api.service';
   selector: 'app-team',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatButtonModule,
     MatCardModule,
@@ -71,7 +70,6 @@ export class TeamComponent implements OnInit, OnDestroy {
 
   fields = [
     { value: 'name', viewValue: 'Name' },
-    { value: 'email', viewValue: 'Email' },
     { value: 'owners', viewValue: 'Owners' },
     { value: 'developers', viewValue: 'Developers' },
     { value: 'accounts', viewValue: 'Accounts' },
@@ -79,7 +77,6 @@ export class TeamComponent implements OnInit, OnDestroy {
   ];
   propDisplayedColumns: string[] = [
     'name',
-    'email',
     'owners',
     'developers',
     'accounts',
@@ -174,13 +171,42 @@ export class TeamComponent implements OnInit, OnDestroy {
     ).length;
   }
 
+  onFilterChange() {
+    this.pageIndex = 0;
+    this.refresh();
+  }
+
   handlePageEvent(event: PageEvent) {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.refresh();
   }
 
-  openMemberDialog(elem: CollectionData<TeamRestDto>) {
+  isTargetOwner(elem: TeamRestDto) {
+    return this.ownedVertex.indexOf(elem.vertex) !== -1;
+  }
+
+  openTeamPage(elem: TeamRestDto) {
+    this.router.navigate(['teams', elem.id]);
+  }
+
+  openTeamDialog(event: Event, elem?: TeamRestDto) {
+    event.stopPropagation();
+    this.dialog
+      .open(AddTeamDialogComponent, {
+        width: '600px',
+        data: {
+          team: elem,
+        },
+      })
+      .afterClosed()
+      .subscribe(() => {
+        this.refresh();
+      });
+  }
+
+  openMemberDialog(event: Event, elem: CollectionData<TeamRestDto>) {
+    event.stopPropagation();
     // console.log(elem);
     this.dialog
       .open(MemberDialogComponent, {
@@ -193,31 +219,8 @@ export class TeamComponent implements OnInit, OnDestroy {
       });
   }
 
-  openInGraph(elem: CollectionData<TeamRestDto>) {
-    this.graphUtil.openInGraph(elem.vertex, 'vertex');
-  }
-
-  onFilterChange() {
-    this.pageIndex = 0;
-    this.refresh();
-  }
-
-  isTargetOwner(elem: TeamRestDto) {
-    return this.ownedVertex.indexOf(elem.vertex) !== -1;
-  }
-
-  openTeamDialog(elem?: TeamRestDto) {
-    this.dialog
-      .open(AddTeamDialogComponent, {
-        width: '600px',
-        data: {
-          team: elem,
-        },
-      })
-      .afterClosed()
-      .subscribe(() => {
-        this.refresh();
-      });
-    console.log('openTeamDialog');
-  }
+  // openInGraph(event: Event, elem: CollectionData<TeamRestDto>) {
+  //   event.stopPropagation();
+  //   this.graphUtil.openInGraph(elem.vertex, 'vertex');
+  // }
 }

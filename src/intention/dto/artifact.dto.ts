@@ -1,6 +1,7 @@
 import {
   IsDefined,
   IsNumber,
+  IsOptional,
   IsString,
   ValidationOptions,
   isHash,
@@ -41,9 +42,9 @@ export class ArtifactDto {
   name: string;
 
   @Column()
-  @IsDefined()
+  @IsOptional()
   @IsNumber()
-  size: number;
+  size?: number;
 
   @Column()
   @IsDefined()

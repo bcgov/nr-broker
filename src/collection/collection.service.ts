@@ -27,6 +27,21 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigByName(collection);
   }
 
+  async getCollectionById<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ) {
+    try {
+      return this.collectionRepository.getCollectionById(type, id);
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
     vertexId: string,

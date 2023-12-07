@@ -7,15 +7,19 @@
     <mat-form-field class="field-field">
       <mat-label>Field</mat-label>
       <mat-select [(ngModel)]="selectedField" name="field">
-        <mat-option *ngFor="let field of fields" [value]="field.value">
-          {{field.viewValue}}
-        </mat-option>
+        @for (field of fields; track field) {
+          <mat-option [value]="field.value">
+            {{field.viewValue}}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
-    <mat-form-field class="field-value" *ngIf="selectedField">
-      <mat-label>Value</mat-label>
-      <input matInput placeholder="Value" name="value" [(ngModel)]="fieldValue">
-    </mat-form-field>
+    @if (selectedField) {
+      <mat-form-field class="field-value">
+        <mat-label>Value</mat-label>
+        <input matInput placeholder="Value" name="value" [(ngModel)]="fieldValue">
+      </mat-form-field>
+    }
     <mat-form-field>
       <mat-label>Enter a date range</mat-label>
       <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
@@ -25,7 +29,6 @@
       <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-date-range-picker #picker></mat-date-range-picker>
-
       @if (range.controls.start.hasError('matStartDateInvalid')) {
         <mat-error>Invalid start date</mat-error>
       }
@@ -36,12 +39,13 @@
     <mat-form-field class="field-outcome">
       <mat-label>Outcome</mat-label>
       <mat-select [(ngModel)]="selectedStatus" name="status">
-        <mat-option *ngFor="let stat of status" [value]="stat.value">
-          {{stat.viewValue}}
-        </mat-option>
+        @for (stat of status; track stat) {
+          <mat-option [value]="stat.value">
+            {{stat.viewValue}}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
-
     <button mat-raised-button color="primary" aria-label="Filter" (click)="filter()">
       Filter
     </button>
@@ -49,15 +53,15 @@
       Clear
     </button>
   </form>
-
   <div class="history-loader">
-    <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+    @if (loading) {
+      <mat-spinner diameter="20"></mat-spinner>
+    }
   </div>
   <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refresh();">
     <mat-icon>refresh</mat-icon>
   </button>
 </div>
-
 <mat-card class="history-table">
   <mat-card-content>
     <table mat-table [dataSource]="intentionData" multiTemplateDataRows>
@@ -135,50 +139,74 @@
       <ng-container matColumnDef="expandedDetail">
         <td mat-cell *matCellDef="let element" [attr.colspan]="propDisplayedColumnsWithExpand.length">
           <div class="element-detail"
-              [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-              <div class="expanded-header-container">
-                <h3>Actions</h3>
-                <a *ngIf="element.event.url" mat-stroked-button href="{{element.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
-                <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
-              </div>
-
-              <app-gantt-graph *ngIf="element == expandedElement" [data]="element"></app-gantt-graph>
-
-              <div class="artifact-container">
-                <ng-container *ngFor="let action of element.actions">
-                  <ng-container *ngFor="let artifact of action.artifacts">
-                    <mat-card class="artifact-card">
-                      <mat-card-header>
-                        <mat-card-subtitle>{{action.action}}</mat-card-subtitle>
-                        <mat-card-title>{{artifact.name}}</mat-card-title>
-                      </mat-card-header>
-                      <mat-card-content>
-                        <div>{{artifact.size | filesize}}</div>
-                        <div>{{artifact.checksum}}</div>
-                      </mat-card-content>
-                    </mat-card>
-                  </ng-container>
-                </ng-container>
-              </div>
+            [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+            <div class="expanded-header-container">
+              <h3>Actions</h3>
+              @if (element.event.url) {
+                <a mat-stroked-button href="{{element.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+              }
+              <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+            </div>
+            @if (element == expandedElement) {
+              <app-gantt-graph [data]="element"></app-gantt-graph>
+            }
+            <div class="artifact-container">
+              @for (action of element.actions; track action) {
+                @for (artifact of action.artifacts; track artifact) {
+                  <mat-card class="artifact-card">
+                    <mat-card-header>
+                      <mat-card-subtitle>{{action.action}}</mat-card-subtitle>
+                      <mat-card-title>{{artifact.name}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="package-info">
+                      @if (artifact.size) {
+                        <div class="info-name">Size</div><div class="info-value">{{artifact.size | filesize}}</div>
+                      }
+                      <div class="info-name">Hash</div><div class="info-value">{{artifact.checksum}}</div>
+                      <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                    </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+                @if (action.action == "package-installation") {
+                  <mat-card class="artifact-card">
+                    <mat-card-header>
+                      <mat-card-subtitle>{{action.action}}</mat-card-subtitle>
+                      <mat-card-title>{{action.package.name}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                      <div class="package-info">
+                      @if (action.package.size) {
+                        <div class="info-name">Size</div><div class="info-value">{{action.package.size | filesize}}</div>
+                      }
+                      <div class="info-name">Hash</div><div class="info-value">{{action.package.checksum}}</div>
+                      <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              }
+            </div>
           </div>
         </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="propDisplayedColumnsWithExpand"></tr>
       <tr mat-row *matRowDef="let element; columns: propDisplayedColumnsWithExpand;"
-        class="history-element-row"
-        [class.example-expanded-row]="expandedElement === element"
+        class="element-row"
+        [class.expanded-row]="expandedElement === element"
         (click)="expandedElement = expandedElement === element ? null : element">
       </tr>
       <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="history-detail-row"></tr>
     </table>
 
     <mat-paginator [length]="intentionTotal"
-                  [pageIndex]="pageIndex"
-                  [pageSize]="pageSize"
-                  [pageSizeOptions]="[5, 10, 25, 100]"
-                  (page)="handlePageEvent($event)"
-                  aria-label="Select page">
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="handlePageEvent($event)"
+      aria-label="Select page">
     </mat-paginator>
   </mat-card-content>
 </mat-card>

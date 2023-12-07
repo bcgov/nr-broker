@@ -1,29 +1,28 @@
 <h3>Properties</h3>
 
-<div *ngFor="let property of properties" class="property-editor-fields">
-  <button (click)="removeProperty(property)" mat-mini-fab color="warn" aria-label="Remove property">
-    <mat-icon>delete</mat-icon>
-  </button>
-
-  <mat-form-field  appearance="fill" >
-    <mat-label>Key</mat-label>
-    <input type="text" name="targetVertex"
-          placeholder=""
-          aria-label="Key"
-          matInput
-          [formControl]="property.key">
-  </mat-form-field>
-
-  <mat-form-field  appearance="fill" >
-    <mat-label>Value</mat-label>
-    <input type="text" name="targetVertex"
-          placeholder=""
-          aria-label="Value"
-          matInput
-          [formControl]="property.value">
-  </mat-form-field>
-</div>
-
+@for (property of properties; track property) {
+  <div class="property-editor-fields">
+    <button (click)="removeProperty(property)" mat-mini-fab color="warn" aria-label="Remove property">
+      <mat-icon>delete</mat-icon>
+    </button>
+    <mat-form-field  appearance="fill" >
+      <mat-label>Key</mat-label>
+      <input type="text" name="targetVertex"
+        placeholder=""
+        aria-label="Key"
+        matInput
+        [formControl]="property.key">
+    </mat-form-field>
+    <mat-form-field  appearance="fill" >
+      <mat-label>Value</mat-label>
+      <input type="text" name="targetVertex"
+        placeholder=""
+        aria-label="Value"
+        matInput
+        [formControl]="property.value">
+    </mat-form-field>
+  </div>
+}
 <div>
   <button mat-mini-fab (click)="addProperty()" aria-label="Add property">
     <mat-icon>add</mat-icon>

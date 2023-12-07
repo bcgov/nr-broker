@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +13,6 @@ import { SystemApiService } from '../../service/system-api.service';
   selector: 'app-account-generate-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ClipboardModule,
     FormsModule,
     MatButtonModule,

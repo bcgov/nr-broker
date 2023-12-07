@@ -1,0 +1,26 @@
+
+.edge-heading, .property-heading {
+  margin: 16px 0 0 16px;
+}
+
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+
+.fields-wrapper {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.vertex-edge-type-container {
+  margin-bottom: 16px;
+}
+
+.vertex-edge-container, .vertex-edge-type-container {
+  margin-left: 16px;
+}

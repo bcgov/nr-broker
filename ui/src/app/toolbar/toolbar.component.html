@@ -7,10 +7,12 @@
   <span class="app-spacer"></span>
 
   <button mat-icon-button [ngClass]="healthStatus ? 'online' : 'offline'"
-  (mouseover)="showStatusText(true)" (mouseout)="showStatusText(false)"
-  aria-label="Server status" >
+    (mouseover)="showStatusText(true)" (mouseout)="showStatusText(false)"
+    aria-label="Server status" >
     <mat-icon>favorite</mat-icon>
-    <span class="status-text" *ngIf="isHovered">{{ statusText }}</span>
+    @if (isHovered) {
+      <span class="status-text">{{ statusText }}</span>
+    }
   </button>
 
   <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Account menu button">

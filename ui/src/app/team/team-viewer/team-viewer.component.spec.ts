@@ -8,10 +8,9 @@ describe('TeamViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TeamViewerComponent]
-    })
-    .compileComponents();
-    
+      imports: [TeamViewerComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(TeamViewerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

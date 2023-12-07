@@ -15,7 +15,12 @@ export class ArtifactSearchQuery {
   name?: string;
 
   @IsString()
-  service: string;
+  @IsOptional()
+  service?: string;
+
+  @IsString()
+  @IsOptional()
+  serviceId?: string;
 
   @IsInt()
   @Type(() => Number)

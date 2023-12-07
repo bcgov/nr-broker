@@ -1,25 +1,33 @@
 <h2 mat-dialog-title>
-  <ng-container *ngIf="data.team">Edit</ng-container>
-  <ng-container *ngIf="!data.team">Add</ng-container>
+  @if (data.team) {
+    Edit
+  } @else {
+    Add
+  }
   Team
 </h2>
 <mat-dialog-content>
-  <p *ngIf="config && !data.team">Fill out this form to create a new team. You will be added as
-    the initial owner and responsible for adding additional owners
+  @if (config && !data.team) {
+    <p>Fill out this form to create a new team. You will be added as
+      the initial owner and responsible for adding additional owners
     and users.</p>
-
-    <app-vertex-form-builder *ngIf="config"
+  }
+  @if (config) {
+    <app-vertex-form-builder
       [fieldMap]="config.fields"
       [data]="data.team"
-      (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
-
+    (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
+  }
   <mat-divider></mat-divider>
 </mat-dialog-content>
-
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
   <button mat-button color="primary" [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
-    <ng-container *ngIf="config && data.team">Edit</ng-container>
-    <ng-container *ngIf="config && !data.team">Add</ng-container>
+    @if (config && data.team) {
+      Edit
+    }
+    @if (config && !data.team) {
+      Add
+    }
   </button>
 </mat-dialog-actions>

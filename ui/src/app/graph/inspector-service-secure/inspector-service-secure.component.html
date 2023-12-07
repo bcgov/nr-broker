@@ -1,4 +1,4 @@
-<ng-container *ngIf="user.roles.includes('admin') || isAdministrator">
+@if (user.roles.includes('admin') || isAdministrator) {
   <div class="edge-container">
     <div class="heading">
       <h3>Vault Role Ids</h3>
@@ -8,27 +8,47 @@
   </div>
 
   <mat-list>
-    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.prod">
-      <span matListItemTitle>Production</span>
-      <span matListItemLine *ngIf="reveal">{{ data.roleIds.prod }}</span>
-      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
-    </mat-list-item>
-    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.test">
-      <span matListItemTitle>Test</span>
-      <span matListItemLine *ngIf="reveal">{{ data.roleIds.test }}</span>
-      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
-    </mat-list-item>
-    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.dev">
-      <span matListItemTitle>Development</span>
-      <span matListItemLine *ngIf="reveal">{{ data.roleIds.dev }}</span>
-      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
-    </mat-list-item>
-    <mat-list-item *ngIf="data && data.roleIds && data.roleIds.tools">
-      <span matListItemTitle>Tools</span>
-      <span matListItemLine *ngIf="reveal">{{ data.roleIds.tools }}</span>
-      <span matListItemLine *ngIf="!reveal">********-****-****-****-************</span>
-    </mat-list-item>
+    @if (data && data.roleIds && data.roleIds.prod) {
+      <mat-list-item>
+        <span matListItemTitle>Production</span>
+        @if (reveal) {
+          <span matListItemLine>{{ data.roleIds.prod }}</span>
+        }
+        @if (!reveal) {
+          <span matListItemLine>********-****-****-****-************</span>
+        }
+      </mat-list-item>
+    }
+    @if (data && data.roleIds && data.roleIds.test) {
+      <mat-list-item>
+        <span matListItemTitle>Test</span>
+        @if (reveal) {
+          <span matListItemLine>{{ data.roleIds.test }}</span>
+        } @else {
+          <span matListItemLine>********-****-****-****-************</span>
+        }
+      </mat-list-item>
+    }
+    @if (data && data.roleIds && data.roleIds.dev) {
+      <mat-list-item>
+        <span matListItemTitle>Development</span>
+        @if (reveal) {
+          <span matListItemLine>{{ data.roleIds.dev }}</span>
+        } @else {
+          <span matListItemLine>********-****-****-****-************</span>
+        }
+      </mat-list-item>
+    }
+    @if (data && data.roleIds && data.roleIds.tools) {
+      <mat-list-item>
+        <span matListItemTitle>Tools</span>
+        @if (reveal) {
+          <span matListItemLine>{{ data.roleIds.tools }}</span>
+        } @else {
+          <span matListItemLine>********-****-****-****-************</span>
+        }
+      </mat-list-item>
+    }
   </mat-list>
-
   <mat-divider></mat-divider>
-</ng-container>
+}

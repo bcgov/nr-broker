@@ -1,0 +1,40 @@
+<div>
+  <h3 class="edge-heading">Source@if (graphData && target && collectionConfig) {
+    - {{collectionConfig[graphData.idToVertex[target.data.source].collection].name}}
+  }</h3>
+  <div class="wrapper vertex-edge-type-container">
+    <div class="fields-wrapper">
+      <mat-chip-listbox [selectable]="false">
+        <mat-chip-option (click)="vertexSelected.emit(target.data.source)">
+          <app-vertex-name [vertex]="edgeConnections.sourceVertex"></app-vertex-name>
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+    <div class="fields-wrapper">
+      @if (target) {
+        <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="target.data.source">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+  <h3 class="edge-heading">Target@if (graphData && target && collectionConfig) {
+    - {{collectionConfig[graphData.idToVertex[target.data.target].collection].name}}
+  }</h3>
+  <div class="wrapper vertex-edge-type-container">
+    <div class="fields-wrapper">
+      <mat-chip-listbox [selectable]="false">
+        <mat-chip-option (click)="vertexSelected.emit(target.data.target)">
+          <app-vertex-name [vertex]="edgeConnections.targetVertex"></app-vertex-name>
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+    <div class="fields-wrapper">
+      @if (target) {
+        <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="target.data.target">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+</div>

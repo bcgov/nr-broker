@@ -155,6 +155,7 @@ export class IntentionController {
       query.checksum,
       query.name,
       query.type,
+      query.serviceId,
       query.service,
       query.offset,
       query.limit,

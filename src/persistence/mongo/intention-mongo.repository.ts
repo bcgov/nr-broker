@@ -157,6 +157,9 @@ export class IntentionMongoRepository implements IntentionRepository {
     if (where['_id']) {
       where['_id'] = new ObjectId(where['_id']);
     }
+    if (where['actions.service.id']) {
+      where['actions.service.id'] = new ObjectId(where['actions.service.id']);
+    }
     return this.intentionRepository
       .aggregate([
         { $match: where },
@@ -199,6 +202,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     artifactChecksum: string | null,
     artifactName: string | null,
     artifactType: string | null,
+    serviceId: string | null,
     service: string | null,
     offset: number,
     limit: number,
@@ -207,6 +211,7 @@ export class IntentionMongoRepository implements IntentionRepository {
       {
         'actions.artifacts': { $exists: true },
         ...(service ? { 'actions.service.name': service } : {}),
+        ...(serviceId ? { 'actions.service.id': new ObjectId(serviceId) } : {}),
         ...(traceHash ? { 'actions.trace.hash': traceHash } : {}),
         ...(artifactChecksum
           ? { 'actions.artifacts.checksum': artifactChecksum }

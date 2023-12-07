@@ -21,7 +21,6 @@ import {
   ChartClickTarget,
   ChartClickTargetVertex,
   CollectionConfigMap,
-  CollectionEdgeConfigMap,
   GraphData,
   GraphDataConfig,
   UserDto,
@@ -93,25 +92,10 @@ export class GraphComponent {
           // console.log(data);
           // console.log(config);
           // console.log(ownedVertex);
-          const configMap: CollectionConfigMap = configArr.reduce(
-            (previousValue, currentValue) => {
-              previousValue[currentValue.collection] = currentValue;
-              return previousValue;
-            },
-            {} as CollectionConfigMap,
-          );
-          const configSrcTarMap: CollectionEdgeConfigMap = configArr.reduce(
-            (previousValue, currentValue, currentIndex) => {
-              for (const edge of currentValue.edges) {
-                previousValue[
-                  `${currentIndex}>${configMap[edge.collection].index}:${
-                    edge.name
-                  }`
-                ] = edge;
-              }
-              return previousValue;
-            },
-            {} as CollectionEdgeConfigMap,
+          const configMap = this.graphUtil.configArrToMap(configArr);
+          const configSrcTarMap = this.graphUtil.configArrToSrcTarMap(
+            configArr,
+            configMap,
           );
           const graphData: GraphData = {
             ...data,

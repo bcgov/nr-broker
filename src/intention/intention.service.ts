@@ -150,13 +150,15 @@ export class IntentionService {
       }
       await this.actionService.bindUserToAction(account, action);
       let targetServices = [];
-      if (action.service.target) {
-        const colObj = await this.collectionRepository.getCollectionByKeyValue(
-          'service',
-          'name',
-          action.service.name,
-        );
-        if (colObj) {
+      const colObj = await this.collectionRepository.getCollectionByKeyValue(
+        'service',
+        'name',
+        action.service.name,
+      );
+
+      if (colObj) {
+        action.service.id = colObj.id;
+        if (action.service.target) {
           const targetSearch =
             await this.graphRepository.getDownstreamVertex<ServiceDto>(
               colObj.vertex.toString(),
@@ -310,6 +312,7 @@ export class IntentionService {
     artifactChecksum: string | null,
     artifactName: string | null,
     artifactType: string | null,
+    serviceId: string | null,
     service: string | null,
     offset = 0,
     limit = 5,
@@ -321,6 +324,7 @@ export class IntentionService {
         artifactChecksum,
         artifactName,
         artifactType,
+        serviceId,
         service,
         offset,
         limit,
@@ -358,7 +362,17 @@ export class IntentionService {
 
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {
-      this.intentionSync.sync(intention);
+      await this.intentionSync.sync(intention);
+    }
+    for (const action of intention.actions) {
+      if (!action.service.id) {
+        const colObj = await this.collectionRepository.getCollectionByKeyValue(
+          'service',
+          'name',
+          action.service.name,
+        );
+        action.service.id = colObj.id;
+      }
     }
     return this.intentionRepository.closeIntention(intention);
   }
