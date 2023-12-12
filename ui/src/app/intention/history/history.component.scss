@@ -60,10 +60,12 @@ tr.element-row:not(.expanded-row):active {
   display: flex;
   justify-content: space-between;
   margin-top: 12px;
+  align-items: center;
 }
 
 .expanded-header-container h3 {
   flex: 1;
+  margin: 0;
 }
 .expanded-header-container a {
   margin-left: 12px;

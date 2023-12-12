@@ -1,5 +1,5 @@
 <div echarts
   [options]="options"
   [autoResize]="true"
-  [style.height]="data.actions.length * 50 + 'px'"
+  [style.height]="action ? '50px' : intention.actions.length * 50 + 'px'"
   class="chart"></div>

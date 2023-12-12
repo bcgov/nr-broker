@@ -18,7 +18,8 @@ import prettyMilliseconds from 'pretty-ms';
   styleUrl: './gantt-graph.component.scss',
 })
 export class GanttGraphComponent implements OnInit {
-  @Input() data: any;
+  @Input() intention: any;
+  @Input() action?: any;
   options!: EChartsOption;
 
   constructor(private readonly elRef: ElementRef) {}
@@ -58,7 +59,9 @@ export class GanttGraphComponent implements OnInit {
       },
       yAxis: {
         type: 'category',
-        data: this.data.actions.map((action: any) => action.action),
+        data: this.action
+          ? [this.action.action]
+          : this.intention.actions.map((action: any) => action.action),
       },
       xAxis: {
         type: 'value',
@@ -84,12 +87,19 @@ export class GanttGraphComponent implements OnInit {
               color: 'transparent',
             },
           },
-          data: this.data.actions.map((action: any) =>
-            action.start && this.data.transaction.start
-              ? new Date(action.start).valueOf() -
-                new Date(this.data.transaction.start).valueOf()
-              : 0,
-          ),
+          data: this.action
+            ? [
+                this.action.trace.start && this.intention.transaction.start
+                  ? new Date(this.action.trace.start).valueOf() -
+                    new Date(this.intention.transaction.start).valueOf()
+                  : 0,
+              ]
+            : this.intention.actions.map((action: any) =>
+                action.trace.start && this.intention.transaction.start
+                  ? new Date(action.trace.start).valueOf() -
+                    new Date(this.intention.transaction.start).valueOf()
+                  : 0,
+              ),
         },
         {
           name: 'Action',
@@ -99,10 +109,46 @@ export class GanttGraphComponent implements OnInit {
             show: false,
             position: 'bottom',
           },
-          data: this.data.actions.map((action: any) => ({
-            name: action.service.name,
-            value: action.trace.duration ?? 0,
-          })),
+          data: this.action
+            ? [
+                {
+                  name: this.action.service.name,
+                  value: this.action.trace.duration ?? 0,
+                },
+              ]
+            : this.intention.actions.map((action: any) => ({
+                name: action.service.name,
+                value: action.trace.duration ?? 0,
+              })),
+        },
+        {
+          name: 'Placeholder2',
+          type: 'bar',
+          stack: 'Total',
+          silent: true,
+          itemStyle: {
+            borderColor: 'transparent',
+            color: 'transparent',
+          },
+          emphasis: {
+            itemStyle: {
+              borderColor: 'transparent',
+              color: 'transparent',
+            },
+          },
+          data: this.action
+            ? [
+                this.action.trace.end && this.intention.transaction.end
+                  ? new Date(this.intention.transaction.end).valueOf() -
+                    new Date(this.action.trace.end).valueOf()
+                  : 0,
+              ]
+            : this.intention.actions.map((action: any) =>
+                action.trace.end && this.intention.transaction.end
+                  ? new Date(this.intention.transaction.end).valueOf() -
+                    new Date(action.trace.end).valueOf()
+                  : 0,
+              ),
         },
       ],
     };

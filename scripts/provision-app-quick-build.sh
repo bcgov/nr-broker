@@ -30,8 +30,8 @@ fi
 
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
-BUILD_TRACE_ID=$(echo $RESPONSE | jq -r '.actions.build.trace_id')
-echo -n $BUILD_TRACE_ID > provision-app-quick-build.trace.id
+INTENTION_ID=$(echo $RESPONSE | jq -r '.id')
+echo -n $INTENTION_ID > provision-app-quick-build.intention.id
 # echo "Hashed transaction.id: $(echo -n $INTENTION_TOKEN | shasum -a 256)"
 
 echo "===> Build"

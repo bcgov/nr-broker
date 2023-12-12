@@ -14,6 +14,10 @@
         "name": "superapp-backend",
         "environment": "development"
       },
+      "source": {
+        "action": "package-build#build",
+        "intention": "feef-ffwe-343432-42fefds-ffew"
+      },
       "package": {
         "type": "zip"
       }

@@ -1,10 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDefined, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class ArtifactSearchQuery {
   @IsString()
+  @IsDefined()
+  intention: string;
+
+  @IsString()
   @IsOptional()
-  buildGuid?: string;
+  action?: string;
 
   @IsString()
   @IsOptional()
@@ -21,6 +25,10 @@ export class ArtifactSearchQuery {
   @IsString()
   @IsOptional()
   serviceId?: string;
+
+  @IsString()
+  @IsOptional()
+  traceHash?: string;
 
   @IsInt()
   @Type(() => Number)

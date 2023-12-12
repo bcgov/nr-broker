@@ -7,10 +7,10 @@ import { IntentionDto } from './intention.dto';
 export class ArtifactActionCombo {
   action!: ActionDto;
   artifact!: ArtifactDto;
+  intention!: IntentionDto;
 }
 export class ArtifactSearchResult {
-  data!: IntentionDto[];
-  artifacts!: ArtifactActionCombo[];
+  data!: ArtifactActionCombo[];
   meta!: {
     total: number;
   };

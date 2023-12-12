@@ -3,10 +3,8 @@
     || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 cd "$this_dir"
 
-BUILD_CHECKSUM="sha256:$(cat provision-app-quick-build.artifact.sha256)"
-echo $BUILD_CHECKSUM
-BUILD_GUID="$(cat provision-app-quick-build.trace.id)"
-echo $BUILD_GUID
+BUILD_INTENTION="$(cat provision-app-quick-build.intention.id)"
+echo $BUILD_INTENTION
 
 echo "===> Intention open"
 # Open intention
@@ -16,7 +14,7 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true
     -d @<(cat provision-app-quick-install.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
-            (.actions[] | select(.id == \"install\") .package.buildGuid) |= \"$BUILD_GUID\" \
+            (.actions[] | select(.id == \"install\") .source.intention) |= \"$BUILD_INTENTION\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"

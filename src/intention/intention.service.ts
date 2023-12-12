@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
+import { ObjectId } from 'mongodb';
+import { FindOptionsWhere } from 'typeorm';
 import ejs from 'ejs';
 import { IntentionDto } from './dto/intention.dto';
 import {
@@ -23,7 +25,7 @@ import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
-import { ActionDto } from './dto/action.dto';
+import { ActionDto, isActionName } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
@@ -33,6 +35,11 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ArtifactDto } from './dto/artifact.dto';
+import {
+  ArtifactActionCombo,
+  ArtifactSearchResult,
+} from './dto/artifact-search-result.dto';
+import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -42,10 +49,14 @@ export interface IntentionOpenResponse {
       outcome: string;
     };
   };
+  id: string;
   token: string;
   transaction_id: string;
   expiry: string;
 }
+
+type FindArtifactActionOptions = Partial<Pick<ActionDto, 'action' | 'id'>>;
+type FindArtifactArtifactOptions = Partial<ArtifactDto>;
 
 @Injectable()
 export class IntentionService {
@@ -169,7 +180,7 @@ export class IntentionService {
           targetServices = targetSearch.map((t) => t.collection.name);
         }
       }
-      await this.actionService.annotate(action);
+      await this.annotateAction(action);
       const validationResult = await this.actionService.validate(
         intentionDto,
         action,
@@ -221,6 +232,7 @@ export class IntentionService {
     }
     return {
       actions,
+      id: intentionDto.id.toString(),
       token: intentionDto.transaction.token,
       transaction_id: intentionDto.transaction.hash,
       expiry: new Date(intentionDto.expiry).toUTCString(),
@@ -307,27 +319,22 @@ export class IntentionService {
     }
   }
 
-  public async artifactSearch(
-    packageGuid: string | null,
-    artifactChecksum: string | null,
-    artifactName: string | null,
-    artifactType: string | null,
-    serviceId: string | null,
-    service: string | null,
-    offset = 0,
-    limit = 5,
-  ) {
+  public async artifactSearchByQuery(
+    query: ArtifactSearchQuery,
+  ): Promise<ArtifactSearchResult> {
     try {
       // must await to catch error
-      const result = await this.intentionRepository.searchArtifacts(
-        packageGuid,
-        artifactChecksum,
-        artifactName,
-        artifactType,
-        serviceId,
-        service,
-        offset,
-        limit,
+      const result = await this.artifactSearch(
+        query.intention,
+        query.action,
+        query.traceHash,
+        query.checksum,
+        query.name,
+        query.type,
+        query.serviceId,
+        query.service,
+        query.offset,
+        query.limit,
       );
       return result;
     } catch (e) {
@@ -339,15 +346,132 @@ export class IntentionService {
     }
   }
 
+  public async artifactSearch(
+    intention: string | null,
+    action: string | null,
+    traceHash: string | null,
+    checksum: string | null,
+    name: string | null,
+    type: string | null,
+    serviceId: string | null,
+    service: string | null,
+    offset: number,
+    limit: number,
+  ): Promise<ArtifactSearchResult> {
+    const result = await this.intentionRepository.searchIntentions(
+      {
+        'actions.artifacts': { $exists: true },
+        ...(intention ? { _id: new ObjectId(intention) } : {}),
+        ...(service ? { 'actions.service.name': service } : {}),
+        ...(serviceId ? { 'actions.service.id': new ObjectId(serviceId) } : {}),
+        ...(traceHash ? { 'actions.trace.hash': traceHash } : {}),
+        ...(checksum ? { 'actions.artifacts.checksum': checksum } : {}),
+        ...(name ? { 'actions.artifacts.name': name } : {}),
+        ...(type ? { 'actions.artifacts.type': type } : {}),
+      } as FindOptionsWhere<IntentionDto>,
+      offset,
+      limit,
+    );
+
+    const actionOptions: FindArtifactActionOptions = {};
+    if (action) {
+      const actionArr = action.split('#');
+      if (actionArr.length === 2) {
+        if (actionArr[0] !== '') {
+          if (isActionName(actionArr[0])) {
+            actionOptions.action = actionArr[0];
+          } else {
+            throw new BadRequestException({
+              statusCode: 400,
+              message: 'Illegal action arguement',
+              error: `Check parameters for errors`,
+            });
+          }
+        }
+        actionOptions.id = actionArr[1];
+      } else if (actionArr.length === 1 && isActionName(actionArr[0])) {
+        actionOptions.action = actionArr[0];
+      } else {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Illegal action arguement',
+          error: `Check parameters for errors`,
+        });
+      }
+    }
+
+    return {
+      ...result,
+      data: result.data
+        .map((intention) => {
+          return this.findArtifacts(intention, actionOptions, {
+            checksum: checksum,
+            name: name,
+            type: type,
+          });
+        })
+        .reduce((pv, cv) => pv.concat(cv), []),
+    };
+  }
+
+  private findArtifacts(
+    intention: IntentionDto | null,
+    actionOptions: FindArtifactActionOptions,
+    artifactOptions: FindArtifactArtifactOptions,
+  ): ArtifactActionCombo[] {
+    for (const action of intention.actions) {
+      if (!action.artifacts) {
+        return;
+      }
+      const artifacts = action.artifacts.filter((artifact) => {
+        return (
+          Object.entries(actionOptions).every(
+            ([k, v]) => !v || action[k] === v,
+          ) &&
+          Object.entries(artifactOptions).every(
+            ([k, v]) => !v || artifact[k] === v,
+          )
+        );
+      });
+      return artifacts.map((artifact) => ({ action, artifact, intention }));
+    }
+  }
+
+  private async annotateAction(action: ActionDto) {
+    if (action.action === 'package-installation' && action.source) {
+      const foundArtifact = await this.artifactSearch(
+        action.source.intention.toString(),
+        action.source.action,
+        null,
+        action.package.checksum,
+        action.package.name,
+        action.package.type,
+        action.service.id?.toString(),
+        action.service.name,
+        0,
+        1,
+      );
+      if (foundArtifact.meta.total !== 1 && foundArtifact.data.length !== 1) {
+        // Skip: Could not uniquely identify artifact based on package
+        return;
+      }
+
+      action.package = {
+        ...(foundArtifact.data[0].action.package ?? {}),
+        ...foundArtifact.data[0].artifact,
+        ...action.package,
+      };
+      action.source.action = `${foundArtifact.data[0].action.action}#${foundArtifact.data[0].action.id}`;
+    }
+  }
+
   private async finalizeIntention(
     intention: IntentionDto,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
     req: Request = undefined,
   ): Promise<boolean> {
-    const endDate = new Date();
     const startDate = new Date(intention.transaction.start);
-
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
         await this.actionLifecycle(req, intention, action, outcome, 'end');
@@ -356,6 +480,9 @@ export class IntentionService {
         );
       }
     }
+
+    // Must measure time after ending all actions
+    const endDate = new Date();
     intention.transaction.end = endDate.toISOString();
     intention.transaction.duration = endDate.valueOf() - startDate.valueOf();
     intention.transaction.outcome = outcome;
