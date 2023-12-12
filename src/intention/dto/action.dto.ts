@@ -1,4 +1,4 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -17,33 +17,31 @@ import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
 import { UrlDto } from './url.dto';
 import { ArtifactDto } from './artifact.dto';
-import { ObjectId } from 'mongodb';
+import { ActionSourceDto } from './action-source.dto';
+
+export const ACTION_NAMES = [
+  'backup',
+  'database-access',
+  'server-access',
+  'package-build',
+  'package-configure',
+  'package-installation',
+  'package-provision',
+  'process-end',
+  'process-start',
+] as const;
+type ActionName = (typeof ACTION_NAMES)[number];
+
+export function isActionName(actionName: string): actionName is ActionName {
+  return ACTION_NAMES.includes(actionName as ActionName);
+}
 
 @Entity()
 export class ActionDto {
   @IsString()
-  @IsIn([
-    'backup',
-    'database-access',
-    'server-access',
-    'package-build',
-    'package-configure',
-    'package-installation',
-    'package-provision',
-    'process-end',
-    'process-start',
-  ])
+  @IsIn(ACTION_NAMES)
   @Column()
-  action:
-    | 'backup'
-    | 'database-access'
-    | 'server-access'
-    | 'package-build'
-    | 'package-configure'
-    | 'package-installation'
-    | 'package-provision'
-    | 'process-end'
-    | 'process-start';
+  action: ActionName;
 
   @IsString()
   @Column()
@@ -84,10 +82,11 @@ export class ActionDto {
   @Type(() => PackageDto)
   package?: PackageDto;
 
-  @Column()
+  @ValidateNested()
   @IsOptional()
-  @ApiProperty({ type: () => String })
-  sourceIntention?: ObjectId;
+  @Column(() => ActionSourceDto)
+  @Type(() => ActionSourceDto)
+  source?: ActionSourceDto;
 
   @ValidateNested()
   @IsOptional()

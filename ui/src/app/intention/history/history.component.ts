@@ -1,8 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, JsonPipe } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  FormGroup,
+  FormControl,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,14 +19,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { Subject, catchError, of, switchMap } from 'rxjs';
+import prettyMilliseconds from 'pretty-ms';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { ActionContentComponent } from '../action-content/action-content.component';
-import { FormGroup } from '@angular/forms';
-import { FormControl } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatNativeDateModule } from '@angular/material/core';
 import {
   trigger,
   state,
@@ -253,5 +256,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
       },
     );
     this.triggerRefresh.next();
+  }
+
+  viewIntention(id: string) {
+    this.pageIndex = 0;
+    this.selectedField = 'id';
+    this.fieldValue = id;
+    this.selectedStatus = 'all';
+    this.range.reset();
+    this.filter();
+  }
+
+  totalDuration(intention: any) {
+    return intention.transaction.duration
+      ? prettyMilliseconds(intention.transaction.duration)
+      : 0;
   }
 }

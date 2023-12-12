@@ -150,16 +150,7 @@ export class IntentionController {
   @ApiBearerAuth()
   @UsePipes(new ValidationPipe({ transform: true }))
   async artifactSearch(@Query() query: ArtifactSearchQuery) {
-    return await this.intentionService.artifactSearch(
-      query.buildGuid,
-      query.checksum,
-      query.name,
-      query.type,
-      query.serviceId,
-      query.service,
-      query.offset,
-      query.limit,
-    );
+    return await this.intentionService.artifactSearchByQuery(query);
   }
 
   @Post('action/start')

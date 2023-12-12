@@ -16,7 +16,6 @@ import { UserDto } from '../persistence/dto/user.dto';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
-import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 
 /**
  * Assists with the validation of intention actions
@@ -28,7 +27,6 @@ export class ActionService {
     private readonly collectionRepository: CollectionRepository,
     private readonly userCollectionService: UserCollectionService,
     private readonly graphRepository: GraphRepository,
-    private readonly intentionRepository: IntentionRepository,
     private readonly persistenceUtil: PersistenceUtilService,
   ) {}
 
@@ -65,37 +63,6 @@ export class ActionService {
         name: account.name,
         domain: 'broker',
       };
-    }
-  }
-
-  public async annotate(action: ActionDto) {
-    if (action.action === 'package-installation') {
-      if (action.package) {
-        const foundArtifact = await this.intentionRepository.searchArtifacts(
-          action.package.buildGuid,
-          action.package.checksum,
-          action.package.name,
-          action.package.type,
-          action.service.id?.toString(),
-          action.service.name,
-          0,
-          1,
-        );
-        if (
-          foundArtifact.meta.total !== 1 &&
-          foundArtifact.artifacts.length !== 1
-        ) {
-          // Skip: Could not uniquely identify artifact based on package
-          return;
-        }
-
-        action.package = {
-          ...(foundArtifact.artifacts[0].action.package ?? {}),
-          ...foundArtifact.artifacts[0].artifact,
-          ...action.package,
-        };
-        action.sourceIntention = foundArtifact.data[0].id;
-      }
     }
   }
 
