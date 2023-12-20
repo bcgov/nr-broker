@@ -11,7 +11,7 @@ export const TOKEN_SERVICE_WRAP_TTL = 60;
 export const TOKEN_SERVICE_ALLOW_ORPHAN =
   process.env.TOKEN_SERVICE_ALLOW_ORPHAN === 'true';
 
-export const COLLECTION_MAX_EMBEDDED = 10;
+export const COLLECTION_MAX_EMBEDDED = 40;
 
 export const INTENTION_DEFAULT_TTL_SECONDS = 300;
 export const INTENTION_MIN_TTL_SECONDS = 30;

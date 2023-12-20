@@ -15,11 +15,15 @@ import {
   Validators,
   FormsModule,
   ReactiveFormsModule,
+  AsyncValidatorFn,
 } from '@angular/forms';
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 import { CollectionFieldConfigMap } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
+import { uniqueNameValidator } from './unique-name.directive';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
 @Component({
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
@@ -29,10 +33,13 @@ import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();
+  @Input() collection!: string;
   @Input() fieldMap!: CollectionFieldConfigMap;
   @Input() data!: any;
   form!: FormGroup;
   fieldConfigs!: CollectionFieldConfigNameMapped[];
+
+  constructor(private collectionService: CollectionApiService) {}
 
   ngOnInit() {
     const fieldCtrls: { [key: string]: FormGroup | FormControl } = {};
@@ -46,6 +53,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     }
 
     for (const f of fieldConfigs) {
+      const asyncValidators: AsyncValidatorFn[] = [];
       const validators: ValidatorFn[] = [];
       if (f.required) {
         validators.push(Validators.required);
@@ -59,10 +67,21 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         );
       }
       if (f.type === 'string') {
+        if (f.unique) {
+          const uniqueValidator = uniqueNameValidator(
+            this.collectionService,
+            this.collection as keyof CollectionDtoRestUnion,
+            f.key,
+            this.data && this.data.id ? this.data.id : null,
+          );
+          asyncValidators.push(uniqueValidator);
+        }
         fieldCtrls[f.key] = new FormControl(
           this.data && this.data[f.key] ? this.data[f.key] : '',
-          validators,
+          f.unique ? { updateOn: 'blur' } : {},
         );
+        fieldCtrls[f.key].addValidators(validators);
+        fieldCtrls[f.key].addAsyncValidators(asyncValidators);
       }
       if (f.type === 'stringArray') {
         fieldCtrls[f.key] = new FormControl(
@@ -123,6 +142,10 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     }
     this.fieldConfigs = fieldConfigs;
     this.form = new FormGroup(fieldCtrls);
+    this.form.disable();
+    setTimeout(() => {
+      this.form.enable();
+    }, 100);
   }
 
   ngOnChanges(changes: SimpleChanges) {

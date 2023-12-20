@@ -1,6 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export interface BrokerAccountRestDto {
+export class BrokerAccountRestDto {
   id: string;
   email: string;
   clientId: string;

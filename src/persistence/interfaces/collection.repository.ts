@@ -45,4 +45,10 @@ export abstract class CollectionRepository {
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;
+
+  public abstract doUniqueKeyCheck(
+    collection: keyof CollectionDtoUnion,
+    key: string,
+    value: string,
+  ): Promise<string[]>;
 }

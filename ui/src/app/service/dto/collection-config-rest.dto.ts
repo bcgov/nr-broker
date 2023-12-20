@@ -24,12 +24,14 @@ export interface CollectionFieldConfig {
   type:
     | 'boolean'
     | 'email'
+    | 'embeddedDoc'
     | 'embeddedDocArray'
     | 'json'
     | 'string'
     | 'stringArray'
     | 'url';
   unique?: boolean;
+  uniqueParent?: boolean;
   value?: string;
 }
 

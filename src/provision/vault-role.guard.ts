@@ -10,7 +10,7 @@ import { Request } from 'express';
 import { TokenService } from '../token/token.service';
 import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ActionDto } from '../intention/dto/action.dto';
-import { ActionUtil } from '../intention/action.util';
+import { ActionUtil } from '../util/action.util';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditService } from '../audit/audit.service';
 

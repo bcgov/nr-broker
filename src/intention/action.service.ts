@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ActionError } from './action.error';
-import { ActionUtil } from './action.util';
+import { ActionUtil } from '../util/action.util';
 import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
 import { IntentionDto } from './dto/intention.dto';

@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Inject,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   EdgeNavigation,
@@ -15,13 +23,11 @@ import { InspectorTeamComponent } from '../inspector-team/inspector-team.compone
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
-import { CollectionFilterPipe } from '../collection-filter.pipe';
 
 @Component({
   selector: 'app-inspector-vertex',
   standalone: true,
   imports: [
-    CollectionFilterPipe,
     KeyValuePipe,
     InspectorAccountComponent,
     InspectorInstallsComponent,
@@ -34,7 +40,7 @@ import { CollectionFilterPipe } from '../collection-filter.pipe';
   templateUrl: './inspector-vertex.component.html',
   styleUrl: './inspector-vertex.component.scss',
 })
-export class InspectorVertexComponent {
+export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: string;
   @Input() edgeConnections!: Observable<EdgeNavigation | null>;
   @Input() collectionConfig!: CollectionConfigMap | null;
@@ -43,10 +49,38 @@ export class InspectorVertexComponent {
 
   @Output() refreshData = new EventEmitter();
 
+  filteredCollectionData: any = null;
+
   propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   propDisplayedColumns: string[] = ['key', 'value'];
 
   constructor(@Inject(CURRENT_USER) public readonly user: UserDto) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (
+      (changes['collectionConfig'] || changes['collectionData']) &&
+      this.collectionConfig &&
+      this.collectionData
+    ) {
+      const filteredCollectionData: any = {
+        ...this.collectionData,
+      };
+
+      delete filteredCollectionData.id;
+      delete filteredCollectionData.vertex;
+      delete filteredCollectionData.name;
+
+      for (const [key, value] of Object.entries(
+        this.collectionConfig[this.collection].fields,
+      )) {
+        if (value.type === 'embeddedDoc' || value.type === 'embeddedDocArray') {
+          delete filteredCollectionData[key];
+        }
+      }
+
+      this.filteredCollectionData = filteredCollectionData;
+    }
+  }
 
   getFieldType(key: string) {
     if (!this.collectionConfig) {

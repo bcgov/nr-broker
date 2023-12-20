@@ -8,7 +8,7 @@ import { UtilModule } from '../util/util.module';
 import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
-import { ActionUtil } from './action.util';
+import { ActionUtil } from '../util/action.util';
 
 @Module({
   imports: [
@@ -21,6 +21,6 @@ import { ActionUtil } from './action.util';
   ],
   controllers: [IntentionController],
   providers: [IntentionService, ActionService, ActionUtil],
-  exports: [ActionUtil],
+  exports: [ActionUtil, ActionService],
 })
 export class IntentionModule {}

@@ -66,7 +66,10 @@ export class GraphUtilService {
       ...data,
     };
     for (const fieldKey of Object.keys(config.fields)) {
-      if (config.fields[fieldKey].type === 'embeddedDocArray') {
+      if (
+        config.fields[fieldKey].type === 'embeddedDocArray' ||
+        config.fields[fieldKey].type === 'embeddedDoc'
+      ) {
         continue;
       }
       const val =

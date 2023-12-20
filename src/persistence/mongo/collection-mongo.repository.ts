@@ -185,6 +185,23 @@ export class CollectionMongoRepository implements CollectionRepository {
       });
   }
 
+  public doUniqueKeyCheck(
+    type: keyof CollectionDtoUnion,
+    key: string,
+    value: string,
+  ): Promise<string[]> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo
+      .find({
+        where: {
+          [key]: value,
+        },
+      })
+      .then((array) => {
+        return array.map((val) => val.id.toString());
+      });
+  }
+
   private arrayIdFixer(array: any[]) {
     for (const item of array) {
       item.id = item._id;

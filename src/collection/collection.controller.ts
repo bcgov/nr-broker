@@ -20,7 +20,6 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
 import { AllowOwner } from '../allow-owner.decorator';
-import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
@@ -67,7 +66,7 @@ export class CollectionController {
   @Get('config')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getCollectionConfig(): Promise<CollectionConfigDto[]> {
+  getCollectionConfig() {
     return this.service.getCollectionConfig();
   }
 
@@ -157,6 +156,21 @@ export class CollectionController {
       query.vertexId,
       query.offset,
       query.limit,
+    );
+  }
+
+  @Post(':collection/unique/:key/:value')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async doUniqueKeyCheck(
+    @Param('collection') collection: string,
+    @Param('key') key: string,
+    @Param('value') value: string,
+  ) {
+    return this.service.doUniqueKeyCheck(
+      this.parseCollectionApi(collection),
+      key,
+      value,
     );
   }
 

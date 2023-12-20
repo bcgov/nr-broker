@@ -36,6 +36,7 @@ export class IntentionSyncService {
 
   public async sync(intention: IntentionDto) {
     const envMap = await this.persistenceUtilService.getEnvMap();
+    console.log(intention);
     for (const action of intention.actions) {
       const context = {
         action,
@@ -65,43 +66,21 @@ export class IntentionSyncService {
             { key: 'name', path: 'action.service.environment' },
             { key: 'name', path: 'action.service.instanceName' },
             {
-              key: 'pkgInstallHistory[0].architecture',
-              path: 'action.package.architecture',
+              key: 'action.intention',
+              value: intention.id.toString(),
             },
             {
-              key: 'pkgInstallHistory[0].build_version',
-              path: 'action.package.build_version',
+              key: 'action.action',
+              value: `${action.action}#${action.id}`,
             },
             {
-              key: 'pkgInstallHistory[0].checksum',
-              path: 'action.package.checksum',
+              key: 'actionHistory[0].intention',
+              value: intention.id.toString(),
             },
             {
-              key: 'pkgInstallHistory[0].description',
-              path: 'action.package.description',
+              key: 'actionHistory[0].action',
+              value: `${action.action}#${action.id}`,
             },
-            {
-              key: 'pkgInstallHistory[0].installScope',
-              path: 'action.package.installScope',
-            },
-            { key: 'pkgInstallHistory[0].installed', value: new Date() },
-            {
-              key: 'pkgInstallHistory[0].license',
-              path: 'action.package.license',
-            },
-            { key: 'pkgInstallHistory[0].name', path: 'action.package.name' },
-            { key: 'pkgInstallHistory[0].path', path: 'action.package.path' },
-            {
-              key: 'pkgInstallHistory[0].reference',
-              path: 'action.package.reference',
-            },
-            { key: 'pkgInstallHistory[0].size', path: 'action.package.size' },
-            { key: 'pkgInstallHistory[0].type', path: 'action.package.type' },
-            {
-              key: 'pkgInstallHistory[0].version',
-              path: 'action.package.version',
-            },
-            { key: 'pkgInstallHistory[0].userId', path: 'intention.user.id' },
           ],
           'parentId',
           serviceVertex.id.toString(),

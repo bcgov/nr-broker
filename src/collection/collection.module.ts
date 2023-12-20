@@ -8,6 +8,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { AccountService } from './account.service';
 import { UserCollectionService } from './user-collection.service';
 import { TokenModule } from '../token/token.module';
+import { UtilModule } from '../util/util.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TokenModule } from '../token/token.module';
     PersistenceModule,
     GraphModule,
     TokenModule,
+    UtilModule,
   ],
   controllers: [CollectionController],
   providers: [CollectionService, UserCollectionService, AccountService],

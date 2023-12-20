@@ -1,7 +1,7 @@
 import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActionService } from './action.service';
-import { ActionUtil } from './action.util';
+import { ActionUtil } from '../util/action.util';
 
 describe('ActionService', () => {
   let service: ActionService;

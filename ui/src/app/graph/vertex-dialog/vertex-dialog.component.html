@@ -18,6 +18,7 @@
     <mat-divider></mat-divider>
     @if (isCollectionConfig(collectionControl.value)) {
       <app-vertex-form-builder
+        [collection]="collectionControl.value.collection"
         [fieldMap]="collectionControl.value.fields"
         [data]="data.data"
       (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>

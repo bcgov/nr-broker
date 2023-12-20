@@ -155,6 +155,25 @@ export class GraphService {
       vertexInsert,
       ignorePermissions ? false : 'create',
     );
+    const config = await this.collectionRepository.getCollectionConfigByName(
+      vertex.collection,
+    );
+    for (const [key, field] of Object.entries(config.fields)) {
+      if (field.unique) {
+        const uniqueCheck = await this.collectionRepository.doUniqueKeyCheck(
+          vertex.collection,
+          key,
+          collection[key],
+        );
+        if (uniqueCheck.length > 0) {
+          throw new BadRequestException({
+            statusCode: 400,
+            message: 'Bad request',
+            error: `${key} is not unique`,
+          });
+        }
+      }
+    }
     try {
       const resp = await this.graphRepository.addVertex(vertex, collection);
       this.auditService.recordGraphAction(
@@ -193,6 +212,35 @@ export class GraphService {
       vertexInsert,
       ignorePermissions ? false : 'update',
     );
+    const vertexObj = await this.collectionRepository.getCollectionByVertexId(
+      vertexInsert.collection,
+      id,
+    );
+    const config = await this.collectionRepository.getCollectionConfigByName(
+      vertex.collection,
+    );
+    for (const [key, field] of Object.entries(config.fields)) {
+      if (field.unique) {
+        const uniqueCheck = await this.collectionRepository.doUniqueKeyCheck(
+          vertex.collection,
+          key,
+          collection[key],
+        );
+        console.log(vertex);
+        console.log(collection);
+        console.log(uniqueCheck);
+        if (
+          uniqueCheck.filter((check) => vertexObj.id.toString() !== check)
+            .length > 0
+        ) {
+          throw new BadRequestException({
+            statusCode: 400,
+            message: 'Bad request',
+            error: `${key} is not unique`,
+          });
+        }
+      }
+    }
     try {
       const resp = await this.graphRepository.editVertex(
         id,

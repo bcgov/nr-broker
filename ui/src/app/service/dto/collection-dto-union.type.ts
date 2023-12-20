@@ -6,7 +6,7 @@ import { ServiceRestDto } from './service-rest.dto';
 import { TeamRestDto } from './team-rest.dto';
 import { UserRestDto } from './user-rest.dto';
 
-export type CollectionDtoUnion = {
+export type CollectionDtoRestUnion = {
   brokerAccount: BrokerAccountRestDto;
   environment: EnvironmentRestDto;
   project: ProjectRestDto;
@@ -16,4 +16,16 @@ export type CollectionDtoUnion = {
   user: UserRestDto;
 };
 
-export type CollectionNames = keyof CollectionDtoUnion;
+export type CollectionNames = keyof CollectionDtoRestUnion;
+
+export const CollectionNameEnum: {
+  [Property in CollectionNames]: number;
+} = {
+  environment: 0,
+  project: 1,
+  service: 2,
+  serviceInstance: 3,
+  user: 4,
+  brokerAccount: 5,
+  team: 6,
+} as const;

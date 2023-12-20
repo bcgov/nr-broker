@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { CollectionSearchResult } from './dto/collection-search-result.dto';
-import { CollectionDtoUnion } from './dto/collection-dto-union.type';
+import { CollectionDtoRestUnion } from './dto/collection-dto-union.type';
 import { GraphUtilService } from './graph-util.service';
 
 @Injectable({
@@ -14,11 +14,11 @@ export class CollectionApiService {
     private readonly http: HttpClient,
   ) {}
 
-  public getCollectionById<T extends keyof CollectionDtoUnion>(
+  public getCollectionById<T extends keyof CollectionDtoRestUnion>(
     name: T,
     id: string,
   ) {
-    return this.http.get<CollectionDtoUnion[T]>(
+    return this.http.get<CollectionDtoRestUnion[T]>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}`,
       {
         responseType: 'json',
@@ -26,14 +26,14 @@ export class CollectionApiService {
     );
   }
 
-  public searchCollection<T extends keyof CollectionDtoUnion>(
+  public searchCollection<T extends keyof CollectionDtoRestUnion>(
     name: T,
     upstreamVertex: string | null = null,
     vertexId: string | null = null,
     offset = 0,
     limit = 5,
   ) {
-    return this.http.post<CollectionSearchResult<CollectionDtoUnion[T]>>(
+    return this.http.post<CollectionSearchResult<CollectionDtoRestUnion[T]>>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         name,
       )}/search?${upstreamVertex ? `upstreamVertex=${upstreamVertex}&` : ''}${
@@ -48,6 +48,21 @@ export class CollectionApiService {
   public getServiceSecure(serviceId: string) {
     return this.http.get(
       `${environment.apiUrl}/v1/collection/service/${serviceId}/secure`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  public doUniqueKeyCheck(
+    name: keyof CollectionDtoRestUnion,
+    key: string,
+    value: string,
+  ) {
+    return this.http.post<string[]>(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+        name,
+      )}/unique/${key}/${value}`,
       {
         responseType: 'json',
       },
