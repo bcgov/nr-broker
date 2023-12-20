@@ -1,9 +1,9 @@
 <div class="edge-container">
   <div class="heading">
-    <h3>Install Details</h3>
+    <h3>Details</h3>
 
     @if (instance && instance.action && instance.action.intention) {
-      <button mat-button (click)="viewIntention(instance.action.intention)">Intention</button>
+      <button mat-stroked-button (click)="viewIntention(instance.action.intention)">View Intention</button>
     }
   </div>
 </div>
@@ -34,6 +34,15 @@
       }
 
       </mat-list>
+    </div>
+
+    <div class="edge-container edge-container-margin-left edge-container-buttons">
+    @if (instance.action.source?.intention?.event.url) {
+      <a mat-stroked-button href="{{instance.action.source.intention.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
+    @if (instance.action.source?.intention?.auditUrl) {
+      <a mat-stroked-button href="{{instance.action.source.intention.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
     </div>
 
     <!-- <div class="view-more">

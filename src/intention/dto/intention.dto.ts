@@ -71,6 +71,10 @@ export class IntentionDto {
   })
   actions: ActionDto[];
 
+  // Not a column - decoration
+  @IsOptional()
+  auditUrl?: string;
+
   @ValidateNested()
   @IsDefined()
   @Column(() => EventDto)

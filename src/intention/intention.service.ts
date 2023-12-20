@@ -320,6 +320,14 @@ export class IntentionService {
     }
   }
 
+  public async getIntention(id: string) {
+    const intention = await this.intentionRepository.getIntention(id);
+    if (intention) {
+      intention.auditUrl = this.auditUrlForIntention(intention);
+    }
+    return intention;
+  }
+
   public async artifactSearchByQuery(
     query: ArtifactSearchQuery,
   ): Promise<ArtifactSearchResult> {

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { CollectionModule } from '../collection/collection.module';
@@ -14,13 +14,13 @@ import { ActionUtil } from '../util/action.util';
   imports: [
     AuthModule,
     AuditModule,
-    CollectionModule,
+    forwardRef(() => CollectionModule),
     GraphModule,
     PersistenceModule,
     UtilModule,
   ],
   controllers: [IntentionController],
   providers: [IntentionService, ActionService, ActionUtil],
-  exports: [ActionUtil, ActionService],
+  exports: [ActionUtil, ActionService, IntentionService],
 })
 export class IntentionModule {}

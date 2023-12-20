@@ -15,6 +15,7 @@ import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigResponseDto } from '../persistence/dto/collection-config-rest.dto';
 import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
+import { IntentionService } from '../intention/intention.service';
 
 @Injectable()
 export class CollectionService {
@@ -22,6 +23,7 @@ export class CollectionService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly intentionRepository: IntentionRepository,
+    private readonly intentionService: IntentionService,
     private readonly actionUtil: ActionUtil,
     private readonly tokenService: TokenService,
   ) {}
@@ -116,7 +118,7 @@ export class CollectionService {
     for (const actionPointer of actionPointers) {
       // console.log(actionPointer);
       if (actionPointer.intention) {
-        const intention = await this.intentionRepository.getIntention(
+        const intention = await this.intentionService.getIntention(
           actionPointer.intention,
         );
         if (intention) {

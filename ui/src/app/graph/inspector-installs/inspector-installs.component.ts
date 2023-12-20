@@ -7,6 +7,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { Router } from '@angular/router';
 import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.dto';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-inspector-installs',
@@ -17,6 +18,7 @@ import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.
     MatDividerModule,
     MatExpansionModule,
     MatGridListModule,
+    MatIconModule,
     MatListModule,
   ],
   templateUrl: './inspector-installs.component.html',
