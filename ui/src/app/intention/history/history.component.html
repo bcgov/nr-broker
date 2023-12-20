@@ -154,6 +154,7 @@
             @for (action of element.actions; track action) {
               <div class="expanded-header-container">
                 <h5>{{action.service.project}} / {{action.service.name}} #{{action.id}}</h5>
+                <div>Environment: <b>{{action.service.environment}}</b></div>
               </div>
               @if (element == expandedElement) {
                 <app-gantt-graph [intention]="element" [action]="action"></app-gantt-graph>

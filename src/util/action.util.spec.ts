@@ -3,7 +3,7 @@ import {
   ACTION_PROVISION_TOKEN_SELF,
 } from '../constants';
 import { ActionUtil } from './action.util';
-import { ActionDto } from './dto/action.dto';
+import { ActionDto } from '../intention/dto/action.dto';
 
 describe('ActionUtil', () => {
   let util: ActionUtil;

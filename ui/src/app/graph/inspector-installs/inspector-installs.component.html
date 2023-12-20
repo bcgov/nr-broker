@@ -1,33 +1,55 @@
 <div class="edge-container">
-  <h3 class="heading">Recent Installs</h3>
+  <div class="heading">
+    <h3>Details</h3>
+
+    @if (instance && instance.action && instance.action.intention) {
+      <button mat-stroked-button (click)="viewIntention(instance.action.intention)">View Intention</button>
+    }
+  </div>
 </div>
 @if (instance) {
-  @if (!instance.pkgInstallHistory || instance.pkgInstallHistory.length == 0) {
+  @if (!instance.action) {
     <div class="edge-container edge-container-margin-left">None</div>
   }
-  @if (instance.pkgInstallHistory && instance.pkgInstallHistory.length > 0) {
-    <div class="edge-container edge-container-margin-left">
-      <mat-accordion>
-        @for (item of instance.pkgInstallHistory; track item) {
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                {{item.version}}
-              </mat-panel-title>
-              <mat-panel-description>
-                {{item.installed | date:'short' }}
-              </mat-panel-description>
-            </mat-expansion-panel-header>
+  @if (instance.action) {
+    <div class="edge-container install-details">
+      <mat-list>
+      @if (instance.action.source?.action?.package?.version) {
+        <mat-list-item>
+          <span matListItemTitle>Version</span>
+          <span matListItemLine class="install-detail-value">{{instance.action.source.action.package.version}}</span>
+        </mat-list-item>
+      }
+      @if (instance.action.source?.intention) {
+        <mat-list-item>
+          <span matListItemTitle>Install Date</span>
+          <span matListItemLine>{{instance.action.source.intention.transaction.start | date:'short'}}</span>
+        </mat-list-item>
+      }
+      @if (instance.action.source?.intention?.user) {
+        <mat-list-item>
+          <span matListItemTitle>User</span>
+          <span matListItemLine>{{instance.action.source.intention.user.name}}</span>
+        </mat-list-item>
+      }
 
-            <div class="panel-container">
-              <div>User</div>
-              <div>{{item.userId}}</div>
-            </div>
-
-          </mat-expansion-panel>
-        }
-      </mat-accordion>
+      </mat-list>
     </div>
+
+    <div class="edge-container edge-container-margin-left edge-container-buttons">
+    @if (instance.action.source?.intention?.event.url) {
+      <a mat-stroked-button href="{{instance.action.source.intention.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
+    @if (instance.action.source?.intention?.auditUrl) {
+      <a mat-stroked-button href="{{instance.action.source.intention.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
+    </div>
+
+    <!-- <div class="view-more">
+      @if (instance.action.intention) {
+        <button mat-button (click)="viewIntention(instance.action.intention)">Older</button>
+      }
+    </div> -->
   }
 }
 <mat-divider></mat-divider>

@@ -25,7 +25,7 @@ import { ActionError } from './action.error';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
-import { ActionDto, isActionName } from './dto/action.dto';
+import { ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
@@ -40,6 +40,7 @@ import {
   ArtifactSearchResult,
 } from './dto/artifact-search-result.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
+import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -55,7 +56,6 @@ export interface IntentionOpenResponse {
   expiry: string;
 }
 
-type FindArtifactActionOptions = Partial<Pick<ActionDto, 'action' | 'id'>>;
 type FindArtifactArtifactOptions = Partial<ArtifactDto>;
 
 @Injectable()
@@ -67,6 +67,7 @@ export class IntentionService {
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
+    private readonly actionUtil: ActionUtil,
     private readonly intentionSync: IntentionSyncService,
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
@@ -319,6 +320,14 @@ export class IntentionService {
     }
   }
 
+  public async getIntention(id: string) {
+    const intention = await this.intentionRepository.getIntention(id);
+    if (intention) {
+      intention.auditUrl = this.auditUrlForIntention(intention);
+    }
+    return intention;
+  }
+
   public async artifactSearchByQuery(
     query: ArtifactSearchQuery,
   ): Promise<ArtifactSearchResult> {
@@ -373,42 +382,19 @@ export class IntentionService {
       limit,
     );
 
-    const actionOptions: FindArtifactActionOptions = {};
-    if (action) {
-      const actionArr = action.split('#');
-      if (actionArr.length === 2) {
-        if (actionArr[0] !== '') {
-          if (isActionName(actionArr[0])) {
-            actionOptions.action = actionArr[0];
-          } else {
-            throw new BadRequestException({
-              statusCode: 400,
-              message: 'Illegal action arguement',
-              error: `Check parameters for errors`,
-            });
-          }
-        }
-        actionOptions.id = actionArr[1];
-      } else if (actionArr.length === 1 && isActionName(actionArr[0])) {
-        actionOptions.action = actionArr[0];
-      } else {
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Illegal action arguement',
-          error: `Check parameters for errors`,
-        });
-      }
-    }
-
     return {
       ...result,
       data: result.data
         .map((intention) => {
-          return this.findArtifacts(intention, actionOptions, {
-            checksum: checksum,
-            name: name,
-            type: type,
-          });
+          return this.findArtifacts(
+            intention,
+            this.actionUtil.actionToOptions(action),
+            {
+              checksum: checksum,
+              name: name,
+              type: type,
+            },
+          );
         })
         .reduce((pv, cv) => pv.concat(cv), []),
     };
@@ -419,18 +405,16 @@ export class IntentionService {
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {
-    for (const action of intention.actions) {
+    for (const action of this.actionUtil.filterActions(
+      intention.actions,
+      actionOptions,
+    )) {
       if (!action.artifacts) {
         return;
       }
       const artifacts = action.artifacts.filter((artifact) => {
-        return (
-          Object.entries(actionOptions).every(
-            ([k, v]) => !v || action[k] === v,
-          ) &&
-          Object.entries(artifactOptions).every(
-            ([k, v]) => !v || artifact[k] === v,
-          )
+        return Object.entries(artifactOptions).every(
+          ([k, v]) => !v || artifact[k] === v,
         );
       });
       return artifacts.map((artifact) => ({ action, artifact, intention }));
@@ -475,9 +459,7 @@ export class IntentionService {
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
         await this.actionLifecycle(req, intention, action, outcome, 'end');
-        intention = await this.intentionRepository.getIntentionByToken(
-          intention.transaction.token,
-        );
+        intention = await this.intentionRepository.getIntention(intention.id);
       }
     }
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { GraphModule } from '../graph/graph.module';
@@ -8,6 +8,8 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { AccountService } from './account.service';
 import { UserCollectionService } from './user-collection.service';
 import { TokenModule } from '../token/token.module';
+import { UtilModule } from '../util/util.module';
+import { IntentionModule } from '../intention/intention.module';
 
 @Module({
   imports: [
@@ -15,7 +17,9 @@ import { TokenModule } from '../token/token.module';
     AuthModule,
     PersistenceModule,
     GraphModule,
+    forwardRef(() => IntentionModule),
     TokenModule,
+    UtilModule,
   ],
   controllers: [CollectionController],
   providers: [CollectionService, UserCollectionService, AccountService],

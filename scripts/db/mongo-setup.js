@@ -219,8 +219,12 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'string',
       hint: 'A name for the service instance',
+      uniqueParent: true,
     },
-    pkgInstallHistory: {
+    action: {
+      type: 'embeddedDoc',
+    },
+    actionHistory: {
       type: 'embeddedDocArray',
     },
   },

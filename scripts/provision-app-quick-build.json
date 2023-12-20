@@ -1,7 +1,7 @@
 {
   "event": {
     "provider": "github-action-demo",
-    "reason": "Job triggered",
+    "reason": "Build",
     "url": "JOB_URL"
   },
   "actions": [

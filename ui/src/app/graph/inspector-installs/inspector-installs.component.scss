@@ -1,27 +1,35 @@
 
-.edge-container {
+
+.edge-container-margin-left {
+  margin-left: 16px;
   margin-bottom: 16px;
 }
 
-.edge-container-margin-left {
+.edge-container-buttons a {
+  margin-right: 12px;
+}
+
+.heading {
+  margin: 8px 0 0;
   margin-left: 16px;
 }
 
 .heading {
-  margin: 8px 0;
-  margin-left: 16px;
-}
-
-.panel-container {
+  margin-top: 8px;
   display: flex;
-  height: 32px;
-  align-items:center;
+  align-items: center;
 }
 
-.panel-container :nth-child(odd) {
-  flex: 1;
+.heading h3 {
+  flex-grow: 1;
+  margin: 0;
 }
 
-.panel-container :nth-child(even) {
-  flex: 3;
+.heading :last-child {
+  flex-grow: 0;
+}
+
+.view-more {
+  text-align: right;
+  margin-bottom: 16px;
 }

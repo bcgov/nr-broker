@@ -1,30 +1,45 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
-import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  CollectionDtoRestUnion,
+  CollectionDtoUnion,
+} from '../persistence/dto/collection-dto-union.type';
 import { TokenService } from '../token/token.service';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
 import { VAULT_ENVIRONMENTS_SHORT } from '../constants';
+import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { ActionUtil } from '../util/action.util';
+import { CollectionConfigResponseDto } from '../persistence/dto/collection-config-rest.dto';
+import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
+import { IntentionService } from '../intention/intention.service';
 
 @Injectable()
 export class CollectionService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
+    private readonly intentionRepository: IntentionRepository,
+    private readonly intentionService: IntentionService,
+    private readonly actionUtil: ActionUtil,
     private readonly tokenService: TokenService,
   ) {}
 
-  public async getCollectionConfig(): Promise<CollectionConfigDto[]> {
-    return this.collectionRepository.getCollectionConfigs();
+  public async getCollectionConfig(): Promise<CollectionConfigResponseDto[]> {
+    return this.collectionRepository.getCollectionConfigs() as unknown as Promise<
+      CollectionConfigResponseDto[]
+    >;
   }
 
   public async getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
-  ): Promise<CollectionConfigDto | null> {
-    return this.collectionRepository.getCollectionConfigByName(collection);
+  ): Promise<CollectionConfigResponseDto | null> {
+    return this.collectionRepository.getCollectionConfigByName(
+      collection,
+    ) as unknown as Promise<CollectionConfigResponseDto | null>;
   }
 
   async getCollectionById<T extends keyof CollectionDtoUnion>(
@@ -32,7 +47,9 @@ export class CollectionService {
     id: string,
   ) {
     try {
-      return this.collectionRepository.getCollectionById(type, id);
+      return this.collectionRepository
+        .getCollectionById(type, id)
+        .then((collection) => this.processForPointers(type, collection));
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -42,12 +59,20 @@ export class CollectionService {
     }
   }
 
+  private collectionToRest<T extends keyof CollectionDtoUnion>(
+    config: CollectionDtoUnion[T],
+  ): CollectionDtoRestUnion[T] {
+    return config as unknown as CollectionDtoRestUnion[T];
+  }
+
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
     vertexId: string,
   ) {
     try {
-      return this.collectionRepository.getCollectionByVertexId(type, vertexId);
+      return this.collectionRepository
+        .getCollectionByVertexId(type, vertexId)
+        .then((collection) => this.processForPointers(type, collection));
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,
@@ -55,6 +80,19 @@ export class CollectionService {
         error: '',
       });
     }
+  }
+
+  private async processForPointers<T extends keyof CollectionDtoUnion>(
+    type: T,
+    collection: CollectionDtoUnion[T],
+  ) {
+    if (type === 'serviceInstance') {
+      const serviceInstance: ServiceInstanceDto = collection;
+      if (serviceInstance.action) {
+        await this.joinIntention(serviceInstance.action);
+      }
+    }
+    return collection;
   }
 
   async searchCollection<T extends keyof CollectionDtoUnion>(
@@ -71,6 +109,31 @@ export class CollectionService {
       offset,
       limit,
     );
+  }
+
+  private async joinIntention(
+    pointer: IntentionActionPointerRestDto[] | IntentionActionPointerRestDto,
+  ) {
+    const actionPointers = Array.isArray(pointer) ? pointer : [pointer];
+    for (const actionPointer of actionPointers) {
+      // console.log(actionPointer);
+      if (actionPointer.intention) {
+        const intention = await this.intentionService.getIntention(
+          actionPointer.intention,
+        );
+        if (intention) {
+          // console.log(this.actionUtil.actionToOptions(actionPointer.action));
+          const actions = this.actionUtil.filterActions(
+            intention.actions,
+            this.actionUtil.actionToOptions(actionPointer.action),
+          );
+          actionPointer.source = {
+            intention,
+            action: actions.length === 1 ? actions[0] : undefined,
+          };
+        }
+      }
+    }
   }
 
   async getServiceSecureInfo(serviceId: string) {
@@ -109,6 +172,14 @@ export class CollectionService {
         VAULT_ENVIRONMENTS_SHORT.map((key, i) => [key, roleIds[i]]),
       ),
     };
+  }
+
+  async doUniqueKeyCheck(
+    collection: keyof CollectionDtoUnion,
+    key: string,
+    value: string,
+  ) {
+    return this.collectionRepository.doUniqueKeyCheck(collection, key, value);
   }
 
   private async getRoleIdForApplicationSupressed(

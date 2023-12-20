@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs';
 import {
-  CollectionDtoUnion,
+  CollectionDtoRestUnion,
   CollectionNames,
 } from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
@@ -50,7 +50,7 @@ export class GraphApiService {
     );
   }
 
-  getCollectionData<T extends keyof CollectionDtoUnion>(
+  getCollectionData<T extends keyof CollectionDtoRestUnion>(
     collection: T,
     vertexId: string,
   ) {

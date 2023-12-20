@@ -375,6 +375,9 @@ export class GraphMongoRepository implements GraphRepository {
       if (config.fields[fkey] === undefined) {
         unsetFields[fkey] = '';
       }
+      if (config.fields[fkey].type === 'embeddedDoc') {
+        // delete collection[fkey];
+      }
       if (config.fields[fkey].type === 'embeddedDocArray') {
         pushFields[fkey] = {
           $each: collection[fkey],
@@ -385,7 +388,12 @@ export class GraphMongoRepository implements GraphRepository {
     }
     if (!ignoreBlankFields) {
       for (const fkey of Object.keys(config.fields)) {
-        if (pushFields[fkey] === undefined && collection[fkey] === undefined) {
+        if (
+          pushFields[fkey] === undefined &&
+          collection[fkey] === undefined &&
+          config.fields[fkey].type !== 'embeddedDoc' &&
+          config.fields[fkey].type !== 'embeddedDocArray'
+        ) {
           unsetFields[fkey] = '';
         }
       }

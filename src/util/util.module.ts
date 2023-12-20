@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ValidatorUtil } from './validator.util';
+import { ActionUtil } from './action.util';
 
 @Module({
   imports: [],
   controllers: [],
-  providers: [ValidatorUtil],
-  exports: [ValidatorUtil],
+  providers: [ActionUtil, ValidatorUtil],
+  exports: [ActionUtil, ValidatorUtil],
 })
 export class UtilModule {}

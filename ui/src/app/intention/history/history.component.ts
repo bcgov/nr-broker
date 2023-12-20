@@ -195,6 +195,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
         this.intentionData = data.data;
         this.intentionTotal = data.meta.total;
         this.loading = false;
+        if (this.intentionTotal === 1) {
+          this.expandedElement = this.intentionData[0];
+        }
       });
     const params = this.route.snapshot.params;
     if (params['index']) {
