@@ -1,5 +1,5 @@
 <div>
-  @if ((filteredCollectionData | keyvalue).length > 0 && collectionConfig) {
+  @if (filteredCollectionData && (filteredCollectionData | keyvalue).length > 0 && collectionConfig) {
     <table mat-table [dataSource]="filteredCollectionData | keyvalue">
       <!-- Key Column -->
       <ng-container matColumnDef="key">

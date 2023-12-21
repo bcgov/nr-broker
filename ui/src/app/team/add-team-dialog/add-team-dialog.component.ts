@@ -55,6 +55,7 @@ export class AddTeamDialogComponent {
   }
 
   isFormInvalid() {
+    console.log(!this.formComponent?.form?.valid);
     return !this.formComponent?.form?.valid;
   }
 

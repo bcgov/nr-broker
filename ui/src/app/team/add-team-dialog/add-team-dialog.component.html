@@ -14,6 +14,7 @@
   }
   @if (config) {
     <app-vertex-form-builder
+      [collection]="'team'"
       [fieldMap]="config.fields"
       [data]="data.team"
     (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>

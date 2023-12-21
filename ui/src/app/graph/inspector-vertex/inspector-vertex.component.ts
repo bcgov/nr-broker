@@ -78,6 +78,12 @@ export class InspectorVertexComponent implements OnChanges {
         }
       }
 
+      for (const key of Object.keys(filteredCollectionData)) {
+        if (!this.collectionConfig[this.collection].fields[key]) {
+          delete filteredCollectionData[key];
+        }
+      }
+
       this.filteredCollectionData = filteredCollectionData;
     }
   }

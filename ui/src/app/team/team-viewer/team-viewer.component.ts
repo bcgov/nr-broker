@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, ParamMap, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
   ChartClickTargetVertex,
@@ -64,9 +64,10 @@ export class TeamViewerComponent {
       ),
     );
 
-    this.latestConfig$ = this.graphApi
-      .getConfig()
-      .pipe(map(this.graphUtil.configArrToMap));
+    this.latestConfig$ = this.graphApi.getConfig().pipe(
+      map(this.graphUtil.configArrToMap),
+      tap((val) => console.log(val)),
+    );
   }
 
   openInGraph(elem: TeamRestDto) {
