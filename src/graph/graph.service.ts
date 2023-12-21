@@ -226,9 +226,9 @@ export class GraphService {
           key,
           collection[key],
         );
-        console.log(vertex);
-        console.log(collection);
-        console.log(uniqueCheck);
+        // console.log(vertex);
+        // console.log(collection);
+        // console.log(uniqueCheck);
         if (
           uniqueCheck.filter((check) => vertexObj.id.toString() !== check)
             .length > 0

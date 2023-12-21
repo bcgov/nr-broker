@@ -38,6 +38,9 @@ export class GraphUtilService {
   }
 
   snakecase(str: string) {
+    if (!str) {
+      return str;
+    }
     return str.replace(
       /[A-Z]/g,
       (letter: string) => `-${letter.toLowerCase()}`,

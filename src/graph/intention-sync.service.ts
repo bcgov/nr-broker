@@ -36,7 +36,7 @@ export class IntentionSyncService {
 
   public async sync(intention: IntentionDto) {
     const envMap = await this.persistenceUtilService.getEnvMap();
-    console.log(intention);
+    // console.log(intention);
     for (const action of intention.actions) {
       const context = {
         action,
