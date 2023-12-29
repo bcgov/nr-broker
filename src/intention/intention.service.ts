@@ -480,7 +480,9 @@ export class IntentionService {
           'name',
           action.service.name,
         );
-        action.service.id = colObj.id;
+        if (colObj) {
+          action.service.id = colObj.id;
+        }
       }
     }
     return this.intentionRepository.closeIntention(intention);
