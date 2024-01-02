@@ -4,6 +4,18 @@ NR Broker handles the business logic of authenticating and validating requests f
 
 NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 
+## GitHub Actions
+
+A series of GitHub Actions help automate working with the Broker:
+
+* [Intention open](https://github.com/bcgov-nr/action-broker-intention-open)
+* [Intention close](https://github.com/bcgov-nr/action-broker-intention-close)
+* [Action start](https://github.com/bcgov-nr/action-broker-action-start)
+* [Vault login](https://github.com/bcgov-nr/action-broker-vault-login)
+* [Vault provision](https://github.com/bcgov-nr/action-broker-vault-provision)
+* [Vault token revoke](https://github.com/bcgov-nr/action-broker-vault-revoke)
+* [Action end](https://github.com/bcgov-nr/action-broker-action-end)
+
 ## Development requirements
 
 The following are expected to be installed.
@@ -45,7 +57,7 @@ $ podman run \
   --name broker-mongo \
   -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
 	-e MONGO_INITDB_ROOT_PASSWORD=secret \
-  -d mongo:6 \
+  -d mongo:7 \
   --wiredTigerCacheSizeGB 0.25
 ```
 
@@ -113,6 +125,20 @@ If at any time you need to wipe the graph database, you can drop the tables by u
 
 ```
 brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
+```
+
+### Restoring a database from a dump
+
+If you have an existing database, connect to it and delete it first.
+
+```
+brokerDB> db.dropDatabase()
+```
+
+Run the following. Alter the path to dump taken with mongodump as needed. The important thing is that you want to overwrite the broker database (brokerDB) and not the authentication database.
+
+```
+mongorestore --host=localhost:27017 --authenticationDatabase=admin -u=mongoadmin -p=secret --db=brokerDB *path/to/backup*/brokerDB
 ```
 
 ### Updating JWT allow/block list
