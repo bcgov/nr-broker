@@ -1,4 +1,3 @@
-
 .history-flex-container {
   display: flex;
   justify-content: space-between;
@@ -30,74 +29,4 @@
 
 .field-outcome {
   width: 9em;
-}
-
-table {
-  width: 100%;
-}
-
-tr.history-detail-row {
-  height: 0;
-}
-
-tr.element-row:not(.expanded-row):hover {
-  background: whitesmoke;
-}
-
-tr.element-row:not(.expanded-row):active {
-  background: #efefef;
-}
-
-.element-row td {
-  border-bottom-width: 0;
-}
-
-.element-detail {
-  overflow: hidden;
-}
-
-.expanded-header-container {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-  align-items: center;
-}
-
-.expanded-header-container h3 {
-  flex: 1;
-  margin: 0;
-}
-.expanded-header-container a {
-  margin-left: 12px;
-}
-
-.artifact-container {
-  display: flex;
-  margin: 12px 0;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.artifact-card {
-  display: flex;
-  width: 33%;
-}
-
-.artifact-card {
-  background: whitesmoke;
-}
-
-.package-info {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.package-info .info-name {
-  width:20%;
-}
-.package-info .info-value {
-  width:80%;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }

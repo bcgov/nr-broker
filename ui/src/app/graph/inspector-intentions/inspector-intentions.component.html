@@ -2,16 +2,14 @@
   <h3 class="heading">Recent Intentions</h3>
 </div>
 @if (total == 0) {
-  <div class="edge-container">None</div>
+  <div class="edge-container intention-none">None</div>
+} @else {
+  <app-history-table
+    [intentionData]="intentions"
+    [layout]="'narrow'"
+    [showHeader]="false"
+    [openFirst]="true"></app-history-table>
 }
-<mat-action-list>
-  @for (item of intentions; track item; let i = $index) {
-    <mat-list-item (click)="navigateHistoryById(item.id)">
-      <span matListItemTitle>{{item.transaction.start | date:'medium' }}</span>
-      <span matListItemLine>{{item.event.reason}}</span>
-    </mat-list-item>
-  }
-</mat-action-list>
 @if (total > 0) {
   <div class="more-panel">
     <div>{{total}} Total</div>
