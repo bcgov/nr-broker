@@ -8,7 +8,7 @@ describe('HistoryComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HistoryComponent]
+      imports: [HistoryComponent],
     });
     fixture = TestBed.createComponent(HistoryComponent);
     component = fixture.componentInstance;

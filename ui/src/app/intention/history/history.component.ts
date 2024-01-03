@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   FormsModule,
@@ -7,6 +7,13 @@ import {
   FormControl,
   ReactiveFormsModule,
 } from '@angular/forms';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -17,21 +24,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
 import { Subject, catchError, of, switchMap } from 'rxjs';
-import prettyMilliseconds from 'pretty-ms';
 
 import { IntentionApiService } from '../../service/intention-api.service';
-import { ActionContentComponent } from '../action-content/action-content.component';
-import {
-  trigger,
-  state,
-  style,
-  transition,
-  animate,
-} from '@angular/animations';
-import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
-import { FilesizePipe } from '../../util/filesize.pipe';
+import { HistoryTableComponent } from '../history-table/history-table.component';
 
 @Component({
   selector: 'app-history',
@@ -49,12 +45,8 @@ import { FilesizePipe } from '../../util/filesize.pipe';
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatTableModule,
     ReactiveFormsModule,
-    JsonPipe,
-    ActionContentComponent,
-    GanttGraphComponent,
-    FilesizePipe,
+    HistoryTableComponent,
   ],
   templateUrl: './history.component.html',
   animations: [
@@ -91,24 +83,11 @@ export class HistoryComponent implements OnInit, OnDestroy {
     { value: 'success', viewValue: 'Success' },
     { value: 'failure', viewValue: 'Failure' },
   ];
-  propDisplayedColumns: string[] = [
-    'project',
-    'service',
-    'action',
-    'start',
-    'outcome',
-    'user',
-  ];
-  propDisplayedColumnsWithExpand: string[] = [
-    ...this.propDisplayedColumns,
-    'expand',
-  ];
   range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
   private triggerRefresh = new Subject<void>();
-  expandedElement: any | null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -195,9 +174,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
         this.intentionData = data.data;
         this.intentionTotal = data.meta.total;
         this.loading = false;
-        if (this.intentionTotal === 1) {
-          this.expandedElement = this.intentionData[0];
-        }
       });
     const params = this.route.snapshot.params;
     if (params['index']) {
@@ -268,11 +244,5 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.selectedStatus = 'all';
     this.range.reset();
     this.filter();
-  }
-
-  totalDuration(intention: any) {
-    return intention.transaction.duration
-      ? prettyMilliseconds(intention.transaction.duration)
-      : 0;
   }
 }

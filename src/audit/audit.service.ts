@@ -654,8 +654,8 @@ export class AuditService {
               name: graphObj.name,
               set: 'edge',
               edge: {
-                source: graphObj.source.toString(),
-                target: graphObj.target.toString(),
+                source: graphObj.source ? graphObj.source.toString() : '',
+                target: graphObj.target ? graphObj.target.toString() : '',
               },
               ...(graphObj.prop ? { prop: graphObj.prop } : {}),
             },

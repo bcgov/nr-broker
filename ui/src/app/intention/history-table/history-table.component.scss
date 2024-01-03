@@ -1,0 +1,99 @@
+table {
+  width: 100%;
+}
+
+tr.history-detail-row {
+  height: 0;
+}
+
+tr.element-row:not(.expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.element-row:not(.expanded-row):active {
+  background: #efefef;
+}
+
+.element-row td {
+  border-bottom-width: 0;
+}
+
+.element-detail {
+  overflow: hidden;
+}
+
+.expanded-header-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.expanded-header-actions h3 {
+  flex: 1;
+  margin: 0;
+}
+.expanded-header-actions a:not(:first-child) {
+  margin-left: 12px;
+}
+.expanded-header-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.expanded-header-container a {
+  cursor: pointer;
+}
+
+h4.expanded-narrow-header {
+  margin: 0;
+}
+
+.expanded-narrow-header-actions {
+  display: flex;
+  justify-content: end;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.expanded-narrow-header-actions a:not(:first-child) {
+  margin-left: 12px;
+}
+
+
+.artifact-container {
+  display: flex;
+  margin: 12px 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.artifact-card {
+  display: flex;
+  width: 33%;
+}
+
+.artifact-card {
+  background: whitesmoke;
+}
+
+.package-info {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.package-info .info-name {
+  width:20%;
+}
+.package-info .info-value {
+  width:80%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.mat-icon-status {
+  line-height: 1em;
+  vertical-align: -2px;
+}
