@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { MatSnackBar, MatSnackBarModule, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import prettyMilliseconds from 'pretty-ms';
 import { switchMap } from 'rxjs';
@@ -33,6 +34,7 @@ import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.t
     MatIconModule,
     MatListModule,
     MatTableModule,
+    MatSnackBarModule,
     ActionContentComponent,
     FilesizePipe,
     GanttGraphComponent,
@@ -75,7 +77,8 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     private readonly router: Router,
     private readonly collectionApi: CollectionApiService,
     private readonly graphUtil: GraphUtilService,
-  ) {}
+    private readonly snackBar: MatSnackBar,
+  ) { }
 
   ngOnChanges(): void {
     if (
@@ -137,7 +140,11 @@ export class HistoryTableComponent implements OnInit, OnChanges {
           if (ids.length === 1) {
             return this.collectionApi.getCollectionById(collection, ids[0]);
           }
-          throw new Error();
+          const config = new MatSnackBarConfig();
+          config.duration = 5000;
+          config.verticalPosition = 'bottom';
+          this.snackBar.open(`The ${collection} was not found.`, 'Dismiss', config);
+          throw new Error(`The ${collection} was not found`);
         }),
       )
       .subscribe((collection) => {
