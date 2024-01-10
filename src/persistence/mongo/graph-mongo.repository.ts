@@ -699,4 +699,19 @@ export class GraphMongoRepository implements GraphRepository {
         return acc;
       });
   }
+
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  public vertexTypeahead(
+    text: string,
+    collections?: string[],
+    offset?: number,
+    limit?: number,
+  ): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
+
+  public reindexCache(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
 }

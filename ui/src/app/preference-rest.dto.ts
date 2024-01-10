@@ -4,4 +4,5 @@ export interface PreferenceRestDto {
   graphVertexFocus: string;
   graphVertexVisibility: { [key: string]: boolean };
   graphEdgeSrcTarVisibility: { [key: string]: boolean };
+  teamFilterShow: 'all' | 'myteams';
 }

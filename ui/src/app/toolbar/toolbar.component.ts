@@ -18,8 +18,25 @@ import { UserDto } from '../service/graph.types';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
-import { interval, Subject } from 'rxjs';
-import { takeUntil, catchError } from 'rxjs/operators';
+import { interval, Observable, of, Subject } from 'rxjs';
+import {
+  takeUntil,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
+import {
+  GraphTypeaheadData,
+  GraphTypeaheadResult,
+} from '../service/dto/graph-typeahead-result.dto';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { GraphApiService } from '../service/graph-api.service';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { GraphUtilService } from '../service/graph-util.service';
 
 @Component({
   selector: 'app-toolbar',
@@ -27,20 +44,30 @@ import { takeUntil, catchError } from 'rxjs/operators';
   styleUrls: ['./toolbar.component.scss'],
   standalone: true,
   imports: [
-    MatToolbarModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule,
     MatButtonModule,
+    MatToolbarModule,
     MatIconModule,
+    MatInputModule,
     MatMenuModule,
+    MatSelectModule,
     MatDividerModule,
     CommonModule,
   ],
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
   @Output() sidebarClick = new EventEmitter<boolean>();
+  filteredOptions!: Observable<GraphTypeaheadResult>;
+  searchControl = new FormControl<{ id: string } | string | undefined>(
+    undefined,
+  );
 
   constructor(
     private readonly dialog: MatDialog,
     private readonly healthService: HealthStatusService,
+    private readonly graphApi: GraphApiService,
+    private readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -62,6 +89,23 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
     // Initial health check
     this.getHealthCheck();
+
+    this.filteredOptions = this.searchControl.valueChanges.pipe(
+      startWith(undefined),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap((searchTerm) => {
+        if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
+          return this.graphApi.doTypeaheadSearch(searchTerm);
+        }
+        return of({
+          meta: {
+            total: 0,
+          },
+          data: [],
+        });
+      }),
+    );
   }
 
   ngOnDestroy(): void {
@@ -100,6 +144,19 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     this.dialog.open(RolesDialogComponent, {
       width: '400px',
     });
+  }
+
+  displayFn(vertex: GraphTypeaheadData): string {
+    if (vertex) {
+      return vertex.name;
+    } else {
+      return '';
+    }
+  }
+
+  onTypeaheadOptionClick(option: GraphTypeaheadData) {
+    this.graphUtil.openInGraph(option.id, 'vertex');
+    this.searchControl?.reset();
   }
 
   openSidebar() {

@@ -72,4 +72,13 @@ export abstract class GraphRepository {
   public abstract getBrokerAccountServices(
     id: string,
   ): Promise<BrokerAccountProjectMapDto>;
+
+  public abstract vertexTypeahead(
+    text: string,
+    collections?: string[],
+    offset?: number,
+    limit?: number,
+  ): Promise<any>;
+
+  public abstract reindexCache(): Promise<boolean>;
 }

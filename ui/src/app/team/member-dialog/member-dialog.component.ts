@@ -30,6 +30,7 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
+import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
 
 @Component({
   selector: 'app-member-dialog',
@@ -57,7 +58,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
 
   userTypeSelected = 'developer';
   userControl = new FormControl<{ id: string } | string | undefined>(undefined);
-  filteredOptions!: Observable<VertexSearchDto[]>;
+  filteredOptions!: Observable<GraphTypeaheadResult>;
 
   private triggerRefresh = new Subject<void>();
   loading = true;
@@ -137,9 +138,14 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       debounceTime(1000),
       switchMap((searchTerm) => {
         if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
-          return this.graphApi.searchVertex('user', searchTerm);
+          return this.graphApi.doTypeaheadSearch(searchTerm, ['user']);
         }
-        return of([]);
+        return of({
+          meta: {
+            total: 0,
+          },
+          data: [],
+        });
       }),
     );
   }

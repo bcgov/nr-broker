@@ -8,6 +8,7 @@ import {
   Query,
   Request,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -27,6 +28,9 @@ import { CollectionSearchQuery } from './dto/collection-search-query.dto';
 import { get } from 'radash';
 import { UserCollectionService } from './user-collection.service';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
+import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
+import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
+import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 
 @Controller({
   path: 'collection',
@@ -66,6 +70,8 @@ export class CollectionController {
   @Get('config')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
+  @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_CONFIG)
+  @UseInterceptors(PersistenceCacheInterceptor)
   getCollectionConfig() {
     return this.service.getCollectionConfig();
   }

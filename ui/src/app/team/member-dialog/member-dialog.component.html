@@ -16,11 +16,12 @@
         <input type="text"
           placeholder="Pick one"
           aria-label="User"
+          spellcheck="false"
           matInput
           [formControl]="userControl"
           [matAutocomplete]="auto">
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
-          @for (option of filteredOptions | async; track option) {
+          @for (option of (filteredOptions | async)?.data; track option) {
             <mat-option [value]="option">
               {{ option.name }}
             </mat-option>

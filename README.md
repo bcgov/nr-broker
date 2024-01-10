@@ -46,6 +46,15 @@ $ npm ci
 $ cd ui; npm ci
 ```
 
+ ### Setup redis-stack
+
+The development setup assumes you are using podman to run the Redis Stack.
+
+ ```bash
+ # Start up local redis stack
+ $ podman run -p 6379:6379 -p 8001:8001 --name broker-redis -d redis/redis-stack
+ ```
+
 ### Setup MongoDB
 
 The development setup assumes you are using podman to run MongoDB.

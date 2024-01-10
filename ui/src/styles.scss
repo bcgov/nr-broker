@@ -2,3 +2,10 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.search-input .mat-mdc-text-field-wrapper {
+  border-radius: 20px;
+}
+.search-input .mat-mdc-form-field-bottom-align::before {
+  height: 0;
+}

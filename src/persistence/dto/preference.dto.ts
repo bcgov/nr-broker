@@ -21,11 +21,15 @@ export class PreferenceDto {
   @Column()
   graphEdgeSrcTarVisibility: { [key: string]: boolean } = {};
 
+  @Column()
+  teamFilterShow: 'all' | 'myteams' = 'myteams';
+
   public toRestDto(): PreferenceRestDto {
     return {
       graphFollows: this.graphFollows,
       graphVertexVisibility: this.graphVertexVisibility,
       graphEdgeSrcTarVisibility: this.graphEdgeSrcTarVisibility,
+      teamFilterShow: this.teamFilterShow,
     };
   }
 }
