@@ -63,7 +63,11 @@ export class TeamViewerComponent {
     );
     this.accountSearch$ = this.team$.pipe(
       switchMap((team: TeamRestDto) =>
-        this.collectionApi.searchCollection('brokerAccount', team.vertex),
+        this.collectionApi.searchCollection('brokerAccount', {
+          upstreamVertex: team.vertex,
+          offset: 0,
+          limit: 20,
+        }),
       ),
     );
 

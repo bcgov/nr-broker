@@ -104,10 +104,3 @@ $theme: mat.define-light-theme((
 
 html, body { height: 100%; }
 body { margin: 0; font-family: 'BCSans', 'Noto Sans', Verdana, Arial, sans-serif; }
-
-.search-input .mat-mdc-text-field-wrapper {
-  border-radius: 20px;
-}
-.search-input .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}

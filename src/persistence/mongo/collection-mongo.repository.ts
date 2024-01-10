@@ -81,7 +81,8 @@ export class CollectionMongoRepository implements CollectionRepository {
   public async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     upstreamVertex: string | undefined,
-    vertexId: string | undefined,
+    id: string | undefined,
+    vertexIds: string[] | undefined,
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
@@ -96,17 +97,29 @@ export class CollectionMongoRepository implements CollectionRepository {
           },
         ]
       : [];
-    const vertexQuery = vertexId
+    const idQuery = id
       ? [
           {
             $match: {
-              _id: new ObjectId(vertexId),
+              _id: new ObjectId(id),
+            },
+          },
+        ]
+      : [];
+    const vertexQuery = vertexIds
+      ? [
+          {
+            $match: {
+              vertex: {
+                $in: vertexIds.map((vertexId) => new ObjectId(vertexId)),
+              },
             },
           },
         ]
       : [];
     return repo
       .aggregate([
+        ...idQuery,
         ...vertexQuery,
         {
           $lookup: {

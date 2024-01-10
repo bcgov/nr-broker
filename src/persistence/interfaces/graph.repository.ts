@@ -1,3 +1,4 @@
+import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { EdgeDto } from '../dto/edge.dto';
@@ -73,12 +74,12 @@ export abstract class GraphRepository {
     id: string,
   ): Promise<BrokerAccountProjectMapDto>;
 
-  public abstract vertexTypeahead(
+  public abstract vertexTypeahead<T extends keyof CollectionDtoUnion>(
     text: string,
-    collections?: string[],
+    collections?: T[],
     offset?: number,
     limit?: number,
-  ): Promise<any>;
+  ): Promise<GraphTypeaheadResult>;
 
   public abstract reindexCache(): Promise<boolean>;
 }

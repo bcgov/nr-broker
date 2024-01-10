@@ -28,17 +28,25 @@ export class CollectionApiService {
 
   public searchCollection<T extends keyof CollectionDtoRestUnion>(
     name: T,
-    upstreamVertex: string | null = null,
-    vertexId: string | null = null,
-    offset = 0,
-    limit = 5,
+    options: {
+      q?: string;
+      upstreamVertex?: string;
+      id?: string;
+      vertexId?: string;
+      offset: number;
+      limit: number;
+    },
   ) {
     return this.http.post<CollectionSearchResult<CollectionDtoRestUnion[T]>>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         name,
-      )}/search?${upstreamVertex ? `upstreamVertex=${upstreamVertex}&` : ''}${
-        vertexId ? `vertexId=${vertexId}&` : ''
-      }offset=${offset}&limit=${limit}`,
+      )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
+        options.upstreamVertex
+          ? `upstreamVertex=${options.upstreamVertex}&`
+          : ''
+      }${options.id ? `id=${options.id}&` : ''}${
+        options.vertexId ? `vertexId=${options.vertexId}&` : ''
+      }offset=${options.offset}&limit=${options.limit}`,
       {
         responseType: 'json',
       },

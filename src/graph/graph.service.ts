@@ -15,7 +15,10 @@ import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../persistence/dto/collection-dto-union.type';
 import { validate } from 'class-validator';
 import { ValidatorUtil } from '../util/validator.util';
 import { get, set } from 'radash';
@@ -534,7 +537,7 @@ export class GraphService {
 
   public async vertexTypeahead(
     text: string,
-    collections?: string[],
+    collections?: CollectionNames[],
     offset?: number,
     limit?: number,
   ): Promise<GraphTypeaheadResult> {

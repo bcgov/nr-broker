@@ -87,13 +87,11 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap(() => {
           this.loading = true;
-          return this.collectionApi.searchCollection(
-            'team',
-            null,
-            this.data.id,
-            0,
-            1,
-          );
+          return this.collectionApi.searchCollection('team', {
+            vertexId: this.data.id,
+            offset: 0,
+            limit: 1,
+          });
         }),
       )
       .subscribe((data) => {

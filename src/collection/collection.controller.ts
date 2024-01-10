@@ -152,13 +152,23 @@ export class CollectionController {
     name: 'vertexId',
     required: false,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'id',
+    required: false,
+  })
   async getCollections(
     @Param('collection') collection: string,
     @Query() query: CollectionSearchQuery,
   ) {
     return this.service.searchCollection(
       this.parseCollectionApi(collection),
+      query.q,
       query.upstreamVertex,
+      query.id,
       query.vertexId,
       query.offset,
       query.limit,

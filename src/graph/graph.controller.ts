@@ -22,7 +22,10 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { AllowOwner } from '../allow-owner.decorator';
-import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../persistence/dto/collection-dto-union.type';
 import { AllowBodyValue } from '../allow-body-value.decorator';
 import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
@@ -65,9 +68,9 @@ export class GraphController {
   getVertexTypeahead(@Query() query: GraphTypeaheadQuery) {
     return this.graph.vertexTypeahead(
       query.q,
-      !query.collections || Array.isArray(query.collections)
+      (!query.collections || Array.isArray(query.collections)
         ? query.collections
-        : [query.collections],
+        : [query.collections]) as CollectionNames[],
     );
   }
 

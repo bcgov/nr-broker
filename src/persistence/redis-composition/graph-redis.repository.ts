@@ -31,6 +31,7 @@ import {
   PERSISTENCE_CACHE_KEY_GRAPH,
 } from '../persistence.constants';
 import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
+import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -189,12 +190,12 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getBrokerAccountServices(id);
   }
 
-  public async vertexTypeahead(
+  public async vertexTypeahead<T extends keyof CollectionDtoUnion>(
     text: string,
-    collections?: string[],
+    collections?: T[],
     offset?: number,
     limit?: number,
-  ) {
+  ): Promise<GraphTypeaheadResult> {
     const collectionClause = !!collections
       ? `(@collection:{${collections
           .map((collection) => this.util.escapeRedisStr(collection))
@@ -215,9 +216,9 @@ export class GraphRedisRepository implements GraphRepository {
       },
       data: data.documents.map((doc) => {
         return {
-          id: doc.value.id,
-          collection: doc.value.collection,
-          name: doc.value.name,
+          id: doc.value.id as string,
+          collection: doc.value.collection as string,
+          name: doc.value.name as string,
           // index: doc.id,
         };
       }),

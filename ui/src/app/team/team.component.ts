@@ -1,7 +1,6 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +12,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import {
-  Observable,
   Subject,
   catchError,
   combineLatest,
@@ -38,12 +36,8 @@ import { AddTeamDialogComponent } from './add-team-dialog/add-team-dialog.compon
 import { GraphApiService } from '../service/graph-api.service';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import {
-  GraphTypeaheadData,
-  GraphTypeaheadResult,
-} from '../service/dto/graph-typeahead-result.dto';
+import { GraphTypeaheadData } from '../service/dto/graph-typeahead-result.dto';
 
 @Component({
   selector: 'app-team',
@@ -51,12 +45,10 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     MatInputModule,
-    MatListModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -106,7 +98,7 @@ export class TeamComponent implements OnInit, OnDestroy {
     'accounts',
     'action',
   ];
-  filteredOptions!: Observable<GraphTypeaheadResult>;
+  filterValue = '';
   teamControl = new FormControl<{ id: string } | string | undefined>(undefined);
 
   private triggerRefresh = new Subject<void>();
@@ -114,22 +106,18 @@ export class TeamComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // console.log(this.user);
     this.showFilter = this.preferences.get('teamFilterShow');
-    this.filteredOptions = this.teamControl.valueChanges.pipe(
-      startWith(undefined),
-      distinctUntilChanged(),
-      debounceTime(1000),
-      switchMap((searchTerm) => {
-        if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
-          return this.graphApi.doTypeaheadSearch(searchTerm, ['team']);
+    this.teamControl.valueChanges
+      .pipe(startWith(undefined), distinctUntilChanged(), debounceTime(1000))
+      .subscribe((searchTerm) => {
+        if (
+          typeof searchTerm !== 'string' ||
+          (searchTerm.length < 3 && searchTerm === this.filterValue)
+        ) {
+          return;
         }
-        return of({
-          meta: {
-            total: 0,
-          },
-          data: [],
-        });
-      }),
-    );
+        this.filterValue = searchTerm.length < 3 ? '' : searchTerm;
+        this.triggerRefresh.next();
+      });
     this.triggerRefresh
       .pipe(
         tap(() => {
@@ -138,13 +126,16 @@ export class TeamComponent implements OnInit, OnDestroy {
         switchMap(() => {
           return combineLatest([
             this.collectionApi
-              .searchCollection(
-                'team',
-                this.showFilter === 'myteams' ? this.user.vertex : null,
-                null,
-                this.pageIndex * this.pageSize,
-                this.pageSize,
-              )
+              .searchCollection('team', {
+                ...(this.filterValue.length >= 3
+                  ? { q: this.filterValue }
+                  : {}),
+                ...(this.showFilter === 'myteams'
+                  ? { upstreamVertex: this.user.vertex }
+                  : {}),
+                offset: this.pageIndex * this.pageSize,
+                limit: this.pageSize,
+              })
               .pipe(
                 catchError(() => {
                   // Ignore errors for now

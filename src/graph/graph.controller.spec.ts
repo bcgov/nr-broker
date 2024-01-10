@@ -11,6 +11,14 @@ describe('GraphController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GraphController],
+      providers: [
+        {
+          provide: 'REDIS_CLIENT',
+          useValue: {
+            emit: jest.fn(),
+          },
+        },
+      ],
     })
       .useMocker(createMock)
       .compile();

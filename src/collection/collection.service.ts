@@ -10,19 +10,18 @@ import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
 import { VAULT_ENVIRONMENTS_SHORT } from '../constants';
-import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigResponseDto } from '../persistence/dto/collection-config-rest.dto';
 import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
 import { IntentionService } from '../intention/intention.service';
+import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 
 @Injectable()
 export class CollectionService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
-    private readonly intentionRepository: IntentionRepository,
     private readonly intentionService: IntentionService,
     private readonly actionUtil: ActionUtil,
     private readonly tokenService: TokenService,
@@ -97,15 +96,28 @@ export class CollectionService {
 
   async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
+    q: string | undefined,
     upstreamVertex: string | undefined,
+    id: string | undefined,
     vertexId: string | undefined,
     offset: number,
     limit: number,
   ) {
+    let vertexIds = vertexId ? [vertexId] : undefined;
+    if (q) {
+      const typeaheadData = await this.graphRepository.vertexTypeahead(
+        q,
+        [type],
+        0,
+        PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT,
+      );
+      vertexIds = typeaheadData.data.map((data) => data.id);
+    }
     return this.collectionRepository.searchCollection(
       type,
       upstreamVertex,
-      vertexId,
+      id,
+      vertexIds,
       offset,
       limit,
     );
