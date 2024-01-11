@@ -242,7 +242,7 @@ export class GraphRedisRepository implements GraphRepository {
     try {
       await this.client.ft.dropIndex('idx:collection_json', { DD: true });
     } catch (e: any) {
-      // ignore
+      // ignore -- may just be first time creating index
     }
     await this.client.ft.create(
       'idx:collection_json',

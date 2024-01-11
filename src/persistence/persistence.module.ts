@@ -1,6 +1,6 @@
 import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { createClient } from 'redis';
+import { createClient, createCluster } from 'redis';
 
 import { BrokerAccountDto } from './dto/broker-account.dto';
 import { CollectionConfigDto } from './dto/collection-config.dto';
@@ -34,6 +34,7 @@ const redisFactory = {
   provide: 'REDIS_CLIENT',
   useFactory: async () => {
     const host = process.env.REDIS_HOST ? process.env.REDIS_HOST : 'localhost';
+    const replics = process.env.REDIS_REPLICAS;
     const port = process.env.REDIS_PORT ? process.env.REDIS_PORT : '6379';
     const username = process.env.REDIS_USER ? process.env.REDIS_USER : '';
     const password = process.env.REDIS_PASSWORD
@@ -42,9 +43,12 @@ const redisFactory = {
     const url = `redis://${username}${password}${
       username.length > 0 || password.length > 0 ? '@' : ''
     }${host}:${port}`;
-    const client = createClient({
-      url,
-    });
+    const client = replics
+      ? createCluster({
+          rootNodes: [{ url }],
+          useReplicas: true,
+        })
+      : createClient({ url });
     client.on('error', (err) => {
       logger.error('Redis client error');
       logger.error(err);
