@@ -17,7 +17,7 @@
     @if (selectedField) {
       <mat-form-field class="field-value">
         <mat-label>Value</mat-label>
-        <input matInput placeholder="Value" name="value" [(ngModel)]="fieldValue">
+        <input matInput spellcheck="false" placeholder="Value" name="value" [(ngModel)]="fieldValue">
       </mat-form-field>
     }
     <mat-form-field>

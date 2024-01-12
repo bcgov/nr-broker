@@ -14,7 +14,6 @@ import {
   switchMap,
   takeUntil,
   tap,
-  of,
   delay,
 } from 'rxjs';
 import {
@@ -132,42 +131,41 @@ export class GraphComponent {
         },
       ),
       tap((graphData) => {
-        of(this.route.snapshot.params)
-          .pipe(delay(100))
-          .subscribe((params) => {
-            if (params['selected']) {
-              const selector = JSON.parse(params['selected']);
-              if (selector.type === 'vertex') {
-                const vertex = graphData.data.idToVertex[selector.id];
-                if (vertex) {
-                  this.onSelected({
-                    type: 'vertex',
-                    data: vertex,
-                  });
-                }
-              } else {
-                const edge = graphData.data.idToEdge[selector.id];
-                if (edge) {
-                  this.onSelected({
-                    type: 'edge',
-                    data: edge,
-                  });
-                }
+        this.route.params.pipe(delay(100)).subscribe((params) => {
+          if (params['selected']) {
+            const selector = JSON.parse(params['selected']);
+            if (selector.type === 'vertex') {
+              const vertex = graphData.data.idToVertex[selector.id];
+              if (vertex) {
+                this.onSelected({
+                  type: 'vertex',
+                  data: vertex,
+                });
               }
             } else {
-              this.onSelected(undefined);
+              const edge = graphData.data.idToEdge[selector.id];
+              if (edge) {
+                this.onSelected({
+                  type: 'edge',
+                  data: edge,
+                });
+              }
             }
-          });
+          } else {
+            this.onSelected(undefined);
+          }
+        });
       }),
       shareReplay(1),
     );
   }
 
   onSelected(event: ChartClickTarget | undefined): void {
-    if (!this.echartsComponent.echartsInstance) {
+    if (!this.echartsComponent?.echartsInstance) {
       setTimeout(() => this.onSelected(event), 100);
       return;
     }
+    const prevSelection = this.selected;
     this.selected = event;
     if (event?.type === 'vertex') {
       this.echartsComponent.echartsInstance.dispatchAction({
@@ -186,7 +184,14 @@ export class GraphComponent {
       });
     }
 
-    this.updateRoute();
+    if (
+      !prevSelection ||
+      !event ||
+      event.type !== prevSelection.type ||
+      event.data.id !== prevSelection.data.id
+    ) {
+      this.updateRoute();
+    }
   }
 
   onGraphSelected(event: any): void {

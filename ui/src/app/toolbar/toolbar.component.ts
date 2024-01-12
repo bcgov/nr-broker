@@ -20,6 +20,9 @@ import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
+import { GraphApiService } from '../service/graph-api.service';
+import { GraphUtilService } from '../service/graph-util.service';
+import { SearchInputComponent } from './search-input/search-input.component';
 
 @Component({
   selector: 'app-toolbar',
@@ -27,12 +30,13 @@ import { takeUntil, catchError } from 'rxjs/operators';
   styleUrls: ['./toolbar.component.scss'],
   standalone: true,
   imports: [
-    MatToolbarModule,
     MatButtonModule,
+    MatToolbarModule,
     MatIconModule,
     MatMenuModule,
     MatDividerModule,
     CommonModule,
+    SearchInputComponent,
   ],
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
@@ -41,6 +45,8 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   constructor(
     private readonly dialog: MatDialog,
     private readonly healthService: HealthStatusService,
+    private readonly graphApi: GraphApiService,
+    private readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 

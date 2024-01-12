@@ -41,7 +41,8 @@ export abstract class CollectionRepository {
   public abstract searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     upstreamVertex: string | undefined,
-    vertexId: string | undefined,
+    id: string | undefined,
+    vertexIds: string[] | undefined,
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;

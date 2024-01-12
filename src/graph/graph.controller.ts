@@ -9,6 +9,7 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -21,9 +22,16 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { AllowOwner } from '../allow-owner.decorator';
-import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../persistence/dto/collection-dto-union.type';
 import { AllowBodyValue } from '../allow-body-value.decorator';
 import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
+import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
+import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
+import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
+import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
 
 @Controller({
   path: 'graph',
@@ -35,8 +43,43 @@ export class GraphController {
   @Get('data')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getData(@Query('collection') collection: string) {
-    return this.graph.getData(collection === 'true');
+  @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_GRAPH)
+  @UseInterceptors(PersistenceCacheInterceptor)
+  getData() {
+    return this.graph.getData(false);
+  }
+
+  @Get('data/collection')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getDataCollection() {
+    return this.graph.getData(true);
+  }
+
+  @Post('typeahead')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'collections',
+    type: [String],
+    required: false,
+    isArray: true,
+  })
+  getVertexTypeahead(@Query() query: GraphTypeaheadQuery) {
+    return this.graph.vertexTypeahead(
+      query.q,
+      (!query.collections || Array.isArray(query.collections)
+        ? query.collections
+        : [query.collections]) as CollectionNames[],
+    );
+  }
+
+  @Post('reindex-cache')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @Roles('admin')
+  cacheReset() {
+    return this.graph.reindexCache();
   }
 
   @Post('edge')
@@ -142,10 +185,6 @@ export class GraphController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({
-    name: 'typeahead',
-    required: false,
-  })
-  @ApiQuery({
     name: 'edgeName',
     required: false,
   })
@@ -155,11 +194,10 @@ export class GraphController {
   })
   searchVertex(
     @Query('collection') collection: keyof CollectionDtoUnion,
-    @Query('typeahead') typeahead?: string,
     @Query('edgeName') edgeName?: string,
     @Query('edgeTarget') edgeTarget?: string,
   ) {
-    return this.graph.searchVertex(collection, typeahead, edgeName, edgeTarget);
+    return this.graph.searchVertex(collection, edgeName, edgeTarget);
   }
 
   @Put('vertex/:id')

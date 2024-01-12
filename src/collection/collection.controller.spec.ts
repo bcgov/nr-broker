@@ -11,6 +11,14 @@ describe('CollectionController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CollectionController],
+      providers: [
+        {
+          provide: 'REDIS_CLIENT',
+          useValue: {
+            emit: jest.fn(),
+          },
+        },
+      ],
     })
       .useMocker(createMock)
       .compile();

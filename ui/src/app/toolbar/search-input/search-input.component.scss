@@ -1,0 +1,21 @@
+.search-input {
+  width: 300px;
+}
+
+:host ::ng-deep .search-input {
+  .mat-mdc-text-field-wrapper {
+    border-radius: 20px;
+  }
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  .mat-mdc-form-field-infix {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    min-height: 40px;
+  }
+  .mdc-line-ripple {
+    display: none;
+  }
+}

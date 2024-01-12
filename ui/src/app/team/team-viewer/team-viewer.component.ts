@@ -20,6 +20,8 @@ import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto'
 import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
+import { PreferencesService } from '../../preferences.service';
+import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-team-viewer',
@@ -45,7 +47,8 @@ export class TeamViewerComponent {
     private route: ActivatedRoute,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
-    private graphUtil: GraphUtilService,
+    private readonly graphUtil: GraphUtilService,
+    private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -60,7 +63,11 @@ export class TeamViewerComponent {
     );
     this.accountSearch$ = this.team$.pipe(
       switchMap((team: TeamRestDto) =>
-        this.collectionApi.searchCollection('brokerAccount', team.vertex),
+        this.collectionApi.searchCollection('brokerAccount', {
+          upstreamVertex: team.vertex,
+          offset: 0,
+          limit: 20,
+        }),
       ),
     );
 
@@ -78,7 +85,7 @@ export class TeamViewerComponent {
       type: 'vertex',
       data: {
         id: account.vertex,
-        category: 4,
+        category: CollectionNameEnum.user,
         collection: 'brokerAccount',
         index: 0,
         name: account.name,

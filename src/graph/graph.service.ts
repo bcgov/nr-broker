@@ -15,11 +15,15 @@ import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../persistence/dto/collection-dto-union.type';
 import { validate } from 'class-validator';
 import { ValidatorUtil } from '../util/validator.util';
 import { get, set } from 'radash';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
+import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 
 @Injectable()
 export class GraphService {
@@ -468,7 +472,6 @@ export class GraphService {
 
   async searchVertex(
     collection: keyof CollectionDtoUnion,
-    typeahead?: string,
     edgeName?: string,
     edgeTarget?: string,
   ) {
@@ -485,12 +488,6 @@ export class GraphService {
         edgeName,
         edgeTarget,
       );
-      if (typeahead) {
-        const searchString = typeahead.toLowerCase();
-        return results.filter((result) =>
-          result.name.toLocaleLowerCase().includes(searchString),
-        );
-      }
       return results;
     } catch (error) {
       throw new NotFoundException({
@@ -536,5 +533,23 @@ export class GraphService {
     matchEdgeNames: string[] | null,
   ) {
     return this.graphRepository.getUpstreamVertex(id, index, matchEdgeNames);
+  }
+
+  public async vertexTypeahead(
+    text: string,
+    collections?: CollectionNames[],
+    offset?: number,
+    limit?: number,
+  ): Promise<GraphTypeaheadResult> {
+    return this.graphRepository.vertexTypeahead(
+      text,
+      collections,
+      offset,
+      limit,
+    );
+  }
+
+  public async reindexCache() {
+    return this.graphRepository.reindexCache();
   }
 }

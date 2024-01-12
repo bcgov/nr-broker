@@ -1,7 +1,6 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
-import { MatListModule } from '@angular/material/list';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +11,17 @@ import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import { Subject, catchError, combineLatest, of, switchMap, tap } from 'rxjs';
+import {
+  Subject,
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  startWith,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { CollectionApiService } from '../service/collection-api.service';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { UserDto } from '../service/graph.types';
@@ -25,20 +34,26 @@ import { TeamRestDto } from '../service/dto/team-rest.dto';
 import { GraphUtilService } from '../service/graph-util.service';
 import { AddTeamDialogComponent } from './add-team-dialog/add-team-dialog.component';
 import { GraphApiService } from '../service/graph-api.service';
+import { PreferencesService } from '../preferences.service';
+import { CommonModule } from '@angular/common';
+import { MatInputModule } from '@angular/material/input';
+import { GraphTypeaheadData } from '../service/dto/graph-typeahead-result.dto';
 
 @Component({
   selector: 'app-team',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    MatListModule,
+    MatInputModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTableModule,
+    ReactiveFormsModule,
     RouterModule,
     AddTeamDialogComponent,
   ],
@@ -65,6 +80,7 @@ export class TeamComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly dialog: MatDialog,
     @Inject(CURRENT_USER) public readonly user: UserDto,
+    private readonly preferences: PreferencesService,
     public graphUtil: GraphUtilService,
   ) {}
 
@@ -82,11 +98,26 @@ export class TeamComponent implements OnInit, OnDestroy {
     'accounts',
     'action',
   ];
+  filterValue = '';
+  teamControl = new FormControl<{ id: string } | string | undefined>(undefined);
 
   private triggerRefresh = new Subject<void>();
 
   ngOnInit(): void {
     // console.log(this.user);
+    this.showFilter = this.preferences.get('teamFilterShow');
+    this.teamControl.valueChanges
+      .pipe(startWith(undefined), distinctUntilChanged(), debounceTime(1000))
+      .subscribe((searchTerm) => {
+        if (
+          typeof searchTerm !== 'string' ||
+          (searchTerm.length < 3 && searchTerm === this.filterValue)
+        ) {
+          return;
+        }
+        this.filterValue = searchTerm.length < 3 ? '' : searchTerm;
+        this.triggerRefresh.next();
+      });
     this.triggerRefresh
       .pipe(
         tap(() => {
@@ -95,13 +126,16 @@ export class TeamComponent implements OnInit, OnDestroy {
         switchMap(() => {
           return combineLatest([
             this.collectionApi
-              .searchCollection(
-                'team',
-                this.showFilter === 'myteams' ? this.user.vertex : null,
-                null,
-                this.pageIndex * this.pageSize,
-                this.pageSize,
-              )
+              .searchCollection('team', {
+                ...(this.filterValue.length >= 3
+                  ? { q: this.filterValue }
+                  : {}),
+                ...(this.showFilter === 'myteams'
+                  ? { upstreamVertex: this.user.vertex }
+                  : {}),
+                offset: this.pageIndex * this.pageSize,
+                limit: this.pageSize,
+              })
               .pipe(
                 catchError(() => {
                   // Ignore errors for now
@@ -173,6 +207,7 @@ export class TeamComponent implements OnInit, OnDestroy {
 
   onFilterChange() {
     this.pageIndex = 0;
+    this.preferences.set('teamFilterShow', this.showFilter);
     this.refresh();
   }
 
@@ -217,6 +252,14 @@ export class TeamComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.refresh();
       });
+  }
+
+  displayFn(vertex: GraphTypeaheadData): string {
+    if (vertex) {
+      return vertex.name;
+    } else {
+      return '';
+    }
   }
 
   // openInGraph(event: Event, elem: CollectionData<TeamRestDto>) {

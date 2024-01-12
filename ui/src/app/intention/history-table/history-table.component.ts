@@ -12,7 +12,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { MatSnackBar, MatSnackBarModule, MatSnackBarConfig } from '@angular/material/snack-bar';
+import {
+  MatSnackBar,
+  MatSnackBarModule,
+  MatSnackBarConfig,
+} from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import prettyMilliseconds from 'pretty-ms';
 import { switchMap } from 'rxjs';
@@ -78,7 +82,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     private readonly collectionApi: CollectionApiService,
     private readonly graphUtil: GraphUtilService,
     private readonly snackBar: MatSnackBar,
-  ) { }
+  ) {}
 
   ngOnChanges(): void {
     if (
@@ -143,7 +147,11 @@ export class HistoryTableComponent implements OnInit, OnChanges {
           const config = new MatSnackBarConfig();
           config.duration = 5000;
           config.verticalPosition = 'bottom';
-          this.snackBar.open(`The ${collection} was not found.`, 'Dismiss', config);
+          this.snackBar.open(
+            `The ${collection} was not found.`,
+            'Dismiss',
+            config,
+          );
           throw new Error(`The ${collection} was not found`);
         }),
       )

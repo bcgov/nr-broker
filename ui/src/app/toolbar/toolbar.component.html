@@ -6,6 +6,10 @@
   <span class="app-name" routerLink="/">NR Broker UI</span>
   <span class="app-spacer"></span>
 
+  <app-search-input></app-search-input>
+
+  <span class="app-spacer"></span>
+
   <button mat-icon-button [ngClass]="healthStatus ? 'online' : 'offline'"
     (mouseover)="showStatusText(true)" (mouseout)="showStatusText(false)"
     aria-label="Server status" >

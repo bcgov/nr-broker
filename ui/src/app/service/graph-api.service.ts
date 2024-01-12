@@ -12,8 +12,9 @@ import {
 } from './dto/graph-data.dto';
 import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
-import { VertexInsertDto, VertexSearchDto } from './dto/vertex-rest.dto';
+import { VertexInsertDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
+import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -167,13 +168,12 @@ export class GraphApiService {
     );
   }
 
-  searchVertex(collection: string, typeahead: string) {
-    return this.http.post<VertexSearchDto[]>(
-      `${
-        environment.apiUrl
-      }/v1/graph/vertex/search?collection=${encodeURIComponent(
-        collection,
-      )}&typeahead=${typeahead}`,
+  doTypeaheadSearch(typeahead: string, collections?: string[]) {
+    const collectionClause = collections
+      ? `&${collections.map((collection) => `collections=${collection}`)}`
+      : '';
+    return this.http.post<GraphTypeaheadResult>(
+      `${environment.apiUrl}/v1/graph/typeahead?q=${typeahead}${collectionClause}`,
       {
         responseType: 'json',
       },

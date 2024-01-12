@@ -5,6 +5,12 @@
   margin: 16px;
 }
 
+.team-flex-container form {
+  display: flex;
+  column-gap: 8px;
+  align-items: baseline;
+}
+
 .teams-table {
   margin: 16px;
 }
@@ -31,3 +37,6 @@ tr.element-row:not(.expanded-row):hover {
   cursor: pointer;
 }
 
+.field-typeahead-filter {
+  width: 300px;
+}
