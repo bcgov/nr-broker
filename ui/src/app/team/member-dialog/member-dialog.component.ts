@@ -88,7 +88,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         switchMap(() => {
           this.loading = true;
           return this.collectionApi.searchCollection('team', {
-            vertexId: this.data.id,
+            id: this.data.id,
             offset: 0,
             limit: 1,
           });
