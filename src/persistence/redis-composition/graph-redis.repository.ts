@@ -299,11 +299,15 @@ export class GraphRedisRepository implements GraphRepository {
 
     for (const key of Object.keys(config.fields)) {
       const field = config.fields[key];
-      if (!collection[key]) {
+      const value = collection[key];
+      if (!value) {
         continue;
       }
       if (field.type === 'string') {
-        textValues.push(collection[key]);
+        textValues.push(value);
+        if (this.util.escapeRedisStr(value) !== value) {
+          textValues.push(this.util.escapeRedisStr(value));
+        }
       }
     }
 
