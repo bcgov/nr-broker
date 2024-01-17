@@ -27,13 +27,14 @@ const REDIS_ESCAPES_REPLACEMENTS = {
   '+': '\\+',
   '=': '\\=',
   '~': '\\~',
+  '\\': '\\\\',
 };
 
 @Injectable()
 export class PersistenceRedisUtilService {
   public escapeRedisStr(value: string) {
     const newValue = value.replace(
-      /,|\.|<|>|\{|\}|\[|\]|"|'|:|;|!|@|#|\$|%|\^|&|\*|\(|\)|-|\+|=|~/g,
+      /,|\.|<|>|\{|\}|\[|\]|"|'|:|;|!|@|#|\$|%|\^|&|\*|\(|\)|-|\+|=|~|\\/g,
       function (x) {
         return REDIS_ESCAPES_REPLACEMENTS[x];
       },

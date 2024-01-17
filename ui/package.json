@@ -23,7 +23,7 @@
     "@angular/platform-browser-dynamic": "^17.0.9",
     "@angular/router": "^17.0.9",
     "@bcgov/bc-sans": "^2.1.0",
-    "class-validator": "^0.14.0",
+    "class-validator": "^0.14.1",
     "echarts": "^5.4.3",
     "filesize": "^10.1.0",
     "ngx-echarts": "^17.1.0",
@@ -33,7 +33,7 @@
     "tslib": "^2.6.2",
     "url-regex-safe": "^4.0.0",
     "uuid": "^9.0.1",
-    "zone.js": "^0.14.2"
+    "zone.js": "^0.14.3"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.0.10",
