@@ -65,7 +65,7 @@
 <mat-card class="history-table">
   <mat-card-content>
     <app-history-table
-      [intentionData]="intentionData">
+      [intentionData]="intentionData" (viewIntentionEvent)="this.viewIntention($event)">
     </app-history-table>
 
     <mat-paginator

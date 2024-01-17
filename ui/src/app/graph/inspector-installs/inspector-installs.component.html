@@ -38,10 +38,18 @@
 
     <div class="edge-container edge-container-margin-left edge-container-buttons">
     @if (instance.action.source?.intention?.event.url) {
-      <a mat-stroked-button href="{{instance.action.source.intention.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+      <a
+        mat-stroked-button
+        matTooltip="Access to event log may be restricted"
+        matTooltipShowDelay="500"
+        href="{{instance.action.source.intention.event.url}}"
+        target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
     }
     @if (instance.action.source?.intention?.auditUrl) {
-      <a mat-stroked-button href="{{instance.action.source.intention.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+      <a
+        mat-stroked-button
+        href="{{instance.action.source.intention.auditUrl}}"
+        target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
     }
     </div>
 

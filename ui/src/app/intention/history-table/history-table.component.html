@@ -105,9 +105,16 @@
           }
 
           @if (element.event.url) {
-            <a mat-stroked-button href="{{element.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+            <a
+              mat-stroked-button
+              matTooltip="Access to event log may be restricted"
+              matTooltipShowDelay="500"
+              href="{{element.event.url}}"
+              target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
           }
-          <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+          <a
+            mat-stroked-button href="{{element.auditUrl}}"
+            target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         </div>
         @for (action of element.actions; track action) {
           <div class="expanded-header-container">
@@ -190,9 +197,17 @@
         </mat-list>
         <div class="expanded-narrow-header-actions">
           @if (element.event.url) {
-            <a mat-stroked-button href="{{element.event.url}}" target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+            <a
+              mat-stroked-button
+              matTooltip="Access to event log may be restricted"
+              matTooltipShowDelay="500"
+              href="{{element.event.url}}"
+              target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
           }
-          <a mat-stroked-button href="{{element.auditUrl}}" target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+          <a
+            mat-stroked-button
+            href="{{element.auditUrl}}"
+            target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         </div>
       }
       </div>
