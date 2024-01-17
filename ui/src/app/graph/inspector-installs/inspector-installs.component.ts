@@ -6,8 +6,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { Router } from '@angular/router';
-import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.dto';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.dto';
 
 @Component({
   selector: 'app-inspector-installs',
@@ -20,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatGridListModule,
     MatIconModule,
     MatListModule,
+    MatTooltipModule,
   ],
   templateUrl: './inspector-installs.component.html',
   styleUrls: ['./inspector-installs.component.scss'],

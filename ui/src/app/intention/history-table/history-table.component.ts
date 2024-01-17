@@ -1,4 +1,11 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   trigger,
@@ -18,6 +25,7 @@ import {
   MatSnackBarConfig,
 } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import prettyMilliseconds from 'pretty-ms';
 import { switchMap } from 'rxjs';
 
@@ -38,6 +46,7 @@ import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.t
     MatIconModule,
     MatListModule,
     MatTableModule,
+    MatTooltipModule,
     MatSnackBarModule,
     ActionContentComponent,
     FilesizePipe,
@@ -61,6 +70,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   @Input() layout: 'narrow' | 'normal' = 'normal';
   @Input() showHeader = true;
   @Input() openFirst = false;
+  @Output() viewIntentionEvent = new EventEmitter<string>();
 
   propDisplayedColumns: string[] = [
     'project',
@@ -104,16 +114,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   }
 
   viewIntention(id: string) {
-    this.router.navigate([
-      '/intention/history',
-      {
-        index: 0,
-        size: 10,
-        field: 'id',
-        value: id,
-        status: 'all',
-      },
-    ]);
+    this.viewIntentionEvent.emit(id);
   }
 
   navigateHistoryById(id: string) {
