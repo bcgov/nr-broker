@@ -30,7 +30,7 @@ export class AccountService {
   async generateAccountToken(
     req: any,
     id: string,
-    expirationDaysInSeconds: number,
+    expirationInSeconds: number,
     creatorGuid: string,
   ): Promise<TokenCreateDTO> {
     const hmac = createHmac('sha256', process.env['JWT_SECRET']);
@@ -56,7 +56,7 @@ export class AccountService {
 
     const payload = {
       client_id: account.clientId,
-      exp: Number(ISSUED_AT) + Number(expirationDaysInSeconds),
+      exp: ISSUED_AT + expirationInSeconds * 1,
       iat: ISSUED_AT,
       nbf: ISSUED_AT,
       jti: randomUUID(),

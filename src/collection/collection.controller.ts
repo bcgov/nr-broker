@@ -91,16 +91,21 @@ export class CollectionController {
     requiredEdgeNames: ['administrator', 'lead-developer'],
     upstreamRecursive: true,
   })
+  @ApiQuery({
+    name: 'expiration',
+    required: true,
+    description: 'Expiration days in seconds',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   async generateAccountToken(
     @Param('id') id: string,
-    @Query('expirationDaysInSeconds') expirationDaysInSeconds: number = 7776000,
+    @Query('expiration') expirationInSeconds: number,
     @Request() req: ExpressRequest,
   ) {
     return this.accountService.generateAccountToken(
       req,
       id,
-      expirationDaysInSeconds,
+      expirationInSeconds,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
     );
   }

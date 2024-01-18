@@ -18,9 +18,9 @@ export class SystemApiService {
     );
   }
 
-  generateAccountToken(accountId: string, expirationDaysInSeconds: number) {
+  generateAccountToken(accountId: string, expirationInSeconds: number) {
     return this.http.post<TokenCreateDto>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expirationDaysInSeconds=${expirationDaysInSeconds}`,
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}`,
       {
         responseType: 'json',
       },

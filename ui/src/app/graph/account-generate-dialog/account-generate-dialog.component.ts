@@ -11,7 +11,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { SystemApiService } from '../../service/system-api.service';
 
 interface ExpiryDay {
-  value: string;
+  value: number;
   viewValue: string;
 }
 
@@ -33,11 +33,11 @@ interface ExpiryDay {
 })
 export class AccountGenerateDialogComponent {
   token = '';
-  selectedPeriod = '7776000';
+  selectedPeriod = 7776000;
   expiryList: ExpiryDay[] = [
-    { value: '5184000', viewValue: '60 Days' },
-    { value: '7776000', viewValue: '90 Days' },
-    { value: '31536000', viewValue: '1 year' },
+    { value: 5184000, viewValue: '60 Days' },
+    { value: 7776000, viewValue: '90 Days' },
+    { value: 31536000, viewValue: '1 year' },
   ];
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -50,7 +50,7 @@ export class AccountGenerateDialogComponent {
 
   generate() {
     this.systemApi
-      .generateAccountToken(this.data.accountId, Number(this.selectedPeriod))
+      .generateAccountToken(this.data.accountId, this.selectedPeriod)
       .subscribe((data) => {
         this.token = data.token;
       });

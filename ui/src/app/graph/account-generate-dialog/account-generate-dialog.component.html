@@ -1,13 +1,13 @@
 <h2 mat-dialog-title>Generate JWT</h2>
 <mat-dialog-content>
 
-  <p>Please choose valid time period and click generate will create a new token. The current token (if any)
+  <p>Please choose length and click generate to create a new token. The current token (if any)
   will be blocked after 1 hour.</p>
   <div>
     <mat-label>Select Time Period:</mat-label>
     <mat-select [(ngModel)]="selectedPeriod" name="expiryDay">
       @for (expiryDay of expiryList; track expiryDay) {
-        <mat-option [value]="expiryDay.value">{{expiryDay.viewValue}}</mat-option>
+        <mat-option [value]=expiryDay.value>{{expiryDay.viewValue}}</mat-option>
       }
     </mat-select>
   </div>
