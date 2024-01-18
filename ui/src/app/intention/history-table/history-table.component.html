@@ -133,7 +133,11 @@
               @for (artifact of action.artifacts; track artifact) {
                 <mat-card class="artifact-card">
                   <mat-card-header>
-                    <mat-card-title>{{artifact.name}}</mat-card-title>
+                    <mat-card-title>@if (artifact.name) {
+                      {{artifact.name}}
+                    } @else {
+                      Unknown
+                    }</mat-card-title>
                   </mat-card-header>
                   <mat-card-content>
                     <div class="package-info">
@@ -143,14 +147,16 @@
                     @if (artifact.checksum) {
                       <div class="info-name">Hash</div><div class="info-value">{{artifact.checksum}}</div>
                     }
-                    <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                    @if (action.package?.version) {
+                      <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                    }
                   </div>
                   </mat-card-content>
                 </mat-card>
               }
             </div>
           }
-          @if (action.action == "package-installation") {
+          @if (action.action == "package-installation" && action.package) {
             <h3>Package</h3>
             <div class="artifact-container">
               <mat-card class="artifact-card">
@@ -165,7 +171,9 @@
                   @if (action.package.checksum) {
                     <div class="info-name">Hash</div><div class="info-value">{{action.package.checksum}}</div>
                   }
-                  <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                  @if (action.package.version) {
+                    <div class="info-name">Version</div><div class="info-value">{{action.package.version}}</div>
+                  }
                   </div>
                 </mat-card-content>
                 @if (action.source?.intention) {
