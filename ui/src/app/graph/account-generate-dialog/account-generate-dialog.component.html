@@ -1,10 +1,18 @@
 <h2 mat-dialog-title>Generate JWT</h2>
 <mat-dialog-content>
 
-  <p>Clicking generate will create a new token valid for 90 days. The current token (if any)
+  <p>Please choose valid time period and click generate will create a new token. The current token (if any)
   will be blocked after 1 hour.</p>
+  <div>
+    <mat-label>Select Time Period:</mat-label>
+    <mat-select [(ngModel)]="selectedPeriod" name="expiryDay">
+      @for (expiryDay of expiryList; track expiryDay) {
+        <mat-option [value]="expiryDay.value">{{expiryDay.viewValue}}</mat-option>
+      }
+    </mat-select>
+  </div>
 
-  <div class="generate-panel">
+  <div class="generate-panel">     
     <mat-form-field >
       <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="17" type="text" [(ngModel)]="token"></textarea>
       @if (token !== '') {

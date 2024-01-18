@@ -56,7 +56,7 @@ export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
 export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 
-export const JWT_MAX_AGE = '90d';
+export const JWT_MAX_AGE = '365d';
 export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 
 export const MILLISECONDS_IN_SECOND = 1000;
