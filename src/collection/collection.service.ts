@@ -123,6 +123,22 @@ export class CollectionService {
     );
   }
 
+  async exportCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    fields: string[],
+  ) {
+    const data = await this.collectionRepository.exportCollection(type);
+    if (!fields) {
+      return data;
+    } else {
+      return data.map((dto) =>
+        Object.fromEntries(
+          Object.entries(dto).filter(([key]) => fields.indexOf(key) !== -1),
+        ),
+      );
+    }
+  }
+
   private async joinIntention(
     pointer: IntentionActionPointerRestDto[] | IntentionActionPointerRestDto,
   ) {

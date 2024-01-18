@@ -198,6 +198,11 @@ export class CollectionMongoRepository implements CollectionRepository {
       });
   }
 
+  public async exportCollection<T extends keyof CollectionDtoUnion>(type: T) {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo.find();
+  }
+
   public doUniqueKeyCheck(
     type: keyof CollectionDtoUnion,
     key: string,

@@ -160,7 +160,7 @@ export class CollectionController {
     name: 'id',
     required: false,
   })
-  async getCollections(
+  async searchCollection(
     @Param('collection') collection: string,
     @Query() query: CollectionSearchQuery,
   ) {
@@ -172,6 +172,24 @@ export class CollectionController {
       query.vertexId,
       query.offset,
       query.limit,
+    );
+  }
+
+  @Post(':collection/export')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiQuery({
+    name: 'fields',
+    required: false,
+    isArray: true,
+  })
+  async exportCollection(
+    @Param('collection') collection: string,
+    @Query('fields')
+    fields: string[] | undefined,
+  ) {
+    return this.service.exportCollection(
+      this.parseCollectionApi(collection),
+      fields,
     );
   }
 
