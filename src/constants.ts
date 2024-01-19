@@ -60,7 +60,6 @@ export const JWT_MAX_AGE = '365d';
 export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 
 export const MILLISECONDS_IN_SECOND = 1000;
-export const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;
 export const DAYS_365_IN_SECONDS = 60 * 60 * 24 * 365;
 
 export const OAUTH2_CLIENT_MAP_DOMAIN =
