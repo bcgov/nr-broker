@@ -47,6 +47,10 @@ export abstract class CollectionRepository {
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;
 
+  public abstract exportCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+  ): Promise<CollectionDtoUnion[T][]>;
+
   public abstract doUniqueKeyCheck(
     collection: keyof CollectionDtoUnion,
     key: string,
