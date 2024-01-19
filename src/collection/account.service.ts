@@ -56,7 +56,7 @@ export class AccountService {
 
     const payload = {
       client_id: account.clientId,
-      exp: ISSUED_AT + expirationInSeconds * 1,
+      exp: ISSUED_AT + expirationInSeconds,
       iat: ISSUED_AT,
       nbf: ISSUED_AT,
       jti: randomUUID(),

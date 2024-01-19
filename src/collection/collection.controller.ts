@@ -31,6 +31,7 @@ import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
+import { ExpiryQuery } from './dto/expiry-query.dto';
 
 @Controller({
   path: 'collection',
@@ -91,21 +92,22 @@ export class CollectionController {
     requiredEdgeNames: ['administrator', 'lead-developer'],
     upstreamRecursive: true,
   })
+  @UseGuards(BrokerOidcAuthGuard)
   @ApiQuery({
     name: 'expiration',
     required: true,
     description: 'Expiration days in seconds',
   })
-  @UseGuards(BrokerOidcAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
   async generateAccountToken(
     @Param('id') id: string,
-    @Query('expiration') expirationInSeconds: number,
+    @Query() expiryQuery: ExpiryQuery,
     @Request() req: ExpressRequest,
   ) {
     return this.accountService.generateAccountToken(
       req,
       id,
-      expirationInSeconds,
+      expiryQuery.expiration,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
     );
   }
