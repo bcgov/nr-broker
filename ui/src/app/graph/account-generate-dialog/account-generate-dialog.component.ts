@@ -35,8 +35,8 @@ export class AccountGenerateDialogComponent {
   token = '';
   selectedPeriod = 7776000;
   expiryList: ExpiryDay[] = [
-    { value: 5184000, viewValue: '60 Days' },
-    { value: 7776000, viewValue: '90 Days' },
+    { value: 5184000, viewValue: '60 days' },
+    { value: 7776000, viewValue: '90 days' },
     { value: 31536000, viewValue: '1 year' },
   ];
   constructor(

@@ -3,16 +3,17 @@
 
   <p>Please choose length and click generate to create a new token. The current token (if any)
   will be blocked after 1 hour.</p>
-  <div>
-    <mat-label>Select Time Period:</mat-label>
+
+  <mat-form-field >
+    <mat-label>Length</mat-label>
     <mat-select [(ngModel)]="selectedPeriod" name="expiryDay">
       @for (expiryDay of expiryList; track expiryDay) {
         <mat-option [value]=expiryDay.value>{{expiryDay.viewValue}}</mat-option>
       }
     </mat-select>
-  </div>
+  </mat-form-field>
 
-  <div class="generate-panel">     
+  <div class="generate-panel">
     <mat-form-field >
       <textarea matInput cdkTextareaAutosize cdkAutosizeMinRows="17" type="text" [(ngModel)]="token"></textarea>
       @if (token !== '') {
