@@ -5,7 +5,6 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import {
-  DAYS_90_IN_SECONDS,
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
@@ -31,6 +30,7 @@ export class AccountService {
   async generateAccountToken(
     req: any,
     id: string,
+    expirationInSeconds: number,
     creatorGuid: string,
   ): Promise<TokenCreateDTO> {
     const hmac = createHmac('sha256', process.env['JWT_SECRET']);
@@ -56,13 +56,12 @@ export class AccountService {
 
     const payload = {
       client_id: account.clientId,
-      exp: ISSUED_AT + DAYS_90_IN_SECONDS,
+      exp: ISSUED_AT + expirationInSeconds,
       iat: ISSUED_AT,
       nbf: ISSUED_AT,
       jti: randomUUID(),
       sub: account.email,
     };
-
     const headerStr = Buffer.from(JSON.stringify(header), 'utf8').toString(
       'base64url',
     );
