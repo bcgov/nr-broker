@@ -7,7 +7,9 @@ export const postloginGuard: CanActivateFn = () => {
   );
   if (postLoginUrl) {
     sessionStorage.removeItem(AUTH_INTERCEPTOR_RETURN_URL_SESSION_KEY);
-    window.location.href = postLoginUrl;
+    setTimeout(() => {
+      window.location.href = postLoginUrl;
+    }, 1000);
     return false;
   }
   return true;
