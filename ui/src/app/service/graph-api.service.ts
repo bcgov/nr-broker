@@ -10,7 +10,10 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
 } from './dto/graph-data.dto';
-import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
+import {
+  CollectionConfigInstanceRestDto,
+  CollectionConfigRestDto,
+} from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
@@ -35,7 +38,7 @@ export class GraphApiService {
   }
 
   getConfig() {
-    return this.http.get<CollectionConfigResponseDto[]>(
+    return this.http.get<CollectionConfigRestDto[]>(
       `${environment.apiUrl}/v1/collection/config`,
       {
         responseType: 'json',
@@ -174,6 +177,29 @@ export class GraphApiService {
       : '';
     return this.http.post<GraphTypeaheadResult>(
       `${environment.apiUrl}/v1/graph/typeahead?q=${typeahead}${collectionClause}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getEdgeConfigByVertex(
+    sourceId: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ) {
+    const params = [];
+    // targetCollection || edgeName ? '?' : '';
+    if (targetCollection) {
+      params.push(`targetCollection=${encodeURIComponent(targetCollection)}`);
+    }
+    if (edgeName) {
+      params.push(`edgeName=${encodeURIComponent(edgeName)}`);
+    }
+    return this.http.get<CollectionConfigInstanceRestDto[]>(
+      `${environment.apiUrl}/v1/graph/vertex/${sourceId}/edge-config${
+        params.length > 0 ? '?' + params.join('&') : ''
+      }`,
       {
         responseType: 'json',
       },

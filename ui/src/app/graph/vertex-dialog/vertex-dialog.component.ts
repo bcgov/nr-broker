@@ -17,7 +17,7 @@ import {
 } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
-import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 
 @Component({
@@ -38,8 +38,8 @@ import { GraphUtilService } from '../../service/graph-util.service';
   ],
 })
 export class VertexDialogComponent {
-  collectionControl = new FormControl<string | CollectionConfigResponseDto>('');
-  configs!: CollectionConfigResponseDto[];
+  collectionControl = new FormControl<string | CollectionConfigRestDto>('');
+  configs!: CollectionConfigRestDto[];
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
@@ -119,7 +119,7 @@ export class VertexDialogComponent {
     return !this.formComponent?.form?.valid;
   }
 
-  isCollectionConfig(cc: any): cc is CollectionConfigResponseDto {
+  isCollectionConfig(cc: any): cc is CollectionConfigRestDto {
     return cc.fields !== undefined;
   }
 }

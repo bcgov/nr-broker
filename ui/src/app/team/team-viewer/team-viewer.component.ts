@@ -22,6 +22,9 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
 import { PreferencesService } from '../../preferences.service';
 import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
+import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-team-viewer',
@@ -33,6 +36,8 @@ import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type'
     MatCardModule,
     MatDividerModule,
     MatIconModule,
+    MatTableModule,
+    MatTooltipModule,
     RouterModule,
   ],
   templateUrl: './team-viewer.component.html',
@@ -42,7 +47,10 @@ export class TeamViewerComponent {
   team$!: Observable<TeamRestDto>;
   latestConfig$!: Observable<CollectionConfigMap>;
   accountSearch$!: Observable<CollectionSearchResult<BrokerAccountRestDto>>;
+  serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
   service: any;
+  propDisplayedColumns: string[] = ['key', 'value'];
+
   constructor(
     private route: ActivatedRoute,
     private readonly graphApi: GraphApiService,
@@ -71,6 +79,12 @@ export class TeamViewerComponent {
       ),
     );
 
+    this.serviceSearch$ = this.team$.pipe(
+      switchMap((team: TeamRestDto) =>
+        this.graphApi.getEdgeConfigByVertex(team.vertex, 'service', 'uses'),
+      ),
+    );
+
     this.latestConfig$ = this.graphApi
       .getConfig()
       .pipe(map(this.graphUtil.configArrToMap));
@@ -91,5 +105,13 @@ export class TeamViewerComponent {
         name: account.name,
       },
     };
+  }
+
+  openPrototypeUrl(url: string) {
+    console.log(url);
+  }
+
+  openRequestAccess(elem: TeamRestDto) {
+    console.log(elem);
   }
 }

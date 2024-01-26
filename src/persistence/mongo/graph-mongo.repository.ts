@@ -5,7 +5,10 @@ import { ObjectId } from 'mongodb';
 import { EdgeDto } from '../dto/edge.dto';
 import { VertexDto } from '../dto/vertex.dto';
 import { GraphRepository } from '../interfaces/graph.repository';
-import { CollectionConfigDto } from '../dto/collection-config.dto';
+import {
+  CollectionConfigDto,
+  CollectionConfigInstanceDto,
+} from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
@@ -258,6 +261,118 @@ export class GraphMongoRepository implements GraphRepository {
     return this.edgeRepository.count({
       target,
     });
+  }
+
+  public async getEdgeConfigByVertex(
+    sourceId: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ): Promise<CollectionConfigInstanceDto[]> {
+    const vertex = await this.getVertex(sourceId);
+    const sourceCollection = vertex.collection;
+    console.log(
+      JSON.stringify([
+        { $match: { collection: sourceCollection } },
+        { $unwind: '$edges' },
+        { $set: { edge: '$edges', edges: '$$REMOVE' } },
+        {
+          $match: {
+            ...(targetCollection
+              ? { 'edge.collection': targetCollection }
+              : {}),
+            ...(edgeName ? { 'edge.name': edgeName } : {}),
+          },
+        },
+        { $unwind: '$edge.prototypes' },
+        {
+          $set: {
+            'edge.prototype': '$edge.prototypes',
+            'edge.prototypes': '$$REMOVE',
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'edge.prototype.target',
+            foreignField: 'target',
+            as: 'instance',
+            let: { edge: '$edge' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ['$source', new ObjectId(sourceId)],
+                      },
+                      { $eq: ['$name', '$$edge.name'] },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+        { $unwind: { path: '$instance', preserveNullAndEmptyArrays: true } },
+      ]),
+    );
+    return this.collectionConfigRepository
+      .aggregate([
+        { $match: { collection: sourceCollection } },
+        { $unwind: '$edges' },
+        { $set: { edge: '$edges', edges: '$$REMOVE' } },
+        {
+          $match: {
+            ...(targetCollection
+              ? { 'edge.collection': targetCollection }
+              : {}),
+            ...(edgeName ? { 'edge.name': edgeName } : {}),
+          },
+        },
+        { $unwind: '$edge.prototypes' },
+        {
+          $set: {
+            'edge.prototype': '$edge.prototypes',
+            'edge.prototypes': '$$REMOVE',
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'edge.prototype.target',
+            foreignField: 'target',
+            as: 'instance',
+            let: { edge: '$edge' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: ['$source', new ObjectId(sourceId)],
+                      },
+                      { $eq: ['$name', '$$edge.name'] },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
+        { $unwind: { path: '$instance', preserveNullAndEmptyArrays: true } },
+      ])
+      .toArray()
+      .then((array: any) => {
+        this.arrayIdFixer(array);
+
+        for (const datum of array) {
+          if (datum.instance) {
+            datum.instance.id = datum.instance._id;
+            delete datum.instance._id;
+          }
+        }
+        return array;
+      });
   }
 
   // Vertex
@@ -713,5 +828,12 @@ export class GraphMongoRepository implements GraphRepository {
 
   public reindexCache(): Promise<boolean> {
     throw new Error('Method not implemented.');
+  }
+
+  private arrayIdFixer(array: any[]) {
+    for (const item of array) {
+      item.id = item._id;
+      delete item._id;
+    }
   }
 }

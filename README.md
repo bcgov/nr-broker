@@ -9,12 +9,12 @@ NR Broker is built using the [Nest](https://github.com/nestjs/nest) framework.
 A series of GitHub Actions help automate working with the Broker:
 
 * [Intention open](https://github.com/bcgov-nr/action-broker-intention-open)
-* [Intention close](https://github.com/bcgov-nr/action-broker-intention-close)
 * [Action start](https://github.com/bcgov-nr/action-broker-action-start)
 * [Vault login](https://github.com/bcgov-nr/action-broker-vault-login)
 * [Vault provision](https://github.com/bcgov-nr/action-broker-vault-provision)
 * [Vault token revoke](https://github.com/bcgov-nr/action-broker-vault-revoke)
 * [Action end](https://github.com/bcgov-nr/action-broker-action-end)
+* [Intention close](https://github.com/bcgov-nr/action-broker-intention-close)
 
 ## Development requirements
 

@@ -25,7 +25,10 @@ import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
 import { GraphMongoRepository } from '../mongo/graph-mongo.repository';
 import { CollectionMongoRepository } from '../mongo/collection-mongo.repository';
-import { CollectionConfigDto } from '../dto/collection-config.dto';
+import {
+  CollectionConfigDto,
+  CollectionConfigInstanceDto,
+} from '../dto/collection-config.dto';
 import {
   PERSISTENCE_CACHE_KEY_CONFIG,
   PERSISTENCE_CACHE_KEY_GRAPH,
@@ -86,6 +89,18 @@ export class GraphRedisRepository implements GraphRepository {
     target?: string,
   ): Promise<EdgeDto[]> {
     return this.repo.searchEdgesShallow(name, source, target);
+  }
+
+  public getEdgeConfigByVertex(
+    sourceId: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ): Promise<CollectionConfigInstanceDto[]> {
+    return this.repo.getEdgeConfigByVertex(
+      sourceId,
+      targetCollection,
+      edgeName,
+    );
   }
 
   public async addVertex(

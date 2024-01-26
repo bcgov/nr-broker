@@ -2,9 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import {
   CollectionEdgeConfig,
+  CollectionEdgeInstanceConfig,
   CollectionFieldConfigMap,
   CollectionMap,
 } from './collection-config-rest.dto';
+import { EdgeDto } from './edge.dto';
 
 @Entity({ name: 'collectionConfig' })
 export class CollectionConfigDto {
@@ -49,3 +51,8 @@ export class CollectionConfigDto {
   @Column()
   show: boolean;
 }
+
+export type CollectionConfigInstanceDto = Omit<CollectionConfigDto, 'edges'> & {
+  edge: CollectionEdgeInstanceConfig;
+  instance: EdgeDto;
+};

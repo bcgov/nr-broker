@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { GraphDataResponseEdgeDto } from './dto/graph-data.dto';
-import { CollectionConfigResponseDto } from './dto/collection-config-rest.dto';
+import { CollectionConfigRestDto } from './dto/collection-config-rest.dto';
 import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
 
 @Injectable({
@@ -10,9 +10,7 @@ import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
-  configArrToMap(
-    configArr: CollectionConfigResponseDto[],
-  ): CollectionConfigMap {
+  configArrToMap(configArr: CollectionConfigRestDto[]): CollectionConfigMap {
     return configArr.reduce((previousValue, currentValue) => {
       previousValue[currentValue.collection] = currentValue;
       return previousValue;
@@ -20,7 +18,7 @@ export class GraphUtilService {
   }
 
   configArrToSrcTarMap(
-    configArr: CollectionConfigResponseDto[],
+    configArr: CollectionConfigRestDto[],
     configMap: CollectionConfigMap,
   ): CollectionEdgeConfigMap {
     return configArr.reduce((previousValue, currentValue, currentIndex) => {
@@ -64,7 +62,7 @@ export class GraphUtilService {
     );
   }
 
-  extractVertexData(config: CollectionConfigResponseDto, data: any) {
+  extractVertexData(config: CollectionConfigRestDto, data: any) {
     const vertexData = {
       ...data,
     };

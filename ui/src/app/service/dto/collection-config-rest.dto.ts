@@ -1,27 +1,46 @@
 import { CollectionNames } from './collection-dto-union.type';
+import { EdgeRestDto } from './edge-rest.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-export interface CollectionEdgeConfig {
-  collection: CollectionNames;
-  name: string;
+export class CollectionEdgePermissions {
+  request!: boolean;
+}
+
+export class CollectionEdgePrototype {
+  description!: string;
+  target!: string;
+  targetName!: string;
+  name!: string;
+  permissions!: CollectionEdgePermissions;
+  property!: CollectionFieldConfigMap;
+  url!: string;
+}
+
+export class CollectionEdgeConfig {
+  collection!: CollectionNames;
+  name!: string;
   onDelete?: 'cascade';
-  relation: 'oneToMany' | 'oneToOne';
-  show: true;
+  relation!: 'oneToMany' | 'oneToOne';
+  show!: boolean;
   inboundName?: string;
   namePath?: string;
+  prototypes?: CollectionEdgePrototype[];
 }
 
-export interface CollectionFieldConfigMap {
-  [key: string]: CollectionFieldConfig;
-}
+export type CollectionEdgeInstanceConfig = Omit<
+  CollectionEdgeConfig,
+  'prototypes'
+> & {
+  prototype: CollectionEdgePrototype;
+};
 
-export interface CollectionFieldConfig {
+export class CollectionFieldConfig {
   hint?: string;
   init?: 'uuid';
-  name: string;
+  name!: string;
   placeholder?: string;
-  required: boolean;
-  type:
+  required!: boolean;
+  type!:
     | 'boolean'
     | 'email'
     | 'embeddedDoc'
@@ -35,27 +54,43 @@ export interface CollectionFieldConfig {
   value?: string;
 }
 
-export interface CollectionMap {
-  getPath: string;
-  setPath: string;
+export class CollectionFieldConfigMap {
+  [key: string]: CollectionFieldConfig;
 }
 
-export interface CollectionConfigResponseDto {
-  id: string;
-  collection: CollectionNames;
-  collectionMapper: CollectionMap[];
-  collectionVertexName: string;
-  edges: CollectionEdgeConfig[];
-  fields: CollectionFieldConfigMap;
-  index: number;
-  name: string;
-  parent?: {
-    edgeName: string;
-  };
-  permissions: {
-    create: boolean;
-    update: boolean;
-    delete: boolean;
-  };
-  show: true;
+export class CollectionMap {
+  getPath!: string;
+  setPath!: string;
 }
+
+export class CollectionConfigParent {
+  edgeName!: string;
+}
+
+export class CollectionConfigPermissions {
+  create!: boolean;
+  update!: boolean;
+  delete!: boolean;
+}
+
+export class CollectionConfigRestDto {
+  id!: string;
+  collection!: CollectionNames;
+  collectionMapper!: CollectionMap[];
+  collectionVertexName!: string;
+  edges!: CollectionEdgeConfig[];
+  fields!: CollectionFieldConfigMap;
+  index!: number;
+  name!: string;
+  parent!: CollectionConfigParent;
+  permissions!: CollectionConfigPermissions;
+  show!: boolean;
+}
+
+export type CollectionConfigInstanceRestDto = Omit<
+  CollectionConfigRestDto,
+  'edges'
+> & {
+  edge: CollectionEdgeInstanceConfig;
+  instance?: EdgeRestDto;
+};

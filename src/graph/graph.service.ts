@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
+import ejs from 'ejs';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { AuditService } from '../audit/audit.service';
@@ -24,6 +25,8 @@ import { ValidatorUtil } from '../util/validator.util';
 import { get, set } from 'radash';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
+import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 
 @Injectable()
 export class GraphService {
@@ -551,5 +554,39 @@ export class GraphService {
 
   public async reindexCache() {
     return this.graphRepository.reindexCache();
+  }
+
+  public async getEdgeConfigByVertex(
+    id: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ) {
+    return this.graphRepository
+      .getEdgeConfigByVertex(id, targetCollection, edgeName)
+      .then(async (response) => {
+        const converted =
+          response as unknown as CollectionConfigInstanceRestDto[];
+        for (const instance of converted) {
+          if (instance.edge.prototype.url) {
+            instance.edge.prototype.url = ejs.render(
+              instance.edge.prototype.url,
+              {
+                property: instance.instance?.prop ?? {},
+              },
+            );
+          }
+          console.log(instance);
+          if (instance.instance && instance.edge.collection === 'service') {
+            const ds =
+              await this.graphRepository.getDownstreamVertex<ServiceInstanceDto>(
+                instance.instance.target,
+                3,
+                2,
+              );
+            console.log(ds);
+          }
+        }
+        return response;
+      }) as unknown as Promise<CollectionConfigInstanceRestDto[]>;
   }
 }
