@@ -15,7 +15,6 @@ import { AuditService } from '../audit/audit.service';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
-import { UserDto } from '../persistence/dto/user.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { DAYS_10_IN_SECONDS } from '../constants';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
