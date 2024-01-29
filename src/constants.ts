@@ -61,6 +61,11 @@ export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 
 export const MILLISECONDS_IN_SECOND = 1000;
 export const DAYS_365_IN_SECONDS = 60 * 60 * 24 * 365;
+export const DAYS_90_IN_SECONDS = 60 * 60 * 24 * 90;
+export const DAYS_60_IN_SECONDS = 60 * 60 * 24 * 60;
+export const DAYS_30_IN_SECONDS = 60 * 60 * 24 * 30;
+export const DAYS_10_IN_SECONDS = 60 * 60 * 24 * 10;
+export const DAYS_5_IN_SECONDS = 60 * 60 * 24 * 5;
 
 export const OAUTH2_CLIENT_MAP_DOMAIN =
   process.env.OAUTH2_CLIENT_MAP_DOMAIN ?? '';
