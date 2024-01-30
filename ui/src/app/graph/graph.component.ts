@@ -113,11 +113,15 @@ export class GraphComponent {
 
           for (const edge of graphData.edges) {
             const targetVertex = graphData.idToVertex[edge.target];
-            const parentEdgeName =
-              configMap[targetVertex.collection]?.parent?.edgeName;
-            if (parentEdgeName && edge.name === parentEdgeName) {
-              const sourceVertex = graphData.idToVertex[edge.source];
-              targetVertex.parentName = sourceVertex.name;
+            if (targetVertex) {
+              const parentEdgeName =
+                configMap[targetVertex.collection]?.parent?.edgeName;
+              if (parentEdgeName && edge.name === parentEdgeName) {
+                const sourceVertex = graphData.idToVertex[edge.source];
+                targetVertex.parentName = sourceVertex.name;
+              }
+            } else {
+              console.log(`Target does not exist in data: ${edge.target}`);
             }
           }
           this.latestConfig = configMap;
