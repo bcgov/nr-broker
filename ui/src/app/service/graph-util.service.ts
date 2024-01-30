@@ -87,6 +87,9 @@ export class GraphUtilService {
       if (config.fields[fieldKey].type === 'stringArray') {
         vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
       }
+      if (config.fields[fieldKey].type === 'number') {
+        vertexData[fieldKey] = Number.parseInt(val);
+      }
       if (!config.fields[fieldKey].required && val === '') {
         delete vertexData[fieldKey];
       }

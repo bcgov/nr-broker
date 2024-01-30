@@ -46,6 +46,7 @@ export class CollectionFieldConfig {
     | 'embeddedDoc'
     | 'embeddedDocArray'
     | 'json'
+    | 'number'
     | 'string'
     | 'stringArray'
     | 'url';
@@ -87,10 +88,22 @@ export class CollectionConfigRestDto {
   show!: boolean;
 }
 
+export class LinksAltRestDto {
+  environmentPosition!: number;
+  environmentTitle!: string;
+  name!: string;
+  url!: string;
+}
+export class LinksRestDto {
+  default!: string;
+  alt?: LinksAltRestDto[];
+}
+
 export type CollectionConfigInstanceRestDto = Omit<
   CollectionConfigRestDto,
   'edges'
 > & {
   edge: CollectionEdgeInstanceConfig;
   instance?: EdgeRestDto;
+  links?: LinksRestDto;
 };

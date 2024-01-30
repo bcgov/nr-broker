@@ -66,6 +66,17 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
           validators,
         );
       }
+      if (f.type === 'number') {
+        if (f.required) {
+          validators.push(Validators.required);
+        }
+        const pattern = new RegExp('^[0-9]*$', 'i');
+        validators.push(Validators.pattern(pattern));
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key] : 0,
+          validators,
+        );
+      }
       if (f.type === 'string') {
         if (f.unique) {
           const uniqueValidator = uniqueNameValidator(

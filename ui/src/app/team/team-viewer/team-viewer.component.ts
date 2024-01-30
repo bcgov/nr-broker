@@ -1,10 +1,14 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { ActivatedRoute, ParamMap, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, map, switchMap } from 'rxjs';
+
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
   ChartClickTargetVertex,
@@ -13,8 +17,6 @@ import {
 } from '../../service/graph.types';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { TeamRestDto } from '../../service/dto/team-rest.dto';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
@@ -23,8 +25,6 @@ import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector
 import { PreferencesService } from '../../preferences.service';
 import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-team-viewer',

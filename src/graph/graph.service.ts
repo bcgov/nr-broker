@@ -18,6 +18,7 @@ import { EdgeDto } from '../persistence/dto/edge.dto';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import {
   CollectionDtoUnion,
+  CollectionNameEnum,
   CollectionNames,
 } from '../persistence/dto/collection-dto-union.type';
 import { validate } from 'class-validator';
@@ -27,6 +28,7 @@ import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { EnvironmentDto } from '../persistence/dto/environment.dto';
 
 @Injectable()
 export class GraphService {
@@ -566,24 +568,59 @@ export class GraphService {
       .then(async (response) => {
         const converted =
           response as unknown as CollectionConfigInstanceRestDto[];
-        for (const instance of converted) {
-          if (instance.edge.prototype.url) {
-            instance.edge.prototype.url = ejs.render(
-              instance.edge.prototype.url,
-              {
-                property: instance.instance?.prop ?? {},
-              },
-            );
-          }
-          console.log(instance);
-          if (instance.instance && instance.edge.collection === 'service') {
-            const ds =
-              await this.graphRepository.getDownstreamVertex<ServiceInstanceDto>(
-                instance.instance.target,
-                3,
-                2,
-              );
-            console.log(ds);
+        for (const ccInstance of converted) {
+          if (ccInstance.edge.prototype.url && ccInstance.instance) {
+            ccInstance.links = {
+              default: '',
+            };
+            if (ccInstance.edge.collection === 'service') {
+              const ds =
+                await this.graphRepository.getDownstreamVertex<ServiceInstanceDto>(
+                  ccInstance.instance.target,
+                  CollectionNameEnum.serviceInstance,
+                  2,
+                );
+              if (ds.length > 0) {
+                ccInstance.links.alt = [];
+                let position = 0;
+                for (const serviceInstance of ds) {
+                  const environment =
+                    await this.graphRepository.getDownstreamVertex<EnvironmentDto>(
+                      serviceInstance.collection.vertex.toString(),
+                      CollectionNameEnum.environment,
+                      1,
+                    );
+                  if (environment.length === 0) {
+                    continue;
+                  }
+                  const url = ejs.render(ccInstance.edge.prototype.url, {
+                    property: ccInstance.instance?.prop ?? {},
+                    url: serviceInstance.collection.url,
+                  });
+
+                  ccInstance.links.alt.push({
+                    environmentPosition: environment[0].collection.position,
+                    environmentTitle: environment[0].collection.title,
+                    name: serviceInstance.collection.name,
+                    url,
+                  });
+
+                  if (
+                    ccInstance.links.default === '' ||
+                    environment[0].collection.position < position
+                  ) {
+                    ccInstance.links.default = url;
+                    position = environment[0].collection.position;
+                  }
+                }
+              }
+            } else {
+              ccInstance.links = {
+                default: ejs.render(ccInstance.edge.prototype.url, {
+                  property: ccInstance.instance?.prop ?? {},
+                }),
+              };
+            }
           }
         }
         return response;

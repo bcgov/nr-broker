@@ -41,6 +41,7 @@ import {
 } from './dto/artifact-search-result.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
+import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -174,7 +175,7 @@ export class IntentionService {
           const targetSearch =
             await this.graphRepository.getDownstreamVertex<ServiceDto>(
               colObj.vertex.toString(),
-              2,
+              CollectionNameEnum.service,
               1,
             );
 

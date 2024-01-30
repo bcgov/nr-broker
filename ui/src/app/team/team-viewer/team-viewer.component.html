@@ -72,10 +72,10 @@
             <mat-divider></mat-divider>
           </mat-card-content>
           <mat-card-actions>
-            @if (service.edge.prototype.url) {
+            @if (service.links?.default) {
             <a
               mat-stroked-button
-              href="{{service.edge.prototype.url}}"
+              href="{{service.links?.default}}"
               target="_blank">Open <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
             }
           </mat-card-actions>

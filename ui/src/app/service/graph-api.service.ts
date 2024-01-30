@@ -189,7 +189,6 @@ export class GraphApiService {
     edgeName?: string,
   ) {
     const params = [];
-    // targetCollection || edgeName ? '?' : '';
     if (targetCollection) {
       params.push(`targetCollection=${encodeURIComponent(targetCollection)}`);
     }
