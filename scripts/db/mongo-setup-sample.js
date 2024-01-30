@@ -132,3 +132,202 @@ db.edge.insertMany([
     it: 6,
   },
 ]);
+
+// Project
+db.project.insertMany([
+  {
+    _id: ObjectId('644c4d302e2f63acef6bb72f'),
+    name: 'vault',
+    key: 'vault',
+    vertex: ObjectId('644c4d302e2f63acef6bb72e'),
+  },
+]);
+
+db.service.insertMany([
+  {
+    _id: ObjectId('644c4d302e2f63acef6bb72d'),
+    name: 'vault-app',
+    vertex: ObjectId('644c4d302e2f63acef6bb72c'),
+  },
+]);
+
+db.vertex.insertMany([
+  {
+    _id: ObjectId('644c4d302e2f63acef6bb72e'),
+    collection: 'project',
+    name: 'vault',
+  },
+  {
+    _id: ObjectId('644c4d302e2f63acef6bb72c'),
+    collection: 'service',
+    name: 'vault-app',
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb733'),
+    collection: 'serviceInstance',
+    name: 'production',
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb745'),
+    collection: 'serviceInstance',
+    name: 'test',
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb73e'),
+    collection: 'serviceInstance',
+    name: 'development',
+  },
+]);
+
+const prodEnvironment = db.environment.findOne({ name: 'production' });
+const testEnvironment = db.environment.findOne({ name: 'test' });
+const devEnvironment = db.environment.findOne({ name: 'development' });
+db.edge.insertMany([
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb730'),
+    name: 'component',
+    is: 1,
+    it: 2,
+    source: ObjectId('644c4d302e2f63acef6bb72e'),
+    target: ObjectId('644c4d302e2f63acef6bb72c'),
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb735'),
+    name: 'instance',
+    is: 2,
+    it: 3,
+    source: ObjectId('644c4d302e2f63acef6bb72c'),
+    target: ObjectId('644c4d312e2f63acef6bb733'),
+  },
+  {
+    _id: ObjectId('65b93377cd33470efb73fb28'),
+    name: 'instance',
+    source: ObjectId('644c4d302e2f63acef6bb72c'),
+    target: ObjectId('644c4d312e2f63acef6bb745'),
+    is: 2,
+    it: 3,
+  },
+  {
+    _id: ObjectId('65b93386cd33470efb73fb29'),
+    name: 'instance',
+    source: ObjectId('644c4d302e2f63acef6bb72c'),
+    target: ObjectId('644c4d312e2f63acef6bb73e'),
+    is: 2,
+    it: 3,
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb736'),
+    name: 'deploy-type',
+    is: 3,
+    it: 0,
+    source: ObjectId('644c4d312e2f63acef6bb733'),
+    target: prodEnvironment.vertex,
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb748'),
+    name: 'deploy-type',
+    is: 3,
+    it: 0,
+    source: ObjectId('644c4d312e2f63acef6bb745'),
+    target: testEnvironment.vertex,
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb741'),
+    name: 'deploy-type',
+    is: 3,
+    it: 0,
+    source: ObjectId('644c4d312e2f63acef6bb73e'),
+    target: devEnvironment.vertex,
+  },
+  {
+    _id: ObjectId('65b93631cd33470efb73fb2c'),
+    name: 'uses',
+    prop: { group: 'dba', kv: 'teams' },
+    source: ObjectId('64fa194693b3afd6ee63aa99'),
+    target: ObjectId('644c4d302e2f63acef6bb72c'),
+    is: 6,
+    it: 2,
+  },
+]);
+
+db.serviceInstance.insertMany([
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb734'),
+    name: 'production',
+    vertex: ObjectId('644c4d312e2f63acef6bb733'),
+    url: 'https://vault-app.example',
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb746'),
+    name: 'test',
+    vertex: ObjectId('644c4d312e2f63acef6bb745'),
+    url: 'https://test.vault-app.example',
+  },
+  {
+    _id: ObjectId('644c4d312e2f63acef6bb73f'),
+    name: 'development',
+    vertex: ObjectId('644c4d312e2f63acef6bb73e'),
+    url: 'https://dev.vault-app.example',
+  },
+]);
+
+// ==> Collection Config Prototype
+db.collectionConfig.updateOne(
+  { collection: 'team' },
+  {
+    $set: {
+      edges: [
+        {
+          collection: 'brokerAccount',
+          name: 'owns',
+          inboundName: 'owned by',
+          relation: 'oneToMany',
+          show: true,
+        },
+        {
+          collection: 'service',
+          name: 'uses',
+          inboundName: 'used by',
+          relation: 'oneToMany',
+          show: false,
+          prototypes: [
+            {
+              name: 'Group Access',
+              description:
+                'Group access provides a space in Vault to store private team secrets and additional access policies.',
+              target: ObjectId('644c4d302e2f63acef6bb72c'),
+              targetName: 'Knox',
+              permissions: {
+                request: 'ownedBy',
+              },
+              property: {
+                group: {
+                  hint: 'Unique lowercase group name in service',
+                  name: 'Group name',
+                  placeholder: 'Role name',
+                  required: true,
+                  type: 'string',
+                },
+                kv: {
+                  hint: "Can be 'teams' or blank to disable team secrets",
+                  name: 'Team space',
+                  placeholder: 'Mount Path',
+                  required: true,
+                  type: 'string',
+                },
+                policies: {
+                  hint: 'Additional access policies for group (comma separated)',
+                  name: 'Policies',
+                  placeholder: 'Policies',
+                  required: true,
+                  type: 'string',
+                },
+              },
+              url: '<%= url %>/ui<% if (property.group && property.kv) { %>/vault/secrets/<%= property.kv %>/kv/list/<%= property.group %>/<% } %>',
+            },
+          ],
+        },
+      ],
+    },
+  },
+);

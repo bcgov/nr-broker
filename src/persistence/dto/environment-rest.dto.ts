@@ -7,4 +7,6 @@ export class EnvironmentRestDto extends VertexPointerRestDto {
   name!: string;
   short!: string;
   aliases!: string[];
+  title!: string;
+  position!: number;
 }

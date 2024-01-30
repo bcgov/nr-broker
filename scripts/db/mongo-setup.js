@@ -20,6 +20,8 @@ db.environment.insertOne({
   name: 'production',
   short: 'prod',
   aliases: [],
+  title: 'Production',
+  position: 0,
   vertex: result.insertedId,
 });
 result = db.vertex.insertOne({ collection: 'environment', name: 'test' });
@@ -27,6 +29,8 @@ db.environment.insertOne({
   name: 'test',
   short: 'test',
   aliases: [],
+  title: 'Test',
+  position: 10,
   vertex: result.insertedId,
 });
 result = db.vertex.insertOne({
@@ -37,6 +41,8 @@ db.environment.insertOne({
   name: 'development',
   short: 'dev',
   aliases: [],
+  title: 'Development',
+  position: 20,
   vertex: result.insertedId,
 });
 result = db.vertex.insertOne({ collection: 'environment', name: 'tools' });
@@ -44,6 +50,8 @@ db.environment.insertOne({
   name: 'tools',
   short: 'tools',
   aliases: [],
+  title: 'Tools',
+  position: 30,
   vertex: result.insertedId,
 });
 
@@ -74,6 +82,18 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'stringArray',
       hint: 'Set of service instance names to map to this environment',
+    },
+    title: {
+      name: 'Title',
+      required: true,
+      type: 'string',
+      hint: 'A freeform human readable alternative to the name',
+    },
+    position: {
+      name: 'Position',
+      required: true,
+      type: 'number',
+      hint: 'Ordering of environments with 0 being production',
     },
   },
   name: 'Environment',
@@ -220,6 +240,12 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'A name for the service instance',
       uniqueParent: true,
+    },
+    url: {
+      name: 'URL',
+      required: false,
+      type: 'url',
+      hint: 'The base url for the application',
     },
     action: {
       type: 'embeddedDoc',
@@ -424,6 +450,7 @@ result = db.collectionConfig.insertOne({
     {
       collection: 'brokerAccount',
       name: 'owns',
+      inboundName: 'owned by',
       relation: 'oneToMany',
       show: true,
     },

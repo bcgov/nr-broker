@@ -254,4 +254,23 @@ export class GraphController {
       matchEdgeNames ? matchEdgeNames.split(',') : null,
     );
   }
+
+  @Get('vertex/:id/edge-config')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'targetCollection',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'edgeName',
+    required: false,
+  })
+  getVertexEdgeConfig(
+    @Param('id') id: string,
+    @Query('targetCollection') targetCollection: string,
+    @Query('edgeName') edgeName: string,
+  ) {
+    return this.graph.getEdgeConfigByVertex(id, targetCollection, edgeName);
+  }
 }

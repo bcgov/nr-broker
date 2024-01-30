@@ -10,7 +10,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
 import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigResponseDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
 import { lastValueFrom } from 'rxjs';
 import { GraphUtilService } from '../../service/graph-util.service';
@@ -28,7 +28,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
   styleUrl: './add-team-dialog.component.scss',
 })
 export class AddTeamDialogComponent {
-  public config: CollectionConfigResponseDto | undefined;
+  public config: CollectionConfigRestDto | undefined;
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;

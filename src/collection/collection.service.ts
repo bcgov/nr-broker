@@ -12,7 +12,7 @@ import { CollectionIndex } from '../graph/graph.constants';
 import { VAULT_ENVIRONMENTS_SHORT } from '../constants';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
-import { CollectionConfigResponseDto } from '../persistence/dto/collection-config-rest.dto';
+import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
 import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
@@ -27,18 +27,18 @@ export class CollectionService {
     private readonly tokenService: TokenService,
   ) {}
 
-  public async getCollectionConfig(): Promise<CollectionConfigResponseDto[]> {
+  public async getCollectionConfig(): Promise<CollectionConfigRestDto[]> {
     return this.collectionRepository.getCollectionConfigs() as unknown as Promise<
-      CollectionConfigResponseDto[]
+      CollectionConfigRestDto[]
     >;
   }
 
   public async getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
-  ): Promise<CollectionConfigResponseDto | null> {
+  ): Promise<CollectionConfigRestDto | null> {
     return this.collectionRepository.getCollectionConfigByName(
       collection,
-    ) as unknown as Promise<CollectionConfigResponseDto | null>;
+    ) as unknown as Promise<CollectionConfigRestDto | null>;
   }
 
   async getCollectionById<T extends keyof CollectionDtoUnion>(
@@ -86,7 +86,7 @@ export class CollectionService {
     collection: CollectionDtoUnion[T],
   ) {
     if (type === 'serviceInstance') {
-      const serviceInstance: ServiceInstanceDto = collection;
+      const serviceInstance = collection as ServiceInstanceDto;
       if (serviceInstance.action) {
         await this.joinIntention(serviceInstance.action);
       }

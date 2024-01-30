@@ -13,3 +13,12 @@ export class EdgeInsertDto {
   @IsString()
   target!: string;
 }
+
+export class EdgeRestDto extends EdgeInsertDto {
+  @IsString()
+  id!: string;
+  @IsString()
+  is!: string;
+  @IsString()
+  it!: string;
+}

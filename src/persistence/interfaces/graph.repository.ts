@@ -1,5 +1,6 @@
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { EdgeDto } from '../dto/edge.dto';
 import {
@@ -32,6 +33,11 @@ export abstract class GraphRepository {
     source?: string,
     target?: string,
   ): Promise<EdgeDto[]>;
+  public abstract getEdgeConfigByVertex(
+    sourceId: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ): Promise<CollectionConfigInstanceDto[]>;
   // Vertex
   public abstract addVertex(
     vertex: VertexDto,

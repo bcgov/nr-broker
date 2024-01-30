@@ -30,7 +30,7 @@ import { EchartsComponent } from './echarts/echarts.component';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
 import {
-  CollectionConfigResponseDto,
+  CollectionConfigRestDto,
   CollectionEdgeConfig,
 } from '../service/dto/collection-config-rest.dto';
 import { InspectorComponent } from './inspector/inspector.component';
@@ -85,7 +85,7 @@ export class GraphComponent {
       map(
         ([data, configArr, ownedVertex]: [
           GraphDataResponseDto,
-          CollectionConfigResponseDto[],
+          CollectionConfigRestDto[],
           string[],
         ]) => {
           // console.log(data);
@@ -113,11 +113,15 @@ export class GraphComponent {
 
           for (const edge of graphData.edges) {
             const targetVertex = graphData.idToVertex[edge.target];
-            const parentEdgeName =
-              configMap[targetVertex.collection]?.parent?.edgeName;
-            if (parentEdgeName && edge.name === parentEdgeName) {
-              const sourceVertex = graphData.idToVertex[edge.source];
-              targetVertex.parentName = sourceVertex.name;
+            if (targetVertex) {
+              const parentEdgeName =
+                configMap[targetVertex.collection]?.parent?.edgeName;
+              if (parentEdgeName && edge.name === parentEdgeName) {
+                const sourceVertex = graphData.idToVertex[edge.source];
+                targetVertex.parentName = sourceVertex.name;
+              }
+            } else {
+              console.log(`Target does not exist in data: ${edge.target}`);
             }
           }
           this.latestConfig = configMap;
@@ -277,7 +281,7 @@ export class GraphComponent {
   }
 
   isEdgeVisible(
-    colllectionConfig: CollectionConfigResponseDto,
+    colllectionConfig: CollectionConfigRestDto,
     edge: CollectionEdgeConfig,
   ): boolean {
     if (!this.latestConfig) {
@@ -296,7 +300,7 @@ export class GraphComponent {
   }
 
   toggleEdge(
-    colllectionConfig: CollectionConfigResponseDto,
+    colllectionConfig: CollectionConfigRestDto,
     edge: CollectionEdgeConfig,
   ) {
     if (!this.latestConfig) {

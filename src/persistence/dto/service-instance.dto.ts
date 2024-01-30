@@ -18,6 +18,11 @@ export class ServiceInstanceDto extends VertexPointerDto {
   name: string;
 
   @IsOptional()
+  @IsString()
+  @Column()
+  url: string;
+
+  @IsOptional()
   @Column(() => IntentionActionPointerDto)
   @Type(() => IntentionActionPointerDto)
   action?: IntentionActionPointerDto;

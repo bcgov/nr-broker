@@ -1,5 +1,5 @@
 import {
-  CollectionConfigResponseDto,
+  CollectionConfigRestDto,
   CollectionEdgeConfig,
   CollectionFieldConfig,
 } from './dto/collection-config-rest.dto';
@@ -21,7 +21,7 @@ export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
 }
 
 export type CollectionConfigMap = {
-  [key: string]: CollectionConfigResponseDto;
+  [key: string]: CollectionConfigRestDto;
 };
 
 export type CollectionEdgeConfigMap = {

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
+import ejs from 'ejs';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { AuditService } from '../audit/audit.service';
@@ -17,6 +18,7 @@ import { EdgeDto } from '../persistence/dto/edge.dto';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import {
   CollectionDtoUnion,
+  CollectionNameEnum,
   CollectionNames,
 } from '../persistence/dto/collection-dto-union.type';
 import { validate } from 'class-validator';
@@ -24,6 +26,9 @@ import { ValidatorUtil } from '../util/validator.util';
 import { get, set } from 'radash';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
+import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { EnvironmentDto } from '../persistence/dto/environment.dto';
 
 @Injectable()
 export class GraphService {
@@ -211,6 +216,7 @@ export class GraphService {
     id: string,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
+    ignoreBlankFields = false,
   ): Promise<VertexDto> {
     const [vertex, collection] = await this.validateVertex(
       vertexInsert,
@@ -250,6 +256,7 @@ export class GraphService {
         id,
         vertex,
         collection,
+        ignoreBlankFields,
       );
 
       this.auditService.recordGraphAction(
@@ -342,7 +349,7 @@ export class GraphService {
     const vertex = VertexDto.upgradeInsertDto(vertexInsert);
 
     if (targetBy === 'id') {
-      return this.editVertex(req, target, vertexInsert, true);
+      return this.editVertex(req, target, vertexInsert, true, true);
     } else if (targetBy === 'parentId') {
       const config = await this.collectionRepository.getCollectionConfigByName(
         vertex.collection,
@@ -367,6 +374,7 @@ export class GraphService {
           req,
           curVertex.id.toString(),
           vertexInsert,
+          true,
           true,
         );
       } else {
@@ -405,6 +413,7 @@ export class GraphService {
           req,
           curVertex.id.toString(),
           vertexInsert,
+          true,
           true,
         );
       } else {
@@ -551,5 +560,74 @@ export class GraphService {
 
   public async reindexCache() {
     return this.graphRepository.reindexCache();
+  }
+
+  public async getEdgeConfigByVertex(
+    id: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ) {
+    return this.graphRepository
+      .getEdgeConfigByVertex(id, targetCollection, edgeName)
+      .then(async (response) => {
+        const converted =
+          response as unknown as CollectionConfigInstanceRestDto[];
+        for (const ccInstance of converted) {
+          if (ccInstance.edge.prototype.url && ccInstance.instance) {
+            ccInstance.links = {
+              default: '',
+            };
+            if (ccInstance.edge.collection === 'service') {
+              const ds =
+                await this.graphRepository.getDownstreamVertex<ServiceInstanceDto>(
+                  ccInstance.instance.target,
+                  CollectionNameEnum.serviceInstance,
+                  2,
+                );
+              if (ds.length > 0) {
+                ccInstance.links.alt = [];
+                let position = 0;
+                for (const serviceInstance of ds) {
+                  const environment =
+                    await this.graphRepository.getDownstreamVertex<EnvironmentDto>(
+                      serviceInstance.collection.vertex.toString(),
+                      CollectionNameEnum.environment,
+                      1,
+                    );
+                  if (environment.length === 0) {
+                    continue;
+                  }
+                  const url = ejs.render(ccInstance.edge.prototype.url, {
+                    property: ccInstance.instance?.prop ?? {},
+                    url: serviceInstance.collection.url,
+                  });
+
+                  ccInstance.links.alt.push({
+                    environmentPosition: environment[0].collection.position,
+                    environmentTitle: environment[0].collection.title,
+                    name: serviceInstance.collection.name,
+                    url,
+                  });
+
+                  if (
+                    ccInstance.links.default === '' ||
+                    environment[0].collection.position < position
+                  ) {
+                    ccInstance.links.default = url;
+                    position = environment[0].collection.position;
+                  }
+                }
+              }
+            } else {
+              ccInstance.links = {
+                default: ejs.render(ccInstance.edge.prototype.url, {
+                  property: ccInstance.instance?.prop ?? {},
+                }),
+              };
+            }
+          }
+        }
+        return response;
+      }) as unknown as Promise<CollectionConfigInstanceRestDto[]>;
   }
 }
