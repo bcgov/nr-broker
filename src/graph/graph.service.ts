@@ -216,6 +216,7 @@ export class GraphService {
     id: string,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
+    ignoreBlankFields = false,
   ): Promise<VertexDto> {
     const [vertex, collection] = await this.validateVertex(
       vertexInsert,
@@ -255,6 +256,7 @@ export class GraphService {
         id,
         vertex,
         collection,
+        ignoreBlankFields,
       );
 
       this.auditService.recordGraphAction(
@@ -347,7 +349,7 @@ export class GraphService {
     const vertex = VertexDto.upgradeInsertDto(vertexInsert);
 
     if (targetBy === 'id') {
-      return this.editVertex(req, target, vertexInsert, true);
+      return this.editVertex(req, target, vertexInsert, true, true);
     } else if (targetBy === 'parentId') {
       const config = await this.collectionRepository.getCollectionConfigByName(
         vertex.collection,
@@ -372,6 +374,7 @@ export class GraphService {
           req,
           curVertex.id.toString(),
           vertexInsert,
+          true,
           true,
         );
       } else {
@@ -410,6 +413,7 @@ export class GraphService {
           req,
           curVertex.id.toString(),
           vertexInsert,
+          true,
           true,
         );
       } else {
