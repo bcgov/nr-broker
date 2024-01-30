@@ -35,10 +35,15 @@
 
   @if (serviceSearch$ | async; as serviceSearch) {
 
+
+    @if (serviceCount === 0) {
+      <h3>No Services</h3>
+    }
+
+    <div class="card-container">
     @for (service of serviceSearch; track service.id) {
       @if (service.instance) {
 
-      <div class="card-container">
         <mat-card class="service-card">
           <mat-card-header>
             <mat-card-subtitle>{{service.edge.prototype.targetName}}</mat-card-subtitle>
@@ -80,9 +85,9 @@
             }
           </mat-card-actions>
         </mat-card>
-      </div>
       }
     }
+    </div>
   }
 
   <h2>Accounts</h2>

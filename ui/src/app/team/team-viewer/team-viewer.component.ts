@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
 
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
@@ -50,6 +50,7 @@ export class TeamViewerComponent {
   serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
   service: any;
   propDisplayedColumns: string[] = ['key', 'value'];
+  serviceCount = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -83,6 +84,9 @@ export class TeamViewerComponent {
       switchMap((team: TeamRestDto) =>
         this.graphApi.getEdgeConfigByVertex(team.vertex, 'service', 'uses'),
       ),
+      tap((cciArray) => {
+        this.serviceCount = cciArray.filter((cci) => cci.instance).length;
+      }),
     );
 
     this.latestConfig$ = this.graphApi
