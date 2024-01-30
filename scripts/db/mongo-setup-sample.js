@@ -200,12 +200,28 @@ db.edge.insertMany([
     target: ObjectId('644c4d312e2f63acef6bb733'),
   },
   {
+    _id: ObjectId('65b93377cd33470efb73fb28'),
+    name: 'instance',
+    source: ObjectId('644c4d302e2f63acef6bb72c'),
+    target: ObjectId('644c4d312e2f63acef6bb745'),
+    is: 2,
+    it: 3,
+  },
+  {
+    _id: ObjectId('65b93386cd33470efb73fb29'),
+    name: 'instance',
+    source: ObjectId('644c4d302e2f63acef6bb72c'),
+    target: ObjectId('644c4d312e2f63acef6bb73e'),
+    is: 2,
+    it: 3,
+  },
+  {
     _id: ObjectId('644c4d312e2f63acef6bb736'),
     name: 'deploy-type',
     is: 3,
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb733'),
-    target: prodEnvironment._id,
+    target: prodEnvironment.vertex,
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb748'),
@@ -213,7 +229,7 @@ db.edge.insertMany([
     is: 3,
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb745'),
-    target: testEnvironment._id,
+    target: testEnvironment.vertex,
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb741'),
@@ -221,7 +237,16 @@ db.edge.insertMany([
     is: 3,
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb73e'),
-    target: devEnvironment._id,
+    target: devEnvironment.vertex,
+  },
+  {
+    _id: ObjectId('65b93631cd33470efb73fb2c'),
+    name: 'uses',
+    prop: { group: 'dba', kv: 'teams' },
+    source: ObjectId('64fa194693b3afd6ee63aa99'),
+    target: ObjectId('644c4d302e2f63acef6bb72c'),
+    is: 6,
+    it: 2,
   },
 ]);
 
@@ -247,7 +272,7 @@ db.serviceInstance.insertMany([
 ]);
 
 // ==> Collection Config Prototype
-db.collectionConfig.update(
+db.collectionConfig.updateOne(
   { collection: 'team' },
   {
     $set: {
@@ -298,7 +323,7 @@ db.collectionConfig.update(
                   type: 'string',
                 },
               },
-              url: '<%= url %>/ui<% if (property.group) { %>/vault/secrets/groups/kv/list/<%= property.group %>/<% } %>',
+              url: '<%= url %>/ui<% if (property.group && property.kv) { %>/vault/secrets/<%= property.kv %>/kv/list/<%= property.group %>/<% } %>',
             },
           ],
         },
