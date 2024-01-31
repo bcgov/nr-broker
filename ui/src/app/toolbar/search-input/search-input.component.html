@@ -9,7 +9,7 @@
   <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
     @for (option of (filteredOptions | async)?.data; track option) {
       <mat-option [value]="option" (click)="onTypeaheadOptionClick(option)">
-        <div>{{ option.name }}</div>
+        <div><app-vertex-name [vertex]="option"></app-vertex-name></div>
         <div><small>{{option.collection}}</small></div>
       </mat-option>
     }

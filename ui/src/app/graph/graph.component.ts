@@ -46,10 +46,10 @@ import { GraphUtilService } from '../service/graph-util.service';
   imports: [
     MatButtonModule,
     MatIconModule,
-    EchartsComponent,
-    InspectorComponent,
     MatMenuModule,
     CommonModule,
+    EchartsComponent,
+    InspectorComponent,
   ],
 })
 export class GraphComponent {

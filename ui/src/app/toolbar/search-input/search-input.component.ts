@@ -24,6 +24,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { VertexNameComponent } from '../../graph/vertex-name/vertex-name.component';
 
 @Component({
   selector: 'app-search-input',
@@ -39,6 +40,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatSelectModule,
     MatDividerModule,
     CommonModule,
+    VertexNameComponent,
   ],
   templateUrl: './search-input.component.html',
   styleUrl: './search-input.component.scss',
@@ -61,7 +63,7 @@ export class SearchInputComponent {
       distinctUntilChanged(),
       debounceTime(1000),
       switchMap((searchTerm) => {
-        if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
+        if (typeof searchTerm === 'string' && searchTerm.length >= 2) {
           return this.graphApi.doTypeaheadSearch(searchTerm);
         }
         return of({

@@ -14,7 +14,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-import { Observable, map, startWith } from 'rxjs';
+import {
+  Observable,
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  startWith,
+  switchMap,
+} from 'rxjs';
 import {
   CollectionConfigMap,
   GraphDataVertex,
@@ -24,6 +31,7 @@ import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.d
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
+import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
 
 @Component({
   selector: 'app-edge-dialog',
@@ -50,8 +58,7 @@ export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex>('');
 
-  filteredOptions!: Observable<GraphDataVertex[]>;
-  targetVertices: GraphDataVertex[] = [];
+  filteredOptions!: Observable<GraphTypeaheadResult>;
 
   @ViewChild(PropertyEditorComponent)
   private propertyEditorComponent!: PropertyEditorComponent;
@@ -61,7 +68,6 @@ export class EdgeDialogComponent implements OnInit {
     public readonly data: {
       collection: string;
       config: CollectionConfigMap;
-      vertices: GraphDataVertex[];
       vertex: GraphDataVertex;
       target?: GraphDataResponseEdgeDto;
     },
@@ -72,24 +78,25 @@ export class EdgeDialogComponent implements OnInit {
   ngOnInit(): void {
     this.filteredOptions = this.vertexControl.valueChanges.pipe(
       startWith(''),
-      map((value) => {
-        if (typeof value === 'string') {
-          return this._filter(value);
-        } else {
-          return [];
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap((searchTerm) => {
+        const edge = this.edgeControl.value;
+        if (
+          !!edge &&
+          typeof edge !== 'string' &&
+          typeof searchTerm === 'string' &&
+          searchTerm.length >= 3
+        ) {
+          return this.graphApi.doTypeaheadSearch(searchTerm, [edge.collection]);
         }
+        return of({
+          meta: {
+            total: 0,
+          },
+          data: [],
+        });
       }),
-    );
-  }
-
-  private _filter(value: string): GraphDataVertex[] {
-    const filterValue = value.toLowerCase();
-
-    return this.targetVertices.filter(
-      (option) =>
-        option.name.toLowerCase().includes(filterValue) ||
-        (option.parentName &&
-          option.parentName.toLocaleLowerCase().includes(filterValue)),
     );
   }
 
@@ -106,9 +113,6 @@ export class EdgeDialogComponent implements OnInit {
   configChanged() {
     const edge = this.edgeControl.value;
     if (!!edge && typeof edge !== 'string') {
-      this.targetVertices = this.data.vertices
-        .filter((vertex) => edge.collection === vertex.collection)
-        .sort((a, b) => a.name.localeCompare(b.name));
       this.vertexControl.enable();
     } else {
       this.vertexControl.disable();
