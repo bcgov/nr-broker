@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 import { GraphDataVertex } from '../../service/graph.types';
+import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
 
 @Component({
   selector: 'app-vertex-name',
@@ -15,5 +16,5 @@ import { GraphDataVertex } from '../../service/graph.types';
   imports: [],
 })
 export class VertexNameComponent {
-  @Input() vertex: GraphDataVertex | undefined;
+  @Input() vertex: GraphDataVertex | GraphTypeaheadData | undefined;
 }

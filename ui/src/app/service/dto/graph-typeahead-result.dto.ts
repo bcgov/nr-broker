@@ -4,6 +4,7 @@ export class GraphTypeaheadData {
   id!: string;
   collection!: string;
   name!: string;
+  parentName?: string;
 }
 
 export class GraphTypeaheadResult {

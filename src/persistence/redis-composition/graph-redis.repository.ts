@@ -234,6 +234,9 @@ export class GraphRedisRepository implements GraphRepository {
           id: doc.value.id as string,
           collection: doc.value.collection as string,
           name: doc.value.name as string,
+          ...(doc.value.parentName
+            ? { parentName: doc.value.parentName as string }
+            : {}),
           // index: doc.id,
         };
       }),
@@ -265,6 +268,7 @@ export class GraphRedisRepository implements GraphRepository {
         '$.text': {
           type: SchemaFieldTypes.TEXT,
           AS: 'text',
+          WITHSUFFIXTRIE: true,
         },
         '$.id': {
           type: SchemaFieldTypes.TAG,
@@ -311,6 +315,7 @@ export class GraphRedisRepository implements GraphRepository {
     );
     const config = await this.getCollectionConfig(vertex.collection);
     const textValues = [];
+    const parentName = await this.getParentVertexName(config, vertex);
 
     for (const key of Object.keys(config.fields)) {
       const field = config.fields[key];
@@ -335,7 +340,30 @@ export class GraphRedisRepository implements GraphRepository {
       id: vertex.id.toString(),
       name: vertex.name,
       collection: vertex.collection,
+      ...(parentName ? { parentName } : {}),
     });
+  }
+
+  private async getParentVertexName(
+    config: CollectionConfigDto,
+    vertex: VertexDto,
+  ) {
+    if (config.parent?.edgeName) {
+      const edges = await this.repo.searchEdgesShallow(
+        config.parent.edgeName,
+        null,
+        vertex.id.toString(),
+      );
+      if (edges.length === 1) {
+        const parentVertex = await this.repo.getVertex(
+          edges[0].source.toString(),
+        );
+        if (parentVertex) {
+          return parentVertex.name;
+        }
+      }
+    }
+    return null;
   }
 
   private async removeVertexTypeaheadIndex(vertex: VertexDto) {
