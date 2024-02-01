@@ -21,10 +21,10 @@ export class GraphUtilService {
     configArr: CollectionConfigRestDto[],
     configMap: CollectionConfigMap,
   ): CollectionEdgeConfigMap {
-    return configArr.reduce((previousValue, currentValue, currentIndex) => {
+    return configArr.reduce((previousValue, currentValue) => {
       for (const edge of currentValue.edges) {
         previousValue[
-          `${currentIndex}>${configMap[edge.collection].index}:${edge.name}`
+          `${currentValue.index}>${configMap[edge.collection].index}:${edge.name}`
         ] = edge;
       }
       return previousValue;
