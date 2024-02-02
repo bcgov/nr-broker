@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  DAYS_10_IN_SECONDS,
   ACTION_PROVISION_APPROLE_SECRET_ID,
   ACTION_PROVISION_TOKEN_SELF,
   HEADER_BROKER_TOKEN,
@@ -70,9 +71,10 @@ export class ProvisionController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async provisionRenewalToken(
     @Req() request: Request,
-    @Query('ttl') ttl: number | undefined,
-    @Query('username') username: string,
+    @Query('autorenew') autorenew: boolean = true,
+    @Query('ttl') ttl: number = DAYS_10_IN_SECONDS,
   ) {
-    return this.provisionService.renewalToken(request, ttl, username);
+    if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
+    return this.provisionService.renewalToken(request, autorenew, ttl);
   }
 }

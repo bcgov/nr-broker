@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 
 import { plainToInstance } from 'class-transformer';
 import { Request } from 'express';
@@ -16,10 +11,10 @@ import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
-import { DAYS_10_IN_SECONDS } from '../constants';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { AccountService } from '../collection/account.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { randomUUID } from 'crypto';
 
 export class TokenCreateDTO {
   token: string;
@@ -140,8 +135,8 @@ export class ProvisionService {
 
   async renewalToken(
     request: Request,
-    ttl: number = DAYS_10_IN_SECONDS,
-    name: string,
+    autorenew: boolean,
+    ttl: number,
   ): Promise<TokenCreateDTO> {
     const actionFailures: ActionError[] = [];
     try {
@@ -157,50 +152,29 @@ export class ProvisionService {
           error: actionFailures,
         });
       }
-
-      const account = await this.collectionRepository.getCollectionById(
-        'brokerAccount',
-        registryJwt.accountId.toString(),
+      const userid = registryJwt.createdUserId.toString();
+      const user = await this.collectionRepository.getCollectionById(
+        'user',
+        userid,
       );
-      if (!account) {
-        actionFailures.push({
-          message: 'Token must be bound to a broker account',
-          data: {
-            action: '',
-            action_id: '',
-            key: 'jwt.jti',
-            value: brokerJwt.jti,
-          },
-        });
+      if (autorenew && user) {
+        return this.accountService.generateAccountToken(
+          request,
+          registryJwt.accountId.toString(),
+          ttl,
+          user.guid,
+        );
+      } else {
+        const creator = randomUUID().replace(/-/g, '').substring(0, 24);
+        return this.accountService.renewalAccountToken(
+          request,
+          registryJwt.accountId.toString(),
+          creator,
+          ttl,
+        );
       }
-      const [username, domain] = name.split('@');
-      const user = await this.collectionRepository.getCollection('user', {
-        username,
-        domain,
-      });
-      if (!user) throw new UnauthorizedException();
-
-      return this.accountService.generateAccountToken(
-        request,
-        registryJwt.accountId.toString(),
-        ttl,
-        user.guid,
-      );
     } catch (e) {
       throw e;
     }
   }
-  /*
-  private async lookupUserByName(
-    username: string,
-    domain?: string,
-  ): Promise<UserDto> {
-    if (!domain) {
-      [username, domain] = username.split('@');
-    }
-    return this.collectionRepository.getCollection('user', {
-      username,
-      domain,
-    });
-  }*/
 }
