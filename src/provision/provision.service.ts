@@ -133,10 +133,10 @@ export class ProvisionService {
       );
   }
 
-  async renewalToken(
+  async renewToken(
     request: Request,
-    autorenew: boolean,
     ttl: number,
+    autorenew: boolean,
   ): Promise<TokenCreateDTO> {
     const actionFailures: ActionError[] = [];
     try {
@@ -152,27 +152,25 @@ export class ProvisionService {
           error: actionFailures,
         });
       }
-      const userid = registryJwt.createdUserId.toString();
       const user = await this.collectionRepository.getCollectionById(
         'user',
-        userid,
+        registryJwt.createdUserId.toString(),
       );
-      if (autorenew && user) {
-        return this.accountService.generateAccountToken(
-          request,
-          registryJwt.accountId.toString(),
-          ttl,
-          user.guid,
-        );
-      } else {
-        const creator = randomUUID().replace(/-/g, '').substring(0, 24);
-        return this.accountService.renewalAccountToken(
-          request,
-          registryJwt.accountId.toString(),
-          creator,
-          ttl,
-        );
+
+      let creatorId: string;
+      if (user) creatorId = user.guid;
+      else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        creatorId = randomUUID().replace(/-/g, '').substring(0, 12);
       }
+
+      return this.accountService.generateAccountToken(
+        request,
+        registryJwt.accountId.toString(),
+        ttl,
+        creatorId,
+        autorenew,
+      );
     } catch (e) {
       throw e;
     }

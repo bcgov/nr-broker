@@ -109,6 +109,7 @@ export class CollectionController {
       id,
       expiryQuery.expiration,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
+      false,
     );
   }
 

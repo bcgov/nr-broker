@@ -32,6 +32,7 @@ export class AccountService {
     id: string,
     expirationInSeconds: number,
     creatorGuid: string,
+    autorenew: boolean,
   ): Promise<TokenCreateDTO> {
     const hmac = createHmac('sha256', process.env['JWT_SECRET']);
     const header = {
@@ -44,14 +45,26 @@ export class AccountService {
       'brokerAccount',
       id,
     );
+    if (!account) {
+      throw new Error();
+    }
+
+    let creatorId: string, message: string;
     const user = await this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
       creatorGuid,
     );
 
-    if (!account || !user) {
-      throw new Error();
+    if (!user && !autorenew) throw new Error();
+
+    if (!user) creatorId = creatorGuid;
+    else creatorId = user.id.toString();
+
+    if (!autorenew) {
+      message = `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`;
+    } else {
+      message = `Token renewed for ${account.name} (${account.clientId}) by API call`;
     }
 
     const payload = {
@@ -72,70 +85,11 @@ export class AccountService {
     hmac.update(headerStr + '.' + payloadStr);
 
     const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
-    await this.systemRepository.addJwtToRegister(
-      id,
-      payload,
-      user.id.toString(),
-    );
+    await this.systemRepository.addJwtToRegister(id, payload, creatorId);
     this.auditService.recordAccountTokenLifecycle(
       req,
       payload,
-      `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`,
-      'creation',
-      'success',
-      ['token', 'generated'],
-    );
-
-    return {
-      token,
-    };
-  }
-
-  async renewalAccountToken(
-    req: any,
-    id: string,
-    creator: string,
-    ttl: number,
-  ): Promise<TokenCreateDTO> {
-    const hmac = createHmac('sha256', process.env['JWT_SECRET']);
-    const header = {
-      alg: 'HS256',
-      typ: 'JWT',
-    };
-    const ISSUED_AT = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
-
-    const account = await this.collectionRepository.getCollectionById(
-      'brokerAccount',
-      id,
-    );
-
-    if (!account) {
-      throw new Error();
-    }
-
-    const payload = {
-      client_id: account.clientId,
-      exp: ISSUED_AT + ttl,
-      iat: ISSUED_AT,
-      nbf: ISSUED_AT,
-      jti: randomUUID(),
-      sub: account.email,
-    };
-    const headerStr = Buffer.from(JSON.stringify(header), 'utf8').toString(
-      'base64url',
-    );
-
-    const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
-      'base64url',
-    );
-    hmac.update(headerStr + '.' + payloadStr);
-
-    const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
-    await this.systemRepository.addJwtToRegister(id, payload, creator);
-    this.auditService.recordAccountTokenLifecycle(
-      req,
-      payload,
-      `Token generated for ${account.name} (${account.clientId}) with API call`,
+      message,
       'creation',
       'success',
       ['token', 'generated'],

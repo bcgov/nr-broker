@@ -71,10 +71,10 @@ export class ProvisionController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async provisionRenewalToken(
     @Req() request: Request,
-    @Query('autorenew') autorenew: boolean = true,
     @Query('ttl') ttl: number = DAYS_10_IN_SECONDS,
+    @Query('autorenew') autorenew: boolean = true,
   ) {
     if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
-    return this.provisionService.renewalToken(request, autorenew, ttl);
+    return this.provisionService.renewToken(request, ttl, autorenew);
   }
 }
