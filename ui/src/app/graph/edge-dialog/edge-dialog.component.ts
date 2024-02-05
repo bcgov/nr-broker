@@ -86,7 +86,7 @@ export class EdgeDialogComponent implements OnInit {
           !!edge &&
           typeof edge !== 'string' &&
           typeof searchTerm === 'string' &&
-          searchTerm.length >= 3
+          searchTerm.length >= 2
         ) {
           return this.graphApi.doTypeaheadSearch(searchTerm, [edge.collection]);
         }
