@@ -1,4 +1,5 @@
 import {
+  Req,
   Body,
   Controller,
   Get,
@@ -17,6 +18,7 @@ import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { CollectionService } from './collection.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
+import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
@@ -32,6 +34,7 @@ import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decora
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { ExpiryQuery } from './dto/expiry-query.dto';
+import {  DAYS_10_IN_SECONDS } from '../constants';
 
 @Controller({
   path: 'collection',
@@ -109,7 +112,21 @@ export class CollectionController {
       id,
       expiryQuery.expiration,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
+      false,
     );
+  }
+
+  @Post('broker-account/renewal')
+  @UseGuards(BrokerJwtAuthGuard)
+  @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async provisionRenewalToken(
+    @Req() request: ExpressRequest,
+    @Query('ttl') ttl: number = DAYS_10_IN_SECONDS,
+    @Query('autorenew') autorenew: boolean = true,
+  ) {
+    if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
+    return this.accountService.renewToken(request, ttl, autorenew);
   }
 
   @Get('service/:id/secure')

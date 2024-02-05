@@ -1,14 +1,18 @@
 import { createHmac, randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { plainToInstance } from 'class-transformer';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
 } from '../constants';
+import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 
 export class TokenCreateDTO {
@@ -32,6 +36,7 @@ export class AccountService {
     id: string,
     expirationInSeconds: number,
     creatorGuid: string,
+    autorenew: boolean,
   ): Promise<TokenCreateDTO> {
     const hmac = createHmac('sha256', process.env['JWT_SECRET']);
     const header = {
@@ -44,14 +49,26 @@ export class AccountService {
       'brokerAccount',
       id,
     );
+    if (!account) {
+      throw new Error();
+    }
+
+    let creatorId: string, message: string;
     const user = await this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
       creatorGuid,
     );
 
-    if (!account || !user) {
-      throw new Error();
+    if (!user && !autorenew) throw new Error();
+
+    if (!user) creatorId = creatorGuid;
+    else creatorId = user.id.toString();
+
+    if (!autorenew) {
+      message = `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`;
+    } else {
+      message = `Token renewed for ${account.name} (${account.clientId}) by API call`;
     }
 
     const payload = {
@@ -72,15 +89,11 @@ export class AccountService {
     hmac.update(headerStr + '.' + payloadStr);
 
     const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
-    await this.systemRepository.addJwtToRegister(
-      id,
-      payload,
-      user.id.toString(),
-    );
+    await this.systemRepository.addJwtToRegister(id, payload, creatorId);
     this.auditService.recordAccountTokenLifecycle(
       req,
       payload,
-      `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`,
+      message,
       'creation',
       'success',
       ['token', 'generated'],
@@ -89,6 +102,49 @@ export class AccountService {
     return {
       token,
     };
+  }
+
+  async renewToken(
+    request: Request,
+    ttl: number,
+    autorenew: boolean,
+  ): Promise<TokenCreateDTO> {
+    const actionFailures: ActionError[] = [];
+    try {
+      const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
+      const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
+        brokerJwt.jti,
+      );
+      if (registryJwt && registryJwt.blocked) {
+        // JWT should by in block list anyway
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Authorization failed',
+          error: actionFailures,
+        });
+      }
+      const user = await this.collectionRepository.getCollectionById(
+        'user',
+        registryJwt.createdUserId.toString(),
+      );
+
+      let creatorId: string;
+      if (user) creatorId = user.guid;
+      else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        creatorId = randomUUID().replace(/-/g, '').substring(0, 12);
+      }
+
+      return this.generateAccountToken(
+        request,
+        registryJwt.accountId.toString(),
+        ttl,
+        creatorId,
+        autorenew,
+      );
+    } catch (e) {
+      throw e;
+    }
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
