@@ -59,6 +59,9 @@ const redisFactory = {
   },
 };
 
+/**
+ * The persistence module provides interfaces to store, retrieve and query data.
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([

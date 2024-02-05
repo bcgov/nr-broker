@@ -6,6 +6,10 @@ import { ProvisionController } from './provision.controller';
 import { ProvisionService } from './provision.service';
 import { IntentionModule } from '../intention/intention.module';
 
+/**
+ * The provision module proxies access to Vault APIs. Access is controlled by
+ * tokens provied in the response to a successful intention open.
+ */
 @Module({
   imports: [TokenModule, AuditModule, IntentionModule, PersistenceModule],
   controllers: [ProvisionController],

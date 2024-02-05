@@ -6,6 +6,9 @@ import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 
+/**
+ * The health module reports on the overall status of broker.
+ */
 @Module({
   imports: [AuditModule, PersistenceModule, TerminusModule, TokenModule],
   controllers: [HealthController],

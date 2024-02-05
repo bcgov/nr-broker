@@ -7,6 +7,9 @@ import { GraphService } from './graph.service';
 import { AuthModule } from '../auth/auth.module';
 import { IntentionSyncService } from './intention-sync.service';
 
+/**
+ * The graph module allows users to interact with the graph database.
+ */
 @Module({
   imports: [AuthModule, AuditModule, PersistenceModule, UtilModule],
   controllers: [GraphController],

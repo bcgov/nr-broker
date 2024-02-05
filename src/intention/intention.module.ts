@@ -10,6 +10,9 @@ import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
 import { ActionUtil } from '../util/action.util';
 
+/**
+ * The intention module allows broker accounts to interact with intentions.
+ */
 @Module({
   imports: [
     AuthModule,
