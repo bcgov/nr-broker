@@ -11,6 +11,10 @@ const kinesisServiceProvider = {
   provide: KinesisService,
   useClass: isUsingFakeKinesis() ? FakeKinesisService : AwsKinesisService,
 };
+
+/**
+ * The kinesis module provides a services for sending audit data to AWS Kinesis.
+ */
 @Module({
   providers: [kinesisServiceProvider],
   exports: [KinesisService],

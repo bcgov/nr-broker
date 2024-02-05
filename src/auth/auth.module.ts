@@ -22,6 +22,9 @@ const OidcStrategyFactory = {
   inject: [AuthService],
 };
 
+/**
+ * The auth module enables user login using OIDC.
+ */
 @Module({
   imports: [
     AuditModule,

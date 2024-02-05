@@ -11,6 +11,10 @@ import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 import { IntentionModule } from '../intention/intention.module';
 
+/**
+ * The collection module enables the viewing and manipulation of the objects
+ * attached to the graph vertices in broker.
+ */
 @Module({
   imports: [
     AuditModule,
