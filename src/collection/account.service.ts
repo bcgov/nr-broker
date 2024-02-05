@@ -36,7 +36,7 @@ export class AccountService {
     id: string,
     expirationInSeconds: number,
     creatorGuid: string,
-    autorenew: boolean,
+    autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
     const hmac = createHmac('sha256', process.env['JWT_SECRET']);
     const header = {
@@ -53,23 +53,20 @@ export class AccountService {
       throw new Error();
     }
 
-    let creatorId: string, message: string;
     const user = await this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
       creatorGuid,
     );
 
-    if (!user && !autorenew) throw new Error();
-
-    if (!user) creatorId = creatorGuid;
-    else creatorId = user.id.toString();
-
-    if (!autorenew) {
-      message = `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`;
-    } else {
-      message = `Token renewed for ${account.name} (${account.clientId}) by API call`;
+    if (!user && !autoRenew) {
+      throw new Error();
     }
+
+    const creatorId = user ? user.id.toString() : creatorGuid;
+    const message = autoRenew
+      ? `Token renewed for ${account.name} (${account.clientId}) by API call`
+      : `Token generated for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`;
 
     const payload = {
       client_id: account.clientId,
@@ -107,7 +104,7 @@ export class AccountService {
   async renewToken(
     request: Request,
     ttl: number,
-    autorenew: boolean,
+    autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
     const actionFailures: ActionError[] = [];
     try {
@@ -140,7 +137,7 @@ export class AccountService {
         registryJwt.accountId.toString(),
         ttl,
         creatorId,
-        autorenew,
+        autoRenew,
       );
     } catch (e) {
       throw e;

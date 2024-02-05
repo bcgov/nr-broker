@@ -1,5 +1,4 @@
 import {
-  Req,
   Body,
   Controller,
   Get,
@@ -34,7 +33,7 @@ import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decora
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { ExpiryQuery } from './dto/expiry-query.dto';
-import {  DAYS_10_IN_SECONDS } from '../constants';
+import { DAYS_10_IN_SECONDS } from '../constants';
 
 @Controller({
   path: 'collection',
@@ -121,12 +120,11 @@ export class CollectionController {
   @ApiBearerAuth()
   @UsePipes(new ValidationPipe({ transform: true }))
   async provisionRenewalToken(
-    @Req() request: ExpressRequest,
+    @Request() request: ExpressRequest,
     @Query('ttl') ttl: number = DAYS_10_IN_SECONDS,
-    @Query('autorenew') autorenew: boolean = true,
   ) {
     if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
-    return this.accountService.renewToken(request, ttl, autorenew);
+    return this.accountService.renewToken(request, ttl, true);
   }
 
   @Get('service/:id/secure')
