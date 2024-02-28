@@ -20,6 +20,7 @@ import { EdgeInsertDto } from '../dto/edge-rest.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
+import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -103,6 +104,74 @@ export class GraphMongoRepository implements GraphRepository {
     return this.collectionConfigRepository.findOne({
       where: { collection },
     });
+  }
+
+  public async getProjectServices(): Promise<
+    GraphProjectServicesResponseDto[]
+  > {
+    const projectRepository = getRepositoryFromCollectionName(
+      this.dataSource,
+      'project',
+    );
+
+    return projectRepository
+      .aggregate([
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'vertex',
+            foreignField: 'source',
+            as: 'services',
+            pipeline: [
+              { $match: { it: 2, name: 'component' } },
+              {
+                $lookup: {
+                  from: 'service',
+                  localField: 'target',
+                  foreignField: 'vertex',
+                  as: 'service',
+                },
+              },
+              { $unwind: '$service' },
+              { $replaceRoot: { newRoot: '$service' } },
+              {
+                $graphLookup: {
+                  from: 'edge',
+                  startWith: '$vertex',
+                  connectFromField: 'target',
+                  connectToField: 'source',
+                  as: 'path',
+                  maxDepth: 2,
+                },
+              },
+              {
+                $lookup: {
+                  from: 'environment',
+                  localField: 'path.target',
+                  foreignField: 'vertex',
+                  as: 'env',
+                },
+              },
+              { $unset: ['path'] },
+              { $set: { env: '$env.name' } },
+            ],
+          },
+        },
+      ])
+      .toArray()
+      .then((array: any) => {
+        this.arrayIdFixer(array);
+
+        for (const datum of array) {
+          if (datum.services) {
+            for (const serv of datum.services) {
+              serv.id = serv._id;
+              delete serv._id;
+            }
+          }
+        }
+        return array;
+      });
   }
 
   // Edge
@@ -270,52 +339,6 @@ export class GraphMongoRepository implements GraphRepository {
   ): Promise<CollectionConfigInstanceDto[]> {
     const vertex = await this.getVertex(sourceId);
     const sourceCollection = vertex.collection;
-    console.log(
-      JSON.stringify([
-        { $match: { collection: sourceCollection } },
-        { $unwind: '$edges' },
-        { $set: { edge: '$edges', edges: '$$REMOVE' } },
-        {
-          $match: {
-            ...(targetCollection
-              ? { 'edge.collection': targetCollection }
-              : {}),
-            ...(edgeName ? { 'edge.name': edgeName } : {}),
-          },
-        },
-        { $unwind: '$edge.prototypes' },
-        {
-          $set: {
-            'edge.prototype': '$edge.prototypes',
-            'edge.prototypes': '$$REMOVE',
-          },
-        },
-        {
-          $lookup: {
-            from: 'edge',
-            localField: 'edge.prototype.target',
-            foreignField: 'target',
-            as: 'instance',
-            let: { edge: '$edge' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      {
-                        $eq: ['$source', new ObjectId(sourceId)],
-                      },
-                      { $eq: ['$name', '$$edge.name'] },
-                    ],
-                  },
-                },
-              },
-            ],
-          },
-        },
-        { $unwind: { path: '$instance', preserveNullAndEmptyArrays: true } },
-      ]),
-    );
     return this.collectionConfigRepository
       .aggregate([
         { $match: { collection: sourceCollection } },

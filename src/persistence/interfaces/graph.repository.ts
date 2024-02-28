@@ -12,12 +12,16 @@ import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
+import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 
 export abstract class GraphRepository {
   // Data for graph
   public abstract getData(
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto>;
+  public abstract getProjectServices(): Promise<
+    GraphProjectServicesResponseDto[]
+  >;
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
   public abstract editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto>;

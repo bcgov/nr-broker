@@ -45,6 +45,10 @@ export class GraphService {
     return this.graphRepository.getData(includeCollection);
   }
 
+  public async getProjectServices() {
+    return this.graphRepository.getProjectServices();
+  }
+
   public async addEdge(
     req: Request,
     edge: EdgeInsertDto,

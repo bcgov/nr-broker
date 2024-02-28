@@ -49,6 +49,13 @@ export class GraphController {
     return this.graph.getData(false);
   }
 
+  @Get('data/project-services')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getProjectServices() {
+    return this.graph.getProjectServices();
+  }
+
   @Get('data/collection')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
