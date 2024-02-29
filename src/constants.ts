@@ -13,9 +13,9 @@ export const TOKEN_SERVICE_ALLOW_ORPHAN =
 
 export const COLLECTION_MAX_EMBEDDED = 40;
 
-export const INTENTION_DEFAULT_TTL_SECONDS = 300;
+export const INTENTION_DEFAULT_TTL_SECONDS = 600;
 export const INTENTION_MIN_TTL_SECONDS = 30;
-export const INTENTION_MAX_TTL_SECONDS = 1200;
+export const INTENTION_MAX_TTL_SECONDS = 1800;
 
 export const SHORT_ENV_CONVERSION = {
   production: 'prod',
