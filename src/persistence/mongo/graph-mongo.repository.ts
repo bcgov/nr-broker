@@ -153,7 +153,7 @@ export class GraphMongoRepository implements GraphRepository {
                 },
               },
               { $unset: ['path'] },
-              { $set: { env: '$env.name' } },
+              { $set: { shortEnv: '$env.short', env: '$env.name' } },
             ],
           },
         },
