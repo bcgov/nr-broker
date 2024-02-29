@@ -135,7 +135,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       debounceTime(1000),
       switchMap((searchTerm) => {
-        if (typeof searchTerm === 'string' && searchTerm.length >= 3) {
+        if (typeof searchTerm === 'string' && searchTerm.length >= 2) {
           return this.graphApi.doTypeaheadSearch(searchTerm, ['user']);
         }
         return of({
