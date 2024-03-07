@@ -15,7 +15,7 @@ import {
   CollectionConfigRestDto,
 } from './dto/collection-config-rest.dto';
 import { EdgeInsertDto } from './dto/edge-rest.dto';
-import { VertexInsertDto } from './dto/vertex-rest.dto';
+import { VertexInsertDto, VertexRestDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 
@@ -126,7 +126,7 @@ export class GraphApiService {
   }
 
   addVertex(vertex: VertexInsertDto) {
-    return this.http.post<any>(
+    return this.http.post<VertexRestDto>(
       `${environment.apiUrl}/v1/graph/vertex`,
       vertex,
       {

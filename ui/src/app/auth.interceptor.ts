@@ -5,7 +5,7 @@ import {
   HttpEvent,
   HttpInterceptor,
 } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 import { environment } from '../environments/environment';
 
 export const AUTH_INTERCEPTOR_RETURN_URL_SESSION_KEY = 'postLoginUrl';
@@ -24,7 +24,6 @@ export class AuthInterceptor implements HttpInterceptor {
             window.location.href,
           );
           window.location.href = `${environment.apiUrl}/auth/login`;
-          return of();
         }
         throw e;
       }),

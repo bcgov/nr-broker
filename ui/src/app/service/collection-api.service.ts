@@ -53,6 +53,15 @@ export class CollectionApiService {
     );
   }
 
+  public exportCollection<T extends keyof CollectionDtoRestUnion>(name: T) {
+    return this.http.post<CollectionDtoRestUnion[T][]>(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/export`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public getServiceSecure(serviceId: string) {
     return this.http.get(
       `${environment.apiUrl}/v1/collection/service/${serviceId}/secure`,
