@@ -1,0 +1,16 @@
+@if (user.roles.includes('admin')) {
+<div class="edge-container">
+  <div class="header-container">
+    <h3 class="header-text">Instances</h3>
+    @if (user.roles.includes('admin')) {
+      <div class="header-buttons">
+        <button mat-button (click)="openInstanceDialog()" [disabled]="!user.roles.includes('admin')">Add</button>
+      </div>
+    }
+  </div>
+
+
+</div>
+
+<mat-divider></mat-divider>
+}

@@ -9,13 +9,6 @@ import {
   GraphDataResponseVertexDto,
 } from './dto/graph-data.dto';
 
-export type collectionNames =
-  | 'environment'
-  | 'project'
-  | 'service'
-  | 'serviceInstance'
-  | 'user';
-
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;
 }

@@ -27,6 +27,19 @@ export class VertexSearchDto {
   };
 }
 
+export class VertexRestDto {
+  @IsString()
+  id!: string;
+  @IsString()
+  collection!: CollectionNames;
+  @IsOptional()
+  @IsObject()
+  geo?: PointGeom;
+  @IsOptional()
+  @IsObject()
+  prop?: VertexPropDto;
+}
+
 export class VertexInsertDto {
   @IsString()
   collection!: CollectionNames;

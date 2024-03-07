@@ -9,12 +9,11 @@ import {
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  EdgeNavigation,
   CollectionConfigMap,
   VertexNavigation,
   UserDto,
 } from '../../service/graph.types';
-import { KeyValuePipe } from '@angular/common';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
@@ -23,14 +22,17 @@ import { InspectorTeamComponent } from '../inspector-team/inspector-team.compone
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
+import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 
 @Component({
   selector: 'app-inspector-vertex',
   standalone: true,
   imports: [
     KeyValuePipe,
+    AsyncPipe,
     InspectorAccountComponent,
     InspectorInstallsComponent,
+    InspectorInstancesComponent,
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
@@ -42,7 +44,6 @@ import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-
 })
 export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: string;
-  @Input() edgeConnections!: Observable<EdgeNavigation | null>;
   @Input() collectionConfig!: CollectionConfigMap | null;
   @Input() collectionData: any = null;
   @Input() outboundConnections!: Observable<VertexNavigation | null>;
