@@ -3,7 +3,9 @@
     <h3>Details</h3>
 
     @if (instance && instance.action && instance.action.intention) {
-      <button mat-stroked-button (click)="viewIntention(instance.action.intention)">View Intention</button>
+      <button
+        mat-stroked-button
+        (click)="viewIntention(instance.action.intention)">View Intention</button>
     }
   </div>
 </div>

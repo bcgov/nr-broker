@@ -23,7 +23,7 @@
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "dependencies": {
-    "@aws-sdk/client-kinesis": "^3.521.0",
+    "@aws-sdk/client-kinesis": "^3.529.1",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.3",
     "@nestjs/config": "^3.2.0",
@@ -45,12 +45,12 @@
     "helmet": "^7.1.0",
     "lodash.merge": "^4.6.2",
     "mongodb": "^5.9.2",
-    "openid-client": "^5.6.4",
-    "passport": "^0.5.3",
+    "openid-client": "^5.6.5",
+    "passport": "^0.7.0",
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "radash": "^12.0.0",
+    "radash": "^12.1.0",
     "redis": "^4.6.13",
     "reflect-metadata": "^0.1.14",
     "rimraf": "^5.0.5",
@@ -70,14 +70,14 @@
     "@types/express-session": "^1.18.0",
     "@types/jest": "^29.5.12",
     "@types/lodash.merge": "^4.6.9",
-    "@types/node": "^20.11.20",
+    "@types/node": "^20.11.25",
     "@types/passport": "^1.0.16",
     "@types/passport-http": "^0.3.11",
-    "@types/passport-jwt": "^3.0.13",
+    "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^9.0.8",
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
@@ -89,7 +89,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   },
   "jest": {
     "moduleFileExtensions": [

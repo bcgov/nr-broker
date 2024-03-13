@@ -39,7 +39,7 @@
                 {{element.value.join(', ')}}
               }
               @case ('url') {
-                {{element.value}}
+                <a href="{{element.value}}" target="_blank">{{element.value}}</a>
               }
               @default {
               }
