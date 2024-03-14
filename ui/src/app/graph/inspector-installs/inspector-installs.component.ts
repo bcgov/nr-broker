@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatGridListModule } from '@angular/material/grid-list';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -18,7 +17,6 @@ import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.
     MatButtonModule,
     MatDividerModule,
     MatExpansionModule,
-    MatGridListModule,
     MatIconModule,
     MatListModule,
     MatTooltipModule,

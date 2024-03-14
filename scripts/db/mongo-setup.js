@@ -201,7 +201,11 @@ result = db.collectionConfig.insertOne({
       name: 'SCM URL',
       required: false,
       type: 'url',
-      hint: 'Source control management url',
+      hint: 'Repository URL with slug and no trailing slash',
+    },
+    vaultConfig: {
+      type: 'embeddedDoc',
+      required: false,
     },
   },
   name: 'Service',

@@ -35,11 +35,13 @@ import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 @Component({
   selector: 'app-history-table',
   standalone: true,
   imports: [
+    ClipboardModule,
     CommonModule,
     MatCardModule,
     MatButtonModule,
@@ -145,14 +147,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
           if (ids.length === 1) {
             return this.collectionApi.getCollectionById(collection, ids[0]);
           }
-          const config = new MatSnackBarConfig();
-          config.duration = 5000;
-          config.verticalPosition = 'bottom';
-          this.snackBar.open(
-            `The ${collection} was not found.`,
-            'Dismiss',
-            config,
-          );
+          this.openSnackBar(`The ${collection} was not found.`);
           throw new Error(`The ${collection} was not found`);
         }),
       )
@@ -160,5 +155,29 @@ export class HistoryTableComponent implements OnInit, OnChanges {
         this.graphUtil.openInGraph(collection.vertex, 'vertex');
       });
     return false;
+  }
+
+  async openPackageBuildVersion(id: string, version: string) {
+    this.collectionApi.getCollectionById('service', id).subscribe((service) => {
+      if (service && service.scmUrl) {
+        if (service.scmUrl.startsWith('https://github.com')) {
+          window.open(`${service.scmUrl}/commit/${version}`, '_blank');
+        } else {
+          this.openSnackBar(`Unsupported SCM url: ${service.scmUrl}`);
+        }
+        return;
+      }
+
+      this.openSnackBar('SCM url for this service is not set');
+      throw new Error(`SCM url for this service is not set`);
+    });
+    return false;
+  }
+
+  private openSnackBar(message: string) {
+    const config = new MatSnackBarConfig();
+    config.duration = 5000;
+    config.verticalPosition = 'bottom';
+    this.snackBar.open(message, 'Dismiss', config);
   }
 }
