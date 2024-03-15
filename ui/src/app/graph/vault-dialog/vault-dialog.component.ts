@@ -31,9 +31,22 @@ import { MatSelectModule } from '@angular/material/select';
   styleUrl: './vault-dialog.component.scss',
 })
 export class VaultDialogComponent implements OnInit {
-  public showMasked: boolean = true;
-
-  public config = {
+  public config: {
+    actor: string;
+    approle: {
+      enabled: boolean;
+      advanced: string;
+    };
+    brokerGlobal: boolean;
+    brokerFor: string;
+    db: string;
+    enabled: boolean;
+    policyOptions: {
+      kvReadProject: boolean;
+      systemPolicies: string;
+      tokenPeriod: 'hourly' | 'bidaily' | 'daily' | 'weekly';
+    };
+  } = {
     actor: '',
     approle: {
       enabled: false,
@@ -54,6 +67,7 @@ export class VaultDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
       service: ServiceRestDto;
+      showMasked: boolean;
     },
     public readonly dialogRef: MatDialogRef<VaultDialogComponent>,
   ) {}
@@ -115,15 +129,58 @@ export class VaultDialogComponent implements OnInit {
   }
 
   update() {
+    console.log(this.config);
     const configObj: VaultConfigRestDto = {
       enabled: this.config.enabled,
     };
-    if (this.config.approle.enabled) {
+
+    if (!this.data.showMasked) {
       configObj.approle = {
         enabled: this.config.approle.enabled,
-        ...JSON.parse(this.config.approle.advanced ?? '{}'),
+      };
+      configObj.policyOptions = {
+        tokenPeriod: this.config.policyOptions.tokenPeriod,
+      };
+    } else {
+      if (this.config.actor && this.config.actor !== '') {
+        configObj.actor = JSON.parse(this.config.actor);
+      }
+      configObj.approle = {
+        enabled: this.config.approle.enabled,
+        ...JSON.parse(
+          this.config.approle.advanced && this.config.approle.advanced !== ''
+            ? this.config.approle.advanced
+            : '{}',
+        ),
+      };
+      if (this.config.brokerGlobal) {
+        configObj.brokerGlobal = this.config.brokerGlobal;
+      }
+      if (this.config.brokerFor) {
+        configObj.brokerFor = this.config.brokerFor.split(',');
+      }
+      if (this.config.db) {
+        configObj.db = this.config.db.split(',');
+      }
+      configObj.policyOptions = {
+        kvReadProject: this.config.policyOptions.kvReadProject,
+        tokenPeriod: this.config.policyOptions.tokenPeriod,
+        ...(this.config.policyOptions.kvReadProject
+          ? {
+              kvReadProject: this.config.policyOptions.kvReadProject,
+            }
+          : {}),
+        ...(this.config.policyOptions.systemPolicies
+          ? {
+              systemPolicies:
+                this.config.policyOptions.systemPolicies.split(','),
+            }
+          : {}),
       };
     }
-    console.log(configObj);
+    this.dialogRef.close({
+      save: true,
+      vaultConfig: configObj,
+    });
   }
 }

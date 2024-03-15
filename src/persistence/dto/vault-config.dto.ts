@@ -12,12 +12,14 @@ import {
 import { Type } from 'class-transformer';
 
 export class VaultActorPoliciesDto {
+  @IsOptional()
   @Column()
-  approle: {
+  approle?: {
     [key: string]: ReadonlyArray<string>;
   };
+  @IsOptional()
   @Column()
-  developer: {
+  developer?: {
     [key: string]: ReadonlyArray<string>;
   };
 }

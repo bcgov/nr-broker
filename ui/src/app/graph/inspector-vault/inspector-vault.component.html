@@ -33,6 +33,16 @@
             inline="true">info</mat-icon>
         </span>
         <span matListItemLine>{{ service.vaultConfig.approle.enabled | yesno }}</span>
+        <span matListItemLine>Period:
+          @if (service.vaultConfig.approle.token_period) {
+            {{ totalDuration(service.vaultConfig.approle.token_period) }}
+          } @else {
+            @if (service.vaultConfig.policyOptions?.tokenPeriod) {
+              {{ service.vaultConfig.policyOptions?.tokenPeriod }}
+            } @else {
+              daily
+            }
+          }</span>
       </mat-list-item>
     }
   </mat-list>

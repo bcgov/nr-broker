@@ -8,7 +8,7 @@
     </mat-checkbox>
   </div>
 
-  @if (showMasked) {
+  @if (data.showMasked) {
     <h3>Databases</h3>
 
     <div class="vault-form">
@@ -29,7 +29,7 @@
       Enabled
     </mat-checkbox>
 
-    @if (showMasked) {
+    @if (data.showMasked) {
       <mat-checkbox
         [(ngModel)]="config.policyOptions.kvReadProject">
         Enable access to project secrets
@@ -56,7 +56,7 @@
       <mat-hint>How often token renewal is required. Daily is recommended.</mat-hint>
     </mat-form-field>
 
-    @if (showMasked) {
+    @if (data.showMasked) {
       <mat-form-field>
         <mat-label>AppRole parameters</mat-label>
         <textarea matInput
@@ -65,7 +65,7 @@
       </mat-form-field>
     }
   </div>
-  @if (showMasked) {
+  @if (data.showMasked) {
     <h3>Actor</h3>
 
     <div class="vault-form">
@@ -80,7 +80,7 @@
   }
 
 
-  @if (showMasked) {
+  @if (data.showMasked) {
     <h3>Broker</h3>
 
     <div class="vault-form">
