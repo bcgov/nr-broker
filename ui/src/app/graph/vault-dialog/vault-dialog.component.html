@@ -1,0 +1,113 @@
+<h2 mat-dialog-title>Configure Vault</h2>
+<mat-dialog-content class="mat-typography">
+
+  <div class="vault-form">
+    <mat-checkbox
+      [(ngModel)]="config.enabled">
+      Enabled
+    </mat-checkbox>
+  </div>
+
+  @if (showMasked) {
+    <h3>Databases</h3>
+
+    <div class="vault-form">
+      <mat-form-field>
+        <mat-label>db</mat-label>
+        <input matInput type="text"
+          [(ngModel)]="config.db">
+        <mat-hint>Comma separated list of databases</mat-hint>
+      </mat-form-field>
+    </div>
+  }
+
+  <h3>Approle</h3>
+
+  <div class="vault-form">
+    <mat-checkbox
+      [(ngModel)]="config.approle.enabled">
+      Enabled
+    </mat-checkbox>
+
+    @if (showMasked) {
+      <mat-checkbox
+        [(ngModel)]="config.policyOptions.kvReadProject">
+        Enable access to project secrets
+      </mat-checkbox>
+
+      <mat-form-field>
+        <mat-label>Policies</mat-label>
+        <input
+          matInput type="text"
+          [(ngModel)]="config.policyOptions.systemPolicies">
+        <mat-hint>Comma separated list of policies added to all logins</mat-hint>
+      </mat-form-field>
+    }
+
+    <mat-form-field>
+      <mat-label>Token Period</mat-label>
+      <mat-select
+        [(value)]="config.policyOptions.tokenPeriod">
+        <mat-option value="hourly">Hourly</mat-option>
+        <mat-option value="daily">Daily</mat-option>
+        <mat-option value="bidaily">Bidaily</mat-option>
+        <mat-option value="weekly">Weekly</mat-option>
+      </mat-select>
+      <mat-hint>How often token renewal is required. Daily is recommended.</mat-hint>
+    </mat-form-field>
+
+    @if (showMasked) {
+      <mat-form-field>
+        <mat-label>AppRole parameters</mat-label>
+        <textarea matInput
+          [(ngModel)]="config.approle.advanced"></textarea>
+        <mat-hint>Any AppRole parameter as JSON</mat-hint>
+      </mat-form-field>
+    }
+  </div>
+  @if (showMasked) {
+    <h3>Actor</h3>
+
+    <div class="vault-form">
+      <mat-form-field>
+        <mat-label>Actor definition</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="config.actor"></textarea>
+        <mat-hint>Actor definition as JSON</mat-hint>
+      </mat-form-field>
+    </div>
+  }
+
+
+  @if (showMasked) {
+    <h3>Broker</h3>
+
+    <div class="vault-form">
+
+      <mat-checkbox [(ngModel)]="config.brokerGlobal">
+        Global
+      </mat-checkbox>
+
+      <mat-form-field>
+        <mat-label>Brokered Services</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="config.brokerFor">
+        <mat-hint>Comma separated list of services to broker</mat-hint>
+      </mat-form-field>
+    </div>
+  }
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    mat-dialog-close>Cancel</button>
+  <button
+    mat-button
+    color="primary"
+    [disabled]="isFormInvalid()"
+    (click)="update()">Edit</button>
+</mat-dialog-actions>

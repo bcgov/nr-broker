@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, Inject, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -37,7 +43,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
     VertexFormBuilderComponent,
   ],
 })
-export class VertexDialogComponent {
+export class VertexDialogComponent implements OnInit {
   collectionControl = new FormControl<string | CollectionConfigRestDto>('');
   configs!: CollectionConfigRestDto[];
 

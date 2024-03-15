@@ -23,6 +23,7 @@ import { InspectorInstallsComponent } from '../inspector-installs/inspector-inst
 import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
+import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
 
 @Component({
   selector: 'app-inspector-vertex',
@@ -36,6 +37,7 @@ import { InspectorInstancesComponent } from '../inspector-instances/inspector-in
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
+    InspectorVaultComponent,
     MatDividerModule,
     MatTableModule,
   ],

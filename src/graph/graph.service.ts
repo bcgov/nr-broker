@@ -233,6 +233,10 @@ export class GraphService {
     const config = await this.collectionRepository.getCollectionConfigByName(
       vertex.collection,
     );
+    // Owners can edit vertices but, priviledged fields must be masked
+    if ((req.user as any).mask === 'owner') {
+      this.maskCollectionFields('owner', config, collection, vertexObj);
+    }
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.unique) {
         const uniqueCheck = await this.collectionRepository.doUniqueKeyCheck(
@@ -331,6 +335,46 @@ export class GraphService {
     vertex = this.mapCollectionToVertex(config, vertex, collection);
 
     return [vertex, collection];
+  }
+
+  private async maskCollectionFields(
+    maskType: 'owner',
+    config: CollectionConfigDto,
+    newCollection: any,
+    oldCollection: any,
+  ) {
+    console.log(newCollection);
+    console.log(maskType);
+
+    for (const [key, field] of Object.entries(config.fields)) {
+      if (
+        !field.mask ||
+        !field.mask[maskType] ||
+        newCollection[key] === undefined
+      ) {
+        continue;
+      }
+      const mask = field.mask[maskType];
+      if (mask === false) {
+        delete newCollection[key];
+        continue;
+      }
+      if (field.type === 'embeddedDoc' && Array.isArray(mask)) {
+        const maskedValues = JSON.parse(
+          JSON.stringify(oldCollection[key] ?? {}),
+        );
+        for (const path of mask) {
+          const val = get(newCollection[key], path);
+          console.log(`${path}: ${val}`);
+          if (val !== undefined) {
+            set(maskedValues, path, val);
+          }
+        }
+        newCollection[key] = maskedValues;
+      }
+    }
+
+    console.log(newCollection);
   }
 
   private mapCollectionToVertex(

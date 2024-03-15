@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { JsonViewDialogComponent } from './json-view-dialog.component';
+import { InspectorVaultComponent } from './inspector-vault.component';
 
-describe('JsonViewDialogComponent', () => {
-  let component: JsonViewDialogComponent;
-  let fixture: ComponentFixture<JsonViewDialogComponent>;
+describe('InspectorVaultComponent', () => {
+  let component: InspectorVaultComponent;
+  let fixture: ComponentFixture<InspectorVaultComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [JsonViewDialogComponent],
+      imports: [InspectorVaultComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(JsonViewDialogComponent);
+    fixture = TestBed.createComponent(InspectorVaultComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

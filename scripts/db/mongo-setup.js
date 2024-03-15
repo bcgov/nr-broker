@@ -206,6 +206,9 @@ result = db.collectionConfig.insertOne({
     vaultConfig: {
       type: 'embeddedDoc',
       required: false,
+      mask: {
+        owner: ['approle.enabled', 'enabled', 'policyOptions.tokenPeriod'],
+      },
     },
   },
   name: 'Service',
