@@ -121,7 +121,6 @@ export class VaultDialogComponent implements OnInit {
       this.config.policyOptions.tokenPeriod =
         this.data.service.vaultConfig.policyOptions.tokenPeriod;
     }
-    console.log(this.data.service);
   }
 
   isFormInvalid() {
@@ -129,7 +128,6 @@ export class VaultDialogComponent implements OnInit {
   }
 
   update() {
-    console.log(this.config);
     const configObj: VaultConfigRestDto = {
       enabled: this.config.enabled,
     };
