@@ -509,19 +509,23 @@ export class GraphMongoRepository implements GraphRepository {
 
     const unsetFields = {};
     const pushFields = {};
+    // Setup fields to push (arrays)
     for (const fkey of Object.keys(collection)) {
-      if (config.fields[fkey] === undefined) {
-        unsetFields[fkey] = '';
-      }
-      if (config.fields[fkey].type === 'embeddedDoc') {
-        // delete collection[fkey];
-      }
       if (config.fields[fkey].type === 'embeddedDocArray') {
         pushFields[fkey] = {
           $each: collection[fkey],
           $slice: -COLLECTION_MAX_EMBEDDED,
         };
         delete collection[fkey];
+      }
+    }
+    // Setup fields to unset
+    for (const fkey of Object.keys(collection)) {
+      if (config.fields[fkey] === undefined) {
+        unsetFields[fkey] = '';
+      }
+      if (config.fields[fkey].type === 'embeddedDoc') {
+        // delete collection[fkey];
       }
     }
     if (!ignoreBlankFields) {
@@ -537,6 +541,7 @@ export class GraphMongoRepository implements GraphRepository {
       }
     }
 
+    // Update collection
     const collResult = await repository.updateOne(
       { vertex: new ObjectId(id) },
       {

@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import {
-  CollectionDtoRestUnion,
-  CollectionDtoUnion,
-} from '../persistence/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
 import { TokenService } from '../token/token.service';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
@@ -56,12 +53,6 @@ export class CollectionService {
         error: '',
       });
     }
-  }
-
-  private collectionToRest<T extends keyof CollectionDtoUnion>(
-    config: CollectionDtoUnion[T],
-  ): CollectionDtoRestUnion[T] {
-    return config as unknown as CollectionDtoRestUnion[T];
   }
 
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(

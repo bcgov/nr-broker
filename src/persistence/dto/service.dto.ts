@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
-import { IsDefined, IsOptional, IsString } from 'class-validator';
+import {
+  IsDefined,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { VertexPointerDto } from './vertex-pointer.dto';
 import { VaultConfigDto } from './vault-config.dto';
@@ -31,6 +36,7 @@ export class ServiceDto extends VertexPointerDto {
   @Column()
   scmUrl?: string;
 
+  @ValidateNested()
   @IsOptional()
   @Column(() => VaultConfigDto)
   @Type(() => VaultConfigDto)

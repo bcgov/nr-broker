@@ -89,6 +89,7 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       }
     }
 
+    // Allow owners of graph operations to continue
     const userUpstreamData = this.reflector.get<AllowOwnerArgs>(
       ALLOW_OWNER_METADATA_KEY,
       context.getHandler(),
@@ -96,6 +97,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     if (!userUpstreamData) {
       return false;
     }
+    // Mask data alterations as owner to prevent priviledged changes
+    request.user.mask = 'owner';
     const graphId = userUpstreamData.graphIdFromParamKey
       ? request.params[userUpstreamData.graphIdFromParamKey]
       : get(request.body, userUpstreamData.graphIdFromBodyPath);

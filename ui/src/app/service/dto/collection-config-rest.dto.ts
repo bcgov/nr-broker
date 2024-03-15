@@ -37,6 +37,9 @@ export type CollectionEdgeInstanceConfig = Omit<
 export class CollectionFieldConfig {
   hint?: string;
   init?: 'uuid';
+  mask?: {
+    owner?: boolean | string[];
+  };
   name!: string;
   placeholder?: string;
   required!: boolean;
