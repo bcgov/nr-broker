@@ -203,4 +203,12 @@ export class IntentionMongoRepository implements IntentionRepository {
         }
       });
   }
+
+  public async cleanupTransient(transientTtl: number): Promise<void> {
+    this.intentionRepository.deleteMany({
+      'event.transient': true,
+      closed: true,
+      expiry: { $lt: Date.now() - transientTtl },
+    });
+  }
 }

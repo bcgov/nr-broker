@@ -16,6 +16,7 @@ export const COLLECTION_MAX_EMBEDDED = 40;
 export const INTENTION_DEFAULT_TTL_SECONDS = 600;
 export const INTENTION_MIN_TTL_SECONDS = 30;
 export const INTENTION_MAX_TTL_SECONDS = 1800;
+export const INTENTION_TRANSIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const SHORT_ENV_CONVERSION = {
   production: 'prod',

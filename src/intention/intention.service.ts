@@ -16,6 +16,7 @@ import {
   INTENTION_DEFAULT_TTL_SECONDS,
   INTENTION_MAX_TTL_SECONDS,
   INTENTION_MIN_TTL_SECONDS,
+  INTENTION_TRANSIENT_TTL_MS,
   IS_PRIMARY_NODE,
   TOKEN_SERVICE_ALLOW_ORPHAN,
 } from '../constants';
@@ -612,6 +613,15 @@ export class IntentionService {
     for (const intention of expiredIntentionArr) {
       await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
     }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleTransientCleanup() {
+    if (!IS_PRIMARY_NODE) {
+      // Nodes that are not the primary one should not do cleanup
+      return;
+    }
+    await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
   }
 
   private async getAccount(registryJwt: JwtRegistryDto) {
