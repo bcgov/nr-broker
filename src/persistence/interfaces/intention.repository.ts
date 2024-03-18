@@ -48,4 +48,6 @@ export abstract class IntentionRepository {
     offset: number,
     limit: number,
   ): Promise<IntentionSearchResult>;
+
+  public abstract cleanupTransient(transientTtl: number): Promise<void>;
 }
