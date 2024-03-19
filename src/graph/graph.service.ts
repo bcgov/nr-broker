@@ -234,7 +234,7 @@ export class GraphService {
       vertex.collection,
     );
     // Owners can edit vertices but, priviledged fields must be masked
-    if ((req.user as any).mask === 'owner') {
+    if (!req || (req.user as any)?.mask === 'owner') {
       this.maskCollectionFields('owner', config, collection, vertexObj);
     }
     for (const [key, field] of Object.entries(config.fields)) {
@@ -343,8 +343,8 @@ export class GraphService {
     newCollection: any,
     oldCollection: any,
   ) {
-    console.log(newCollection);
-    console.log(maskType);
+    // console.log(newCollection);
+    // console.log(maskType);
 
     for (const [key, field] of Object.entries(config.fields)) {
       if (
@@ -365,7 +365,7 @@ export class GraphService {
         );
         for (const path of mask) {
           const val = get(newCollection[key], path);
-          console.log(`${path}: ${val}`);
+          // console.log(`${path}: ${val}`);
           if (val !== undefined) {
             set(maskedValues, path, val);
           }
@@ -374,7 +374,7 @@ export class GraphService {
       }
     }
 
-    console.log(newCollection);
+    // console.log(newCollection);
   }
 
   private mapCollectionToVertex(
