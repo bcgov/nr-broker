@@ -2,6 +2,7 @@ import { DataSource, MongoRepository, ObjectId } from 'typeorm';
 import { BrokerAccountDto } from '../dto/broker-account.dto';
 import { EnvironmentDto } from '../dto/environment.dto';
 import { ProjectDto } from '../dto/project.dto';
+import { ServerDto } from '../dto/server.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
 import { ServiceDto } from '../dto/service.dto';
 import { UserDto } from '../dto/user.dto';
@@ -31,6 +32,10 @@ export function getRepositoryFromCollectionName<
       return dataSource.getMongoRepository(ProjectDto) as MongoRepository<
         CollectionDtoUnion[T]
       >;
+    case 'server':
+      return dataSource.getMongoRepository(ServerDto) as MongoRepository<
+        CollectionDtoUnion[T]
+      >;
     case 'serviceInstance':
       return dataSource.getMongoRepository(
         ServiceInstanceDto,
@@ -48,7 +53,9 @@ export function getRepositoryFromCollectionName<
         CollectionDtoUnion[T]
       >;
     default:
-      throw Error();
+      // If this is an error then not all collection types are above
+      const _exhaustiveCheck: never = name;
+      return _exhaustiveCheck;
   }
 }
 

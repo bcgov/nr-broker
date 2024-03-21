@@ -1,4 +1,8 @@
 <div>
+
+  <app-vertex-tags
+    [collectionData]="collectionData"></app-vertex-tags>
+
   @if (filteredCollectionData && (filteredCollectionData | keyvalue).length > 0 && collectionConfig) {
     <table mat-table [dataSource]="filteredCollectionData | keyvalue">
       <!-- Key Column -->
@@ -22,6 +26,9 @@
                 } @else {
                   No
                 }
+              }
+              @case ('date') {
+                {{element.value | date:'shortDate':'UTC'}}
               }
               @case ('email') {
                 {{element.value}}

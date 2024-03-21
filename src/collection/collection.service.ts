@@ -85,6 +85,61 @@ export class CollectionService {
     return collection;
   }
 
+  async addTagToCollectionById<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+    tag: string,
+  ) {
+    try {
+      const collection = await this.getCollectionById(type, id);
+      if (!collection.tags) {
+        collection.tags = [];
+      }
+      if (!collection.tags.includes(tag)) {
+        collection.tags.push(tag);
+      } else {
+        return collection.tags;
+      }
+      await this.collectionRepository.saveTags(type, id, collection.tags);
+      return collection.tags;
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
+  async deleteTagFromCollectionById<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+    tag: string,
+  ) {
+    try {
+      const collection = await this.getCollectionById(type, id);
+      if (!collection.tags) {
+        collection.tags = [];
+      }
+
+      const index = collection.tags.indexOf(tag);
+      if (index === -1) {
+        return collection.tags;
+      }
+      if (index > -1) {
+        collection.tags.splice(index, 1);
+      }
+      await this.collectionRepository.saveTags(type, id, collection.tags);
+      return collection.tags;
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
   async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     q: string | undefined,

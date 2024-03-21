@@ -1,5 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export abstract class VertexPointerRestDto {
+export class VertexPointerRestDto {
   vertex!: string;
+  tags?: string[];
 }

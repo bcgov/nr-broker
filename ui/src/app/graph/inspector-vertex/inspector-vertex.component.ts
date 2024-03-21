@@ -13,7 +13,7 @@ import {
   VertexNavigation,
   UserDto,
 } from '../../service/graph.types';
-import { AsyncPipe, KeyValuePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, KeyValuePipe } from '@angular/common';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
@@ -24,13 +24,15 @@ import { InspectorServiceSecureComponent } from '../inspector-service-secure/ins
 import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
+import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
 
 @Component({
   selector: 'app-inspector-vertex',
   standalone: true,
   imports: [
-    KeyValuePipe,
     AsyncPipe,
+    DatePipe,
+    KeyValuePipe,
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorInstancesComponent,
@@ -38,6 +40,7 @@ import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.comp
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
+    VertexTagsComponent,
     MatDividerModule,
     MatTableModule,
   ],

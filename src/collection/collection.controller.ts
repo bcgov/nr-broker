@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -165,6 +166,34 @@ export class CollectionController {
     );
   }
 
+  @Post(':collection/:id/tags/:tag')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async addTagToCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Param('tag') tag: string,
+  ) {
+    return this.service.addTagToCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+      tag,
+    );
+  }
+
+  @Delete(':collection/:id/tags/:tag')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async deleteTagFromCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Param('tag') tag: string,
+  ) {
+    return this.service.deleteTagFromCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+      tag,
+    );
+  }
+
   @Post(':collection/search')
   @UseGuards(BrokerCombinedAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -236,6 +265,7 @@ export class CollectionController {
     switch (collection) {
       case 'environment':
       case 'project':
+      case 'server':
       case 'service':
       case 'team':
       case 'user':

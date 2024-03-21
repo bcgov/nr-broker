@@ -1,17 +1,19 @@
 import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
-import { VertexPointerDto } from './vertex-pointer.dto';
-import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
-import { CollectionDtoUnion } from './collection-dto-union.type';
-import { BrokerAccountDto } from './broker-account.dto';
 import { plainToInstance } from 'class-transformer';
+
+import { BrokerAccountDto } from './broker-account.dto';
+import { CollectionDtoUnion } from './collection-dto-union.type';
 import { EnvironmentDto } from './environment.dto';
 import { ProjectDto } from './project.dto';
-import { ServiceInstanceDto } from './service-instance.dto';
+import { ServerDto } from './server.dto';
 import { ServiceDto } from './service.dto';
+import { ServiceInstanceDto } from './service-instance.dto';
 import { TeamDto } from './team.dto';
 import { UserDto } from './user.dto';
+import { VertexPointerDto } from './vertex-pointer.dto';
+import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
 
 @Entity({ name: 'vertex' })
 export class VertexDto {
@@ -59,6 +61,8 @@ export class VertexDto {
         return plainToInstance(EnvironmentDto, vertex.data);
       case 'project':
         return plainToInstance(ProjectDto, vertex.data);
+      case 'server':
+        return plainToInstance(ServerDto, vertex.data);
       case 'serviceInstance':
         return plainToInstance(ServiceInstanceDto, vertex.data);
       case 'service':

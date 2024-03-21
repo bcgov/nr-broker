@@ -4,6 +4,7 @@ import { EnvironmentRestDto } from './environment-rest.dto';
 import { EnvironmentDto } from './environment.dto';
 import { ProjectRestDto } from './project-rest.dto';
 import { ProjectDto } from './project.dto';
+import { ServerDto } from './server.dto';
 import { ServiceInstanceRestDto } from './service-instance-rest.dto';
 import { ServiceInstanceDto } from './service-instance.dto';
 import { ServiceRestDto } from './service-rest.dto';
@@ -17,6 +18,7 @@ export type CollectionDtoUnion = {
   brokerAccount: BrokerAccountDto;
   environment: EnvironmentDto;
   project: ProjectDto;
+  server: ServerDto;
   serviceInstance: ServiceInstanceDto;
   service: ServiceDto;
   team: TeamDto;
@@ -27,6 +29,7 @@ export type CollectionDtoRestUnion = {
   brokerAccount: BrokerAccountRestDto;
   environment: EnvironmentRestDto;
   project: ProjectRestDto;
+  server: ServerDto;
   serviceInstance: ServiceInstanceRestDto;
   service: ServiceRestDto;
   team: TeamRestDto;
@@ -45,4 +48,5 @@ export const CollectionNameEnum: {
   user: 4,
   brokerAccount: 5,
   team: 6,
+  server: 7,
 } as const;

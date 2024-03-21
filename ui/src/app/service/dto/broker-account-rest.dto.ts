@@ -9,4 +9,5 @@ export interface BrokerAccountRestDto {
   requireRoleId: boolean;
   requireProjectExists: boolean;
   requireServiceExists: boolean;
+  tags: string[];
 }

@@ -45,6 +45,7 @@ export class CollectionFieldConfig {
   required!: boolean;
   type!:
     | 'boolean'
+    | 'date'
     | 'email'
     | 'embeddedDoc'
     | 'embeddedDocArray'

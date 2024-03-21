@@ -239,6 +239,13 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: false,
     },
+    {
+      collection: 'server',
+      name: 'installation',
+      inboundName: 'Installs',
+      relation: 'oneToMany',
+      show: true,
+    },
   ],
   fields: {
     name: {
@@ -491,6 +498,90 @@ result = db.collectionConfig.insertOne({
     },
   },
   name: 'Team',
+  permissions: {
+    create: true,
+    update: true,
+    delete: true,
+  },
+  show: true,
+});
+
+result = db.collectionConfig.insertOne({
+  collection: 'server',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  index: 7,
+  edges: [],
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'The lowercase name of the server',
+    },
+    acquired: {
+      name: 'Acquired',
+      required: true,
+      type: 'date',
+      hint: 'The date when the server was acquired',
+    },
+    architecture: {
+      name: 'Architecture',
+      required: false,
+      type: 'string',
+      hint: 'Machine architecture (x86_64, ...)',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: '',
+    },
+    hostName: {
+      name: 'Host Name',
+      required: false,
+      type: 'string',
+      hint: 'The lowercase fully qualified domain name (FQDN) used to connect',
+    },
+    osFamily: {
+      name: 'OS Family',
+      required: false,
+      type: 'string',
+      hint: 'OS family (redhat, ...)',
+    },
+    osFull: {
+      name: 'OS Full',
+      required: false,
+      type: 'string',
+      hint: 'OS string containing things like name, version, code name',
+    },
+    osKernal: {
+      name: 'OS Kernal',
+      required: false,
+      type: 'string',
+      hint: 'Kernal version as a string',
+    },
+    osName: {
+      name: 'OS Name',
+      required: false,
+      type: 'string',
+      hint: 'OS name without version (Red Hat Enterprise Linux, ...)',
+    },
+    osType: {
+      name: 'OS Type',
+      required: false,
+      type: 'string',
+      hint: 'OS family like linux, macos, etc.',
+    },
+    osVersion: {
+      name: 'OS Version',
+      required: false,
+      type: 'string',
+      hint: 'System version as a string',
+    },
+  },
+  name: 'Server',
   permissions: {
     create: true,
     update: true,

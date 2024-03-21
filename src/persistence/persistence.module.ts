@@ -12,6 +12,7 @@ import { JwtBlockDto } from './dto/jwt-block.dto';
 import { JwtRegistryDto } from './dto/jwt-registry.dto';
 import { PreferenceDto } from './dto/preference.dto';
 import { ProjectDto } from './dto/project.dto';
+import { ServerDto } from './dto/server.dto';
 import { ServiceDto } from './dto/service.dto';
 import { ServiceInstanceDto } from './dto/service-instance.dto';
 import { TeamDto } from './dto/team.dto';
@@ -77,6 +78,7 @@ const redisFactory = {
       ServiceInstanceDto,
       PreferenceDto,
       ProjectDto,
+      ServerDto,
       TeamDto,
       UserDto,
       VertexDto,

@@ -1,0 +1,11 @@
+<div class="tags-container">
+  @if (collectionData.tags) {
+    <mat-chip-set>
+      @for (tag of collectionData.tags; track tag) {
+      <mat-chip>
+        {{ tag }}
+      </mat-chip>
+      }
+    </mat-chip-set>
+  }
+</div>

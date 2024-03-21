@@ -4,9 +4,10 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-vertex-form-field',
@@ -18,6 +19,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatCheckboxModule,
+    MatDatepickerModule,
     MatInputModule,
     MatTooltipModule,
     TextFieldModule,

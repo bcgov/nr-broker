@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   Injectable,
+  MessageEvent,
   NotFoundException,
 } from '@nestjs/common';
+import { Observable, Subject } from 'rxjs';
 import { Request } from 'express';
 import ejs from 'ejs';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
@@ -32,6 +34,8 @@ import { EnvironmentDto } from '../persistence/dto/environment.dto';
 
 @Injectable()
 export class GraphService {
+  private readonly eventSource = new Subject<MessageEvent>();
+
   constructor(
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,
@@ -43,6 +47,10 @@ export class GraphService {
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto> {
     return this.graphRepository.getData(includeCollection);
+  }
+
+  public getEventSource(): Observable<MessageEvent> {
+    return this.eventSource;
   }
 
   public async getProjectServices() {
@@ -63,6 +71,9 @@ export class GraphService {
         'edge',
         resp,
       );
+      this.eventSource.next({
+        data: { event: 'edge-add', edge: resp },
+      } as MessageEvent);
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -96,6 +107,9 @@ export class GraphService {
         'edge',
         resp,
       );
+      this.eventSource.next({
+        data: { event: 'edge-edit', edge: resp },
+      } as MessageEvent);
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -141,6 +155,9 @@ export class GraphService {
         'edge',
         id,
       );
+      this.eventSource.next({
+        data: { event: 'edge-delete', edge: { id } },
+      } as MessageEvent);
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -164,12 +181,9 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
   ): Promise<VertexDto> {
-    const [vertex, collection] = await this.validateVertex(
+    const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'create',
-    );
-    const config = await this.collectionRepository.getCollectionConfigByName(
-      vertex.collection,
     );
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.unique) {
@@ -197,6 +211,9 @@ export class GraphService {
         'vertex',
         resp,
       );
+      this.eventSource.next({
+        data: { event: 'vertex-add', vertex: resp },
+      } as MessageEvent);
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -222,16 +239,13 @@ export class GraphService {
     ignorePermissions = false,
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    const [vertex, collection] = await this.validateVertex(
+    const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'update',
     );
     const vertexObj = await this.collectionRepository.getCollectionByVertexId(
       vertexInsert.collection,
       id,
-    );
-    const config = await this.collectionRepository.getCollectionConfigByName(
-      vertex.collection,
     );
     // Owners can edit vertices but, priviledged fields must be masked
     if (!req || (req.user as any)?.mask === 'owner') {
@@ -275,6 +289,9 @@ export class GraphService {
         'vertex',
         resp,
       );
+      this.eventSource.next({
+        data: { event: 'vertex-edit', vertex: resp },
+      } as MessageEvent);
 
       return resp;
     } catch (error) {
@@ -301,12 +318,22 @@ export class GraphService {
     [
       vertex: VertexDto,
       collection: CollectionDtoUnion[typeof vertexInsert.collection],
+      config: CollectionConfigDto,
     ]
   > {
     let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const config = await this.collectionRepository.getCollectionConfigByName(
       vertexInsert.collection,
     );
+
+    for (const [key, field] of Object.entries(config.fields)) {
+      if (field.type === 'date' && vertexInsert.data[key]) {
+        vertexInsert.data[key] = new Date(
+          vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
+        );
+      }
+    }
+
     const collection = VertexDto.upgradeDataToInstance(vertexInsert);
     const errors = await validate(collection, {
       whitelist: true,
@@ -334,7 +361,7 @@ export class GraphService {
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
 
-    return [vertex, collection];
+    return [vertex, collection, config];
   }
 
   private async maskCollectionFields(
@@ -566,6 +593,10 @@ export class GraphService {
         'vertex',
         id,
       );
+
+      this.eventSource.next({
+        data: { event: 'vertex-delete', vertex: { id } },
+      } as MessageEvent);
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
