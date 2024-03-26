@@ -92,11 +92,12 @@ export class CollectionService {
   ) {
     try {
       const collection = await this.getCollectionById(type, id);
+      const sanitizedTag = this.sanitizeTag(tag);
       if (!collection.tags) {
         collection.tags = [];
       }
-      if (!collection.tags.includes(tag)) {
-        collection.tags.push(tag);
+      if (!collection.tags.includes(sanitizedTag)) {
+        collection.tags.push(sanitizedTag);
       } else {
         return collection.tags;
       }
@@ -118,11 +119,12 @@ export class CollectionService {
   ) {
     try {
       const collection = await this.getCollectionById(type, id);
+      const sanitizedTag = this.sanitizeTag(tag);
       if (!collection.tags) {
         collection.tags = [];
       }
 
-      const index = collection.tags.indexOf(tag);
+      const index = collection.tags.indexOf(sanitizedTag);
       if (index === -1) {
         return collection.tags;
       }
@@ -138,6 +140,10 @@ export class CollectionService {
         error: '',
       });
     }
+  }
+
+  private sanitizeTag(tag: string): string {
+    return tag.trim();
   }
 
   async searchCollection<T extends keyof CollectionDtoUnion>(

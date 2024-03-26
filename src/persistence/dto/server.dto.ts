@@ -24,10 +24,10 @@ export class ServerDto extends VertexPointerDto {
   @Column()
   description?: string;
 
-  @IsOptional()
+  @IsDefined()
   @IsString()
   @Column()
-  hostName?: string;
+  hostName: string;
 
   @IsDefined()
   @IsString()

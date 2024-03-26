@@ -1,4 +1,11 @@
-import { Component, Inject, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +22,7 @@ import {
   takeUntil,
   tap,
   delay,
+  startWith,
 } from 'rxjs';
 import {
   ChartClickTarget,
@@ -52,7 +60,7 @@ import { GraphUtilService } from '../service/graph-util.service';
     InspectorComponent,
   ],
 })
-export class GraphComponent {
+export class GraphComponent implements OnInit, OnDestroy {
   @Output() data!: Observable<GraphDataConfig>;
   @Output() selected: ChartClickTarget | undefined = undefined;
   @ViewChild(EchartsComponent)
@@ -73,11 +81,53 @@ export class GraphComponent {
   ) {}
 
   ngOnInit(): void {
+    const cachedData = null;
     this.data = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() =>
         combineLatest([
-          this.graphApi.getData(),
+          combineLatest([
+            this.graphApi.getData(),
+            this.graphApi
+              .createEventSource()
+              .pipe(takeUntil(this.ngUnsubscribe), startWith(null)),
+          ]).pipe(
+            map(([data, es]) => {
+              if (cachedData) {
+                data = cachedData;
+              }
+              if (es === null) {
+                return data;
+              }
+              // console.log(es);
+
+              if (es.event === 'edge-add') {
+                data.edges.push(es.edge);
+              }
+              if (es.event === 'edge-edit') {
+                data.edges = data.edges.map((edge) =>
+                  edge.id === es.edge.id ? es.edge : edge,
+                );
+              }
+              if (es.event === 'vertex-add') {
+                data.vertices.push(es.vertex);
+              }
+              if (es.event === 'vertex-edit') {
+                data.vertices = data.vertices.map((vertex) =>
+                  vertex.id === es.vertex.id ? es.vertex : vertex,
+                );
+              }
+              if (es.event === 'edge-delete' || es.event === 'vertex-delete') {
+                data.edges = data.edges.filter((edge) => {
+                  return es.edge.indexOf(edge.id) === -1;
+                });
+                data.vertices = data.vertices.filter((vertex) => {
+                  return es.vertex.indexOf(vertex.id) === -1;
+                });
+              }
+              return data;
+            }),
+          ),
           this.graphApi.getConfig(),
           this.graphApi.searchEdgesShallow('owner', 'target', this.user.vertex),
         ]),
@@ -164,6 +214,11 @@ export class GraphComponent {
     );
   }
 
+  ngOnDestroy() {
+    this.ngUnsubscribe.next(true);
+    this.ngUnsubscribe.complete();
+  }
+
   onSelected(event: ChartClickTarget | undefined): void {
     if (!this.echartsComponent?.echartsInstance) {
       setTimeout(() => this.onSelected(event), 100);
@@ -246,7 +301,7 @@ export class GraphComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.refreshData();
+          // this.refreshData();
         }
         if (result && result.id) {
           this.graphUtil.openInGraph(result.id, 'vertex');
@@ -318,10 +373,5 @@ export class GraphComponent {
 
   refreshData() {
     this.triggerRefresh.next(true);
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next(true);
-    this.ngUnsubscribe.complete();
   }
 }

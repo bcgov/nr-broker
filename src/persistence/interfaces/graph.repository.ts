@@ -6,6 +6,7 @@ import { EdgeDto } from '../dto/edge.dto';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
+  GraphDeleteResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexInfoDto } from '../dto/vertex-info.dto';
@@ -25,7 +26,7 @@ export abstract class GraphRepository {
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
   public abstract editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto>;
-  public abstract deleteEdge(id: string): Promise<boolean>;
+  public abstract deleteEdge(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getEdge(id: string): Promise<EdgeDto | null>;
   public abstract getEdgeByNameAndVertices(
     name: string,
@@ -53,7 +54,7 @@ export abstract class GraphRepository {
     collection: CollectionDtoUnion[typeof vertex.collection],
     ignoreBlankFields?: boolean,
   ): Promise<VertexDto>;
-  public abstract deleteVertex(id: string): Promise<boolean>;
+  public abstract deleteVertex(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getVertex(id: string): Promise<VertexDto | null>;
   public abstract getVertexByName(
     collection: keyof CollectionDtoUnion,

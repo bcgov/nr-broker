@@ -268,6 +268,7 @@ result = db.collectionConfig.insertOne({
       type: 'embeddedDocArray',
     },
   },
+  graphVertexOmit: true,
   name: 'Instance',
   parent: {
     edgeName: 'instance',
@@ -536,11 +537,11 @@ result = db.collectionConfig.insertOne({
       name: 'Description',
       required: false,
       type: 'string',
-      hint: '',
+      hint: 'A short human readable description of the entity',
     },
     hostName: {
       name: 'Host Name',
-      required: false,
+      required: true,
       type: 'string',
       hint: 'The lowercase fully qualified domain name (FQDN) used to connect',
     },
@@ -557,10 +558,10 @@ result = db.collectionConfig.insertOne({
       hint: 'OS string containing things like name, version, code name',
     },
     osKernal: {
-      name: 'OS Kernal',
+      name: 'OS Kernel',
       required: false,
       type: 'string',
-      hint: 'Kernal version as a string',
+      hint: 'Kernel version string',
     },
     osName: {
       name: 'OS Name',
@@ -578,7 +579,7 @@ result = db.collectionConfig.insertOne({
       name: 'OS Version',
       required: false,
       type: 'string',
-      hint: 'System version as a string',
+      hint: 'System version string',
     },
   },
   name: 'Server',

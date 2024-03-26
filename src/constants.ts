@@ -77,3 +77,5 @@ export const OAUTH2_CLIENT_MAP_ROLES =
   process.env.OAUTH2_CLIENT_MAP_ROLES ?? 'client_roles';
 export const OAUTH2_CLIENT_MAP_USERNAME =
   process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
+
+export const REDIS_PUBSUB_GRAPH = 'graph';

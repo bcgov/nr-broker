@@ -85,6 +85,7 @@ export class CollectionConfigRestDto {
   collectionVertexName!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  graphVertexOmit?: boolean;
   index!: number;
   name!: string;
   parent!: CollectionConfigParent;

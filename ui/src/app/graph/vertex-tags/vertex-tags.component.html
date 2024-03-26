@@ -1,5 +1,5 @@
-<div class="tags-container">
-  @if (collectionData.tags) {
+@if (collectionData.tags) {
+  <div class="tags-container">
     <mat-chip-set>
       @for (tag of collectionData.tags; track tag) {
       <mat-chip>
@@ -7,5 +7,7 @@
       </mat-chip>
       }
     </mat-chip-set>
-  }
-</div>
+  </div>
+
+  <mat-divider></mat-divider>
+}

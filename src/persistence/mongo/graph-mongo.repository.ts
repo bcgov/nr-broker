@@ -13,6 +13,7 @@ import { getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
+  GraphDeleteResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
@@ -258,11 +259,18 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
-  public async deleteEdge(id: string, cascade = true): Promise<boolean> {
+  public async deleteEdge(
+    id: string,
+    cascade = true,
+  ): Promise<GraphDeleteResponseDto> {
     const edge = await this.getEdge(id);
     const srcVertex = await this.getVertex(edge.source.toString());
     const config = await this.getCollectionConfig(srcVertex.collection);
     const edgeConfig = config.edges.find((ec) => ec.name === edge.name);
+    const resp: GraphDeleteResponseDto = {
+      edge: [id],
+      vertex: [],
+    };
     if (
       edge === null ||
       srcVertex === null ||
@@ -276,14 +284,17 @@ export class GraphMongoRepository implements GraphRepository {
       cascade &&
       (await this.getEdgeTargetCount(edge.target.toString())) === 1
     ) {
-      await this.deleteVertex(edge.target.toString());
+      this.mergeGraphDeleteResponse(
+        resp,
+        await this.deleteVertex(edge.target.toString()),
+      );
     }
     // console.log(`edgeRepository.delete(${id})`);
     const result = await this.edgeRepository.delete(id);
     if (result.affected !== 1) {
       throw new Error();
     }
-    return true;
+    return resp;
   }
 
   public getEdge(id: string): Promise<EdgeDto | null> {
@@ -399,8 +410,12 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   // Vertex
-  public async deleteVertex(id: string): Promise<boolean> {
+  public async deleteVertex(id: string): Promise<GraphDeleteResponseDto> {
     const vertex = await this.getVertex(id);
+    const resp: GraphDeleteResponseDto = {
+      edge: [],
+      vertex: [id],
+    };
     if (vertex === null) {
       throw new Error();
     }
@@ -417,7 +432,10 @@ export class GraphMongoRepository implements GraphRepository {
     // console.log(tarEdges);
     for (const edge of tarEdges) {
       try {
-        await this.deleteEdge(edge.id.toString(), false);
+        this.mergeGraphDeleteResponse(
+          resp,
+          await this.deleteEdge(edge.id.toString(), false),
+        );
       } catch (e) {
         // Ignore not found errors
       }
@@ -431,7 +449,10 @@ export class GraphMongoRepository implements GraphRepository {
     // console.log(srcEdges);
     for (const edge of srcEdges) {
       try {
-        await this.deleteEdge(edge.id.toString());
+        this.mergeGraphDeleteResponse(
+          resp,
+          await this.deleteEdge(edge.id.toString()),
+        );
       } catch (e) {
         // Ignore not found errors
       }
@@ -450,8 +471,16 @@ export class GraphMongoRepository implements GraphRepository {
       await collectionRepository.delete(entry.id);
     }
     // Delete vertex
-    const result = await this.vertexRepository.delete(id);
-    return result.affected === 1;
+    await this.vertexRepository.delete(id);
+    return resp;
+  }
+
+  private mergeGraphDeleteResponse(
+    target: GraphDeleteResponseDto,
+    source: GraphDeleteResponseDto,
+  ): void {
+    target.edge.push(...source.edge);
+    target.vertex.push(...source.vertex);
   }
 
   public async addVertex(

@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  MessageEvent,
   Req,
+  Sse,
   UseGuards,
   UseInterceptors,
   UsePipes,
@@ -32,6 +34,7 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
+import { Observable } from 'rxjs';
 
 @Controller({
   path: 'graph',
@@ -61,6 +64,13 @@ export class GraphController {
   @ApiBearerAuth()
   getDataCollection() {
     return this.graph.getData(true);
+  }
+
+  @Sse('events')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  events(): Observable<MessageEvent> {
+    return this.graph.getEventSource();
   }
 
   @Post('typeahead')

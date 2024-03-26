@@ -44,9 +44,15 @@
             }
           }
         </mat-menu>
-        <app-echarts [dataConfig]="data" (selected)="onGraphSelected($event)" (legendChanged)="onLegendChanged($event)"></app-echarts>
+        <app-echarts
+          [dataConfig]="data"
+          (selected)="onGraphSelected($event)"
+          (legendChanged)="onLegendChanged($event)"></app-echarts>
       </div>
       <div class="graph-flex-inspector">
-        <app-inspector [dataConfig]="data" (graphChanged)="refreshData()" (selected)="onSelected($event)" [target]="selected"></app-inspector>
+        <app-inspector
+          [dataConfig]="data"
+          [target]="selected"
+          (selected)="onSelected($event)"></app-inspector>
       </div>
     </div>

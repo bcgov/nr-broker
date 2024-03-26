@@ -43,3 +43,8 @@ export interface BrokerAccountProjectDto {
   name: string;
   services: string[];
 }
+
+export class GraphDeleteResponseDto {
+  edge!: string[];
+  vertex!: string[];
+}

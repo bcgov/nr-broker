@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   MessageEvent,
   NotFoundException,
@@ -7,12 +8,14 @@ import {
 import { Observable, Subject } from 'rxjs';
 import { Request } from 'express';
 import ejs from 'ejs';
+import { RedisClientType } from 'redis';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { AuditService } from '../audit/audit.service';
 import {
   GraphDataResponseDto,
   GraphDataResponseEdgeDto,
+  GraphDeleteResponseDto,
 } from '../persistence/dto/graph-data.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
@@ -31,6 +34,7 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { REDIS_PUBSUB_GRAPH } from '../constants';
 
 @Injectable()
 export class GraphService {
@@ -41,7 +45,16 @@ export class GraphService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly validatorUtil: ValidatorUtil,
-  ) {}
+    @Inject('REDIS_CLIENT') private readonly client: RedisClientType,
+  ) {
+    const subscriber = client.duplicate();
+    subscriber.on('error', (err) => console.error(err));
+    subscriber.connect().then(() => {
+      subscriber.subscribe(REDIS_PUBSUB_GRAPH, (message) => {
+        this.eventSource.next(JSON.parse(message));
+      });
+    });
+  }
 
   public async getData(
     includeCollection: boolean,
@@ -71,9 +84,9 @@ export class GraphService {
         'edge',
         resp,
       );
-      this.eventSource.next({
+      this.publishGraphEvent({
         data: { event: 'edge-add', edge: resp },
-      } as MessageEvent);
+      });
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -107,9 +120,9 @@ export class GraphService {
         'edge',
         resp,
       );
-      this.eventSource.next({
+      this.publishGraphEvent({
         data: { event: 'edge-edit', edge: resp },
-      } as MessageEvent);
+      });
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -144,9 +157,12 @@ export class GraphService {
     }
   }
 
-  public async deleteEdge(req: Request, id: string): Promise<boolean> {
+  public async deleteEdge(
+    req: Request,
+    id: string,
+  ): Promise<GraphDeleteResponseDto> {
     try {
-      const resp = this.graphRepository.deleteEdge(id);
+      const resp = await this.graphRepository.deleteEdge(id);
       this.auditService.recordGraphAction(
         req,
         'graph-edge-delete',
@@ -155,9 +171,10 @@ export class GraphService {
         'edge',
         id,
       );
-      this.eventSource.next({
-        data: { event: 'edge-delete', edge: { id } },
-      } as MessageEvent);
+
+      this.publishGraphEvent({
+        data: { event: 'edge-delete', ...resp },
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -211,9 +228,9 @@ export class GraphService {
         'vertex',
         resp,
       );
-      this.eventSource.next({
+      this.publishGraphEvent({
         data: { event: 'vertex-add', vertex: resp },
-      } as MessageEvent);
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -289,9 +306,9 @@ export class GraphService {
         'vertex',
         resp,
       );
-      this.eventSource.next({
+      this.publishGraphEvent({
         data: { event: 'vertex-edit', vertex: resp },
-      } as MessageEvent);
+      });
 
       return resp;
     } catch (error) {
@@ -582,7 +599,10 @@ export class GraphService {
     }
   }
 
-  public async deleteVertex(req: Request, id: string): Promise<boolean> {
+  public async deleteVertex(
+    req: Request,
+    id: string,
+  ): Promise<GraphDeleteResponseDto> {
     try {
       const resp = await this.graphRepository.deleteVertex(id);
       this.auditService.recordGraphAction(
@@ -594,9 +614,9 @@ export class GraphService {
         id,
       );
 
-      this.eventSource.next({
-        data: { event: 'vertex-delete', vertex: { id } },
-      } as MessageEvent);
+      this.publishGraphEvent({
+        data: { event: 'vertex-delete', ...resp },
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -708,5 +728,9 @@ export class GraphService {
         }
         return response;
       }) as unknown as Promise<CollectionConfigInstanceRestDto[]>;
+  }
+
+  private publishGraphEvent(event: MessageEvent) {
+    this.client.publish(REDIS_PUBSUB_GRAPH, JSON.stringify(event));
   }
 }

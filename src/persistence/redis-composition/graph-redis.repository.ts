@@ -13,6 +13,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
   BrokerAccountProjectMapDto,
+  GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
@@ -72,7 +73,7 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public async deleteEdge(id: string): Promise<boolean> {
+  public async deleteEdge(id: string): Promise<GraphDeleteResponseDto> {
     const returnVal = await this.repo.deleteEdge(id);
     this.invalidateCache();
     return returnVal;
@@ -151,7 +152,7 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public async deleteVertex(id: string): Promise<boolean> {
+  public async deleteVertex(id: string): Promise<GraphDeleteResponseDto> {
     const vertex = await this.getVertex(id);
     const returnVal = await this.repo.deleteVertex(id);
     this.removeVertexTypeaheadIndex(vertex);
