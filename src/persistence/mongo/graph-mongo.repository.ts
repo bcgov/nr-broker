@@ -207,7 +207,7 @@ export class GraphMongoRepository implements GraphRepository {
                   },
                 },
               },
-              // { $replaceRoot: { newRoot: '$instance' } },
+              { $unset: 'actionHistory' },
               {
                 $lookup: {
                   from: 'edge',
