@@ -14,6 +14,7 @@ import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { VertexDto } from '../dto/vertex.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -22,6 +23,9 @@ export abstract class GraphRepository {
   ): Promise<GraphDataResponseDto>;
   public abstract getProjectServices(): Promise<
     GraphProjectServicesResponseDto[]
+  >;
+  public abstract getServerInstalls(): Promise<
+    GraphServerInstallsResponseDto[]
   >;
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;

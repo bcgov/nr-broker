@@ -70,6 +70,10 @@ export class GraphService {
     return this.graphRepository.getProjectServices();
   }
 
+  public async getServerInstalls() {
+    return this.graphRepository.getServerInstalls();
+  }
+
   public async addEdge(
     req: Request,
     edge: EdgeInsertDto,

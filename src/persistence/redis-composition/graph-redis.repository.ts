@@ -37,6 +37,7 @@ import {
 import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -59,6 +60,10 @@ export class GraphRedisRepository implements GraphRepository {
     GraphProjectServicesResponseDto[]
   > {
     return this.repo.getProjectServices();
+  }
+
+  public async getServerInstalls(): Promise<GraphServerInstallsResponseDto[]> {
+    return this.repo.getServerInstalls();
   }
 
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeDto> {
