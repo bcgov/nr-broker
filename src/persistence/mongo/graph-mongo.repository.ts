@@ -200,7 +200,14 @@ export class GraphMongoRepository implements GraphRepository {
                 },
               },
               { $unwind: '$instance' },
-              { $replaceRoot: { newRoot: '$instance' } },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: [{ edgeProp: '$prop' }, '$instance'],
+                  },
+                },
+              },
+              // { $replaceRoot: { newRoot: '$instance' } },
               {
                 $lookup: {
                   from: 'edge',
