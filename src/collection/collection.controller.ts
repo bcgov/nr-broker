@@ -167,7 +167,8 @@ export class CollectionController {
   }
 
   @Post(':collection/:id/tags/:tag')
-  @UseGuards(BrokerCombinedAuthGuard)
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
   async addTagToCollection(
     @Param('collection') collection: string,
     @Param('id') id: string,
@@ -181,7 +182,8 @@ export class CollectionController {
   }
 
   @Delete(':collection/:id/tags/:tag')
-  @UseGuards(BrokerCombinedAuthGuard)
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
   async deleteTagFromCollection(
     @Param('collection') collection: string,
     @Param('id') id: string,
