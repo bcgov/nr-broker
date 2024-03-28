@@ -5,13 +5,20 @@ import { UtilModule } from '../util/util.module';
 import { GraphController } from './graph.controller';
 import { GraphService } from './graph.service';
 import { AuthModule } from '../auth/auth.module';
+import { RedisModule } from '../redis/redis.module';
 import { IntentionSyncService } from './intention-sync.service';
 
 /**
  * The graph module allows users to interact with the graph database.
  */
 @Module({
-  imports: [AuthModule, AuditModule, PersistenceModule, UtilModule],
+  imports: [
+    AuthModule,
+    AuditModule,
+    PersistenceModule,
+    RedisModule,
+    UtilModule,
+  ],
   controllers: [GraphController],
   providers: [GraphService, IntentionSyncService],
   exports: [GraphService, IntentionSyncService],

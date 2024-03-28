@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   Inject,
   OnDestroy,
@@ -21,7 +22,6 @@ import {
   switchMap,
   takeUntil,
   tap,
-  delay,
   startWith,
 } from 'rxjs';
 import {
@@ -45,6 +45,7 @@ import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
+import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
 
 @Component({
   selector: 'app-graph',
@@ -65,6 +66,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   @Output() selected: ChartClickTarget | undefined = undefined;
   @ViewChild(EchartsComponent)
   private echartsComponent!: EchartsComponent;
+  @ViewChild(InspectorComponent)
+  private inspectorComponent!: InspectorComponent;
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
@@ -78,6 +81,7 @@ export class GraphComponent implements OnInit, OnDestroy {
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public graphUtil: GraphUtilService,
+    private ref: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +101,7 @@ export class GraphComponent implements OnInit, OnDestroy {
                 data = cachedData;
               }
               if (es === null) {
-                return data;
+                return { data, es };
               }
               // console.log(es);
 
@@ -125,7 +129,7 @@ export class GraphComponent implements OnInit, OnDestroy {
                   return es.vertex.indexOf(vertex.id) === -1;
                 });
               }
-              return data;
+              return { data, es };
             }),
           ),
           this.graphApi.getConfig(),
@@ -133,8 +137,8 @@ export class GraphComponent implements OnInit, OnDestroy {
         ]),
       ),
       map(
-        ([data, configArr, ownedVertex]: [
-          GraphDataResponseDto,
+        ([{ data, es }, configArr, ownedVertex]: [
+          { data: GraphDataResponseDto; es: GraphEventRestDto | null },
           CollectionConfigRestDto[],
           string[],
         ]) => {
@@ -176,8 +180,10 @@ export class GraphComponent implements OnInit, OnDestroy {
           }
           this.latestConfig = configMap;
           this.latestData = graphData;
+          setTimeout(() => this.ref.detectChanges(), 0);
           return {
             data: graphData,
+            es,
             config: configMap,
             configSrcTarMap,
             ownedVertex,
@@ -185,32 +191,64 @@ export class GraphComponent implements OnInit, OnDestroy {
         },
       ),
       tap((graphData) => {
-        this.route.params.pipe(delay(100)).subscribe((params) => {
-          if (params['selected']) {
-            const selector = JSON.parse(params['selected']);
-            if (selector.type === 'vertex') {
-              const vertex = graphData.data.idToVertex[selector.id];
-              if (vertex) {
-                this.onSelected({
-                  type: 'vertex',
-                  data: vertex,
-                });
-              }
-            } else {
-              const edge = graphData.data.idToEdge[selector.id];
-              if (edge) {
-                this.onSelected({
-                  type: 'edge',
-                  data: edge,
-                });
-              }
-            }
-          } else {
-            this.onSelected(undefined);
+        // console.log(graphData.es);
+        // console.log(this.selected);
+        if (graphData.es === null) {
+          return;
+        }
+        if (this.selected?.type === 'vertex') {
+          if (
+            (graphData.es.event === 'vertex-edit' &&
+              graphData.es.vertex.id === this.selected.data.id) ||
+            (graphData.es.event === 'collection-edit' &&
+              graphData.es.collection.vertex === this.selected.data.id)
+          ) {
+            this.inspectorComponent.targetSubject.next(this.selected);
+            // console.log('reload!');
           }
-        });
+        }
+        if (this.selected?.type === 'edge') {
+          if (
+            graphData.es.event === 'edge-edit' &&
+            graphData.es.edge.id === this.selected.data.id
+          ) {
+            this.inspectorComponent.targetSubject.next(this.selected);
+            // console.log('reload!');
+          }
+        }
       }),
       shareReplay(1),
+    );
+
+    combineLatest([this.data, this.route.params]).subscribe(
+      ([graphData, params]) => {
+        if (params['selected']) {
+          const selector = JSON.parse(params['selected']);
+          if (selector.type === 'vertex') {
+            const vertex = graphData.data.idToVertex[selector.id];
+            if (vertex) {
+              this.onSelected({
+                type: 'vertex',
+                data: vertex,
+              });
+            } else {
+              this.onSelected(undefined);
+            }
+          } else {
+            const edge = graphData.data.idToEdge[selector.id];
+            if (edge) {
+              this.onSelected({
+                type: 'edge',
+                data: edge,
+              });
+            } else {
+              this.onSelected(undefined);
+            }
+          }
+        } else {
+          this.onSelected(undefined);
+        }
+      },
     );
   }
 

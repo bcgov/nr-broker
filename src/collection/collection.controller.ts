@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -178,6 +179,21 @@ export class CollectionController {
       this.parseCollectionApi(collection),
       id,
       tag,
+    );
+  }
+
+  @Put(':collection/:id/tags')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  async setTagsOnCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Body() tags: string[],
+  ) {
+    return this.service.setTagsOnCollection(
+      this.parseCollectionApi(collection),
+      id,
+      tags,
     );
   }
 

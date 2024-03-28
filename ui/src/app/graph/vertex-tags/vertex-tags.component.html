@@ -1,4 +1,4 @@
-@if (collectionData.tags) {
+@if (collectionData.tags && collectionData.tags.length > 0) {
   <div class="tags-container">
     <mat-chip-set>
       @for (tag of collectionData.tags; track tag) {

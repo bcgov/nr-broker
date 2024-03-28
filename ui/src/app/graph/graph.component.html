@@ -51,7 +51,7 @@
       </div>
       <div class="graph-flex-inspector">
         <app-inspector
-          [dataConfig]="data"
+          [dataConfig]="data | async"
           [target]="selected"
           (selected)="onSelected($event)"></app-inspector>
       </div>

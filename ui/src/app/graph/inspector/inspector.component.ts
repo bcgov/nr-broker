@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Inject,
@@ -23,6 +24,7 @@ import {
   map,
   Observable,
   of,
+  ReplaySubject,
   shareReplay,
   switchMap,
   withLatestFrom,
@@ -36,7 +38,6 @@ import {
   ChartClickTargetVertex,
   EdgeNavigation,
   GraphDataConfig,
-  CollectionConfigMap,
   GraphDataVertex,
   ConnectionDirection,
   UserDto,
@@ -51,6 +52,7 @@ import { PreferencesService } from '../../preferences.service';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
 import { InspectorEdgeComponent } from '../inspector-edge/inspector-edge.component';
 import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.component';
+import { TagDialogComponent } from '../tag-dialog/tag-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -70,11 +72,13 @@ import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.c
     MatMenuModule,
     MatTableModule,
     MatChipsModule,
+    TagDialogComponent,
     TitleCasePipe,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
-  @Input() dataConfig!: Observable<GraphDataConfig>;
+  @Input() dataConfig!: GraphDataConfig | null;
+  dataConfig$ = new ReplaySubject<GraphDataConfig>(1);
   @Input() target!: ChartClickTarget | undefined;
   @Output() inboundConnections!: Observable<VertexNavigation | null>;
   @Output() outboundConnections!: Observable<VertexNavigation | null>;
@@ -86,8 +90,6 @@ export class InspectorComponent implements OnChanges, OnInit {
   propDisplayedColumns: string[] = ['key', 'value'];
   propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
-  latestData: GraphData | undefined;
-  latestConfig: CollectionConfigMap | undefined;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
   titleWidth = 0;
   isTargetOwner = false;
@@ -97,11 +99,12 @@ export class InspectorComponent implements OnChanges, OnInit {
     private readonly dialog: MatDialog,
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
+    private ref: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.inboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.dataConfig),
+      withLatestFrom(this.dataConfig$),
       map(([target, dataConfig]) => {
         const data = dataConfig.data;
         if (!target || target.type === 'edge') {
@@ -116,7 +119,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       shareReplay(1),
     );
     this.outboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.dataConfig),
+      withLatestFrom(this.dataConfig$),
       map(([target, dataConfig]) => {
         const data = dataConfig.data;
         if (!target || target.type === 'edge') {
@@ -139,6 +142,9 @@ export class InspectorComponent implements OnChanges, OnInit {
       )
       .subscribe((data) => {
         this.collectionData = data;
+        setTimeout(() => this.ref.detectChanges(), 100);
+
+        // console.log('reloaded!');
       });
 
     this.targetSubject
@@ -152,7 +158,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       });
 
     this.targetSubject
-      .pipe(withLatestFrom(this.dataConfig))
+      .pipe(withLatestFrom(this.dataConfig$))
       .subscribe(([target, dataConfig]) => {
         if (!target || !dataConfig) {
           return;
@@ -161,22 +167,24 @@ export class InspectorComponent implements OnChanges, OnInit {
           target.type === 'edge' ? target.data.target : target.data.id;
         this.isTargetOwner = dataConfig.ownedVertex.indexOf(targetId) !== -1;
       });
-
-    this.dataConfig.subscribe((dataConfig) => {
-      this.latestData = dataConfig.data;
-      this.latestConfig = dataConfig.config;
-    });
     window.dispatchEvent(new Event('resize'));
     this.navigationFollows = this.preferences.get('graphFollows');
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['target']) {
+    const targetChange = changes['target'];
+    if (
+      targetChange &&
+      this.target?.data.id !== targetChange.previousValue?.data?.id
+    ) {
       this.collectionData = null;
-      this.target = changes['target'].currentValue;
       if (this.target) {
         this.targetSubject.next(this.target);
       }
+    }
+
+    if (changes['dataConfig']) {
+      this.dataConfig$.next(changes['dataConfig'].currentValue);
     }
   }
 
@@ -205,13 +213,13 @@ export class InspectorComponent implements OnChanges, OnInit {
         };
       })
       .map((connection) => {
-        if (!this.latestConfig) {
+        if (!this.dataConfig?.config) {
           return connection;
         }
         const configEdges =
           direction === 'reverse'
-            ? this.latestConfig[target.data.collection].edges
-            : this.latestConfig[
+            ? this.dataConfig.config[target.data.collection].edges
+            : this.dataConfig.config[
                 data.idToVertex[connection.edge.source].collection
               ].edges;
         const config = configEdges.find(
@@ -256,8 +264,8 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   selectEdge(id: string) {
-    if (this.latestData && this.latestData.idToEdge[id]) {
-      const edge = this.latestData.idToEdge[id];
+    if (this.dataConfig?.data && this.dataConfig.data.idToEdge[id]) {
+      const edge = this.dataConfig.data.idToEdge[id];
       this.selected.emit({
         type: 'edge',
         data: edge,
@@ -267,8 +275,8 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   selectVertex(id: string) {
-    if (this.latestData && this.latestData.idToVertex[id]) {
-      const vertex = this.latestData.idToVertex[id];
+    if (this.dataConfig?.data && this.dataConfig.data.idToVertex[id]) {
+      const vertex = this.dataConfig.data.idToVertex[id];
       this.selected.emit({
         type: 'vertex',
         data: vertex,
@@ -286,12 +294,12 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   editTarget() {
-    if (!this.latestConfig || !this.collectionData || !this.target) {
+    if (!this.dataConfig?.config || !this.collectionData || !this.target) {
       return;
     }
-    if (this.target.type === 'edge' && this.latestData) {
+    if (this.target.type === 'edge' && this.dataConfig?.data) {
       const sourceIndex = this.target.data.is;
-      const config = Object.values(this.latestConfig).find((config) => {
+      const config = Object.values(this.dataConfig.config).find((config) => {
         return config.index === sourceIndex;
       });
       if (config) {
@@ -300,9 +308,9 @@ export class InspectorComponent implements OnChanges, OnInit {
             width: '500px',
             data: {
               collection: config.collection,
-              config: this.latestConfig,
-              vertices: this.latestData.vertices,
-              vertex: this.latestData.idToVertex[this.target.data.source],
+              config: this.dataConfig.config,
+              vertices: this.dataConfig.data.vertices,
+              vertex: this.dataConfig.data.idToVertex[this.target.data.source],
               target: this.target.data,
             },
           })
@@ -318,7 +326,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         .open(VertexDialogComponent, {
           width: '500px',
           data: {
-            config: this.latestConfig,
+            config: this.dataConfig.config,
             target: this.target,
             data: this.collectionData,
           },
@@ -332,8 +340,32 @@ export class InspectorComponent implements OnChanges, OnInit {
     }
   }
 
+  editTags() {
+    if (!this.dataConfig?.config || !this.collectionData || !this.target) {
+      return;
+    }
+    if (this.target.type === 'vertex' && this.dataConfig?.data) {
+      // const targetId = ;
+      // const collection = this.target.data.collection;
+      this.dialog
+        .open(TagDialogComponent, {
+          width: '500px',
+          data: {
+            collection: this.target.data.collection,
+            collectionData: this.collectionData,
+          },
+        })
+        .afterClosed()
+        .subscribe((result) => {
+          if (result && result.refresh) {
+            this.refreshData();
+          }
+        });
+    }
+  }
+
   addEdgeToVertex(vertex: GraphDataVertex) {
-    if (!this.latestConfig || !this.latestData) {
+    if (!this.dataConfig?.config || !this.dataConfig?.data) {
       return;
     }
 
@@ -342,8 +374,8 @@ export class InspectorComponent implements OnChanges, OnInit {
         width: '500px',
         data: {
           collection: vertex.collection,
-          config: this.latestConfig,
-          vertices: this.latestData.vertices,
+          config: this.dataConfig.config,
+          vertices: this.dataConfig.data.vertices,
           vertex,
         },
       })
@@ -410,7 +442,6 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   getCollectionData(target: ChartClickTarget | undefined) {
-    // console.log(target);
     if (!target || target.type !== 'vertex') {
       return of({});
     }
@@ -429,7 +460,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     if (
       !target ||
       target.type !== 'vertex' ||
-      !this.latestConfig ||
+      !this.dataConfig?.config ||
       !Object.keys(mapCollectionToEdgeName).includes(target.data.collection)
     ) {
       return of([]);
@@ -438,16 +469,20 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     return this.graphApi.getUpstream(
       vertex.id,
-      this.latestConfig['user'].index,
+      this.dataConfig.config['user'].index,
       mapCollectionToEdgeName[target.data.collection],
     );
   }
 
   getFieldType(key: string) {
-    if (!this.target || !this.latestConfig || this.target.type !== 'vertex') {
+    if (
+      !this.target ||
+      !this.dataConfig?.config ||
+      this.target.type !== 'vertex'
+    ) {
       return '';
     }
-    return this.latestConfig[this.target.data.collection].fields[key].type;
+    return this.dataConfig.config[this.target.data.collection].fields[key].type;
   }
 
   refreshData() {

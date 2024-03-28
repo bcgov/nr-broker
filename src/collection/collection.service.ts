@@ -6,13 +6,14 @@ import { TokenService } from '../token/token.service';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
-import { VAULT_ENVIRONMENTS_SHORT } from '../constants';
+import { REDIS_PUBSUB, VAULT_ENVIRONMENTS_SHORT } from '../constants';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
 import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class CollectionService {
@@ -22,6 +23,7 @@ export class CollectionService {
     private readonly intentionService: IntentionService,
     private readonly actionUtil: ActionUtil,
     private readonly tokenService: TokenService,
+    private readonly redisService: RedisService,
   ) {}
 
   public async getCollectionConfig(): Promise<CollectionConfigRestDto[]> {
@@ -103,6 +105,31 @@ export class CollectionService {
       }
       await this.collectionRepository.saveTags(type, id, collection.tags);
       return collection.tags;
+    } catch (error) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+  }
+
+  async setTagsOnCollection<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+    tags: string[],
+  ) {
+    try {
+      const collection = await this.getCollectionById(type, id);
+      const sanitizedTags = tags.map((tag) => this.sanitizeTag(tag));
+      await this.collectionRepository.saveTags(type, id, sanitizedTags);
+      this.redisService.publish(REDIS_PUBSUB.GRAPH, {
+        data: {
+          event: 'collection-edit',
+          collection: { id, vertex: collection.vertex.toString() },
+        },
+      });
+      return tags;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

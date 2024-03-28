@@ -6,9 +6,15 @@ import {
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export type GraphEventRestDto =
+  | GraphCollectionEventRestDto
   | GraphEdgeEventRestDto
   | GraphVertexEventRestDto
   | GraphDeleteEventRestDto;
+
+export class GraphCollectionEventRestDto {
+  event!: 'collection-edit';
+  collection!: { id: string; vertex: string };
+}
 
 export class GraphEdgeEventRestDto {
   event!: 'edge-add' | 'edge-edit';

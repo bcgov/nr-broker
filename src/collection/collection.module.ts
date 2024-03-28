@@ -10,6 +10,7 @@ import { UserCollectionService } from './user-collection.service';
 import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 import { IntentionModule } from '../intention/intention.module';
+import { RedisModule } from '../redis/redis.module';
 
 /**
  * The collection module enables the viewing and manipulation of the objects
@@ -22,6 +23,7 @@ import { IntentionModule } from '../intention/intention.module';
     PersistenceModule,
     GraphModule,
     forwardRef(() => IntentionModule),
+    RedisModule,
     TokenModule,
     UtilModule,
   ],

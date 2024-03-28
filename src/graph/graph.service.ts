@@ -1,14 +1,11 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   MessageEvent,
   NotFoundException,
 } from '@nestjs/common';
-import { Observable, Subject } from 'rxjs';
 import { Request } from 'express';
 import ejs from 'ejs';
-import { RedisClientType } from 'redis';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { AuditService } from '../audit/audit.service';
@@ -34,27 +31,20 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { REDIS_PUBSUB_GRAPH } from '../constants';
+import { REDIS_PUBSUB } from '../constants';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class GraphService {
-  private readonly eventSource = new Subject<MessageEvent>();
+  // private readonly eventSource = new Subject<MessageEvent>();
 
   constructor(
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly validatorUtil: ValidatorUtil,
-    @Inject('REDIS_CLIENT') private readonly client: RedisClientType,
-  ) {
-    const subscriber = client.duplicate();
-    subscriber.on('error', (err) => console.error(err));
-    subscriber.connect().then(() => {
-      subscriber.subscribe(REDIS_PUBSUB_GRAPH, (message) => {
-        this.eventSource.next(JSON.parse(message));
-      });
-    });
-  }
+    private readonly redisService: RedisService,
+  ) {}
 
   public async getData(
     includeCollection: boolean,
@@ -62,9 +52,9 @@ export class GraphService {
     return this.graphRepository.getData(includeCollection);
   }
 
-  public getEventSource(): Observable<MessageEvent> {
-    return this.eventSource;
-  }
+  // public getEventSource(): Observable<MessageEvent> {
+  //   return this.eventSource;
+  // }
 
   public async getProjectServices() {
     return this.graphRepository.getProjectServices();
@@ -735,6 +725,6 @@ export class GraphService {
   }
 
   private publishGraphEvent(event: MessageEvent) {
-    this.client.publish(REDIS_PUBSUB_GRAPH, JSON.stringify(event));
+    this.redisService.publish(REDIS_PUBSUB.GRAPH, event);
   }
 }
