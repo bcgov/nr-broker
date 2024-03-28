@@ -77,6 +77,12 @@ export class HistoryComponent implements OnInit, OnDestroy {
     { value: 'action', viewValue: 'Action' },
     { value: 'username', viewValue: 'Username' },
   ];
+  selectedLifespan: string = 'permanent';
+  lifespan = [
+    { value: 'all', viewValue: 'All' },
+    { value: 'permanent', viewValue: 'Permanent' },
+    { value: 'transient', viewValue: 'Transient' },
+  ];
   selectedStatus: string = 'all';
   status = [
     { value: 'all', viewValue: 'All' },
@@ -101,7 +107,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
         switchMap(() => {
           let whereClause: any = {
             ...(this.selectedStatus !== 'all'
-              ? { 'transaction.outcome': this.selectedStatus }
+              ? {
+                  'transaction.outcome': this.selectedStatus,
+                }
               : {}),
           };
           this.loading = true;
@@ -153,6 +161,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
               },
             };
           }
+          if (this.selectedLifespan !== 'all') {
+            if (this.selectedLifespan === 'permanent') {
+              whereClause = {
+                ...whereClause,
+                ...(this.fieldValue ? { 'event.transient': null } : {}),
+              };
+            }
+            if (this.selectedLifespan === 'transient') {
+              whereClause = {
+                ...whereClause,
+                ...(this.fieldValue ? { 'event.transient': true } : {}),
+              };
+            }
+          }
           return this.intentionApi
             .searchIntentions(
               JSON.stringify(whereClause),
@@ -187,6 +209,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
     if (params['value']) {
       this.fieldValue = params['value'];
+    }
+    if (params['lifespan']) {
+      this.fieldValue = params['lifespan'];
     }
     if (params['status']) {
       this.selectedStatus = params['status'];
@@ -227,6 +252,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
           size: this.pageSize,
           field: this.selectedField ?? 'id',
           value: this.fieldValue ?? '',
+          lifespan: this.lifespan ?? 'permanent',
           status: this.selectedStatus ?? 'all',
         },
       ],

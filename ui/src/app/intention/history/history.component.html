@@ -36,6 +36,16 @@
         <mat-error>Invalid end date</mat-error>
       }
     </mat-form-field>
+    <mat-form-field class="field-lifespan">
+      <mat-label>Lifespan</mat-label>
+      <mat-select [(ngModel)]="selectedLifespan" name="lifespan">
+        @for (stat of lifespan; track stat) {
+          <mat-option [value]="stat.value">
+            {{stat.viewValue}}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
     <mat-form-field class="field-outcome">
       <mat-label>Outcome</mat-label>
       <mat-select [(ngModel)]="selectedStatus" name="status">
