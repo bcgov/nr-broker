@@ -52,10 +52,6 @@ export class GraphService {
     return this.graphRepository.getData(includeCollection);
   }
 
-  // public getEventSource(): Observable<MessageEvent> {
-  //   return this.eventSource;
-  // }
-
   public async getProjectServices() {
     return this.graphRepository.getProjectServices();
   }

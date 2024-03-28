@@ -7,18 +7,7 @@ describe('GraphService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GraphService,
-        {
-          provide: 'REDIS_CLIENT',
-          useValue: {
-            duplicate: () => ({
-              on: jest.fn(),
-              connect: () => new Promise(() => {}),
-            }),
-          },
-        },
-      ],
+      providers: [GraphService],
     })
       .useMocker(createMock)
       .compile();
