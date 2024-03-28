@@ -47,4 +47,5 @@ export interface BrokerAccountProjectDto {
 export class GraphDeleteResponseDto {
   edge!: string[];
   vertex!: string[];
+  adjacentVertex!: string[];
 }

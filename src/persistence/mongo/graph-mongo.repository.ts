@@ -377,6 +377,7 @@ export class GraphMongoRepository implements GraphRepository {
     const resp: GraphDeleteResponseDto = {
       edge: [id],
       vertex: [],
+      adjacentVertex: [edge.source.toString(), edge.target.toString()],
     };
     if (
       edge === null ||
@@ -522,6 +523,7 @@ export class GraphMongoRepository implements GraphRepository {
     const resp: GraphDeleteResponseDto = {
       edge: [],
       vertex: [id],
+      adjacentVertex: [],
     };
     if (vertex === null) {
       throw new Error();
@@ -588,6 +590,7 @@ export class GraphMongoRepository implements GraphRepository {
   ): void {
     target.edge.push(...source.edge);
     target.vertex.push(...source.vertex);
+    target.adjacentVertex.push(...source.adjacentVertex);
   }
 
   public async addVertex(

@@ -1,13 +1,10 @@
 import {
   Component,
-  EventEmitter,
   Inject,
   Input,
   OnChanges,
-  Output,
   SimpleChanges,
 } from '@angular/core';
-import { Observable } from 'rxjs';
 import {
   CollectionConfigMap,
   VertexNavigation,
@@ -51,9 +48,7 @@ export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: string;
   @Input() collectionConfig!: CollectionConfigMap | null;
   @Input() collectionData: any = null;
-  @Input() outboundConnections!: Observable<VertexNavigation | null>;
-
-  @Output() refreshData = new EventEmitter();
+  @Input() outboundConnections!: VertexNavigation | null;
 
   filteredCollectionData: any = null;
 
