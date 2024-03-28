@@ -56,4 +56,10 @@ export abstract class CollectionRepository {
     key: string,
     value: string,
   ): Promise<string[]>;
+
+  public abstract saveTags(
+    collection: keyof CollectionDtoUnion,
+    id: string,
+    tags: string[],
+  ): Promise<string[]>;
 }

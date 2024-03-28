@@ -109,6 +109,17 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         );
       }
 
+      if (f.type === 'date') {
+        if (f.required) {
+          validators.push(Validators.required);
+        }
+
+        fieldCtrls[f.key] = new FormControl(
+          this.data && this.data[f.key] ? this.data[f.key].slice(0, -1) : '',
+          validators,
+        );
+      }
+
       if (f.type === 'url') {
         const pattern = new RegExp(
           '^(https?:\\/\\/)?' + // protocol

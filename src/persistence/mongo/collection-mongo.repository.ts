@@ -43,6 +43,17 @@ export class CollectionMongoRepository implements CollectionRepository {
     });
   }
 
+  public async saveTags<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+    tags: string[],
+  ): Promise<string[]> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+
+    repo.updateOne({ _id: new ObjectId(id) }, { $set: { tags } });
+    return tags;
+  }
+
   public async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
     id: string,

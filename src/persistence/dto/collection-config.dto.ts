@@ -31,6 +31,9 @@ export class CollectionConfigDto {
   fields: CollectionFieldConfigMap;
 
   @Column()
+  graphVertexOmit?: boolean;
+
+  @Column()
   index: number;
 
   @Column()

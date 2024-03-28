@@ -1,4 +1,5 @@
 <mat-card class="inspector-card">
+  @if (dataConfig) {
   <div #card (window:resize)="titleWidth=card.getBoundingClientRect().width" class="wrapper">
     <div class="fields-wrapper">
       <mat-card-header>
@@ -9,8 +10,8 @@
           @if (target) {
             {{target.type | titlecase}}
           }
-          @if (latestConfig && target && target.type === 'vertex') {
-            - {{latestConfig[target.data.collection].name}}
+          @if (dataConfig.config && target && target.type === 'vertex') {
+            - {{dataConfig.config[target.data.collection].name}}
           }
         </mat-card-subtitle>
         <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
@@ -28,23 +29,38 @@
     </div>
     @if (target) {
       <div class="fields-wrapper">
-        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Inspector menu">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu"
+          aria-label="Inspector menu">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
           <ng-template matMenuContent>
-            <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.update)" (click)="editTarget()">
+            <button
+              mat-menu-item
+              [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
+              (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
             </button>
             @if (target.type === 'vertex') {
-              <button mat-menu-item (click)="toggleNavigationFollows()">
+              <button
+                mat-menu-item
+                [disabled]="!user.roles.includes('admin')"
+                (click)="editTags()">
+                <mat-icon>label</mat-icon>
+                <span>Add/Remove Tags</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="toggleNavigationFollows()">
                 <mat-icon>{{this.navigationFollows === 'vertex' ? 'east' : 'radio_button_unchecked' }}</mat-icon>
                 <span>{{this.navigationFollows === 'vertex' ? 'Follow Edge' : 'Follow Vertex'}}</span>
               </button>
             }
             <mat-divider></mat-divider>
-            <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && latestConfig && !latestConfig[target.data.collection].permissions.delete)" (click)="deleteTarget()">
+            <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)" (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
             </button>
@@ -61,18 +77,18 @@
     <mat-divider></mat-divider>
     @if (target) {
       <div>
-        @if (target.type === 'edge' && latestConfig && latestData) {
+        @if (target.type === 'edge' && dataConfig.config && dataConfig.data) {
           <app-inspector-edge
             [target]="target"
-            [graphData]="latestData"
-            [collectionConfig]="latestConfig"
+            [graphData]="dataConfig.data"
+            [collectionConfig]="dataConfig.config"
             (vertexSelected)="selectVertex($event)"
           ></app-inspector-edge>
         }
-        @if (target.type === 'vertex' && latestConfig && latestData && collectionData) {
+        @if (target.type === 'vertex' && dataConfig.config && dataConfig.data && collectionData) {
           <app-inspector-vertex
             [collection]="target.data.collection"
-            [collectionConfig]="latestConfig"
+            [collectionConfig]="dataConfig.config"
             [collectionData]="collectionData"
             [outboundConnections]="outboundConnections"
             (refreshData)="refreshData()"
@@ -82,7 +98,7 @@
               <div class="fields-wrapper">
                 <h3 class="vertex-heading">Inbound</h3>
               </div>
-              @if (latestConfig && latestConfig[target.data.collection].edges.length > 0) {
+              @if (dataConfig &&dataConfig.config && dataConfig.config[target.data.collection].edges.length > 0) {
                 <div class="fields-wrapper" >
                   <button mat-button (click)="openDeleteEdgeDialog(inboundConnections)" [disabled]="!user.roles.includes('admin') ||
                   ((inboundConnections | async)?.connections | keyvalue)?.length == 0">Delete</button>
@@ -109,7 +125,7 @@
               <div class="fields-wrapper">
                 <h3 class="vertex-heading">Outbound</h3>
               </div>
-              @if (latestConfig && latestConfig[target.data.collection].edges.length > 0) {
+              @if (dataConfig.config && dataConfig.config[target.data.collection].edges.length > 0) {
                 <div class="fields-wrapper" >
                   <button mat-button (click)="addEdgeToVertex(target.data)" [disabled]="!user.roles.includes('admin')">Add</button>
                   <button mat-button (click)="openDeleteEdgeDialog(outboundConnections)" [disabled]="!user.roles.includes('admin') ||
@@ -133,7 +149,7 @@
               </div>
             }
             <mat-divider></mat-divider>
-            @if (latestData && collectionPeople && collectionPeople.length > 0) {
+            @if (dataConfig.data && collectionPeople && collectionPeople.length > 0) {
               <div class="wrapper vertex-edge-container">
                 <div class="fields-wrapper">
                   <h3 class="vertex-heading">People</h3>
@@ -152,7 +168,9 @@
                   <!-- Name Column -->
                   <ng-container matColumnDef="via">
                     <th mat-header-cell *matHeaderCellDef> Via </th>
-                    <td mat-cell *matCellDef="let element"> {{latestData.idToVertex[element.path.target].name}} ({{latestData.idToVertex[element.path.target].collection}}) </td>
+                    <td mat-cell *matCellDef="let element"> {{dataConfig.data.idToVertex[element.path.target].name}}
+                        ({{ dataConfig.data.idToVertex[element.path.target].collection }})
+                    </td>
                   </ng-container>
                   <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: propPeopleDisplayedColumns;"></tr>
@@ -184,4 +202,5 @@
       </div>
     }
   </mat-card-content>
+  }
 </mat-card>

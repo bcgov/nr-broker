@@ -13,6 +13,7 @@ import {
   GraphDataResponseDto,
   UpstreamResponseDto,
   BrokerAccountProjectMapDto,
+  GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
 import { ProjectDto } from '../dto/project.dto';
 import { ServiceInstanceDto } from '../dto/service-instance.dto';
@@ -36,6 +37,7 @@ import {
 import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -60,6 +62,10 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getProjectServices();
   }
 
+  public async getServerInstalls(): Promise<GraphServerInstallsResponseDto[]> {
+    return this.repo.getServerInstalls();
+  }
+
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeDto> {
     const returnVal = await this.repo.addEdge(edge);
     this.invalidateCache();
@@ -72,7 +78,7 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public async deleteEdge(id: string): Promise<boolean> {
+  public async deleteEdge(id: string): Promise<GraphDeleteResponseDto> {
     const returnVal = await this.repo.deleteEdge(id);
     this.invalidateCache();
     return returnVal;
@@ -151,7 +157,7 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public async deleteVertex(id: string): Promise<boolean> {
+  public async deleteVertex(id: string): Promise<GraphDeleteResponseDto> {
     const vertex = await this.getVertex(id);
     const returnVal = await this.repo.deleteVertex(id);
     this.removeVertexTypeaheadIndex(vertex);

@@ -1,4 +1,12 @@
-import { Component, Inject, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,7 +22,7 @@ import {
   switchMap,
   takeUntil,
   tap,
-  delay,
+  startWith,
 } from 'rxjs';
 import {
   ChartClickTarget,
@@ -37,6 +45,7 @@ import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
+import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
 
 @Component({
   selector: 'app-graph',
@@ -52,11 +61,13 @@ import { GraphUtilService } from '../service/graph-util.service';
     InspectorComponent,
   ],
 })
-export class GraphComponent {
+export class GraphComponent implements OnInit, OnDestroy {
   @Output() data!: Observable<GraphDataConfig>;
   @Output() selected: ChartClickTarget | undefined = undefined;
   @ViewChild(EchartsComponent)
   private echartsComponent!: EchartsComponent;
+  @ViewChild(InspectorComponent)
+  private inspectorComponent!: InspectorComponent;
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
@@ -70,21 +81,64 @@ export class GraphComponent {
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public graphUtil: GraphUtilService,
+    private ref: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
+    const cachedData = null;
     this.data = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() =>
         combineLatest([
-          this.graphApi.getData(),
+          combineLatest([
+            this.graphApi.getData(),
+            this.graphApi
+              .createEventSource()
+              .pipe(takeUntil(this.ngUnsubscribe), startWith(null)),
+          ]).pipe(
+            map(([data, es]) => {
+              if (cachedData) {
+                data = cachedData;
+              }
+              if (es === null) {
+                return { data, es };
+              }
+              // console.log(es);
+
+              if (es.event === 'edge-add') {
+                data.edges.push(es.edge);
+              }
+              if (es.event === 'edge-edit') {
+                data.edges = data.edges.map((edge) =>
+                  edge.id === es.edge.id ? es.edge : edge,
+                );
+              }
+              if (es.event === 'vertex-add') {
+                data.vertices.push(es.vertex);
+              }
+              if (es.event === 'vertex-edit') {
+                data.vertices = data.vertices.map((vertex) =>
+                  vertex.id === es.vertex.id ? es.vertex : vertex,
+                );
+              }
+              if (es.event === 'edge-delete' || es.event === 'vertex-delete') {
+                data.edges = data.edges.filter((edge) => {
+                  return es.edge.indexOf(edge.id) === -1;
+                });
+                data.vertices = data.vertices.filter((vertex) => {
+                  return es.vertex.indexOf(vertex.id) === -1;
+                });
+              }
+              return { data, es };
+            }),
+          ),
           this.graphApi.getConfig(),
           this.graphApi.searchEdgesShallow('owner', 'target', this.user.vertex),
         ]),
       ),
       map(
-        ([data, configArr, ownedVertex]: [
-          GraphDataResponseDto,
+        ([{ data, es }, configArr, ownedVertex]: [
+          { data: GraphDataResponseDto; es: GraphEventRestDto | null },
           CollectionConfigRestDto[],
           string[],
         ]) => {
@@ -126,8 +180,10 @@ export class GraphComponent {
           }
           this.latestConfig = configMap;
           this.latestData = graphData;
+          setTimeout(() => this.ref.detectChanges(), 0);
           return {
             data: graphData,
+            es,
             config: configMap,
             configSrcTarMap,
             ownedVertex,
@@ -135,33 +191,70 @@ export class GraphComponent {
         },
       ),
       tap((graphData) => {
-        this.route.params.pipe(delay(100)).subscribe((params) => {
-          if (params['selected']) {
-            const selector = JSON.parse(params['selected']);
-            if (selector.type === 'vertex') {
-              const vertex = graphData.data.idToVertex[selector.id];
-              if (vertex) {
-                this.onSelected({
-                  type: 'vertex',
-                  data: vertex,
-                });
-              }
-            } else {
-              const edge = graphData.data.idToEdge[selector.id];
-              if (edge) {
-                this.onSelected({
-                  type: 'edge',
-                  data: edge,
-                });
-              }
-            }
-          } else {
-            this.onSelected(undefined);
+        // console.log(graphData.es);
+        // console.log(this.selected);
+        if (graphData.es === null) {
+          return;
+        }
+        if (this.selected?.type === 'vertex') {
+          if (
+            (graphData.es.event === 'vertex-edit' &&
+              graphData.es.vertex.id === this.selected.data.id) ||
+            (graphData.es.event === 'collection-edit' &&
+              graphData.es.collection.vertex === this.selected.data.id)
+          ) {
+            this.inspectorComponent.targetSubject.next(this.selected);
+            // console.log('reload!');
           }
-        });
+        }
+        if (this.selected?.type === 'edge') {
+          if (
+            graphData.es.event === 'edge-edit' &&
+            graphData.es.edge.id === this.selected.data.id
+          ) {
+            this.inspectorComponent.targetSubject.next(this.selected);
+            // console.log('reload!');
+          }
+        }
       }),
       shareReplay(1),
     );
+
+    combineLatest([this.data, this.route.params]).subscribe(
+      ([graphData, params]) => {
+        if (params['selected']) {
+          const selector = JSON.parse(params['selected']);
+          if (selector.type === 'vertex') {
+            const vertex = graphData.data.idToVertex[selector.id];
+            if (vertex) {
+              this.onSelected({
+                type: 'vertex',
+                data: vertex,
+              });
+            } else {
+              this.onSelected(undefined);
+            }
+          } else {
+            const edge = graphData.data.idToEdge[selector.id];
+            if (edge) {
+              this.onSelected({
+                type: 'edge',
+                data: edge,
+              });
+            } else {
+              this.onSelected(undefined);
+            }
+          }
+        } else {
+          this.onSelected(undefined);
+        }
+      },
+    );
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next(true);
+    this.ngUnsubscribe.complete();
   }
 
   onSelected(event: ChartClickTarget | undefined): void {
@@ -246,7 +339,7 @@ export class GraphComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.refreshData();
+          // this.refreshData();
         }
         if (result && result.id) {
           this.graphUtil.openInGraph(result.id, 'vertex');
@@ -318,10 +411,5 @@ export class GraphComponent {
 
   refreshData() {
     this.triggerRefresh.next(true);
-  }
-
-  ngOnDestroy() {
-    this.ngUnsubscribe.next(true);
-    this.ngUnsubscribe.complete();
   }
 }

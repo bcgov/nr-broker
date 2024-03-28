@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -165,6 +167,51 @@ export class CollectionController {
     );
   }
 
+  @Post(':collection/:id/tags/:tag')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  async addTagToCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Param('tag') tag: string,
+  ) {
+    return this.service.addTagToCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+      tag,
+    );
+  }
+
+  @Put(':collection/:id/tags')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  async setTagsOnCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Body() tags: string[],
+  ) {
+    return this.service.setTagsOnCollection(
+      this.parseCollectionApi(collection),
+      id,
+      tags,
+    );
+  }
+
+  @Delete(':collection/:id/tags/:tag')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  async deleteTagFromCollection(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+    @Param('tag') tag: string,
+  ) {
+    return this.service.deleteTagFromCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+      tag,
+    );
+  }
+
   @Post(':collection/search')
   @UseGuards(BrokerCombinedAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -236,6 +283,7 @@ export class CollectionController {
     switch (collection) {
       case 'environment':
       case 'project':
+      case 'server':
       case 'service':
       case 'team':
       case 'user':

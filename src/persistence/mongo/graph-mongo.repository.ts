@@ -13,6 +13,7 @@ import { getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
+  GraphDeleteResponseDto,
   UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
@@ -21,6 +22,7 @@ import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -174,6 +176,112 @@ export class GraphMongoRepository implements GraphRepository {
       });
   }
 
+  public async getServerInstalls(): Promise<GraphServerInstallsResponseDto[]> {
+    const serverRepository = getRepositoryFromCollectionName(
+      this.dataSource,
+      'server',
+    );
+    return serverRepository
+      .aggregate([
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'vertex',
+            foreignField: 'target',
+            as: 'instances',
+            pipeline: [
+              { $match: { is: 3, name: 'installation' } },
+              {
+                $lookup: {
+                  from: 'serviceInstance',
+                  localField: 'source',
+                  foreignField: 'vertex',
+                  as: 'instance',
+                },
+              },
+              { $unwind: '$instance' },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: [{ edgeProp: '$prop' }, '$instance'],
+                  },
+                },
+              },
+              { $unset: 'actionHistory' },
+              {
+                $lookup: {
+                  from: 'edge',
+                  localField: 'vertex',
+                  foreignField: 'source',
+                  as: 'environment',
+                  pipeline: [
+                    { $match: { it: 0, name: 'deploy-type' } },
+                    {
+                      $lookup: {
+                        from: 'environment',
+                        localField: 'target',
+                        foreignField: 'vertex',
+                        as: 'environment',
+                      },
+                    },
+                    { $unwind: '$environment' },
+                    { $replaceRoot: { newRoot: '$environment' } },
+                  ],
+                },
+              },
+              {
+                $lookup: {
+                  from: 'edge',
+                  localField: 'vertex',
+                  foreignField: 'target',
+                  as: 'service',
+                  pipeline: [
+                    { $match: { is: 2, name: 'instance' } },
+                    {
+                      $lookup: {
+                        from: 'service',
+                        localField: 'source',
+                        foreignField: 'vertex',
+                        as: 'service',
+                      },
+                    },
+                    { $unwind: '$service' },
+                    { $replaceRoot: { newRoot: '$service' } },
+                  ],
+                },
+              },
+              { $unwind: '$environment' },
+              { $unwind: '$service' },
+            ],
+          },
+        },
+      ])
+      .toArray()
+      .then((array: any) => {
+        this.arrayIdFixer(array);
+
+        for (const datum of array) {
+          if (datum.instances) {
+            for (const instance of datum.instances) {
+              instance.id = instance._id;
+              delete instance._id;
+
+              if (instance.environment) {
+                instance.environment.id = instance.environment._id;
+                delete instance.environment._id;
+              }
+
+              if (instance.service) {
+                instance.service.id = instance.service._id;
+                delete instance.service._id;
+              }
+            }
+          }
+        }
+        return array;
+      });
+  }
+
   // Edge
   public async addEdge(edgeInsert: EdgeInsertDto): Promise<EdgeDto> {
     const sourceVertex = await this.getVertex(edgeInsert.source);
@@ -258,11 +366,18 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
-  public async deleteEdge(id: string, cascade = true): Promise<boolean> {
+  public async deleteEdge(
+    id: string,
+    cascade = true,
+  ): Promise<GraphDeleteResponseDto> {
     const edge = await this.getEdge(id);
     const srcVertex = await this.getVertex(edge.source.toString());
     const config = await this.getCollectionConfig(srcVertex.collection);
     const edgeConfig = config.edges.find((ec) => ec.name === edge.name);
+    const resp: GraphDeleteResponseDto = {
+      edge: [id],
+      vertex: [],
+    };
     if (
       edge === null ||
       srcVertex === null ||
@@ -276,14 +391,17 @@ export class GraphMongoRepository implements GraphRepository {
       cascade &&
       (await this.getEdgeTargetCount(edge.target.toString())) === 1
     ) {
-      await this.deleteVertex(edge.target.toString());
+      this.mergeGraphDeleteResponse(
+        resp,
+        await this.deleteVertex(edge.target.toString()),
+      );
     }
     // console.log(`edgeRepository.delete(${id})`);
     const result = await this.edgeRepository.delete(id);
     if (result.affected !== 1) {
       throw new Error();
     }
-    return true;
+    return resp;
   }
 
   public getEdge(id: string): Promise<EdgeDto | null> {
@@ -399,8 +517,12 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   // Vertex
-  public async deleteVertex(id: string): Promise<boolean> {
+  public async deleteVertex(id: string): Promise<GraphDeleteResponseDto> {
     const vertex = await this.getVertex(id);
+    const resp: GraphDeleteResponseDto = {
+      edge: [],
+      vertex: [id],
+    };
     if (vertex === null) {
       throw new Error();
     }
@@ -417,7 +539,10 @@ export class GraphMongoRepository implements GraphRepository {
     // console.log(tarEdges);
     for (const edge of tarEdges) {
       try {
-        await this.deleteEdge(edge.id.toString(), false);
+        this.mergeGraphDeleteResponse(
+          resp,
+          await this.deleteEdge(edge.id.toString(), false),
+        );
       } catch (e) {
         // Ignore not found errors
       }
@@ -431,7 +556,10 @@ export class GraphMongoRepository implements GraphRepository {
     // console.log(srcEdges);
     for (const edge of srcEdges) {
       try {
-        await this.deleteEdge(edge.id.toString());
+        this.mergeGraphDeleteResponse(
+          resp,
+          await this.deleteEdge(edge.id.toString()),
+        );
       } catch (e) {
         // Ignore not found errors
       }
@@ -450,8 +578,16 @@ export class GraphMongoRepository implements GraphRepository {
       await collectionRepository.delete(entry.id);
     }
     // Delete vertex
-    const result = await this.vertexRepository.delete(id);
-    return result.affected === 1;
+    await this.vertexRepository.delete(id);
+    return resp;
+  }
+
+  private mergeGraphDeleteResponse(
+    target: GraphDeleteResponseDto,
+    source: GraphDeleteResponseDto,
+  ): void {
+    target.edge.push(...source.edge);
+    target.vertex.push(...source.vertex);
   }
 
   public async addVertex(

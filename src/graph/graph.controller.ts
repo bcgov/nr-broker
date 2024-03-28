@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  MessageEvent,
   Req,
+  Sse,
   UseGuards,
   UseInterceptors,
   UsePipes,
@@ -15,6 +17,8 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Observable } from 'rxjs';
+
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
 import { Roles } from '../roles.decorator';
@@ -32,13 +36,18 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
+import { RedisService } from '../redis/redis.service';
+import { REDIS_PUBSUB } from '../constants';
 
 @Controller({
   path: 'graph',
   version: '1',
 })
 export class GraphController {
-  constructor(private readonly graph: GraphService) {}
+  constructor(
+    private readonly graph: GraphService,
+    private readonly redis: RedisService,
+  ) {}
 
   @Get('data')
   @UseGuards(BrokerCombinedAuthGuard)
@@ -56,11 +65,25 @@ export class GraphController {
     return this.graph.getProjectServices();
   }
 
+  @Get('data/server-installs')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getServerInstalls() {
+    return this.graph.getServerInstalls();
+  }
+
   @Get('data/collection')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   getDataCollection() {
     return this.graph.getData(true);
+  }
+
+  @Sse('events')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  events(): Observable<MessageEvent> {
+    return this.redis.getEventSource(REDIS_PUBSUB.GRAPH);
   }
 
   @Post('typeahead')

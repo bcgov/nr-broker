@@ -85,4 +85,20 @@ export class CollectionApiService {
       },
     );
   }
+
+  public setCollectionTags(
+    name: keyof CollectionDtoRestUnion,
+    id: string,
+    tags: string[],
+  ) {
+    return this.http.put<string[]>(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+        name,
+      )}/${id}/tags`,
+      tags,
+      {
+        responseType: 'json',
+      },
+    );
+  }
 }

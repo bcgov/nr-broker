@@ -5,7 +5,11 @@
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+        <input
+          matInput
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          value="">
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }
@@ -16,7 +20,11 @@
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+        <input
+          matInput
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          value="">
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }
@@ -27,7 +35,11 @@
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value="">
+        <input
+          matInput
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          value="">
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }
@@ -38,7 +50,12 @@
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="email" value="">
+        <input
+          matInput
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          type="email"
+          value="">
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }
@@ -46,7 +63,10 @@
     }
     @case ('boolean') {
       <section appearance="fill">
-        <mat-checkbox matTooltip="{{field.hint}}" matTooltipPosition="after" [formControlName]="field.key"> {{field.name}}</mat-checkbox>
+        <mat-checkbox
+          matTooltip="{{field.hint}}"
+          matTooltipPosition="after"
+          [formControlName]="field.key">{{field.name}}</mat-checkbox>
         <!-- <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint> -->
       </section>
     }
@@ -55,21 +75,54 @@
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <input matInput [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" type="url" value="">
+        <input
+          matInput
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          type="url"
+          value="">
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }
       </mat-form-field>
     }
+    @case ('date') {
+      <mat-form-field appearance="fill">
+        @if (field.name) {
+          <mat-label>{{field.name}}</mat-label>
+        }
+        <input
+          matInput
+          [matDatepicker]="picker"
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          type="url"
+          value="">
+        <mat-hint align="end">MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        @if (field.hint) {
+          <mat-hint>{{field.hint}}</mat-hint>
+        }
+      </mat-form-field>
+    }
+
     @case ('json') {
       <mat-form-field appearance="fill">
         @if (field.name) {
           <mat-label>{{field.name}}</mat-label>
         }
-        <textarea matInput cdkTextareaAutosize
+        <textarea
+          matInput
+          cdkTextareaAutosize
           #autosize="cdkTextareaAutosize"
           cdkAutosizeMinRows="12"
-        cdkAutosizeMaxRows="15" [formControlName]="field.key" placeholder="{{field.placeholder ? field.placeholder : ''}}" value=""></textarea>
+          cdkAutosizeMaxRows="15"
+          [formControlName]="field.key"
+          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          value=""></textarea>
         @if (field.hint) {
           <mat-hint>{{field.hint}}</mat-hint>
         }

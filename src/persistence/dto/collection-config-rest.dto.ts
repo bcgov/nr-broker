@@ -45,6 +45,7 @@ export class CollectionFieldConfig {
   required!: boolean;
   type!:
     | 'boolean'
+    | 'date'
     | 'email'
     | 'embeddedDoc'
     | 'embeddedDocArray'
@@ -84,6 +85,7 @@ export class CollectionConfigRestDto {
   collectionVertexName!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  graphVertexOmit?: boolean;
   index!: number;
   name!: string;
   parent!: CollectionConfigParent;

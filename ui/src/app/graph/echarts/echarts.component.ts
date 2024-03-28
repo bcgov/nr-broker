@@ -7,8 +7,8 @@ import {
   EventEmitter,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { EChartsOption } from 'echarts';
-import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';
+import { ECharts, EChartsOption } from 'echarts';
+import { NgxEchartsDirective, provideEcharts } from 'ngx-echarts';
 import {
   BehaviorSubject,
   map,
@@ -27,13 +27,8 @@ import { PreferencesService } from '../../preferences.service';
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
   standalone: true,
-  imports: [NgxEchartsModule, AsyncPipe],
-  providers: [
-    {
-      provide: NGX_ECHARTS_CONFIG,
-      useFactory: () => ({ echarts: () => import('echarts') }),
-    },
-  ],
+  imports: [NgxEchartsDirective, AsyncPipe],
+  providers: [provideEcharts()],
 })
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;
@@ -42,9 +37,10 @@ export class EchartsComponent implements OnInit {
     name: string;
     selected: boolean;
   }>();
-  options!: Observable<EChartsOption>;
+  options!: EChartsOption;
+  updateOptions!: Observable<EChartsOption>;
   loading!: boolean;
-  echartsInstance: any;
+  echartsInstance: ECharts | undefined;
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
   private prefSubscription!: Subscription;
@@ -65,7 +61,69 @@ export class EchartsComponent implements OnInit {
         this.triggerRefresh.next(true);
       }
     });
-    this.options = this.triggerRefresh.pipe(
+    this.options = {
+      textStyle: {
+        fontFamily: getComputedStyle(this.elRef.nativeElement).fontFamily,
+      },
+      tooltip: {
+        formatter: '{c}',
+      },
+      legend: [
+        {
+          selected: {},
+          // selectedMode: 'single',
+          bottom: 0,
+          data: [],
+        },
+      ],
+      animation: true,
+      series: [
+        {
+          name: 'CMDB',
+          type: 'graph',
+          categories: [],
+          data: [],
+          edges: [],
+          emphasis: {
+            focus: 'adjacency',
+            label: { position: 'right', show: true },
+          },
+          edgeSymbol: ['none', 'arrow'],
+          edgeSymbolSize: 7,
+          label: {
+            show: true,
+            position: 'right',
+            formatter: '{c}',
+          },
+          labelLayout: {
+            hideOverlap: false,
+          },
+          layout: 'force',
+          lineStyle: {
+            color: 'source',
+            curveness: 0,
+          },
+          roam: true,
+          scaleLimit: {
+            min: 1,
+            max: 5,
+          },
+          // Disabled because it was selecting everything with same name
+          selectedMode: 'single',
+          select: {
+            itemStyle: {
+              borderColor: '#000',
+              borderWidth: 2,
+            },
+          },
+          tooltip: {
+            formatter: '{c}',
+          },
+          zoom: 2,
+        },
+      ],
+    } as EChartsOption;
+    this.updateOptions = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() => this.dataConfig),
       map((dataConfig) => {
@@ -78,12 +136,6 @@ export class EchartsComponent implements OnInit {
           'graphEdgeSrcTarVisibility',
         );
         return {
-          textStyle: {
-            fontFamily: getComputedStyle(this.elRef.nativeElement).fontFamily,
-          },
-          tooltip: {
-            formatter: '{c}',
-          },
           legend: [
             {
               selected: Object.keys(dataConfig.config).reduce(
@@ -97,20 +149,13 @@ export class EchartsComponent implements OnInit {
                 },
                 {} as { [key: string]: boolean },
               ),
-              // selectedMode: 'single',
-              bottom: 0,
               data: graph.categories.map(function (a: any) {
                 return { name: a.name };
               }),
             },
           ],
-          animation: true,
-          animationDurationUpdate: 1500,
-          animationEasingUpdate: 'quinticInOut',
           series: [
             {
-              name: 'CMDB',
-              type: 'graph',
               categories: graph.categories.map(function (a: any) {
                 return { name: a.name };
               }),
@@ -137,42 +182,6 @@ export class EchartsComponent implements OnInit {
                   console.log('Missing edge config ' + edgeMap);
                   return true;
                 }),
-              emphasis: {
-                focus: 'adjacency',
-                label: { position: 'right', show: true },
-              },
-              edgeSymbol: ['none', 'arrow'],
-              edgeSymbolSize: 7,
-              label: {
-                show: true,
-                position: 'right',
-                formatter: '{c}',
-              },
-              labelLayout: {
-                hideOverlap: false,
-              },
-              layout: 'force',
-              lineStyle: {
-                color: 'source',
-                curveness: 0,
-              },
-              roam: true,
-              scaleLimit: {
-                min: 1,
-                max: 5,
-              },
-              // Disabled because it was selecting everything with same name
-              selectedMode: 'single',
-              select: {
-                itemStyle: {
-                  borderColor: '#000',
-                  borderWidth: 2,
-                },
-              },
-              tooltip: {
-                formatter: '{c}',
-              },
-              zoom: 2,
             },
           ],
         } as EChartsOption;

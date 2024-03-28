@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  MessageEvent,
   NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -11,6 +12,7 @@ import { AuditService } from '../audit/audit.service';
 import {
   GraphDataResponseDto,
   GraphDataResponseEdgeDto,
+  GraphDeleteResponseDto,
 } from '../persistence/dto/graph-data.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
@@ -29,14 +31,19 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { REDIS_PUBSUB } from '../constants';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class GraphService {
+  // private readonly eventSource = new Subject<MessageEvent>();
+
   constructor(
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly validatorUtil: ValidatorUtil,
+    private readonly redisService: RedisService,
   ) {}
 
   public async getData(
@@ -47,6 +54,10 @@ export class GraphService {
 
   public async getProjectServices() {
     return this.graphRepository.getProjectServices();
+  }
+
+  public async getServerInstalls() {
+    return this.graphRepository.getServerInstalls();
   }
 
   public async addEdge(
@@ -63,6 +74,9 @@ export class GraphService {
         'edge',
         resp,
       );
+      this.publishGraphEvent({
+        data: { event: 'edge-add', edge: resp },
+      });
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -96,6 +110,9 @@ export class GraphService {
         'edge',
         resp,
       );
+      this.publishGraphEvent({
+        data: { event: 'edge-edit', edge: resp },
+      });
       return resp.toEdgeResponse();
     } catch (e) {
       this.auditService.recordGraphAction(
@@ -130,9 +147,12 @@ export class GraphService {
     }
   }
 
-  public async deleteEdge(req: Request, id: string): Promise<boolean> {
+  public async deleteEdge(
+    req: Request,
+    id: string,
+  ): Promise<GraphDeleteResponseDto> {
     try {
-      const resp = this.graphRepository.deleteEdge(id);
+      const resp = await this.graphRepository.deleteEdge(id);
       this.auditService.recordGraphAction(
         req,
         'graph-edge-delete',
@@ -141,6 +161,10 @@ export class GraphService {
         'edge',
         id,
       );
+
+      this.publishGraphEvent({
+        data: { event: 'edge-delete', ...resp },
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -164,12 +188,9 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
   ): Promise<VertexDto> {
-    const [vertex, collection] = await this.validateVertex(
+    const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'create',
-    );
-    const config = await this.collectionRepository.getCollectionConfigByName(
-      vertex.collection,
     );
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.unique) {
@@ -197,6 +218,9 @@ export class GraphService {
         'vertex',
         resp,
       );
+      this.publishGraphEvent({
+        data: { event: 'vertex-add', vertex: resp },
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -222,16 +246,13 @@ export class GraphService {
     ignorePermissions = false,
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    const [vertex, collection] = await this.validateVertex(
+    const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'update',
     );
     const vertexObj = await this.collectionRepository.getCollectionByVertexId(
       vertexInsert.collection,
       id,
-    );
-    const config = await this.collectionRepository.getCollectionConfigByName(
-      vertex.collection,
     );
     // Owners can edit vertices but, priviledged fields must be masked
     if (!req || (req.user as any)?.mask === 'owner') {
@@ -275,6 +296,9 @@ export class GraphService {
         'vertex',
         resp,
       );
+      this.publishGraphEvent({
+        data: { event: 'vertex-edit', vertex: resp },
+      });
 
       return resp;
     } catch (error) {
@@ -301,12 +325,22 @@ export class GraphService {
     [
       vertex: VertexDto,
       collection: CollectionDtoUnion[typeof vertexInsert.collection],
+      config: CollectionConfigDto,
     ]
   > {
     let vertex = VertexDto.upgradeInsertDto(vertexInsert);
     const config = await this.collectionRepository.getCollectionConfigByName(
       vertexInsert.collection,
     );
+
+    for (const [key, field] of Object.entries(config.fields)) {
+      if (field.type === 'date' && vertexInsert.data[key]) {
+        vertexInsert.data[key] = new Date(
+          vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
+        );
+      }
+    }
+
     const collection = VertexDto.upgradeDataToInstance(vertexInsert);
     const errors = await validate(collection, {
       whitelist: true,
@@ -334,7 +368,7 @@ export class GraphService {
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
 
-    return [vertex, collection];
+    return [vertex, collection, config];
   }
 
   private async maskCollectionFields(
@@ -555,7 +589,10 @@ export class GraphService {
     }
   }
 
-  public async deleteVertex(req: Request, id: string): Promise<boolean> {
+  public async deleteVertex(
+    req: Request,
+    id: string,
+  ): Promise<GraphDeleteResponseDto> {
     try {
       const resp = await this.graphRepository.deleteVertex(id);
       this.auditService.recordGraphAction(
@@ -566,6 +603,10 @@ export class GraphService {
         'vertex',
         id,
       );
+
+      this.publishGraphEvent({
+        data: { event: 'vertex-delete', ...resp },
+      });
       return resp;
     } catch (error) {
       this.auditService.recordGraphAction(
@@ -677,5 +718,9 @@ export class GraphService {
         }
         return response;
       }) as unknown as Promise<CollectionConfigInstanceRestDto[]>;
+  }
+
+  private publishGraphEvent(event: MessageEvent) {
+    this.redisService.publish(REDIS_PUBSUB.GRAPH, event);
   }
 }

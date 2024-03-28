@@ -25,6 +25,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule, TitleStrategy } from '@angular/router';
 import { ROUTES } from './routes';
 import { RouteTitleStrategy } from './route-title.strategy';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 if (environment.production) {
   enableProdMode();
@@ -58,5 +59,6 @@ bootstrapApplication(AppComponent, {
     },
     provideAnimations(),
     provideHttpClient(withInterceptorsFromDi()),
+    provideNativeDateAdapter(),
   ],
 }).catch((err) => console.error(err));

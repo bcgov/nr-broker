@@ -21,7 +21,7 @@ export const INTENTION_TRANSIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const SHORT_ENV_CONVERSION = {
   production: 'prod',
   development: 'dev',
-};
+} as const;
 
 export const ACTION_VALIDATE_TEAM_ADMIN =
   process.env.ACTION_VALIDATE_TEAM_ADMIN ?? '';
@@ -77,3 +77,7 @@ export const OAUTH2_CLIENT_MAP_ROLES =
   process.env.OAUTH2_CLIENT_MAP_ROLES ?? 'client_roles';
 export const OAUTH2_CLIENT_MAP_USERNAME =
   process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
+
+export const REDIS_PUBSUB = {
+  GRAPH: 'graph',
+} as const;

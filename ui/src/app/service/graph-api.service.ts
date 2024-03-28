@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs';
+import { Observable, finalize, map } from 'rxjs';
 import {
   CollectionDtoRestUnion,
   CollectionNames,
@@ -18,6 +18,7 @@ import { EdgeInsertDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexRestDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
+import { GraphEventRestDto } from './dto/graph-event-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -27,6 +28,24 @@ export class GraphApiService {
     private readonly util: GraphUtilService,
     private readonly http: HttpClient,
   ) {}
+
+  createEventSource(): Observable<GraphEventRestDto> {
+    const eventSource = new EventSource(
+      `${environment.apiUrl}/v1/graph/events`,
+    );
+
+    return new Observable<GraphEventRestDto>((observer) => {
+      eventSource.onmessage = (event) => {
+        const messageData = JSON.parse(event.data);
+        observer.next(messageData);
+      };
+    }).pipe(
+      finalize(() => {
+        // Must close upon finalize or event source will hang
+        eventSource.close();
+      }),
+    );
+  }
 
   getData() {
     return this.http.get<GraphDataResponseDto>(
