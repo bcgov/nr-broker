@@ -67,17 +67,15 @@
       [userIndex]="collectionConfig?.['user']?.index"></app-inspector-account>
   }
   @if (collection === 'service') {
-    @if (outboundConnections | async; as vertices) {
+    @if (outboundConnections) {
       <app-inspector-instances
-        [vertices]="vertices"
-        (refreshData)="refreshData.emit()"></app-inspector-instances>
+        [vertices]="outboundConnections"></app-inspector-instances>
     }
     <app-inspector-intentions
       [id]="collectionData.id"
       [name]="collectionData.name"></app-inspector-intentions>
     <app-inspector-vault
-      [service]="collectionData"
-      (refreshData)="refreshData.emit()"></app-inspector-vault>
+      [service]="collectionData"></app-inspector-vault>
     <app-inspector-service-secure
       [service]="collectionData"
       [userIndex]="collectionConfig?.['user']?.index"></app-inspector-service-secure>
@@ -88,7 +86,6 @@
   }
   @if (collection === 'team') {
     <app-inspector-team
-      [instance]="collectionData"
-      (graphChanged)="refreshData.emit()"></app-inspector-team>
+      [instance]="collectionData"></app-inspector-team>
   }
 </div>

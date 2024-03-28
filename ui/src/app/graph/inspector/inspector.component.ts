@@ -21,11 +21,10 @@ import { MatTableModule } from '@angular/material/table';
 import { AsyncPipe, TitleCasePipe, KeyValuePipe } from '@angular/common';
 import {
   BehaviorSubject,
+  combineLatest,
   map,
-  Observable,
   of,
   ReplaySubject,
-  shareReplay,
   switchMap,
   withLatestFrom,
 } from 'rxjs';
@@ -36,7 +35,6 @@ import {
   GraphDataEdgeVertexKeys,
   VertexNavigation,
   ChartClickTargetVertex,
-  EdgeNavigation,
   GraphDataConfig,
   GraphDataVertex,
   ConnectionDirection,
@@ -80,13 +78,11 @@ export class InspectorComponent implements OnChanges, OnInit {
   @Input() dataConfig!: GraphDataConfig | null;
   dataConfig$ = new ReplaySubject<GraphDataConfig>(1);
   @Input() target!: ChartClickTarget | undefined;
-  @Output() inboundConnections!: Observable<VertexNavigation | null>;
-  @Output() outboundConnections!: Observable<VertexNavigation | null>;
-  @Output() edgeConnections!: Observable<EdgeNavigation | null>;
+  inboundConnections!: VertexNavigation | null;
+  outboundConnections!: VertexNavigation | null;
   collectionData: any = null;
   collectionPeople: any = null;
   @Output() selected = new EventEmitter<ChartClickTarget>();
-  @Output() graphChanged = new EventEmitter<boolean>();
   propDisplayedColumns: string[] = ['key', 'value'];
   propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
@@ -103,36 +99,40 @@ export class InspectorComponent implements OnChanges, OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.inboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.dataConfig$),
-      map(([target, dataConfig]) => {
-        const data = dataConfig.data;
-        if (!target || target.type === 'edge') {
-          return null;
-        }
-        return {
-          vertex: target.data,
-          direction: 'forward' as ConnectionDirection,
-          connections: this.gatherConnections(target, data, 'target'),
-        };
-      }),
-      shareReplay(1),
-    );
-    this.outboundConnections = this.targetSubject.pipe(
-      withLatestFrom(this.dataConfig$),
-      map(([target, dataConfig]) => {
-        const data = dataConfig.data;
-        if (!target || target.type === 'edge') {
-          return null;
-        }
-        return {
-          vertex: target.data,
-          direction: 'forward' as ConnectionDirection,
-          connections: this.gatherConnections(target, data, 'source'),
-        };
-      }),
-      shareReplay(1),
-    );
+    combineLatest([this.targetSubject, this.dataConfig$])
+      .pipe(
+        map(([target, dataConfig]) => {
+          if (!target || !dataConfig || target.type === 'edge') {
+            return null;
+          }
+          const data = dataConfig.data;
+          return {
+            vertex: target.data,
+            direction: 'forward' as ConnectionDirection,
+            connections: this.gatherConnections(target, data, 'target'),
+          };
+        }),
+      )
+      .subscribe((inboundConnections) => {
+        this.inboundConnections = inboundConnections;
+      });
+    combineLatest([this.targetSubject, this.dataConfig$])
+      .pipe(
+        map(([target, dataConfig]) => {
+          if (!target || !dataConfig || target.type === 'edge') {
+            return null;
+          }
+          const data = dataConfig.data;
+          return {
+            vertex: target.data,
+            direction: 'forward' as ConnectionDirection,
+            connections: this.gatherConnections(target, data, 'source'),
+          };
+        }),
+      )
+      .subscribe((outboundConnections) => {
+        this.outboundConnections = outboundConnections;
+      });
 
     this.targetSubject
       .pipe(
@@ -317,7 +317,7 @@ export class InspectorComponent implements OnChanges, OnInit {
           .afterClosed()
           .subscribe((result) => {
             if (result && result.refresh) {
-              this.refreshData();
+              // this.refreshData();
             }
           });
       }
@@ -334,7 +334,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         .afterClosed()
         .subscribe((result) => {
           if (result && result.refresh) {
-            this.refreshData();
+            // this.refreshData();
           }
         });
     }
@@ -358,7 +358,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         .afterClosed()
         .subscribe((result) => {
           if (result && result.refresh) {
-            this.refreshData();
+            // this.refreshData();
           }
         });
     }
@@ -382,12 +382,12 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.refreshData();
+          // this.refreshData();
         }
       });
   }
 
-  openDeleteEdgeDialog(targetConnections: Observable<VertexNavigation | null>) {
+  openDeleteEdgeDialog(targetConnections: VertexNavigation | null) {
     this.dialog
       .open(DeleteEdgeDialogComponent, {
         width: '500px',
@@ -398,7 +398,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.refresh) {
-          this.refreshData();
+          // this.refreshData();
         }
       });
   }
@@ -421,7 +421,7 @@ export class InspectorComponent implements OnChanges, OnInit {
               : this.graphApi.deleteEdge(this.target.data.id);
 
           obs.subscribe(() => {
-            this.refreshData();
+            // this.refreshData();
           });
         }
       });
@@ -486,6 +486,8 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   refreshData() {
-    this.graphChanged.emit(true);
+    if (this.target) {
+      this.targetSubject.next(this.target);
+    }
   }
 }

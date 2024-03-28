@@ -38,4 +38,5 @@ export interface UpstreamResponseDto<T = any> {
 export class GraphDeleteResponseDto {
   edge!: string[];
   vertex!: string[];
+  adjacentVertex!: string[];
 }

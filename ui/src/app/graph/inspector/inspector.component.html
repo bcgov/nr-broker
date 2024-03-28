@@ -91,7 +91,6 @@
             [collectionConfig]="dataConfig.config"
             [collectionData]="collectionData"
             [outboundConnections]="outboundConnections"
-            (refreshData)="refreshData()"
           ></app-inspector-vertex>
           <div>
             <div class="wrapper vertex-edge-container">
@@ -100,15 +99,18 @@
               </div>
               @if (dataConfig &&dataConfig.config && dataConfig.config[target.data.collection].edges.length > 0) {
                 <div class="fields-wrapper" >
-                  <button mat-button (click)="openDeleteEdgeDialog(inboundConnections)" [disabled]="!user.roles.includes('admin') ||
-                  ((inboundConnections | async)?.connections | keyvalue)?.length == 0">Delete</button>
+                  <button
+                    mat-button
+                    (click)="openDeleteEdgeDialog(inboundConnections)"
+                    [disabled]="!user.roles.includes('admin') ||
+                  (inboundConnections?.connections | keyvalue)?.length == 0">Delete</button>
                 </div>
               }
             </div>
-            @if (((inboundConnections | async)?.connections | keyvalue)?.length == 0) {
+            @if ((inboundConnections?.connections | keyvalue)?.length == 0) {
               <p class="vertex-edge-type-container">None</p>
             }
-            @for (group of $any((inboundConnections | async)?.connections | keyvalue); track group) {
+            @for (group of $any(inboundConnections?.connections | keyvalue); track group) {
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
@@ -127,16 +129,22 @@
               </div>
               @if (dataConfig.config && dataConfig.config[target.data.collection].edges.length > 0) {
                 <div class="fields-wrapper" >
-                  <button mat-button (click)="addEdgeToVertex(target.data)" [disabled]="!user.roles.includes('admin')">Add</button>
-                  <button mat-button (click)="openDeleteEdgeDialog(outboundConnections)" [disabled]="!user.roles.includes('admin') ||
-                  ((outboundConnections | async)?.connections | keyvalue)?.length == 0">Delete</button>
+                  <button
+                    mat-button
+                    (click)="addEdgeToVertex(target.data)"
+                    [disabled]="!user.roles.includes('admin')">Add</button>
+                  <button
+                    mat-button
+                    (click)="openDeleteEdgeDialog(outboundConnections)"
+                    [disabled]="!user.roles.includes('admin') ||
+                  (outboundConnections?.connections | keyvalue)?.length == 0">Delete</button>
                 </div>
               }
             </div>
-            @if (((outboundConnections | async)?.connections | keyvalue)?.length == 0) {
+            @if ((outboundConnections?.connections | keyvalue)?.length == 0) {
               <p class="vertex-edge-type-container">None</p>
             }
-            @for (group of $any((outboundConnections | async)?.connections | keyvalue); track group) {
+            @for (group of $any(outboundConnections?.connections | keyvalue); track group) {
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">

@@ -198,12 +198,18 @@ export class GraphComponent implements OnInit, OnDestroy {
         }
         if (this.selected?.type === 'vertex') {
           if (
+            (graphData.es.event === 'edge-add' &&
+              (graphData.es.edge.source === this.selected.data.id ||
+                graphData.es.edge.target === this.selected.data.id)) ||
             (graphData.es.event === 'vertex-edit' &&
               graphData.es.vertex.id === this.selected.data.id) ||
             (graphData.es.event === 'collection-edit' &&
-              graphData.es.collection.vertex === this.selected.data.id)
+              graphData.es.collection.vertex === this.selected.data.id) ||
+            ((graphData.es.event === 'vertex-delete' ||
+              graphData.es.event === 'edge-delete') &&
+              graphData.es.adjacentVertex.indexOf(this.selected.data.id) !== -1)
           ) {
-            this.inspectorComponent.targetSubject.next(this.selected);
+            this.inspectorComponent.refreshData();
             // console.log('reload!');
           }
         }
@@ -212,7 +218,7 @@ export class GraphComponent implements OnInit, OnDestroy {
             graphData.es.event === 'edge-edit' &&
             graphData.es.edge.id === this.selected.data.id
           ) {
-            this.inspectorComponent.targetSubject.next(this.selected);
+            this.inspectorComponent.refreshData();
             // console.log('reload!');
           }
         }
