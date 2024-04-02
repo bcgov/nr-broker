@@ -161,19 +161,17 @@ export class HistoryComponent implements OnInit, OnDestroy {
               },
             };
           }
-          if (this.selectedLifespan !== 'all') {
-            if (this.selectedLifespan === 'permanent') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue ? { 'event.transient': null } : {}),
-              };
-            }
-            if (this.selectedLifespan === 'transient') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue ? { 'event.transient': true } : {}),
-              };
-            }
+          if (this.selectedLifespan === 'permanent') {
+            whereClause = {
+              ...whereClause,
+              'event.transient': null,
+            };
+          }
+          if (this.selectedLifespan === 'transient') {
+            whereClause = {
+              ...whereClause,
+              'event.transient': true,
+            };
           }
           return this.intentionApi
             .searchIntentions(
@@ -211,7 +209,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       this.fieldValue = params['value'];
     }
     if (params['lifespan']) {
-      this.fieldValue = params['lifespan'];
+      this.selectedLifespan = params['lifespan'];
     }
     if (params['status']) {
       this.selectedStatus = params['status'];
@@ -252,7 +250,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
           size: this.pageSize,
           field: this.selectedField ?? 'id',
           value: this.fieldValue ?? '',
-          lifespan: this.lifespan ?? 'permanent',
+          lifespan: this.selectedLifespan ?? 'permanent',
           status: this.selectedStatus ?? 'all',
         },
       ],
@@ -267,6 +265,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.pageIndex = 0;
     this.selectedField = 'id';
     this.fieldValue = id;
+    this.selectedLifespan = 'permanent';
     this.selectedStatus = 'all';
     this.range.reset();
     this.filter();
