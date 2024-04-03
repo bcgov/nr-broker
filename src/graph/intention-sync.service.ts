@@ -9,6 +9,7 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
+import { INTENTION_INSTANCE_PATHS } from '../constants';
 
 interface OverlayMapBase {
   key: string;
@@ -79,8 +80,7 @@ export class IntentionSyncService {
       context,
       'serviceInstance',
       [
-        { key: 'name', path: 'action.service.environment' },
-        { key: 'name', path: 'action.service.instanceName' },
+        ...INTENTION_INSTANCE_PATHS.map((path) => ({ key: 'name', path })),
         {
           key: 'action.intention',
           value: intention.id.toString(),
