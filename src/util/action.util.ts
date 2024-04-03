@@ -1,5 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { VAULT_ENVIRONMENTS, VAULT_PROVISIONED_ACTION_SET } from '../constants';
+import { get } from 'radash';
+import {
+  INTENTION_INSTANCE_PATHS,
+  VAULT_ENVIRONMENTS,
+  VAULT_PROVISIONED_ACTION_SET,
+} from '../constants';
 import { ActionDto, isActionName } from '../intention/dto/action.dto';
 
 export type FindArtifactActionOptions = Partial<
@@ -70,5 +75,11 @@ export class ActionUtil {
         ([k, v]) => !v || action[k] === v,
       );
     });
+  }
+
+  public instanceName(action: ActionDto) {
+    return INTENTION_INSTANCE_PATHS.reduce<string>((pv, path) => {
+      return get(action, path, pv);
+    }, undefined);
   }
 }

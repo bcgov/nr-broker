@@ -37,7 +37,6 @@ export class IntentionSyncService {
   ) {}
 
   public async sync(intention: IntentionDto) {
-    const envMap = await this.persistenceUtilService.getEnvMap();
     // console.log(intention);
     for (const action of intention.actions) {
       const context = {
@@ -61,45 +60,54 @@ export class IntentionSyncService {
         action.service.environment &&
         action.action === 'package-installation'
       ) {
-        const serviceInstanceVertex = await this.overlayVertex(
-          context,
-          'serviceInstance',
-          [
-            { key: 'name', path: 'action.service.environment' },
-            { key: 'name', path: 'action.service.instanceName' },
-            {
-              key: 'action.intention',
-              value: intention.id.toString(),
-            },
-            {
-              key: 'action.action',
-              value: `${action.action}#${action.id}`,
-            },
-            {
-              key: 'actionHistory[0].intention',
-              value: intention.id.toString(),
-            },
-            {
-              key: 'actionHistory[0].action',
-              value: `${action.action}#${action.id}`,
-            },
-          ],
-          'parentId',
-          serviceVertex.id.toString(),
-        );
-        await this.overlayEdge(
-          'instance',
-          serviceVertex,
-          serviceInstanceVertex,
-        );
-        if (envMap[action.service.environment]) {
-          this.overlayEdgeById(
-            'deploy-type',
-            serviceInstanceVertex.id.toString(),
-            envMap[action.service.environment].vertex.toString(),
-          );
-        }
+        await this.syncPackageInstall(intention, action, serviceVertex);
       }
+    }
+  }
+
+  public async syncPackageInstall(
+    intention: IntentionDto,
+    action: ActionDto,
+    serviceVertex: VertexDto,
+  ) {
+    const envMap = await this.persistenceUtilService.getEnvMap();
+    const context = {
+      action,
+      intention,
+    };
+    const serviceInstanceVertex = await this.overlayVertex(
+      context,
+      'serviceInstance',
+      [
+        { key: 'name', path: 'action.service.environment' },
+        { key: 'name', path: 'action.service.instanceName' },
+        {
+          key: 'action.intention',
+          value: intention.id.toString(),
+        },
+        {
+          key: 'action.action',
+          value: `${action.action}#${action.id}`,
+        },
+        {
+          key: 'actionHistory[0].intention',
+          value: intention.id.toString(),
+        },
+        {
+          key: 'actionHistory[0].action',
+          value: `${action.action}#${action.id}`,
+        },
+      ],
+      'parentId',
+      serviceVertex.id.toString(),
+    );
+    await this.overlayEdge('instance', serviceVertex, serviceInstanceVertex);
+    if (envMap[action.service.environment]) {
+      this.overlayEdgeById(
+        'deploy-type',
+        serviceInstanceVertex.id.toString(),
+        envMap[action.service.environment].vertex.toString(),
+      );
     }
   }
 

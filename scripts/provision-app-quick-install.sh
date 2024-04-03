@@ -39,7 +39,7 @@ ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
 curl -s -X POST $BROKER_URL/v1/intention/action/install \
         -H 'Content-Type: application/json' \
         -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
-        -d '{"name": "production","cloudTarget":{"instance": {"name": "lollipop"}},"prop": {"port": "3243"}}'
+        -d '{"cloudTarget":{"instance": {"name": "lollipop"}},"prop": {"port": "3243"}}'
 
 echo "===> Intention close"
 

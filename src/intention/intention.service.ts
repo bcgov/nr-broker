@@ -592,6 +592,7 @@ export class IntentionService {
     action: ActionDto,
     install: InstallDto,
   ) {
+    const instanceName = this.actionUtil.instanceName(action);
     if (action.lifecycle !== 'started') {
       throw new BadRequestException({
         statusCode: 400,
@@ -616,11 +617,17 @@ export class IntentionService {
       action.service.name,
     );
 
+    await this.intentionSync.syncPackageInstall(
+      intention,
+      action,
+      serviceVertex,
+    );
+
     const instanceVertex =
       await this.graphRepository.getVertexByParentIdAndName(
         'serviceInstance',
         serviceVertex.id.toString(),
-        install.name,
+        instanceName,
       );
     // console.log(instanceVertex);
     // console.log(serverVertex);
