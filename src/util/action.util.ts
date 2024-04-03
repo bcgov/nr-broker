@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { get } from 'radash';
 import {
-  INTENTION_INSTANCE_PATHS,
+  INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
   VAULT_ENVIRONMENTS,
   VAULT_PROVISIONED_ACTION_SET,
 } from '../constants';
@@ -78,8 +78,11 @@ export class ActionUtil {
   }
 
   public instanceName(action: ActionDto) {
-    return INTENTION_INSTANCE_PATHS.reduce<string>((pv, path) => {
-      return get(action, path, pv);
-    }, undefined);
+    return INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.reduce<string>(
+      (pv, path) => {
+        return get({ action }, path, pv);
+      },
+      undefined,
+    );
   }
 }

@@ -9,7 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
@@ -124,11 +124,16 @@ export class IntentionController {
 
   @Post('action/install')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @ApiQuery({
+    name: 'strategy',
+    required: false,
+  })
   @UseGuards(ActionGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async actionInstallRegister(
     @Req() request: ActionGuardRequest,
     @Body() install: InstallDto,
+    @Query('strategy') strategy: string | undefined,
   ) {
     if (!['package-installation'].includes(request.brokerActionDto.action)) {
       throw new BadRequestException({
@@ -138,11 +143,23 @@ export class IntentionController {
           'Install can only be associated with a package-installation action',
       });
     }
+    if (strategy === undefined) {
+      strategy = 'merge';
+    }
+    if (strategy !== 'merge' && strategy !== 'replace') {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal strategy',
+        error:
+          'The strategy parameter must be undefined or be one of merge or replace.',
+      });
+    }
     return await this.intentionService.actionInstallRegister(
       request,
       request.brokerIntentionDto,
       request.brokerActionDto,
       install,
+      strategy,
     );
   }
 

@@ -591,8 +591,11 @@ export class IntentionService {
     intention: IntentionDto,
     action: ActionDto,
     install: InstallDto,
+    propStrategy: 'merge' | 'replace' = 'merge',
   ) {
     const instanceName = this.actionUtil.instanceName(action);
+    // console.log(instanceName);
+    // console.log(install);
     if (action.lifecycle !== 'started') {
       throw new BadRequestException({
         statusCode: 400,
@@ -600,15 +603,11 @@ export class IntentionService {
         error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
       });
     }
-    const serverVertex = await this.graphRepository.getVertexByName(
-      'server',
-      install.cloudTarget.instance.name,
-    );
-    if (!serverVertex) {
+    if (!instanceName) {
       throw new BadRequestException({
         statusCode: 400,
-        message: 'Illegal install register',
-        error: `Server not found`,
+        message: 'No service instance name',
+        error: 'Service instance name could not be extracted from action.',
       });
     }
 
@@ -616,27 +615,35 @@ export class IntentionService {
       'service',
       action.service.name,
     );
+    if (!serviceVertex) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Service (${action.service.name}) not found`,
+      });
+    }
 
+    // Sync package install
     await this.intentionSync.syncPackageInstall(
       intention,
       action,
       serviceVertex,
     );
 
-    const instanceVertex =
-      await this.graphRepository.getVertexByParentIdAndName(
-        'serviceInstance',
-        serviceVertex.id.toString(),
-        instanceName,
-      );
-    // console.log(instanceVertex);
-    // console.log(serverVertex);
+    const serverVertex = await this.intentionSync.syncServer(action, install);
+    if (!serverVertex) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Server could not be synced`,
+      });
+    }
 
-    await this.intentionSync.overlayEdge(
-      'installation',
-      instanceVertex,
+    await this.intentionSync.syncInstallationProperties(
+      serviceVertex,
+      instanceName,
       serverVertex,
-      'merge',
+      propStrategy,
       install.prop,
     );
 
@@ -654,12 +661,6 @@ export class IntentionService {
       null,
       undefined,
     );
-
-    // await this.intentionRepository.addIntentionActionInstall(
-    //   action.trace.token,
-    //   install,
-    // );
-    // console.log(install);
   }
 
   /**

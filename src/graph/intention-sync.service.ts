@@ -9,7 +9,8 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
-import { INTENTION_INSTANCE_PATHS } from '../constants';
+import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
+import { InstallDto } from 'src/intention/dto/install.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -80,7 +81,10 @@ export class IntentionSyncService {
       context,
       'serviceInstance',
       [
-        ...INTENTION_INSTANCE_PATHS.map((path) => ({ key: 'name', path })),
+        ...INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.map((path) => ({
+          key: 'name',
+          path,
+        })),
         {
           key: 'action.intention',
           value: intention.id.toString(),
@@ -109,6 +113,48 @@ export class IntentionSyncService {
         envMap[action.service.environment].vertex.toString(),
       );
     }
+  }
+
+  public async syncServer(action: ActionDto, install: InstallDto) {
+    const serverName =
+      install.cloudTarget?.instance?.name ??
+      action.cloud?.target?.instance?.name;
+    if (!serverName) {
+      return null;
+    }
+    // Warning: Assumes server names are unique across all clouds
+    // TOOD: Only assume name is unique within a cloud when finding
+    const serverVertex = await this.graphRepository.getVertexByName(
+      'server',
+      serverName,
+    );
+
+    // TODO: overlay cloud and server vertices by combining action and install target objects
+
+    return serverVertex;
+  }
+
+  public async syncInstallationProperties(
+    serviceVertex: VertexDto,
+    instanceName: string,
+    serverVertex: VertexDto,
+    propStrategy: 'merge' | 'replace' = 'merge',
+    prop: EdgePropDto,
+  ) {
+    const instanceVertex =
+      await this.graphRepository.getVertexByParentIdAndName(
+        'serviceInstance',
+        serviceVertex.id.toString(),
+        instanceName,
+      );
+
+    await this.overlayEdge(
+      'installation',
+      instanceVertex,
+      serverVertex,
+      propStrategy,
+      prop,
+    );
   }
 
   private async overlayVertex(
@@ -144,7 +190,7 @@ export class IntentionSyncService {
     );
   }
 
-  public async overlayEdge(
+  private async overlayEdge(
     name: string,
     source: VertexDto,
     target: VertexDto,
@@ -162,7 +208,7 @@ export class IntentionSyncService {
     }
   }
 
-  public async overlayEdgeById(
+  private async overlayEdgeById(
     name: string,
     source: string,
     target: string,
