@@ -43,6 +43,7 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { InstallDto } from './dto/install.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -576,6 +577,82 @@ export class IntentionService {
       artifact,
     );
     return action.package?.buildGuid;
+  }
+
+  /**
+   * Registers an install with an action
+   * @param req The associated request object
+   * @param intention The intention containing the action
+   * @param action The action to register the artifact with
+   * @param install The install to register
+   */
+  public async actionInstallRegister(
+    req: ActionGuardRequest,
+    intention: IntentionDto,
+    action: ActionDto,
+    install: InstallDto,
+  ) {
+    if (action.lifecycle !== 'started') {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
+      });
+    }
+    const serverVertex = await this.graphRepository.getVertexByName(
+      'server',
+      install.cloudTarget.instance.name,
+    );
+    if (!serverVertex) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Server not found`,
+      });
+    }
+
+    const serviceVertex = await this.graphRepository.getVertexByName(
+      'service',
+      action.service.name,
+    );
+
+    const instanceVertex =
+      await this.graphRepository.getVertexByParentIdAndName(
+        'serviceInstance',
+        serviceVertex.id.toString(),
+        install.name,
+      );
+    // console.log(instanceVertex);
+    // console.log(serverVertex);
+
+    await this.intentionSync.overlayEdge(
+      'installation',
+      instanceVertex,
+      serverVertex,
+      'merge',
+      install.prop,
+    );
+
+    this.auditService.recordIntentionActionUsage(
+      req,
+      intention,
+      action,
+      {
+        event: {
+          action: 'install-register',
+          category: 'configuration',
+          type: 'creation',
+        },
+      },
+      null,
+      undefined,
+    );
+
+    // await this.intentionRepository.addIntentionActionInstall(
+    //   action.trace.token,
+    //   install,
+    // );
+    // console.log(install);
   }
 
   /**

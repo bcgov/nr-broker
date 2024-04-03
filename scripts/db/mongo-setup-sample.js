@@ -47,6 +47,21 @@ db.vertex.insertMany([
     collection: 'user',
     name: 'Chantal Heinz',
   },
+  {
+    _id: ObjectId('66034698eb54820a9728bf99'),
+    collection: 'server',
+    name: 'lollipop',
+  },
+  {
+    _id: ObjectId('660c3aaf12bf4c90fecd9666'),
+    collection: 'server',
+    name: 'bubblegum',
+  },
+  {
+    _id: ObjectId('66034715eb54820a9728bf9a'),
+    collection: 'server',
+    name: 'peak',
+  },
 ]);
 
 // User
@@ -268,6 +283,35 @@ db.serviceInstance.insertMany([
     name: 'development',
     vertex: ObjectId('644c4d312e2f63acef6bb73e'),
     url: 'https://dev.vault-app.example',
+  },
+]);
+
+db.server.insertMany([
+  {
+    _id: ObjectId('66034698eb54820a9728bf99'),
+    name: 'lollipop',
+    acquired: ISODate('2024-03-13T00:00:00.000Z'),
+    hostName: 'lollipop.dmz',
+    vertex: ObjectId('66034698eb54820a9728bf98'),
+    architecture: 'x86_64',
+    tags: ['edge', 'webserver'],
+  },
+  {
+    _id: ObjectId('660c3aaf12bf4c90fecd9667'),
+    name: 'bubblegum',
+    acquired: ISODate('2024-03-13T00:00:00.000Z'),
+    hostName: 'bubblegum.dmz',
+    vertex: ObjectId('660c3aaf12bf4c90fecd9666'),
+    architecture: 'x86_64',
+    tags: ['edge', 'webserver'],
+  },
+  {
+    _id: ObjectId('66034715eb54820a9728bf9b'),
+    name: 'peak',
+    acquired: ISODate('2024-03-04T00:00:00.000Z'),
+    hostName: 'peak.internal',
+    vertex: ObjectId('66034715eb54820a9728bf9a'),
+    tags: ['database'],
   },
 ]);
 

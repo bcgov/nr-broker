@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { get, set } from 'radash';
+import deepEqual from 'deep-equal';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { ActionDto } from '../intention/dto/action.dto';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
@@ -7,6 +8,7 @@ import { VertexDto } from '../persistence/dto/vertex.dto';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -134,28 +136,53 @@ export class IntentionSyncService {
     );
   }
 
-  private async overlayEdge(
+  public async overlayEdge(
     name: string,
     source: VertexDto,
     target: VertexDto,
+    propStrategy: 'merge' | 'replace' = 'merge',
+    prop?: EdgePropDto,
   ) {
     if (source && target) {
       return this.overlayEdgeById(
         name,
         source.id.toString(),
         target.id.toString(),
+        propStrategy,
+        prop,
       );
     }
   }
 
-  private async overlayEdgeById(name: string, source: string, target: string) {
+  public async overlayEdgeById(
+    name: string,
+    source: string,
+    target: string,
+    propStrategy: 'merge' | 'replace' = 'merge',
+    prop?: EdgePropDto,
+  ) {
     if (source && target) {
       const curr = await this.graphRepository.getEdgeByNameAndVertices(
         name,
         source,
         target,
       );
-      if (curr) {
+      if (curr && prop) {
+        const saveProps =
+          propStrategy === 'replace'
+            ? prop
+              ? prop
+              : {}
+            : { ...(curr.prop ? curr.prop : {}), ...prop };
+        if (!deepEqual(curr.prop, saveProps, { strict: true })) {
+          // Save prop changes
+          this.graphService.editEdge(null, curr.id.toString(), {
+            name,
+            source: source,
+            target: target,
+            prop: saveProps,
+          });
+        }
         return curr;
       }
       try {
@@ -163,6 +190,7 @@ export class IntentionSyncService {
           name,
           source: source,
           target: target,
+          ...(prop ? { prop } : {}),
         });
       } catch (e) {}
     }

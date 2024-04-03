@@ -23,6 +23,7 @@ import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 import { IntentionCloseDto } from './dto/intention-close.dto';
 import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
+import { InstallDto } from './dto/install.dto';
 
 @Controller({
   path: 'intention',
@@ -118,6 +119,30 @@ export class IntentionController {
       request.brokerActionDto,
       outcome,
       'end',
+    );
+  }
+
+  @Post('action/install')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @UseGuards(ActionGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async actionInstallRegister(
+    @Req() request: ActionGuardRequest,
+    @Body() install: InstallDto,
+  ) {
+    if (!['package-installation'].includes(request.brokerActionDto.action)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal action',
+        error:
+          'Install can only be associated with a package-installation action',
+      });
+    }
+    return await this.intentionService.actionInstallRegister(
+      request,
+      request.brokerIntentionDto,
+      request.brokerActionDto,
+      install,
     );
   }
 
