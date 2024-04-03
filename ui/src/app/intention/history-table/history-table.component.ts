@@ -78,6 +78,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     'project',
     'service',
     'action',
+    'action-icon',
     'start',
     'outcome',
     'reason',
