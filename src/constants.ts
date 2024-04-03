@@ -18,6 +18,11 @@ export const INTENTION_MIN_TTL_SECONDS = 30;
 export const INTENTION_MAX_TTL_SECONDS = 1800;
 export const INTENTION_TRANSIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+export const INTENTION_SERVICE_INSTANCE_SEARCH_PATHS = [
+  'action.service.environment',
+  'action.service.instanceName',
+] as const;
+
 export const SHORT_ENV_CONVERSION = {
   production: 'prod',
   development: 'dev',

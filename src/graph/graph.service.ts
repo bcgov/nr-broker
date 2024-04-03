@@ -510,15 +510,15 @@ export class GraphService {
     target: string,
   ): Promise<EdgeDto> {
     try {
-      const vertex = await this.graphRepository.getEdgeByNameAndVertices(
+      const edge = await this.graphRepository.getEdgeByNameAndVertices(
         name,
         source,
         target,
       );
-      if (vertex === null) {
+      if (edge === null) {
         throw new Error();
       }
-      return vertex;
+      return edge;
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

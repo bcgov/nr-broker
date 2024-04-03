@@ -43,6 +43,7 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { InstallDto } from './dto/install.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -576,6 +577,90 @@ export class IntentionService {
       artifact,
     );
     return action.package?.buildGuid;
+  }
+
+  /**
+   * Registers an install with an action
+   * @param req The associated request object
+   * @param intention The intention containing the action
+   * @param action The action to register the artifact with
+   * @param install The install to register
+   */
+  public async actionInstallRegister(
+    req: ActionGuardRequest,
+    intention: IntentionDto,
+    action: ActionDto,
+    install: InstallDto,
+    propStrategy: 'merge' | 'replace' = 'merge',
+  ) {
+    const instanceName = this.actionUtil.instanceName(action);
+    // console.log(instanceName);
+    // console.log(install);
+    if (action.lifecycle !== 'started') {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
+      });
+    }
+    if (!instanceName) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'No service instance name',
+        error: 'Service instance name could not be extracted from action.',
+      });
+    }
+
+    const serviceVertex = await this.graphRepository.getVertexByName(
+      'service',
+      action.service.name,
+    );
+    if (!serviceVertex) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Service (${action.service.name}) not found`,
+      });
+    }
+
+    // Sync package install
+    await this.intentionSync.syncPackageInstall(
+      intention,
+      action,
+      serviceVertex,
+    );
+
+    const serverVertex = await this.intentionSync.syncServer(action, install);
+    if (!serverVertex) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal install register',
+        error: `Server could not be synced`,
+      });
+    }
+
+    await this.intentionSync.syncInstallationProperties(
+      serviceVertex,
+      instanceName,
+      serverVertex,
+      propStrategy,
+      install.prop,
+    );
+
+    this.auditService.recordIntentionActionUsage(
+      req,
+      intention,
+      action,
+      {
+        event: {
+          action: 'install-register',
+          category: 'configuration',
+          type: 'creation',
+        },
+      },
+      null,
+      undefined,
+    );
   }
 
   /**
