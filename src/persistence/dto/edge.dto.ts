@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { GraphDataResponseEdgeDto } from './graph-data.dto';
 import { EdgeInsertDto } from './edge-rest.dto';
 import { EdgePropDto } from './edge-prop.dto';
+import { Transform } from 'class-transformer';
 
 @Entity({ name: 'edge' })
 @Index(['source', 'name'])
@@ -26,10 +27,12 @@ export class EdgeDto {
 
   @Column()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   source: ObjectId;
 
   @Column()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   @Index()
   target: ObjectId;
 

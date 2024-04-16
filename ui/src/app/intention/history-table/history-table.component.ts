@@ -72,6 +72,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   @Input() layout: 'narrow' | 'normal' = 'normal';
   @Input() showHeader = true;
   @Input() openFirst = false;
+  @Input() actionServiceFilter = '';
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
   propDisplayedColumns: string[] = [
@@ -82,6 +83,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     'start',
     'outcome',
     'reason',
+    'environment',
     'user',
   ];
   propDisplayedColumnsWithExpand: string[] = [
@@ -108,7 +110,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     if (this.layout === 'narrow') {
-      this.propDisplayedColumns = ['start-narrow', 'open'];
+      this.propDisplayedColumns = ['start-narrow', 'environment', 'open'];
       this.propDisplayedColumnsWithExpand = [
         ...this.propDisplayedColumns,
         'expand',

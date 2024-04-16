@@ -427,8 +427,9 @@ export class InspectorComponent implements OnChanges, OnInit {
       });
   }
 
-  navigateConnection(item: Connection) {
-    if (this.navigationFollows === 'edge') {
+  navigateConnection($event: MouseEvent, item: Connection) {
+    const isEdgeNav = this.navigationFollows === 'edge';
+    if ($event.altKey ? !isEdgeNav : isEdgeNav) {
       this.selectEdge(item.edge.id);
     } else {
       this.selectVertex(item.vertex.id);

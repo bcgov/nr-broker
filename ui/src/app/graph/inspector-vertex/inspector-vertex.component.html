@@ -69,6 +69,7 @@
   @if (collection === 'service') {
     @if (outboundConnections) {
       <app-inspector-instances
+        [service]="collectionData"
         [vertices]="outboundConnections"></app-inspector-instances>
     }
     <app-inspector-intentions

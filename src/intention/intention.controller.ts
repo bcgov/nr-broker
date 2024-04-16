@@ -24,13 +24,17 @@ import { IntentionCloseDto } from './dto/intention-close.dto';
 import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { InstallDto } from './dto/install.dto';
+import { ActionUtil } from '../util/action.util';
 
 @Controller({
   path: 'intention',
   version: '1',
 })
 export class IntentionController {
-  constructor(private readonly intentionService: IntentionService) {}
+  constructor(
+    private readonly actionUtil: ActionUtil,
+    private readonly intentionService: IntentionService,
+  ) {}
 
   @Post('open')
   @UseGuards(BrokerJwtAuthGuard)
@@ -99,7 +103,7 @@ export class IntentionController {
     return {
       statusCode: 200,
       message: 'Intention closed',
-      audit: this.intentionService.auditUrlForIntention(intention),
+      audit: this.actionUtil.auditUrlForIntention(intention),
     };
   }
 

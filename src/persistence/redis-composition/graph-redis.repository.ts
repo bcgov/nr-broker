@@ -38,6 +38,7 @@ import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
+import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -64,6 +65,12 @@ export class GraphRedisRepository implements GraphRepository {
 
   public async getServerInstalls(): Promise<GraphServerInstallsResponseDto[]> {
     return this.repo.getServerInstalls();
+  }
+
+  public async getServiceDetails(
+    id: string,
+  ): Promise<ServiceDetailsResponseDto> {
+    return this.repo.getServiceDetails(id);
   }
 
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeDto> {
@@ -326,6 +333,10 @@ export class GraphRedisRepository implements GraphRepository {
       vertex.collection,
       vertex.id.toString(),
     );
+    if (!collection) {
+      // Skip. Data issue.
+      return;
+    }
     const config = await this.getCollectionConfig(vertex.collection);
     const textValues = [];
     const parentName = await this.getParentVertexName(config, vertex);

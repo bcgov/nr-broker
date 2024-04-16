@@ -1,3 +1,4 @@
+import { EnvironmentRestDto } from './environment-rest.dto';
 import { IntentionActionPointerRestDto } from './intention-action-pointer-rest.dto';
 import { VertexPointerRestDto } from './vertex-pointer-rest.dto';
 
@@ -8,4 +9,8 @@ export class ServiceInstanceRestDto extends VertexPointerRestDto {
   url?: string;
   action?: IntentionActionPointerRestDto;
   actionHistory?: IntentionActionPointerRestDto[];
+}
+
+export class ServiceInstanceDetailsResponseDto extends ServiceInstanceRestDto {
+  environment: EnvironmentRestDto;
 }

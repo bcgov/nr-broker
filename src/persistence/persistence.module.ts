@@ -30,6 +30,7 @@ import { SystemRepository } from './interfaces/system.repository';
 import { PersistenceUtilService } from './persistence-util.service';
 import { GraphRedisRepository } from './redis-composition/graph-redis.repository';
 import { PersistenceRedisUtilService } from './persistence-redis-util.service';
+import { UtilModule } from '../util/util.module';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',
@@ -83,6 +84,7 @@ const redisFactory = {
       UserDto,
       VertexDto,
     ]),
+    UtilModule,
   ],
   providers: [
     CollectionMongoRepository,

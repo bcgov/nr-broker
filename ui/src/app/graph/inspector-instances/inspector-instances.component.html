@@ -17,3 +17,95 @@
 
 <mat-divider></mat-divider>
 }
+
+<table
+  mat-table
+  [dataSource]="tableData"
+  multiTemplateDataRows>
+
+<!-- Outcome Column -->
+<ng-container matColumnDef="outcome">
+  <th mat-header-cell *matHeaderCellDef> </th>
+  <td mat-cell *matCellDef="let element">
+    @if (element.action.source.intention.transaction.outcome === 'success') {
+      <mat-icon class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
+    } @else if (element.action.source.intention.transaction.outcome === 'failure') {
+      <mat-icon class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
+    } @else {
+      <mat-icon class="mat-icon-status" inline="true" color="accent">hourglass_empty</mat-icon>
+    }
+    {{element.name}}
+  </td>
+</ng-container>
+
+<!-- Version Column -->
+<ng-container matColumnDef="version">
+  <th mat-header-cell *matHeaderCellDef> Version </th>
+  <td mat-cell *matCellDef="let element">{{element.action.source.action.package.version}}
+  </td>
+</ng-container>
+
+<!-- Start Column -->
+<ng-container matColumnDef="start">
+  <th mat-header-cell *matHeaderCellDef> Start </th>
+  <td mat-cell *matCellDef="let element">{{element.action.source.intention.transaction.start}}
+  </td>
+</ng-container>
+
+<ng-container matColumnDef="expand">
+  <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
+  <td mat-cell *matCellDef="let element">
+    <button mat-icon-button aria-label="expand row" (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
+      @if (expandedElement === element) {
+        <mat-icon>keyboard_arrow_up</mat-icon>
+      } @else {
+        <mat-icon>keyboard_arrow_down</mat-icon>
+      }
+    </button>
+  </td>
+</ng-container>
+
+<!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+<ng-container matColumnDef="expandedDetail">
+  <td
+    mat-cell
+    *matCellDef="let element"
+    [attr.colspan]="propDisplayedColumnsWithExpand.length">
+    <div class="element-detail"
+      [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+    <app-inspector-installs
+      [instance]="element"
+      [hideVersion]="true"
+      [hideDivider]="true"
+      ></app-inspector-installs>
+    </div>
+  </td>
+</ng-container>
+
+<!-- Group Content Column - The group row is made up of this one column that spans across all columns -->
+<ng-container matColumnDef="group">
+  <td
+    mat-cell
+    *matCellDef="let element"
+    [attr.colspan]="propDisplayedColumnsWithExpand.length">
+    <h4 class="header-text">{{ element.env.title }}</h4>
+  </td>
+</ng-container>
+
+  <tr
+    mat-row
+    *matRowDef="let element; columns: propDisplayedColumnsWithExpand; when: isNotGroup"
+    class="element-row"
+    [class.expanded-row]="expandedElement === element"
+    (click)="expandedElement = expandedElement === element ? null : element">
+  </tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: ['expandedDetail']; when: isNotGroup"
+    class="detail-row"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: ['group']; when: isGroup;"
+    class="group-row"></tr>
+
+</table>

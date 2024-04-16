@@ -13,3 +13,44 @@
 .header-text {
   margin: 8px 0;
 }
+
+table {
+  width: 100%;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+tr.group-row {
+  height: 0;
+}
+
+.group-row td {
+  border-bottom-width: 0;
+}
+
+tr.element-row:not(.expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.element-row:not(.expanded-row):active {
+  background: #efefef;
+}
+
+.element-row td {
+  border-bottom-width: 0;
+}
+
+.element-row td:last-child {
+  width: 48px;
+}
+
+.element-detail {
+  overflow: hidden;
+}
+
+.mat-icon-status {
+  line-height: 1em;
+  vertical-align: -2px;
+}

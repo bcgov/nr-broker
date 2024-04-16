@@ -13,14 +13,22 @@ import { get } from 'radash';
 export class ActionContentComponent implements OnInit {
   @Input() intention: any;
   @Input() key!: string;
+  @Input() actionServiceFilter = '';
   values: string[] = [];
 
   ngOnInit(): void {
     const actions = this.intention?.actions ?? [];
     const valueSet = new Set<string>(
-      actions.map((action: any) => {
-        return get(action, this.key);
-      }),
+      actions
+        .filter((action: any) => {
+          return (
+            this.actionServiceFilter === '' ||
+            action.service.name === this.actionServiceFilter
+          );
+        })
+        .map((action: any) => {
+          return get(action, this.key);
+        }),
     );
     this.values = [...valueSet];
   }

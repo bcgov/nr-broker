@@ -62,5 +62,10 @@ export class ServerDto extends VertexPointerDto {
   @IsOptional()
   @IsString()
   @Column()
+  osPlatform?: string;
+
+  @IsOptional()
+  @IsString()
+  @Column()
   osVersion?: string;
 }

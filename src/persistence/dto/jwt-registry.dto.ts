@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { Column, Entity, ObjectIdColumn, Index } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import { Transform } from 'class-transformer';
 
 export class JwtRegistryClaimsDto {
   @Column()
@@ -35,6 +36,7 @@ export class JwtRegistryDto {
 
   @Column()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   @Index()
   accountId: ObjectId;
 
@@ -48,6 +50,7 @@ export class JwtRegistryDto {
 
   @Column()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   @Index()
   createdUserId: ObjectId;
 

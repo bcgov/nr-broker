@@ -10,7 +10,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { FindOptionsWhere } from 'typeorm';
-import ejs from 'ejs';
 import { IntentionDto } from './dto/intention.dto';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
@@ -63,10 +62,6 @@ type FindArtifactArtifactOptions = Partial<ArtifactDto>;
 
 @Injectable()
 export class IntentionService {
-  private readonly AUDIT_URL_TEMPLATE = process.env.AUDIT_URL_TEMPLATE
-    ? process.env.AUDIT_URL_TEMPLATE
-    : '';
-
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
@@ -311,7 +306,7 @@ export class IntentionService {
         limit,
       );
       for (const intention of intentions.data) {
-        intention.auditUrl = this.auditUrlForIntention(intention);
+        intention.auditUrl = this.actionUtil.auditUrlForIntention(intention);
       }
       return intentions;
     } catch (e) {
@@ -326,7 +321,7 @@ export class IntentionService {
   public async getIntention(id: string) {
     const intention = await this.intentionRepository.getIntention(id);
     if (intention) {
-      intention.auditUrl = this.auditUrlForIntention(intention);
+      intention.auditUrl = this.actionUtil.auditUrlForIntention(intention);
     }
     return intention;
   }
@@ -661,15 +656,6 @@ export class IntentionService {
       null,
       undefined,
     );
-  }
-
-  /**
-   * Renders the audit url for the intention passed in
-   * @param intention The intention to create the audit url for
-   * @returns The audit url string
-   */
-  public auditUrlForIntention(intention: IntentionDto): string {
-    return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 
   /**

@@ -60,14 +60,21 @@
               </button>
             }
             <mat-divider></mat-divider>
-            <button mat-menu-item [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)" (click)="deleteTarget()">
+            <button
+              mat-menu-item
+              [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)"
+              (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
             </button>
           </ng-template>
         </mat-menu>
 
-        <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="getTargetId()">
+        <button
+          mat-icon-button
+          class="copy-id"
+          aria-label="Copy Id"
+          [cdkCopyToClipboard]="getTargetId()">
           <mat-icon>content_copy</mat-icon>
         </button>
       </div>
@@ -115,7 +122,7 @@
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
                   @for (item of group.value; track item) {
-                    <mat-chip-option (click)="navigateConnection(item)">@if (item.vertex.parentName) {
+                    <mat-chip-option (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;
                     }{{item.vertex.name}}</mat-chip-option>
                   }
@@ -149,7 +156,8 @@
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
                   @for (item of group.value; track item) {
-                    <mat-chip-option (click)="navigateConnection(item)">@if (item.vertex.parentName) {
+                    <mat-chip-option
+                      (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;
                     } {{item.vertex.name}}</mat-chip-option>
                   }

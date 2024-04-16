@@ -87,7 +87,7 @@ export class IntentionSyncService {
         })),
         {
           key: 'action.intention',
-          value: intention.id.toString(),
+          value: intention.id,
         },
         {
           key: 'action.action',
@@ -95,7 +95,7 @@ export class IntentionSyncService {
         },
         {
           key: 'actionHistory[0].intention',
-          value: intention.id.toString(),
+          value: intention.id,
         },
         {
           key: 'actionHistory[0].action',
