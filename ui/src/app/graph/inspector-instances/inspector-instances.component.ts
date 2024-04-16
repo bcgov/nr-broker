@@ -59,6 +59,7 @@ export class InspectorInstancesComponent implements OnChanges {
   @Input() vertices!: VertexNavigation | null;
   @Input() service!: ServiceRestDto;
   data: any;
+  tableData: any[] = [];
   environments: any[] = [];
   @Output() refreshData = new EventEmitter();
 
@@ -82,6 +83,15 @@ export class InspectorInstancesComponent implements OnChanges {
     }
   }
 
+  isGroup(index: any, item: any): boolean {
+    console.log(item);
+    return item.isGroup;
+  }
+  isNotGroup(index: any, item: any): boolean {
+    console.log(item);
+    return !item.isGroup;
+  }
+
   private loadServiceDetails() {
     if (this.service) {
       this.collectionApi
@@ -99,6 +109,17 @@ export class InspectorInstancesComponent implements OnChanges {
           this.environments = Object.values(this.data)
             .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
             .sort((a, b) => a.position - b.position);
+          this.tableData = [];
+          for (const env of this.environments) {
+            this.tableData.push(
+              {
+                isGroup: true,
+                env,
+              },
+              ...this.data[env.name],
+            );
+          }
+          console.log(this.tableData);
         });
     }
   }

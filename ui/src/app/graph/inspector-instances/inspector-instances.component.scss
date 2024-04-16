@@ -18,8 +18,16 @@ table {
   width: 100%;
 }
 
-tr.history-detail-row {
+tr.detail-row {
   height: 0;
+}
+
+tr.group-row {
+  height: 0;
+}
+
+.group-row td {
+  border-bottom-width: 0;
 }
 
 tr.element-row:not(.expanded-row):hover {
