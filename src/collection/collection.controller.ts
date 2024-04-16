@@ -129,6 +129,13 @@ export class CollectionController {
     return this.accountService.renewToken(request, ttl, true);
   }
 
+  @Get('service/:id/details')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  async getServiceDetails(@Param('id') id: string) {
+    return this.service.getServiceDetails(id);
+  }
+
   @Get('service/:id/secure')
   @Roles('admin')
   @AllowOwner({

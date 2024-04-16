@@ -3,6 +3,7 @@ import {
   Inject,
   Input,
   OnChanges,
+  OnInit,
   SimpleChanges,
 } from '@angular/core';
 
@@ -30,7 +31,7 @@ import { GraphApiService } from '../../service/graph-api.service';
   templateUrl: './inspector-service-secure.component.html',
   styleUrl: './inspector-service-secure.component.scss',
 })
-export class InspectorServiceSecureComponent implements OnChanges {
+export class InspectorServiceSecureComponent implements OnChanges, OnInit {
   @Input() service!: ServiceRestDto;
   @Input() userIndex!: number | undefined;
   data: any;
@@ -58,6 +59,7 @@ export class InspectorServiceSecureComponent implements OnChanges {
         });
     }
   }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['service']) {
       this.loadServiceSecure();

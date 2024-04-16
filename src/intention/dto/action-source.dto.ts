@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { ObjectId } from 'mongodb';
 import { Entity, Column } from 'typeorm';
@@ -13,5 +14,6 @@ export class ActionSourceDto {
   @Column()
   @IsDefined()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   intention: ObjectId;
 }

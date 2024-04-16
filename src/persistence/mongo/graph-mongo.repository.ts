@@ -23,6 +23,8 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
+import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
+import { ActionUtil } from '../../util/action.util';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -34,6 +36,7 @@ export class GraphMongoRepository implements GraphRepository {
     private readonly edgeRepository: MongoRepository<EdgeDto>,
     @InjectRepository(VertexDto)
     private readonly vertexRepository: MongoRepository<VertexDto>,
+    private readonly actionUtil: ActionUtil,
   ) {}
 
   public async getData(
@@ -208,48 +211,21 @@ export class GraphMongoRepository implements GraphRepository {
                 },
               },
               { $unset: 'actionHistory' },
-              {
-                $lookup: {
-                  from: 'edge',
-                  localField: 'vertex',
-                  foreignField: 'source',
-                  as: 'environment',
-                  pipeline: [
-                    { $match: { it: 0, name: 'deploy-type' } },
-                    {
-                      $lookup: {
-                        from: 'environment',
-                        localField: 'target',
-                        foreignField: 'vertex',
-                        as: 'environment',
-                      },
-                    },
-                    { $unwind: '$environment' },
-                    { $replaceRoot: { newRoot: '$environment' } },
-                  ],
-                },
-              },
-              {
-                $lookup: {
-                  from: 'edge',
-                  localField: 'vertex',
-                  foreignField: 'target',
-                  as: 'service',
-                  pipeline: [
-                    { $match: { is: 2, name: 'instance' } },
-                    {
-                      $lookup: {
-                        from: 'service',
-                        localField: 'source',
-                        foreignField: 'vertex',
-                        as: 'service',
-                      },
-                    },
-                    { $unwind: '$service' },
-                    { $replaceRoot: { newRoot: '$service' } },
-                  ],
-                },
-              },
+
+              this.collectionLookup(
+                'environment',
+                { it: 0, name: 'deploy-type' },
+                'forward',
+                true,
+                true,
+              ),
+              this.collectionLookup(
+                'service',
+                { is: 2, name: 'instance' },
+                'reverse',
+                true,
+                true,
+              ),
               { $unwind: '$environment' },
               { $unwind: '$service' },
             ],
@@ -280,6 +256,118 @@ export class GraphMongoRepository implements GraphRepository {
         }
         return array;
       });
+  }
+
+  public async getServiceDetails(
+    id: string,
+  ): Promise<ServiceDetailsResponseDto> {
+    const serverRepository = getRepositoryFromCollectionName(
+      this.dataSource,
+      'service',
+    );
+    return serverRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        this.collectionLookup(
+          'serviceInstance',
+          { name: 'instance' },
+          'forward',
+          true,
+          true,
+          [
+            this.collectionLookup(
+              'environment',
+              { name: 'deploy-type' },
+              'forward',
+              true,
+              true,
+            ),
+            {
+              $lookup: {
+                from: 'intention',
+                localField: 'action.intention',
+                foreignField: '_id',
+                as: 'intention',
+              },
+            },
+            { $unwind: '$environment' },
+            { $unwind: '$intention' },
+          ],
+        ),
+      ])
+      .toArray()
+      .then((array: any) => {
+        this.arrayIdFixer(array);
+        const datum = array.length > 0 ? array[0] : null;
+        if (datum) {
+          this.arrayIdFixer(datum.serviceInstance);
+
+          for (const instance of datum.serviceInstance) {
+            if (instance.environment) {
+              instance.environment.id = instance.environment._id;
+              delete instance.environment._id;
+            }
+
+            if (instance.intention) {
+              const intention = instance.intention;
+              intention.id = intention._id;
+              delete intention._id;
+
+              const actions = this.actionUtil.filterActions(
+                intention.actions,
+                this.actionUtil.actionToOptions(instance.action.action),
+              );
+              instance.action.source = {
+                intention,
+                action: actions.length === 1 ? actions[0] : undefined,
+              };
+              delete instance.intention;
+            }
+          }
+        }
+        return datum as ServiceDetailsResponseDto;
+      });
+  }
+
+  private collectionLookup(
+    collection: string,
+    edgeMatch: any,
+    direction: 'forward' | 'reverse',
+    unwind: boolean,
+    replace: boolean,
+    pipeline = [],
+  ) {
+    return {
+      $lookup: {
+        from: 'edge',
+        localField: 'vertex',
+        foreignField: direction === 'forward' ? 'source' : 'target',
+        as: collection,
+        pipeline: [
+          { $match: edgeMatch },
+          {
+            $lookup: {
+              from: collection,
+              localField: direction === 'forward' ? 'target' : 'source',
+              foreignField: 'vertex',
+              as: collection,
+            },
+          },
+          ...(unwind ? [{ $unwind: `$${collection}` }] : []),
+          ...(replace && unwind
+            ? [{ $replaceRoot: { newRoot: `$${collection}` } }]
+            : []),
+          ...(replace && !unwind
+            ? [
+                {
+                  $replaceRoot: { newRoot: { [collection]: `$${collection}` } },
+                },
+              ]
+            : []),
+          ...pipeline,
+        ],
+      },
+    };
   }
 
   // Edge
@@ -633,6 +721,7 @@ export class GraphMongoRepository implements GraphRepository {
     collection: CollectionDtoUnion[typeof vertex.collection],
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
+    console.log(collection);
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
       throw new Error();
@@ -679,6 +768,10 @@ export class GraphMongoRepository implements GraphRepository {
         }
       }
     }
+
+    console.log(collection);
+    console.log(pushFields);
+    console.log(unsetFields);
 
     // Update collection
     const collResult = await repository.updateOne(

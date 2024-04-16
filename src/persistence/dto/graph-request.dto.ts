@@ -3,6 +3,7 @@ import { Column, Entity, ObjectIdColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { VertexDto } from './vertex.dto';
 import { EdgeDto } from './edge.dto';
+import { Transform } from 'class-transformer';
 
 @Entity({ name: 'graphRequestDto' })
 export class GraphRequestDto {
@@ -20,5 +21,7 @@ export class GraphRequestDto {
   data: Omit<EdgeDto, 'id'> | Omit<VertexDto, 'id'>;
 
   @Column()
+  @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   requestor: ObjectId;
 }

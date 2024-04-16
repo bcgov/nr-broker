@@ -26,6 +26,7 @@ import { ServiceInstanceRestDto } from '../../service/dto/service-instance-rest.
 })
 export class InspectorInstallsComponent {
   @Input() instance!: ServiceInstanceRestDto | undefined;
+  @Input() hideVersion = false;
 
   constructor(private readonly router: Router) {}
 

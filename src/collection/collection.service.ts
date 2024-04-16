@@ -10,10 +10,10 @@ import { REDIS_PUBSUB, VAULT_ENVIRONMENTS_SHORT } from '../constants';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
-import { IntentionActionPointerRestDto } from '../persistence/dto/intention-action-pointer-rest.dto';
 import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 import { RedisService } from '../redis/redis.service';
+import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
 
 @Injectable()
 export class CollectionService {
@@ -80,7 +80,7 @@ export class CollectionService {
   ) {
     if (type === 'serviceInstance') {
       const serviceInstance = collection as ServiceInstanceDto;
-      if (serviceInstance.action) {
+      if (serviceInstance.action && serviceInstance.action.intention) {
         await this.joinIntention(serviceInstance.action);
       }
     }
@@ -219,14 +219,13 @@ export class CollectionService {
   }
 
   private async joinIntention(
-    pointer: IntentionActionPointerRestDto[] | IntentionActionPointerRestDto,
+    pointer: IntentionActionPointerDto[] | IntentionActionPointerDto,
   ) {
     const actionPointers = Array.isArray(pointer) ? pointer : [pointer];
     for (const actionPointer of actionPointers) {
-      // console.log(actionPointer);
       if (actionPointer.intention) {
         const intention = await this.intentionService.getIntention(
-          actionPointer.intention,
+          actionPointer.intention.toString(),
         );
         if (intention) {
           // console.log(this.actionUtil.actionToOptions(actionPointer.action));
@@ -241,6 +240,26 @@ export class CollectionService {
         }
       }
     }
+  }
+
+  async getServiceDetails(serviceId: string) {
+    const service = await this.graphRepository.getServiceDetails(serviceId);
+    if (!service) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not Found',
+        error: `Check service exists: ${serviceId}`,
+      });
+    }
+    for (const instance of service.serviceInstance) {
+      if (instance.action.source) {
+        instance.action.source.intention.auditUrl =
+          this.actionUtil.auditUrlForIntention(
+            instance.action.source.intention,
+          );
+      }
+    }
+    return service;
   }
 
   async getServiceSecureInfo(serviceId: string) {

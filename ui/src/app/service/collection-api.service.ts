@@ -71,6 +71,15 @@ export class CollectionApiService {
     );
   }
 
+  public getServiceDetails(serviceId: string) {
+    return this.http.get(
+      `${environment.apiUrl}/v1/collection/service/${serviceId}/details`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public doUniqueKeyCheck(
     name: keyof CollectionDtoRestUnion,
     key: string,

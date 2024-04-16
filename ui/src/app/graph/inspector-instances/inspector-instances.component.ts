@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Inject,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,6 +18,18 @@ import {
   InspectorInstanceDialogReturnDao,
 } from '../inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
+import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
+import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -17,20 +37,71 @@ import { GraphApiService } from '../../service/graph-api.service';
   imports: [
     MatButtonModule,
     MatDividerModule,
+    MatIconModule,
+    MatTableModule,
+    InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
   ],
   templateUrl: './inspector-instances.component.html',
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
+      ),
+    ]),
+  ],
   styleUrl: './inspector-instances.component.scss',
 })
-export class InspectorInstancesComponent {
+export class InspectorInstancesComponent implements OnChanges {
   @Input() vertices!: VertexNavigation | null;
+  @Input() service!: ServiceRestDto;
+  data: any;
+  environments: any[] = [];
   @Output() refreshData = new EventEmitter();
 
+  propDisplayedColumns: string[] = ['outcome', 'version'];
+  propDisplayedColumnsWithExpand: string[] = [
+    ...this.propDisplayedColumns,
+    'expand',
+  ];
+  expandedElement: any | null;
+
   constructor(
-    @Inject(CURRENT_USER) public readonly user: UserDto,
     private readonly dialog: MatDialog,
+    private readonly collectionApi: CollectionApiService,
     private readonly graphApi: GraphApiService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['service']) {
+      this.loadServiceDetails();
+    }
+  }
+
+  private loadServiceDetails() {
+    if (this.service) {
+      this.collectionApi
+        .getServiceDetails(this.service.id)
+        .subscribe((data: any) => {
+          this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
+            const env = cv.environment.name;
+            if (pv[env]) {
+              pv[env].push(cv);
+            } else {
+              pv[env] = [cv];
+            }
+            return pv;
+          }, {});
+          this.environments = Object.values(this.data)
+            .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
+            .sort((a, b) => a.position - b.position);
+        });
+    }
+  }
 
   openInstanceDialog() {
     this.dialog

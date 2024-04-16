@@ -33,7 +33,7 @@ tr.element-row:not(.expanded-row):active {
   flex: 1;
   margin: 0;
 }
-.expanded-header-actions a:not(:first-child) {
+.expanded-header-actions :not(:first-child) {
   margin-left: 12px;
 }
 .expanded-header-container {

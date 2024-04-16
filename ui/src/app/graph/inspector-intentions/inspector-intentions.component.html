@@ -5,6 +5,7 @@
   <div class="edge-container intention-none">None</div>
 } @else {
   <app-history-table
+    [actionServiceFilter]="name"
     [intentionData]="intentions"
     [layout]="'narrow'"
     [showHeader]="false"

@@ -1,5 +1,5 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -46,6 +46,7 @@ export class IntentionDto {
 
   @Column()
   @ApiProperty({ type: () => String })
+  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   accountId?: ObjectId;
 
   @ValidateNested()
