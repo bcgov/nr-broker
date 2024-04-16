@@ -36,7 +36,9 @@ export class JwtRegistryDto {
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.accountId ? new ObjectId(value.obj.accountId.toString()) : null,
+  )
   @Index()
   accountId: ObjectId;
 
@@ -50,7 +52,11 @@ export class JwtRegistryDto {
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.createdUserId
+      ? new ObjectId(value.obj.createdUserId.toString())
+      : null,
+  )
   @Index()
   createdUserId: ObjectId;
 

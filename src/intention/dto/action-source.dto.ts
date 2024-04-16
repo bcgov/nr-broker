@@ -14,6 +14,8 @@ export class ActionSourceDto {
   @Column()
   @IsDefined()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.intention ? new ObjectId(value.obj.intention.toString()) : null,
+  )
   intention: ObjectId;
 }

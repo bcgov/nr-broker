@@ -22,6 +22,8 @@ export class GraphRequestDto {
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.requestor ? new ObjectId(value.obj.requestor.toString()) : null,
+  )
   requestor: ObjectId;
 }

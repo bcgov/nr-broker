@@ -27,12 +27,16 @@ export class EdgeDto {
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.source ? new ObjectId(value.obj.source.toString()) : null,
+  )
   source: ObjectId;
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.target ? new ObjectId(value.obj.target.toString()) : null,
+  )
   @Index()
   target: ObjectId;
 

@@ -7,7 +7,9 @@ import { Transform } from 'class-transformer';
 export abstract class VertexPointerDto {
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.vertex ? new ObjectId(value.obj.vertex.toString()) : null,
+  )
   @Index()
   vertex: ObjectId;
 

@@ -46,7 +46,9 @@ export class IntentionDto {
 
   @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
+  @Transform((value) =>
+    value.obj.accountId ? new ObjectId(value.obj.accountId.toString()) : null,
+  )
   accountId?: ObjectId;
 
   @ValidateNested()
