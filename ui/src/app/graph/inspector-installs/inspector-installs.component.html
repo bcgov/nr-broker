@@ -2,66 +2,75 @@
   <div class="heading">
     <h3>Details</h3>
 
-    @if (instance && instance.action && instance.action.intention) {
-      <button
-        mat-stroked-button
-        (click)="viewIntention(instance.action.intention)">View Intention</button>
-    }
+    <button
+      mat-icon-button
+      [disabled]="isFirst()"
+      (click)="navigate(-1)"
+      matTooltip="Previous"
+      color="primary"
+      aria-label="Previous Deploy">
+      <mat-icon>navigate_before</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      [disabled]="isLast()"
+      (click)="navigate(1)"
+      matTooltip="Next"
+      color="primary"
+      aria-label="Next Deploy">
+      <mat-icon>navigate_next</mat-icon>
+    </button>
+
+    <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #menu="matMenu">
+      @if (current && current.intention) {
+        <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>
+      }
+      @if (current && current.source?.action.source?.intention) {
+        <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View build</button>
+      }
+      <mat-divider></mat-divider>
+      @if (current && current.source?.intention?.event.url) {
+        <a
+          mat-menu-item
+          matTooltip="Access to event log may be restricted"
+          matTooltipPosition="left"
+          matTooltipShowDelay="500"
+          href="{{current.source.intention.event.url}}"
+          target="_blank">View Event</a>
+      }
+      @if (current &&  current.source?.intention?.auditUrl) {
+        <a
+          mat-menu-item
+          href="{{current.source.intention.auditUrl}}"
+          target="_blank">View Audit</a>
+      }
+    </mat-menu>
   </div>
 </div>
 @if (instance) {
-  @if (!instance.action) {
+  @if (!current) {
     <div class="edge-container edge-container-margin-left">None</div>
   }
-  @if (instance.action) {
-    <div class="edge-container install-details">
-      <mat-list>
-      @if (instance.action.source?.action?.package?.version && !hideVersion) {
-        <mat-list-item>
-          <span matListItemTitle>Version</span>
-          <span matListItemLine class="install-detail-value">{{instance.action.source.action.package.version}}</span>
-        </mat-list-item>
-      }
-      @if (instance.action.source?.intention) {
-        <mat-list-item>
-          <span matListItemTitle>Install Date</span>
-          <span matListItemLine>{{instance.action.source.intention.transaction.start | date:'short'}}</span>
-        </mat-list-item>
-      }
-      @if (instance.action.source?.intention?.user) {
-        <mat-list-item>
-          <span matListItemTitle>User</span>
-          <span matListItemLine>{{instance.action.source.intention.user.name}}</span>
-        </mat-list-item>
-      }
+  @if (current) {
+    <div class="edge-container edge-container-margin-left install-details">
+      <div>
+        <app-outcome-icon
+          [outcome]="current.source.intention.transaction.outcome"></app-outcome-icon>
 
-      </mat-list>
+          @if (current.source?.action?.package?.version) {
+            {{current.source.action.package.version}}
+          }
+      </div>
+
+      <div class="install-header">Installed</div>
+      <div class="install-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+
+      <div class="install-header">User</div>
+      <div class="install-line">{{current.source.intention.user.name}}</div>
+
+      <!-- <div class="install-alert">@if (!isLast()) {<button mat-button (click)="navigateCurrent()">Show current</button>} @else {&nbsp;}</div> -->
     </div>
-
-    <div class="edge-container edge-container-margin-left edge-container-buttons">
-    @if (instance.action.source?.intention?.event.url) {
-      <a
-        mat-stroked-button
-        matTooltip="Access to event log may be restricted"
-        matTooltipShowDelay="500"
-        href="{{instance.action.source.intention.event.url}}"
-        target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
-    }
-    @if (instance.action.source?.intention?.auditUrl) {
-      <a
-        mat-stroked-button
-        href="{{instance.action.source.intention.auditUrl}}"
-        target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
-    }
-    </div>
-
-    <!-- <div class="view-more">
-      @if (instance.action.intention) {
-        <button mat-button (click)="viewIntention(instance.action.intention)">Older</button>
-      }
-    </div> -->
   }
-}
-@if (!hideDivider) {
-  <mat-divider></mat-divider>
 }

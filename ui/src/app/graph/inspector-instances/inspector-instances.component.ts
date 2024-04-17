@@ -30,6 +30,7 @@ import {
   trigger,
 } from '@angular/animations';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
+import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -41,6 +42,7 @@ import { InspectorInstallsComponent } from '../inspector-installs/inspector-inst
     MatTableModule,
     InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
+    OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
   animations: [

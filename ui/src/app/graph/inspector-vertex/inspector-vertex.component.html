@@ -82,8 +82,11 @@
       [userIndex]="collectionConfig?.['user']?.index"></app-inspector-service-secure>
   }
   @if (collection === 'serviceInstance') {
-    <app-inspector-installs
-      [instance]="collectionData"></app-inspector-installs>
+    <div class="component-spacer">
+      <app-inspector-installs
+        [instance]="collectionData"></app-inspector-installs>
+    </div>
+    <mat-divider></mat-divider>
   }
   @if (collection === 'team') {
     <app-inspector-team

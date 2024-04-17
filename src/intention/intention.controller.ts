@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
+  Param,
   Post,
   Query,
   Req,
@@ -210,6 +212,13 @@ export class IntentionController {
       undefined,
       'start',
     );
+  }
+
+  @Get(':id')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  getIntention(@Param('id') id: string) {
+    return this.intentionService.getIntention(id);
   }
 
   @Post('search')

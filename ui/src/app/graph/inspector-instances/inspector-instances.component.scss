@@ -54,3 +54,7 @@ tr.element-row:not(.expanded-row):active {
   line-height: 1em;
   vertical-align: -2px;
 }
+
+.version {
+  color: var(--mat-card-subtitle-text-color);
+}
