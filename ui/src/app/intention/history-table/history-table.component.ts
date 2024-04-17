@@ -15,10 +15,12 @@ import {
   animate,
 } from '@angular/animations';
 import { Router } from '@angular/router';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   MatSnackBar,
   MatSnackBarModule,
@@ -35,7 +37,7 @@ import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
-import { ClipboardModule } from '@angular/cdk/clipboard';
+import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 
 @Component({
   selector: 'app-history-table',
@@ -47,12 +49,14 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
     MatButtonModule,
     MatIconModule,
     MatListModule,
+    MatMenuModule,
     MatTableModule,
     MatTooltipModule,
     MatSnackBarModule,
     ActionContentComponent,
     FilesizePipe,
     GanttGraphComponent,
+    OutcomeIconComponent,
   ],
   templateUrl: './history-table.component.html',
   animations: [

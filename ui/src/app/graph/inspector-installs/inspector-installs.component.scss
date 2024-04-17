@@ -10,12 +10,10 @@
 }
 
 .heading {
-  margin: 8px 0 0;
   margin-left: 16px;
 }
 
 .heading {
-  margin-top: 8px;
   display: flex;
   align-items: center;
 }
@@ -29,7 +27,25 @@
   flex-grow: 0;
 }
 
-.view-more {
-  text-align: right;
+.install-details {
+  flex: 0 0 auto;
   margin-bottom: 16px;
+}
+
+.install-header {
+  margin-top: 8px;
+  min-width: 100px;
+  font-weight: 800;
+}
+
+.install-line {
+  color: var(--mat-card-subtitle-text-color);
+  min-width: 100px;
+  font-weight: 400;
+}
+
+.install-alert {
+  min-width: 100px;
+  min-height: 36px;
+  text-align: right;
 }

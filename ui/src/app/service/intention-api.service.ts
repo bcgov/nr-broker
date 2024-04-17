@@ -18,4 +18,10 @@ export class IntentionApiService {
       },
     );
   }
+
+  getIntention(id: string) {
+    return this.http.get<any>(`${environment.apiUrl}/v1/intention/${id}`, {
+      responseType: 'json',
+    });
+  }
 }

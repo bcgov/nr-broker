@@ -91,3 +91,38 @@ h4.expanded-narrow-header {
   line-height: 1em;
   vertical-align: -2px;
 }
+
+.narrow-heading {
+
+  display: flex;
+  align-items: center;
+}
+
+.narrow-heading h3 {
+  flex-grow: 1;
+  margin: 0;
+}
+
+.narrow-heading :last-child {
+  flex-grow: 0;
+}
+
+.narrow-container {
+
+  flex: 0 0 auto;
+  margin-bottom: 16px;
+}
+
+.narrow-header {
+
+  margin-top: 8px;
+  min-width: 100px;
+  font-weight: 800;
+}
+
+.narrow-line {
+
+  color: var(--mat-card-subtitle-text-color);
+  min-width: 100px;
+  font-weight: 400;
+}
