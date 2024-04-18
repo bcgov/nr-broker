@@ -23,7 +23,7 @@ export class RedisService {
   constructor(
     @Inject('REDIS_CLIENT') private readonly client: RedisClientType,
   ) {
-    console.log(this.eventSourceMap);
+    // console.log(this.eventSourceMap);
     const subscriber = this.client.duplicate();
     subscriber.on('error', (err) => console.error(err));
     subscriber.connect().then(() => {

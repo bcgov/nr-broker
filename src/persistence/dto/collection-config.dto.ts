@@ -15,6 +15,9 @@ export class CollectionConfigDto {
   id: ObjectId;
 
   @Column()
+  browseFields: string[];
+
+  @Column()
   @Index()
   collection: string;
 
@@ -46,6 +49,7 @@ export class CollectionConfigDto {
 
   @Column()
   permissions: {
+    browse: boolean;
     create: boolean;
     update: boolean;
     delete: boolean;

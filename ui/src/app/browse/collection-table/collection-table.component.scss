@@ -1,0 +1,42 @@
+.team-flex-container {
+  display: flex;
+  align-items: baseline;
+  column-gap: 8px;
+  margin: 16px;
+}
+
+.team-flex-container form {
+  display: flex;
+  column-gap: 8px;
+  align-items: baseline;
+}
+
+.teams-table {
+  margin: 16px;
+}
+
+.button-container {
+  margin: 16px;
+}
+
+mat-card.warning-panel {
+  width: 600px;
+  margin: auto;
+  margin-top: 50px;
+  p {
+    margin: 1.5em 0 3em;
+  }
+}
+
+.action-buttons button:not(:first-child) {
+  margin-left: .5em;
+}
+
+tr.element-row:not(.expanded-row):hover {
+  background: whitesmoke;
+  cursor: pointer;
+}
+
+.field-typeahead-filter {
+  width: 300px;
+}
