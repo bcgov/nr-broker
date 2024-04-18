@@ -8,6 +8,11 @@ export const ROUTES: Route[] = [
       import('./app/home/routes').then((mod) => mod.HOME_ROUTES),
   },
   {
+    path: 'browse',
+    loadChildren: () =>
+      import('./app/browse/routes').then((mod) => mod.BROWSE_ROUTES),
+  },
+  {
     path: 'graph',
     loadChildren: () =>
       import('./app/graph/routes').then((mod) => mod.GRAPH_ROUTES),

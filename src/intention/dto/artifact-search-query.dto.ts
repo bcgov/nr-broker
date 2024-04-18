@@ -3,8 +3,8 @@ import { IsDefined, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class ArtifactSearchQuery {
   @IsString()
-  @IsDefined()
-  intention: string;
+  @IsOptional()
+  intention?: string;
 
   @IsString()
   @IsOptional()
@@ -31,6 +31,7 @@ export class ArtifactSearchQuery {
   traceHash?: string;
 
   @IsInt()
+  @IsDefined()
   @Type(() => Number)
   offset: number;
 
@@ -39,6 +40,7 @@ export class ArtifactSearchQuery {
   type?: string;
 
   @IsInt()
+  @IsDefined()
   @Type(() => Number)
   limit: number;
 }

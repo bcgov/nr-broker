@@ -73,6 +73,7 @@ export class CollectionConfigParent {
 }
 
 export class CollectionConfigPermissions {
+  browse!: boolean;
   create!: boolean;
   update!: boolean;
   delete!: boolean;
@@ -80,6 +81,7 @@ export class CollectionConfigPermissions {
 
 export class CollectionConfigRestDto {
   id!: string;
+  browseFields!: string[];
   collection!: CollectionNames;
   collectionMapper!: CollectionMap[];
   collectionVertexName!: string;

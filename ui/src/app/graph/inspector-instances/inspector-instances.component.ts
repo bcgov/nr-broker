@@ -86,11 +86,9 @@ export class InspectorInstancesComponent implements OnChanges {
   }
 
   isGroup(index: any, item: any): boolean {
-    console.log(item);
     return item.isGroup;
   }
   isNotGroup(index: any, item: any): boolean {
-    console.log(item);
     return !item.isGroup;
   }
 
@@ -121,7 +119,7 @@ export class InspectorInstancesComponent implements OnChanges {
               ...this.data[env.name],
             );
           }
-          console.log(this.tableData);
+          // console.log(this.tableData);
         });
     }
   }
