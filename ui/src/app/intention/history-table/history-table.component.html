@@ -241,28 +241,26 @@
           }
         }
       } @else {
+        <div class="narrow-heading">
+          <h3>Details</h3>
 
-
-  <div class="narrow-heading">
-    <h3>Details</h3>
-
-    <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
-    <mat-menu #menu="matMenu">
-      @if (element.event.url) {
-        <a
-          mat-menu-item
-          matTooltip="Access to event log may be restricted"
-          matTooltipPosition="left"
-          matTooltipShowDelay="500"
-          href="{{element.event.url}}"
-          target="_blank">View Event</a>
-      }
-      <a
-        mat-menu-item
-        href="{{element.auditUrl}}"
-        target="_blank">View Audit</a>
-    </mat-menu>
-  </div>
+          <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+          <mat-menu #menu="matMenu">
+            @if (element.event.url) {
+              <a
+                mat-menu-item
+                matTooltip="Access to event log may be restricted"
+                matTooltipPosition="left"
+                matTooltipShowDelay="500"
+                href="{{element.event.url}}"
+                target="_blank">View Event</a>
+            }
+            <a
+              mat-menu-item
+              href="{{element.auditUrl}}"
+              target="_blank">View Audit</a>
+          </mat-menu>
+        </div>
 
         <div class="narrow-container">
           <div class="narrow-header">Reason</div>
