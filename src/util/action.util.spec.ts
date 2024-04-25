@@ -77,4 +77,14 @@ describe('ActionUtil', () => {
       } as ActionDto),
     ).toBe(true);
   });
+
+  it('parseVersion to parse a correct version number', () => {
+    expect(util.parseVersion('2.1.3-snapshot+build46')).toEqual({
+      major: '2',
+      minor: '1',
+      patch: '3',
+      prerelease: 'snapshot',
+      build: 'build46',
+    });
+  });
 });

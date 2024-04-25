@@ -9,6 +9,13 @@
       "action": "package-installation",
       "id": "install",
       "provision": [],
+      "cloud": {
+        "target": {
+          "instance": {
+            "name": "lollipop"
+          }
+        }
+      },
       "service": {
         "project": "superapp",
         "name": "superapp-backend",
@@ -17,9 +24,6 @@
       "source": {
         "action": "package-build#build",
         "intention": "feef-ffwe-343432-42fefds-ffew"
-      },
-      "package": {
-        "type": "zip"
       }
     }
   ],

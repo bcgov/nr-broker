@@ -721,7 +721,6 @@ export class GraphMongoRepository implements GraphRepository {
     collection: CollectionDtoUnion[typeof vertex.collection],
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    console.log(collection);
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
       throw new Error();
@@ -768,10 +767,6 @@ export class GraphMongoRepository implements GraphRepository {
         }
       }
     }
-
-    console.log(collection);
-    console.log(pushFields);
-    console.log(unsetFields);
 
     // Update collection
     const collResult = await repository.updateOne(

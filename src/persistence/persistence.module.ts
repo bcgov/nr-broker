@@ -10,6 +10,7 @@ import { IntentionDto } from '../intention/dto/intention.dto';
 import { JwtAllowDto } from './dto/jwt-allow.dto';
 import { JwtBlockDto } from './dto/jwt-block.dto';
 import { JwtRegistryDto } from './dto/jwt-registry.dto';
+import { PackageBuildDto } from './dto/package-build.dto';
 import { PreferenceDto } from './dto/preference.dto';
 import { ProjectDto } from './dto/project.dto';
 import { ServerDto } from './dto/server.dto';
@@ -77,6 +78,7 @@ const redisFactory = {
       JwtRegistryDto,
       ServiceDto,
       ServiceInstanceDto,
+      PackageBuildDto,
       PreferenceDto,
       ProjectDto,
       ServerDto,

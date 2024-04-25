@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDefined,
   IsOptional,
@@ -20,6 +20,9 @@ export class ServiceDto {
   @Column()
   @IsOptional()
   @ApiProperty({ type: () => String })
+  @Transform((value) =>
+    value.obj.vertex ? new ObjectId(value.obj.vertex.toString()) : null,
+  )
   id?: ObjectId;
 
   // Defaults to environment

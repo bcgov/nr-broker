@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,6 +12,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { FindOptionsWhere } from 'typeorm';
+import merge from 'lodash.merge';
+
 import { IntentionDto } from './dto/intention.dto';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
@@ -42,7 +46,7 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { InstallDto } from './dto/install.dto';
+import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -66,6 +70,7 @@ export class IntentionService {
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
     private readonly actionUtil: ActionUtil,
+    @Inject(forwardRef(() => IntentionSyncService))
     private readonly intentionSync: IntentionSyncService,
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
@@ -104,12 +109,14 @@ export class IntentionService {
       ...this.createTokenAndHash(),
       start: startDate.toISOString(),
     };
-    intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
     intentionDto.expiry = startDate.valueOf() + ttl * 1000;
-    const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
-      intentionDto.jwt.jti,
-    );
-    let accountBoundProjects: BrokerAccountProjectMapDto | null = null;
+    intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
+    const registryJwt =
+      intentionDto.jwt && intentionDto.jwt.jti
+        ? await this.systemRepository.getRegisteryJwtByClaimJti(
+            intentionDto.jwt.jti,
+          )
+        : null;
     if (registryJwt && registryJwt.blocked) {
       // JWT should by in block list anyway
       throw new BadRequestException({
@@ -119,6 +126,7 @@ export class IntentionService {
       });
     }
     const account = await this.getAccount(registryJwt);
+    let accountBoundProjects: BrokerAccountProjectMapDto | null = null;
     intentionDto.requireRoleId = true;
     if (account) {
       intentionDto.accountId = registryJwt.accountId;
@@ -141,9 +149,7 @@ export class IntentionService {
     }
 
     for (const action of intentionDto.actions) {
-      const env = action.service.target
-        ? action.service.target.environment
-        : action.service.environment;
+      const env = this.actionUtil.environmentName(action);
       const envDto = envMap[env];
       if (
         action.vaultEnvironment === undefined &&
@@ -420,14 +426,18 @@ export class IntentionService {
   }
 
   private async annotateAction(action: ActionDto) {
-    if (action.action === 'package-installation' && action.source) {
+    if (
+      action.action === 'package-installation' &&
+      action.source &&
+      action.source.intention
+    ) {
       const foundArtifact = await this.artifactSearch(
         action.source.intention.toString(),
         action.source.action,
         null,
-        action.package.checksum,
-        action.package.name,
-        action.package.type,
+        action.package?.checksum,
+        action.package?.name,
+        action.package?.type,
         action.service.id?.toString(),
         action.service.name,
         0,
@@ -456,6 +466,29 @@ export class IntentionService {
     const startDate = new Date(intention.transaction.start);
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
+        if (
+          outcome === 'success' &&
+          action.action === 'package-build' &&
+          action.package &&
+          action.package.name
+        ) {
+          // Register build as an artifact
+          this.actionArtifactRegister(
+            req,
+            intention,
+            action,
+            {
+              name: action.package.name,
+              ...(action.package.checksum
+                ? { checksum: action.package.checksum }
+                : {}),
+              ...(action.package.size ? { size: action.package.size } : {}),
+              ...(action.package.type ? { type: action.package.type } : {}),
+            },
+            true,
+          );
+          intention = await this.intentionRepository.getIntention(intention.id);
+        }
         await this.actionLifecycle(req, intention, action, outcome, 'end');
         intention = await this.intentionRepository.getIntention(intention.id);
       }
@@ -545,8 +578,9 @@ export class IntentionService {
     intention: IntentionDto,
     action: ActionDto,
     artifact: ArtifactDto,
+    ignoreLifecycle = false,
   ) {
-    if (action.lifecycle !== 'started') {
+    if (!ignoreLifecycle && action.lifecycle !== 'started') {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal artifact register',
@@ -575,71 +609,69 @@ export class IntentionService {
   }
 
   /**
-   * Registers an install with an action
+   * Patches valid action with additional information
    * @param req The associated request object
    * @param intention The intention containing the action
-   * @param action The action to register the artifact with
-   * @param install The install to register
+   * @param action The action to patch
+   * @param patchAction The patch
    */
-  public async actionInstallRegister(
+  public async patchAction(
     req: ActionGuardRequest,
     intention: IntentionDto,
     action: ActionDto,
-    install: InstallDto,
-    propStrategy: 'merge' | 'replace' = 'merge',
+    patchAction: ActionPatchRestDto,
   ) {
-    const instanceName = this.actionUtil.instanceName(action);
-    // console.log(instanceName);
-    // console.log(install);
     if (action.lifecycle !== 'started') {
       throw new BadRequestException({
         statusCode: 400,
-        message: 'Illegal install register',
-        error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
-      });
-    }
-    if (!instanceName) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'No service instance name',
-        error: 'Service instance name could not be extracted from action.',
+        message: 'Illegal artifact register',
+        error: `Action's current lifecycle state (${action.lifecycle}) does not allow patching actions`,
       });
     }
 
-    const serviceVertex = await this.graphRepository.getVertexByName(
-      'service',
-      action.service.name,
+    // Patch according to action
+    if (action.action === 'package-build') {
+      if (patchAction.package) {
+        action.package = {
+          ...(action.package ?? {}),
+          ...patchAction.package,
+        };
+      } else {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Nothing to patch',
+          error: 'Must include json body to patch',
+        });
+      }
+    } else if (action.action === 'package-installation') {
+      if (patchAction?.cloud?.target) {
+        if (!action?.cloud) {
+          action.cloud = { target: {} };
+        }
+        if (!action?.cloud.target) {
+          action.cloud.target = {};
+        }
+        merge(action.cloud.target, patchAction.cloud.target);
+      } else {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Nothing to patch',
+          error: 'Must include json body to patch',
+        });
+      }
+    }
+
+    // replace with patched action
+    intention.actions = intention.actions.map((intentionAction) =>
+      intentionAction.action !== action.action ? intentionAction : action,
     );
-    if (!serviceVertex) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Illegal install register',
-        error: `Service (${action.service.name}) not found`,
-      });
-    }
 
-    // Sync package install
-    await this.intentionSync.syncPackageInstall(
-      intention,
-      action,
-      serviceVertex,
-    );
-
-    const serverVertex = await this.intentionSync.syncServer(action, install);
-    if (!serverVertex) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Illegal install register',
-        error: `Server could not be synced`,
-      });
-    }
-
-    await this.intentionSync.syncInstallationProperties(
-      serviceVertex,
-      instanceName,
-      serverVertex,
-      propStrategy,
-      install.prop,
+    // Ensure this is still a valid intention -- copied as open modifies intention
+    await this.open(
+      req,
+      plainToInstance(IntentionDto, JSON.parse(JSON.stringify(intention))),
+      INTENTION_DEFAULT_TTL_SECONDS,
+      true,
     );
 
     this.auditService.recordIntentionActionUsage(
@@ -648,14 +680,15 @@ export class IntentionService {
       action,
       {
         event: {
-          action: 'install-register',
+          action: 'package-annotate',
           category: 'configuration',
-          type: 'creation',
+          type: 'change',
         },
       },
       null,
-      undefined,
+      null,
     );
+    return await this.intentionRepository.addIntention(intention);
   }
 
   /**

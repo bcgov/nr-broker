@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Entity, Column } from 'typeorm';
+import { EdgePropDto } from '../../persistence/dto/edge-prop.dto';
 
 @Entity()
 class CloudObjectAccountDto {
@@ -85,6 +86,17 @@ export class CloudObjectDto {
   @Column(() => CloudObjectProjectDto)
   @Type(() => CloudObjectProjectDto)
   project?: CloudObjectProjectDto;
+
+  @IsOptional()
+  @Column()
+  @Type(() => EdgePropDto)
+  prop?: EdgePropDto;
+
+  @IsString()
+  @IsIn(['merge', 'replace'])
+  @IsOptional()
+  @Column()
+  propStrategy?: 'merge' | 'replace';
 
   @IsString()
   @IsOptional()

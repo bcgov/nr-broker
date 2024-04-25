@@ -17,6 +17,11 @@ export class IntentionMongoRepository implements IntentionRepository {
   ) {}
 
   public async addIntention(intention: IntentionDto): Promise<any> {
+    if (intention.id) {
+      const id = extractId(intention);
+      await this.intentionRepository.replaceOne({ _id: id }, intention);
+      return intention;
+    }
     return await this.intentionRepository.save(intention);
   }
 
@@ -137,6 +142,29 @@ export class IntentionMongoRepository implements IntentionRepository {
     await this.intentionRepository.replaceOne({ _id: id }, intention);
     return action;
   }
+
+  // public async mergeActionPackage(
+  //   token: string,
+  //   packageObj: PackageDto,
+  // ): Promise<ActionDto> {
+  //   const intention = await this.intentionRepository.findOne({
+  //     where: { 'actions.trace.token': token, closed: { $ne: true } } as any,
+  //   });
+  //   if (intention === null) {
+  //     throw new Error();
+  //   }
+
+  //   const action = intention.actions
+  //     .filter((action) => action.trace.token === token)
+  //     // There will only ever be one
+  //     .find(() => true);
+
+  //   action.package = { ...(action.package ?? {}), ...packageObj };
+
+  //   const id = extractId(intention);
+  //   await this.intentionRepository.replaceOne({ _id: id }, intention);
+  //   return action;
+  // }
 
   public async closeIntentionByToken(token: string): Promise<boolean> {
     const intention = await this.getIntentionByToken(token);

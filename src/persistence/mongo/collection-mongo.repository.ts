@@ -12,6 +12,9 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
+import { PackageDto } from '../../intention/dto/package.dto';
+import { PackageBuildDto } from '../dto/package-build.dto';
+import { SemverVersion } from 'src/util/action.util';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -19,6 +22,8 @@ export class CollectionMongoRepository implements CollectionRepository {
     private readonly dataSource: DataSource,
     @InjectRepository(CollectionConfigDto)
     private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
+    @InjectRepository(PackageBuildDto)
+    private readonly packageBuildRepository: MongoRepository<PackageBuildDto>,
   ) {}
 
   public getCollectionConfigs(): Promise<CollectionConfigDto[]> {
@@ -214,20 +219,98 @@ export class CollectionMongoRepository implements CollectionRepository {
     return repo.find();
   }
 
-  public doUniqueKeyCheck(
+  public async doUniqueKeyCheck(
     type: keyof CollectionDtoUnion,
     key: string,
     value: string,
   ): Promise<string[]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo
+    const array = await repo.find({
+      where: {
+        [key]: value,
+      },
+    });
+    return array.map((val) => val.id.toString());
+  }
+
+  public async addBuild(
+    serviceId: string,
+    name: string,
+    semvar: SemverVersion,
+    buildPackage: PackageDto,
+  ) {
+    const result = await this.packageBuildRepository.insertOne({
+      service: new ObjectId(serviceId),
+      name,
+      semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
+      package: buildPackage,
+      timestamps: {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    if (!result.acknowledged) {
+      throw new Error();
+    }
+    const rval = await this.getBuild(result.insertedId.toString());
+    if (rval === null) {
+      throw new Error();
+    }
+
+    return rval;
+  }
+
+  public async getBuild(id: string) {
+    return this.packageBuildRepository.findOne({
+      where: { _id: new ObjectId(id) },
+    });
+  }
+
+  public async getBuildByPackageDetail(
+    serviceId: string,
+    name: string,
+    semvar: SemverVersion,
+  ) {
+    return this.packageBuildRepository
       .find({
-        where: {
-          [key]: value,
-        },
+        service: new ObjectId(serviceId),
+        name,
+        semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
       })
+      .then((value) => {
+        return value.length === 1 ? value[0] : null;
+      });
+  }
+
+  public async searchBuild(serviceId: string, offset: number, limit: number) {
+    return this.packageBuildRepository
+      .aggregate([
+        {
+          $match: {
+            service: new ObjectId(serviceId),
+          },
+        },
+        {
+          $facet: {
+            data: [
+              { $sort: { name: 1 } },
+              { $skip: offset },
+              { $limit: limit },
+            ],
+            meta: [{ $count: 'total' }],
+          },
+        },
+        { $unwind: '$meta' },
+      ])
+      .toArray()
       .then((array) => {
-        return array.map((val) => val.id.toString());
+        if (array[0]) {
+        } else {
+          return {
+            data: [],
+            meta: { total: 0 },
+          };
+        }
       });
   }
 

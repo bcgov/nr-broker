@@ -2,6 +2,9 @@ import { ObjectLiteral, FindOptionsWhere } from 'typeorm';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { PackageDto } from '../../intention/dto/package.dto';
+import { SemverVersion } from '../../util/action.util';
+import { PackageBuildDto } from '../dto/package-build.dto';
 
 export abstract class CollectionRepository {
   public abstract getCollectionConfigs(): Promise<CollectionConfigDto[]>;
@@ -62,4 +65,25 @@ export abstract class CollectionRepository {
     id: string,
     tags: string[],
   ): Promise<string[]>;
+
+  public abstract addBuild(
+    serviceId: string,
+    name: string,
+    semvar: SemverVersion,
+    buildPackage: PackageDto,
+  ): Promise<PackageBuildDto>;
+
+  public abstract getBuild(id: string): Promise<PackageBuildDto>;
+
+  public abstract getBuildByPackageDetail(
+    serviceId: string,
+    name: string,
+    semvar: SemverVersion,
+  ): Promise<PackageBuildDto>;
+
+  public abstract searchBuild(
+    serviceId: string,
+    offset: number,
+    limit: number,
+  ): Promise<CollectionSearchResult<PackageBuildDto>>;
 }

@@ -31,10 +31,10 @@ export function IsValidHash(validationOptions?: ValidationOptions) {
 @Entity()
 export class ArtifactDto {
   @Column()
-  @IsDefined()
+  @IsOptional()
   @IsString()
   @IsValidHash()
-  checksum: string;
+  checksum?: string;
 
   @Column()
   @IsDefined()
@@ -47,7 +47,7 @@ export class ArtifactDto {
   size?: number;
 
   @Column()
-  @IsDefined()
+  @IsOptional()
   @IsString()
-  type: string;
+  type?: string;
 }
