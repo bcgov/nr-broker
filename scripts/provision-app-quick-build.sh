@@ -26,9 +26,6 @@ if [ "$(echo $RESPONSE | jq '.error')" != "null" ]; then
     exit 0
 fi
 
-echo -n $sha256 > provision-app-quick-build.artifact.sha256
-echo "sha256: $sha256"
-
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
 INTENTION_ID=$(echo $RESPONSE | jq -r '.id')
@@ -58,3 +55,6 @@ echo "===> Intention close"
 
 # Use saved intention token to close intention
 curl -s -X POST $BROKER_URL/v1/intention/close -H 'X-Broker-Token: '"$INTENTION_TOKEN"''
+
+echo -n $sha256 > provision-app-quick-build.artifact.sha256
+echo "sha256: $sha256"

@@ -240,6 +240,8 @@ export class CollectionMongoRepository implements CollectionRepository {
     buildPackage: PackageDto,
   ) {
     const result = await this.packageBuildRepository.insertOne({
+      approval: [],
+      installed: [],
       service: new ObjectId(serviceId),
       name,
       semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
@@ -289,6 +291,7 @@ export class CollectionMongoRepository implements CollectionRepository {
           $match: {
             service: new ObjectId(serviceId),
           },
+          $sort: { _id: -1 },
         },
         {
           $facet: {
