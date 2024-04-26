@@ -15,6 +15,7 @@ import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
+import { BuildRepository } from '../persistence/interfaces/build.repository';
 
 interface OverlayMapBase {
   key: string;
@@ -37,6 +38,7 @@ type OverlayMap = OverlayMapWithPath | OverlayMapWithValue;
 @Injectable()
 export class IntentionSyncService {
   constructor(
+    private readonly buildRepository: BuildRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
@@ -107,13 +109,13 @@ export class IntentionSyncService {
       return;
     }
 
-    let packageBuild = await this.collectionRepository.getBuildByPackageDetail(
+    let packageBuild = await this.buildRepository.getBuildByPackageDetail(
       service.id.toString(),
       action.package.name,
       parsedVersion,
     );
     if (!packageBuild) {
-      packageBuild = await this.collectionRepository.addBuild(
+      packageBuild = await this.buildRepository.addBuild(
         service.id.toString(),
         action.package.name,
         parsedVersion,
@@ -122,7 +124,7 @@ export class IntentionSyncService {
     }
 
     if (action.action === 'package-installation') {
-      await this.collectionRepository.addInstallActionToBuild(
+      await this.buildRepository.addInstallActionToBuild(
         packageBuild.id.toString(),
         plainToClass(IntentionActionPointerDto, {
           action: `${action.action}#${action.id}`,

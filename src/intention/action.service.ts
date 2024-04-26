@@ -8,6 +8,7 @@ import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { BuildRepository } from '../persistence/interfaces/build.repository';
 import {
   ACTION_VALIDATE_TEAM_ADMIN,
   ACTION_VALIDATE_TEAM_DBA,
@@ -26,6 +27,7 @@ import { PackageBuildActionDto } from './dto/package-build-action.dto';
 export class ActionService {
   constructor(
     private readonly actionUtil: ActionUtil,
+    private readonly buildRepository: BuildRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly userCollectionService: UserCollectionService,
     private readonly graphRepository: GraphRepository,
@@ -291,12 +293,11 @@ export class ActionService {
         };
       }
 
-      const existingBuild =
-        await this.collectionRepository.getBuildByPackageDetail(
-          service.id.toString(),
-          action.package.name,
-          parsedVersion,
-        );
+      const existingBuild = await this.buildRepository.getBuildByPackageDetail(
+        service.id.toString(),
+        action.package.name,
+        parsedVersion,
+      );
 
       if (
         existingBuild &&
@@ -304,8 +305,8 @@ export class ActionService {
           (action.package?.checksum &&
             action.package?.checksum !== existingBuild.package?.checksum))
       ) {
-        console.log(action.package);
-        console.log(existingBuild.package);
+        // console.log(action.package);
+        // console.log(existingBuild.package);
         return {
           message: 'Release version may not be altered.',
           data: {
