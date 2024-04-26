@@ -14,10 +14,12 @@ import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 import { RedisService } from '../redis/redis.service';
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
+import { BuildRepository } from '../persistence/interfaces/build.repository';
 
 @Injectable()
 export class CollectionService {
   constructor(
+    private readonly buildRepository: BuildRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly intentionService: IntentionService,
@@ -244,6 +246,7 @@ export class CollectionService {
 
   async getServiceDetails(serviceId: string) {
     const service = await this.graphRepository.getServiceDetails(serviceId);
+    const builds = await this.buildRepository.searchBuild(serviceId, 0, 5);
     if (!service) {
       throw new NotFoundException({
         statusCode: 404,
@@ -259,7 +262,10 @@ export class CollectionService {
           );
       }
     }
-    return service;
+    return {
+      ...service,
+      builds,
+    };
   }
 
   async getServiceSecureInfo(serviceId: string) {

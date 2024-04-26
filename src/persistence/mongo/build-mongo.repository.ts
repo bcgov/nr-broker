@@ -8,6 +8,7 @@ import { SemverVersion } from '../../util/action.util';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 import { BuildRepository } from '../interfaces/build.repository';
+import { arrayIdFixer } from './mongo.util';
 
 @Injectable()
 export class BuildMongoRepository implements BuildRepository {
@@ -74,6 +75,9 @@ export class BuildMongoRepository implements BuildRepository {
     const collResult = await this.packageBuildRepository.updateOne(
       { _id: new ObjectId(buildId) },
       {
+        $set: {
+          'timestamps.updatedAt': new Date(),
+        },
         $push: {
           installed: {
             $each: [pointer],
@@ -96,6 +100,8 @@ export class BuildMongoRepository implements BuildRepository {
           $match: {
             service: new ObjectId(serviceId),
           },
+        },
+        {
           $sort: { _id: -1 },
         },
         {
@@ -113,6 +119,8 @@ export class BuildMongoRepository implements BuildRepository {
       .toArray()
       .then((array) => {
         if (array[0]) {
+          arrayIdFixer((array[0] as any).data);
+          return array[0] as any;
         } else {
           return {
             data: [],

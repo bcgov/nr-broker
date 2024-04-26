@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { getRepositoryFromCollectionName } from './mongo.util';
+import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { PackageBuildDto } from '../dto/package-build.dto';
 
@@ -197,10 +197,10 @@ export class CollectionMongoRepository implements CollectionRepository {
           >;
 
           for (const datum of rval.data) {
-            this.arrayIdFixer(datum.downstream);
-            this.arrayIdFixer(datum.downstream_edge);
-            this.arrayIdFixer(datum.upstream);
-            this.arrayIdFixer(datum.upstream_edge);
+            arrayIdFixer(datum.downstream);
+            arrayIdFixer(datum.downstream_edge);
+            arrayIdFixer(datum.upstream);
+            arrayIdFixer(datum.upstream_edge);
           }
           return rval;
         } else {
@@ -229,12 +229,5 @@ export class CollectionMongoRepository implements CollectionRepository {
       },
     });
     return array.map((val) => val.id.toString());
-  }
-
-  private arrayIdFixer(array: any[]) {
-    for (const item of array) {
-      item.id = item._id;
-      delete item._id;
-    }
   }
 }
