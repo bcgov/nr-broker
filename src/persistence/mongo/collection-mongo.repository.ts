@@ -14,7 +14,9 @@ import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { PackageDto } from '../../intention/dto/package.dto';
 import { PackageBuildDto } from '../dto/package-build.dto';
-import { SemverVersion } from 'src/util/action.util';
+import { SemverVersion } from '../../util/action.util';
+import { COLLECTION_MAX_EMBEDDED } from '../../constants';
+import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -282,6 +284,28 @@ export class CollectionMongoRepository implements CollectionRepository {
       .then((value) => {
         return value.length === 1 ? value[0] : null;
       });
+  }
+
+  public async addInstallActionToBuild(
+    buildId: string,
+    pointer: IntentionActionPointerDto,
+  ) {
+    const collResult = await this.packageBuildRepository.updateOne(
+      { _id: new ObjectId(buildId) },
+      {
+        $push: {
+          installed: {
+            $each: [pointer],
+            $slice: -COLLECTION_MAX_EMBEDDED,
+          },
+        } as any,
+      },
+    );
+    if (collResult.matchedCount !== 1) {
+      throw new Error();
+    }
+
+    return this.getBuild(buildId);
   }
 
   public async searchBuild(serviceId: string, offset: number, limit: number) {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { get, set } from 'radash';
 import deepEqual from 'deep-equal';
+import { plainToClass } from 'class-transformer';
 
 import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
 import { IntentionDto } from '../intention/dto/intention.dto';
@@ -13,6 +14,7 @@ import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -67,28 +69,30 @@ export class IntentionSyncService {
         action.action === 'package-installation'
       ) {
         await this.syncPackageInstall(intention, action, serviceVertex);
+        await this.syncPackageBuild(intention, action, serviceVertex);
       }
 
       if (action.action === 'package-build') {
-        await this.syncPackageBuild(action, serviceVertex);
+        await this.syncPackageBuild(intention, action, serviceVertex);
       }
     }
   }
 
-  private async syncPackageBuild(action: ActionDto, serviceVertex: VertexDto) {
-    if (!action.package || !action.package.version) {
-      // No package information
+  private async syncPackageBuild(
+    intention: IntentionDto,
+    action: ActionDto,
+    serviceVertex: VertexDto,
+  ) {
+    if (!action.package || !action.package.name || !action.package.version) {
+      // Not enough package information to save
       return;
     }
 
     const parsedVersion = this.actionUtil.parseVersion(action.package.version);
-    // console.log(action.package.version);
-    // console.log(parsedVersion);
-    if (!parsedVersion) {
+    if (!parsedVersion || parsedVersion.prerelease) {
       // Not a valid version. Should not occur.
       return;
     }
-
     if (parsedVersion.prerelease) {
       // Pre-release versions are not release candidates -- not recorded
       return;
@@ -98,24 +102,32 @@ export class IntentionSyncService {
       'service',
       serviceVertex.id.toString(),
     );
-
     if (!service) {
       // Awkward. There should be a service here...
       return;
     }
 
-    const existingBuild =
-      await this.collectionRepository.getBuildByPackageDetail(
-        service.id.toString(),
-        action.package.name,
-        parsedVersion,
-      );
-    if (!existingBuild) {
-      await this.collectionRepository.addBuild(
+    let packageBuild = await this.collectionRepository.getBuildByPackageDetail(
+      service.id.toString(),
+      action.package.name,
+      parsedVersion,
+    );
+    if (!packageBuild) {
+      packageBuild = await this.collectionRepository.addBuild(
         service.id.toString(),
         action.package.name,
         parsedVersion,
         action.package,
+      );
+    }
+
+    if (action.action === 'package-installation') {
+      await this.collectionRepository.addInstallActionToBuild(
+        packageBuild.id.toString(),
+        plainToClass(IntentionActionPointerDto, {
+          action: `${action.action}#${action.id}`,
+          intention: intention.id,
+        }),
       );
     }
   }

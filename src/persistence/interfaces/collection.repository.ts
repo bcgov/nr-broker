@@ -5,6 +5,7 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
 import { PackageBuildDto } from '../dto/package-build.dto';
+import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 
 export abstract class CollectionRepository {
   public abstract getCollectionConfigs(): Promise<CollectionConfigDto[]>;
@@ -79,6 +80,11 @@ export abstract class CollectionRepository {
     serviceId: string,
     name: string,
     semvar: SemverVersion,
+  ): Promise<PackageBuildDto>;
+
+  public abstract addInstallActionToBuild(
+    buildId: string,
+    pointer: IntentionActionPointerDto,
   ): Promise<PackageBuildDto>;
 
   public abstract searchBuild(

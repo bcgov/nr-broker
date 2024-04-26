@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 
 import { PackageDto } from '../../intention/dto/package.dto';
 import { TimestampDto } from './timestamp.dto';
+import { IntentionActionPointerDto } from './intention-action-pointer.dto';
 
 @Entity()
 class PackageBuildApprovalDto {
@@ -47,9 +48,9 @@ export class PackageBuildDto {
   approval: PackageBuildApprovalDto[];
 
   @IsDefined()
-  @Column()
-  @ApiProperty({ type: () => String })
-  installed: ObjectId[];
+  @Column(() => IntentionActionPointerDto, { array: true })
+  @Type(() => IntentionActionPointerDto)
+  installed: IntentionActionPointerDto[];
 
   @IsDefined()
   @Column()
