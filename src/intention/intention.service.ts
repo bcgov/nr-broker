@@ -453,7 +453,9 @@ export class IntentionService {
         ...foundArtifact.data[0].artifact,
         ...action.package,
       };
-      action.source.action = `${foundArtifact.data[0].action.action}#${foundArtifact.data[0].action.id}`;
+      action.source.action = this.actionUtil.actionToIdString(
+        foundArtifact.data[0].action,
+      );
     }
   }
 

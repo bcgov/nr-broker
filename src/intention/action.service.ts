@@ -357,11 +357,16 @@ export class ActionService {
       }
       const parsedVersion = this.parseActionVersion(action);
       const validateSemverError = this.validateSemver(action);
-      if (validateSemverError) {
+      const maskSemverFailures = !!account?.maskSemverFailures;
+      if (validateSemverError && !maskSemverFailures) {
         return validateSemverError;
       }
 
-      if (env.name === 'production' && parsedVersion.prerelease) {
+      if (
+        env.name === 'production' &&
+        parsedVersion.prerelease &&
+        !maskSemverFailures
+      ) {
         return {
           message:
             'Only release versions may be installed in production. See: https://semver.org/#spec-item-9',

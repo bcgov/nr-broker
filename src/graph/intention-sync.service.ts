@@ -127,7 +127,7 @@ export class IntentionSyncService {
       await this.buildRepository.addInstallActionToBuild(
         packageBuild.id.toString(),
         plainToClass(IntentionActionPointerDto, {
-          action: `${action.action}#${action.id}`,
+          action: this.actionUtil.actionToIdString(action),
           intention: intention.id,
         }),
       );
@@ -158,7 +158,7 @@ export class IntentionSyncService {
         },
         {
           key: 'action.action',
-          value: `${action.action}#${action.id}`,
+          value: this.actionUtil.actionToIdString(action),
         },
         {
           key: 'actionHistory[0].intention',
@@ -166,7 +166,7 @@ export class IntentionSyncService {
         },
         {
           key: 'actionHistory[0].action',
-          value: `${action.action}#${action.id}`,
+          value: this.actionUtil.actionToIdString(action),
         },
       ],
       'parentId',

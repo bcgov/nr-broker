@@ -53,4 +53,9 @@ export class BrokerAccountDto extends VertexPointerDto {
   @IsBoolean()
   @Column()
   skipUserValidation: boolean;
+
+  @IsDefined()
+  @IsBoolean()
+  @Column()
+  maskSemverFailures: boolean;
 }

@@ -94,6 +94,10 @@ export class ActionUtil {
     });
   }
 
+  public actionToIdString(action: ActionDto) {
+    return `${action.action}#${action.id}`;
+  }
+
   public environmentName(action: ActionDto) {
     return INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
