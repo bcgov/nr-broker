@@ -114,7 +114,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     if (this.layout === 'narrow') {
-      this.propDisplayedColumns = ['start-narrow', 'environment', 'open'];
+      this.propDisplayedColumns = ['start-narrow', 'environment'];
       this.propDisplayedColumnsWithExpand = [
         ...this.propDisplayedColumns,
         'expand',

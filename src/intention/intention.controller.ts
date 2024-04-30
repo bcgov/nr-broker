@@ -11,22 +11,22 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
 import { HEADER_BROKER_TOKEN } from '../constants';
+import { ActionUtil } from '../util/action.util';
 import { IntentionDtoValidationPipe } from './intention-dto-validation.pipe';
-import { IntentionDto } from './dto/intention.dto';
 import { IntentionService } from './intention.service';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
+import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ActionGuard } from './action.guard';
-import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 import { IntentionCloseDto } from './dto/intention-close.dto';
 import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
-import { InstallDto } from './dto/install.dto';
-import { ActionUtil } from '../util/action.util';
+import { IntentionDto } from './dto/intention.dto';
+import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 
 @Controller({
   path: 'intention',
@@ -128,47 +128,6 @@ export class IntentionController {
     );
   }
 
-  @Post('action/install')
-  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  @ApiQuery({
-    name: 'strategy',
-    required: false,
-  })
-  @UseGuards(ActionGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async actionInstallRegister(
-    @Req() request: ActionGuardRequest,
-    @Body() install: InstallDto,
-    @Query('strategy') strategy: string | undefined,
-  ) {
-    if (!['package-installation'].includes(request.brokerActionDto.action)) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Illegal action',
-        error:
-          'Install can only be associated with a package-installation action',
-      });
-    }
-    if (strategy === undefined) {
-      strategy = 'merge';
-    }
-    if (strategy !== 'merge' && strategy !== 'replace') {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Illegal strategy',
-        error:
-          'The strategy parameter must be undefined or be one of merge or replace.',
-      });
-    }
-    return await this.intentionService.actionInstallRegister(
-      request,
-      request.brokerIntentionDto,
-      request.brokerActionDto,
-      install,
-      strategy,
-    );
-  }
-
   @Post('action/artifact')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
   @UseGuards(ActionGuard)
@@ -191,6 +150,45 @@ export class IntentionController {
       request.brokerActionDto,
       artifact,
     );
+  }
+
+  @Post('action/patch')
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @UseGuards(ActionGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async actionPackageAnnotate(
+    @Req() request: ActionGuardRequest,
+    @Body() actionPatch: ActionPatchRestDto,
+  ) {
+    if (
+      !['package-build', 'package-installation'].includes(
+        request.brokerActionDto.action,
+      )
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal action',
+        error:
+          'Only package-build or package-installation actions can be patched',
+      });
+    }
+
+    try {
+      return await this.intentionService.patchAction(
+        request,
+        request.brokerIntentionDto,
+        request.brokerActionDto,
+        actionPatch,
+      );
+    } catch (e) {
+      await this.intentionService.close(
+        request,
+        request.brokerIntentionDto.transaction.token,
+        'failure',
+        'Patch failure',
+      );
+      throw e;
+    }
   }
 
   @Post('artifact-search')

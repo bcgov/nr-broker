@@ -31,6 +31,7 @@ import {
 } from '@angular/animations';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { InspectorReleasesComponent } from '../inspector-releases/inspector-releases.component';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -42,6 +43,7 @@ import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.com
     MatTableModule,
     InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
+    InspectorReleasesComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
@@ -61,6 +63,7 @@ export class InspectorInstancesComponent implements OnChanges {
   @Input() vertices!: VertexNavigation | null;
   @Input() service!: ServiceRestDto;
   data: any;
+  builds: any;
   tableData: any[] = [];
   environments: any[] = [];
   @Output() refreshData = new EventEmitter();
@@ -97,6 +100,7 @@ export class InspectorInstancesComponent implements OnChanges {
       this.collectionApi
         .getServiceDetails(this.service.id)
         .subscribe((data: any) => {
+          this.builds = data.builds;
           this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
             const env = cv.environment.name;
             if (pv[env]) {

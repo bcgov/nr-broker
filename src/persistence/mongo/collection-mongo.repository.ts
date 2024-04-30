@@ -10,8 +10,9 @@ import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { getRepositoryFromCollectionName } from './mongo.util';
+import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
+import { PackageBuildDto } from '../dto/package-build.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -19,6 +20,8 @@ export class CollectionMongoRepository implements CollectionRepository {
     private readonly dataSource: DataSource,
     @InjectRepository(CollectionConfigDto)
     private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
+    @InjectRepository(PackageBuildDto)
+    private readonly packageBuildRepository: MongoRepository<PackageBuildDto>,
   ) {}
 
   public getCollectionConfigs(): Promise<CollectionConfigDto[]> {
@@ -194,10 +197,10 @@ export class CollectionMongoRepository implements CollectionRepository {
           >;
 
           for (const datum of rval.data) {
-            this.arrayIdFixer(datum.downstream);
-            this.arrayIdFixer(datum.downstream_edge);
-            this.arrayIdFixer(datum.upstream);
-            this.arrayIdFixer(datum.upstream_edge);
+            arrayIdFixer(datum.downstream);
+            arrayIdFixer(datum.downstream_edge);
+            arrayIdFixer(datum.upstream);
+            arrayIdFixer(datum.upstream_edge);
           }
           return rval;
         } else {
@@ -214,27 +217,17 @@ export class CollectionMongoRepository implements CollectionRepository {
     return repo.find();
   }
 
-  public doUniqueKeyCheck(
+  public async doUniqueKeyCheck(
     type: keyof CollectionDtoUnion,
     key: string,
     value: string,
   ): Promise<string[]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo
-      .find({
-        where: {
-          [key]: value,
-        },
-      })
-      .then((array) => {
-        return array.map((val) => val.id.toString());
-      });
-  }
-
-  private arrayIdFixer(array: any[]) {
-    for (const item of array) {
-      item.id = item._id;
-      delete item._id;
-    }
+    const array = await repo.find({
+      where: {
+        [key]: value,
+      },
+    });
+    return array.map((val) => val.id.toString());
   }
 }

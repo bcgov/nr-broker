@@ -36,10 +36,10 @@ echo "===> Install - Success!"
 
 # Add install to action
 ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
-curl -s -X POST $BROKER_URL/v1/intention/action/install \
+curl -s -X POST $BROKER_URL/v1/intention/action/patch \
         -H 'Content-Type: application/json' \
         -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
-        -d '{"cloudTarget":{"instance": {"name": "lollipop"}},"prop": {"port": "3243"}}'
+        -d '{"cloud":{"target":{"propStrategy":"replace","prop":{"port": "5000", "something": "else"}}}}'
 
 echo "===> Intention close"
 

@@ -2,6 +2,7 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import { Entity, ObjectIdColumn, ObjectId, Column } from 'typeorm';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { VertexPointerDto } from './vertex-pointer.dto';
+import { Transform } from 'class-transformer';
 
 export class UserGroupDto {
   @Column()
@@ -18,6 +19,9 @@ export class UserGroupDto {
 export class UserDto extends VertexPointerDto {
   @ObjectIdColumn()
   @ApiHideProperty()
+  @Transform((value) =>
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
+  )
   id: ObjectId;
 
   @IsDefined()

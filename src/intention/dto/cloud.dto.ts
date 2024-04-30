@@ -10,7 +10,7 @@ export class CloudDto {
   @IsOptional()
   @Column(() => CloudObjectDto)
   @Type(() => CloudObjectDto)
-  source: CloudObjectDto;
+  source?: CloudObjectDto;
 
   @IsDefined()
   @ValidateNested()

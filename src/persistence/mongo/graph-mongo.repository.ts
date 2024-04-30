@@ -9,7 +9,7 @@ import {
   CollectionConfigDto,
   CollectionConfigInstanceDto,
 } from '../dto/collection-config.dto';
-import { getRepositoryFromCollectionName } from './mongo.util';
+import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
@@ -165,7 +165,7 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .toArray()
       .then((array: any) => {
-        this.arrayIdFixer(array);
+        arrayIdFixer(array);
 
         for (const datum of array) {
           if (datum.services) {
@@ -234,7 +234,7 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .toArray()
       .then((array: any) => {
-        this.arrayIdFixer(array);
+        arrayIdFixer(array);
 
         for (const datum of array) {
           if (datum.instances) {
@@ -297,10 +297,10 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .toArray()
       .then((array: any) => {
-        this.arrayIdFixer(array);
+        arrayIdFixer(array);
         const datum = array.length > 0 ? array[0] : null;
         if (datum) {
-          this.arrayIdFixer(datum.serviceInstance);
+          arrayIdFixer(datum.serviceInstance);
 
           for (const instance of datum.serviceInstance) {
             if (instance.environment) {
@@ -593,7 +593,7 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .toArray()
       .then((array: any) => {
-        this.arrayIdFixer(array);
+        arrayIdFixer(array);
 
         for (const datum of array) {
           if (datum.instance) {
@@ -721,7 +721,6 @@ export class GraphMongoRepository implements GraphRepository {
     collection: CollectionDtoUnion[typeof vertex.collection],
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    console.log(collection);
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
       throw new Error();
@@ -768,10 +767,6 @@ export class GraphMongoRepository implements GraphRepository {
         }
       }
     }
-
-    console.log(collection);
-    console.log(pushFields);
-    console.log(unsetFields);
 
     // Update collection
     const collResult = await repository.updateOne(
@@ -1088,12 +1083,5 @@ export class GraphMongoRepository implements GraphRepository {
 
   public reindexCache(): Promise<boolean> {
     throw new Error('Method not implemented.');
-  }
-
-  private arrayIdFixer(array: any[]) {
-    for (const item of array) {
-      item.id = item._id;
-      delete item._id;
-    }
   }
 }

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { get, set } from 'radash';
 import deepEqual from 'deep-equal';
+import { plainToClass } from 'class-transformer';
+
+import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { ActionDto } from '../intention/dto/action.dto';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
@@ -9,8 +12,10 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
-import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
-import { InstallDto } from 'src/intention/dto/install.dto';
+import { ActionUtil } from '../util/action.util';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
+import { BuildRepository } from '../persistence/interfaces/build.repository';
 
 interface OverlayMapBase {
   key: string;
@@ -33,9 +38,12 @@ type OverlayMap = OverlayMapWithPath | OverlayMapWithValue;
 @Injectable()
 export class IntentionSyncService {
   constructor(
+    private readonly buildRepository: BuildRepository,
+    private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
     private readonly persistenceUtilService: PersistenceUtilService,
+    private readonly actionUtil: ActionUtil,
   ) {}
 
   public async sync(intention: IntentionDto) {
@@ -63,7 +71,66 @@ export class IntentionSyncService {
         action.action === 'package-installation'
       ) {
         await this.syncPackageInstall(intention, action, serviceVertex);
+        await this.syncPackageBuild(intention, action, serviceVertex);
       }
+
+      if (action.action === 'package-build') {
+        await this.syncPackageBuild(intention, action, serviceVertex);
+      }
+    }
+  }
+
+  private async syncPackageBuild(
+    intention: IntentionDto,
+    action: ActionDto,
+    serviceVertex: VertexDto,
+  ) {
+    if (!action.package || !action.package.name || !action.package.version) {
+      // Not enough package information to save
+      return;
+    }
+
+    const parsedVersion = this.actionUtil.parseVersion(action.package.version);
+    if (!parsedVersion || parsedVersion.prerelease) {
+      // Not a valid version. Should not occur.
+      return;
+    }
+    if (parsedVersion.prerelease) {
+      // Pre-release versions are not release candidates -- not recorded
+      return;
+    }
+
+    const service = await this.collectionRepository.getCollectionByVertexId(
+      'service',
+      serviceVertex.id.toString(),
+    );
+    if (!service) {
+      // Awkward. There should be a service here...
+      return;
+    }
+
+    let packageBuild = await this.buildRepository.getBuildByPackageDetail(
+      service.id.toString(),
+      action.package.name,
+      parsedVersion,
+    );
+    if (!packageBuild) {
+      packageBuild = await this.buildRepository.addBuild(
+        service.id.toString(),
+        action.package.name,
+        parsedVersion,
+        action.package,
+      );
+    }
+
+    if (action.action === 'package-installation') {
+      await this.buildRepository.addInstallActionToBuild(
+        packageBuild.id.toString(),
+        plainToClass(IntentionActionPointerDto, {
+          action: this.actionUtil.actionToIdString(action),
+          intention: intention.id,
+        }),
+      );
     }
   }
 
@@ -91,7 +158,7 @@ export class IntentionSyncService {
         },
         {
           key: 'action.action',
-          value: `${action.action}#${action.id}`,
+          value: this.actionUtil.actionToIdString(action),
         },
         {
           key: 'actionHistory[0].intention',
@@ -99,7 +166,7 @@ export class IntentionSyncService {
         },
         {
           key: 'actionHistory[0].action',
-          value: `${action.action}#${action.id}`,
+          value: this.actionUtil.actionToIdString(action),
         },
       ],
       'parentId',
@@ -113,12 +180,22 @@ export class IntentionSyncService {
         envMap[action.service.environment].vertex.toString(),
       );
     }
+
+    const serverVertex = await this.syncServer(action);
+    if (serverVertex) {
+      const instanceName = this.actionUtil.instanceName(action);
+      this.syncInstallationProperties(
+        serviceVertex,
+        instanceName,
+        serverVertex,
+        action.cloud.target.propStrategy,
+        action.cloud.target.prop,
+      );
+    }
   }
 
-  public async syncServer(action: ActionDto, install: InstallDto) {
-    const serverName =
-      install.cloudTarget?.instance?.name ??
-      action.cloud?.target?.instance?.name;
+  public async syncServer(action: ActionDto) {
+    const serverName = action.cloud?.target?.instance?.name;
     if (!serverName) {
       return null;
     }

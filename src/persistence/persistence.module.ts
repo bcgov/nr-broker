@@ -10,6 +10,7 @@ import { IntentionDto } from '../intention/dto/intention.dto';
 import { JwtAllowDto } from './dto/jwt-allow.dto';
 import { JwtBlockDto } from './dto/jwt-block.dto';
 import { JwtRegistryDto } from './dto/jwt-registry.dto';
+import { PackageBuildDto } from './dto/package-build.dto';
 import { PreferenceDto } from './dto/preference.dto';
 import { ProjectDto } from './dto/project.dto';
 import { ServerDto } from './dto/server.dto';
@@ -19,16 +20,21 @@ import { TeamDto } from './dto/team.dto';
 import { UserDto } from './dto/user.dto';
 import { VertexDto } from './dto/vertex.dto';
 
+import { BuildRepository } from './interfaces/build.repository';
+import { CollectionRepository } from './interfaces/collection.repository';
 import { GraphRepository } from './interfaces/graph.repository';
 import { IntentionRepository } from './interfaces/intention.repository';
+import { SystemRepository } from './interfaces/system.repository';
+
+import { BuildMongoRepository } from './mongo/build-mongo.repository';
+import { CollectionMongoRepository } from './mongo/collection-mongo.repository';
 import { GraphMongoRepository } from './mongo/graph-mongo.repository';
 import { IntentionMongoRepository } from './mongo/intention-mongo.repository';
-import { CollectionMongoRepository } from './mongo/collection-mongo.repository';
-import { CollectionRepository } from './interfaces/collection.repository';
 import { SystemMongoRepository } from './mongo/system-mongo.repository';
-import { SystemRepository } from './interfaces/system.repository';
-import { PersistenceUtilService } from './persistence-util.service';
+
 import { GraphRedisRepository } from './redis-composition/graph-redis.repository';
+
+import { PersistenceUtilService } from './persistence-util.service';
 import { PersistenceRedisUtilService } from './persistence-redis-util.service';
 import { UtilModule } from '../util/util.module';
 
@@ -77,6 +83,7 @@ const redisFactory = {
       JwtRegistryDto,
       ServiceDto,
       ServiceInstanceDto,
+      PackageBuildDto,
       PreferenceDto,
       ProjectDto,
       ServerDto,
@@ -87,6 +94,11 @@ const redisFactory = {
     UtilModule,
   ],
   providers: [
+    BuildMongoRepository,
+    {
+      provide: BuildRepository,
+      useExisting: BuildMongoRepository,
+    },
     CollectionMongoRepository,
     {
       provide: CollectionRepository,
@@ -110,6 +122,7 @@ const redisFactory = {
     redisFactory,
   ],
   exports: [
+    BuildRepository,
     CollectionRepository,
     GraphRepository,
     IntentionRepository,

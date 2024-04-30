@@ -17,6 +17,11 @@ export class IntentionMongoRepository implements IntentionRepository {
   ) {}
 
   public async addIntention(intention: IntentionDto): Promise<any> {
+    if (intention.id) {
+      const id = extractId(intention);
+      await this.intentionRepository.replaceOne({ _id: id }, intention);
+      return intention;
+    }
     return await this.intentionRepository.save(intention);
   }
 

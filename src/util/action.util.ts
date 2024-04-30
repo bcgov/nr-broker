@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { get } from 'radash';
 import ejs from 'ejs';
 import {
+  INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS,
   INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
   VAULT_ENVIRONMENTS,
   VAULT_PROVISIONED_ACTION_SET,
@@ -13,11 +14,21 @@ export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
 >;
 
+export interface SemverVersion {
+  major: string | undefined;
+  minor: string | undefined;
+  patch: string | undefined;
+  prerelease: string | undefined;
+  build: string | undefined;
+}
+
 @Injectable()
 export class ActionUtil {
   private readonly AUDIT_URL_TEMPLATE = process.env.AUDIT_URL_TEMPLATE
     ? process.env.AUDIT_URL_TEMPLATE
     : '';
+  private readonly VERSION_REGEX =
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
   public resolveVaultEnvironment(action: ActionDto): string | undefined {
     return (
@@ -83,6 +94,19 @@ export class ActionUtil {
     });
   }
 
+  public actionToIdString(action: ActionDto) {
+    return `${action.action}#${action.id}`;
+  }
+
+  public environmentName(action: ActionDto) {
+    return INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS.reduce<string>(
+      (pv, path) => {
+        return get({ action }, path, pv);
+      },
+      undefined,
+    );
+  }
+
   public instanceName(action: ActionDto) {
     return INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
@@ -99,5 +123,27 @@ export class ActionUtil {
    */
   public auditUrlForIntention(intention: IntentionDto): string {
     return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
+  }
+
+  public parseVersion(version: string): SemverVersion | null {
+    const val = this.VERSION_REGEX.exec(version);
+    return val
+      ? {
+          major: val[1],
+          minor: val[2],
+          patch: val[3],
+          prerelease: val[4],
+          build: val[5],
+        }
+      : null;
+  }
+
+  public isStrictSemver(parsedVersion: SemverVersion | null) {
+    return (
+      parsedVersion &&
+      parsedVersion.major !== undefined &&
+      parsedVersion.minor !== undefined &&
+      parsedVersion.patch !== undefined
+    );
   }
 }

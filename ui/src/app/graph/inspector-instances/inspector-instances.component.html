@@ -101,3 +101,10 @@
     class="group-row"></tr>
 
 </table>
+
+<mat-divider></mat-divider>
+
+@if (builds) {
+  <app-inspector-releases
+    [builds]="builds"></app-inspector-releases>
+}

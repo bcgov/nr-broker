@@ -42,6 +42,9 @@ export class IntentionDto {
 
   @ObjectIdColumn()
   @ApiProperty({ type: () => String })
+  @Transform((value) =>
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
+  )
   id: ObjectId;
 
   @Column()

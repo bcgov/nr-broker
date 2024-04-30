@@ -456,6 +456,13 @@ result = db.collectionConfig.insertOne({
       hint: 'Defaults unknown users to developer access',
       value: false,
     },
+    maskSemverFailures: {
+      name: 'Mask Semver Failures',
+      required: true,
+      type: 'boolean',
+      hint: 'Replace invalid version with 0.0.0',
+      value: false,
+    },
   },
   browseFields: ['name', 'email', 'clientId', 'website', 'requireRoleId'],
   name: 'Broker Account',

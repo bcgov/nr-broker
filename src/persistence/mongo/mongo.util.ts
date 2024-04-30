@@ -70,3 +70,10 @@ export function extractId(obj: any): ObjectId {
   delete obj.id;
   return id;
 }
+
+export function arrayIdFixer(array: any[]) {
+  for (const item of array) {
+    item.id = item._id;
+    delete item._id;
+  }
+}

@@ -8,14 +8,17 @@ import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { BuildRepository } from '../persistence/interfaces/build.repository';
 import {
   ACTION_VALIDATE_TEAM_ADMIN,
   ACTION_VALIDATE_TEAM_DBA,
+  INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
 } from '../constants';
 import { UserDto } from '../persistence/dto/user.dto';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
+import { PackageBuildActionDto } from './dto/package-build-action.dto';
 
 /**
  * Assists with the validation of intention actions
@@ -24,6 +27,7 @@ import { PackageInstallationActionDto } from './dto/package-installation-action.
 export class ActionService {
   constructor(
     private readonly actionUtil: ActionUtil,
+    private readonly buildRepository: BuildRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly userCollectionService: UserCollectionService,
     private readonly graphRepository: GraphRepository,
@@ -89,8 +93,14 @@ export class ActionService {
         requireServiceExists,
       ) ??
       this.validateTargetService(action, targetServices) ??
-      (await this.validateDbAction(user, intention, action)) ??
-      (await this.validatePackageAction(account, user, intention, action)) ??
+      (await this.validateDatabaseAccessAction(user, intention, action)) ??
+      (await this.validatePackageBuildAction(account, intention, action)) ??
+      (await this.validatePackageInstallAction(
+        account,
+        user,
+        intention,
+        action,
+      )) ??
       null
     );
   }
@@ -203,7 +213,7 @@ export class ActionService {
     }
   }
 
-  private async validateDbAction(
+  private async validateDatabaseAccessAction(
     user: any,
     intention: IntentionDto,
     action: ActionDto,
@@ -235,13 +245,141 @@ export class ActionService {
     return null;
   }
 
-  private async validatePackageAction(
+  private async validatePackageBuildAction(
+    account: BrokerAccountDto | null,
+    intention: IntentionDto,
+    action: ActionDto,
+  ): Promise<ActionError | null> {
+    if (action instanceof PackageBuildActionDto) {
+      // TODO: check for existing build
+      const validateSemverError = this.validateSemver(action);
+      if (validateSemverError) {
+        return validateSemverError;
+      }
+
+      if (!action.package?.name) {
+        return {
+          message: 'Package actions must specify a name.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.name',
+            value: action.package?.name,
+          },
+        };
+      }
+
+      const parsedVersion = this.parseActionVersion(action);
+      if (parsedVersion.prerelease) {
+        return null;
+      }
+
+      const service = action.service.id
+        ? await this.collectionRepository.getCollectionById(
+            'service',
+            action.service.id.toString(),
+          )
+        : null;
+
+      if (!service) {
+        return {
+          message: 'Package service not found.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.name',
+            value: action.package?.name,
+          },
+        };
+      }
+
+      const existingBuild = await this.buildRepository.getBuildByPackageDetail(
+        service.id.toString(),
+        action.package.name,
+        parsedVersion,
+      );
+
+      if (
+        existingBuild &&
+        (action.package?.buildVersion !== existingBuild.package?.buildVersion ||
+          (action.package?.checksum &&
+            action.package?.checksum !== existingBuild.package?.checksum))
+      ) {
+        // console.log(action.package);
+        // console.log(existingBuild.package);
+        return {
+          message: 'Release version may not be altered.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.version',
+            value: action.package?.version,
+          },
+        };
+      }
+    }
+    return null;
+  }
+
+  private async validatePackageInstallAction(
     account: BrokerAccountDto | null,
     user: any,
     intention: IntentionDto,
     action: ActionDto,
   ): Promise<ActionError | null> {
     if (action instanceof PackageInstallationActionDto) {
+      const env = (await this.persistenceUtil.getEnvMap())[
+        action.service.environment
+      ];
+      if (!env) {
+        return {
+          message: 'Package installation must specify a valid environment.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.service.environment',
+            value: action.service.environment,
+          },
+        };
+      }
+
+      const instanceName = this.actionUtil.instanceName(action);
+      if (!instanceName) {
+        return {
+          message: 'Service instance name could not be extracted from action.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.join(),
+            value: 'undefined',
+          },
+        };
+      }
+      const parsedVersion = this.parseActionVersion(action);
+      const validateSemverError = this.validateSemver(action);
+      const maskSemverFailures = !!account?.maskSemverFailures;
+      if (validateSemverError && !maskSemverFailures) {
+        return validateSemverError;
+      }
+
+      if (
+        env.name === 'production' &&
+        parsedVersion.prerelease &&
+        !maskSemverFailures
+      ) {
+        return {
+          message:
+            'Only release versions may be installed in production. See: https://semver.org/#spec-item-9',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.version',
+            value: action.package.version,
+          },
+        };
+      }
+
+      // Test if user is admin and skip delivery validation if they are
       if (
         (account && account.skipUserValidation) ||
         (await this.persistenceUtil.testAccess(
@@ -254,30 +392,28 @@ export class ActionService {
         return null;
       }
 
-      const env = (await this.persistenceUtil.getEnvMap())[
-        action.service.environment
-      ];
-
-      if (
-        env &&
-        action.package &&
-        action.package.version &&
-        action.package.version.toLowerCase().endsWith('-snapshot') &&
-        env.name === 'production'
-      ) {
-        return {
-          message:
-            'Only release versions (no snapshot builds) may be installed in production.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.version',
-            value: action.package.version,
-          },
-        };
-      }
-
       return this.validateAssistedDelivery(user, intention, action);
+    }
+    return null;
+  }
+
+  private parseActionVersion(action: ActionDto) {
+    return this.actionUtil.parseVersion(action.package?.version ?? '');
+  }
+
+  private validateSemver(action: ActionDto): ActionError | null {
+    const parsedVersion = this.parseActionVersion(action);
+    if (!this.actionUtil.isStrictSemver(parsedVersion)) {
+      return {
+        message:
+          'Package actions must specify a valid semver version. See: https://semver.org',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.package.version',
+          value: action.package?.version,
+        },
+      };
     }
     return null;
   }

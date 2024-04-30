@@ -15,7 +15,8 @@
         "environment": "tools"
       },
       "package": {
-        "version": "2.73.2-snapshot"
+        "version": "2.73.2-snapshot",
+        "name": "superapp-backend"
       }
     }
   ],

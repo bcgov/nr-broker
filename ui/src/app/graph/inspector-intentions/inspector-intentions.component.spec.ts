@@ -8,7 +8,7 @@ describe('InspectorIntentionsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [InspectorIntentionsComponent]
+      imports: [InspectorIntentionsComponent],
     });
     fixture = TestBed.createComponent(InspectorIntentionsComponent);
     component = fixture.componentInstance;
