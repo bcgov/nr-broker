@@ -143,7 +143,7 @@ export class IntentionService {
           action: '',
           action_id: '',
           key: 'jwt.jti',
-          value: intentionDto.jwt.jti,
+          value: intentionDto.jwt?.jti,
         },
       });
     }
@@ -633,7 +633,7 @@ export class IntentionService {
 
     // Patch according to action
     if (action.action === 'package-build') {
-      if (patchAction.package) {
+      if (patchAction?.package) {
         action.package = {
           ...(action.package ?? {}),
           ...patchAction.package,
