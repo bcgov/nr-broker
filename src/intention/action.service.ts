@@ -363,9 +363,9 @@ export class ActionService {
       }
 
       if (
+        !maskSemverFailures &&
         env.name === 'production' &&
-        parsedVersion.prerelease &&
-        !maskSemverFailures
+        parsedVersion.prerelease
       ) {
         return {
           message:
