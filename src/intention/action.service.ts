@@ -63,7 +63,7 @@ export class ActionService {
     if (account) {
       action.user.group = {
         ...(action.user.group ?? {}),
-        id: account.id.toString(),
+        id: account.id,
         name: account.name,
         domain: 'broker',
       };

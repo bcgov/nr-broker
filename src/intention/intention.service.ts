@@ -13,6 +13,7 @@ import { plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { FindOptionsWhere } from 'typeorm';
 import merge from 'lodash.merge';
+import { validate } from 'class-validator';
 
 import { IntentionDto } from './dto/intention.dto';
 import {
@@ -47,6 +48,9 @@ import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
+import { PackageDto } from './dto/package.dto';
+import { CloudDto } from './dto/cloud.dto';
+import { CloudObjectDto } from './dto/cloud-object.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -634,10 +638,10 @@ export class IntentionService {
     // Patch according to action
     if (action.action === 'package-build') {
       if (patchAction?.package) {
-        action.package = {
+        action.package = plainToInstance(PackageDto, {
           ...(action.package ?? {}),
           ...patchAction.package,
-        };
+        });
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -648,10 +652,10 @@ export class IntentionService {
     } else if (action.action === 'package-installation') {
       if (patchAction?.cloud?.target) {
         if (!action?.cloud) {
-          action.cloud = { target: {} };
+          action.cloud = plainToInstance(CloudDto, { target: {} });
         }
         if (!action?.cloud.target) {
-          action.cloud.target = {};
+          action.cloud.target = plainToInstance(CloudObjectDto, {});
         }
         merge(action.cloud.target, patchAction.cloud.target);
       } else {
@@ -663,17 +667,19 @@ export class IntentionService {
       }
     }
 
+    const errors = await validate(action, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (errors.length > 0) {
+      throw new BadRequestException('Validation failed');
+    }
+    // TODO: call this.actionService.validate to ensure this is still a valid intention
+
     // replace with patched action
     intention.actions = intention.actions.map((intentionAction) =>
       intentionAction.action !== action.action ? intentionAction : action,
-    );
-
-    // Ensure this is still a valid intention -- copied as open modifies intention
-    await this.open(
-      req,
-      plainToInstance(IntentionDto, JSON.parse(JSON.stringify(intention))),
-      INTENTION_DEFAULT_TTL_SECONDS,
-      true,
     );
 
     this.auditService.recordIntentionActionUsage(

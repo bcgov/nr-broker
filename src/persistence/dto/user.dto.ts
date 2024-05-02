@@ -1,15 +1,20 @@
-import { ApiHideProperty } from '@nestjs/swagger';
-import { Entity, ObjectIdColumn, ObjectId, Column } from 'typeorm';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
-import { VertexPointerDto } from './vertex-pointer.dto';
 import { Transform } from 'class-transformer';
+import { ObjectId } from 'mongodb';
+import { VertexPointerDto } from './vertex-pointer.dto';
 
 export class UserGroupDto {
   @Column()
   domain?: string;
 
   @Column()
-  id?: string;
+  @ApiProperty({ type: () => String })
+  @Transform((value) =>
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
+  )
+  id?: ObjectId;
 
   @Column()
   name?: string;

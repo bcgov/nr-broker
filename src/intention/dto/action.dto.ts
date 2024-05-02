@@ -112,6 +112,7 @@ export class ActionDto {
   @IsOptional()
   @ApiHideProperty()
   @Column(() => UserDto)
+  @Type(() => UserDto)
   user?: UserDto;
 
   @IsOptional()
