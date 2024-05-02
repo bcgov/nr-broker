@@ -33,6 +33,10 @@ const REDIS_ESCAPES_REPLACEMENTS = {
   '~': '\\~',
 };
 
+export interface EnvironmentDtoMap {
+  [key: string]: EnvironmentDto;
+}
+
 @Injectable()
 export class PersistenceUtilService {
   constructor(
@@ -87,7 +91,7 @@ export class PersistenceUtilService {
     }
   }
 
-  public async getEnvMap() {
+  public async getEnvMap(): Promise<EnvironmentDtoMap> {
     const envs = await this.collectionRepository.getCollections('environment');
     const envMap: { [key: string]: EnvironmentDto } = {};
     for (const env of envs) {
