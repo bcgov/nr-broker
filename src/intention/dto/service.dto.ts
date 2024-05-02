@@ -21,7 +21,7 @@ export class ServiceDto {
   @IsOptional()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
-    value.obj.vertex ? new ObjectId(value.obj.vertex.toString()) : null,
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
   )
   id?: ObjectId;
 

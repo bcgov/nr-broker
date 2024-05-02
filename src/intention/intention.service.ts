@@ -35,8 +35,10 @@ import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
-import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import {
+  EnvironmentDtoMap,
+  PersistenceUtilService,
+} from '../persistence/persistence-util.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ArtifactDto } from './dto/artifact.dto';
@@ -47,6 +49,7 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 import { PackageDto } from './dto/package.dto';
 import { CloudDto } from './dto/cloud.dto';
@@ -97,49 +100,37 @@ export class IntentionService {
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
     dryRun = false,
   ): Promise<IntentionOpenResponse> {
-    const startDate = new Date();
     const actions = {};
     const actionFailures: ActionError[] = [];
     const envMap = await this.persistenceUtilService.getEnvMap();
-    if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'TTL out of bounds',
-        error: `TTL must be between ${INTENTION_MIN_TTL_SECONDS} and ${INTENTION_MAX_TTL_SECONDS}`,
-      });
-    }
-    // Annotate intention event
-    intentionDto.transaction = {
-      ...this.createTokenAndHash(),
-      start: startDate.toISOString(),
-    };
-    intentionDto.expiry = startDate.valueOf() + ttl * 1000;
-    intentionDto.jwt = plainToInstance(BrokerJwtDto, req.user);
+
+    // Only JWT "users" can make an open request
+    const brokerJwt = plainToInstance(BrokerJwtDto, req.user);
+    this.checkTimeToLiveBounds(ttl);
+
+    // Annotate intention
+    intentionDto.jwt = brokerJwt;
+    intentionDto.requireRoleId = true;
+    this.annotateIntentionTransaction(intentionDto, ttl);
+
+    // Find JWT in registry
     const registryJwt =
-      intentionDto.jwt && intentionDto.jwt.jti
-        ? await this.systemRepository.getRegisteryJwtByClaimJti(
-            intentionDto.jwt.jti,
-          )
+      brokerJwt && brokerJwt.jti
+        ? await this.systemRepository.getRegisteryJwtByClaimJti(brokerJwt.jti)
         : null;
+    // Note: This check should never pass because of an earlier check of the
+    // block list. This is a backup check.
     if (registryJwt && registryJwt.blocked) {
-      // JWT should by in block list anyway
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
         error: actionFailures,
       });
     }
+    // Map JWT to Broker Account -- if possible
     const account = await this.getAccount(registryJwt);
-    let accountBoundProjects: BrokerAccountProjectMapDto | null = null;
-    intentionDto.requireRoleId = true;
     if (account) {
-      intentionDto.accountId = registryJwt.accountId;
-      intentionDto.requireRoleId = account.requireRoleId;
-      accountBoundProjects =
-        await this.graphRepository.getBrokerAccountServices(
-          account.vertex.toString(),
-        );
-      // console.log(accountBoundProjects);
+      this.annotateIntentionAccount(intentionDto, account);
     } else if (!TOKEN_SERVICE_ALLOW_ORPHAN) {
       actionFailures.push({
         message: 'Token must be bound to a broker account',
@@ -152,59 +143,37 @@ export class IntentionService {
       });
     }
 
+    // Annotate all actions
     for (const action of intentionDto.actions) {
-      const env = this.actionUtil.environmentName(action);
-      const envDto = envMap[env];
-      if (
-        action.vaultEnvironment === undefined &&
-        envDto &&
-        (envDto.name === 'production' ||
-          envDto.name === 'test' ||
-          envDto.name === 'development' ||
-          envDto.name === 'tools')
-      ) {
-        action.vaultEnvironment = envDto.name;
-      }
-      if (!action.user) {
-        action.user = intentionDto.user;
-      }
+      this.annotateAction(intentionDto, action, envMap);
       await this.actionService.bindUserToAction(account, action);
-      let targetServices = [];
-      const colObj = await this.collectionRepository.getCollectionByKeyValue(
+      const service = await this.collectionRepository.getCollectionByKeyValue(
         'service',
         'name',
         action.service.name,
       );
 
-      if (colObj) {
-        action.service.id = colObj.id;
-        if (action.service.target) {
-          const targetSearch =
-            await this.graphRepository.getDownstreamVertex<ServiceDto>(
-              colObj.vertex.toString(),
-              CollectionNameEnum.service,
-              1,
-            );
-
-          targetServices = targetSearch.map((t) => t.collection.name);
-        }
+      if (service) {
+        // annotate with service id
+        action.service.id = service.id;
+        await this.annotateActionPackageFromExistingArtifact(action);
       }
-      await this.annotateAction(action);
-      const validationResult = await this.actionService.validate(
-        intentionDto,
-        action,
-        account,
-        accountBoundProjects,
-        targetServices,
-        account ? !!account?.requireProjectExists : true,
-        account ? !!account?.requireServiceExists : true,
-      );
+
+      action.transaction = intentionDto.transaction;
+      action.trace = this.createTokenAndHash();
+    }
+
+    const actionValidationErrors = await this.validateActions(
+      intentionDto,
+      account,
+    );
+
+    for (const [index, action] of intentionDto.actions.entries()) {
+      const validationResult = actionValidationErrors[index];
       action.valid = validationResult === null;
       if (!action.valid) {
         actionFailures.push(validationResult);
       }
-      action.transaction = intentionDto.transaction;
-      action.trace = this.createTokenAndHash();
       actions[action.id] = {
         token: action.trace.token,
         trace_id: action.trace.hash,
@@ -429,7 +398,7 @@ export class IntentionService {
     }
   }
 
-  private async annotateAction(action: ActionDto) {
+  private async annotateActionPackageFromExistingArtifact(action: ActionDto) {
     if (
       action.action === 'package-installation' &&
       action.source &&
@@ -675,12 +644,31 @@ export class IntentionService {
     if (errors.length > 0) {
       throw new BadRequestException('Validation failed');
     }
-    // TODO: call this.actionService.validate to ensure this is still a valid intention
+    const account = intention.accountId
+      ? await this.collectionRepository.getCollectionById(
+          'brokerAccount',
+          intention.accountId.toString(),
+        )
+      : null;
 
     // replace with patched action
-    intention.actions = intention.actions.map((intentionAction) =>
-      intentionAction.action !== action.action ? intentionAction : action,
+    intention.actions = intention.actions.map((currentAction) =>
+      currentAction.id === action.id ? action : currentAction,
     );
+    const actionValidationErrors = await this.validateActions(
+      intention,
+      account,
+    );
+    const actionFailures = actionValidationErrors.filter(
+      (validationError) => validationError !== null,
+    );
+    if (actionFailures.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Authorization failed',
+        error: actionFailures,
+      });
+    }
 
     this.auditService.recordIntentionActionUsage(
       req,
@@ -697,6 +685,107 @@ export class IntentionService {
       null,
     );
     return await this.intentionRepository.addIntention(intention);
+  }
+
+  private checkTimeToLiveBounds(ttl: number) {
+    if (ttl < INTENTION_MIN_TTL_SECONDS || ttl > INTENTION_MAX_TTL_SECONDS) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'TTL out of bounds',
+        error: `TTL must be between ${INTENTION_MIN_TTL_SECONDS} and ${INTENTION_MAX_TTL_SECONDS}`,
+      });
+    }
+  }
+
+  private annotateIntentionTransaction(
+    intentionDto: IntentionDto,
+    ttl: number,
+  ) {
+    const startDate = new Date();
+    intentionDto.transaction = {
+      ...this.createTokenAndHash(),
+      start: startDate.toISOString(),
+    };
+    intentionDto.expiry = startDate.valueOf() + ttl * 1000;
+  }
+
+  private annotateIntentionAccount(
+    intentionDto: IntentionDto,
+    account: BrokerAccountDto,
+  ) {
+    intentionDto.accountId = account.id;
+    intentionDto.requireRoleId = account.requireRoleId;
+  }
+
+  private annotateAction(
+    intentionDto: IntentionDto,
+    action: ActionDto,
+    envMap: EnvironmentDtoMap,
+  ) {
+    const env = this.actionUtil.environmentName(action);
+    const envDto = envMap[env];
+    if (
+      action.vaultEnvironment === undefined &&
+      envDto &&
+      (envDto.name === 'production' ||
+        envDto.name === 'test' ||
+        envDto.name === 'development' ||
+        envDto.name === 'tools')
+    ) {
+      action.vaultEnvironment = envDto.name;
+    }
+    if (!action.user) {
+      action.user = intentionDto.user;
+    }
+  }
+
+  private async validateActions(
+    intentionDto: IntentionDto,
+    account: BrokerAccountDto | null,
+  ): Promise<ActionError[]> {
+    let targetServices = [];
+    const validationResult: ActionError[] = [];
+
+    const accountBoundProjects = account
+      ? await this.graphRepository.getBrokerAccountServices(
+          account.vertex.toString(),
+        )
+      : null;
+
+    for (const action of intentionDto.actions) {
+      const service = action.service.id
+        ? await this.collectionRepository.getCollectionById(
+            'service',
+            action.service.id.toString(),
+          )
+        : null;
+
+      if (service) {
+        if (action.service.target) {
+          const targetSearch =
+            await this.graphRepository.getDownstreamVertex<ServiceDto>(
+              service.vertex.toString(),
+              CollectionNameEnum.service,
+              1,
+            );
+
+          targetServices = targetSearch.map((t) => t.collection.name);
+        }
+      }
+
+      validationResult.push(
+        await this.actionService.validate(
+          intentionDto,
+          action,
+          account,
+          accountBoundProjects,
+          targetServices,
+          account ? !!account?.requireProjectExists : true,
+          account ? !!account?.requireServiceExists : true,
+        ),
+      );
+    }
+    return validationResult;
   }
 
   /**
