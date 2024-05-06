@@ -455,7 +455,7 @@ export class IntentionService {
         action.package.name
       ) {
         // Register build as an artifact
-        this.actionArtifactRegister(
+        await this.actionArtifactRegister(
           req,
           intention,
           action,
