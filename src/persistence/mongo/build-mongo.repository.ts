@@ -107,7 +107,7 @@ export class BuildMongoRepository implements BuildRepository {
         {
           $facet: {
             data: [
-              { $sort: { name: 1 } },
+              { $sort: { 'timestamps.createdAt': -1 } },
               { $skip: offset },
               { $limit: limit },
             ],

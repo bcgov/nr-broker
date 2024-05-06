@@ -303,7 +303,9 @@ export class ActionService {
         existingBuild &&
         (action.package?.buildVersion !== existingBuild.package?.buildVersion ||
           (action.package?.checksum &&
-            action.package?.checksum !== existingBuild.package?.checksum))
+            action.package?.checksum !== existingBuild.package?.checksum) ||
+          (action.package?.size &&
+            action.package?.size !== existingBuild.package?.size))
       ) {
         // console.log(action.package);
         // console.log(existingBuild.package);

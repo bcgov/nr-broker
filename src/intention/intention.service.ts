@@ -441,30 +441,34 @@ export class IntentionService {
     const startDate = new Date(intention.transaction.start);
     for (const action of intention.actions) {
       if (action.lifecycle === 'started') {
-        if (
-          outcome === 'success' &&
-          action.action === 'package-build' &&
-          action.package &&
-          action.package.name
-        ) {
-          // Register build as an artifact
-          this.actionArtifactRegister(
-            req,
-            intention,
-            action,
-            {
-              name: action.package.name,
-              ...(action.package.checksum
-                ? { checksum: action.package.checksum }
-                : {}),
-              ...(action.package.size ? { size: action.package.size } : {}),
-              ...(action.package.type ? { type: action.package.type } : {}),
-            },
-            true,
-          );
-          intention = await this.intentionRepository.getIntention(intention.id);
-        }
         await this.actionLifecycle(req, intention, action, outcome, 'end');
+        intention = await this.intentionRepository.getIntention(intention.id);
+      }
+    }
+
+    for (const action of intention.actions) {
+      if (
+        outcome === 'success' &&
+        action.trace?.outcome === 'success' &&
+        action.action === 'package-build' &&
+        action.package &&
+        action.package.name
+      ) {
+        // Register build as an artifact
+        await this.actionArtifactRegister(
+          req,
+          intention,
+          action,
+          {
+            name: action.package.name,
+            ...(action.package.checksum
+              ? { checksum: action.package.checksum }
+              : {}),
+            ...(action.package.size ? { size: action.package.size } : {}),
+            ...(action.package.type ? { type: action.package.type } : {}),
+          },
+          true,
+        );
         intention = await this.intentionRepository.getIntention(intention.id);
       }
     }
