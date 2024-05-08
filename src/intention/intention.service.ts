@@ -310,19 +310,46 @@ export class IntentionService {
   ): Promise<ArtifactSearchResult> {
     try {
       // must await to catch error
-      const result = await this.artifactSearch(
-        query.intention,
-        query.action,
-        query.traceHash,
-        query.checksum,
-        query.name,
-        query.type,
-        query.serviceId,
-        query.service,
+      const result = await this.intentionRepository.searchIntentions(
+        {
+          'actions.artifacts': { $exists: true },
+          ...(query.intention ? { _id: new ObjectId(query.intention) } : {}),
+          ...(query.service ? { 'actions.service.name': query.service } : {}),
+          ...(query.serviceId
+            ? { 'actions.service.id': new ObjectId(query.serviceId) }
+            : {}),
+          ...(query.traceHash ? { 'actions.trace.hash': query.traceHash } : {}),
+          ...(query.checksum
+            ? { 'actions.artifacts.checksum': query.checksum }
+            : {}),
+          ...(query.name ? { 'actions.artifacts.name': query.name } : {}),
+          ...(query.type ? { 'actions.artifacts.type': query.type } : {}),
+          ...(query.version
+            ? { 'actions.package.version': query.version }
+            : {}),
+          ...(query.outcome
+            ? { 'transaction.outcome': query.outcome }
+            : { 'transaction.outcome': 'success' }),
+        } as FindOptionsWhere<IntentionDto>,
         query.offset,
         query.limit,
       );
-      return result;
+      return {
+        ...result,
+        data: result.data
+          .map((intention) => {
+            return this.findArtifacts(
+              intention,
+              this.actionUtil.actionToOptions(query.action),
+              {
+                checksum: query.checksum,
+                name: query.name,
+                type: query.type,
+              },
+            );
+          })
+          .reduce((pv, cv) => pv.concat(cv), []),
+      };
     } catch (e) {
       throw new BadRequestException({
         statusCode: 400,
@@ -330,51 +357,6 @@ export class IntentionService {
         error: `Check parameters for errors`,
       });
     }
-  }
-
-  public async artifactSearch(
-    intention: string | null,
-    action: string | null,
-    traceHash: string | null,
-    checksum: string | null,
-    name: string | null,
-    type: string | null,
-    serviceId: string | null,
-    service: string | null,
-    offset: number,
-    limit: number,
-  ): Promise<ArtifactSearchResult> {
-    const result = await this.intentionRepository.searchIntentions(
-      {
-        'actions.artifacts': { $exists: true },
-        ...(intention ? { _id: new ObjectId(intention) } : {}),
-        ...(service ? { 'actions.service.name': service } : {}),
-        ...(serviceId ? { 'actions.service.id': new ObjectId(serviceId) } : {}),
-        ...(traceHash ? { 'actions.trace.hash': traceHash } : {}),
-        ...(checksum ? { 'actions.artifacts.checksum': checksum } : {}),
-        ...(name ? { 'actions.artifacts.name': name } : {}),
-        ...(type ? { 'actions.artifacts.type': type } : {}),
-      } as FindOptionsWhere<IntentionDto>,
-      offset,
-      limit,
-    );
-
-    return {
-      ...result,
-      data: result.data
-        .map((intention) => {
-          return this.findArtifacts(
-            intention,
-            this.actionUtil.actionToOptions(action),
-            {
-              checksum: checksum,
-              name: name,
-              type: type,
-            },
-          );
-        })
-        .reduce((pv, cv) => pv.concat(cv), []),
-    };
   }
 
   private findArtifacts(
@@ -399,37 +381,62 @@ export class IntentionService {
   }
 
   private async annotateActionPackageFromExistingArtifact(action: ActionDto) {
-    if (
-      action.action === 'package-installation' &&
-      action.source &&
-      action.source.intention
-    ) {
-      const foundArtifact = await this.artifactSearch(
-        action.source.intention.toString(),
-        action.source.action,
-        null,
-        action.package?.checksum,
-        action.package?.name,
-        action.package?.type,
-        action.service.id?.toString(),
-        action.service.name,
-        0,
-        1,
-      );
-      if (foundArtifact.meta.total !== 1 && foundArtifact.data.length !== 1) {
-        // Skip: Could not uniquely identify artifact based on package
+    if (action.action !== 'package-installation' || !action.service.id) {
+      // Only annotates package installations
+      // Only existing services (with service.id set) will have artifacts
+      return;
+    }
+    let artifactSearchResult: ArtifactSearchResult;
+
+    if (action.source && action.source.intention) {
+      // Get using source -- preferred method
+      artifactSearchResult = await this.artifactSearchByQuery({
+        intention: action.source.intention.toString(),
+        action: action.source.action,
+        checksum: action.package?.checksum,
+        name: action.package?.name,
+        type: action.package?.type,
+        version: action.package?.version,
+        serviceId: action.service.id?.toString(),
+        service: action.service.name,
+        offset: 0,
+        limit: 1,
+      });
+
+      if (
+        artifactSearchResult.meta.total !== 1 &&
+        artifactSearchResult.data.length !== 1
+      ) {
+        // Skip: Could not uniquely identify artifact based on source
         return;
       }
-
-      action.package = {
-        ...(foundArtifact.data[0].action.package ?? {}),
-        ...foundArtifact.data[0].artifact,
-        ...action.package,
-      };
-      action.source.action = this.actionUtil.actionToIdString(
-        foundArtifact.data[0].action,
-      );
+    } else if (action.package?.name && action.package?.version) {
+      artifactSearchResult = await this.artifactSearchByQuery({
+        action: action.source?.action,
+        checksum: action.package?.checksum,
+        name: action.package?.name,
+        type: action.package?.type,
+        version: action.package?.version,
+        serviceId: action.service.id?.toString(),
+        service: action.service.name,
+        offset: 0,
+        limit: 1,
+      });
     }
+
+    if (artifactSearchResult.meta.total === 0) {
+      // Could not identify artifact
+      return;
+    }
+
+    action.package = {
+      ...(artifactSearchResult.data[0].action.package ?? {}),
+      ...artifactSearchResult.data[0].artifact,
+      ...action.package,
+    };
+    action.source.action = this.actionUtil.actionToIdString(
+      artifactSearchResult.data[0].action,
+    );
   }
 
   private async finalizeIntention(
