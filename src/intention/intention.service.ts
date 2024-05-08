@@ -422,6 +422,8 @@ export class IntentionService {
         offset: 0,
         limit: 1,
       });
+    } else {
+      return;
     }
 
     if (artifactSearchResult.meta.total === 0) {
