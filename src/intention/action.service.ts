@@ -19,6 +19,7 @@ import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
 import { PackageBuildActionDto } from './dto/package-build-action.dto';
+import { PackageDto } from './dto/package.dto';
 
 /**
  * Assists with the validation of intention actions
@@ -269,6 +270,18 @@ export class ActionService {
         };
       }
 
+      if (!action.package?.buildVersion) {
+        return {
+          message: 'Package actions must specify scm hash.',
+          data: {
+            action: action.action,
+            action_id: action.id,
+            key: 'action.package.buildVersion',
+            value: action.package?.buildVersion,
+          },
+        };
+      }
+
       const parsedVersion = this.parseActionVersion(action);
       if (parsedVersion.prerelease) {
         return null;
@@ -301,14 +314,18 @@ export class ActionService {
 
       if (
         existingBuild &&
-        (action.package?.buildVersion !== existingBuild.package?.buildVersion ||
-          (action.package?.checksum &&
-            action.package?.checksum !== existingBuild.package?.checksum) ||
-          (action.package?.size &&
-            action.package?.size !== existingBuild.package?.size))
+        (this.checkValueChanged(
+          action.package,
+          existingBuild.package,
+          'buildVersion',
+        ) ||
+          this.checkValueChanged(
+            action.package,
+            existingBuild.package,
+            'checksum',
+          ) ||
+          this.checkValueChanged(action.package, existingBuild.package, 'size'))
       ) {
-        // console.log(action.package);
-        // console.log(existingBuild.package);
         return {
           message: 'Release version may not be altered.',
           data: {
@@ -321,6 +338,23 @@ export class ActionService {
       }
     }
     return null;
+  }
+
+  private checkValueChanged(
+    newPackage: PackageDto | undefined,
+    curPackage: PackageDto | undefined,
+    value: string,
+  ) {
+    if (
+      !curPackage ||
+      !newPackage ||
+      curPackage[value] === undefined ||
+      newPackage[value] === undefined
+    ) {
+      return false;
+    }
+
+    return curPackage[value] !== newPackage[value];
   }
 
   private async validatePackageInstallAction(

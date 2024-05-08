@@ -39,6 +39,14 @@ export class ArtifactSearchQuery {
   @IsOptional()
   type?: string;
 
+  @IsString()
+  @IsOptional()
+  version?: string;
+
+  @IsString()
+  @IsOptional()
+  outcome?: string;
+
   @IsInt()
   @IsDefined()
   @Type(() => Number)
