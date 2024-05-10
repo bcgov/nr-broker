@@ -442,6 +442,11 @@ export class IntentionService {
       ...artifactSearchResult.data[0].artifact,
       ...action.package,
     };
+    if (!action.source) {
+      action.source = {
+        intention: artifactSearchResult.data[0].intention.id,
+      };
+    }
     action.source.action = this.actionUtil.actionToIdString(
       artifactSearchResult.data[0].action,
     );
