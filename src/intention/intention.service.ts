@@ -364,20 +364,25 @@ export class IntentionService {
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {
+    const artifactCombos: ArtifactActionCombo[] = [];
     for (const action of this.actionUtil.filterActions(
       intention.actions,
       actionOptions,
     )) {
       if (!action.artifacts) {
-        return;
+        continue;
       }
       const artifacts = action.artifacts.filter((artifact) => {
         return Object.entries(artifactOptions).every(
           ([k, v]) => !v || artifact[k] === v,
         );
       });
-      return artifacts.map((artifact) => ({ action, artifact, intention }));
+
+      artifactCombos.push(
+        ...artifacts.map((artifact) => ({ action, artifact, intention })),
+      );
     }
+    return artifactCombos;
   }
 
   private async annotateActionPackageFromExistingArtifact(action: ActionDto) {
@@ -411,6 +416,7 @@ export class IntentionService {
         return;
       }
     } else if (action.package?.name && action.package?.version) {
+      // Find latest artifact for this service with same package name and version
       artifactSearchResult = await this.artifactSearchByQuery({
         action: action.source?.action,
         checksum: action.package?.checksum,
@@ -575,6 +581,18 @@ export class IntentionService {
         error: `Action's current lifecycle state (${action.lifecycle}) can not register artifacts`,
       });
     }
+    if (
+      action.artifacts &&
+      action.artifacts.filter((value) => value.name === artifact.name).length >
+        0
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal artifact register',
+        error: `Artifact '${artifact.name}' already exists`,
+      });
+    }
+
     this.auditService.recordIntentionActionUsage(
       req,
       intention,

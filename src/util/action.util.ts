@@ -87,6 +87,9 @@ export class ActionUtil {
     if (!actions) {
       return [];
     }
+    if (!actionOptions.action && !actionOptions.id) {
+      return actions;
+    }
     return actions.filter((action) => {
       return Object.entries(actionOptions).every(
         ([k, v]) => !v || action[k] === v,
