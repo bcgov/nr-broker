@@ -34,9 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Run Loop Script
-        run: sh ./.github/workflows/loop-script.sh
+        uses: actions/configure-pages@v5
       - name: Upload Docs
         uses: actions/upload-pages-artifact@v2
         with:
