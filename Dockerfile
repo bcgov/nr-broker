@@ -26,7 +26,7 @@ RUN npm run build -- --configuration development${NG_BUILD_CONFIG} && \
 #     mv dist/ui/browser dist-test
 
 RUN npm run build -- --configuration production${NG_BUILD_CONFIG} && \
-    mv dist/ui/browser dist-test && \
+    cp -R dist/ui/browser dist-test && \
     mv dist/ui/browser dist-production
 
 # Deployment container
