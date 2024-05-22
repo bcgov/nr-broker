@@ -77,22 +77,8 @@
                 }
               ]
             },
-            "test": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.test.ts"
-                }
-              ]
-            },
-            "development": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.development.ts"
-                }
-              ]
-            },
+            "test": { },
+            "development": { },
             "bcgov": {
               "assets": [
                 "src/android-chrome-192x192.png",
@@ -169,5 +155,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
