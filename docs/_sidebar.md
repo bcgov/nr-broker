@@ -14,6 +14,7 @@
 ** [MongoDB](/development_mongodb.md)
 ** [Intention Lifecycle](/dev_intention_lifecycle.md)
 ** [Intention Usage](/dev_intention_usage.md)
+** [Customize Homepage](/dev_customize_connections.md)
 
 * Reference
 ** [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html)
