@@ -1,3 +1,4 @@
+import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemController } from './system.controller';
 
@@ -7,7 +8,9 @@ describe('SystemController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SystemController],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     controller = module.get<SystemController>(SystemController);
   });
