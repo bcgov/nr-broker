@@ -25,6 +25,6 @@ describe('HealthController', () => {
 
   it('ping calls healthService.check()', () => {
     controller.ping();
-    expect(healthService.check).toBeCalled();
+    expect(healthService.check).toHaveBeenCalled();
   });
 });

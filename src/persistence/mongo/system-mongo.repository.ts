@@ -2,6 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
 // import { ObjectId } from 'mongodb';
 
+import { ConnectionConfigDto } from '../dto/connection-config.dto';
 import { JwtAllowDto } from '../dto/jwt-allow.dto';
 import { JwtBlockDto } from '../dto/jwt-block.dto';
 import { JwtRegistryDto } from '../dto/jwt-registry.dto';
@@ -14,6 +15,8 @@ import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto'
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
+    @InjectRepository(ConnectionConfigDto)
+    private readonly connectionConfigRepository: MongoRepository<ConnectionConfigDto>,
     @InjectRepository(JwtAllowDto)
     private readonly jwtAllowRepository: MongoRepository<JwtAllowDto>,
     @InjectRepository(JwtBlockDto)
@@ -187,5 +190,9 @@ export class SystemMongoRepository implements SystemRepository {
       { upsert: true },
     );
     return result.matchedCount === 1 || result.upsertedCount === 1;
+  }
+
+  public getConnectionConfigs(): Promise<ConnectionConfigDto[]> {
+    return this.connectionConfigRepository.find();
   }
 }

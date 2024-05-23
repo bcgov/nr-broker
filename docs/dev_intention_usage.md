@@ -9,6 +9,7 @@ Once you have used your Broker Token to open an intention, you can use the provi
 The first step is to determine if you are provisioning an application or just accessing its secrets. In this context, provisioning means setting up an application to have continued access to the Vault. Accessing means you need temporary access to accomplish some goal.
 
 **Examples**
+
 * Provision: Start an OpenShift pod, Run a server application on premise and other continuous activities
 * Access: Run Liquibase, Github action, other one-off or scheduled activities
 

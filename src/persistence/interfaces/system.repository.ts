@@ -1,3 +1,4 @@
+import { ConnectionConfigDto } from '../dto/connection-config.dto';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
 import { JwtRegistryDto } from '../dto/jwt-registry.dto';
 import { PreferenceRestDto } from '../dto/preference-rest.dto';
@@ -30,4 +31,6 @@ export abstract class SystemRepository {
     guid: string,
     preference: PreferenceRestDto,
   ): Promise<boolean>;
+
+  public abstract getConnectionConfigs(): Promise<ConnectionConfigDto[]>;
 }

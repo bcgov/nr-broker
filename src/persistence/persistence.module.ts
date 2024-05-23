@@ -4,6 +4,7 @@ import { createClient, createCluster } from 'redis';
 
 import { BrokerAccountDto } from './dto/broker-account.dto';
 import { CollectionConfigDto } from './dto/collection-config.dto';
+import { ConnectionConfigDto } from './dto/connection-config.dto';
 import { EdgeDto } from './dto/edge.dto';
 import { EnvironmentDto } from './dto/environment.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
@@ -75,6 +76,7 @@ const redisFactory = {
     TypeOrmModule.forFeature([
       BrokerAccountDto,
       CollectionConfigDto,
+      ConnectionConfigDto,
       EdgeDto,
       EnvironmentDto,
       IntentionDto,

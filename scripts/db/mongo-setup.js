@@ -11,8 +11,27 @@ db.team.drop();
 db.user.drop();
 db.collectionConfig.drop();
 db.intention.drop();
+db.connectionConfig.drop();
 
 db.jwtAllow.insertOne({});
+
+db.connectionConfig.insertOne({
+  collection: 'documentation',
+  description:
+    'Read the developer documentation to discover how teams can take advantage of it.',
+  href: 'https://bcgov-nr.github.io/nr-broker/#/',
+  name: 'Developer Documentation',
+  order: 10,
+});
+
+db.connectionConfig.insertOne({
+  collection: 'documentation',
+  description:
+    "Use NR Broker's interactive API documentation to test access and view data.",
+  href: '/api',
+  name: 'Swagger Documentation',
+  order: 20,
+});
 
 // ==> Environments
 result = db.vertex.insertOne({ collection: 'environment', name: 'production' });
