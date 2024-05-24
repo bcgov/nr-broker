@@ -85,15 +85,15 @@ $bc-accent-palette: (
 );
 
 
-$primary: mat.define-palette($bc-primary-palette);
-$accent: mat.define-palette($bc-accent-palette, A200, A100, A400);
+$primary: mat.m2-define-palette($bc-primary-palette);
+$accent: mat.m2-define-palette($bc-accent-palette, A200, A100, A400);
 
-$theme: mat.define-light-theme((
+$theme: mat.m2-define-light-theme((
  color: (
    primary: $primary,
    accent: $accent,
  ),
- typography: mat.define-typography-config(
+ typography: mat.m2-define-typography-config(
   $font-family: "'BCSans', 'Noto Sans', Verdana, Arial, sans-serif"
  ),
  density: 0,
