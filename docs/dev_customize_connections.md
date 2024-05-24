@@ -19,7 +19,7 @@ db.connectionConfig.insertOne({
 });
 ```
 
-By default, no service connections are defined.
+The initial install has no service connections defined.
 
 ## Documentation type connections
 
@@ -36,4 +36,4 @@ db.connectionConfig.insertOne({
 });
 ```
 
-By default, NR Broker's documentation connections are defined.
+The initial install has generic documentation connections defined.

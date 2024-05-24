@@ -1,6 +1,8 @@
+# JWT Reference
+
 Applications authenticate with the Broker using a JWT. Users associated with a'team' vertex in the graph can generate tokens for that team. The team's properties and its connections in the graph provides authorization.
 
-# JWT Payload
+## JWT Payload
 
 | Claim | Type | Usage |
 | ----- | ---- | ----- |
@@ -13,7 +15,7 @@ Applications authenticate with the Broker using a JWT. Users associated with a't
 
 See: https://www.iana.org/assignments/jwt/jwt.xhtml
 
-# JWT Tools
+## JWT Tools
 
 https://jwt.io/#debugger-io
 

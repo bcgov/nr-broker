@@ -1,4 +1,4 @@
-# Intention Usage
+# Using Intentions to Access Vault
 
 **Prerequisites:** Action started. See [Intention Lifecycle](/dev_intention_lifecycle.md)
 
@@ -11,17 +11,19 @@ The first step is to determine if you are provisioning an application or just ac
 **Examples**
 
 * Provision: Start an OpenShift pod, Run a server application on premise and other continuous activities
-* Access: Run Liquibase, Github action, other one-off or scheduled activities
+* Access: Run Liquibase, GitHub Action, other one-off or scheduled activities
 
 It is not recommended to use the "access" pattern to simply copy the secrets and then do a continuous activity. The source of truth for the secrets should always be Vault. Tools like envconsul and consul-template should be used to manage the provisioned Vault token and keep the secrets that your application is using up-to-date.
 
 ## Provisioning Action
 
+**Examples:** Start an OpenShift pod, Run a server application on premise and other continuous activities
+
 If you are following the provision workflow, you'll be using the static role id unique to the instance of your deployment (retrieved via Broker UI or API) and a secret id (retrieved via Broker API) to login your application to Vault.
 
 The first step is to open your intention with the Broker API. You must provide your team's JWT as an authorization bearer token.
 
-You must modify the event, service and user fields in this example. In particular, the user id (<username>@idir or <username>@github) must be a member of your team (even if this sent by an automated process). Jq is an excellent tool for doing this modification.
+You must modify the event, service and user fields in this example. In particular, the user id must be a member of your team (even if this sent by an automated process). Jq is an excellent tool for doing this modification.
 
 You may wish (or be required) to provide additional actions to describe the intention in more detail. (Example: accessing a server to do the provision)
 
@@ -129,6 +131,8 @@ You're done! Pass in '.token' from the open response as the 'x-broker-token' hea
 * Envconsul
 
 ## Accessing Action
+
+**Examples:** Run Liquibase, GitHub Action, other one-off or scheduled activities
 
 If you are following the access workflow, you'll be using the role id (provided) to retrieve a wrapped token with access to Vault. The token will have policies that are identical to a provisioned token. The 'provision/token/self' API allows you to skip sending a request to Vault to do the login yourself. The main difference is that the token cannot be renewed. The example here assumes some kind of database upgrade is going on.
 
