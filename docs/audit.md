@@ -45,12 +45,12 @@ All auth fields are custom to the Broker audit log.
 
 | Field | Mandatory | Type | Description | Values |
 | ----- | --------- | ---- | ----------- | ------ |
-| auth.client_token | (grey lightbulb) | keyword | Vault client_token (wrapped) that is being provided to an application. Used for tracking usage in Vault audit Index. | See below. Hashed token |
-| auth.exp | (grey lightbulb) | long | JWT Claim | See: Broker JWT |
-| auth.iat | (grey lightbulb) | long | JWT Claim | See: Broker JWT |
-| auth.nbf | (grey lightbulb) | long | JWT Claim | See: Broker JWT |
-| auth.jti | (grey lightbulb) | keyword | JWT Claim | See: Broker JWT |
-| auth.sub | (grey lightbulb) | keyword | JWT Claim | See: Broker JWT |
+| auth.client_token | No | keyword | Vault client_token (wrapped) that is being provided to an application. Used for tracking usage in Vault audit Index. | See below. Hashed token |
+| auth.exp | No| long | JWT Claim | See: [Broker JWT](operations_jwt.md) |
+| auth.iat | No | long | JWT Claim | See: [Broker JWT](operations_jwt.md) |
+| auth.nbf | No | long | JWT Claim | See: [Broker JWT](operations_jwt.md) |
+| auth.jti | No | keyword | JWT Claim | See: [Broker JWT](operations_jwt.md) |
+| auth.sub | No | keyword | JWT Claim | See: [Broker JWT](operations_jwt.md) |
 
 ### Tracking Broker Created tokens in Vault Audit
 

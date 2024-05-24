@@ -566,6 +566,13 @@ export class GraphService {
     edgeName?: string,
     edgeTarget?: string,
   ) {
+    if (CollectionNameEnum[collection] === undefined) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
     if ((edgeName === undefined) !== (edgeTarget === undefined)) {
       throw new BadRequestException({
         statusCode: 400,
