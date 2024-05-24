@@ -2,17 +2,27 @@
 
 * [Home](/)
 
-* Architecture
-** [Audit](/audit.md)
+* Integrating
+** [Overview](/dev_integrate_overview.md)
+** [Generate Account Token](/dev_account_token.md)
+** [Intention Lifecycle](/dev_intention_lifecycle.md)
+** [Using Intentions to Access Vault](/dev_intention_usage.md)
+** [Intetion Action Reference](/dev_intention_actions.md)
+** [GitHub Actions](/github_actions.md)
 
 * Operations
-** [Adding Internal Users](/operations_internal_user.md)
-** [JWT](/operations_jwt.md)
+** [Manage my Team](/ops_manage_team.md)
+** [Understanding the Audit Log](/audit.md)
+** [JWT Reference](/operations_jwt.md)
 
 * Development
 ** [Development](/development.md)
-** [Intention Lifecycle](/dev_intention_lifecycle.md)
-** [Intention Usage](/dev_intention_usage.md)
+** [MongoDB](/dev_mongodb.md)
+** [Document Site](/dev_docsite.md)
+
+* Maintenance
+** [Adding Internal Users](/operations_internal_user.md)
+** [Customize Homepage](/dev_customize_connections.md)
 
 * Reference
 ** [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html)

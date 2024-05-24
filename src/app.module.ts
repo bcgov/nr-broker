@@ -19,6 +19,7 @@ import { CollectionModule } from './collection/collection.module';
 import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
 import { PreferenceModule } from './preference/preference.module';
 import { RedisModule } from './redis/redis.module';
+import { SystemModule } from './system/system.module';
 
 /**
  * Convenience function for converting an environment variable to an object
@@ -76,6 +77,7 @@ function envToObj(key: string, envName: string) {
     CollectionModule,
     PreferenceModule,
     RedisModule,
+    SystemModule,
   ],
   controllers: [],
   providers: [],

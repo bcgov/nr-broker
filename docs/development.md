@@ -79,6 +79,8 @@ Once started, you must use the MongoDB setup script to bootstrap the database. I
 $ ./scripts/mongo-setup.sh
 ```
 
+See: [MongoDB Development](./dev_mongodb.md)
+
 ### Setup Vault
 
 ```bash
@@ -124,36 +126,15 @@ $ source ./scripts/setenv-backend-dev.sh kinesis
 $ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
-## Connect to MongoDB
+### Local MongoDB Disconnects
+
+The connection to MongoDB may time out if your machine goes to sleep. The easiest way to recover is to stop the backend, restart the containers and rerun the vault setup. The provided restart script will do the container and setup steps for you.
 
 ```bash
-mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB
+./scripts/restart.sh
 ```
 
-### Wiping the graph database
-
-If at any time you need to wipe the graph database, you can drop the tables by using mongosh and then reinstall.
-
-```
-brokerDB> db.service.drop(); db.vertex.drop(); db.edge.drop(); db.project.drop(); db.environment.drop(); db.serviceInstance.drop();
-```
-
-### Restoring a database from a dump
-
-If you have an existing database, connect to it and delete it first.
-
-```
-brokerDB> db.dropDatabase()
-```
-
-Run the following. Alter the path to dump taken with mongodump as needed. The important thing is that you want to overwrite the broker database (brokerDB) and not the authentication database.
-
-```
-mongorestore --host=localhost:27017 --authenticationDatabase=admin -u=mongoadmin -p=secret --db=brokerDB *path/to/backup*/brokerDB
-```
-
-If you want to use the samples in the scripts folder, you may need to alter the user value sent and the team ids (admin and DBA) in [setenv-backend-dev.sh](scripts/setenv-backend-dev.sh).
-
+You can then restart the backend.
 
 ## API demonstrations
 

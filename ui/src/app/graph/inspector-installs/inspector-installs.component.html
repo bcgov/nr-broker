@@ -22,7 +22,7 @@
       <mat-icon>navigate_next</mat-icon>
     </button>
 
-    <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+    <button mat-icon-button [disabled]="!current" [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
     <mat-menu #menu="matMenu">
       @if (current && current.intention) {
         <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>

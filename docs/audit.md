@@ -1,4 +1,4 @@
-# NR Broker Audit Log
+# Understanding the Audit Log
 
 NR Broker outputs both audit and access log streams to a configurable HTTP endpoint. How to receive, save and make the data searchable is outside the scope of the NR Broker documentation.
 
