@@ -24,5 +24,9 @@
 ** [Adding Internal Users](/operations_internal_user.md)
 ** [Customize Homepage](/dev_customize_connections.md)
 
+* Deploy
+** [Broker Token](/dev_broker_token.md)
+** [Environment Variables](/dev_env_vars.md)
+
 * Reference
 ** [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-reference.html)

@@ -33,8 +33,7 @@ const hostInfo = {
  */
 @Injectable()
 export class AuditService {
-  private readonly metadataIntentionActivity = {};
-  private readonly metadataAuth = {};
+  private readonly metadataActivity = {};
   private readonly metadataHttpAccess = {};
 
   /**
@@ -43,13 +42,8 @@ export class AuditService {
    */
   constructor(private readonly stream: AuditStreamerService) {
     if (process.env.BROKER_AUDIT_INDEX_ACTIVITY) {
-      this.metadataIntentionActivity['@metadata'] = {
+      this.metadataActivity['@metadata'] = {
         index: process.env.BROKER_AUDIT_INDEX_ACTIVITY,
-      };
-    }
-    if (process.env.BROKER_AUDIT_INDEX_AUTH) {
-      this.metadataAuth['@metadata'] = {
-        index: process.env.BROKER_AUDIT_INDEX_AUTH,
       };
     }
     if (process.env.BROKER_AUDIT_INDEX_HTTP_ACCESS) {
@@ -97,7 +91,7 @@ export class AuditService {
         map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
@@ -154,7 +148,7 @@ export class AuditService {
           ),
           map(this.addHostFunc),
           map(this.addLabelsFunc),
-          map(this.addMetadataIntentionActivityFunc()),
+          map(this.addMetadataActivityFunc()),
           map(this.addServiceFunc),
           map(this.addSourceFunc(req)),
           map(this.addTimestampFunc(now)),
@@ -204,7 +198,7 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
@@ -250,7 +244,7 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
@@ -293,7 +287,7 @@ export class AuditService {
         map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addAssignFunc(assignObj)),
-        map(this.addMetadataIntentionActivityFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
@@ -331,7 +325,7 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataAuthFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
@@ -368,7 +362,7 @@ export class AuditService {
         map(this.addGraphObjectFunc(set, graphObj)),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataAuthFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addRequestUserFunc(req)),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
@@ -409,7 +403,7 @@ export class AuditService {
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
-        map(this.addMetadataAuthFunc()),
+        map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
@@ -743,17 +737,8 @@ export class AuditService {
    * This allows dev environments to send data to a temporary index.
    * @returns Function to generate partial ECS document
    */
-  private addMetadataIntentionActivityFunc() {
-    return (ecsObj: any) => merge(ecsObj, this.metadataIntentionActivity);
-  }
-
-  /**
-   * Map function generator for adding authentication activity metadata to ECS document.
-   * This allows dev environments to send data to a temporary index.
-   * @returns Function to generate partial ECS document
-   */
-  private addMetadataAuthFunc() {
-    return (ecsObj: any) => merge(ecsObj, this.metadataAuth);
+  private addMetadataActivityFunc() {
+    return (ecsObj: any) => merge(ecsObj, this.metadataActivity);
   }
 
   /**
