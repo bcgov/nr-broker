@@ -14,7 +14,7 @@
 | process-end | Indicates the ending of a process (shutting down of a service) |
 | process-start | Indicates the starting of a process (starting up of a service) |
 
-The actions are loosely based on Elastic Common Schema event.action which is "more specific than" event.category. The accepted values for event.category are a good starting point if you need to add a new value.
+The actions are loosely based on Elastic Common Schema [event.action](https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-action) which is "more specific than" [event.category](https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-category). The [accepted values for event.category](https://www.elastic.co/guide/en/ecs/current/ecs-allowed-values-event-category.html) are a good starting point if you need to add a new value.
 
 The first pass at defining actions directly used the event category and type fields. This proved difficult as the audit logs themselves are events (that should be categorized). The Elastic Common Schema definition for those fields, while logical, had to be twisted to define many actions, obscured what the action was and setting two or more fields was error prone. So, the action became a single separate field, but, we still want it to be similar to the event.action field.
 

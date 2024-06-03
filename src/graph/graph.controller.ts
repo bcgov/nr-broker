@@ -215,6 +215,10 @@ export class GraphController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({
+    name: 'collection',
+    required: true,
+  })
+  @ApiQuery({
     name: 'edgeName',
     required: false,
   })
