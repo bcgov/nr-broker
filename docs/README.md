@@ -7,3 +7,9 @@ NR Broker is a customizable software deployment business intellegence tool. It a
 Users can search, browse objects, view a graph representation and review activities using a web application. Developers integrate NR Broker into workflows by sending their intentions, requesting access and recording activity using http requests. As such, NR broker works on private on-premise clouds, AWS, OpenShift Clouds and more.
 
 <img src="./images/broker_architecture.png" alt="NR Broker Lifecycle" width="900"/>
+
+## Deployment Specific Information
+
+If this documentation refers to things as 'deployment specific' then you should refer to your team's own documentation. Your deployment should show a link to your documentation on the homepage.
+
+This documentation is generic to all NR Broker installations.
