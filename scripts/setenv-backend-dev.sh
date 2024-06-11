@@ -39,7 +39,7 @@ export ACTION_VALIDATE_TEAM_DBA=64fa194693b3afd6ee63aa99
 
 export HOSTNAME=nr-broker-app-0
 
-export NESTJS_UI_ROOT_PATH=../ui/dist/ui/browser
+export NESTJS_UI_ROOT_PATH=ui/dist/ui/browser
 export NESTJS_HELMET_HSTS=off
 
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_REDIRECT_URI=http://localhost:3000/auth/callback
