@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -21,13 +20,7 @@ import { GraphApiService } from '../../service/graph-api.service';
 @Component({
   selector: 'app-inspector-service-secure',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatDividerModule,
-    MatListModule,
-    MatSlideToggleModule,
-    MatTooltipModule,
-  ],
+  imports: [FormsModule, MatListModule, MatSlideToggleModule, MatTooltipModule],
   templateUrl: './inspector-service-secure.component.html',
   styleUrl: './inspector-service-secure.component.scss',
 })

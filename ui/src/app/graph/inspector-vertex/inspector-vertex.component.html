@@ -1,70 +1,29 @@
 <div>
-
   <app-vertex-tags
     [collectionData]="collectionData"></app-vertex-tags>
 
-  @if (filteredCollectionData && (filteredCollectionData | keyvalue).length > 0 && collectionConfig) {
-    <table mat-table [dataSource]="filteredCollectionData | keyvalue">
-      <!-- Key Column -->
-      <ng-container matColumnDef="key">
-        <th mat-header-cell
-          *matHeaderCellDef> Key </th>
-        <td mat-cell
-          *matCellDef="let element"> {{collectionConfig[collection].fields[element.key].name}} </td>
-      </ng-container>
-      <!-- Value Column -->
-      <ng-container matColumnDef="value">
-        <th mat-header-cell
-          *matHeaderCellDef> Value </th>
-        <td mat-cell
-          *matCellDef="let element">
-          <span class="ellipsis">
-          @switch (getFieldType(element.key)) {
-              @case ('boolean') {
-                @if (element.value) {
-                  Yes
-                } @else {
-                  No
-                }
-              }
-              @case ('date') {
-                {{element.value | date:'shortDate':'UTC'}}
-              }
-              @case ('email') {
-                {{element.value}}
-              }
-              @case ('json') {
-                {{element.value}}
-              }
-              @case ('number') {
-                {{element.value}}
-              }
-              @case ('string') {
-                {{element.value}}
-              }
-              @case ('stringArray') {
-                {{element.value.join(', ')}}
-              }
-              @case ('url') {
-                <a href="{{element.value}}" target="_blank">{{element.value}}</a>
-              }
-              @default {
-              }
-          }
-        </span>
-        </td>
-      </ng-container>
-      <tr mat-header-row
-        *matHeaderRowDef="propDisplayedColumns"></tr>
-      <tr mat-row
-        *matRowDef="let row; columns: propDisplayedColumns;"></tr>
-    </table>
+  @if (collectionData.tags && collectionData.tags.length > 0) {
     <mat-divider></mat-divider>
   }
+
+
+  <app-inspector-vertex-fields
+    #vertexFields
+    [collection]="collection"
+    [collectionConfig]="collectionConfig"
+    [collectionData]="collectionData"
+    [filter]="'yes'"
+    ></app-inspector-vertex-fields>
+
+
+  @if (vertexFields.filteredCollectionCount > 0) {
+    <mat-divider></mat-divider>
+  }
+
   @if (collection === 'brokerAccount') {
     <app-inspector-account
       [account]="collectionData"
-      [userIndex]="collectionConfig?.['user']?.index"></app-inspector-account>
+      [userIndex]="4"></app-inspector-account>
   }
   @if (collection === 'service') {
     @if (outboundConnections) {
@@ -75,11 +34,14 @@
     <app-inspector-intentions
       [id]="collectionData.id"
       [name]="collectionData.name"></app-inspector-intentions>
+    <mat-divider></mat-divider>
     <app-inspector-vault
       [service]="collectionData"></app-inspector-vault>
+    <mat-divider></mat-divider>
     <app-inspector-service-secure
       [service]="collectionData"
-      [userIndex]="collectionConfig?.['user']?.index"></app-inspector-service-secure>
+      [userIndex]="4"></app-inspector-service-secure>
+    <mat-divider></mat-divider>
   }
   @if (collection === 'serviceInstance') {
     <div class="component-spacer">

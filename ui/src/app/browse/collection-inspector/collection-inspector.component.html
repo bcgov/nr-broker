@@ -1,0 +1,66 @@
+<div>
+@if (loading) {
+  <mat-spinner></mat-spinner>
+} @else {
+
+  <app-collection-header
+    [config]="config"
+    [collection]="collection"
+    [collectionData]="collectionData"
+    [isTargetOwner]="isTargetOwner"
+  ></app-collection-header>
+
+  <div class="inspector-card-layout">
+    <app-vertex-tags
+      class="full-width"
+      [collectionData]="collectionData"></app-vertex-tags>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-inspector-vertex-fields
+          [collection]="collection"
+          [collectionConfig]="config"
+          [collectionData]="collectionData"
+          [filter]="'no'"
+          ></app-inspector-vertex-fields>
+      </mat-card-content>
+    </mat-card>
+
+    @if (collection === 'brokerAccount') {
+      <app-inspector-account
+        [account]="collectionData"
+        [userIndex]="4"></app-inspector-account>
+    }
+    @if (collection === 'service') {
+      <div>
+        <app-inspector-vault
+          [service]="collectionData"></app-inspector-vault>
+        <app-inspector-service-secure
+          [service]="collectionData"
+          [userIndex]="4"></app-inspector-service-secure>
+      </div>
+      <app-inspector-instances
+        [service]="collectionData"
+        [vertices]="outboundConnections"></app-inspector-instances>
+
+      <app-inspector-intentions
+        [id]="collectionData.id"
+        [name]="collectionData.name"></app-inspector-intentions>
+    }
+    @if (collection === 'serviceInstance') {
+      <div>
+        <app-inspector-installs
+          [instance]="collectionData"></app-inspector-installs>
+      </div>
+    }
+    @if (collection === 'team') {
+      <app-inspector-team
+        class="full-width"
+        [instance]="collectionData"></app-inspector-team>
+    }
+  </div>
+}
+</div>

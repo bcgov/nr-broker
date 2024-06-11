@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { IntentionApiService } from '../../service/intention-api.service';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+
+import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../../intention/history-table/history-table.component';
 
 @Component({
@@ -14,7 +14,6 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
   imports: [
     CommonModule,
     MatButtonModule,
-    MatDividerModule,
     MatExpansionModule,
     MatListModule,
     HistoryTableComponent,

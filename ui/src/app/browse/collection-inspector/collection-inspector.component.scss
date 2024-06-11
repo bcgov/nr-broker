@@ -1,0 +1,17 @@
+
+.inspector-card-layout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 16px 32px;
+}
+
+.inspector-card-layout > * {
+  width: calc(50% - 8px);
+}
+
+.inspector-card-layout > .full-width {
+  width: 100%;
+}

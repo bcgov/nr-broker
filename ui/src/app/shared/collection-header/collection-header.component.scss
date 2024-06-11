@@ -1,0 +1,36 @@
+.collection-flex-container {
+  display: flex;
+  align-items: center;
+  margin: 16px;
+}
+
+.collection-flex-container * {
+  margin: 0;
+  margin-right: 12px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.collection-subtitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.54);
+  font-weight: 500;
+  height: 22px;
+  letter-spacing: 0.1px;
+  line-height: 22px;
+}
+
+.collection-title {
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 20px;
+  font-weight: 500;
+  height: 32px;
+  letter-spacing: 0.25px;
+  line-height: 32px;
+}
+
+.spaced-btn {
+  padding-right: 32px;
+}

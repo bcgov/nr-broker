@@ -51,6 +51,7 @@ import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-co
 import { InspectorEdgeComponent } from '../inspector-edge/inspector-edge.component';
 import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.component';
 import { TagDialogComponent } from '../tag-dialog/tag-dialog.component';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-inspector',
@@ -70,6 +71,7 @@ import { TagDialogComponent } from '../tag-dialog/tag-dialog.component';
     MatMenuModule,
     MatTableModule,
     MatChipsModule,
+    RouterModule,
     TagDialogComponent,
     TitleCasePipe,
   ],
@@ -326,8 +328,9 @@ export class InspectorComponent implements OnChanges, OnInit {
         .open(VertexDialogComponent, {
           width: '500px',
           data: {
-            config: this.dataConfig.config,
-            target: this.target,
+            configMap: this.dataConfig.config,
+            collection: this.target.data.collection,
+            vertexId: this.target.data.id,
             data: this.collectionData,
           },
         })

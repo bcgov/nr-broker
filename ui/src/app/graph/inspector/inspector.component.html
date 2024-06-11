@@ -1,8 +1,11 @@
 <mat-card class="inspector-card">
   @if (dataConfig) {
-  <div #card (window:resize)="titleWidth=card.getBoundingClientRect().width" class="wrapper">
+  <div
+    #card
+    (window:resize)="titleWidth=card.getBoundingClientRect().width"
+    class="wrapper">
     <div class="fields-wrapper">
-      <mat-card-header>
+      <mat-card-header class="inspector-header">
         <mat-card-subtitle class="text-oneline" [style.width.px]="titleWidth - 130">
           @if (!target) {
             Click graph item to view
@@ -15,8 +18,8 @@
           }
         </mat-card-subtitle>
         <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
-          @if (target && target.type === 'vertex') {
-            {{target.data.name}}
+          @if (target && collectionData && target.type === 'vertex') {
+            <span class="inspector-header-link" routerLink="/browse/{{target.data.collection}}/{{collectionData.id}}">{{target.data.name}}</span>
           }
           @if (target && target.type === 'edge') {
             {{target.data.name | titlecase}}
@@ -30,6 +33,7 @@
     @if (target) {
       <div class="fields-wrapper">
         <button
+          class="menu-btn"
           mat-icon-button
           [matMenuTriggerFor]="menu"
           aria-label="Inspector menu">
@@ -44,6 +48,15 @@
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
             </button>
+            @if (target.type === 'edge') {
+              <button
+                mat-menu-item
+                aria-label="Copy Id"
+                [cdkCopyToClipboard]="getTargetId()">
+                <mat-icon>content_copy</mat-icon>
+                <span>Copy Id</span>
+              </button>
+            }
             @if (target.type === 'vertex') {
               <button
                 mat-menu-item
@@ -51,6 +64,14 @@
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Copy Id"
+                [cdkCopyToClipboard]="getTargetId()">
+                <mat-icon>content_copy</mat-icon>
+                <span>Copy Id</span>
               </button>
               <button
                 mat-menu-item
@@ -69,14 +90,6 @@
             </button>
           </ng-template>
         </mat-menu>
-
-        <button
-          mat-icon-button
-          class="copy-id"
-          aria-label="Copy Id"
-          [cdkCopyToClipboard]="getTargetId()">
-          <mat-icon>content_copy</mat-icon>
-        </button>
       </div>
     }
   </div>
@@ -95,7 +108,7 @@
         @if (target.type === 'vertex' && dataConfig.config && dataConfig.data && collectionData) {
           <app-inspector-vertex
             [collection]="target.data.collection"
-            [collectionConfig]="dataConfig.config"
+            [collectionConfig]="dataConfig.config[target.data.collection]"
             [collectionData]="collectionData"
             [outboundConnections]="outboundConnections"
           ></app-inspector-vertex>

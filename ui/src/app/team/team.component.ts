@@ -242,7 +242,6 @@ export class TeamComponent implements OnInit, OnDestroy {
 
   openMemberDialog(event: Event, elem: CollectionData<TeamRestDto>) {
     event.stopPropagation();
-    // console.log(elem);
     this.dialog
       .open(MemberDialogComponent, {
         width: '600px',

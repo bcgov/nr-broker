@@ -1,0 +1,21 @@
+<div class="team-service-request-form">
+  <mat-form-field>
+    <mat-label>Service</mat-label>
+    <mat-select [formControl]="serviceControl" required>
+      <mat-option>--</mat-option>
+      @for (service of serviceSearch; track service) {
+        <mat-option [value]="service">{{service.edge.prototype.targetName}} - {{service.edge.prototype.name}}</mat-option>
+      }
+    </mat-select>
+    @if (serviceControl.hasError('required')) {
+      <mat-error>Please choose a service</mat-error>
+    }
+    <mat-hint></mat-hint>
+  </mat-form-field>
+
+  <button mat-stroked-button extended color="primary"
+    [disabled]="serviceControl.hasError('required')"
+    (click)="requestService()">
+    Request
+  </button>
+</div>

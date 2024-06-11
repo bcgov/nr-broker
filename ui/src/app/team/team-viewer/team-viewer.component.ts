@@ -7,14 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable, map, switchMap, tap } from 'rxjs';
+import { Observable, switchMap, tap } from 'rxjs';
 
 import { CURRENT_USER } from '../../app-initialize.factory';
-import {
-  ChartClickTargetVertex,
-  CollectionConfigMap,
-  UserDto,
-} from '../../service/graph.types';
+import { ChartClickTargetVertex, UserDto } from '../../service/graph.types';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { TeamRestDto } from '../../service/dto/team-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
@@ -24,14 +20,17 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
 import { PreferencesService } from '../../preferences.service';
 import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import {
+  CollectionConfigInstanceRestDto,
+  CollectionConfigRestDto,
+} from '../../service/dto/collection-config-rest.dto';
+import { TeamServiceRequestComponent } from '../team-service-request/team-service-request.component';
 
 @Component({
   selector: 'app-team-viewer',
   standalone: true,
   imports: [
     CommonModule,
-    InspectorVertexComponent,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
@@ -39,13 +38,15 @@ import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-co
     MatTableModule,
     MatTooltipModule,
     RouterModule,
+    InspectorVertexComponent,
+    TeamServiceRequestComponent,
   ],
   templateUrl: './team-viewer.component.html',
   styleUrl: './team-viewer.component.scss',
 })
 export class TeamViewerComponent {
   team$!: Observable<TeamRestDto>;
-  latestConfig$!: Observable<CollectionConfigMap>;
+  latestConfig$!: Observable<CollectionConfigRestDto | undefined>;
   accountSearch$!: Observable<CollectionSearchResult<BrokerAccountRestDto>>;
   serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
   service: any;
@@ -89,9 +90,7 @@ export class TeamViewerComponent {
       }),
     );
 
-    this.latestConfig$ = this.graphApi
-      .getConfig()
-      .pipe(map(this.graphUtil.configArrToMap));
+    this.latestConfig$ = this.graphApi.getCollectionConfig('team');
   }
 
   openInGraph(elem: TeamRestDto) {
@@ -109,13 +108,5 @@ export class TeamViewerComponent {
         name: account.name,
       },
     };
-  }
-
-  openPrototypeUrl(url: string) {
-    console.log(url);
-  }
-
-  openRequestAccess(elem: TeamRestDto) {
-    console.log(elem);
   }
 }

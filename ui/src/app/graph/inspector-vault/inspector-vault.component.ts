@@ -1,25 +1,24 @@
 import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import prettyMilliseconds from 'pretty-ms';
+
+import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { YesNoPipe } from '../../util/yes-no.pipe';
 import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { GraphApiService } from '../../service/graph-api.service';
 import { DurationPipe } from '../../util/duration.pipe';
-import prettyMilliseconds from 'pretty-ms';
 
 @Component({
   selector: 'app-inspector-vault',
   standalone: true,
   imports: [
     MatButtonModule,
-    MatDividerModule,
     MatDialogModule,
     MatIconModule,
     MatListModule,

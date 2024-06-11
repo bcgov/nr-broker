@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Length,
   ValidationOptions,
   isHash,
   registerDecorator,
@@ -39,6 +40,7 @@ export class ArtifactDto {
   @Column()
   @IsDefined()
   @IsString()
+  @Length(1)
   name: string;
 
   @Column()

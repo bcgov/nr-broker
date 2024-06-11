@@ -8,10 +8,9 @@ describe('InspectorServiceSecureComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InspectorServiceSecureComponent]
-    })
-    .compileComponents();
-    
+      imports: [InspectorServiceSecureComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(InspectorServiceSecureComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -22,38 +22,42 @@
       <mat-icon>navigate_next</mat-icon>
     </button>
 
-    <button mat-icon-button [disabled]="!current" [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
-    <mat-menu #menu="matMenu">
-      @if (current && current.intention) {
-        <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>
-      }
-      @if (current && current.source?.action.source?.intention) {
-        <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View build</button>
-      }
-      <mat-divider></mat-divider>
-      @if (current && current.source?.intention?.event.url) {
-        <a
-          mat-menu-item
-          matTooltip="Access to event log may be restricted"
-          matTooltipPosition="left"
-          matTooltipShowDelay="500"
-          href="{{current.source.intention.event.url}}"
-          target="_blank">View Event</a>
-      }
-      @if (current &&  current.source?.intention?.auditUrl) {
-        <a
-          mat-menu-item
-          href="{{current.source.intention.auditUrl}}"
-          target="_blank">View Audit</a>
-      }
-    </mat-menu>
+    @if (current && current.intention) {
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+      <mat-menu #menu="matMenu">
+        @if (current && current.intention) {
+          <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>
+        }
+        @if (current && current.source?.action.source?.intention) {
+          <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View build</button>
+        }
+        <mat-divider></mat-divider>
+        @if (current && current.source?.intention?.event.url) {
+          <a
+            mat-menu-item
+            matTooltip="Access to event log may be restricted"
+            matTooltipPosition="left"
+            matTooltipShowDelay="500"
+            href="{{current.source.intention.event.url}}"
+            target="_blank">View Event</a>
+        }
+        @if (current && current.source?.intention?.auditUrl) {
+          <a
+            mat-menu-item
+            href="{{current.source.intention.auditUrl}}"
+            target="_blank">View Audit</a>
+        }
+      </mat-menu>
+    }
   </div>
 </div>
 @if (instance) {
-  @if (!current) {
+  @if (!current || !current.source?.intention) {
     <div class="edge-container edge-container-margin-left">None</div>
   }
-  @if (current) {
+  @if (current && current.source?.intention) {
     <div class="edge-container edge-container-margin-left install-details">
       <div>
         <app-outcome-icon

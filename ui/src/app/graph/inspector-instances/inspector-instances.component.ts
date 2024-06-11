@@ -7,19 +7,9 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { UserDto, VertexNavigation } from '../../service/graph.types';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import {
-  InspectorInstanceDialogComponent,
-  InspectorInstanceDialogReturnDao,
-} from '../inspector-instance-dialog/inspector-instance-dialog.component';
-import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
-import { CollectionApiService } from '../../service/collection-api.service';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -29,9 +19,19 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
+import { lastValueFrom } from 'rxjs';
+import { UserDto, VertexNavigation } from '../../service/graph.types';
+import { CURRENT_USER } from '../../app-initialize.factory';
+import {
+  InspectorInstanceDialogComponent,
+  InspectorInstanceDialogReturnDao,
+} from '../inspector-instance-dialog/inspector-instance-dialog.component';
+import { GraphApiService } from '../../service/graph-api.service';
+import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { CollectionApiService } from '../../service/collection-api.service';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
-import { InspectorReleasesComponent } from '../inspector-releases/inspector-releases.component';
+import { InspectorServiceReleasesComponent } from '../inspector-service-releases/inspector-service-releases.component';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -43,7 +43,7 @@ import { InspectorReleasesComponent } from '../inspector-releases/inspector-rele
     MatTableModule,
     InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
-    InspectorReleasesComponent,
+    InspectorServiceReleasesComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
@@ -129,6 +129,9 @@ export class InspectorInstancesComponent implements OnChanges {
   }
 
   openInstanceDialog() {
+    if (!this.vertices) {
+      return;
+    }
     this.dialog
       .open(InspectorInstanceDialogComponent, {
         width: '500px',

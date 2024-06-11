@@ -1,4 +1,4 @@
-@if (user.roles.includes('admin')) {
+@if (vertices && user.roles.includes('admin')) {
 <div class="edge-container">
   <div class="header-container">
     <h3 class="header-text">Instances</h3>
@@ -105,6 +105,6 @@
 <mat-divider></mat-divider>
 
 @if (builds) {
-  <app-inspector-releases
-    [builds]="builds"></app-inspector-releases>
+  <app-inspector-service-releases
+    [builds]="builds"></app-inspector-service-releases>
 }
