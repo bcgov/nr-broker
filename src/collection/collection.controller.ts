@@ -140,7 +140,7 @@ export class CollectionController {
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'collection',
-    graphObjectCollection: 'brokerAccount',
+    graphObjectCollection: 'service',
     graphIdFromParamKey: 'id',
     requiredEdgeNames: ['administrator', 'lead-developer'],
     upstreamRecursive: true,
