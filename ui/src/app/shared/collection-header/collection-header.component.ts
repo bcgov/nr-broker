@@ -55,6 +55,10 @@ export class CollectionHeaderComponent {
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
   }
 
+  isBrowseDisabled() {
+    return !this.config.permissions.browse;
+  }
+
   edit() {
     this.dialog
       .open(VertexDialogComponent, {

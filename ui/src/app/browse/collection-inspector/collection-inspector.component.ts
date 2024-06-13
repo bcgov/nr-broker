@@ -38,6 +38,7 @@ import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-tea
 import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
+import { InspectorServiceReleasesComponent } from '../../graph/inspector-service-releases/inspector-service-releases.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -49,6 +50,7 @@ import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.compone
     InspectorInstancesComponent,
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
+    InspectorServiceReleasesComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
@@ -74,6 +76,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   outboundConnections = null;
   isTargetOwner = false;
   routeSub: Subscription | null = null;
+  serviceDetails: any = null;
+  isAdministrator = false;
 
   private ngUnsubscribe: Subject<any> = new Subject();
 
@@ -115,6 +119,24 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.collectionData = collection;
       this.loading = false;
       this.isTargetOwner = ownedVertex.indexOf(collection.vertex) !== -1;
+      if (this.collection === 'service') {
+        this.collectionApi
+          .getServiceDetails(this.collectionData.id)
+          .subscribe((data: any) => {
+            this.serviceDetails = data;
+          });
+        this.graphApi
+          .getUpstream(this.collectionData.vertex, 4, [
+            'administrator',
+            'lead-developer',
+          ])
+          .subscribe((data) => {
+            this.isAdministrator =
+              data.filter((data) => {
+                return data.collection.guid === this.user.guid;
+              }).length > 0;
+          });
+      }
       if (es !== null) {
         if (es.event === 'vertex-edit') {
           if (es.vertex.id === collection.vertex) {

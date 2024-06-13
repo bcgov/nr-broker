@@ -1,7 +1,13 @@
-import { Component, Input } from '@angular/core';
+import {
+  Component,
+  Inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { VertexNavigation } from '../../service/graph.types';
+import { UserDto, VertexNavigation } from '../../service/graph.types';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
@@ -13,6 +19,9 @@ import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspector-vertex-fields.component';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { GraphApiService } from '../../service/graph-api.service';
+import { CURRENT_USER } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-inspector-vertex',
@@ -32,9 +41,44 @@ import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspe
   templateUrl: './inspector-vertex.component.html',
   styleUrl: './inspector-vertex.component.scss',
 })
-export class InspectorVertexComponent {
+export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: CollectionNames;
   @Input() collectionConfig!: CollectionConfigRestDto;
   @Input() collectionData: any = null;
   @Input() outboundConnections!: VertexNavigation | null;
+  serviceDetails: any = null;
+  isAdministrator = false;
+
+  constructor(
+    private readonly collectionApi: CollectionApiService,
+    private readonly graphApi: GraphApiService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
+  ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['collection']) {
+      this.loadServiceDetails();
+    }
+  }
+
+  private loadServiceDetails() {
+    if (this.collection === 'service') {
+      this.collectionApi
+        .getServiceDetails(this.collectionData.id)
+        .subscribe((data: any) => {
+          this.serviceDetails = data;
+        });
+      this.graphApi
+        .getUpstream(this.collectionData.vertex, 4, [
+          'administrator',
+          'lead-developer',
+        ])
+        .subscribe((data) => {
+          this.isAdministrator =
+            data.filter((data) => {
+              return data.collection.guid === this.user.guid;
+            }).length > 0;
+        });
+    }
+  }
 }

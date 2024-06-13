@@ -240,7 +240,9 @@
                 </mat-card-content>
                 @if (action.source?.intention) {
                   <mat-card-actions align="end" >
-                    <button mat-button (click)="viewIntention(action.source.intention)">View build</button>
+                    <button
+                      mat-button
+                      (click)="viewIntention(action.source.intention)">View build</button>
                   </mat-card-actions>
                 }
               </mat-card>

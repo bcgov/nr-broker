@@ -31,6 +31,7 @@ import { DurationPipe } from '../../util/duration.pipe';
 })
 export class InspectorVaultComponent {
   @Input() service!: ServiceRestDto;
+  @Input() isAdministrator!: boolean;
 
   @Output() refreshData = new EventEmitter();
 
@@ -62,6 +63,7 @@ export class InspectorVaultComponent {
           delete data.id;
           delete data.vertex;
           data.vaultConfig = result.vaultConfig;
+          console.log(data);
           this.graphApi
             .editVertex(this.service.vertex, {
               collection: 'service',

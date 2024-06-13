@@ -239,6 +239,8 @@ export class GraphController {
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromParamKey: 'id',
+    requiredEdgeNames: ['administrator', 'lead-developer'],
+    upstreamRecursive: true,
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()

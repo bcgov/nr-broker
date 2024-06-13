@@ -1,15 +1,14 @@
-<div class="edge-container">
-  <h3 class="heading">Recent Intentions</h3>
-</div>
 @if (total == 0) {
   <div class="edge-container intention-none">None</div>
 } @else {
   <app-history-table
     [actionServiceFilter]="name"
     [intentionData]="intentions"
-    [layout]="'narrow'"
+    [layout]="layout"
     [showHeader]="false"
-    [openFirst]="true"></app-history-table>
+    [openFirst]="true"
+    (viewIntentionEvent)="this.viewIntention($event)"
+    ></app-history-table>
 }
 @if (total > 0) {
   <div class="more-panel">

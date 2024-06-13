@@ -24,6 +24,7 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
 export class InspectorIntentionsComponent implements OnChanges {
   @Input() id!: string;
   @Input() name!: string;
+  @Input() layout: 'narrow' | 'normal' = 'narrow';
   intentions: any[] = [];
   total = 0;
 
@@ -44,6 +45,16 @@ export class InspectorIntentionsComponent implements OnChanges {
       {
         field: 'service',
         value: this.name,
+      },
+    ]);
+  }
+
+  viewIntention(event: any) {
+    this.router.navigate([
+      '/intention/history',
+      {
+        field: 'id',
+        value: event,
       },
     ]);
   }

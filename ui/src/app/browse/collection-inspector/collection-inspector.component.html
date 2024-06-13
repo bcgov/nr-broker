@@ -30,25 +30,68 @@
     </mat-card>
 
     @if (collection === 'brokerAccount') {
-      <app-inspector-account
-        [account]="collectionData"
-        [userIndex]="4"></app-inspector-account>
+      <mat-card>
+        <mat-card-content>
+          <app-inspector-account
+            [account]="collectionData"
+            [userIndex]="4"></app-inspector-account>
+        </mat-card-content>
+      </mat-card>
     }
     @if (collection === 'service') {
-      <div>
-        <app-inspector-vault
-          [service]="collectionData"></app-inspector-vault>
-        <app-inspector-service-secure
-          [service]="collectionData"
-          [userIndex]="4"></app-inspector-service-secure>
-      </div>
-      <app-inspector-instances
-        [service]="collectionData"
-        [vertices]="outboundConnections"></app-inspector-instances>
 
-      <app-inspector-intentions
-        [id]="collectionData.id"
-        [name]="collectionData.name"></app-inspector-intentions>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Instances</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-instances
+            [service]="collectionData"
+            [vertices]="outboundConnections"
+            [details]="serviceDetails"></app-inspector-instances>
+        </mat-card-content>
+      </mat-card>
+
+    @if (serviceDetails && serviceDetails.builds) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Releases</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-service-releases
+            [builds]="serviceDetails.builds"></app-inspector-service-releases>
+        </mat-card-content>
+      </mat-card>
+    }
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Secrets</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-vault
+            [service]="collectionData"
+            [isAdministrator]="isAdministrator"></app-inspector-vault>
+          @if (user.roles.includes('admin') || isAdministrator) {
+            <mat-divider></mat-divider>
+            <app-inspector-service-secure
+              [service]="collectionData"></app-inspector-service-secure>
+          }
+        </mat-card-content>
+      </mat-card>
+  
+
+      <mat-card class="full-width">
+        <mat-card-header>
+          <mat-card-title>Intentions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-intentions
+            [id]="collectionData.id"
+            [name]="collectionData.name"
+            layout="normal"></app-inspector-intentions>
+        </mat-card-content>
+      </mat-card>
     }
     @if (collection === 'serviceInstance') {
       <div>

@@ -3,7 +3,6 @@ import {
   Inject,
   Input,
   OnChanges,
-  OnInit,
   SimpleChanges,
 } from '@angular/core';
 
@@ -15,7 +14,6 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
-import { GraphApiService } from '../../service/graph-api.service';
 
 @Component({
   selector: 'app-inspector-service-secure',
@@ -24,40 +22,21 @@ import { GraphApiService } from '../../service/graph-api.service';
   templateUrl: './inspector-service-secure.component.html',
   styleUrl: './inspector-service-secure.component.scss',
 })
-export class InspectorServiceSecureComponent implements OnChanges, OnInit {
+export class InspectorServiceSecureComponent implements OnChanges {
   @Input() service!: ServiceRestDto;
   @Input() userIndex!: number | undefined;
   data: any;
   reveal = false;
-  isAdministrator = false;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
-    private readonly graphApi: GraphApiService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
-
-  ngOnInit(): void {
-    if (this.service && this.userIndex) {
-      this.graphApi
-        .getUpstream(this.service.vertex, this.userIndex, [
-          'administrator',
-          'lead-developer',
-        ])
-        .subscribe((data) => {
-          this.isAdministrator =
-            data.filter((data) => {
-              return data.collection.guid === this.user.guid;
-            }).length > 0;
-        });
-    }
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['service']) {
       this.loadServiceSecure();
     }
-    this.isAdministrator = false;
   }
 
   private loadServiceSecure() {

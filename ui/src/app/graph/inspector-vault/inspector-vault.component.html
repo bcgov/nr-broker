@@ -4,7 +4,8 @@
     <div class="header-buttons">
       <button
         mat-button
-        (click)="openVaultEditDialog()">Configure</button>
+        (click)="openVaultEditDialog()"
+        [disabled]="!isAdministrator">Configure</button>
     </div>
   </div>
 </div>

@@ -15,7 +15,7 @@ export class InspectorServiceReleasesComponent {
   @Input() builds!: any;
   total = 0;
 
-  propDisplayedColumns: string[] = ['name', 'version'];
+  propDisplayedColumns: string[] = ['name', 'date', 'version'];
 
   navigateByService() {
     console.log('navigateByService');

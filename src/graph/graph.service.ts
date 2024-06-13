@@ -378,37 +378,35 @@ export class GraphService {
     oldCollection: any,
   ) {
     // console.log(newCollection);
-    // console.log(maskType);
+    // console.log(oldCollection);
 
     for (const [key, field] of Object.entries(config.fields)) {
-      if (
-        !field.mask ||
-        !field.mask[maskType] ||
-        newCollection[key] === undefined
-      ) {
+      if (!field.mask || !field.mask[maskType]) {
+        if (newCollection[key] !== undefined) {
+          delete newCollection[key];
+        }
+        if (oldCollection[key]) {
+          newCollection[key] = oldCollection[key];
+        }
         continue;
       }
       const mask = field.mask[maskType];
-      if (mask === false) {
-        delete newCollection[key];
-        continue;
-      }
       if (field.type === 'embeddedDoc' && Array.isArray(mask)) {
-        const maskedValues = JSON.parse(
-          JSON.stringify(oldCollection[key] ?? {}),
-        );
+        let maskedValues = JSON.parse(JSON.stringify(oldCollection[key] ?? {}));
+        // console.log(maskedValues);
         for (const path of mask) {
           const val = get(newCollection[key], path);
           // console.log(`${path}: ${val}`);
           if (val !== undefined) {
-            set(maskedValues, path, val);
+            maskedValues = set(maskedValues, path, val);
           }
         }
+        // console.log(maskedValues);
         newCollection[key] = maskedValues;
       }
     }
 
-    // console.log(newCollection);
+    console.log(newCollection);
   }
 
   private mapCollectionToVertex(

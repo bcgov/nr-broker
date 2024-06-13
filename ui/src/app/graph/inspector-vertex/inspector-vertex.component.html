@@ -6,7 +6,6 @@
     <mat-divider></mat-divider>
   }
 
-
   <app-inspector-vertex-fields
     #vertexFields
     [collection]="collection"
@@ -14,7 +13,6 @@
     [collectionData]="collectionData"
     [filter]="'yes'"
     ></app-inspector-vertex-fields>
-
 
   @if (vertexFields.filteredCollectionCount > 0) {
     <mat-divider></mat-divider>
@@ -29,18 +27,22 @@
     @if (outboundConnections) {
       <app-inspector-instances
         [service]="collectionData"
-        [vertices]="outboundConnections"></app-inspector-instances>
+        [vertices]="outboundConnections"
+        [details]="serviceDetails"></app-inspector-instances>
     }
-    <app-inspector-intentions
+    <!-- <app-inspector-intentions
       [id]="collectionData.id"
-      [name]="collectionData.name"></app-inspector-intentions>
+      [name]="collectionData.name"></app-inspector-intentions> -->
     <mat-divider></mat-divider>
     <app-inspector-vault
-      [service]="collectionData"></app-inspector-vault>
-    <mat-divider></mat-divider>
-    <app-inspector-service-secure
       [service]="collectionData"
-      [userIndex]="4"></app-inspector-service-secure>
+      [isAdministrator]="isAdministrator"></app-inspector-vault>
+    @if (user.roles.includes('admin') || isAdministrator) {
+      <mat-divider></mat-divider>
+      <app-inspector-service-secure
+        [service]="collectionData"
+        ></app-inspector-service-secure>
+    }
     <mat-divider></mat-divider>
   }
   @if (collection === 'serviceInstance') {

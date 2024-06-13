@@ -1,6 +1,7 @@
 <div class="collection-flex-container">
   <button
     mat-icon-button
+    [disabled]="isBrowseDisabled()"
     (click)="back()">
     <mat-icon>arrow_back</mat-icon>
   </button>
