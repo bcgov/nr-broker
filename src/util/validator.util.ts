@@ -1,5 +1,54 @@
 import { Injectable } from '@nestjs/common';
-import { ValidationError } from 'class-validator';
+import {
+  ValidationError,
+  ValidationOptions,
+  isHash,
+  registerDecorator,
+} from 'class-validator';
+
+export function IsValidHash(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isValidHash',
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(value: any) {
+          return (
+            typeof value === 'string' && !isHash.call(null, value.split(':'))
+          );
+        },
+      },
+    });
+  };
+}
+
+export function IsValidProp(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isValidProp',
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(value: any) {
+          return (
+            typeof value === 'object' &&
+            Object.entries(value).every(([k, v]) => {
+              return (
+                typeof k === 'string' &&
+                (typeof v === 'string' || v instanceof String)
+              );
+            })
+          );
+        },
+      },
+    });
+  };
+}
 
 @Injectable()
 export class ValidatorUtil {

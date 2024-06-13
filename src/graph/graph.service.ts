@@ -246,17 +246,28 @@ export class GraphService {
     ignorePermissions = false,
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    const [vertex, collection, config] = await this.validateVertex(
+    // eslint-disable-next-line prefer-const
+    let [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'update',
     );
+    // console.log(vertex);
+    // console.log(collection);
     const vertexObj = await this.collectionRepository.getCollectionByVertexId(
       vertexInsert.collection,
       id,
     );
+    if (!vertexObj) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Invalid vertex id',
+        error: `Collection (${vertexInsert.collection}) object with vertex (${id}) does not exist`,
+      });
+    }
     // Owners can edit vertices but, priviledged fields must be masked
     if (!req || (req.user as any)?.mask === 'owner') {
       this.maskCollectionFields('owner', config, collection, vertexObj);
+      vertex = this.mapCollectionToVertex(config, vertex, collection);
     }
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.unique) {
@@ -280,6 +291,8 @@ export class GraphService {
         }
       }
     }
+    // console.log(vertex);
+    // console.log(collection);
     try {
       const resp = await this.graphRepository.editVertex(
         id,
@@ -333,6 +346,14 @@ export class GraphService {
       vertexInsert.collection,
     );
 
+    if (!config) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Invalid collection name',
+        error: `Collection config with name (${vertexInsert.collection}) does not exist`,
+      });
+    }
+
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.type === 'date' && vertexInsert.data[key]) {
         vertexInsert.data[key] = new Date(
@@ -367,6 +388,20 @@ export class GraphService {
     }
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
+    const vertexErrors = await validate(vertex, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (vertexErrors.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Vertex validation error',
+        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(
+          vertexErrors[0],
+        ),
+      });
+    }
 
     return [vertex, collection, config];
   }
@@ -406,7 +441,7 @@ export class GraphService {
       }
     }
 
-    console.log(newCollection);
+    // console.log(newCollection);
   }
 
   private mapCollectionToVertex(

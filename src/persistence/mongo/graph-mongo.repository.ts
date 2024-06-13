@@ -790,6 +790,10 @@ export class GraphMongoRepository implements GraphRepository {
       {
         $set: {
           name: vertex.name,
+          ...(vertex.prop ? { prop: vertex.prop } : {}),
+        },
+        $unset: {
+          ...(!vertex.prop ? { prop: true } : {}),
         },
       },
     );

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Index } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { IsArray, IsOptional } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export abstract class VertexPointerDto {
@@ -17,5 +17,8 @@ export abstract class VertexPointerDto {
   @IsOptional()
   @IsArray()
   @Index()
+  @IsString({
+    each: true,
+  })
   tags?: string[];
 }
