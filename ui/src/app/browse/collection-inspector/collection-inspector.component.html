@@ -7,7 +7,8 @@
     [config]="config"
     [collection]="collection"
     [collectionData]="collectionData"
-    [isTargetOwner]="isTargetOwner"
+    [hasUpdate]="hasUpdate"
+    [hasDelete]="hasDelete"
   ></app-collection-header>
 
   <div class="inspector-card-layout">
@@ -34,7 +35,8 @@
         <mat-card-content>
           <app-inspector-account
             [account]="collectionData"
-            [userIndex]="4"></app-inspector-account>
+            [userIndex]="4"
+            [hasSudo]="hasSudo"></app-inspector-account>
         </mat-card-content>
       </mat-card>
     }

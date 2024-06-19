@@ -93,6 +93,7 @@ export class CollectionController {
     graphObjectType: 'collection',
     graphObjectCollection: 'brokerAccount',
     graphIdFromParamKey: 'id',
+    permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiQuery({

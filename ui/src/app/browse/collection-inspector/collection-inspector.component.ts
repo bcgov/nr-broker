@@ -74,9 +74,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   config!: CollectionConfigRestDto;
   collectionData: any;
   outboundConnections = null;
-  isTargetOwner = false;
   routeSub: Subscription | null = null;
   serviceDetails: any = null;
+  hasDelete = false;
   hasSudo = false;
   hasUpdate = false;
 
@@ -111,27 +111,27 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.graphApi
         .createEventSource()
         .pipe(takeUntil(this.ngUnsubscribe), startWith(null)),
-      this.graphApi.searchEdgesShallow('owner', 'target', this.user.vertex),
-    ]).subscribe(([config, collection, es, ownedVertex]) => {
+      this.graphApi.getUserPermissions(),
+    ]).subscribe(([config, collection, es, permissions]) => {
       if (!config) {
         return;
       }
       this.config = config;
       this.collectionData = collection;
       this.loading = false;
-      this.isTargetOwner = ownedVertex.indexOf(collection.vertex) !== -1;
+
+      this.hasSudo =
+        permissions.sudo.indexOf(this.collectionData.vertex) !== -1;
+      this.hasUpdate =
+        permissions.update.indexOf(this.collectionData.vertex) !== -1;
+      this.hasDelete =
+        permissions.delete.indexOf(this.collectionData.vertex) !== -1;
       if (this.collection === 'service') {
         this.collectionApi
           .getServiceDetails(this.collectionData.id)
           .subscribe((data: any) => {
             this.serviceDetails = data;
           });
-        this.graphApi.getUserPermissions().subscribe((data) => {
-          this.hasSudo =
-            data['sudo'].indexOf(this.collectionData.vertex) !== -1;
-          this.hasUpdate =
-            data['update'].indexOf(this.collectionData.vertex) !== -1;
-        });
       }
       if (es !== null) {
         if (es.event === 'vertex-edit') {

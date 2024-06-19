@@ -38,6 +38,7 @@ import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { GraphTypeaheadData } from '../service/dto/graph-typeahead-result.dto';
+import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
 
 @Component({
   selector: 'app-team',
@@ -62,7 +63,12 @@ import { GraphTypeaheadData } from '../service/dto/graph-typeahead-result.dto';
 })
 export class TeamComponent implements OnInit, OnDestroy {
   data: CollectionData<TeamRestDto>[] = [];
-  ownedVertex: string[] = [];
+  permissions: UserPermissionRestDto = {
+    create: [],
+    update: [],
+    delete: [],
+    sudo: [],
+  };
   total = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -145,18 +151,14 @@ export class TeamComponent implements OnInit, OnDestroy {
                   });
                 }),
               ),
-            this.graphApi.searchEdgesShallow(
-              'owner',
-              'target',
-              this.user.vertex,
-            ),
+            this.graphApi.getUserPermissions(),
           ]);
         }),
       )
-      .subscribe(([data, ownedVertex]) => {
+      .subscribe(([data, permissions]) => {
         this.data = data.data;
         this.total = data.meta.total;
-        this.ownedVertex = ownedVertex;
+        this.permissions = permissions;
         this.loading = false;
       });
     const params = this.route.snapshot.params;
@@ -218,7 +220,7 @@ export class TeamComponent implements OnInit, OnDestroy {
   }
 
   isTargetOwner(elem: TeamRestDto) {
-    return this.ownedVertex.indexOf(elem.vertex) !== -1;
+    return this.permissions.update.indexOf(elem.vertex) !== -1;
   }
 
   openTeamPage(elem: TeamRestDto) {

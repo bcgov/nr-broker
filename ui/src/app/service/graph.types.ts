@@ -8,6 +8,7 @@ import {
   GraphDataResponseDto,
   GraphDataResponseVertexDto,
 } from './dto/graph-data.dto';
+import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;
@@ -42,7 +43,7 @@ export interface GraphDataConfig {
   data: GraphData;
   config: CollectionConfigMap;
   configSrcTarMap: CollectionEdgeConfigMap;
-  ownedVertex: string[];
+  permissions: UserPermissionRestDto;
 }
 
 export interface GraphData extends GraphDataResponseDto {

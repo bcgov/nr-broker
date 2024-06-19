@@ -332,16 +332,16 @@ export class GraphMongoRepository implements GraphRepository {
 
   public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
     const configs = [
-      [{ name: 'owner', index: 6, permissions: ['update'] }],
+      [{ name: 'owner', index: 6, permissions: ['update', 'delete'] }],
       [
         { name: 'lead-developer', index: 6, permissions: ['update'] },
-        { name: 'owns', index: 5, permissions: [] },
+        { name: 'owns', index: 5, permissions: ['sudo'] },
         { name: 'authorized', index: 1, permissions: ['update'] },
         { name: 'component', index: 2, permissions: ['sudo', 'update'] },
       ],
       [
-        { name: 'lead-developer', index: 6 },
-        { name: 'owns', index: 5 },
+        { name: 'lead-developer', index: 6, permissions: [] },
+        { name: 'owns', index: 5, permissions: [] },
         { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
       ],
     ];

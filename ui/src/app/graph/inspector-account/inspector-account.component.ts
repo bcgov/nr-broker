@@ -23,11 +23,11 @@ import { GraphApiService } from '../../service/graph-api.service';
 export class InspectorAccountComponent implements OnChanges, OnInit {
   @Input() account!: BrokerAccountRestDto;
   @Input() userIndex!: number | undefined;
+  @Input() hasSudo = false;
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;
   propDisplayedColumns: string[] = ['key', 'value'];
-  isAdministrator = false;
 
   constructor(
     private readonly dialog: MatDialog,
@@ -51,25 +51,12 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
             Date.now() > new Date(lastJwtToken.claims.exp * 1000).valueOf();
         }
       });
-
-      this.graphApi
-        .getUpstream(this.account.vertex, this.userIndex, [
-          'administrator',
-          'lead-developer',
-        ])
-        .subscribe((data) => {
-          this.isAdministrator =
-            data.filter((data) => {
-              return data.collection.guid === this.user.guid;
-            }).length > 0;
-        });
     }
   }
 
   ngOnChanges(): void {
     this.jwtTokens = undefined;
     this.lastJwtTokenData = undefined;
-    this.isAdministrator = false;
     this.ngOnInit();
   }
 

@@ -46,9 +46,9 @@ export class InspectorVertexComponent implements OnChanges {
   @Input() collectionConfig!: CollectionConfigRestDto;
   @Input() collectionData: any = null;
   @Input() outboundConnections!: VertexNavigation | null;
+  @Input() hasSudo = false;
+  @Input() hasUpdate = false;
   serviceDetails: any = null;
-  hasSudo = false;
-  hasUpdate = false;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
@@ -69,11 +69,6 @@ export class InspectorVertexComponent implements OnChanges {
         .subscribe((data: any) => {
           this.serviceDetails = data;
         });
-      this.graphApi.getUserPermissions().subscribe((data) => {
-        this.hasSudo = data['sudo'].indexOf(this.collectionData.vertex) !== -1;
-        this.hasUpdate =
-          data['update'].indexOf(this.collectionData.vertex) !== -1;
-      });
     }
   }
 }

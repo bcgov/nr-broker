@@ -2,7 +2,7 @@
   <div class="edge-container">
     <h3 class="heading">Token</h3>
 
-    <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin') && !isAdministrator">Generate</button>
+    <button mat-button (click)="openGenerateDialog()" [disabled]="!user.roles.includes('admin') && !hasSudo">Generate</button>
   </div>
   @if (!lastJwtTokenData) {
     <p class="edge-container">No token found. Click generate to create a token.</p>

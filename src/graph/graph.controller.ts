@@ -173,7 +173,7 @@ export class GraphController {
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'edge',
-    graphIdFromBodyPath: 'id',
+    graphIdFromParamKey: 'id',
     permission: 'update',
   })
   @UseGuards(BrokerOidcAuthGuard)
@@ -260,7 +260,6 @@ export class GraphController {
     @Param('id') id: string,
     @Body() vertex: VertexInsertDto,
   ) {
-    console.log('editVertex');
     return this.graph.editVertex(request, id, vertex);
   }
 

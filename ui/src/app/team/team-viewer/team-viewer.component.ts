@@ -18,13 +18,13 @@ import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto'
 import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
-import { PreferencesService } from '../../preferences.service';
 import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
 import {
   CollectionConfigInstanceRestDto,
   CollectionConfigRestDto,
 } from '../../service/dto/collection-config-rest.dto';
 import { TeamServiceRequestComponent } from '../team-service-request/team-service-request.component';
+import { UserPermissionRestDto } from '../../service/dto/user-permission-rest.dto';
 
 @Component({
   selector: 'app-team-viewer',
@@ -49,6 +49,7 @@ export class TeamViewerComponent {
   latestConfig$!: Observable<CollectionConfigRestDto | undefined>;
   accountSearch$!: Observable<CollectionSearchResult<BrokerAccountRestDto>>;
   serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
+  permissions$!: Observable<UserPermissionRestDto>;
   service: any;
   propDisplayedColumns: string[] = ['key', 'value'];
   serviceCount = 0;
@@ -58,7 +59,6 @@ export class TeamViewerComponent {
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly graphUtil: GraphUtilService,
-    private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -71,6 +71,7 @@ export class TeamViewerComponent {
         ),
       ),
     );
+    this.permissions$ = this.graphApi.getUserPermissions();
     this.accountSearch$ = this.team$.pipe(
       switchMap((team: TeamRestDto) =>
         this.collectionApi.searchCollection('brokerAccount', {
@@ -108,5 +109,19 @@ export class TeamViewerComponent {
         name: account.name,
       },
     };
+  }
+
+  hasSudo(permissions: UserPermissionRestDto | null, vertex: string) {
+    if (!permissions) {
+      return false;
+    }
+    return permissions.sudo.indexOf(vertex) !== -1;
+  }
+
+  hasUpdate(permissions: UserPermissionRestDto | null, vertex: string) {
+    if (!permissions) {
+      return false;
+    }
+    return permissions.update.indexOf(vertex) !== -1;
   }
 }

@@ -112,6 +112,8 @@
               [collection]="'brokerAccount'"
               [collectionConfig]="config"
               [collectionData]="account"
+              [hasSudo]="hasSudo(permissions$ | async, account.vertex)"
+              [hasUpdate]="hasUpdate(permissions$ | async, account.vertex)"
             ></app-inspector-vertex>
           </mat-card-content>
         </mat-card>

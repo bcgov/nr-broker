@@ -43,7 +43,7 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
+              [disabled]="!(user.roles.includes('admin') || hasUpdate) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
@@ -83,7 +83,7 @@
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!(user.roles.includes('admin') || isTargetOwner) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)"
+              [disabled]="!(user.roles.includes('admin') || hasDelete) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
@@ -111,6 +111,8 @@
             [collectionConfig]="dataConfig.config[target.data.collection]"
             [collectionData]="collectionData"
             [outboundConnections]="outboundConnections"
+            [hasSudo]="hasSudo"
+            [hasUpdate]="hasUpdate"
           ></app-inspector-vertex>
           <div>
             <div class="wrapper vertex-edge-container">

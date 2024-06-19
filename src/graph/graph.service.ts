@@ -278,7 +278,7 @@ export class GraphService {
         error: `Collection (${vertexInsert.collection}) object with vertex (${id}) does not exist`,
       });
     }
-    console.log((req.user as any)?.mask);
+    // console.log((req.user as any)?.mask);
     // Owners can edit vertices but, priviledged fields must be masked
     if (!req || (req.user as any)?.mask) {
       this.maskCollectionFields(

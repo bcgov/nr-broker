@@ -21,7 +21,8 @@
   @if (collection === 'brokerAccount') {
     <app-inspector-account
       [account]="collectionData"
-      [userIndex]="4"></app-inspector-account>
+      [userIndex]="4"
+      [hasSudo]="hasSudo"></app-inspector-account>
   }
   @if (collection === 'service') {
     @if (outboundConnections) {

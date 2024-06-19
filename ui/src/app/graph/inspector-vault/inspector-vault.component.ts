@@ -63,7 +63,6 @@ export class InspectorVaultComponent {
           delete data.id;
           delete data.vertex;
           data.vaultConfig = result.vaultConfig;
-          console.log(data);
           this.graphApi
             .editVertex(
               this.service.vertex,

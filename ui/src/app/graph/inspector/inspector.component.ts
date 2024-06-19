@@ -90,7 +90,9 @@ export class InspectorComponent implements OnChanges, OnInit {
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
   navigationFollows: 'vertex' | 'edge' = 'vertex';
   titleWidth = 0;
-  isTargetOwner = false;
+  hasSudo = false;
+  hasUpdate = false;
+  hasDelete = false;
 
   constructor(
     private readonly graphApi: GraphApiService,
@@ -167,7 +169,9 @@ export class InspectorComponent implements OnChanges, OnInit {
         }
         const targetId =
           target.type === 'edge' ? target.data.target : target.data.id;
-        this.isTargetOwner = dataConfig.ownedVertex.indexOf(targetId) !== -1;
+        this.hasDelete = dataConfig.permissions.delete.indexOf(targetId) !== -1;
+        this.hasUpdate = dataConfig.permissions.update.indexOf(targetId) !== -1;
+        this.hasSudo = dataConfig.permissions.sudo.indexOf(targetId) !== -1;
       });
     window.dispatchEvent(new Event('resize'));
     this.navigationFollows = this.preferences.get('graphFollows');

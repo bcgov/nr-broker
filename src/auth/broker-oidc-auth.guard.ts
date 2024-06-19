@@ -103,10 +103,10 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     const userGuid: string = get(request.user.userinfo, OAUTH2_CLIENT_MAP_GUID);
     const permission: string = userUpstreamData.permission;
     // Mask data alterations as owner to prevent priviledged changes
-    console.log(userUpstreamData.permission);
-    console.log(userUpstreamData.sudoMaskKey);
-    console.log(request.query);
-    console.log(request.params);
+    // console.log(userUpstreamData.permission);
+    // console.log(userUpstreamData.sudoMaskKey);
+    // console.log(request.query);
+    // console.log(request.params);
     request.user.mask =
       userUpstreamData.sudoMaskKey &&
       request.query[userUpstreamData.sudoMaskKey] === 'true'
@@ -117,7 +117,7 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       'guid',
       userGuid,
     );
-    console.log(`mask: ${request.user.mask}`);
+    // console.log(`mask: ${request.user.mask}`);
     if (userUpstreamData.graphObjectType === 'collection') {
       const targetCollection =
         await this.collectionRepository.getCollectionById(
@@ -127,14 +127,14 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       if (!targetCollection) {
         return false;
       }
-      console.log(permission);
-      console.log(
-        await this.util.testUserPermissions(
-          user.vertex.toString(),
-          targetCollection.vertex.toString(),
-          permission,
-        ),
-      );
+      // console.log(permission);
+      // console.log(
+      //   await this.util.testUserPermissions(
+      //     user.vertex.toString(),
+      //     targetCollection.vertex.toString(),
+      //     permission,
+      //   ),
+      // );
       return await this.util.testUserPermissions(
         user.vertex.toString(),
         targetCollection.vertex.toString(),
@@ -142,6 +142,8 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       );
     } else if (userUpstreamData.graphObjectType === 'edge') {
       const targetEdge = await this.graphRepository.getEdge(graphId);
+      // console.log(graphId);
+      // console.log(targetEdge);
       if (!targetEdge) {
         return false;
       }

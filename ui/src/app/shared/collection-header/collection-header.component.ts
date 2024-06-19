@@ -34,7 +34,8 @@ export class CollectionHeaderComponent {
   @Input() config!: CollectionConfigRestDto;
   @Input() collection!: CollectionNames;
   @Input() collectionData!: any;
-  @Input() isTargetOwner!: boolean;
+  @Input() hasDelete!: boolean;
+  @Input() hasUpdate!: boolean;
 
   constructor(
     private readonly dialog: MatDialog,
