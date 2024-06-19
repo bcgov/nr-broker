@@ -17,10 +17,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-import {
-  ChartClickTargetVertex,
-  CollectionConfigMap,
-} from '../../service/graph.types';
+import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
@@ -53,8 +50,9 @@ export class VertexDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      config: CollectionConfigMap;
-      target?: ChartClickTargetVertex;
+      configMap: CollectionConfigMap;
+      collection?: string;
+      vertexId?: string;
       data?: any;
     },
     public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
@@ -64,12 +62,11 @@ export class VertexDialogComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.configs = Object.values(this.data.config)
+    this.configs = Object.values(this.data.configMap)
       .filter((config) => config.permissions.create)
       .sort((a, b) => a.name.localeCompare(b.name));
-    if (this.data.target) {
-      const vData = this.data.target.data;
-      const config = this.data.config[vData.collection];
+    if (this.data.collection) {
+      const config = this.data.configMap[this.data.collection];
       if (config) {
         this.collectionControl.setValue(config);
       }
@@ -95,9 +92,9 @@ export class VertexDialogComponent implements OnInit {
         this.formComponent.form.value,
       );
 
-      if (this.data.target) {
+      if (this.data.vertexId) {
         this.graphApi
-          .editVertex(this.data.target.data.id, {
+          .editVertex(this.data.vertexId, {
             collection: config.collection,
             data: vertexData,
           })

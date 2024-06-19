@@ -7,14 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable, map, switchMap, tap } from 'rxjs';
+import { Observable, switchMap, tap } from 'rxjs';
 
 import { CURRENT_USER } from '../../app-initialize.factory';
-import {
-  ChartClickTargetVertex,
-  CollectionConfigMap,
-  UserDto,
-} from '../../service/graph.types';
+import { ChartClickTargetVertex, UserDto } from '../../service/graph.types';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { TeamRestDto } from '../../service/dto/team-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
@@ -22,16 +18,19 @@ import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto'
 import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
-import { PreferencesService } from '../../preferences.service';
 import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import {
+  CollectionConfigInstanceRestDto,
+  CollectionConfigRestDto,
+} from '../../service/dto/collection-config-rest.dto';
+import { TeamServiceRequestComponent } from '../team-service-request/team-service-request.component';
+import { UserPermissionRestDto } from '../../service/dto/user-permission-rest.dto';
 
 @Component({
   selector: 'app-team-viewer',
   standalone: true,
   imports: [
     CommonModule,
-    InspectorVertexComponent,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
@@ -39,15 +38,18 @@ import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-co
     MatTableModule,
     MatTooltipModule,
     RouterModule,
+    InspectorVertexComponent,
+    TeamServiceRequestComponent,
   ],
   templateUrl: './team-viewer.component.html',
   styleUrl: './team-viewer.component.scss',
 })
 export class TeamViewerComponent {
   team$!: Observable<TeamRestDto>;
-  latestConfig$!: Observable<CollectionConfigMap>;
+  latestConfig$!: Observable<CollectionConfigRestDto | undefined>;
   accountSearch$!: Observable<CollectionSearchResult<BrokerAccountRestDto>>;
   serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
+  permissions$!: Observable<UserPermissionRestDto>;
   service: any;
   propDisplayedColumns: string[] = ['key', 'value'];
   serviceCount = 0;
@@ -57,7 +59,6 @@ export class TeamViewerComponent {
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly graphUtil: GraphUtilService,
-    private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -70,6 +71,7 @@ export class TeamViewerComponent {
         ),
       ),
     );
+    this.permissions$ = this.graphApi.getUserPermissions();
     this.accountSearch$ = this.team$.pipe(
       switchMap((team: TeamRestDto) =>
         this.collectionApi.searchCollection('brokerAccount', {
@@ -89,9 +91,7 @@ export class TeamViewerComponent {
       }),
     );
 
-    this.latestConfig$ = this.graphApi
-      .getConfig()
-      .pipe(map(this.graphUtil.configArrToMap));
+    this.latestConfig$ = this.graphApi.getCollectionConfig('team');
   }
 
   openInGraph(elem: TeamRestDto) {
@@ -111,11 +111,17 @@ export class TeamViewerComponent {
     };
   }
 
-  openPrototypeUrl(url: string) {
-    console.log(url);
+  hasSudo(permissions: UserPermissionRestDto | null, vertex: string) {
+    if (!permissions) {
+      return false;
+    }
+    return permissions.sudo.indexOf(vertex) !== -1;
   }
 
-  openRequestAccess(elem: TeamRestDto) {
-    console.log(elem);
+  hasUpdate(permissions: UserPermissionRestDto | null, vertex: string) {
+    if (!permissions) {
+      return false;
+    }
+    return permissions.update.indexOf(vertex) !== -1;
   }
 }

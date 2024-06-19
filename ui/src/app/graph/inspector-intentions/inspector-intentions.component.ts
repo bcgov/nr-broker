@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { IntentionApiService } from '../../service/intention-api.service';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+
+import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../../intention/history-table/history-table.component';
 
 @Component({
@@ -14,7 +14,6 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
   imports: [
     CommonModule,
     MatButtonModule,
-    MatDividerModule,
     MatExpansionModule,
     MatListModule,
     HistoryTableComponent,
@@ -25,6 +24,7 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
 export class InspectorIntentionsComponent implements OnChanges {
   @Input() id!: string;
   @Input() name!: string;
+  @Input() layout: 'narrow' | 'normal' = 'narrow';
   intentions: any[] = [];
   total = 0;
 
@@ -45,6 +45,16 @@ export class InspectorIntentionsComponent implements OnChanges {
       {
         field: 'service',
         value: this.name,
+      },
+    ]);
+  }
+
+  viewIntention(event: any) {
+    this.router.navigate([
+      '/intention/history',
+      {
+        field: 'id',
+        value: event,
       },
     ]);
   }

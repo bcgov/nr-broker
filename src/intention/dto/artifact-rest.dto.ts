@@ -1,31 +1,6 @@
-import {
-  IsDefined,
-  IsNumber,
-  IsString,
-  ValidationOptions,
-  isHash,
-  registerDecorator,
-} from 'class-validator';
+import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { IsValidHash } from '../../util/validator.util';
 import { Entity, Column } from 'typeorm';
-
-export function IsValidHash(validationOptions?: ValidationOptions) {
-  return function (object: object, propertyName: string) {
-    registerDecorator({
-      name: 'isValidHash',
-      target: object.constructor,
-      propertyName: propertyName,
-      constraints: [],
-      options: validationOptions,
-      validator: {
-        validate(value: any) {
-          return (
-            typeof value === 'string' && !isHash.call(null, value.split(':'))
-          );
-        },
-      },
-    });
-  };
-}
 
 @Entity()
 export class ArtifactDto {

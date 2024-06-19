@@ -9,8 +9,8 @@ export type AllowOwnerArgs =
 export interface AllowOwnerBaseArgs {
   graphIdFromBodyPath?: string;
   graphIdFromParamKey?: string;
-  requiredEdgeNames?: string[]; // Default: ['owner']
-  upstreamRecursive?: boolean; // Default: false
+  permission?: string;
+  sudoMaskKey?: string;
 }
 
 export interface AllowOwnerCollectionArgs extends AllowOwnerBaseArgs {

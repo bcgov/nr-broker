@@ -43,6 +43,9 @@ export class CollectionConfigDto {
   name: string;
 
   @Column()
+  ownableCollections?: string[];
+
+  @Column()
   parent: {
     edgeName: string;
   };

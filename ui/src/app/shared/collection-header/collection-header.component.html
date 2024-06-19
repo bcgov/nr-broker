@@ -1,0 +1,50 @@
+<div class="collection-flex-container">
+  <button
+    mat-icon-button
+    [disabled]="isBrowseDisabled()"
+    (click)="back()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <div>
+    <div class="collection-subtitle">Browse - {{ config.name }}</div>
+    <div class="collection-title">{{ collectionData[config.collectionVertexName] }}</div>
+  </div>
+  <span class="spacer"></span>
+
+  <div
+    class="spaced-btn">
+    <button
+      mat-stroked-button
+      extended
+      color="warn"
+      [disabled]="!(user.roles.includes('admin') || hasDelete) || !config.permissions.delete"
+      (click)="delete()">
+      Delete
+    </button>
+  </div>
+
+  <button
+    mat-stroked-button
+    extended
+    color="primary"
+    (click)="openInGraph()">
+    View in Graph
+  </button>
+  <button
+    mat-stroked-button
+    extended
+    color="primary"
+    [disabled]="!user.roles.includes('admin')"
+    (click)="editTags()">
+    Tags
+  </button>
+  <button
+    mat-stroked-button
+    extended
+    color="primary"
+    [disabled]="!(user.roles.includes('admin') || hasUpdate) || !config.permissions.update"
+    (click)="edit()">
+    Edit
+  </button>
+</div>
+<mat-divider></mat-divider>

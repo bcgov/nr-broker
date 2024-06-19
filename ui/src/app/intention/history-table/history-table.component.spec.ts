@@ -8,10 +8,9 @@ describe('HistoryTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HistoryTableComponent]
-    })
-    .compileComponents();
-    
+      imports: [HistoryTableComponent],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(HistoryTableComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -1,5 +1,5 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-
+import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
@@ -8,8 +8,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { MatInputModule } from '@angular/material/input';
 import {
   Subject,
   catchError,
@@ -30,14 +32,13 @@ import {
 } from '../../service/dto/collection-search-result.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CommonModule } from '@angular/common';
-import { MatInputModule } from '@angular/material/input';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import {
   CollectionConfigRestDto,
   CollectionFieldConfigMap,
 } from '../../service/dto/collection-config-rest.dto';
+import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 
 interface filterOptions<T> {
   value: T;
@@ -71,6 +72,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   pageIndex = 0;
   pageSize = 10;
   loading = true;
+  disableAdd = true;
 
   collectionFilter: CollectionNames = 'project';
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
@@ -78,6 +80,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
@@ -217,6 +220,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       'action',
     ];
     this.pageIndex = 0;
+    this.disableAdd = !config.permissions.create;
 
     this.refresh();
   }
@@ -238,5 +242,49 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   openInGraph(event: Event, elem: CollectionData<any>) {
     event.stopPropagation();
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
+  }
+
+  openInInspector(event: Event, id: string) {
+    event.stopPropagation();
+
+    this.router.navigate([`/browse/${this.collectionFilter}/${id}`]);
+  }
+
+  addVertex() {
+    this.dialog
+      .open(VertexDialogComponent, {
+        width: '500px',
+        data: {
+          configMap: {
+            [this.collectionFilter]: this.config?.find(
+              (config) => config.collection === this.collectionFilter,
+            ),
+          },
+          collection: this.collectionFilter,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((result) => {
+          if (result && result.id) {
+            return this.collectionApi.searchCollection(this.collectionFilter, {
+              vertexId: result.id,
+              offset: 0,
+              limit: 1,
+            });
+          }
+          return of(null);
+        }),
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.router.navigate(
+            ['/browse', this.collectionFilter, result.data[0].id],
+            {
+              replaceUrl: true,
+            },
+          );
+        }
+      });
   }
 }

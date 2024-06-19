@@ -31,8 +31,9 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { REDIS_PUBSUB } from '../constants';
+import { OAUTH2_CLIENT_MAP_GUID, REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
+import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto';
 
 @Injectable()
 export class GraphService {
@@ -58,6 +59,19 @@ export class GraphService {
 
   public async getServerInstalls() {
     return this.graphRepository.getServerInstalls();
+  }
+
+  public async getUserPermissions(request: Request) {
+    const userGuid: string = get(
+      (request as any).user.userinfo,
+      OAUTH2_CLIENT_MAP_GUID,
+    );
+    const user = await this.collectionRepository.getCollectionByKeyValue(
+      'user',
+      'guid',
+      userGuid,
+    );
+    return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
   public async addEdge(
@@ -246,17 +260,34 @@ export class GraphService {
     ignorePermissions = false,
     ignoreBlankFields = false,
   ): Promise<VertexDto> {
-    const [vertex, collection, config] = await this.validateVertex(
+    // eslint-disable-next-line prefer-const
+    let [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'update',
     );
+    // console.log(vertex);
+    // console.log(collection);
     const vertexObj = await this.collectionRepository.getCollectionByVertexId(
       vertexInsert.collection,
       id,
     );
+    if (!vertexObj) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Invalid vertex id',
+        error: `Collection (${vertexInsert.collection}) object with vertex (${id}) does not exist`,
+      });
+    }
+    // console.log((req.user as any)?.mask);
     // Owners can edit vertices but, priviledged fields must be masked
-    if (!req || (req.user as any)?.mask === 'owner') {
-      this.maskCollectionFields('owner', config, collection, vertexObj);
+    if (!req || (req.user as any)?.mask) {
+      this.maskCollectionFields(
+        (req.user as any)?.mask,
+        config,
+        collection,
+        vertexObj,
+      );
+      vertex = this.mapCollectionToVertex(config, vertex, collection);
     }
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.unique) {
@@ -280,6 +311,8 @@ export class GraphService {
         }
       }
     }
+    // console.log(vertex);
+    // console.log(collection);
     try {
       const resp = await this.graphRepository.editVertex(
         id,
@@ -333,6 +366,14 @@ export class GraphService {
       vertexInsert.collection,
     );
 
+    if (!config) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Invalid collection name',
+        error: `Collection config with name (${vertexInsert.collection}) does not exist`,
+      });
+    }
+
     for (const [key, field] of Object.entries(config.fields)) {
       if (field.type === 'date' && vertexInsert.data[key]) {
         vertexInsert.data[key] = new Date(
@@ -367,43 +408,55 @@ export class GraphService {
     }
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
+    const vertexErrors = await validate(vertex, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (vertexErrors.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Vertex validation error',
+        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(
+          vertexErrors[0],
+        ),
+      });
+    }
 
     return [vertex, collection, config];
   }
 
   private async maskCollectionFields(
-    maskType: 'owner',
+    maskType: UserPermissionNames,
     config: CollectionConfigDto,
     newCollection: any,
     oldCollection: any,
   ) {
     // console.log(newCollection);
-    // console.log(maskType);
+    // console.log(oldCollection);
 
     for (const [key, field] of Object.entries(config.fields)) {
-      if (
-        !field.mask ||
-        !field.mask[maskType] ||
-        newCollection[key] === undefined
-      ) {
+      if (!field.mask || !field.mask[maskType]) {
+        if (newCollection[key] !== undefined) {
+          delete newCollection[key];
+        }
+        if (oldCollection[key]) {
+          newCollection[key] = oldCollection[key];
+        }
         continue;
       }
       const mask = field.mask[maskType];
-      if (mask === false) {
-        delete newCollection[key];
-        continue;
-      }
       if (field.type === 'embeddedDoc' && Array.isArray(mask)) {
-        const maskedValues = JSON.parse(
-          JSON.stringify(oldCollection[key] ?? {}),
-        );
+        let maskedValues = JSON.parse(JSON.stringify(oldCollection[key] ?? {}));
+        // console.log(maskedValues);
         for (const path of mask) {
           const val = get(newCollection[key], path);
           // console.log(`${path}: ${val}`);
           if (val !== undefined) {
-            set(maskedValues, path, val);
+            maskedValues = set(maskedValues, path, val);
           }
         }
+        // console.log(maskedValues);
         newCollection[key] = maskedValues;
       }
     }

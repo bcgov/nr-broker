@@ -5,16 +5,10 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import {
-  CollectionConfigMap,
-  VertexNavigation,
-  UserDto,
-} from '../../service/graph.types';
-import { AsyncPipe, DatePipe, KeyValuePipe } from '@angular/common';
-import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatTableModule } from '@angular/material/table';
-import { CURRENT_USER } from '../../app-initialize.factory';
+
+import { UserDto, VertexNavigation } from '../../service/graph.types';
+import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
@@ -22,14 +16,17 @@ import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
 import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
+import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspector-vertex-fields.component';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { GraphApiService } from '../../service/graph-api.service';
+import { CURRENT_USER } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-inspector-vertex',
   standalone: true,
   imports: [
-    AsyncPipe,
-    DatePipe,
-    KeyValuePipe,
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorInstancesComponent,
@@ -37,62 +34,41 @@ import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
+    InspectorVertexFieldsComponent,
     VertexTagsComponent,
     MatDividerModule,
-    MatTableModule,
   ],
   templateUrl: './inspector-vertex.component.html',
   styleUrl: './inspector-vertex.component.scss',
 })
 export class InspectorVertexComponent implements OnChanges {
-  @Input() collection!: string;
-  @Input() collectionConfig!: CollectionConfigMap | null;
+  @Input() collection!: CollectionNames;
+  @Input() collectionConfig!: CollectionConfigRestDto;
   @Input() collectionData: any = null;
   @Input() outboundConnections!: VertexNavigation | null;
+  @Input() hasSudo = false;
+  @Input() hasUpdate = false;
+  serviceDetails: any = null;
 
-  filteredCollectionData: any = null;
-
-  propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
-  propDisplayedColumns: string[] = ['key', 'value'];
-
-  constructor(@Inject(CURRENT_USER) public readonly user: UserDto) {}
+  constructor(
+    private readonly collectionApi: CollectionApiService,
+    private readonly graphApi: GraphApiService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (
-      (changes['collectionConfig'] || changes['collectionData']) &&
-      this.collectionConfig &&
-      this.collectionData
-    ) {
-      const filteredCollectionData: any = {
-        ...this.collectionData,
-      };
-
-      delete filteredCollectionData.id;
-      delete filteredCollectionData.vertex;
-      delete filteredCollectionData.name;
-
-      for (const [key, value] of Object.entries(
-        this.collectionConfig[this.collection].fields,
-      )) {
-        if (value.type === 'embeddedDoc' || value.type === 'embeddedDocArray') {
-          delete filteredCollectionData[key];
-        }
-      }
-
-      for (const key of Object.keys(filteredCollectionData)) {
-        if (!this.collectionConfig[this.collection].fields[key]) {
-          delete filteredCollectionData[key];
-        }
-      }
-
-      this.filteredCollectionData = filteredCollectionData;
+    if (changes['collection']) {
+      this.loadServiceDetails();
     }
   }
 
-  getFieldType(key: string) {
-    if (!this.collectionConfig) {
-      return '';
+  private loadServiceDetails() {
+    if (this.collection === 'service') {
+      this.collectionApi
+        .getServiceDetails(this.collectionData.id)
+        .subscribe((data: any) => {
+          this.serviceDetails = data;
+        });
     }
-    return this.collectionConfig[this.collection].fields[key].type;
   }
 }

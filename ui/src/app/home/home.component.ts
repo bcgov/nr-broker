@@ -28,7 +28,6 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.systemApiService.getConnectionConfig().subscribe((data) => {
-      console.log(data);
       this.services = data.filter((dataum) => dataum.collection === 'service');
       this.documents = data.filter(
         (dataum) => dataum.collection === 'documentation',

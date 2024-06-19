@@ -12,7 +12,6 @@ import {
   GraphTypeaheadResult,
 } from '../../service/dto/graph-typeahead-result.dto';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { CommonModule } from '@angular/common';
@@ -25,6 +24,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { VertexNameComponent } from '../../graph/vertex-name/vertex-name.component';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-search-input',
@@ -52,8 +53,9 @@ export class SearchInputComponent {
   );
 
   constructor(
-    private readonly dialog: MatDialog,
+    private readonly collectionApi: CollectionApiService,
     private readonly graphApi: GraphApiService,
+    private readonly router: Router,
     private readonly graphUtil: GraphUtilService,
   ) {}
 
@@ -85,7 +87,26 @@ export class SearchInputComponent {
   }
 
   onTypeaheadOptionClick(option: GraphTypeaheadData) {
-    this.graphUtil.openInGraph(option.id, 'vertex');
-    this.searchControl?.reset();
+    if (option.collection === 'serviceInstance') {
+      this.graphUtil.openInGraph(option.id, 'vertex');
+    } else {
+      this.collectionApi
+        .searchCollection(option.collection, {
+          vertexId: option.id,
+          offset: 0,
+          limit: 1,
+        })
+        .subscribe((result) => {
+          if (result && result.meta.total > 0) {
+            this.router.navigate(
+              ['/browse', option.collection, result.data[0].id],
+              {
+                replaceUrl: true,
+              },
+            );
+          }
+        });
+      this.searchControl?.reset();
+    }
   }
 }

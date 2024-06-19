@@ -79,6 +79,13 @@ export class GraphController {
     return this.graph.getData(true);
   }
 
+  @Get('data/user-permissions')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  getDataOwned(@Req() request: Request) {
+    return this.graph.getUserPermissions(request);
+  }
+
   @Sse('events')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
@@ -118,6 +125,7 @@ export class GraphController {
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromBodyPath: 'target',
+    permission: 'update',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -165,7 +173,8 @@ export class GraphController {
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'edge',
-    graphIdFromBodyPath: 'id',
+    graphIdFromParamKey: 'id',
+    permission: 'update',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -189,6 +198,7 @@ export class GraphController {
   @AllowOwner({
     graphObjectType: 'edge',
     graphIdFromParamKey: 'id',
+    permission: 'delete',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -239,6 +249,8 @@ export class GraphController {
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromParamKey: 'id',
+    permission: 'update',
+    sudoMaskKey: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -263,6 +275,7 @@ export class GraphController {
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromParamKey: 'id',
+    permission: 'delete',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()

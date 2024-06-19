@@ -1,10 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import {
+  IsDefined,
+  IsNotEmptyObject,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { GraphDataResponseEdgeDto } from './graph-data.dto';
 import { EdgeInsertDto } from './edge-rest.dto';
 import { EdgePropDto } from './edge-prop.dto';
 import { Transform } from 'class-transformer';
+import { IsValidProp } from '../../util/validator.util';
 
 @Entity({ name: 'edge' })
 @Index(['source', 'name'])
@@ -14,15 +22,24 @@ export class EdgeDto {
   id: ObjectId;
 
   @Column()
+  @IsDefined()
+  @IsNumber()
   is: number;
 
   @Column()
+  @IsDefined()
+  @IsNumber()
   it: number;
 
   @Column()
+  @IsDefined()
+  @IsString()
   name: string;
 
   @Column()
+  @IsOptional()
+  @IsValidProp()
+  @IsNotEmptyObject()
   prop?: EdgePropDto;
 
   @Column()
@@ -30,6 +47,7 @@ export class EdgeDto {
   @Transform((value) =>
     value.obj.source ? new ObjectId(value.obj.source.toString()) : null,
   )
+  @IsDefined()
   source: ObjectId;
 
   @Column()
@@ -38,6 +56,7 @@ export class EdgeDto {
     value.obj.target ? new ObjectId(value.obj.target.toString()) : null,
   )
   @Index()
+  @IsDefined()
   target: ObjectId;
 
   static upgradeInsertDto(value: EdgeInsertDto): EdgeDto {

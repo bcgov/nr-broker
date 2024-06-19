@@ -88,31 +88,38 @@
       }
     }
     </div>
+
+    <!-- <app-team-service-request
+      [serviceSearch]="serviceSearch"></app-team-service-request> -->
   }
 
   <h2>Accounts</h2>
 
   @if (accountSearch$ | async; as accountSearch) {
+    @if (latestConfig$ | async; as config) {
     <div class="card-container">
-    @for (account of accountSearch.data; track account.id) {
-      <mat-card class="account-card">
-        <mat-card-header class="account-header">
-          <mat-card-title>{{account.name}}</mat-card-title>
-          <button mat-icon-button (click)="openInGraph(account)" aria-label="View in Graph">
-            <mat-icon>account_tree</mat-icon>
-          </button>
-        </mat-card-header>
-        <mat-card-content>
+      @for (account of accountSearch.data; track account.id) {
+        <mat-card class="account-card">
+          <mat-card-header class="account-header">
+            <mat-card-title>{{account.name}}</mat-card-title>
+            <button mat-icon-button (click)="openInGraph(account)" aria-label="View in Graph">
+              <mat-icon>account_tree</mat-icon>
+            </button>
+          </mat-card-header>
+          <mat-card-content>
 
-          <app-inspector-vertex
-            [collection]="'brokerAccount'"
-            [collectionConfig]="latestConfig$ | async"
-            [collectionData]="account"
-          ></app-inspector-vertex>
-        </mat-card-content>
-      </mat-card>
-    }
+            <app-inspector-vertex
+              [collection]="'brokerAccount'"
+              [collectionConfig]="config"
+              [collectionData]="account"
+              [hasSudo]="hasSudo(permissions$ | async, account.vertex)"
+              [hasUpdate]="hasUpdate(permissions$ | async, account.vertex)"
+            ></app-inspector-vertex>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
+    }
     @if (accountSearch.meta.total === 0) {
       <h3>No Accounts</h3>
     }

@@ -151,22 +151,34 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'string',
       hint: 'A freeform non-technical alternative to the name',
+      mask: {
+        update: true,
+      },
     },
     description: {
       name: 'Description',
       required: false,
       type: 'string',
       hint: 'A short human readable description of the entity',
+      mask: {
+        update: true,
+      },
     },
     website: {
       name: 'Website URL',
       type: 'url',
       hint: 'The website documenting this project',
+      mask: {
+        update: true,
+      },
     },
     email: {
       name: 'Email',
       type: 'email',
       hint: 'The email address to contact those running this project',
+      mask: {
+        update: true,
+      },
     },
   },
   browseFields: ['name', 'title', 'website', 'email'],
@@ -213,24 +225,33 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'string',
       hint: 'A freeform non-technical alternative to the name',
+      mask: {
+        update: true,
+      },
     },
     description: {
       name: 'Description',
       required: false,
       type: 'string',
       hint: 'A short human readable description of the entity',
+      mask: {
+        update: true,
+      },
     },
     scmUrl: {
       name: 'SCM URL',
       required: false,
       type: 'url',
       hint: 'Repository URL with slug and no trailing slash',
+      mask: {
+        update: true,
+      },
     },
     vaultConfig: {
       type: 'embeddedDoc',
       required: false,
       mask: {
-        owner: ['approle.enabled', 'enabled', 'policyOptions.tokenPeriod'],
+        sudo: ['approle.enabled', 'enabled', 'policyOptions.tokenPeriod'],
       },
     },
   },
@@ -522,18 +543,27 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       unique: true,
       hint: 'A descriptive name for the team',
+      mask: {
+        update: true,
+      },
     },
     email: {
       name: 'Email',
       required: true,
       type: 'email',
       hint: 'The email address to contact the team at',
+      mask: {
+        update: true,
+      },
     },
     website: {
       name: 'Website',
       required: false,
       type: 'url',
       hint: 'The team website address',
+      mask: {
+        update: true,
+      },
     },
   },
   browseFields: ['name', 'email', 'website'],

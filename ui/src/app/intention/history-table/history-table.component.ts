@@ -21,6 +21,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import {
   MatSnackBar,
   MatSnackBarModule,
@@ -50,6 +51,7 @@ import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.com
     MatIconModule,
     MatListModule,
     MatMenuModule,
+    MatProgressBarModule,
     MatTableModule,
     MatTooltipModule,
     MatSnackBarModule,
@@ -140,6 +142,24 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     return intention.transaction.duration
       ? prettyMilliseconds(intention.transaction.duration)
       : 0;
+  }
+
+  normalizedProgress(intention: any) {
+    let progressCnt = 0;
+    if (intention.actions) {
+      progressCnt = intention.actions.reduce(
+        (currentValue: number, action: any) => {
+          if (action.trace.outcome) {
+            return 2 + currentValue;
+          } else if (action.trace.start) {
+            return 1 + currentValue;
+          }
+          return currentValue;
+        },
+        0,
+      );
+    }
+    return Math.round((progressCnt / (intention.actions.length * 2)) * 100);
   }
 
   openCollection(

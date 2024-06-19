@@ -1,0 +1,111 @@
+<div>
+@if (loading) {
+  <mat-spinner></mat-spinner>
+} @else {
+
+  <app-collection-header
+    [config]="config"
+    [collection]="collection"
+    [collectionData]="collectionData"
+    [hasUpdate]="hasUpdate"
+    [hasDelete]="hasDelete"
+  ></app-collection-header>
+
+  <div class="inspector-card-layout">
+    <app-vertex-tags
+      class="full-width"
+      [collectionData]="collectionData"></app-vertex-tags>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-inspector-vertex-fields
+          [collection]="collection"
+          [collectionConfig]="config"
+          [collectionData]="collectionData"
+          [filter]="'no'"
+          ></app-inspector-vertex-fields>
+      </mat-card-content>
+    </mat-card>
+
+    @if (collection === 'brokerAccount') {
+      <mat-card>
+        <mat-card-content>
+          <app-inspector-account
+            [account]="collectionData"
+            [userIndex]="4"
+            [hasSudo]="hasSudo"></app-inspector-account>
+        </mat-card-content>
+      </mat-card>
+    }
+    @if (collection === 'service') {
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Instances</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-instances
+            [service]="collectionData"
+            [vertices]="outboundConnections"
+            [details]="serviceDetails"></app-inspector-instances>
+        </mat-card-content>
+      </mat-card>
+
+    @if (serviceDetails && serviceDetails.builds) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Releases</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-service-releases
+            [builds]="serviceDetails.builds"></app-inspector-service-releases>
+        </mat-card-content>
+      </mat-card>
+    }
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Secrets</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-vault
+            [service]="collectionData"
+            [isAdministrator]="hasSudo"></app-inspector-vault>
+          @if (user.roles.includes('admin') || hasSudo) {
+            <mat-divider></mat-divider>
+            <app-inspector-service-secure
+              [service]="collectionData"></app-inspector-service-secure>
+          }
+        </mat-card-content>
+      </mat-card>
+  
+
+      <mat-card class="full-width">
+        <mat-card-header>
+          <mat-card-title>Intentions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-intentions
+            [id]="collectionData.id"
+            [name]="collectionData.name"
+            layout="normal"></app-inspector-intentions>
+        </mat-card-content>
+      </mat-card>
+    }
+    @if (collection === 'serviceInstance') {
+      <div>
+        <app-inspector-installs
+          [instance]="collectionData"></app-inspector-installs>
+      </div>
+    }
+    @if (collection === 'team') {
+      <app-inspector-team
+        class="full-width"
+        [instance]="collectionData"></app-inspector-team>
+    }
+  </div>
+}
+</div>

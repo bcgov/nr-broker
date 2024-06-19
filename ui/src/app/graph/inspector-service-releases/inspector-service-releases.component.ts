@@ -5,17 +5,17 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 
 @Component({
-  selector: 'app-inspector-releases',
+  selector: 'app-inspector-service-releases',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatDividerModule, MatTableModule],
-  templateUrl: './inspector-releases.component.html',
-  styleUrl: './inspector-releases.component.scss',
+  templateUrl: './inspector-service-releases.component.html',
+  styleUrl: './inspector-service-releases.component.scss',
 })
-export class InspectorReleasesComponent {
+export class InspectorServiceReleasesComponent {
   @Input() builds!: any;
   total = 0;
 
-  propDisplayedColumns: string[] = ['name', 'version'];
+  propDisplayedColumns: string[] = ['name', 'date', 'version'];
 
   navigateByService() {
     console.log('navigateByService');

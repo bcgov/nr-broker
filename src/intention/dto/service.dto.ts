@@ -3,6 +3,7 @@ import {
   IsDefined,
   IsOptional,
   IsString,
+  Length,
   ValidateNested,
 } from 'class-validator';
 import { Entity, Column } from 'typeorm';
@@ -34,11 +35,13 @@ export class ServiceDto {
   @IsString()
   @IsDefined()
   @Column()
+  @Length(1)
   name: string;
 
   @IsString()
   @IsDefined()
   @Column()
+  @Length(1)
   project: string;
 
   @ValidateNested()

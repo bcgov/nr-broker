@@ -97,19 +97,27 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     if (!userUpstreamData) {
       return false;
     }
-    // Mask data alterations as owner to prevent priviledged changes
-    request.user.mask = 'owner';
     const graphId = userUpstreamData.graphIdFromParamKey
       ? request.params[userUpstreamData.graphIdFromParamKey]
       : get(request.body, userUpstreamData.graphIdFromBodyPath);
     const userGuid: string = get(request.user.userinfo, OAUTH2_CLIENT_MAP_GUID);
+    const permission: string = userUpstreamData.permission;
+    // Mask data alterations as owner to prevent priviledged changes
+    // console.log(userUpstreamData.permission);
+    // console.log(userUpstreamData.sudoMaskKey);
+    // console.log(request.query);
+    // console.log(request.params);
+    request.user.mask =
+      userUpstreamData.sudoMaskKey &&
+      request.query[userUpstreamData.sudoMaskKey] === 'true'
+        ? 'sudo'
+        : permission;
     const user = await this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
       userGuid,
     );
-    const requiredEdgeNames = userUpstreamData.requiredEdgeNames ?? ['owner'];
-    const upstreamRecursive = userUpstreamData.upstreamRecursive ?? false;
+    // console.log(`mask: ${request.user.mask}`);
     if (userUpstreamData.graphObjectType === 'collection') {
       const targetCollection =
         await this.collectionRepository.getCollectionById(
@@ -119,31 +127,37 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       if (!targetCollection) {
         return false;
       }
-
-      return await this.util.testAccess(
-        requiredEdgeNames,
+      // console.log(permission);
+      // console.log(
+      //   await this.util.testUserPermissions(
+      //     user.vertex.toString(),
+      //     targetCollection.vertex.toString(),
+      //     permission,
+      //   ),
+      // );
+      return await this.util.testUserPermissions(
         user.vertex.toString(),
         targetCollection.vertex.toString(),
-        upstreamRecursive,
+        permission,
       );
     } else if (userUpstreamData.graphObjectType === 'edge') {
       const targetEdge = await this.graphRepository.getEdge(graphId);
+      // console.log(graphId);
+      // console.log(targetEdge);
       if (!targetEdge) {
         return false;
       }
 
-      return await this.util.testAccess(
-        requiredEdgeNames,
+      return await this.util.testUserPermissions(
         user.vertex.toString(),
         targetEdge.target.toString(),
-        upstreamRecursive,
+        permission,
       );
     } else if (userUpstreamData.graphObjectType === 'vertex') {
-      return await this.util.testAccess(
-        requiredEdgeNames,
+      return await this.util.testUserPermissions(
         user.vertex.toString(),
         graphId,
-        upstreamRecursive,
+        permission,
       );
     }
     return false;

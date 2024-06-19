@@ -41,6 +41,10 @@ mat-card-header {
   flex-wrap: wrap;
 }
 
+.menu-btn {
+  margin-right: 8px;
+}
+
 .vertex-edge-type-container {
   margin-bottom: 16px;
 }
@@ -49,21 +53,6 @@ mat-card-header {
   margin-left: 16px;
 }
 
-table {
-  width: 100%;
-  table-layout: fixed;
-}
-
-.mat-column-key {
-  width: 30%;
-}
-
-.mat-column-value {
-  width: 70%;
-}
-
-.mat-column-value > span.ellipsis {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
+.inspector-header-link:hover {
+  cursor: pointer;
 }

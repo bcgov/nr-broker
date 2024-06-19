@@ -7,19 +7,9 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { UserDto, VertexNavigation } from '../../service/graph.types';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import {
-  InspectorInstanceDialogComponent,
-  InspectorInstanceDialogReturnDao,
-} from '../inspector-instance-dialog/inspector-instance-dialog.component';
-import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
-import { CollectionApiService } from '../../service/collection-api.service';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -29,9 +19,17 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
+import { lastValueFrom } from 'rxjs';
+import { UserDto, VertexNavigation } from '../../service/graph.types';
+import { CURRENT_USER } from '../../app-initialize.factory';
+import {
+  InspectorInstanceDialogComponent,
+  InspectorInstanceDialogReturnDao,
+} from '../inspector-instance-dialog/inspector-instance-dialog.component';
+import { GraphApiService } from '../../service/graph-api.service';
+import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
-import { InspectorReleasesComponent } from '../inspector-releases/inspector-releases.component';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -43,7 +41,6 @@ import { InspectorReleasesComponent } from '../inspector-releases/inspector-rele
     MatTableModule,
     InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
-    InspectorReleasesComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
@@ -62,10 +59,11 @@ import { InspectorReleasesComponent } from '../inspector-releases/inspector-rele
 export class InspectorInstancesComponent implements OnChanges {
   @Input() vertices!: VertexNavigation | null;
   @Input() service!: ServiceRestDto;
+  @Input() details!: any;
   data: any;
-  builds: any;
   tableData: any[] = [];
   environments: any[] = [];
+  loading = true;
   @Output() refreshData = new EventEmitter();
 
   propDisplayedColumns: string[] = ['outcome', 'version'];
@@ -77,13 +75,12 @@ export class InspectorInstancesComponent implements OnChanges {
 
   constructor(
     private readonly dialog: MatDialog,
-    private readonly collectionApi: CollectionApiService,
     private readonly graphApi: GraphApiService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['service']) {
+    if (changes['details']) {
       this.loadServiceDetails();
     }
   }
@@ -96,39 +93,38 @@ export class InspectorInstancesComponent implements OnChanges {
   }
 
   private loadServiceDetails() {
-    if (this.service) {
-      this.collectionApi
-        .getServiceDetails(this.service.id)
-        .subscribe((data: any) => {
-          this.builds = data.builds;
-          this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
-            const env = cv.environment.name;
-            if (pv[env]) {
-              pv[env].push(cv);
-            } else {
-              pv[env] = [cv];
-            }
-            return pv;
-          }, {});
-          this.environments = Object.values(this.data)
-            .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
-            .sort((a, b) => a.position - b.position);
-          this.tableData = [];
-          for (const env of this.environments) {
-            this.tableData.push(
-              {
-                isGroup: true,
-                env,
-              },
-              ...this.data[env.name],
-            );
-          }
-          // console.log(this.tableData);
-        });
+    if (this.details) {
+      const data = this.details;
+      this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
+        const env = cv.environment.name;
+        if (pv[env]) {
+          pv[env].push(cv);
+        } else {
+          pv[env] = [cv];
+        }
+        return pv;
+      }, {});
+      this.environments = Object.values(this.data)
+        .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
+        .sort((a, b) => a.position - b.position);
+      this.tableData = [];
+      for (const env of this.environments) {
+        this.tableData.push(
+          {
+            isGroup: true,
+            env,
+          },
+          ...this.data[env.name],
+        );
+      }
+      this.loading = false;
     }
   }
 
   openInstanceDialog() {
+    if (!this.vertices) {
+      return;
+    }
     this.dialog
       .open(InspectorInstanceDialogComponent, {
         width: '500px',

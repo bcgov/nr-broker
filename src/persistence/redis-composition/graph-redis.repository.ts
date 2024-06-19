@@ -39,6 +39,7 @@ import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
+import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -71,6 +72,10 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
   ): Promise<ServiceDetailsResponseDto> {
     return this.repo.getServiceDetails(id);
+  }
+
+  public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
+    return this.repo.getUserPermissions(id);
   }
 
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeDto> {

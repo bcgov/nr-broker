@@ -1,54 +1,53 @@
-@if (user.roles.includes('admin') || isAdministrator) {
-  <div class="edge-container">
-    <div class="heading">
-      <h3>Vault Role Ids</h3>
-      <mat-slide-toggle matTooltip="Role ids should not be shared"
-      matTooltipPosition="left" [(ngModel)]="reveal">Show</mat-slide-toggle>
-    </div>
+<div class="edge-container">
+  <div class="heading">
+    <h3>Vault Role Ids</h3>
+    <mat-slide-toggle
+      matTooltip="Role ids should not be shared"
+      matTooltipPosition="left"
+      [(ngModel)]="reveal">Show</mat-slide-toggle>
   </div>
+</div>
 
-  <mat-list>
-    @if (data && data.roleIds && data.roleIds.prod) {
-      <mat-list-item>
-        <span matListItemTitle>Production</span>
-        @if (reveal) {
-          <span matListItemLine>{{ data.roleIds.prod }}</span>
-        }
-        @if (!reveal) {
-          <span matListItemLine>********-****-****-****-************</span>
-        }
-      </mat-list-item>
-    }
-    @if (data && data.roleIds && data.roleIds.test) {
-      <mat-list-item>
-        <span matListItemTitle>Test</span>
-        @if (reveal) {
-          <span matListItemLine>{{ data.roleIds.test }}</span>
-        } @else {
-          <span matListItemLine>********-****-****-****-************</span>
-        }
-      </mat-list-item>
-    }
-    @if (data && data.roleIds && data.roleIds.dev) {
-      <mat-list-item>
-        <span matListItemTitle>Development</span>
-        @if (reveal) {
-          <span matListItemLine>{{ data.roleIds.dev }}</span>
-        } @else {
-          <span matListItemLine>********-****-****-****-************</span>
-        }
-      </mat-list-item>
-    }
-    @if (data && data.roleIds && data.roleIds.tools) {
-      <mat-list-item>
-        <span matListItemTitle>Tools</span>
-        @if (reveal) {
-          <span matListItemLine>{{ data.roleIds.tools }}</span>
-        } @else {
-          <span matListItemLine>********-****-****-****-************</span>
-        }
-      </mat-list-item>
-    }
-  </mat-list>
-  <mat-divider></mat-divider>
-}
+<mat-list>
+  @if (data && data.roleIds && data.roleIds.prod) {
+    <mat-list-item>
+      <span matListItemTitle>Production</span>
+      @if (reveal) {
+        <span matListItemLine>{{ data.roleIds.prod }}</span>
+      }
+      @if (!reveal) {
+        <span matListItemLine>********-****-****-****-************</span>
+      }
+    </mat-list-item>
+  }
+  @if (data && data.roleIds && data.roleIds.test) {
+    <mat-list-item>
+      <span matListItemTitle>Test</span>
+      @if (reveal) {
+        <span matListItemLine>{{ data.roleIds.test }}</span>
+      } @else {
+        <span matListItemLine>********-****-****-****-************</span>
+      }
+    </mat-list-item>
+  }
+  @if (data && data.roleIds && data.roleIds.dev) {
+    <mat-list-item>
+      <span matListItemTitle>Development</span>
+      @if (reveal) {
+        <span matListItemLine>{{ data.roleIds.dev }}</span>
+      } @else {
+        <span matListItemLine>********-****-****-****-************</span>
+      }
+    </mat-list-item>
+  }
+  @if (data && data.roleIds && data.roleIds.tools) {
+    <mat-list-item>
+      <span matListItemTitle>Tools</span>
+      @if (reveal) {
+        <span matListItemLine>{{ data.roleIds.tools }}</span>
+      } @else {
+        <span matListItemLine>********-****-****-****-************</span>
+      }
+    </mat-list-item>
+  }
+</mat-list>

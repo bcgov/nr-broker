@@ -2,6 +2,13 @@ import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import {
+  IsDefined,
+  IsNotEmptyObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 import { BrokerAccountDto } from './broker-account.dto';
 import { CollectionDtoUnion } from './collection-dto-union.type';
@@ -14,6 +21,7 @@ import { TeamDto } from './team.dto';
 import { UserDto } from './user.dto';
 import { VertexPointerDto } from './vertex-pointer.dto';
 import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
+import { IsValidProp } from '../../util/validator.util';
 
 @Entity({ name: 'vertex' })
 export class VertexDto {
@@ -24,18 +32,27 @@ export class VertexDto {
   @Index()
   @Column()
   @ApiProperty({ type: () => String })
+  @IsDefined()
+  @IsString()
   collection: keyof CollectionDtoUnion;
 
   @Column(() => PointGeom)
+  @IsOptional()
+  @ValidateNested()
   geo?: PointGeom;
 
   @Column()
+  @IsDefined()
+  @IsString()
   name: string;
 
   /**
    * prop.label: Special case for labeling a vertex
    */
   @Column()
+  @IsOptional()
+  @IsValidProp()
+  @IsNotEmptyObject()
   prop?: VertexPropDto;
 
   static upgradeInsertDto(value: VertexInsertDto): VertexDto {

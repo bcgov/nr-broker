@@ -93,8 +93,7 @@ export class CollectionController {
     graphObjectType: 'collection',
     graphObjectCollection: 'brokerAccount',
     graphIdFromParamKey: 'id',
-    requiredEdgeNames: ['administrator', 'lead-developer'],
-    upstreamRecursive: true,
+    permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiQuery({
@@ -142,8 +141,7 @@ export class CollectionController {
     graphObjectType: 'collection',
     graphObjectCollection: 'service',
     graphIdFromParamKey: 'id',
-    requiredEdgeNames: ['administrator', 'lead-developer'],
-    upstreamRecursive: true,
+    permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   async getServiceSecureInfo(@Param('id') id: string) {

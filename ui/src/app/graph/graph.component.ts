@@ -46,6 +46,7 @@ import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
 import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
+import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
 
 @Component({
   selector: 'app-graph',
@@ -133,18 +134,18 @@ export class GraphComponent implements OnInit, OnDestroy {
             }),
           ),
           this.graphApi.getConfig(),
-          this.graphApi.searchEdgesShallow('owner', 'target', this.user.vertex),
+          this.graphApi.getUserPermissions(),
         ]),
       ),
       map(
-        ([{ data, es }, configArr, ownedVertex]: [
+        ([{ data, es }, configArr, permissions]: [
           { data: GraphDataResponseDto; es: GraphEventRestDto | null },
           CollectionConfigRestDto[],
-          string[],
+          UserPermissionRestDto,
         ]) => {
           // console.log(data);
           // console.log(config);
-          // console.log(ownedVertex);
+          // console.log(permissions);
           const configMap = this.graphUtil.configArrToMap(configArr);
           const configSrcTarMap = this.graphUtil.configArrToSrcTarMap(
             configArr,
@@ -186,7 +187,7 @@ export class GraphComponent implements OnInit, OnDestroy {
             es,
             config: configMap,
             configSrcTarMap,
-            ownedVertex,
+            permissions,
           };
         },
       ),
@@ -339,7 +340,7 @@ export class GraphComponent implements OnInit, OnDestroy {
       .open(VertexDialogComponent, {
         width: '500px',
         data: {
-          config: this.latestConfig,
+          configMap: this.latestConfig,
         },
       })
       .afterClosed()
