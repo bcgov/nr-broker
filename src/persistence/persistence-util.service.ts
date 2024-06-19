@@ -54,8 +54,20 @@ export class PersistenceUtilService {
     );
   }
 
+  public async testUserPermissions(
+    userVertexId: string,
+    graphVertexId: string,
+    permission: string,
+  ) {
+    return (
+      (await this.graphRepository.getUserPermissions(userVertexId))[
+        permission
+      ].indexOf(graphVertexId) !== -1
+    );
+  }
+
   public async testAccess(
-    edges: string[],
+    matchEdgeNames: string[],
     userId: string,
     graphId: string,
     upstreamRecursive: boolean,
@@ -70,14 +82,14 @@ export class PersistenceUtilService {
       const upstream = await this.graphRepository.getUpstreamVertex(
         graphId,
         config.index,
-        edges,
+        matchEdgeNames,
       );
       return (
         upstream.filter((data) => data.collection.vertex.toString() === userId)
           .length > 0
       );
     } else {
-      for (const edgeName of edges) {
+      for (const edgeName of matchEdgeNames) {
         const edge = await this.graphRepository.getEdgeByNameAndVertices(
           edgeName,
           userId,

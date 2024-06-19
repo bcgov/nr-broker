@@ -230,7 +230,7 @@ result = db.collectionConfig.insertOne({
       type: 'embeddedDoc',
       required: false,
       mask: {
-        owner: ['approle.enabled', 'enabled', 'policyOptions.tokenPeriod'],
+        sudo: ['approle.enabled', 'enabled', 'policyOptions.tokenPeriod'],
       },
     },
   },

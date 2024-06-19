@@ -31,8 +31,9 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { REDIS_PUBSUB } from '../constants';
+import { OAUTH2_CLIENT_MAP_GUID, REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
+import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto';
 
 @Injectable()
 export class GraphService {
@@ -58,6 +59,19 @@ export class GraphService {
 
   public async getServerInstalls() {
     return this.graphRepository.getServerInstalls();
+  }
+
+  public async getUserPermissions(request: Request) {
+    const userGuid: string = get(
+      (request as any).user.userinfo,
+      OAUTH2_CLIENT_MAP_GUID,
+    );
+    const user = await this.collectionRepository.getCollectionByKeyValue(
+      'user',
+      'guid',
+      userGuid,
+    );
+    return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
   public async addEdge(
@@ -264,9 +278,15 @@ export class GraphService {
         error: `Collection (${vertexInsert.collection}) object with vertex (${id}) does not exist`,
       });
     }
+    console.log((req.user as any)?.mask);
     // Owners can edit vertices but, priviledged fields must be masked
-    if (!req || (req.user as any)?.mask === 'owner') {
-      this.maskCollectionFields('owner', config, collection, vertexObj);
+    if (!req || (req.user as any)?.mask) {
+      this.maskCollectionFields(
+        (req.user as any)?.mask,
+        config,
+        collection,
+        vertexObj,
+      );
       vertex = this.mapCollectionToVertex(config, vertex, collection);
     }
     for (const [key, field] of Object.entries(config.fields)) {
@@ -407,7 +427,7 @@ export class GraphService {
   }
 
   private async maskCollectionFields(
-    maskType: 'owner',
+    maskType: UserPermissionNames,
     config: CollectionConfigDto,
     newCollection: any,
     oldCollection: any,

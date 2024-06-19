@@ -19,6 +19,7 @@ import { VertexInsertDto, VertexRestDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { GraphEventRestDto } from './dto/graph-event-rest.dto';
+import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -154,9 +155,9 @@ export class GraphApiService {
     );
   }
 
-  editVertex(id: string, vertex: VertexInsertDto) {
+  editVertex(id: string, vertex: VertexInsertDto, sudo: boolean = false) {
     return this.http.put<any>(
-      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
+      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}${sudo ? '?sudo=true' : ''}`,
       vertex,
       {
         responseType: 'json',
@@ -184,6 +185,15 @@ export class GraphApiService {
           ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
           : ''
       }`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getUserPermissions() {
+    return this.http.get<UserPermissionRestDto>(
+      `${environment.apiUrl}/v1/graph/data/user-permissions`,
       {
         responseType: 'json',
       },

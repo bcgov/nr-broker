@@ -77,7 +77,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   isTargetOwner = false;
   routeSub: Subscription | null = null;
   serviceDetails: any = null;
-  isAdministrator = false;
+  hasSudo = false;
+  hasUpdate = false;
 
   private ngUnsubscribe: Subject<any> = new Subject();
 
@@ -125,17 +126,12 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           .subscribe((data: any) => {
             this.serviceDetails = data;
           });
-        this.graphApi
-          .getUpstream(this.collectionData.vertex, 4, [
-            'administrator',
-            'lead-developer',
-          ])
-          .subscribe((data) => {
-            this.isAdministrator =
-              data.filter((data) => {
-                return data.collection.guid === this.user.guid;
-              }).length > 0;
-          });
+        this.graphApi.getUserPermissions().subscribe((data) => {
+          this.hasSudo =
+            data['sudo'].indexOf(this.collectionData.vertex) !== -1;
+          this.hasUpdate =
+            data['update'].indexOf(this.collectionData.vertex) !== -1;
+        });
       }
       if (es !== null) {
         if (es.event === 'vertex-edit') {

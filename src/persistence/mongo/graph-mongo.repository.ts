@@ -25,6 +25,7 @@ import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-r
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { ActionUtil } from '../../util/action.util';
+import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -327,6 +328,88 @@ export class GraphMongoRepository implements GraphRepository {
         }
         return datum as ServiceDetailsResponseDto;
       });
+  }
+
+  public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
+    const configs = [
+      [{ name: 'owner', index: 6, permissions: ['update'] }],
+      [
+        { name: 'lead-developer', index: 6, permissions: ['update'] },
+        { name: 'owns', index: 5, permissions: [] },
+        { name: 'authorized', index: 1, permissions: ['update'] },
+        { name: 'component', index: 2, permissions: ['sudo', 'update'] },
+      ],
+      [
+        { name: 'lead-developer', index: 6 },
+        { name: 'owns', index: 5 },
+        { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
+      ],
+    ];
+    const maxDepth = configs
+      .map((config) => config.length)
+      .reduce((pv, cv) => (cv > pv ? cv : pv), 1);
+    return await this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'paths',
+            depthField: 'depth',
+            maxDepth,
+          },
+        },
+      ])
+      .toArray()
+      .then((upstreamArr: any[]) => {
+        return this.collectPermissions(id, configs, upstreamArr[0].paths);
+      });
+  }
+
+  private collectPermissions(
+    id: string,
+    configs: any[],
+    paths: any[],
+  ): UserPermissionRestDto {
+    let ids = [];
+    const matches: UserPermissionRestDto = {
+      create: [],
+      delete: [],
+      sudo: [],
+      update: [],
+    };
+    for (const config of configs) {
+      for (const [depth, depthConfig] of config.entries()) {
+        // console.log(depth);
+        // console.log(depthConfig);
+        const filteredPaths = paths.filter(
+          (path) =>
+            path.depth === depth &&
+            path.it === depthConfig.index &&
+            path.name === depthConfig.name &&
+            (depth === 0
+              ? id === path.source.toString()
+              : ids.indexOf(path.source.toString()) !== -1),
+        );
+        // console.log(filteredPaths);
+        if (filteredPaths.length === 0) {
+          break;
+        }
+
+        if (depthConfig.permissions) {
+          ids = filteredPaths.map((path) => path.target.toString());
+          // console.log(ids);
+          // console.log(depthConfig.permissions);
+          for (const permission of depthConfig.permissions) {
+            matches[permission].push(...ids);
+          }
+        }
+      }
+    }
+    return matches;
   }
 
   private collectionLookup(

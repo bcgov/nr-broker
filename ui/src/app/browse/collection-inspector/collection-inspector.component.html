@@ -71,8 +71,8 @@
         <mat-card-content>
           <app-inspector-vault
             [service]="collectionData"
-            [isAdministrator]="isAdministrator"></app-inspector-vault>
-          @if (user.roles.includes('admin') || isAdministrator) {
+            [isAdministrator]="hasSudo"></app-inspector-vault>
+          @if (user.roles.includes('admin') || hasSudo) {
             <mat-divider></mat-divider>
             <app-inspector-service-secure
               [service]="collectionData"></app-inspector-service-secure>

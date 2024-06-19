@@ -47,7 +47,8 @@ export class InspectorVertexComponent implements OnChanges {
   @Input() collectionData: any = null;
   @Input() outboundConnections!: VertexNavigation | null;
   serviceDetails: any = null;
-  isAdministrator = false;
+  hasSudo = false;
+  hasUpdate = false;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
@@ -68,17 +69,11 @@ export class InspectorVertexComponent implements OnChanges {
         .subscribe((data: any) => {
           this.serviceDetails = data;
         });
-      this.graphApi
-        .getUpstream(this.collectionData.vertex, 4, [
-          'administrator',
-          'lead-developer',
-        ])
-        .subscribe((data) => {
-          this.isAdministrator =
-            data.filter((data) => {
-              return data.collection.guid === this.user.guid;
-            }).length > 0;
-        });
+      this.graphApi.getUserPermissions().subscribe((data) => {
+        this.hasSudo = data['sudo'].indexOf(this.collectionData.vertex) !== -1;
+        this.hasUpdate =
+          data['update'].indexOf(this.collectionData.vertex) !== -1;
+      });
     }
   }
 }

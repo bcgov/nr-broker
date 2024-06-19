@@ -65,10 +65,14 @@ export class InspectorVaultComponent {
           data.vaultConfig = result.vaultConfig;
           console.log(data);
           this.graphApi
-            .editVertex(this.service.vertex, {
-              collection: 'service',
-              data,
-            })
+            .editVertex(
+              this.service.vertex,
+              {
+                collection: 'service',
+                data,
+              },
+              true,
+            )
             .subscribe(() => {
               this.refreshData.emit();
             });

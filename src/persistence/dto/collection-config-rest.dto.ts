@@ -1,5 +1,6 @@
 import { CollectionNames } from './collection-dto-union.type';
 import { EdgeRestDto } from './edge-rest.dto';
+import { UserPermissionNames } from './user-permission-rest.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export class CollectionEdgePermissions {
@@ -38,7 +39,7 @@ export class CollectionFieldConfig {
   hint?: string;
   init?: 'uuid';
   mask?: {
-    owner?: boolean | string[];
+    [Property in UserPermissionNames]?: boolean | string[];
   };
   name!: string;
   placeholder?: string;
