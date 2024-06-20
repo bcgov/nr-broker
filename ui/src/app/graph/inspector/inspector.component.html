@@ -136,7 +136,7 @@
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
-                  @for (item of group.value; track item.id) {
+                  @for (item of group.value; track item.vertex.id) {
                     <mat-chip-option (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;
                     }{{item.vertex.name}}</mat-chip-option>
@@ -170,7 +170,7 @@
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
-                  @for (item of group.value; track item.id) {
+                  @for (item of group.value; track item.vertex.id) {
                     <mat-chip-option
                       (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;
