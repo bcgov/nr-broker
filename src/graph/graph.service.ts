@@ -383,6 +383,12 @@ export class GraphService {
     }
 
     const collection = VertexDto.upgradeDataToInstance(vertexInsert);
+    if (!collection) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'No data',
+      });
+    }
     const errors = await validate(collection, {
       whitelist: true,
       forbidNonWhitelisted: true,
