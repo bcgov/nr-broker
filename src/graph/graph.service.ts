@@ -280,9 +280,9 @@ export class GraphService {
     }
     // console.log((req.user as any)?.mask);
     // Owners can edit vertices but, priviledged fields must be masked
-    if (!req || (req.user as any)?.mask) {
+    if (req && (req?.user as any)?.mask) {
       this.maskCollectionFields(
-        (req.user as any)?.mask,
+        (req.user as any).mask,
         config,
         collection,
         vertexObj,
