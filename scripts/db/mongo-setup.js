@@ -670,6 +670,31 @@ result = db.collectionConfig.insertOne({
   show: true,
 });
 
+// ==> Graph Permission Setup
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [{ name: 'owner', index: 6, permissions: ['update', 'delete'] }],
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: ['update'] },
+    { name: 'owns', index: 5, permissions: ['sudo'] },
+    { name: 'authorized', index: 1, permissions: ['update'] },
+    { name: 'component', index: 2, permissions: ['sudo', 'update'] },
+  ],
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
+  ],
+});
+
 // ==> User setup
 use('admin');
 if (db.getUser('admin_db_engine') === null) {

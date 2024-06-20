@@ -26,6 +26,7 @@ import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-res
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { ActionUtil } from '../../util/action.util';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
+import { GraphPermissionDto } from '../dto/graph-permission.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -37,6 +38,8 @@ export class GraphMongoRepository implements GraphRepository {
     private readonly edgeRepository: MongoRepository<EdgeDto>,
     @InjectRepository(VertexDto)
     private readonly vertexRepository: MongoRepository<VertexDto>,
+    @InjectRepository(GraphPermissionDto)
+    private readonly permissionRepository: MongoRepository<GraphPermissionDto>,
     private readonly actionUtil: ActionUtil,
   ) {}
 
@@ -331,20 +334,10 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
-    const configs = [
-      [{ name: 'owner', index: 6, permissions: ['update', 'delete'] }],
-      [
-        { name: 'lead-developer', index: 6, permissions: ['update'] },
-        { name: 'owns', index: 5, permissions: ['sudo'] },
-        { name: 'authorized', index: 1, permissions: ['update'] },
-        { name: 'component', index: 2, permissions: ['sudo', 'update'] },
-      ],
-      [
-        { name: 'lead-developer', index: 6, permissions: [] },
-        { name: 'owns', index: 5, permissions: [] },
-        { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
-      ],
-    ];
+    const permissions = await this.permissionRepository.find({
+      where: { name: 'user' },
+    });
+    const configs = permissions.map((permission) => permission.data);
     const maxDepth = configs
       .map((config) => config.length)
       .reduce((pv, cv) => (cv > pv ? cv : pv), 1);

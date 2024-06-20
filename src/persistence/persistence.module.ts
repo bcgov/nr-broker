@@ -7,6 +7,7 @@ import { CollectionConfigDto } from './dto/collection-config.dto';
 import { ConnectionConfigDto } from './dto/connection-config.dto';
 import { EdgeDto } from './dto/edge.dto';
 import { EnvironmentDto } from './dto/environment.dto';
+import { GraphPermissionDto } from './dto/graph-permission.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { JwtAllowDto } from './dto/jwt-allow.dto';
 import { JwtBlockDto } from './dto/jwt-block.dto';
@@ -79,6 +80,7 @@ const redisFactory = {
       ConnectionConfigDto,
       EdgeDto,
       EnvironmentDto,
+      GraphPermissionDto,
       IntentionDto,
       JwtAllowDto,
       JwtBlockDto,
