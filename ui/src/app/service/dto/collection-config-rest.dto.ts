@@ -18,6 +18,7 @@ export class CollectionEdgePrototype {
 }
 
 export class CollectionEdgeConfig {
+  id!: string;
   collection!: CollectionNames;
   name!: string;
   onDelete?: 'cascade';

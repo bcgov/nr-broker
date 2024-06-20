@@ -1,6 +1,6 @@
 <h3>Properties</h3>
 
-@for (property of properties; track property) {
+@for (property of properties; track property.key) {
   <div class="property-editor-fields">
     <button (click)="removeProperty(property)" mat-mini-fab color="warn" aria-label="Remove property">
       <mat-icon>delete</mat-icon>

@@ -12,7 +12,6 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { PackageBuildDto } from '../dto/package-build.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -20,8 +19,6 @@ export class CollectionMongoRepository implements CollectionRepository {
     private readonly dataSource: DataSource,
     @InjectRepository(CollectionConfigDto)
     private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
-    @InjectRepository(PackageBuildDto)
-    private readonly packageBuildRepository: MongoRepository<PackageBuildDto>,
   ) {}
 
   public getCollectionConfigs(): Promise<CollectionConfigDto[]> {

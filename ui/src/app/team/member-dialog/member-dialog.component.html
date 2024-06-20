@@ -5,7 +5,7 @@
       <mat-form-field>
         <mat-label>Type</mat-label>
         <mat-select required [(value)]="userTypeSelected">
-          @for (edge of edges; track edge) {
+          @for (edge of edges; track edge.id) {
             <mat-option value="{{ edge.name }}">{{ edge.name | titlecase }}</mat-option>
           }
         </mat-select>
@@ -41,7 +41,7 @@
     @if (userCount == 0) {
       <h2 class="no-members">No members</h2>
     }
-    @for (edge of edges; track edge) {
+    @for (edge of edges; track edge.id) {
       @if (users[edge.name].length > 0) {
         @if (user.roles.includes('admin') || isOwner) {
           <div class="member-header">
@@ -52,7 +52,7 @@
             (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
           </div>
           <mat-selection-list #userList >
-            @for (member of users[edge.name]; track member) {
+            @for (member of users[edge.name]; track member.id) {
               <mat-list-option [value]="member" [disabled]="user.vertex == member.vertex">
                 <span matListItemTitle>{{ member.name }}</span>
               </mat-list-option>
@@ -63,7 +63,7 @@
             <h2>{{ edge.name | titlecase }}</h2>
           </div>
           <mat-list role="list">
-            @for (member of users[edge.name]; track member) {
+            @for (member of users[edge.name]; track member.id) {
               <mat-list-item role="listitem">
                 {{ member.name }}
               </mat-list-item>

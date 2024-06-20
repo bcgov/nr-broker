@@ -10,7 +10,7 @@
       <mat-select [formControl]="collectionControl"
         name="type">
         <mat-option value="" selected></mat-option>
-        @for (value of configs; track value) {
+        @for (value of configs; track value.id) {
           <mat-option [value]="value">{{value.name}}</mat-option>
         }
       </mat-select>

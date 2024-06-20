@@ -132,11 +132,11 @@
             @if ((inboundConnections?.connections | keyvalue)?.length == 0) {
               <p class="vertex-edge-type-container">None</p>
             }
-            @for (group of $any(inboundConnections?.connections | keyvalue); track group) {
+            @for (group of $any(inboundConnections?.connections | keyvalue); track group.key) {
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
-                  @for (item of group.value; track item) {
+                  @for (item of group.value; track item.id) {
                     <mat-chip-option (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;
                     }{{item.vertex.name}}</mat-chip-option>
@@ -166,11 +166,11 @@
             @if ((outboundConnections?.connections | keyvalue)?.length == 0) {
               <p class="vertex-edge-type-container">None</p>
             }
-            @for (group of $any(outboundConnections?.connections | keyvalue); track group) {
+            @for (group of $any(outboundConnections?.connections | keyvalue); track group.key) {
               <div class="vertex-edge-type-container">
                 <h5>{{group.key | titlecase}}</h5>
                 <mat-chip-listbox [selectable]="false">
-                  @for (item of group.value; track item) {
+                  @for (item of group.value; track item.id) {
                     <mat-chip-option
                       (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
                       {{ item.vertex.parentName}} &gt;

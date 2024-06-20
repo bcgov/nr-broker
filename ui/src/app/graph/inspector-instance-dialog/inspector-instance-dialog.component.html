@@ -5,7 +5,7 @@
       <h3>{{ env.title }}</h3>
 
       <ul>
-        @for (alias of env.aliases; track alias) {
+        @for (alias of env.aliases; track alias.name) {
           <li>
             <mat-checkbox [(ngModel)]="alias.checked" [disabled]="alias.disabled">
               {{alias.name}}
