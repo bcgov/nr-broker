@@ -132,6 +132,7 @@ result = db.collectionConfig.insertOne({
   index: 1,
   edges: [
     {
+      id: '213b9678',
       collection: 'service',
       name: 'component',
       relation: 'oneToMany',
@@ -198,6 +199,7 @@ result = db.collectionConfig.insertOne({
   index: 2,
   edges: [
     {
+      id: '893c1dcb',
       collection: 'serviceInstance',
       name: 'instance',
       onDelete: 'cascade',
@@ -205,6 +207,7 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
+      id: 'fc9bc870',
       collection: 'service',
       name: 'provision-token',
       onDelete: 'cascade',
@@ -272,6 +275,7 @@ result = db.collectionConfig.insertOne({
   index: 3,
   edges: [
     {
+      id: '48fb4f9f',
       collection: 'environment',
       name: 'deploy-type',
       inboundName: 'Instance',
@@ -279,6 +283,7 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
+      id: 'a511d8fe',
       collection: 'serviceInstance',
       name: 'requires',
       inboundName: 'Required By',
@@ -286,6 +291,7 @@ result = db.collectionConfig.insertOne({
       show: false,
     },
     {
+      id: 'a4056650',
       collection: 'server',
       name: 'installation',
       inboundName: 'Installs',
@@ -335,6 +341,7 @@ result = db.collectionConfig.insertOne({
   index: 4,
   edges: [
     {
+      id: 'f69ac0c8',
       collection: 'brokerAccount',
       name: 'administrator',
       inboundName: 'administrators',
@@ -342,36 +349,42 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
+      id: '79ceccbd',
       collection: 'project',
       name: 'owner',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'bbba80bc',
       collection: 'team',
       name: 'owner',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'db00aada',
       collection: 'project',
       name: 'lead-developer',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'aa573095',
       collection: 'team',
       name: 'lead-developer',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'ad24909b',
       collection: 'project',
       name: 'developer',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'ad796493',
       collection: 'team',
       name: 'developer',
       relation: 'oneToMany',
@@ -423,12 +436,14 @@ result = db.collectionConfig.insertOne({
   index: 5,
   edges: [
     {
+      id: 'f081e1be',
       collection: 'project',
       name: 'authorized',
       relation: 'oneToMany',
       show: true,
     },
     {
+      id: 'cae8ebbc',
       collection: 'service',
       name: 'authorized',
       relation: 'oneToMany',
@@ -522,6 +537,7 @@ result = db.collectionConfig.insertOne({
   index: 6,
   edges: [
     {
+      id: '802831d3',
       collection: 'brokerAccount',
       name: 'owns',
       inboundName: 'owned by',
@@ -529,6 +545,7 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
+      id: '19d21999',
       collection: 'service',
       name: 'uses',
       inboundName: 'used by',

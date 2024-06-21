@@ -7,7 +7,7 @@
     <mat-form-field class="field-show-filter">
       <mat-label>Show</mat-label>
       <mat-select [(ngModel)]="showFilter" (selectionChange)="onFilterChange()" name="status">
-        @for (opt of showFilterOptions; track opt) {
+        @for (opt of showFilterOptions; track opt.value) {
           <mat-option [value]="opt.value">
             {{opt.viewValue}}
           </mat-option>

@@ -7,7 +7,7 @@
     <mat-form-field class="field-field">
       <mat-label>Field</mat-label>
       <mat-select [(ngModel)]="selectedField" name="field">
-        @for (field of fields; track field) {
+        @for (field of fields; track field.value) {
           <mat-option [value]="field.value">
             {{field.viewValue}}
           </mat-option>
@@ -39,7 +39,7 @@
     <mat-form-field class="field-lifespan">
       <mat-label>Lifespan</mat-label>
       <mat-select [(ngModel)]="selectedLifespan" name="lifespan">
-        @for (stat of lifespan; track stat) {
+        @for (stat of lifespan; track stat.value) {
           <mat-option [value]="stat.value">
             {{stat.viewValue}}
           </mat-option>
@@ -49,7 +49,7 @@
     <mat-form-field class="field-outcome">
       <mat-label>Outcome</mat-label>
       <mat-select [(ngModel)]="selectedStatus" name="status">
-        @for (stat of status; track stat) {
+        @for (stat of status; track stat.value) {
           <mat-option [value]="stat.value">
             {{stat.viewValue}}
           </mat-option>

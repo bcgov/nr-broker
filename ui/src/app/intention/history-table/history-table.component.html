@@ -151,7 +151,7 @@
             mat-stroked-button href="{{element.auditUrl}}"
             target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         </div>
-        @for (action of element.actions; track action) {
+        @for (action of element.actions; track action.id) {
           <div class="expanded-header-container">
             <h5><a (click)="openCollection('project', 'name', action.service.project)"
               >{{action.service.project}}</a> / <a (click)="openCollection('service', 'name', action.service.name)"
@@ -179,7 +179,7 @@
               }
             </div>
             <div class="artifact-container">
-              @for (artifact of action.artifacts; track artifact) {
+              @for (artifact of action.artifacts; track artifact.id) {
                 <mat-card class="artifact-card">
                   <mat-card-header>
                     <mat-card-title>@if (artifact.name) {
