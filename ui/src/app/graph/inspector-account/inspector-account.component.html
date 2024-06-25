@@ -30,6 +30,9 @@
                   }
                   {{element.value | date:'medium'}}
                 }
+                @case ('Usage') {
+                  {{element.value}} (last hour)
+                }
                 @default {
                 }
             }

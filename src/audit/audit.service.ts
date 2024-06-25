@@ -41,9 +41,9 @@ export class AuditService {
    * @param stream The service used to persist audit logs
    */
   constructor(private readonly stream: AuditStreamerService) {
-    if (process.env.BROKER_AUDIT_INDEX_ACTIVITY) {
+    if (process.env.BROKER_AUDIT_INDEX_BROKER_AUDIT) {
       this.metadataActivity['@metadata'] = {
-        index: process.env.BROKER_AUDIT_INDEX_ACTIVITY,
+        index: process.env.BROKER_AUDIT_INDEX_BROKER_AUDIT,
       };
     }
     if (process.env.BROKER_AUDIT_INDEX_HTTP_ACCESS) {

@@ -1,6 +1,11 @@
 export const AWS_REGION = 'ca-central-1';
 export const AWS_KINESIS_BUFFER_TIME = 100;
 export const AWS_KINESIS_MAX_RECORDS = 10;
+export const AWS_OPENSEARCH_HOST = process.env.AWS_OPENSEARCH_HOST ?? '';
+export const OPENSEARCH_INDEX_BROKER_AUDIT =
+  process.env.OPENSEARCH_INDEX_BROKER_AUDIT ?? '';
+export const OPENSEARCH_INDEX_HTTP_ACCESS =
+  process.env.OPENSEARCH_INDEX_HTTP_ACCESS ?? '';
 
 export const TOKEN_RENEW_RATIO = 0.75;
 
