@@ -288,11 +288,11 @@ db.serviceInstance.insertMany([
 
 db.server.insertMany([
   {
-    _id: ObjectId('66034698eb54820a9728bf99'),
+    _id: ObjectId('66034698eb54820a9728bf98'),
     name: 'lollipop',
     acquired: ISODate('2024-03-13T00:00:00.000Z'),
     hostName: 'lollipop.dmz',
-    vertex: ObjectId('66034698eb54820a9728bf98'),
+    vertex: ObjectId('66034698eb54820a9728bf99'),
     architecture: 'x86_64',
     tags: ['edge', 'webserver'],
   },
