@@ -19,6 +19,19 @@ export class SystemApiService {
     );
   }
 
+  getAccountUsage(accountId: string) {
+    return this.http.post<{
+      success: number;
+      unknown: number;
+      failure: number;
+    }>(
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/usage`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   generateAccountToken(accountId: string, expirationInSeconds: number) {
     return this.http.post<TokenCreateDto>(
       `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}`,

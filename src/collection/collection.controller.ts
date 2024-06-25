@@ -116,6 +116,19 @@ export class CollectionController {
     );
   }
 
+  @Post('broker-account/:id/usage')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async getTokenUsage(@Param('id') id: string) {
+    return this.accountService.getUsage(id);
+  }
+
   @Post('broker-account/renewal')
   @UseGuards(BrokerJwtAuthGuard)
   @ApiBearerAuth()

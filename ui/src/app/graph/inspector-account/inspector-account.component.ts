@@ -1,4 +1,10 @@
-import { Component, Inject, Input, OnChanges, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -20,13 +26,15 @@ import { GraphApiService } from '../../service/graph-api.service';
   templateUrl: './inspector-account.component.html',
   styleUrls: ['./inspector-account.component.scss'],
 })
-export class InspectorAccountComponent implements OnChanges, OnInit {
+export class InspectorAccountComponent implements OnChanges {
   @Input() account!: BrokerAccountRestDto;
   @Input() userIndex!: number | undefined;
   @Input() hasSudo = false;
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;
+  hourlyUsage: number | undefined;
+  hourlyFails: number | undefined;
   propDisplayedColumns: string[] = ['key', 'value'];
 
   constructor(
@@ -36,7 +44,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
-  ngOnInit(): void {
+  updateAccount(): void {
     if (this.account && this.userIndex) {
       this.systemApi.getAccountTokens(this.account.id).subscribe((data) => {
         this.jwtTokens = data;
@@ -46,18 +54,42 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
             JTI: lastJwtToken.claims.jti,
             Expiry: new Date(lastJwtToken.claims.exp * 1000),
           };
+          if (this.hourlyUsage) {
+            this.lastJwtTokenData.Usage = this.hourlyUsage;
+          }
 
           this.expired =
             Date.now() > new Date(lastJwtToken.claims.exp * 1000).valueOf();
         }
       });
     }
+
+    if (this.hasSudo && this.account) {
+      this.hourlyUsage = undefined;
+      this.systemApi.getAccountUsage(this.account.id).subscribe(
+        (data) => {
+          this.hourlyUsage = data.success + data.unknown + data.failure;
+          if (this.lastJwtTokenData) {
+            this.lastJwtTokenData.Usage = this.hourlyUsage;
+          }
+        },
+        (err) => {
+          if (err.status === 503) {
+            // ignore
+          } else {
+            throw err;
+          }
+        },
+      );
+    }
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     this.jwtTokens = undefined;
     this.lastJwtTokenData = undefined;
-    this.ngOnInit();
+    if (changes['account']) {
+      this.updateAccount();
+    }
   }
 
   openGenerateDialog() {
@@ -70,7 +102,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
       })
       .afterClosed()
       .subscribe(() => {
-        this.ngOnInit();
+        this.updateAccount();
       });
   }
 }

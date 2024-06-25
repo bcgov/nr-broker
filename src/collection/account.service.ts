@@ -8,12 +8,14 @@ import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
+  OPENSEARCH_INDEX_BROKER_AUDIT,
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
+import { OpensearchService } from '../aws/opensearch.service';
 
 export class TokenCreateDTO {
   token: string;
@@ -22,6 +24,7 @@ export class TokenCreateDTO {
 @Injectable()
 export class AccountService {
   constructor(
+    private readonly opensearchService: OpensearchService,
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
@@ -29,6 +32,69 @@ export class AccountService {
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryDto[]> {
     return this.systemRepository.getRegisteryJwts(accountId);
+  }
+
+  async getUsage(id: string): Promise<
+    {
+      key: string;
+      doc_count: number;
+    }[]
+  > {
+    const account = await this.collectionRepository.getCollectionById(
+      'brokerAccount',
+      id,
+    );
+    if (!account) {
+      throw new Error();
+    }
+
+    return this.opensearchService
+      .search(OPENSEARCH_INDEX_BROKER_AUDIT, {
+        size: 0,
+        query: {
+          bool: {
+            must: [
+              {
+                match_phrase: {
+                  'event.action': 'intention-open',
+                },
+              },
+              {
+                match_phrase: {
+                  'auth.client_id': account.clientId,
+                },
+              },
+              {
+                range: {
+                  '@timestamp': {
+                    gte: 'now-1h',
+                  },
+                },
+              },
+            ],
+          },
+        },
+        aggs: {
+          response_codes: {
+            terms: {
+              field: 'event.outcome',
+              size: 4,
+            },
+          },
+        },
+      })
+      .then((data: string) => {
+        const result = JSON.parse(data);
+        return result.aggregations.response_codes.buckets.reduce(
+          (pv, cv) => {
+            return {
+              ...pv,
+              [cv.key]: cv.doc_count,
+            };
+          },
+          { success: 0, unknown: 0, failure: 0 },
+        );
+      });
   }
 
   async generateAccountToken(

@@ -11,7 +11,7 @@ import { TokenModule } from './token/token.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AccessLogsMiddleware } from './access-logs.middleware';
-import { KinesisModule } from './kinesis/kinesis.module';
+import { AwsModule } from './aws/aws.module';
 import { IntentionModule } from './intention/intention.module';
 import { PersistenceModule } from './persistence/persistence.module';
 import { GraphModule } from './graph/graph.module';
@@ -71,7 +71,7 @@ function envToObj(key: string, envName: string) {
     TokenModule,
     AuditModule,
     AuthModule,
-    KinesisModule,
+    AwsModule,
     PersistenceModule,
     GraphModule,
     CollectionModule,

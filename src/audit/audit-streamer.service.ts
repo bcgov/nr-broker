@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as FileStreamRotator from 'file-stream-rotator';
-import { KinesisService } from '../kinesis/kinesis.service';
+import { KinesisService } from '../aws/kinesis.service';
 import {
   AUDIT_LOGSTREAM_DIR,
   AUDIT_LOGSTREAM_MAX_LOGS,

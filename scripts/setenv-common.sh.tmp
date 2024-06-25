@@ -32,7 +32,12 @@ if [ -n "$VAULT_ENV" ]
 fi
 )
 
-export BROKER_AUDIT_INDEX_ACTIVITY=audit-test-broker-activity
+# The index (or alias) to search for documents of the type
+export OPENSEARCH_INDEX_BROKER_AUDIT=audit-broker
+export OPENSEARCH_INDEX_HTTP_ACCESS=http-access
+
+# If set, documents of the type are sent with the @metadata.index set to the value (Debugging/local)
+export BROKER_AUDIT_INDEX_BROKER_AUDIT=audit-test-broker-audit
 export BROKER_AUDIT_INDEX_HTTP_ACCESS=audit-test-broker-access-external
 
 export JWT_DEFAULT_SUB="something@example.com"
