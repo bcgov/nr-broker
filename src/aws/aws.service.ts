@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 import { Kinesis } from '@aws-sdk/client-kinesis';
 import { HttpRequest } from '@smithy/protocol-http';
@@ -17,6 +17,11 @@ import {
 } from 'rxjs';
 import { Buffer } from 'buffer';
 import { AWS_REGION, TOKEN_RENEW_RATIO } from '../constants';
+
+export interface AxiosResponseLike {
+  data: string;
+  status: number;
+}
 
 @Injectable()
 export class AwsService {
@@ -83,37 +88,41 @@ export class AwsService {
     return signer.sign(httpRequest);
   }
 
-  public async waitAndReturnResponseBody(
-    res: {
-      response: HttpResponse;
-    },
-    ignoreStatus: number[] = [],
-  ) {
-    return new Promise<{ statusCode: number; body: string }>(
-      (resolve, reject) => {
-        const incomingMessage = res.response.body;
-        const body: Buffer[] = [];
-        incomingMessage.on('data', (chunk: Buffer) => {
-          body.push(chunk);
+  public async bufferResponseAsString(
+    response: HttpResponse,
+  ): Promise<AxiosResponseLike> {
+    return new Promise<AxiosResponseLike>((resolve) => {
+      const incomingMessage = response.body;
+      const body: Buffer[] = [];
+      incomingMessage.on('data', (chunk: Buffer) => {
+        body.push(chunk);
+      });
+      incomingMessage.on('end', () => {
+        const data = Buffer.concat(body).toString();
+        // Note: We must return to NestJs context before throwing errors
+        resolve({
+          status: response.statusCode,
+          data,
         });
-        incomingMessage.on('end', () => {
-          if (
-            res.response.statusCode >= 400 &&
-            res.response.statusCode < 500 &&
-            ignoreStatus.indexOf(res.response.statusCode) === -1
-          ) {
-            console.error(body);
-          }
-          resolve({
-            statusCode: res.response.statusCode,
-            body: Buffer.concat(body).toString(),
-          });
+      });
+      incomingMessage.on('error', () => {
+        // Must never reject to allow error to be thrown in nestjs context
+        resolve({
+          status: 400,
+          data: '',
         });
-        incomingMessage.on('error', (err: any) => {
-          reject(err);
+      });
+    }).then((response) => {
+      // Determine if response requires use to throw an error
+      if (response.status >= 400 && response.status < 500) {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: 'Bad request',
+          error: response.data,
         });
-      },
-    );
+      }
+      return response;
+    });
   }
 
   private async setProcessEnvForAssumedIdentity() {

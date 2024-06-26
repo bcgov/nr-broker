@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { HttpRequest } from '@smithy/protocol-http';
 import { OpensearchService } from './opensearch.service';
 import { AwsService } from './aws.service';
@@ -12,7 +12,7 @@ export class AwsOpensearchService extends OpensearchService {
     super();
   }
 
-  async search(path: string, body: any): Promise<string> {
+  async search(path: string, body: any) {
     const request = await this.aws.executeSignedHttpRequest(
       new HttpRequest({
         method: 'POST',
@@ -28,10 +28,6 @@ export class AwsOpensearchService extends OpensearchService {
         },
       }),
     );
-    const response = await this.aws.waitAndReturnResponseBody(request);
-    // this.logger.debug(`search: ${JSON.stringify(body)}`);
-    // this.logger.debug(`search: ${JSON.stringify(response)}`);
-
-    return response.body;
+    return this.aws.bufferResponseAsString(request.response);
   }
 }

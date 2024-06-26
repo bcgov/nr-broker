@@ -83,8 +83,14 @@ export class AccountService {
           },
         },
       })
-      .then((data: string) => {
-        const result = JSON.parse(data);
+      .then((response) => {
+        const result = JSON.parse(response.data);
+        if (!result?.aggregations?.response_codes?.buckets) {
+          throw new BadRequestException({
+            statusCode: 400,
+            message: 'No buckets found',
+          });
+        }
         return result.aggregations.response_codes.buckets.reduce(
           (pv, cv) => {
             return {
