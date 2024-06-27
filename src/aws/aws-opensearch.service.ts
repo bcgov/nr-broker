@@ -12,7 +12,7 @@ export class AwsOpensearchService extends OpensearchService {
     super();
   }
 
-  async search(path: string, body: any): Promise<string> {
+  async search(index: string, body: any) {
     const request = await this.aws.executeSignedHttpRequest(
       new HttpRequest({
         method: 'POST',
@@ -21,17 +21,14 @@ export class AwsOpensearchService extends OpensearchService {
           host: AWS_OPENSEARCH_HOST,
         },
         hostname: AWS_OPENSEARCH_HOST,
-        path: `/${path}/_search`,
+        path: `/${index}/_search`,
         body: JSON.stringify(body),
         query: {
           format: 'json',
+          ignore_unavailable: 'true',
         },
       }),
     );
-    const response = await this.aws.waitAndReturnResponseBody(request);
-    // this.logger.debug(`search: ${JSON.stringify(body)}`);
-    // this.logger.debug(`search: ${JSON.stringify(response)}`);
-
-    return response.body;
+    return this.aws.bufferResponseAsString(request.response);
   }
 }

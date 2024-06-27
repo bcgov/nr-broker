@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ValidatorUtil } from './validator.util';
+import { DateUtil } from './date.util';
 import { ActionUtil } from './action.util';
 
 /**
@@ -8,7 +9,7 @@ import { ActionUtil } from './action.util';
 @Module({
   imports: [],
   controllers: [],
-  providers: [ActionUtil, ValidatorUtil],
-  exports: [ActionUtil, ValidatorUtil],
+  providers: [ActionUtil, DateUtil, ValidatorUtil],
+  exports: [ActionUtil, DateUtil, ValidatorUtil],
 })
 export class UtilModule {}

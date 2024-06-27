@@ -126,7 +126,7 @@ export class CollectionController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   async getTokenUsage(@Param('id') id: string) {
-    return this.accountService.getUsage(id);
+    return this.accountService.getUsage(id, 1);
   }
 
   @Post('broker-account/renewal')

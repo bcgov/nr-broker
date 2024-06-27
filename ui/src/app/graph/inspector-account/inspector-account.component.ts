@@ -7,9 +7,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
@@ -17,12 +18,16 @@ import { AccountGenerateDialogComponent } from '../account-generate-dialog/accou
 import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
-import { GraphApiService } from '../../service/graph-api.service';
-
 @Component({
   selector: 'app-inspector-account',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatTableModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatTooltipModule,
+  ],
   templateUrl: './inspector-account.component.html',
   styleUrls: ['./inspector-account.component.scss'],
 })
@@ -33,13 +38,17 @@ export class InspectorAccountComponent implements OnChanges {
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;
-  hourlyUsage: number | undefined;
-  hourlyFails: number | undefined;
+  hourlyUsage:
+    | {
+        success: number;
+        unknown: number;
+        failure: number;
+      }
+    | undefined;
   propDisplayedColumns: string[] = ['key', 'value'];
 
   constructor(
     private readonly dialog: MatDialog,
-    private readonly graphApi: GraphApiService,
     private readonly systemApi: SystemApiService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
@@ -64,11 +73,11 @@ export class InspectorAccountComponent implements OnChanges {
       });
     }
 
-    if (this.hasSudo && this.account) {
+    if ((this.user.roles.includes('admin') || this.hasSudo) && this.account) {
       this.hourlyUsage = undefined;
       this.systemApi.getAccountUsage(this.account.id).subscribe(
         (data) => {
-          this.hourlyUsage = data.success + data.unknown + data.failure;
+          this.hourlyUsage = data;
           if (this.lastJwtTokenData) {
             this.lastJwtTokenData.Usage = this.hourlyUsage;
           }
