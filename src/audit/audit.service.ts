@@ -586,7 +586,7 @@ export class AuditService {
   private addEcsFunc(ecsObj: any) {
     return merge(ecsObj, {
       ecs: {
-        version: '8.4.0',
+        version: '8.11.0',
       },
     });
   }

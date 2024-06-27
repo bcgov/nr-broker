@@ -16,6 +16,7 @@ import {
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { OpensearchService } from '../aws/opensearch.service';
+import { DateUtil, INTERVAL_HOUR_MS } from '../util/date.util';
 
 export class TokenCreateDTO {
   token: string;
@@ -28,13 +29,17 @@ export class AccountService {
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
+    private readonly dateUtil: DateUtil,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryDto[]> {
     return this.systemRepository.getRegisteryJwts(accountId);
   }
 
-  async getUsage(id: string): Promise<
+  async getUsage(
+    id: string,
+    hours: number,
+  ): Promise<
     {
       key: string;
       doc_count: number;
@@ -44,12 +49,18 @@ export class AccountService {
       'brokerAccount',
       id,
     );
-    if (!account) {
+    if (!account || hours <= 0) {
       throw new Error();
     }
+    const now = Date.now();
+    const index = this.dateUtil.computeIndex(
+      OPENSEARCH_INDEX_BROKER_AUDIT,
+      new Date(now - INTERVAL_HOUR_MS * hours),
+      new Date(now),
+    );
 
     return this.opensearchService
-      .search(OPENSEARCH_INDEX_BROKER_AUDIT, {
+      .search(index, {
         size: 0,
         query: {
           bool: {
@@ -67,7 +78,7 @@ export class AccountService {
               {
                 range: {
                   '@timestamp': {
-                    gte: 'now-1h',
+                    gte: `now-${hours}h`,
                   },
                 },
               },

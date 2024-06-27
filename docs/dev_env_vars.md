@@ -78,7 +78,7 @@ AWS configuration used to push the audit log to a Kinesis end point. Consuming t
 | AWS_KINESIS_ROLE_ARN |  | Yes |  |
 | AWS_DEFAULT_REGION | ca-central-1 |  |  |
 
-## Log redirection 
+## Log redirection
 
 The logs are normally split into different datasets by the field `event.dataset`. See: [Understanding the Audit Log](/audit.md)
 
@@ -86,7 +86,7 @@ If you are testing, the `@metadata.index` field can be used by what processes th
 
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
-| BROKER_AUDIT_INDEX_ACTIVITY |  |  | Set field `@metadata.index` to this value in all `broker.audit` dataset documents. |
+| BROKER_AUDIT_INDEX_BROKER_AUDIT |  |  | Set field `@metadata.index` to this value in all `broker.audit` dataset documents. |
 | BROKER_AUDIT_INDEX_HTTP_ACCESS |  |  | Set field `@metadata.index` to this value in all `generic.access` dataset documents. |
 
 ## Helmet Configuration

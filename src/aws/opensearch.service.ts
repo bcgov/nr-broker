@@ -3,5 +3,5 @@ import { AxiosResponseLike } from './aws.service';
 
 @Injectable()
 export abstract class OpensearchService {
-  abstract search(path: string, data: any): Promise<AxiosResponseLike>;
+  abstract search(index: string, data: any): Promise<AxiosResponseLike>;
 }

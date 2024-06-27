@@ -31,7 +31,15 @@
                   {{element.value | date:'medium'}}
                 }
                 @case ('Usage') {
-                  {{element.value}} (last hour)
+                  <span
+                    matTooltip="in last hour"
+                    matTooltipShowDelay="500"
+                    >
+                    {{ element.value.success + element.value.unknown + element.value.failure }}
+                    @if (element.value.failure > 0) {
+                      / {{ element.value.failure }} failure(s)
+                    }
+                  </span>
                 }
                 @default {
                 }
