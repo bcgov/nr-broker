@@ -3,6 +3,7 @@ import {
   Inject,
   Input,
   OnChanges,
+  OnInit,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -31,13 +32,14 @@ import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
   templateUrl: './inspector-account.component.html',
   styleUrls: ['./inspector-account.component.scss'],
 })
-export class InspectorAccountComponent implements OnChanges {
+export class InspectorAccountComponent implements OnChanges, OnInit {
   @Input() account!: BrokerAccountRestDto;
   @Input() userIndex!: number | undefined;
   @Input() hasSudo = false;
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;
+  private requestedAccountId?: string;
   hourlyUsage:
     | {
         success: number;
@@ -53,8 +55,39 @@ export class InspectorAccountComponent implements OnChanges {
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
-  updateAccount(): void {
+  ngOnInit(): void {
+    this.updateAccount();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['account']) {
+      this.updateAccount();
+    }
+  }
+
+  openGenerateDialog() {
+    this.dialog
+      .open(AccountGenerateDialogComponent, {
+        width: '600px',
+        data: {
+          accountId: this.account.id,
+        },
+      })
+      .afterClosed()
+      .subscribe(() => {
+        this.requestedAccountId = undefined;
+        this.updateAccount();
+      });
+  }
+
+  private updateAccount(): void {
     if (this.account && this.userIndex) {
+      if (this.account.id === this.requestedAccountId) {
+        return;
+      }
+      this.requestedAccountId = this.account.id;
+      this.jwtTokens = undefined;
+      this.lastJwtTokenData = undefined;
       this.systemApi.getAccountTokens(this.account.id).subscribe((data) => {
         this.jwtTokens = data;
         const lastJwtToken = this.jwtTokens.pop();
@@ -71,47 +104,25 @@ export class InspectorAccountComponent implements OnChanges {
             Date.now() > new Date(lastJwtToken.claims.exp * 1000).valueOf();
         }
       });
-    }
 
-    if ((this.user.roles.includes('admin') || this.hasSudo) && this.account) {
-      this.hourlyUsage = undefined;
-      this.systemApi.getAccountUsage(this.account.id).subscribe(
-        (data) => {
-          this.hourlyUsage = data;
-          if (this.lastJwtTokenData) {
-            this.lastJwtTokenData.Usage = this.hourlyUsage;
-          }
-        },
-        (err) => {
-          if (err.status === 503) {
-            // ignore
-          } else {
-            throw err;
-          }
-        },
-      );
+      if (this.user.roles.includes('admin') || this.hasSudo) {
+        this.hourlyUsage = undefined;
+        this.systemApi.getAccountUsage(this.account.id).subscribe(
+          (data) => {
+            this.hourlyUsage = data;
+            if (this.lastJwtTokenData) {
+              this.lastJwtTokenData.Usage = this.hourlyUsage;
+            }
+          },
+          (err) => {
+            if (err.status === 503) {
+              // ignore
+            } else {
+              throw err;
+            }
+          },
+        );
+      }
     }
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    this.jwtTokens = undefined;
-    this.lastJwtTokenData = undefined;
-    if (changes['account']) {
-      this.updateAccount();
-    }
-  }
-
-  openGenerateDialog() {
-    this.dialog
-      .open(AccountGenerateDialogComponent, {
-        width: '600px',
-        data: {
-          accountId: this.account.id,
-        },
-      })
-      .afterClosed()
-      .subscribe(() => {
-        this.updateAccount();
-      });
   }
 }
