@@ -7,6 +7,8 @@ import {
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -18,7 +20,14 @@ import { UserDto } from '../../service/graph.types';
 @Component({
   selector: 'app-inspector-service-secure',
   standalone: true,
-  imports: [FormsModule, MatListModule, MatSlideToggleModule, MatTooltipModule],
+  imports: [
+    ClipboardModule,
+    FormsModule,
+    MatIconModule,
+    MatListModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
+  ],
   templateUrl: './inspector-service-secure.component.html',
   styleUrl: './inspector-service-secure.component.scss',
 })

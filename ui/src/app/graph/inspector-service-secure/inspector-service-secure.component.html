@@ -8,9 +8,12 @@
   </div>
 </div>
 
-<mat-list>
+<mat-action-list>
   @if (data && data.roleIds && data.roleIds.prod) {
-    <mat-list-item>
+    <mat-list-item
+      matTooltip="Click to copy role id"
+      matTooltipPosition="left"
+      [cdkCopyToClipboard]="data.roleIds.prod">
       <span matListItemTitle>Production</span>
       @if (reveal) {
         <span matListItemLine>{{ data.roleIds.prod }}</span>
@@ -21,7 +24,10 @@
     </mat-list-item>
   }
   @if (data && data.roleIds && data.roleIds.test) {
-    <mat-list-item>
+    <mat-list-item
+      matTooltip="Click to copy role id"
+      matTooltipPosition="left"
+      [cdkCopyToClipboard]="data.roleIds.test">
       <span matListItemTitle>Test</span>
       @if (reveal) {
         <span matListItemLine>{{ data.roleIds.test }}</span>
@@ -31,7 +37,10 @@
     </mat-list-item>
   }
   @if (data && data.roleIds && data.roleIds.dev) {
-    <mat-list-item>
+    <mat-list-item
+      matTooltip="Click to copy role id"
+      matTooltipPosition="left"
+      [cdkCopyToClipboard]="data.roleIds.dev">
       <span matListItemTitle>Development</span>
       @if (reveal) {
         <span matListItemLine>{{ data.roleIds.dev }}</span>
@@ -50,4 +59,4 @@
       }
     </mat-list-item>
   }
-</mat-list>
+</mat-action-list>
