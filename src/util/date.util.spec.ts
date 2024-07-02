@@ -21,13 +21,13 @@ describe('DateUtil', () => {
         new Date(1719945895397),
         new Date(1719945895398),
       ),
-    ).toBe('audit-broker-2024-07-02');
+    ).toBe('audit-broker-2024.07.02');
     expect(
       util.computeIndex(
         'audit-broker-test,audit-broker-d',
         new Date(1719945895397),
         new Date(1719945895398),
       ),
-    ).toBe('audit-broker-test,audit-broker-2024-07-02');
+    ).toBe('audit-broker-test,audit-broker-2024.07.02');
   });
 });

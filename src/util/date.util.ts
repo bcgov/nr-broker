@@ -30,7 +30,7 @@ export class DateUtil {
       const formattedDate = currentDate.toISOString().split('T')[0];
 
       // Add formatted date to array
-      dates.push(formattedDate);
+      dates.push(formattedDate.replace(/\-/g, '.'));
 
       // Move to the next day
       currentDate.setUTCDate(currentDate.getUTCDate() + 1);
