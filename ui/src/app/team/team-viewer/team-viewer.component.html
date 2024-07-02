@@ -1,13 +1,13 @@
-@if (team$ | async; as team) {
+@if (data$ | async; as data) {
 <div class="team-flex-container">
   <button routerLink="/teams" mat-icon-button >
     <mat-icon>arrow_back</mat-icon>
   </button>
-  <h1>{{ team.name }}</h1>
+  <h1>{{ data.team.name }}</h1>
   <span class="spacer"></span>
 
   <button mat-stroked-button extended color="primary"
-    (click)="openInGraph(team)">
+    (click)="openInGraph(data.team)">
     View in Graph
   </button>
 </div>
@@ -19,29 +19,26 @@
 
   <div class="team-details">
 
-    @if (team.website) {
+    @if (data.team.website) {
     <div>
-      <b>Url</b><span><a href="{{team.website}}" target="_blank">{{team.website}}</a></span>
+      <b>Url</b><span><a href="{{data.team.website}}" target="_blank">{{data.team.website}}</a></span>
     </div>
     }
-    @if (team.email) {
+    @if (data.team.email) {
     <div>
-      <b>Email</b><span><a href="mailto:{{team.email}}">{{team.email}}</a></span>
+      <b>Email</b><span><a href="mailto:{{data.team.email}}">{{data.team.email}}</a></span>
     </div>
     }
   </div>
 
   <h2>Services</h2>
 
-  @if (serviceSearch$ | async; as serviceSearch) {
-
-
     @if (serviceCount === 0) {
       <h3>No Services</h3>
     }
 
     <div class="card-container">
-    @for (service of serviceSearch; track service.id) {
+    @for (service of data.serviceSearch; track service.id) {
       @if (service.instance) {
 
         <mat-card class="service-card">
@@ -91,14 +88,10 @@
 
     <!-- <app-team-service-request
       [serviceSearch]="serviceSearch"></app-team-service-request> -->
-  }
-
   <h2>Accounts</h2>
 
-  @if (accountSearch$ | async; as accountSearch) {
-    @if (latestConfig$ | async; as config) {
     <div class="card-container">
-      @for (account of accountSearch.data; track account.id) {
+      @for (account of data.accountSearch.data; track account.id) {
         <mat-card class="account-card">
           <mat-card-header class="account-header">
             <mat-card-title>{{account.name}}</mat-card-title>
@@ -110,20 +103,18 @@
 
             <app-inspector-vertex
               [collection]="'brokerAccount'"
-              [collectionConfig]="config"
+              [collectionConfig]="data.config"
               [collectionData]="account"
-              [hasSudo]="hasSudo(permissions$ | async, account.vertex)"
-              [hasUpdate]="hasUpdate(permissions$ | async, account.vertex)"
+              [hasSudo]="hasSudo(data.permissions, account.vertex)"
+              [hasUpdate]="hasUpdate(data.permissions, account.vertex)"
             ></app-inspector-vertex>
           </mat-card-content>
         </mat-card>
       }
     </div>
-    }
-    @if (accountSearch.meta.total === 0) {
+    @if (data.accountSearch.meta.total === 0) {
       <h3>No Accounts</h3>
     }
-  }
 
 </div>
 } @else {

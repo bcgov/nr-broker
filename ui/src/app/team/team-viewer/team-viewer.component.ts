@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, combineLatest, map, mergeMap, switchMap, tap } from 'rxjs';
 
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { ChartClickTargetVertex, UserDto } from '../../service/graph.types';
@@ -45,11 +45,13 @@ import { UserPermissionRestDto } from '../../service/dto/user-permission-rest.dt
   styleUrl: './team-viewer.component.scss',
 })
 export class TeamViewerComponent {
-  team$!: Observable<TeamRestDto>;
-  latestConfig$!: Observable<CollectionConfigRestDto | undefined>;
-  accountSearch$!: Observable<CollectionSearchResult<BrokerAccountRestDto>>;
-  serviceSearch$!: Observable<CollectionConfigInstanceRestDto[]>;
-  permissions$!: Observable<UserPermissionRestDto>;
+  data$!: Observable<{
+    accountSearch: CollectionSearchResult<BrokerAccountRestDto>;
+    config: CollectionConfigRestDto;
+    permissions: UserPermissionRestDto;
+    serviceSearch: CollectionConfigInstanceRestDto[];
+    team: TeamRestDto;
+  }>;
   service: any;
   propDisplayedColumns: string[] = ['key', 'value'];
   serviceCount = 0;
@@ -63,35 +65,40 @@ export class TeamViewerComponent {
   ) {}
 
   ngOnInit() {
-    this.team$ = this.route.paramMap.pipe(
-      switchMap((params: ParamMap) =>
-        this.collectionApi.getCollectionById(
-          'team',
-          params.get('id') as string,
+    this.data$ = combineLatest({
+      team: this.route.paramMap.pipe(
+        switchMap((params: ParamMap) =>
+          this.collectionApi.getCollectionById(
+            'team',
+            params.get('id') as string,
+          ),
         ),
       ),
-    );
-    this.permissions$ = this.graphApi.getUserPermissions();
-    this.accountSearch$ = this.team$.pipe(
-      switchMap((team: TeamRestDto) =>
-        this.collectionApi.searchCollection('brokerAccount', {
-          upstreamVertex: team.vertex,
-          offset: 0,
-          limit: 20,
-        }),
-      ),
-    );
-
-    this.serviceSearch$ = this.team$.pipe(
-      switchMap((team: TeamRestDto) =>
-        this.graphApi.getEdgeConfigByVertex(team.vertex, 'service', 'uses'),
-      ),
-      tap((cciArray) => {
-        this.serviceCount = cciArray.filter((cci) => cci.instance).length;
+      permissions: this.graphApi.getUserPermissions(),
+      config: this.graphApi.getCollectionConfig('team'),
+    }).pipe(
+      mergeMap((data: any) => {
+        return combineLatest({
+          accountSearch: this.collectionApi.searchCollection('brokerAccount', {
+            upstreamVertex: data.team.vertex,
+            offset: 0,
+            limit: 20,
+          }),
+          serviceSearch: this.graphApi.getEdgeConfigByVertex(
+            data.team.vertex,
+            'service',
+            'uses',
+          ),
+        }).pipe(
+          tap((search) => {
+            this.serviceCount = search.serviceSearch.filter(
+              (cci) => cci.instance,
+            ).length;
+          }),
+          map((search) => ({ ...search, ...data })),
+        );
       }),
     );
-
-    this.latestConfig$ = this.graphApi.getCollectionConfig('team');
   }
 
   openInGraph(elem: TeamRestDto) {
