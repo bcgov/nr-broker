@@ -178,8 +178,8 @@ export class HistoryTableComponent implements OnInit, OnChanges {
           throw new Error(`The ${collection} was not found`);
         }),
       )
-      .subscribe((collection) => {
-        this.graphUtil.openInGraph(collection.vertex, 'vertex');
+      .subscribe((collectionDto) => {
+        this.router.navigate([`/browse/${collection}/${collectionDto.id}`]);
       });
     return false;
   }

@@ -1,16 +1,17 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, ParamMap, RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, combineLatest, map, mergeMap, switchMap, tap } from 'rxjs';
 
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { ChartClickTargetVertex, UserDto } from '../../service/graph.types';
+import { UserDto } from '../../service/graph.types';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { TeamRestDto } from '../../service/dto/team-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
@@ -18,7 +19,6 @@ import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto'
 import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
-import { CollectionNameEnum } from '../../service/dto/collection-dto-union.type';
 import {
   CollectionConfigInstanceRestDto,
   CollectionConfigRestDto,
@@ -35,6 +35,7 @@ import { UserPermissionRestDto } from '../../service/dto/user-permission-rest.dt
     MatCardModule,
     MatDividerModule,
     MatIconModule,
+    MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
     RouterModule,
@@ -103,19 +104,6 @@ export class TeamViewerComponent {
 
   openInGraph(elem: TeamRestDto) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
-  }
-
-  makeTarget(account: BrokerAccountRestDto): ChartClickTargetVertex {
-    return {
-      type: 'vertex',
-      data: {
-        id: account.vertex,
-        category: CollectionNameEnum.user,
-        collection: 'brokerAccount',
-        index: 0,
-        name: account.name,
-      },
-    };
   }
 
   hasSudo(permissions: UserPermissionRestDto | null, vertex: string) {

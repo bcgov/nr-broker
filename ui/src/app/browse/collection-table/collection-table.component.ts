@@ -250,6 +250,10 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.router.navigate([`/browse/${this.collectionFilter}/${id}`]);
   }
 
+  clear() {
+    this.textFilterControl.setValue('');
+  }
+
   addVertex() {
     this.dialog
       .open(VertexDialogComponent, {
