@@ -1,4 +1,4 @@
-<div class="team-flex-container">
+<div class="collection-flex-container">
   <h1>Browse</h1>
 
   <form>
@@ -29,7 +29,7 @@
   </button>
 </div>
 
-<div class="team-flex-container">
+<div class="collection-flex-container">
   <form>
     <mat-form-field class="field-typeahead-filter">
       <mat-label>Filter</mat-label>
@@ -40,7 +40,13 @@
         matInput
         [formControl]="textFilterControl">
     </mat-form-field>
+    <button mat-stroked-button aria-label="Clear" (click)="clear()">
+      Clear
+    </button>
   </form>
+  <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refresh();">
+    <mat-icon>refresh</mat-icon>
+  </button>
 </div>
 
 <div class="teams-table">

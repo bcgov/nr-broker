@@ -89,7 +89,7 @@ export class GraphService {
         resp,
       );
       this.publishGraphEvent({
-        data: { event: 'edge-add', edge: resp },
+        data: { event: 'edge-add', edge: resp.toEdgeResponse() },
       });
       return resp.toEdgeResponse();
     } catch (e) {
@@ -125,7 +125,7 @@ export class GraphService {
         resp,
       );
       this.publishGraphEvent({
-        data: { event: 'edge-edit', edge: resp },
+        data: { event: 'edge-edit', edge: resp.toEdgeResponse() },
       });
       return resp.toEdgeResponse();
     } catch (e) {
@@ -233,7 +233,14 @@ export class GraphService {
         resp,
       );
       this.publishGraphEvent({
-        data: { event: 'vertex-add', vertex: resp },
+        data: {
+          event: 'vertex-add',
+          vertex: {
+            category: CollectionNameEnum[resp.collection],
+            index: config.index,
+            ...resp,
+          },
+        },
       });
       return resp;
     } catch (error) {
@@ -330,7 +337,14 @@ export class GraphService {
         resp,
       );
       this.publishGraphEvent({
-        data: { event: 'vertex-edit', vertex: resp },
+        data: {
+          event: 'vertex-edit',
+          vertex: {
+            category: CollectionNameEnum[resp.collection],
+            index: config.index,
+            ...resp,
+          },
+        },
       });
 
       return resp;
