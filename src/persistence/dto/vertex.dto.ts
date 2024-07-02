@@ -1,7 +1,7 @@
 import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PointGeom } from './point.geom';
 import { ApiProperty } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
+import { Type, plainToInstance } from 'class-transformer';
 import {
   IsDefined,
   IsNotEmptyObject,
@@ -22,6 +22,7 @@ import { UserDto } from './user.dto';
 import { VertexPointerDto } from './vertex-pointer.dto';
 import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
 import { IsValidProp } from '../../util/validator.util';
+import { TimestampDto } from './timestamp.dto';
 
 @Entity({ name: 'vertex' })
 export class VertexDto {
@@ -54,6 +55,11 @@ export class VertexDto {
   @IsValidProp()
   @IsNotEmptyObject()
   prop?: VertexPropDto;
+
+  @IsOptional()
+  @Column(() => TimestampDto)
+  @Type(() => TimestampDto)
+  timestamps?: TimestampDto;
 
   static upgradeInsertDto(value: VertexInsertDto): VertexDto {
     const vertex = new VertexDto();
