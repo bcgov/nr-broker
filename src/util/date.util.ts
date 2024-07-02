@@ -8,7 +8,7 @@ export class DateUtil {
     if (index.endsWith('-d')) {
       const indexArr = index.split(',');
       const indexPrefix = indexArr.pop().slice(0, -2);
-      return `${indexArr ? indexArr.join(',') + ',' : ''}${this.getDatesInRange(
+      return `${indexArr.length > 0 ? indexArr.join(',') + ',' : ''}${this.getDatesInRange(
         start,
         end,
       )
