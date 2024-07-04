@@ -39,6 +39,7 @@ import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-v
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
 import { InspectorServiceReleasesComponent } from '../../graph/inspector-service-releases/inspector-service-releases.component';
+import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -79,6 +80,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasDelete = false;
   hasSudo = false;
   hasUpdate = false;
+  hasApprove = false;
 
   private ngUnsubscribe: Subject<any> = new Subject();
 
@@ -89,6 +91,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly graphApi: GraphApiService,
     private readonly snackBar: MatSnackBar,
     private readonly collectionApi: CollectionApiService,
+    private readonly permissionService: PermissionService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public graphUtil: GraphUtilService,
   ) {}
@@ -120,12 +123,23 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.collectionData = collection;
       this.loading = false;
 
-      this.hasSudo =
-        permissions.sudo.indexOf(this.collectionData.vertex) !== -1;
-      this.hasUpdate =
-        permissions.update.indexOf(this.collectionData.vertex) !== -1;
-      this.hasDelete =
-        permissions.delete.indexOf(this.collectionData.vertex) !== -1;
+      this.hasSudo = this.permissionService.hasSudo(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasUpdate = this.permissionService.hasUpdate(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasDelete = this.permissionService.hasDelete(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasApprove = this.permissionService.hasApprove(
+        permissions,
+        this.collectionData.vertex,
+      );
+
       if (this.collection === 'service') {
         this.collectionApi
           .getServiceDetails(this.collectionData.id)

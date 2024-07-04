@@ -414,6 +414,39 @@ export class AuditService {
       });
   }
 
+  public recordPackageBuildApprove(
+    req: any,
+    user: any,
+    outcome: 'success' | 'failure' | 'unknown',
+  ) {
+    from([
+      {
+        event: {
+          action: 'package-approval',
+          category: 'configuration',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type: 'change',
+          outcome,
+        },
+      },
+    ])
+      .pipe(
+        map(this.addAuthFunc(user)),
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addSourceFunc(req)),
+        map(this.addTimestampFunc()),
+        map(this.addUserAgentFunc(req)),
+      )
+      .subscribe((ecsObj) => {
+        this.stream.putRecord(ecsObj);
+      });
+  }
+
   /**
    * Records http access to the generic access log
    * @param req The initiating http request

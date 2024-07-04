@@ -13,15 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 })
 export class InspectorServiceReleasesComponent {
   @Input() builds!: any;
-  total = 0;
+  @Input() isApprover!: boolean;
 
   propDisplayedColumns: string[] = ['name', 'date', 'version'];
-
-  navigateByService() {
-    console.log('navigateByService');
-  }
-
-  // private loadBuilds() {
-  //   this.buildApi.searchBuilds(this.id, 0, 5);
-  // }
 }

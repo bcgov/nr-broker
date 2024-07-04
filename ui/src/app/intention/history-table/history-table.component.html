@@ -153,8 +153,8 @@
         </div>
         @for (action of element.actions; track action.id) {
           <div class="expanded-header-container">
-            <h5><a (click)="openCollection('project', 'name', action.service.project)"
-              >{{action.service.project}}</a> / <a (click)="openCollection('service', 'name', action.service.name)"
+            <h5><a (click)="openCollection($event, 'project', 'name', action.service.project)"
+              >{{action.service.project}}</a> / <a (click)="openCollection($event, 'service', 'name', action.service.name)"
               >{{action.service.name}}</a>
               #{{action.id}} @if (action.package && action.package.buildNumber) {: build {{action.package.buildNumber}}}</h5>
             <div>Environment: <b>{{action.service.environment}}</b></div>

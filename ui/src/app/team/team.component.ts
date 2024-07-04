@@ -68,6 +68,7 @@ export class TeamComponent implements OnInit, OnDestroy {
     update: [],
     delete: [],
     sudo: [],
+    approve: [],
   };
   total = 0;
   pageIndex = 0;

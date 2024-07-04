@@ -1,8 +1,10 @@
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
-import { PackageBuildDto } from '../dto/package-build.dto';
+import { EnvironmentDto } from '../dto/environment.dto';
 import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
+import { PackageBuildDto } from '../dto/package-build.dto';
+import { UserDto } from '../dto/user.dto';
 
 export abstract class BuildRepository {
   public abstract addBuild(
@@ -30,4 +32,10 @@ export abstract class BuildRepository {
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<PackageBuildDto>>;
+
+  public abstract approvePackage(
+    packageBuild: PackageBuildDto,
+    user: UserDto,
+    environment: EnvironmentDto,
+  ): Promise<PackageBuildDto>;
 }

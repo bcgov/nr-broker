@@ -9,6 +9,8 @@ import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 import { BuildRepository } from '../interfaces/build.repository';
 import { arrayIdFixer } from './mongo.util';
+import { UserDto } from '../dto/user.dto';
+import { EnvironmentDto } from '../dto/environment.dto';
 
 @Injectable()
 export class BuildMongoRepository implements BuildRepository {
@@ -128,5 +130,41 @@ export class BuildMongoRepository implements BuildRepository {
           };
         }
       });
+  }
+
+  public async approvePackage(
+    packageBuild: PackageBuildDto,
+    user: UserDto,
+    environment: EnvironmentDto,
+  ): Promise<PackageBuildDto> {
+    const result = await this.packageBuildRepository.updateOne(
+      { _id: packageBuild.id },
+      {
+        $set: {
+          'timestamps.updatedAt': new Date(),
+        },
+        $push: {
+          approval: {
+            $each: [
+              {
+                environment: environment.id,
+                user: user.id,
+                at: new Date(),
+              },
+            ],
+            // $slice: -COLLECTION_MAX_EMBEDDED,
+          },
+        } as any,
+      },
+    );
+    if (result.matchedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getBuild(packageBuild.id.toString());
+    if (rval === null) {
+      throw new Error();
+    }
+
+    return rval;
   }
 }

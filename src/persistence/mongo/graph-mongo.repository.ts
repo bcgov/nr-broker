@@ -374,6 +374,7 @@ export class GraphMongoRepository implements GraphRepository {
       delete: [],
       sudo: [],
       update: [],
+      approve: [],
     };
     for (const config of configs) {
       for (const [depth, depthConfig] of config.entries()) {

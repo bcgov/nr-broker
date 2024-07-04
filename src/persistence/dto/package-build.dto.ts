@@ -9,7 +9,7 @@ import { TimestampDto } from './timestamp.dto';
 import { IntentionActionPointerDto } from './intention-action-pointer.dto';
 
 @Entity()
-class PackageBuildApprovalDto {
+export class PackageBuildApprovalDto {
   @IsDefined()
   @Column()
   @ApiProperty({ type: () => String })
