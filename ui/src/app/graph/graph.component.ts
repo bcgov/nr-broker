@@ -47,6 +47,7 @@ import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
 import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
 import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
+import { PermissionService } from '../service/permission.service';
 
 @Component({
   selector: 'app-graph',
@@ -76,6 +77,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   private latestData: GraphData | null = null;
 
   constructor(
+    public readonly permission: PermissionService,
     private readonly dialog: MatDialog,
     private readonly route: ActivatedRoute,
     private readonly graphApi: GraphApiService,

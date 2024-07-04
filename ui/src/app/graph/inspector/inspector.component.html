@@ -43,7 +43,7 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!(user.roles.includes('admin') || hasUpdate) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
+              [disabled]="!hasUpdate || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
@@ -60,7 +60,7 @@
             @if (target.type === 'vertex') {
               <button
                 mat-menu-item
-                [disabled]="!user.roles.includes('admin')"
+                [disabled]="!hasUpdate || (dataConfig.config && !dataConfig.config[target.data.collection].permissions.update)"
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
@@ -83,7 +83,7 @@
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!(user.roles.includes('admin') || hasDelete) || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)"
+              [disabled]="!hasDelete || (target.type === 'vertex' && dataConfig.config && !dataConfig.config[target.data.collection].permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
@@ -124,7 +124,7 @@
                   <button
                     mat-button
                     (click)="openDeleteEdgeDialog(inboundConnections)"
-                    [disabled]="!user.roles.includes('admin') ||
+                    [disabled]="!hasAdmin ||
                   (inboundConnections?.connections | keyvalue)?.length == 0">Delete</button>
                 </div>
               }
@@ -154,11 +154,11 @@
                   <button
                     mat-button
                     (click)="addEdgeToVertex(target.data)"
-                    [disabled]="!user.roles.includes('admin')">Add</button>
+                    [disabled]="!hasAdmin">Add</button>
                   <button
                     mat-button
                     (click)="openDeleteEdgeDialog(outboundConnections)"
-                    [disabled]="!user.roles.includes('admin') ||
+                    [disabled]="!hasAdmin ||
                   (outboundConnections?.connections | keyvalue)?.length == 0">Delete</button>
                 </div>
               }

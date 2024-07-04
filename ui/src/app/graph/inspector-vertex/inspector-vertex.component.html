@@ -38,7 +38,7 @@
     <app-inspector-vault
       [service]="collectionData"
       [isAdministrator]="hasSudo"></app-inspector-vault>
-    @if (user.roles.includes('admin') || hasSudo) {
+    @if (hasSudo) {
       <mat-divider></mat-divider>
       <app-inspector-service-secure
         [service]="collectionData"

@@ -1,4 +1,4 @@
-import { Component, Inject, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,8 +14,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
 
 @Component({
   selector: 'app-collection-header',
@@ -43,7 +41,6 @@ export class CollectionHeaderComponent {
     private readonly graphApi: GraphApiService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   openInGraph() {

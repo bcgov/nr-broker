@@ -23,7 +23,7 @@
     class="add"
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!user.roles.includes('admin') || disableAdd">
+    [disabled]="!permission.hasAdmin() || disableAdd">
     <mat-icon>add</mat-icon>
     Add
   </button>

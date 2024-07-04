@@ -91,7 +91,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly graphApi: GraphApiService,
     private readonly snackBar: MatSnackBar,
     private readonly collectionApi: CollectionApiService,
-    private readonly permissionService: PermissionService,
+    private readonly permission: PermissionService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public graphUtil: GraphUtilService,
   ) {}
@@ -123,19 +123,19 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.collectionData = collection;
       this.loading = false;
 
-      this.hasSudo = this.permissionService.hasSudo(
+      this.hasSudo = this.permission.hasSudo(
         permissions,
         this.collectionData.vertex,
       );
-      this.hasUpdate = this.permissionService.hasUpdate(
+      this.hasUpdate = this.permission.hasUpdate(
         permissions,
         this.collectionData.vertex,
       );
-      this.hasDelete = this.permissionService.hasDelete(
+      this.hasDelete = this.permission.hasDelete(
         permissions,
         this.collectionData.vertex,
       );
-      this.hasApprove = this.permissionService.hasApprove(
+      this.hasApprove = this.permission.hasApprove(
         permissions,
         this.collectionData.vertex,
       );

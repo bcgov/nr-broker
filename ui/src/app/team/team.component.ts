@@ -39,6 +39,7 @@ import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { GraphTypeaheadData } from '../service/dto/graph-typeahead-result.dto';
 import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
+import { PermissionService } from '../service/permission.service';
 
 @Component({
   selector: 'app-team',
@@ -81,6 +82,7 @@ export class TeamComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
+    public readonly permission: PermissionService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly graphApi: GraphApiService,

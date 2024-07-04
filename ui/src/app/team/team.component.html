@@ -86,7 +86,7 @@
             <th mat-header-cell *matHeaderCellDef> Action </th>
             <td mat-cell *matCellDef="let element" class="action-buttons">
               <button mat-stroked-button extended color="primary"
-                [disabled]="!user.roles.includes('admin') && !isTargetOwner(element)"
+                [disabled]="!permission.hasAdmin() && !isTargetOwner(element)"
                 (click)="openTeamDialog($event, element)">
                 Edit
               </button>

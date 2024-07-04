@@ -30,6 +30,7 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -74,6 +75,7 @@ export class InspectorInstancesComponent implements OnChanges {
   expandedElement: any | null;
 
   constructor(
+    public readonly permission: PermissionService,
     private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
