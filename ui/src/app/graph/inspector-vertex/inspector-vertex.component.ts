@@ -12,7 +12,6 @@ import { InspectorAccountComponent } from '../inspector-account/inspector-accoun
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { InspectorServiceSecureComponent } from '../inspector-service-secure/inspector-service-secure.component';
-import { InspectorIntentionsComponent } from '../inspector-intentions/inspector-intentions.component';
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
 import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
@@ -30,7 +29,6 @@ import { CURRENT_USER } from '../../app-initialize.factory';
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorInstancesComponent,
-    InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
