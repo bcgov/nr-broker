@@ -45,6 +45,10 @@ export class GraphUtilService {
     );
   }
 
+  isGraphOpen() {
+    return this.router.routerState.snapshot.url.startsWith('/graph');
+  }
+
   openInGraph(id: string, type: 'edge' | 'vertex') {
     this.router.navigate(
       [

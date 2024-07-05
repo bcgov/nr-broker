@@ -163,6 +163,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   }
 
   openCollection(
+    $event: MouseEvent,
     collection: keyof CollectionDtoRestUnion,
     key: string,
     value: string,
@@ -179,7 +180,11 @@ export class HistoryTableComponent implements OnInit, OnChanges {
         }),
       )
       .subscribe((collectionDto) => {
-        this.router.navigate([`/browse/${collection}/${collectionDto.id}`]);
+        if ($event.altKey) {
+          this.graphUtil.openInGraph(collectionDto.vertex, 'vertex');
+        } else {
+          this.router.navigate([`/browse/${collection}/${collectionDto.id}`]);
+        }
       });
     return false;
   }

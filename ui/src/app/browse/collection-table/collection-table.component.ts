@@ -39,6 +39,7 @@ import {
   CollectionFieldConfigMap,
 } from '../../service/dto/collection-config-rest.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
+import { PermissionService } from '../../service/permission.service';
 
 interface filterOptions<T> {
   value: T;
@@ -78,6 +79,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
   constructor(
+    public readonly permission: PermissionService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly dialog: MatDialog,

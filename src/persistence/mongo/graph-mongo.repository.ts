@@ -27,6 +27,7 @@ import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { ActionUtil } from '../../util/action.util';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphPermissionDto } from '../dto/graph-permission.dto';
+import { TimestampDto } from '../dto/timestamp.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -373,6 +374,7 @@ export class GraphMongoRepository implements GraphRepository {
       delete: [],
       sudo: [],
       update: [],
+      approve: [],
     };
     for (const config of configs) {
       for (const [depth, depthConfig] of config.entries()) {
@@ -475,6 +477,7 @@ export class GraphMongoRepository implements GraphRepository {
     const edge = EdgeDto.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
+    edge.timestamps = TimestampDto.create();
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
@@ -515,9 +518,15 @@ export class GraphMongoRepository implements GraphRepository {
         ? {
             $set: {
               prop: edge.prop,
+              'timestamps.updatedAt': new Date(),
             },
           }
-        : { $unset: { prop: true } },
+        : {
+            $set: {
+              'timestamps.updatedAt': new Date(),
+            },
+            $unset: { prop: true },
+          },
     );
     if (result.matchedCount !== 1) {
       throw new Error();
@@ -766,6 +775,8 @@ export class GraphMongoRepository implements GraphRepository {
       vertex.collection,
     );
 
+    vertex.timestamps = TimestampDto.create();
+
     const vertResult = await this.vertexRepository.insertOne(vertex);
     if (!vertResult.acknowledged) {
       throw new Error();
@@ -866,6 +877,7 @@ export class GraphMongoRepository implements GraphRepository {
       {
         $set: {
           name: vertex.name,
+          'timestamps.updatedAt': new Date(),
           ...(vertex.prop ? { prop: vertex.prop } : {}),
         },
         $unset: {

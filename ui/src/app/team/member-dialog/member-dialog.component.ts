@@ -31,6 +31,7 @@ import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
+import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-member-dialog',
@@ -67,6 +68,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   modified = false;
 
   constructor(
+    public readonly permission: PermissionService,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     public readonly dialogRef: MatDialogRef<MemberDialogComponent>,

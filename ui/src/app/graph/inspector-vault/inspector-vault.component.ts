@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,10 +9,9 @@ import prettyMilliseconds from 'pretty-ms';
 import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { YesNoPipe } from '../../util/yes-no.pipe';
-import { UserDto } from '../../service/graph.types';
-import { CURRENT_USER } from '../../app-initialize.factory';
 import { GraphApiService } from '../../service/graph-api.service';
 import { DurationPipe } from '../../util/duration.pipe';
+import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-inspector-vault',
@@ -36,7 +35,7 @@ export class InspectorVaultComponent {
   @Output() refreshData = new EventEmitter();
 
   constructor(
-    @Inject(CURRENT_USER) private readonly user: UserDto,
+    private readonly permission: PermissionService,
     private readonly graphApi: GraphApiService,
     private readonly dialog: MatDialog,
   ) {}
@@ -51,7 +50,7 @@ export class InspectorVaultComponent {
         width: '500px',
         data: {
           service: this.service,
-          showMasked: this.user.roles.includes('admin'),
+          showMasked: this.permission.hasAdmin(),
         },
       })
       .afterClosed()

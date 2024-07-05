@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, Index } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { IsArray, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+import { TimestampDto } from './timestamp.dto';
 
 export abstract class VertexPointerDto {
   @Column()
@@ -21,4 +23,9 @@ export abstract class VertexPointerDto {
     each: true,
   })
   tags?: string[];
+
+  @IsOptional()
+  @Column(() => TimestampDto)
+  @Type(() => TimestampDto)
+  timestamps?: TimestampDto;
 }

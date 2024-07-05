@@ -5,6 +5,7 @@ export class UserPermissionRestDto {
   delete!: string[];
   sudo!: string[];
   update!: string[];
+  approve!: string[];
 }
 
 export type UserPermissionNames = keyof UserPermissionRestDto;

@@ -390,6 +390,13 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      id: 'w8zfccq',
+      collection: 'team',
+      name: 'tester',
+      relation: 'oneToMany',
+      show: true,
+    },
   ],
   fields: {
     domain: {
@@ -709,6 +716,16 @@ result = db.graphPermission.insertOne({
     { name: 'lead-developer', index: 6, permissions: [] },
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
+  ],
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'tester', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 1, permissions: [] },
+    { name: 'component', index: 2, permissions: ['approve'] },
   ],
 });
 

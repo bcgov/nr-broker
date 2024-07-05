@@ -31,14 +31,11 @@
         [vertices]="outboundConnections"
         [details]="serviceDetails"></app-inspector-instances>
     }
-    <!-- <app-inspector-intentions
-      [id]="collectionData.id"
-      [name]="collectionData.name"></app-inspector-intentions> -->
     <mat-divider></mat-divider>
     <app-inspector-vault
       [service]="collectionData"
       [isAdministrator]="hasSudo"></app-inspector-vault>
-    @if (user.roles.includes('admin') || hasSudo) {
+    @if (hasSudo) {
       <mat-divider></mat-divider>
       <app-inspector-service-secure
         [service]="collectionData"

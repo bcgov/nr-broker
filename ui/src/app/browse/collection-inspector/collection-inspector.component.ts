@@ -13,21 +13,24 @@ import {
   MatSnackBarModule,
 } from '@angular/material/snack-bar';
 import {
+  BehaviorSubject,
   Subject,
   Subscription,
   combineLatest,
   startWith,
+  switchMap,
   takeUntil,
 } from 'rxjs';
 
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
+import { GraphUtilService } from '../../service/graph-util.service';
+import { PermissionService } from '../../service/permission.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
-import { GraphUtilService } from '../../service/graph-util.service';
+
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
-
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
@@ -79,6 +82,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasDelete = false;
   hasSudo = false;
   hasUpdate = false;
+  hasApprove = false;
+
+  private triggerRefresh = new BehaviorSubject(true);
 
   private ngUnsubscribe: Subject<any> = new Subject();
 
@@ -86,11 +92,12 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly graphApi: GraphApiService,
     private readonly snackBar: MatSnackBar,
+    private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
+    private readonly permission: PermissionService,
+    public readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
-    public graphUtil: GraphUtilService,
   ) {}
 
   ngOnInit(): void {
@@ -105,49 +112,71 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.collection = this.route.snapshot.params['collection'];
     this.collectionId = this.route.snapshot.params['id'];
 
+    this.graphApi
+      .createEventSource()
+      .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
+      .subscribe((es: any) => {
+        if (es !== null && this.collectionData) {
+          if (es.event === 'vertex-edit') {
+            if (es.vertex.id === this.collectionData.vertex) {
+              this.updateCollection();
+              this.openSnackBar(`The object was updated.`);
+            }
+          } else if (es.event === 'collection-edit') {
+            if (es.collection.vertex === this.collectionData.vertex) {
+              this.updateCollection();
+              this.openSnackBar(`The object was updated.`);
+            }
+          } else if (es.event === 'vertex-delete') {
+            if (es.vertex.indexOf(this.collectionData.vertex) !== -1) {
+              this.openSnackBar(`The object was deleted.`);
+              this.back();
+            }
+          }
+        }
+      });
     combineLatest([
       this.graphApi.getCollectionConfig(this.collection),
-      this.collectionApi.getCollectionById(this.collection, this.collectionId),
-      this.graphApi
-        .createEventSource()
-        .pipe(takeUntil(this.ngUnsubscribe), startWith(null)),
       this.graphApi.getUserPermissions(),
-    ]).subscribe(([config, collection, es, permissions]) => {
+      this.triggerRefresh.pipe(
+        takeUntil(this.ngUnsubscribe),
+        switchMap(() => {
+          return this.collectionApi.getCollectionById(
+            this.collection,
+            this.collectionId,
+          );
+        }),
+      ),
+    ]).subscribe(([config, permissions, collection]) => {
       if (!config) {
         return;
       }
       this.config = config;
       this.collectionData = collection;
       this.loading = false;
+      this.hasSudo = this.permission.hasSudo(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasUpdate = this.permission.hasUpdate(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasDelete = this.permission.hasDelete(
+        permissions,
+        this.collectionData.vertex,
+      );
+      this.hasApprove = this.permission.hasApprove(
+        permissions,
+        this.collectionData.vertex,
+      );
 
-      this.hasSudo =
-        permissions.sudo.indexOf(this.collectionData.vertex) !== -1;
-      this.hasUpdate =
-        permissions.update.indexOf(this.collectionData.vertex) !== -1;
-      this.hasDelete =
-        permissions.delete.indexOf(this.collectionData.vertex) !== -1;
       if (this.collection === 'service') {
         this.collectionApi
           .getServiceDetails(this.collectionData.id)
           .subscribe((data: any) => {
             this.serviceDetails = data;
           });
-      }
-      if (es !== null) {
-        if (es.event === 'vertex-edit') {
-          if (es.vertex.id === collection.vertex) {
-            this.updateCollection();
-          }
-        } else if (es.event === 'collection-edit') {
-          if (es.collection.vertex === collection.vertex) {
-            this.updateCollection();
-          }
-        } else if (es.event === 'vertex-delete') {
-          if (es.vertex.indexOf(collection.vertex) !== -1) {
-            this.openSnackBar(`The item was deleted.`);
-            this.back();
-          }
-        }
       }
     });
   }
@@ -162,11 +191,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   updateCollection() {
-    this.collectionApi
-      .getCollectionById(this.collection, this.collectionId)
-      .subscribe((collection) => {
-        this.collectionData = collection;
-      });
+    this.triggerRefresh.next(true);
   }
 
   back() {

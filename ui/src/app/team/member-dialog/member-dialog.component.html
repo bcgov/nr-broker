@@ -1,6 +1,6 @@
 <h2 mat-dialog-title>Members - {{ data.name }}</h2>
 <mat-dialog-content>
-  @if (user.roles.includes('admin') || isOwner) {
+  @if (permission.hasAdmin() || isOwner) {
     <div class="form-panel">
       <mat-form-field>
         <mat-label>Type</mat-label>

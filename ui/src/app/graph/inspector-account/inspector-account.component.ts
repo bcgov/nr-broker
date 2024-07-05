@@ -1,6 +1,5 @@
 import {
   Component,
-  Inject,
   Input,
   OnChanges,
   OnInit,
@@ -13,12 +12,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { UserDto } from '../../service/graph.types';
-import { CURRENT_USER } from '../../app-initialize.factory';
 import { AccountGenerateDialogComponent } from '../account-generate-dialog/account-generate-dialog.component';
 import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
+
 @Component({
   selector: 'app-inspector-account',
   standalone: true,
@@ -52,7 +50,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
   constructor(
     private readonly dialog: MatDialog,
     private readonly systemApi: SystemApiService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
   ngOnInit(): void {
@@ -105,7 +102,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
         }
       });
 
-      if (this.user.roles.includes('admin') || this.hasSudo) {
+      if (this.hasSudo) {
         this.hourlyUsage = undefined;
         this.systemApi.getAccountUsage(this.account.id).subscribe(
           (data) => {

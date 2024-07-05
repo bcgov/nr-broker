@@ -23,7 +23,7 @@
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "dependencies": {
-    "@aws-sdk/client-kinesis": "^3.606.0",
+    "@aws-sdk/client-kinesis": "^3.609.0",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.10",
     "@nestjs/config": "^3.2.3",
@@ -31,7 +31,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.10",
-    "@nestjs/schedule": "^4.0.2",
+    "@nestjs/schedule": "^4.1.0",
     "@nestjs/serve-static": "^4.0.2",
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/terminus": "^10.2.3",
@@ -52,7 +52,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "radash": "^12.1.0",
-    "redis": "^4.6.13",
+    "redis": "^4.6.15",
     "reflect-metadata": "^0.2.2",
     "rimraf": "^5.0.7",
     "rxjs": "^7.8.1",
@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@golevelup/ts-jest": "^0.5.0",
-    "@nestjs/cli": "^10.4.0",
+    "@nestjs/cli": "^10.4.2",
     "@nestjs/schematics": "^10.1.2",
     "@nestjs/testing": "^10.3.10",
     "@types/cron": "^2.4.0",

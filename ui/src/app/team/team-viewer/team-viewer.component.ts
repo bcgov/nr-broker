@@ -25,6 +25,7 @@ import {
 } from '../../service/dto/collection-config-rest.dto';
 import { TeamServiceRequestComponent } from '../team-service-request/team-service-request.component';
 import { UserPermissionRestDto } from '../../service/dto/user-permission-rest.dto';
+import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-team-viewer',
@@ -58,6 +59,7 @@ export class TeamViewerComponent {
   serviceCount = 0;
 
   constructor(
+    public readonly permission: PermissionService,
     private route: ActivatedRoute,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
@@ -104,19 +106,5 @@ export class TeamViewerComponent {
 
   openInGraph(elem: TeamRestDto) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
-  }
-
-  hasSudo(permissions: UserPermissionRestDto | null, vertex: string) {
-    if (!permissions) {
-      return false;
-    }
-    return permissions.sudo.indexOf(vertex) !== -1;
-  }
-
-  hasUpdate(permissions: UserPermissionRestDto | null, vertex: string) {
-    if (!permissions) {
-      return false;
-    }
-    return permissions.update.indexOf(vertex) !== -1;
   }
 }

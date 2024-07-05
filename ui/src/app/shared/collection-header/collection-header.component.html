@@ -17,7 +17,7 @@
       mat-stroked-button
       extended
       color="warn"
-      [disabled]="!(user.roles.includes('admin') || hasDelete) || !config.permissions.delete"
+      [disabled]="!hasDelete || !config.permissions.delete"
       (click)="delete()">
       Delete
     </button>
@@ -34,7 +34,7 @@
     mat-stroked-button
     extended
     color="primary"
-    [disabled]="!user.roles.includes('admin')"
+    [disabled]="!hasUpdate"
     (click)="editTags()">
     Tags
   </button>
@@ -42,7 +42,7 @@
     mat-stroked-button
     extended
     color="primary"
-    [disabled]="!(user.roles.includes('admin') || hasUpdate) || !config.permissions.update"
+    [disabled]="!hasUpdate || !config.permissions.update"
     (click)="edit()">
     Edit
   </button>

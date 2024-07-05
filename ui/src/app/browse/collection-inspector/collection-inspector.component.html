@@ -61,6 +61,7 @@
         </mat-card-header>
         <mat-card-content>
           <app-inspector-service-releases
+            [isApprover]="hasSudo || hasApprove"
             [builds]="serviceDetails.builds"></app-inspector-service-releases>
         </mat-card-content>
       </mat-card>
@@ -74,14 +75,14 @@
           <app-inspector-vault
             [service]="collectionData"
             [isAdministrator]="hasSudo"></app-inspector-vault>
-          @if (user.roles.includes('admin') || hasSudo) {
+          @if (hasSudo) {
             <mat-divider></mat-divider>
             <app-inspector-service-secure
               [service]="collectionData"></app-inspector-service-secure>
           }
         </mat-card-content>
       </mat-card>
-  
+
 
       <mat-card class="full-width">
         <mat-card-header>
@@ -91,6 +92,7 @@
           <app-inspector-intentions
             [id]="collectionData.id"
             [name]="collectionData.name"
+            [showHeader]="true"
             layout="normal"></app-inspector-intentions>
         </mat-card-content>
       </mat-card>

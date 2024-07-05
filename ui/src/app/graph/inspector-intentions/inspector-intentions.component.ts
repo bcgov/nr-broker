@@ -25,6 +25,9 @@ export class InspectorIntentionsComponent implements OnChanges {
   @Input() id!: string;
   @Input() name!: string;
   @Input() layout: 'narrow' | 'normal' = 'narrow';
+  @Input() showMore: boolean = true;
+  @Input() showHeader: boolean = false;
+  @Input() openFirst: boolean = true;
   intentions: any[] = [];
   total = 0;
 

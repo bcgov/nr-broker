@@ -11,8 +11,9 @@ import {
 import { GraphDataResponseEdgeDto } from './graph-data.dto';
 import { EdgeInsertDto } from './edge-rest.dto';
 import { EdgePropDto } from './edge-prop.dto';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsValidProp } from '../../util/validator.util';
+import { TimestampDto } from './timestamp.dto';
 
 @Entity({ name: 'edge' })
 @Index(['source', 'name'])
@@ -58,6 +59,11 @@ export class EdgeDto {
   @Index()
   @IsDefined()
   target: ObjectId;
+
+  @IsOptional()
+  @Column(() => TimestampDto)
+  @Type(() => TimestampDto)
+  timestamps?: TimestampDto;
 
   static upgradeInsertDto(value: EdgeInsertDto): EdgeDto {
     const edge = new EdgeDto();
