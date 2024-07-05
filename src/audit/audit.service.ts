@@ -437,6 +437,7 @@ export class AuditService {
         map(this.addHostFunc),
         map(this.addLabelsFunc),
         map(this.addMetadataActivityFunc()),
+        map(this.addRequestUserFunc(req)),
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
