@@ -23,7 +23,7 @@
     class="add"
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!permission.hasAdmin() || disableAdd">
+    [disabled]="!((collectionFilter == 'team' || permission.hasAdmin()) && !disableAdd)">
     <mat-icon>add</mat-icon>
     Add
   </button>

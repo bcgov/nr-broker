@@ -29,7 +29,7 @@ export type CollectionDtoRestUnion = {
   brokerAccount: BrokerAccountRestDto;
   environment: EnvironmentRestDto;
   project: ProjectRestDto;
-  server: ServerDto;
+  server: ServiceRestDto;
   serviceInstance: ServiceInstanceRestDto;
   service: ServiceRestDto;
   team: TeamRestDto;
