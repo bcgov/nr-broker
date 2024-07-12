@@ -124,13 +124,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     if (!this.routeSub) {
       this.routeSub = this.activatedRoute.params.subscribe(() => {
         this.initComponent();
+        this.updateCollection();
       });
     }
-  }
-
-  initComponent() {
-    this.collection = this.activatedRoute.snapshot.params['collection'];
-    this.collectionId = this.activatedRoute.snapshot.params['id'];
 
     this.graphApi
       .createEventSource()
@@ -172,6 +168,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           }
         }
       });
+
     combineLatest([
       this.graphApi.getUserPermissions(),
       this.triggerRefresh.pipe(
@@ -217,6 +214,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       }
       this.loading = false;
     });
+  }
+
+  initComponent() {
+    this.collection = this.activatedRoute.snapshot.params['collection'];
+    this.collectionId = this.activatedRoute.snapshot.params['id'];
   }
 
   ngOnDestroy() {
