@@ -3,7 +3,10 @@ import { DatePipe, KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import {
+  CollectionDtoRestUnion,
+  CollectionNames,
+} from '../../service/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-inspector-vertex-fields',
@@ -15,7 +18,9 @@ import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 export class InspectorVertexFieldsComponent implements OnChanges {
   @Input() collection!: CollectionNames;
   @Input() collectionConfig!: CollectionConfigRestDto;
-  @Input() collectionData: any = null;
+  @Input() collectionData:
+    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
+    | null = null;
   @Input() filter!: 'yes' | 'no';
 
   filteredCollectionData: any = null;

@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  @if (data.target) {
+  @if (data.edge) {
     Edit
   } @else {
     Add
@@ -9,7 +9,7 @@
     <form
       class="edge-editor-form"
       (submit)="addEditEdge()">
-      @if (!data.target) {
+      @if (!data.edge) {
         <mat-form-field class="edge-editor-full-width" appearance="fill">
           <mat-label>Collection (type)</mat-label>
           <mat-select
@@ -17,8 +17,8 @@
             name="edgeConfig"
             (selectionChange)="configChanged()">
             <mat-option value="" selected></mat-option>
-            @for (edgeConfig of data.config[data.collection].edges; track edgeConfig) {
-              <mat-option [value]="edgeConfig">{{data.config[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
+            @for (edgeConfig of configMap[data.collection].edges; track edgeConfig) {
+              <mat-option [value]="edgeConfig">{{configMap[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
             }
           </mat-select>
         </mat-form-field>
@@ -47,7 +47,7 @@
         </mat-form-field>
       }
       <app-property-editor
-      [graphProperties]="data.target?.prop"></app-property-editor>
+      [graphProperties]="data.edge?.prop"></app-property-editor>
 
     </form>
   </div>
@@ -60,9 +60,9 @@
   <button
     mat-button
     color="primary"
-    [disabled]="!data.target && (!edgeControl.value || !vertexControl.value)"
+    [disabled]="!data.edge && (!edgeControl.value || !vertexControl.value)"
     (click)="addEditEdge()">
-    @if (data.target) {
+    @if (data.edge) {
       Edit
     } @else {
       Add

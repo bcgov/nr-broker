@@ -1,5 +1,4 @@
 import {
-  ChangeDetectorRef,
   Component,
   EventEmitter,
   Inject,
@@ -21,31 +20,29 @@ import { MatTableModule } from '@angular/material/table';
 import { AsyncPipe, TitleCasePipe, KeyValuePipe } from '@angular/common';
 import {
   BehaviorSubject,
+  Observable,
   combineLatest,
   map,
   of,
-  ReplaySubject,
   switchMap,
-  withLatestFrom,
 } from 'rxjs';
 import {
   ChartClickTarget,
   Connection,
-  GraphData,
-  GraphDataEdgeVertexKeys,
   VertexNavigation,
-  ChartClickTargetVertex,
-  GraphDataConfig,
   GraphDataVertex,
-  ConnectionDirection,
   UserDto,
+  CollectionConfigMap,
+  ChartClickTargetEdge,
+  ChartClickTargetVertex,
 } from '../../service/graph.types';
-import { JsonViewDialogComponent } from '../json-view-dialog/json-view-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
-import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
-import { CURRENT_USER } from '../../app-initialize.factory';
+import {
+  CONFIG_ARR,
+  CONFIG_MAP,
+  CURRENT_USER,
+} from '../../app-initialize.factory';
 import { PreferencesService } from '../../preferences.service';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
 import { InspectorEdgeComponent } from '../inspector-edge/inspector-edge.component';
@@ -53,6 +50,18 @@ import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.c
 import { TagDialogComponent } from '../tag-dialog/tag-dialog.component';
 import { RouterModule } from '@angular/router';
 import { PermissionService } from '../../service/permission.service';
+import { InspectorConnectionsComponent } from '../inspector-connections/inspector-connections.component';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
+import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { EdgeComboRestDto } from '../../service/dto/edge-combo-rest.dto';
+import { InspectorPropertiesComponent } from '../inspector-properties/inspector-properties.component';
+import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-timestamps.component';
+import { GraphUtilService } from '../../service/graph-util.service';
+import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 
 @Component({
   selector: 'app-inspector',
@@ -62,8 +71,6 @@ import { PermissionService } from '../../service/permission.service';
   imports: [
     AsyncPipe,
     ClipboardModule,
-    InspectorEdgeComponent,
-    InspectorVertexComponent,
     KeyValuePipe,
     MatButtonModule,
     MatCardModule,
@@ -73,24 +80,27 @@ import { PermissionService } from '../../service/permission.service';
     MatTableModule,
     MatChipsModule,
     RouterModule,
+    InspectorConnectionsComponent,
+    InspectorEdgeComponent,
+    InspectorVertexComponent,
+    InspectorPropertiesComponent,
+    InspectorTimestampsComponent,
     TagDialogComponent,
     TitleCasePipe,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
-  @Input() dataConfig!: GraphDataConfig | null;
-  dataConfig$ = new ReplaySubject<GraphDataConfig>(1);
   @Input() target!: ChartClickTarget | undefined;
-  inboundConnections!: VertexNavigation | null;
-  outboundConnections!: VertexNavigation | null;
-  collectionData: any = null;
-  collectionPeople: any = null;
-  @Output() selected = new EventEmitter<ChartClickTarget>();
-  propDisplayedColumns: string[] = ['key', 'value'];
-  propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
+  @Output() selected = new EventEmitter<ChartClickTarget>();
+
+  public comboData!: CollectionCombo<any> | EdgeComboRestDto | null;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
+
+  propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   titleWidth = 0;
+
+  // Permissions
   hasAdmin = false;
   hasSudo = false;
   hasUpdate = false;
@@ -99,94 +109,49 @@ export class InspectorComponent implements OnChanges, OnInit {
   constructor(
     private readonly permission: PermissionService,
     private readonly graphApi: GraphApiService,
+    private readonly collectionApi: CollectionApiService,
     private readonly dialog: MatDialog,
     private readonly preferences: PreferencesService,
+    private readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
-    private ref: ChangeDetectorRef,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
+    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit(): void {
     this.hasAdmin = this.permission.hasAdmin();
 
-    combineLatest([this.targetSubject, this.dataConfig$])
-      .pipe(
-        map(([target, dataConfig]) => {
-          if (!target || !dataConfig || target.type === 'edge') {
-            return null;
-          }
-          const data = dataConfig.data;
-          return {
-            vertex: target.data,
-            direction: 'forward' as ConnectionDirection,
-            connections: this.gatherConnections(target, data, 'target'),
-          };
-        }),
-      )
-      .subscribe((inboundConnections) => {
-        this.inboundConnections = inboundConnections;
-      });
-    combineLatest([this.targetSubject, this.dataConfig$])
-      .pipe(
-        map(([target, dataConfig]) => {
-          if (!target || !dataConfig || target.type === 'edge') {
-            return null;
-          }
-          const data = dataConfig.data;
-          return {
-            vertex: target.data,
-            direction: 'forward' as ConnectionDirection,
-            connections: this.gatherConnections(target, data, 'source'),
-          };
-        }),
-      )
-      .subscribe((outboundConnections) => {
-        this.outboundConnections = outboundConnections;
-      });
-
     this.targetSubject
       .pipe(
         switchMap((target) => {
-          return this.getCollectionData(target);
+          if (target) {
+            if (target.type === 'vertex') {
+              return this.getVertexTargetData(target);
+            } else {
+              return this.getEdgeTargetData(target);
+            }
+          }
+          return of(null);
         }),
       )
       .subscribe((data) => {
-        this.collectionData = data;
-        setTimeout(() => this.ref.detectChanges(), 100);
-
+        this.comboData = data;
         // console.log('reloaded!');
       });
 
-    this.targetSubject
-      .pipe(
-        switchMap((target) => {
-          return this.getUpstreamUsers(target);
-        }),
-      )
-      .subscribe((data) => {
-        this.collectionPeople = data;
-      });
-
-    this.targetSubject
-      .pipe(withLatestFrom(this.dataConfig$))
-      .subscribe(([target, dataConfig]) => {
-        if (!target || !dataConfig) {
-          return;
-        }
-        const targetId =
-          target.type === 'edge' ? target.data.target : target.data.id;
-        this.hasDelete = this.permission.hasDelete(
-          dataConfig.permissions,
-          targetId,
-        );
-        this.hasUpdate = this.permission.hasUpdate(
-          dataConfig.permissions,
-          targetId,
-        );
-        this.hasSudo = this.permission.hasSudo(
-          dataConfig.permissions,
-          targetId,
-        );
-      });
+    combineLatest([
+      this.targetSubject,
+      this.graphApi.getUserPermissions(),
+    ]).subscribe(([target, permissions]) => {
+      if (!target) {
+        return;
+      }
+      const targetId =
+        target.type === 'edge' ? target.data.target : target.data.id;
+      this.hasDelete = this.permission.hasDelete(permissions, targetId);
+      this.hasUpdate = this.permission.hasUpdate(permissions, targetId);
+      this.hasSudo = this.permission.hasSudo(permissions, targetId);
+    });
     window.dispatchEvent(new Event('resize'));
     this.navigationFollows = this.preferences.get('graphFollows');
   }
@@ -197,69 +162,11 @@ export class InspectorComponent implements OnChanges, OnInit {
       targetChange &&
       this.target?.data.id !== targetChange.previousValue?.data?.id
     ) {
-      this.collectionData = null;
+      this.comboData = null;
       if (this.target) {
         this.targetSubject.next(this.target);
       }
     }
-
-    if (changes['dataConfig']) {
-      this.dataConfig$.next(changes['dataConfig'].currentValue);
-    }
-  }
-
-  gatherConnections(
-    target: ChartClickTargetVertex,
-    data: GraphData,
-    edgeKey: GraphDataEdgeVertexKeys,
-  ): { [key: string]: Connection[] } {
-    const invertedVertexKey = edgeKey === 'target' ? 'source' : 'target';
-    const direction = edgeKey === 'target' ? 'forward' : 'reverse';
-    return data.edges
-      .filter((edge) => {
-        const edgeId = edgeKey === 'target' ? edge.target : edge.source;
-        return edgeId === target.data.id;
-      })
-      .map((edge) => {
-        const vertex = data.idToVertex[edge[invertedVertexKey]];
-        return {
-          edge: {
-            ...edge,
-          },
-          direction,
-          vertex: {
-            ...vertex,
-          },
-        };
-      })
-      .map((connection) => {
-        if (!this.dataConfig?.config) {
-          return connection;
-        }
-        const configEdges =
-          direction === 'reverse'
-            ? this.dataConfig.config[target.data.collection].edges
-            : this.dataConfig.config[
-                data.idToVertex[connection.edge.source].collection
-              ].edges;
-        const config = configEdges.find(
-          (config) =>
-            config.name === connection.edge.name &&
-            config.collection ===
-              data.idToVertex[connection.edge.target].collection,
-        );
-        if (config && config.inboundName && direction === 'forward') {
-          connection.edge.name = config.inboundName;
-        }
-        return connection;
-      })
-      .reduce((previousValue: any, currentValue: any) => {
-        if (!previousValue[currentValue.edge.name]) {
-          previousValue[currentValue.edge.name] = [];
-        }
-        previousValue[currentValue.edge.name].push(currentValue);
-        return previousValue;
-      }, {});
   }
 
   getTargetId(): string {
@@ -269,57 +176,41 @@ export class InspectorComponent implements OnChanges, OnInit {
     return this.target.data.id;
   }
 
-  getEdgeSourceId(): string {
-    if (this.target && this.target.type === 'edge') {
-      return this.target.data.source;
-    }
-    return '';
-  }
-
-  getEdgeTargetId(): string {
-    if (this.target && this.target.type === 'edge') {
-      return this.target.data.target;
-    }
-    return '';
-  }
-
   selectEdge(id: string) {
-    if (this.dataConfig?.data && this.dataConfig.data.idToEdge[id]) {
-      const edge = this.dataConfig.data.idToEdge[id];
-      this.selected.emit({
-        type: 'edge',
-        data: edge,
-      });
-    }
-    return;
+    console.log(`selectEdge: ${id}`);
+    this.graphUtil.openInGraph(id, 'edge');
   }
 
   selectVertex(id: string) {
-    if (this.dataConfig?.data && this.dataConfig.data.idToVertex[id]) {
-      const vertex = this.dataConfig.data.idToVertex[id];
-      this.selected.emit({
-        type: 'vertex',
-        data: vertex,
-      });
-    }
+    // console.log(`selectVertex: ${id}`);
+    this.graphUtil.openInGraph(id, 'vertex');
   }
 
-  viewCollectionJson(json: any) {
-    this.dialog.open(JsonViewDialogComponent, {
-      width: '500px',
-      data: {
-        json: JSON.stringify(json, undefined, 4),
-      },
-    });
+  navigate(target: EdgeRestDto | VertexRestDto) {
+    if ('collection' in target) {
+      this.collectionApi
+        .searchCollection(target.collection, {
+          vertexId: target.id,
+          offset: 0,
+          limit: 1,
+        })
+        .subscribe((result) => {
+          if (result && result.meta.total > 0) {
+            this.selectVertex(result.data[0].vertex.id);
+          }
+        });
+    } else {
+      this.selectEdge(target.id);
+    }
   }
 
   editTarget() {
-    if (!this.dataConfig?.config || !this.collectionData || !this.target) {
+    if (!this.target) {
       return;
     }
-    if (this.target.type === 'edge' && this.dataConfig?.data) {
-      const sourceIndex = this.target.data.is;
-      const config = Object.values(this.dataConfig.config).find((config) => {
+    if (this.comboData?.type === 'edge') {
+      const sourceIndex = this.comboData.edge.is;
+      const config = Object.values(this.configArr).find((config) => {
         return config.index === sourceIndex;
       });
       if (config) {
@@ -328,10 +219,8 @@ export class InspectorComponent implements OnChanges, OnInit {
             width: '500px',
             data: {
               collection: config.collection,
-              config: this.dataConfig.config,
-              vertices: this.dataConfig.data.vertices,
-              vertex: this.dataConfig.data.idToVertex[this.target.data.source],
-              target: this.target.data,
+              source: this.comboData.source,
+              edge: this.comboData.edge,
             },
           })
           .afterClosed()
@@ -341,15 +230,18 @@ export class InspectorComponent implements OnChanges, OnInit {
             }
           });
       }
-    } else if (this.target.type === 'vertex') {
+    } else if (this.comboData?.type === 'vertex') {
       this.dialog
         .open(VertexDialogComponent, {
           width: '500px',
           data: {
-            configMap: this.dataConfig.config,
-            collection: this.target.data.collection,
-            vertexId: this.target.data.id,
-            data: this.collectionData,
+            configMap: {
+              [this.comboData.vertex.collection]:
+                this.configMap[this.comboData.vertex.collection],
+            },
+            collection: this.comboData.vertex.collection,
+            vertexId: this.comboData.vertex.id,
+            data: this.comboData.collection,
           },
         })
         .afterClosed()
@@ -362,18 +254,16 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   editTags() {
-    if (!this.dataConfig?.config || !this.collectionData || !this.target) {
+    if (!this.comboData || !this.target) {
       return;
     }
-    if (this.target.type === 'vertex' && this.dataConfig?.data) {
-      // const targetId = ;
-      // const collection = this.target.data.collection;
+    if (this.comboData.type === 'vertex') {
       this.dialog
         .open(TagDialogComponent, {
           width: '500px',
           data: {
-            collection: this.target.data.collection,
-            collectionData: this.collectionData,
+            collection: this.comboData.vertex.collection,
+            collectionData: this.comboData.collection,
           },
         })
         .afterClosed()
@@ -386,17 +276,14 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   addEdgeToVertex(vertex: GraphDataVertex) {
-    if (!this.dataConfig?.config || !this.dataConfig?.data) {
+    if (!vertex) {
       return;
     }
-
     this.dialog
       .open(EdgeDialogComponent, {
         width: '500px',
         data: {
           collection: vertex.collection,
-          config: this.dataConfig.config,
-          vertices: this.dataConfig.data.vertices,
           vertex,
         },
       })
@@ -463,13 +350,41 @@ export class InspectorComponent implements OnChanges, OnInit {
     this.preferences.set('graphFollows', this.navigationFollows);
   }
 
-  getCollectionData(target: ChartClickTarget | undefined) {
-    if (!target || target.type !== 'vertex') {
-      return of({});
-    }
-    const vertex = target.data;
+  getVertexTargetData(target: ChartClickTargetVertex) {
+    if (target.type === 'vertex') {
+      const vertex = target.data;
 
-    return this.graphApi.getCollectionData(vertex.collection, vertex.id);
+      return this.collectionApi
+        .searchCollection(vertex.collection, {
+          vertexId: vertex.id,
+          offset: 0,
+          limit: 1,
+        })
+        .pipe(
+          map((results) => {
+            return results.data[0];
+          }),
+        );
+    }
+
+    return of(null);
+  }
+
+  getEdgeTargetData(
+    target: ChartClickTargetEdge,
+  ): Observable<EdgeComboRestDto> {
+    return combineLatest({
+      edge: this.graphApi.getEdge(target.data.id),
+      source: this.graphApi.getVertex(target.data.source),
+      target: this.graphApi.getVertex(target.data.target),
+    }).pipe(
+      map((data) => {
+        return {
+          type: 'edge',
+          ...data,
+        };
+      }),
+    );
   }
 
   getUpstreamUsers(target: ChartClickTarget | undefined) {
@@ -482,7 +397,6 @@ export class InspectorComponent implements OnChanges, OnInit {
     if (
       !target ||
       target.type !== 'vertex' ||
-      !this.dataConfig?.config ||
       !Object.keys(mapCollectionToEdgeName).includes(target.data.collection)
     ) {
       return of([]);
@@ -491,20 +405,16 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     return this.graphApi.getUpstream(
       vertex.id,
-      this.dataConfig.config['user'].index,
+      this.configMap['user'].index,
       mapCollectionToEdgeName[target.data.collection],
     );
   }
 
   getFieldType(key: string) {
-    if (
-      !this.target ||
-      !this.dataConfig?.config ||
-      this.target.type !== 'vertex'
-    ) {
+    if (!this.target || this.target.type !== 'vertex') {
       return '';
     }
-    return this.dataConfig.config[this.target.data.collection].fields[key].type;
+    return this.configMap[this.target.data.collection].fields[key].type;
   }
 
   refreshData() {

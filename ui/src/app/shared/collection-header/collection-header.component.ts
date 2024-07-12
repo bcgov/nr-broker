@@ -5,7 +5,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GraphUtilService } from '../../service/graph-util.service';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import {
+  CollectionDtoRestUnion,
+  CollectionNames,
+} from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
@@ -31,7 +34,8 @@ import { GraphApiService } from '../../service/graph-api.service';
 export class CollectionHeaderComponent {
   @Input() config!: CollectionConfigRestDto;
   @Input() collection!: CollectionNames;
-  @Input() collectionData!: any;
+  @Input()
+  collectionData!: CollectionDtoRestUnion[keyof CollectionDtoRestUnion];
   @Input() hasDelete!: boolean;
   @Input() hasUpdate!: boolean;
 

@@ -62,9 +62,11 @@ export type GraphDataEdgeVertexKeys = 'target' | 'source';
 export interface VertexNavigation {
   vertex: GraphDataVertex;
   direction: ConnectionDirection;
-  connections: {
-    [key: string]: Connection[];
-  };
+  connections: ConnectionMap;
+}
+
+export interface ConnectionMap {
+  [key: string]: Connection[];
 }
 
 export interface Connection {

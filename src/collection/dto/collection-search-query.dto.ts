@@ -15,6 +15,11 @@ export class CollectionSearchQuery {
   @IsOptional()
   @IsString()
   @Type(() => String)
+  downstreamVertex: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
   id: string;
 
   @IsOptional()

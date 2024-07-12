@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  @if (data.team) {
+  @if (data.data) {
     Edit
   } @else {
     Add
@@ -7,7 +7,7 @@
   Team
 </h2>
 <mat-dialog-content>
-  @if (config && !data.team) {
+  @if (config && !data.data) {
     <p>Fill out this form to create a new team. You will be added as
       the initial owner and responsible for adding additional owners
     and users.</p>
@@ -16,7 +16,7 @@
     <app-vertex-form-builder
       [collection]="'team'"
       [fieldMap]="config.fields"
-      [data]="data.team"
+      [data]="data.data"
     (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
   }
   <mat-divider></mat-divider>
@@ -24,10 +24,10 @@
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
   <button mat-button color="primary" [disabled]="isFormInvalid()" (click)="addUpdateVertex()">
-    @if (config && data.team) {
+    @if (config && data.data) {
       Edit
     }
-    @if (config && !data.team) {
+    @if (config && !data.data) {
       Add
     }
   </button>

@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, finalize, map } from 'rxjs';
+import { Observable, finalize, from } from 'rxjs';
 import {
   CollectionDtoRestUnion,
   CollectionNames,
@@ -14,12 +14,13 @@ import {
   CollectionConfigInstanceRestDto,
   CollectionConfigRestDto,
 } from './dto/collection-config-rest.dto';
-import { EdgeInsertDto } from './dto/edge-rest.dto';
+import { EdgeInsertDto, EdgeRestDto } from './dto/edge-rest.dto';
 import { VertexInsertDto, VertexRestDto } from './dto/vertex-rest.dto';
 import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { GraphEventRestDto } from './dto/graph-event-rest.dto';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
+import { CONFIG_ARR } from '../app-initialize.factory';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +29,8 @@ export class GraphApiService {
   constructor(
     private readonly util: GraphUtilService,
     private readonly http: HttpClient,
+    private readonly zone: NgZone,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
   ) {}
 
   createEventSource(): Observable<GraphEventRestDto> {
@@ -36,9 +39,14 @@ export class GraphApiService {
     );
 
     return new Observable<GraphEventRestDto>((observer) => {
+      eventSource.onerror = (error) => {
+        this.zone.run(() => observer.error(error));
+      };
       eventSource.onmessage = (event) => {
-        const messageData = JSON.parse(event.data);
-        observer.next(messageData);
+        this.zone.run(() => {
+          const messageData = JSON.parse(event.data);
+          observer.next(messageData);
+        });
       };
     }).pipe(
       finalize(() => {
@@ -58,20 +66,15 @@ export class GraphApiService {
   }
 
   getConfig() {
-    return this.http.get<CollectionConfigRestDto[]>(
-      `${environment.apiUrl}/v1/collection/config`,
-      {
-        responseType: 'json',
-      },
-    );
+    return from([this.configArr]);
   }
 
   getCollectionConfig(collection: CollectionNames) {
-    return this.getConfig().pipe(
-      map((configs) => {
-        return configs.find((config) => config.collection === collection);
-      }),
+    const config = this.configArr.find(
+      (config) => config.collection === collection,
     );
+
+    return config ? from([config]) : from([]);
   }
 
   getCollectionData<T extends keyof CollectionDtoRestUnion>(
@@ -82,6 +85,15 @@ export class GraphApiService {
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         collection,
       )}?vertex=${encodeURIComponent(vertexId)}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getEdge(id: string) {
+    return this.http.get<EdgeRestDto>(
+      `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
       {
         responseType: 'json',
       },
@@ -139,6 +151,15 @@ export class GraphApiService {
         (source ? `&source=${encodeURIComponent(source)}` : '') +
         (target ? `&target=${encodeURIComponent(target)}` : '') +
         (map ? `&map=${encodeURIComponent(map)}` : ''),
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getVertex(id: string) {
+    return this.http.get<VertexRestDto>(
+      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
       {
         responseType: 'json',
       },

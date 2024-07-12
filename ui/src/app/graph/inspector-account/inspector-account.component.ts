@@ -34,6 +34,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
   @Input() account!: BrokerAccountRestDto;
   @Input() userIndex!: number | undefined;
   @Input() hasSudo = false;
+
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;

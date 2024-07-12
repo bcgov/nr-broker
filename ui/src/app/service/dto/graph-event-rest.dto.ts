@@ -1,5 +1,5 @@
+import { EdgeRestDto } from './edge-rest.dto';
 import {
-  GraphDataResponseEdgeDto,
   GraphDataResponseVertexDto,
   GraphDeleteResponseDto,
 } from './graph-data.dto';
@@ -18,7 +18,7 @@ export class GraphCollectionEventRestDto {
 
 export class GraphEdgeEventRestDto {
   event!: 'edge-add' | 'edge-edit';
-  edge!: GraphDataResponseEdgeDto;
+  edge!: EdgeRestDto;
 }
 
 export class GraphVertexEventRestDto {

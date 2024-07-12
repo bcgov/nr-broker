@@ -185,6 +185,18 @@ export class CollectionController {
     );
   }
 
+  @Get(':collection/:id/combo')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async getCollectionComboById(
+    @Param('collection') collection: string,
+    @Param('id') id: string,
+  ) {
+    return this.service.getCollectionComboById(
+      this.parseCollectionApi(collection),
+      id,
+    );
+  }
+
   @Post(':collection/:id/tags/:tag')
   @Roles('admin')
   @UseGuards(BrokerOidcAuthGuard)
@@ -238,6 +250,10 @@ export class CollectionController {
     required: false,
   })
   @ApiQuery({
+    name: 'downstreamVertex',
+    required: false,
+  })
+  @ApiQuery({
     name: 'vertexId',
     required: false,
   })
@@ -257,6 +273,7 @@ export class CollectionController {
       this.parseCollectionApi(collection),
       query.q,
       query.upstreamVertex,
+      query.downstreamVertex,
       query.id,
       query.vertexId,
       query.offset,

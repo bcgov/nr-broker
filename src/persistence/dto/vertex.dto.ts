@@ -19,7 +19,7 @@ import { ServiceDto } from './service.dto';
 import { ServiceInstanceDto } from './service-instance.dto';
 import { TeamDto } from './team.dto';
 import { UserDto } from './user.dto';
-import { VertexPointerDto } from './vertex-pointer.dto';
+// import { VertexPointerDto } from './vertex-pointer.dto';
 import { VertexInsertDto, VertexPropDto } from './vertex-rest.dto';
 import { IsValidProp } from '../../util/validator.util';
 import { TimestampDto } from './timestamp.dto';
@@ -102,7 +102,7 @@ export class VertexDto {
   }
 }
 
-export class VertexCollectionDto extends VertexDto {
-  @ApiProperty({ type: () => VertexPointerDto })
-  data: VertexPointerDto;
-}
+// export class VertexCollectionDto extends VertexDto {
+//   @ApiProperty({ type: () => VertexPointerDto })
+//   data: VertexPointerDto;
+// }

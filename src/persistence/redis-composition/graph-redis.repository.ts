@@ -40,6 +40,7 @@ import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-r
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
+import { GraphVertexConnections } from '../dto/collection-combo.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -109,7 +110,7 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   public searchEdgesShallow(
-    name: string,
+    name?: string,
     source?: string,
     target?: string,
   ): Promise<EdgeDto[]> {
@@ -186,6 +187,10 @@ export class GraphRedisRepository implements GraphRepository {
     name: string,
   ): Promise<VertexDto> {
     return this.repo.getVertexByName(collection, name);
+  }
+
+  public getVertexConnections(id: string): Promise<GraphVertexConnections> {
+    return this.repo.getVertexConnections(id);
   }
 
   public getVertexInfo(id: string): Promise<VertexInfoDto> {

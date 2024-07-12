@@ -11,7 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule, MatSelectionList } from '@angular/material/list';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
-import { VertexNavigation } from '../../service/graph.types';
+import { ConnectionMap } from '../../service/graph.types';
 
 @Component({
   selector: 'app-delete-edge-dialog',
@@ -33,7 +33,7 @@ export class DeleteEdgeDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      connections: VertexNavigation;
+      connections: ConnectionMap;
     },
     public readonly dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
     private readonly graphApi: GraphApiService,

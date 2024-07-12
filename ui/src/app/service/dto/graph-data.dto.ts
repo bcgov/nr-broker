@@ -6,7 +6,6 @@ export interface GraphDataResponseEdgeDto {
   is: number;
   it: number;
   name: string;
-  prop?: any;
   source: string;
   target: string;
 }
@@ -17,7 +16,6 @@ export interface GraphDataResponseVertexDto {
   collection: CollectionNames;
   index: number;
   name: string;
-  prop?: any;
 }
 
 export interface GraphDataResponseCategoryDto {

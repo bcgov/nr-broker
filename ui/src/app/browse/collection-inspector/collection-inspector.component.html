@@ -6,7 +6,7 @@
   <app-collection-header
     [config]="config"
     [collection]="collection"
-    [collectionData]="collectionData"
+    [collectionData]="comboData.collection"
     [hasUpdate]="hasUpdate"
     [hasDelete]="hasDelete"
   ></app-collection-header>
@@ -14,7 +14,7 @@
   <div class="inspector-card-layout">
     <app-vertex-tags
       class="full-width"
-      [collectionData]="collectionData"></app-vertex-tags>
+      [collectionData]="comboData.collection"></app-vertex-tags>
 
     <mat-card>
       <mat-card-header>
@@ -24,17 +24,41 @@
         <app-inspector-vertex-fields
           [collection]="collection"
           [collectionConfig]="config"
-          [collectionData]="collectionData"
+          [collectionData]="comboData.collection"
           [filter]="'no'"
           ></app-inspector-vertex-fields>
+        @if (comboData.vertex.prop) {
+          <app-inspector-properties
+            [prop]="comboData.vertex.prop"></app-inspector-properties>
+        }
+        <app-inspector-timestamps
+          [timestamps]="comboData.vertex.timestamps"></app-inspector-timestamps>
       </mat-card-content>
     </mat-card>
 
-    @if (collection === 'brokerAccount') {
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Connections</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-inspector-connections
+          [collection]="collection"
+          [config]="config"
+          [vertex]="comboData.collection.vertex"
+          [source]="comboData.vertex"
+          [upstream]="comboData.upstream"
+          [downstream]="comboData.downstream"
+          [hasAdmin]="hasAdmin"
+          (selected)="navigate($event)"
+          ></app-inspector-connections>
+    </mat-card-content>
+  </mat-card>
+
+    @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
       <mat-card>
         <mat-card-content>
           <app-inspector-account
-            [account]="collectionData"
+            [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
             [userIndex]="4"
             [hasSudo]="hasSudo"></app-inspector-account>
         </mat-card-content>
@@ -48,8 +72,9 @@
         </mat-card-header>
         <mat-card-content>
           <app-inspector-instances
-            [service]="collectionData"
-            [vertices]="outboundConnections"
+            [service]="comboData.collection"
+            [vertex]="comboData.vertex"
+            [vertices]="comboData.downstream"
             [details]="serviceDetails"></app-inspector-instances>
         </mat-card-content>
       </mat-card>
@@ -73,12 +98,12 @@
         </mat-card-header>
         <mat-card-content>
           <app-inspector-vault
-            [service]="collectionData"
+            [service]="comboData.collection"
             [isAdministrator]="hasSudo"></app-inspector-vault>
           @if (hasSudo) {
             <mat-divider></mat-divider>
             <app-inspector-service-secure
-              [service]="collectionData"></app-inspector-service-secure>
+              [service]="comboData.collection"></app-inspector-service-secure>
           }
         </mat-card-content>
       </mat-card>
@@ -90,23 +115,46 @@
         </mat-card-header>
         <mat-card-content>
           <app-inspector-intentions
-            [id]="collectionData.id"
-            [name]="collectionData.name"
+            [id]="comboData.collection.id"
+            [name]="comboData.collection.name"
             [showHeader]="true"
             layout="normal"></app-inspector-intentions>
         </mat-card-content>
       </mat-card>
     }
     @if (collection === 'serviceInstance') {
-      <div>
-        <app-inspector-installs
-          [instance]="collectionData"></app-inspector-installs>
-      </div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Instances</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-installs
+            [instance]="comboData.collection"></app-inspector-installs>
+        </mat-card-content>
+      </mat-card>
     }
     @if (collection === 'team') {
-      <app-inspector-team
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Members</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-team-members
+            [collectionData]="comboData.collection"
+            [upstream]="comboData.upstream"></app-team-members>
+        </mat-card-content>
+      </mat-card>
+
+      <app-team-services
         class="full-width"
-        [instance]="collectionData"></app-inspector-team>
+        [teamVertex]="comboData.collection.vertex"></app-team-services>
+
+      <app-team-accounts
+        class="full-width"
+        [teamVertex]="comboData.collection.vertex"
+        [config]="config"
+        [hasSudo]="hasSudo"
+        [hasUpdate]="hasUpdate"></app-team-accounts>
     }
   </div>
 }

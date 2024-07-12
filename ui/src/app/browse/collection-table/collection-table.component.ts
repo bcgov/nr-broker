@@ -26,10 +26,6 @@ import {
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
-import {
-  CollectionData,
-  CollectionSearchConnections,
-} from '../../service/dto/collection-search-result.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
@@ -40,6 +36,10 @@ import {
 } from '../../service/dto/collection-config-rest.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
+import { TeamRestDto } from '../../service/dto/team-rest.dto';
+import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
 
 interface filterOptions<T> {
   value: T;
@@ -68,7 +68,7 @@ interface filterOptions<T> {
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
   public config: CollectionConfigRestDto[] | undefined;
-  data: CollectionData<any>[] = [];
+  data: CollectionCombo<any>[] = [];
   total = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -77,6 +77,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
   collectionFilter: CollectionNames = 'project';
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
+
+  canFilter = ['team'];
+  showFilter: 'connected' | 'all' = 'connected';
+  showFilterOptions = [
+    { value: 'connected', viewValue: 'Connected' },
+    { value: 'all', viewValue: 'All' },
+  ];
 
   constructor(
     public readonly permission: PermissionService,
@@ -133,6 +140,10 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                 ...(this.filterValue.length >= 3
                   ? { q: this.filterValue }
                   : {}),
+                ...(this.canFilter.includes(this.collectionFilter) &&
+                this.showFilter === 'connected'
+                  ? { upstreamVertex: this.user.vertex }
+                  : {}),
                 offset: this.pageIndex * this.pageSize,
                 limit: this.pageSize,
               })
@@ -188,15 +199,15 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.triggerRefresh.next();
   }
 
-  countUpstream(elem: CollectionSearchConnections, names: string[]) {
-    return elem.upstream_edge.filter(
-      (edge: any) => names.indexOf(edge.name) !== -1,
+  countUpstream(elem: CollectionComboRestDto<any>, names: string[]) {
+    return elem.upstream.filter(
+      (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }
 
-  countDownstream(elem: CollectionSearchConnections, names: string[]) {
-    return elem.downstream_edge.filter(
-      (edge: any) => names.indexOf(edge.name) !== -1,
+  countDownstream(elem: CollectionComboRestDto<any>, names: string[]) {
+    return elem.downstream.filter(
+      (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }
 
@@ -241,9 +252,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  openInGraph(event: Event, elem: CollectionData<any>) {
+  openInGraph(event: Event, elem: CollectionComboRestDto<any>) {
     event.stopPropagation();
-    this.graphUtil.openInGraph(elem.vertex, 'vertex');
+    this.graphUtil.openInGraph(elem.vertex.id, 'vertex');
   }
 
   openInInspector(event: Event, id: string) {
@@ -257,8 +268,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   }
 
   addVertex() {
+    const dialogClass: any =
+      this.collectionFilter === 'team'
+        ? AddTeamDialogComponent
+        : VertexDialogComponent;
     this.dialog
-      .open(VertexDialogComponent, {
+      .open(dialogClass, {
         width: '500px',
         data: {
           configMap: {
@@ -285,12 +300,27 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.router.navigate(
-            ['/browse', this.collectionFilter, result.data[0].id],
+            ['/browse', this.collectionFilter, result.data[0].collection.id],
             {
               replaceUrl: true,
             },
           );
         }
+      });
+  }
+
+  openTeamDialog(event: Event, elem?: TeamRestDto) {
+    event.stopPropagation();
+    this.dialog
+      .open(AddTeamDialogComponent, {
+        width: '600px',
+        data: {
+          team: elem,
+        },
+      })
+      .afterClosed()
+      .subscribe(() => {
+        this.refresh();
       });
   }
 }

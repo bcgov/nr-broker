@@ -8,8 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { GraphDataResponseEdgeDto } from './graph-data.dto';
-import { EdgeInsertDto } from './edge-rest.dto';
+import { EdgeInsertDto, EdgeRestDto } from './edge-rest.dto';
 import { EdgePropDto } from './edge-prop.dto';
 import { Transform, Type } from 'class-transformer';
 import { IsValidProp } from '../../util/validator.util';
@@ -77,15 +76,27 @@ export class EdgeDto {
     return edge;
   }
 
-  public toEdgeResponse(): GraphDataResponseEdgeDto {
+  public toEdgeResponse(includeOptional = true): EdgeRestDto {
     return {
       id: this.id.toString(),
       is: this.is,
       it: this.it,
       name: this.name,
-      prop: this.prop,
+      ...(includeOptional ? { prop: this.prop } : {}),
       source: this.source.toString(),
       target: this.target.toString(),
+      ...(includeOptional && this.timestamps
+        ? {
+            timestamps: {
+              ...(this.timestamps.createdAt
+                ? { createdAt: this.timestamps.createdAt.getTime() }
+                : {}),
+              ...(this.timestamps.updatedAt
+                ? { updatedAt: this.timestamps.updatedAt.getTime() }
+                : {}),
+            },
+          }
+        : {}),
     };
   }
 }

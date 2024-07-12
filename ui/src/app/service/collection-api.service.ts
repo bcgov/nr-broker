@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { CollectionSearchResult } from './dto/collection-search-result.dto';
+import {
+  CollectionCombo,
+  CollectionSearchResult,
+} from './dto/collection-search-result.dto';
 import { CollectionDtoRestUnion } from './dto/collection-dto-union.type';
 import { GraphUtilService } from './graph-util.service';
 
@@ -26,11 +29,24 @@ export class CollectionApiService {
     );
   }
 
+  public getCollectionComboById<T extends keyof CollectionDtoRestUnion>(
+    name: T,
+    id: string,
+  ) {
+    return this.http.get<CollectionCombo<CollectionDtoRestUnion[T]>>(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}/combo`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public searchCollection<T extends keyof CollectionDtoRestUnion>(
     name: T,
     options: {
       q?: string;
       upstreamVertex?: string;
+      downstreamVertex?: string;
       id?: string;
       vertexId?: string;
       offset: number;
@@ -43,6 +59,10 @@ export class CollectionApiService {
       )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
         options.upstreamVertex
           ? `upstreamVertex=${options.upstreamVertex}&`
+          : ''
+      }${
+        options.downstreamVertex
+          ? `downstreamVertex=${options.downstreamVertex}&`
           : ''
       }${options.id ? `id=${options.id}&` : ''}${
         options.vertexId ? `vertexId=${options.vertexId}&` : ''
