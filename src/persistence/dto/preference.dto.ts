@@ -13,6 +13,9 @@ export class PreferenceDto {
   guid: string;
 
   @Column()
+  browseConnectionFilter: 'connected' | 'all';
+
+  @Column()
   graphFollows: 'edge' | 'vertex' = 'vertex';
 
   @Column()
@@ -21,15 +24,12 @@ export class PreferenceDto {
   @Column()
   graphEdgeSrcTarVisibility: { [key: string]: boolean } = {};
 
-  @Column()
-  teamFilterShow: 'all' | 'myteams' = 'myteams';
-
   public toRestDto(): PreferenceRestDto {
     return {
+      browseConnectionFilter: this.browseConnectionFilter ?? 'connected',
       graphFollows: this.graphFollows,
       graphVertexVisibility: this.graphVertexVisibility,
       graphEdgeSrcTarVisibility: this.graphEdgeSrcTarVisibility,
-      teamFilterShow: this.teamFilterShow,
     };
   }
 }

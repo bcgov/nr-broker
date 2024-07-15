@@ -18,11 +18,6 @@ export const ROUTES: Route[] = [
       import('./app/graph/routes').then((mod) => mod.GRAPH_ROUTES),
   },
   {
-    path: 'teams',
-    loadChildren: () =>
-      import('./app/team/routes').then((mod) => mod.TEAM_ROUTES),
-  },
-  {
     path: 'intention',
     loadChildren: () =>
       import('./app/intention/routes').then((mod) => mod.INTENTION_ROUTES),

@@ -1,8 +1,7 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface PreferenceRestDto {
+  browseConnectionFilter: 'connected' | 'all';
   graphFollows: 'edge' | 'vertex';
-  graphVertexFocus: string;
   graphVertexVisibility: { [key: string]: boolean };
   graphEdgeSrcTarVisibility: { [key: string]: boolean };
-  teamFilterShow: 'all' | 'myteams';
 }

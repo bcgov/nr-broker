@@ -18,6 +18,7 @@ import {
   provideHttpClient,
 } from '@angular/common/http';
 import {
+  appInitializeConfigFactory,
   appInitializePrefFactory,
   appInitializeUserFactory,
 } from './app/app-initialize.factory';
@@ -49,6 +50,12 @@ bootstrapApplication(AppComponent, {
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializeUserFactory,
+      deps: [HttpClient],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializeConfigFactory,
       deps: [HttpClient],
       multi: true,
     },

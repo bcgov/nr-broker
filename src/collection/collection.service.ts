@@ -15,6 +15,7 @@ import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence
 import { RedisService } from '../redis/redis.service';
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
+import { CollectionComboRestDto } from '../persistence/dto/collection-combo-rest.dto';
 
 @Injectable()
 export class CollectionService {
@@ -47,7 +48,7 @@ export class CollectionService {
     id: string,
   ) {
     try {
-      return this.collectionRepository
+      return await this.collectionRepository
         .getCollectionById(type, id)
         .then((collection) => this.processForPointers(type, collection));
     } catch (error) {
@@ -57,6 +58,31 @@ export class CollectionService {
         error: '',
       });
     }
+  }
+
+  async getCollectionComboById<T extends keyof CollectionDtoUnion>(
+    type: T,
+    id: string,
+  ): Promise<CollectionComboRestDto<T>> {
+    const collection = await this.getCollectionById(type, id);
+    if (!collection) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: '',
+      });
+    }
+    const [vertex, connections] = await Promise.all([
+      this.graphRepository.getVertex(collection.vertex.toString()),
+      this.graphRepository.getVertexConnections(collection.vertex.toString()),
+    ]);
+
+    return {
+      type: 'vertex',
+      collection,
+      vertex,
+      ...connections,
+    } as unknown as CollectionComboRestDto<T>;
   }
 
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
@@ -178,7 +204,9 @@ export class CollectionService {
   async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     q: string | undefined,
+    tags: string[] | undefined,
     upstreamVertex: string | undefined,
+    downstreamVertex: string | undefined,
     id: string | undefined,
     vertexId: string | undefined,
     offset: number,
@@ -194,14 +222,23 @@ export class CollectionService {
       );
       vertexIds = typeaheadData.data.map((data) => data.id);
     }
+
     return this.collectionRepository.searchCollection(
       type,
+      tags,
       upstreamVertex,
+      downstreamVertex,
       id,
       vertexIds,
       offset,
       limit,
     );
+  }
+
+  async getCollectionTags<T extends keyof CollectionDtoUnion>(type: T) {
+    return (await this.collectionRepository.getCollectionTags(type))
+      .filter((val) => !!val)
+      .sort();
   }
 
   async exportCollection<T extends keyof CollectionDtoUnion>(

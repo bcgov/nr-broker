@@ -1,17 +1,29 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export class CollectionSearchConnections {
-  upstream_edge: any;
-  upstream: any;
-  downstream_edge: any;
-  downstream: any;
-}
+import { GraphDirectedRestCombo } from './collection-combo-rest.dto';
+import { CollectionDtoRestUnion } from './collection-dto-union.type';
+import { PackageBuildRestDto } from './package-build-rest.dto';
+import { VertexRestDto } from './vertex-rest.dto';
 
-export type CollectionData<T> = T & CollectionSearchConnections;
-
-export class CollectionSearchResult<T> {
-  data!: CollectionData<T>[];
+export class CollectionSearchResult<
+  T extends
+    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
+    | PackageBuildRestDto,
+> {
+  data!: CollectionCombo<T>[];
   meta!: {
     total: number;
   };
+}
+
+export class CollectionCombo<
+  T extends
+    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
+    | PackageBuildRestDto,
+> {
+  type!: 'vertex';
+  collection!: T;
+  vertex!: VertexRestDto;
+  upstream!: GraphDirectedRestCombo[];
+  downstream!: GraphDirectedRestCombo[];
 }

@@ -1,0 +1,30 @@
+<h2>Accounts</h2>
+
+<div class="card-container">
+  @for (account of accountSearch.data; track account.vertex.id) {
+    <mat-card class="account-card">
+      <mat-card-header class="account-header">
+        <mat-card-title>{{account.vertex.name}}</mat-card-title>
+        <button
+          mat-icon-button
+          (click)="openInGraph(account.collection)"
+          aria-label="View in Graph">
+          <mat-icon>account_tree</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+
+        <app-inspector-vertex
+          [collection]="'brokerAccount'"
+          [collectionConfig]="config"
+          [comboData]="account"
+          [hasSudo]="hasSudo"
+          [hasUpdate]="hasUpdate"
+        ></app-inspector-vertex>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
+@if (accountSearch.meta.total === 0) {
+  <h3>No Accounts</h3>
+}

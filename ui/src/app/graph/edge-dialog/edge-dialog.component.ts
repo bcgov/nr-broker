@@ -29,9 +29,11 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
-import { GraphDataResponseEdgeDto } from '../../service/dto/graph-data.dto';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
+import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { CONFIG_MAP } from '../../app-initialize.factory';
+import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 
 @Component({
   selector: 'app-edge-dialog',
@@ -67,12 +69,12 @@ export class EdgeDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
       collection: string;
-      config: CollectionConfigMap;
-      vertex: GraphDataVertex;
-      target?: GraphDataResponseEdgeDto;
+      source: VertexRestDto;
+      edge?: EdgeRestDto;
     },
     public readonly dialogRef: MatDialogRef<EdgeDialogComponent>,
     private readonly graphApi: GraphApiService,
+    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit(): void {
@@ -125,7 +127,7 @@ export class EdgeDialogComponent implements OnInit {
     const prop = this.propertyEditorComponent.getPropertyValues();
 
     if (
-      !this.data.target &&
+      !this.data.edge &&
       !!edge &&
       typeof edge !== 'string' &&
       !!vertex &&
@@ -134,19 +136,19 @@ export class EdgeDialogComponent implements OnInit {
       this.graphApi
         .addEdge({
           name: edge.name,
-          source: this.data.vertex.id,
+          source: this.data.source.id,
           target: vertex.id,
           ...prop,
         })
         .subscribe(() => {
           this.dialogRef.close({ refresh: true });
         });
-    } else if (this.data.target) {
+    } else if (this.data.edge) {
       this.graphApi
-        .editEdge(this.data.target.id, {
-          name: this.data.target.name,
-          source: this.data.target.source,
-          target: this.data.target.target,
+        .editEdge(this.data.edge.id, {
+          name: this.data.edge.name,
+          source: this.data.edge.source,
+          target: this.data.edge.target,
           ...prop,
         })
         .subscribe(() => {

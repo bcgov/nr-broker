@@ -24,10 +24,9 @@ import {
 
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { GraphUtilService } from '../../service/graph-util.service';
 import { PermissionService } from '../../service/permission.service';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
+import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CollectionConfigMap } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
@@ -42,12 +41,31 @@ import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-v
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
 import { InspectorServiceReleasesComponent } from '../../graph/inspector-service-releases/inspector-service-releases.component';
+import { TeamServicesComponent } from '../team-services/team-services.component';
+import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
+import { TeamMembersComponent } from '../team-members/team-members.component';
+import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionUtilService } from '../../service/collection-util.service';
+import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { GraphUtilService } from '../../service/graph-util.service';
+import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
+import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 
 @Component({
   selector: 'app-collection-inspector',
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatGridListModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    CollectionHeaderComponent,
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorInstancesComponent,
@@ -57,128 +75,150 @@ import { InspectorServiceReleasesComponent } from '../../graph/inspector-service
     InspectorTeamComponent,
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
-    MatButtonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatGridListModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    CollectionHeaderComponent,
+    InspectorConnectionsComponent,
+    InspectorPropertiesComponent,
+    InspectorTimestampsComponent,
+    TeamAccountsComponent,
+    TeamMembersComponent,
+    TeamServicesComponent,
     VertexTagsComponent,
   ],
   templateUrl: './collection-inspector.component.html',
   styleUrl: './collection-inspector.component.scss',
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {
-  loading = true;
-  collection: CollectionNames = 'project';
-  collectionId!: string;
-  config!: CollectionConfigRestDto;
-  collectionData: any;
-  outboundConnections = null;
+  // Url params
+  public collection: CollectionNames = 'project';
+  public collectionId!: string;
   routeSub: Subscription | null = null;
-  serviceDetails: any = null;
+
+  // Loaded data
+  public loading = true;
+  public config!: CollectionConfigRestDto;
+  public comboData!: CollectionCombo<any>;
+  public serviceDetails: any = null;
+
+  // Permissions
+  hasAdmin = false;
   hasDelete = false;
   hasSudo = false;
   hasUpdate = false;
   hasApprove = false;
 
   private triggerRefresh = new BehaviorSubject(true);
-
   private ngUnsubscribe: Subject<any> = new Subject();
 
   constructor(
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBar: MatSnackBar,
     private readonly graphApi: GraphApiService,
+    private readonly graphUtil: GraphUtilService,
     private readonly collectionApi: CollectionApiService,
     private readonly permission: PermissionService,
-    public readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    public readonly collectionUtil: CollectionUtilService,
+    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit(): void {
     if (!this.routeSub) {
-      this.routeSub = this.route.params.subscribe(() => {
+      this.routeSub = this.activatedRoute.params.subscribe(() => {
         this.initComponent();
+        this.updateCollection();
       });
     }
-  }
-
-  initComponent() {
-    this.collection = this.route.snapshot.params['collection'];
-    this.collectionId = this.route.snapshot.params['id'];
 
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
       .subscribe((es: any) => {
-        if (es !== null && this.collectionData) {
+        if (es !== null && this.comboData.collection) {
+          if (es.event === 'edge-add') {
+            if (
+              es.edge.source === this.comboData.collection.vertex ||
+              es.edge.target === this.comboData.collection.vertex
+            ) {
+              this.updateCollection();
+              this.openSnackBar(`The object was updated.`);
+            }
+          }
           if (es.event === 'vertex-edit') {
-            if (es.vertex.id === this.collectionData.vertex) {
+            if (es.vertex.id === this.comboData.collection.vertex) {
               this.updateCollection();
               this.openSnackBar(`The object was updated.`);
             }
           } else if (es.event === 'collection-edit') {
-            if (es.collection.vertex === this.collectionData.vertex) {
+            if (es.collection.vertex === this.comboData.collection.vertex) {
               this.updateCollection();
               this.openSnackBar(`The object was updated.`);
             }
-          } else if (es.event === 'vertex-delete') {
-            if (es.vertex.indexOf(this.collectionData.vertex) !== -1) {
+          } else if (
+            es.event === 'vertex-delete' ||
+            es.event === 'edge-delete'
+          ) {
+            if (es.vertex.indexOf(this.comboData.collection.vertex) !== -1) {
               this.openSnackBar(`The object was deleted.`);
               this.back();
+            } else if (
+              es.adjacentVertex.indexOf(this.comboData.collection.vertex) !== -1
+            ) {
+              this.updateCollection();
+              this.openSnackBar(`The object was updated.`);
             }
           }
         }
       });
+
     combineLatest([
-      this.graphApi.getCollectionConfig(this.collection),
       this.graphApi.getUserPermissions(),
       this.triggerRefresh.pipe(
         takeUntil(this.ngUnsubscribe),
         switchMap(() => {
-          return this.collectionApi.getCollectionById(
+          return this.collectionApi.getCollectionComboById(
             this.collection,
             this.collectionId,
           );
         }),
       ),
-    ]).subscribe(([config, permissions, collection]) => {
-      if (!config) {
+    ]).subscribe(([permissions, comboData]) => {
+      if (!this.configMap[this.collection]) {
         return;
       }
-      this.config = config;
-      this.collectionData = collection;
-      this.loading = false;
+
+      this.config = this.configMap[this.collection];
+      this.comboData = comboData;
+      this.hasAdmin = this.permission.hasAdmin();
       this.hasSudo = this.permission.hasSudo(
         permissions,
-        this.collectionData.vertex,
+        this.comboData.collection.vertex,
       );
       this.hasUpdate = this.permission.hasUpdate(
         permissions,
-        this.collectionData.vertex,
+        this.comboData.collection.vertex,
       );
       this.hasDelete = this.permission.hasDelete(
         permissions,
-        this.collectionData.vertex,
+        this.comboData.collection.vertex,
       );
       this.hasApprove = this.permission.hasApprove(
         permissions,
-        this.collectionData.vertex,
+        this.comboData.collection.vertex,
       );
 
       if (this.collection === 'service') {
         this.collectionApi
-          .getServiceDetails(this.collectionData.id)
+          .getServiceDetails(this.comboData.collection.id)
           .subscribe((data: any) => {
             this.serviceDetails = data;
           });
       }
+      this.loading = false;
     });
+  }
+
+  initComponent() {
+    this.collection = this.activatedRoute.snapshot.params['collection'];
+    this.collectionId = this.activatedRoute.snapshot.params['id'];
   }
 
   ngOnDestroy() {
@@ -192,6 +232,29 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   updateCollection() {
     this.triggerRefresh.next(true);
+  }
+
+  navigate(target: EdgeRestDto | VertexRestDto) {
+    if ('collection' in target) {
+      this.collectionApi
+        .searchCollection(target.collection, {
+          vertexId: target.id,
+          offset: 0,
+          limit: 1,
+        })
+        .subscribe((result) => {
+          if (result && result.meta.total > 0) {
+            this.router.navigate(
+              ['/browse', target.collection, result.data[0].collection.id],
+              {
+                replaceUrl: true,
+              },
+            );
+          }
+        });
+    } else {
+      this.graphUtil.openInGraph(target.id, 'edge');
+    }
   }
 
   back() {

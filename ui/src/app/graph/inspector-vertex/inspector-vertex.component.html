@@ -1,8 +1,9 @@
 <div>
   <app-vertex-tags
-    [collectionData]="collectionData"></app-vertex-tags>
+    [collection]="collection"
+    [collectionData]="comboData.collection"></app-vertex-tags>
 
-  @if (collectionData.tags && collectionData.tags.length > 0) {
+  @if (comboData.collection.tags && comboData.collection.tags.length > 0) {
     <mat-divider></mat-divider>
   }
 
@@ -10,7 +11,7 @@
     #vertexFields
     [collection]="collection"
     [collectionConfig]="collectionConfig"
-    [collectionData]="collectionData"
+    [collectionData]="comboData.collection"
     [filter]="'yes'"
     ></app-inspector-vertex-fields>
 
@@ -20,25 +21,26 @@
 
   @if (collection === 'brokerAccount') {
     <app-inspector-account
-      [account]="collectionData"
+      [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
       [userIndex]="4"
       [hasSudo]="hasSudo"></app-inspector-account>
   }
   @if (collection === 'service') {
-    @if (outboundConnections) {
+    @if (comboData) {
       <app-inspector-instances
-        [service]="collectionData"
-        [vertices]="outboundConnections"
-        [details]="serviceDetails"></app-inspector-instances>
+      [service]="comboData.collection"
+      [vertex]="comboData.vertex"
+      [vertices]="comboData.downstream"
+      [details]="serviceDetails"></app-inspector-instances>
     }
     <mat-divider></mat-divider>
     <app-inspector-vault
-      [service]="collectionData"
+      [service]="comboData.collection"
       [isAdministrator]="hasSudo"></app-inspector-vault>
     @if (hasSudo) {
       <mat-divider></mat-divider>
       <app-inspector-service-secure
-        [service]="collectionData"
+        [service]="comboData.collection"
         ></app-inspector-service-secure>
     }
     <mat-divider></mat-divider>
@@ -46,12 +48,12 @@
   @if (collection === 'serviceInstance') {
     <div class="component-spacer">
       <app-inspector-installs
-        [instance]="collectionData"></app-inspector-installs>
+        [instance]="comboData.collection"></app-inspector-installs>
     </div>
     <mat-divider></mat-divider>
   }
   @if (collection === 'team') {
     <app-inspector-team
-      [instance]="collectionData"></app-inspector-team>
+      [instance]="comboData.collection"></app-inspector-team>
   }
 </div>

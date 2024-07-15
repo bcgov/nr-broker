@@ -1,4 +1,4 @@
 export class TimestampRestDto {
-  createdAt!: string;
-  updatedAt!: string;
+  createdAt?: number;
+  updatedAt?: number;
 }

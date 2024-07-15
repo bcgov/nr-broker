@@ -28,6 +28,10 @@ import { ActionUtil } from '../../util/action.util';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphPermissionDto } from '../dto/graph-permission.dto';
 import { TimestampDto } from '../dto/timestamp.dto';
+import {
+  GraphDirectedCombo,
+  GraphVertexConnections,
+} from '../dto/collection-combo.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -62,7 +66,7 @@ export class GraphMongoRepository implements GraphRepository {
     const edges = await this.edgeRepository.find();
     // console.log(edges);
     return {
-      edges: edges.map((edge) => edge.toEdgeResponse()),
+      edges: edges.map((edge) => edge.toEdgeResponse(false)),
       vertices: [].concat(...verticeArrs),
       categories: configs.map((config) => {
         return {
@@ -102,7 +106,6 @@ export class GraphMongoRepository implements GraphRepository {
               ? vertex.data[0]
               : undefined,
           name: vertex.name ?? vertex._id,
-          prop: vertex.prop,
           collection: vertex.collection,
         })),
       );
@@ -598,14 +601,14 @@ export class GraphMongoRepository implements GraphRepository {
     });
   }
 
-  public async searchEdgesShallow(
-    name: string,
+  public searchEdgesShallow(
+    name?: string,
     source?: string,
     target?: string,
   ): Promise<EdgeDto[]> {
     return this.edgeRepository.find({
       where: {
-        name,
+        ...(name ? { name } : {}),
         ...(source ? { source: new ObjectId(source) } : {}),
         ...(target ? { target: new ObjectId(target) } : {}),
       },
@@ -630,6 +633,9 @@ export class GraphMongoRepository implements GraphRepository {
     edgeName?: string,
   ): Promise<CollectionConfigInstanceDto[]> {
     const vertex = await this.getVertex(sourceId);
+    if (!vertex) {
+      throw new Error();
+    }
     const sourceCollection = vertex.collection;
     return this.collectionConfigRepository
       .aggregate([
@@ -909,6 +915,66 @@ export class GraphMongoRepository implements GraphRepository {
     return this.vertexRepository.findOne({
       where: { name, collection },
     });
+  }
+
+  public async getVertexConnections(
+    id: string,
+  ): Promise<GraphVertexConnections> {
+    const vertexId = new ObjectId(id);
+    return {
+      downstream: (await this.edgeRepository
+        .aggregate([
+          { $match: { source: vertexId } },
+          {
+            $replaceRoot: { newRoot: { ['edge']: `$$ROOT` } },
+          },
+          {
+            $lookup: {
+              from: 'vertex',
+              localField: 'edge.target',
+              foreignField: '_id',
+              as: 'vertex',
+            },
+          },
+          { $unwind: '$vertex' },
+        ])
+        .toArray()
+        .then((arr: any[]) => {
+          return arr.map((combo) => {
+            combo.edge.id = combo.edge._id;
+            combo.vertex.id = combo.vertex._id;
+            delete combo.edge._id;
+            delete combo.vertex._id;
+            return combo;
+          });
+        })) as unknown as GraphDirectedCombo[],
+      upstream: (await this.edgeRepository
+        .aggregate([
+          { $match: { target: vertexId } },
+          {
+            $replaceRoot: { newRoot: { ['edge']: `$$ROOT` } },
+          },
+          {
+            $lookup: {
+              from: 'vertex',
+              localField: 'edge.source',
+              foreignField: '_id',
+              as: 'vertex',
+            },
+          },
+          { $unwind: '$vertex' },
+        ])
+        .toArray()
+        .then((arr: any[]) => {
+          return arr.map((combo) => {
+            combo.edge.id = combo.edge._id;
+            combo.vertex.id = combo.vertex._id;
+            delete combo.edge._id;
+            delete combo.vertex._id;
+            return combo;
+          });
+        })) as unknown as GraphDirectedCombo[],
+    };
   }
 
   public async getVertexInfo(id: string) {

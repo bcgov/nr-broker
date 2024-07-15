@@ -26,10 +26,6 @@ import {
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { UserDto } from '../../service/graph.types';
-import {
-  CollectionData,
-  CollectionSearchConnections,
-} from '../../service/dto/collection-search-result.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
@@ -40,6 +36,11 @@ import {
 } from '../../service/dto/collection-config-rest.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
+import { TeamRestDto } from '../../service/dto/team-rest.dto';
+import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
+import { PreferencesService } from '../../preferences.service';
 
 interface filterOptions<T> {
   value: T;
@@ -68,7 +69,7 @@ interface filterOptions<T> {
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
   public config: CollectionConfigRestDto[] | undefined;
-  data: CollectionData<any>[] = [];
+  data: CollectionCombo<any>[] = [];
   total = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -78,16 +79,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collectionFilter: CollectionNames = 'project';
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
-  constructor(
-    public readonly permission: PermissionService,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly dialog: MatDialog,
-    private readonly graphApi: GraphApiService,
-    private readonly collectionApi: CollectionApiService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
-    public graphUtil: GraphUtilService,
-  ) {}
+  canFilter = ['team', 'project', 'brokerAccount', 'service'];
+  showFilter: 'connected' | 'all' =
+    this.preferences.get('browseConnectionFilter') ?? 'connected';
+  showFilterOptions = [
+    { value: 'connected', viewValue: 'Connected' },
+    { value: 'all', viewValue: 'All' },
+  ];
 
   fields: CollectionFieldConfigMap = {};
   propDisplayedColumns: string[] = [];
@@ -96,7 +94,23 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     undefined,
   );
 
+  tagsFilterControl = new FormControl<string[]>([]);
+  tagList: string[] = [];
+  tagValue: string[] = [];
+
   private triggerRefresh = new Subject<void>();
+
+  constructor(
+    public readonly permission: PermissionService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly dialog: MatDialog,
+    private readonly graphApi: GraphApiService,
+    private readonly collectionApi: CollectionApiService,
+    private readonly preferences: PreferencesService,
+    @Inject(CURRENT_USER) public readonly user: UserDto,
+    public graphUtil: GraphUtilService,
+  ) {}
 
   ngOnInit(): void {
     this.collectionFilter = this.route.snapshot.params['collection'];
@@ -108,19 +122,37 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.onCollectionChange();
     });
 
-    this.textFilterControl.valueChanges
-      .pipe(startWith(undefined), distinctUntilChanged(), debounceTime(1000))
-      .subscribe((searchTerm) => {
-        if (
-          typeof searchTerm !== 'string' ||
-          (searchTerm.length < 3 && searchTerm === this.filterValue)
-        ) {
-          return;
-        }
-        this.filterValue = searchTerm.length < 3 ? '' : searchTerm;
-        this.pageIndex = 0;
-        this.triggerRefresh.next();
-      });
+    combineLatest([
+      this.textFilterControl.valueChanges.pipe(
+        startWith(''),
+        distinctUntilChanged(),
+        debounceTime(1000),
+      ),
+      this.tagsFilterControl.valueChanges.pipe(
+        startWith([]),
+        distinctUntilChanged(),
+        debounceTime(1000),
+      ),
+    ]).subscribe(([searchTerm, tags]) => {
+      if (typeof searchTerm !== 'string' || !Array.isArray(tags)) {
+        return;
+      }
+      const actualSearchTeam = searchTerm.length < 3 ? '' : searchTerm;
+      if (
+        actualSearchTeam === this.filterValue &&
+        tags.length === this.tagValue.length &&
+        tags.every((val, i) => {
+          return this.tagValue[i] === val;
+        })
+      ) {
+        return;
+      }
+      this.filterValue = actualSearchTeam;
+      this.tagValue = tags;
+      this.pageIndex = 0;
+      this.triggerRefresh.next();
+    });
+
     this.triggerRefresh
       .pipe(
         tap(() => {
@@ -132,6 +164,11 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
               .searchCollection(this.collectionFilter, {
                 ...(this.filterValue.length >= 3
                   ? { q: this.filterValue }
+                  : {}),
+                ...(this.tagValue.length > 0 ? { tags: this.tagValue } : {}),
+                ...(this.canFilter.includes(this.collectionFilter) &&
+                this.showFilter === 'connected'
+                  ? { upstreamVertex: this.user.vertex }
                   : {}),
                 offset: this.pageIndex * this.pageSize,
                 limit: this.pageSize,
@@ -145,15 +182,11 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                   });
                 }),
               ),
-            // this.graphApi.searchEdgesShallow(
-            //   'owner',
-            //   'target',
-            //   this.user.vertex,
-            // ),
           ]);
         }),
       )
       .subscribe(([data]) => {
+        this.updateRoute();
         this.data = data.data;
         this.total = data.meta.total;
         this.loading = false;
@@ -165,6 +198,10 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     if (params['size']) {
       this.pageSize = params['size'];
     }
+    if (params['tags']) {
+      this.tagValue = params['tags'].split(',');
+      this.tagsFilterControl.setValue(this.tagValue);
+    }
     this.refresh();
   }
 
@@ -172,36 +209,42 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.triggerRefresh.complete();
   }
 
-  refresh() {
+  updateRoute() {
     this.router.navigate(
       [
         `/browse/${this.collectionFilter}`,
         {
           index: this.pageIndex,
           size: this.pageSize,
+          tags: this.tagValue.join(','),
         },
       ],
       {
         replaceUrl: true,
       },
     );
+  }
+
+  refresh() {
+    this.updateRoute();
     this.triggerRefresh.next();
   }
 
-  countUpstream(elem: CollectionSearchConnections, names: string[]) {
-    return elem.upstream_edge.filter(
-      (edge: any) => names.indexOf(edge.name) !== -1,
+  countUpstream(elem: CollectionComboRestDto<any>, names: string[]) {
+    return elem.upstream.filter(
+      (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }
 
-  countDownstream(elem: CollectionSearchConnections, names: string[]) {
-    return elem.downstream_edge.filter(
-      (edge: any) => names.indexOf(edge.name) !== -1,
+  countDownstream(elem: CollectionComboRestDto<any>, names: string[]) {
+    return elem.downstream.filter(
+      (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }
 
   onFilterChange() {
     this.pageIndex = 0;
+    this.preferences.set('browseConnectionFilter', this.showFilter);
     this.refresh();
   }
 
@@ -224,7 +267,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.pageIndex = 0;
     this.disableAdd = !config.permissions.create;
 
-    this.refresh();
+    this.collectionApi
+      .getCollectionTags(this.collectionFilter)
+      .subscribe((tags) => {
+        this.tagList = tags;
+      });
+
+    this.clearAndRefresh();
   }
 
   handlePageEvent(event: PageEvent) {
@@ -241,9 +290,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  openInGraph(event: Event, elem: CollectionData<any>) {
+  openInGraph(event: Event, elem: CollectionComboRestDto<any>) {
     event.stopPropagation();
-    this.graphUtil.openInGraph(elem.vertex, 'vertex');
+    this.graphUtil.openInGraph(elem.vertex.id, 'vertex');
   }
 
   openInInspector(event: Event, id: string) {
@@ -252,13 +301,21 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.router.navigate([`/browse/${this.collectionFilter}/${id}`]);
   }
 
-  clear() {
+  clearAndRefresh() {
+    this.tagValue = [];
+    this.filterValue = '';
     this.textFilterControl.setValue('');
+    this.tagsFilterControl.setValue([]);
+    this.refresh();
   }
 
   addVertex() {
+    const dialogClass: any =
+      this.collectionFilter === 'team'
+        ? AddTeamDialogComponent
+        : VertexDialogComponent;
     this.dialog
-      .open(VertexDialogComponent, {
+      .open(dialogClass, {
         width: '500px',
         data: {
           configMap: {
@@ -285,12 +342,27 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result) {
           this.router.navigate(
-            ['/browse', this.collectionFilter, result.data[0].id],
+            ['/browse', this.collectionFilter, result.data[0].collection.id],
             {
               replaceUrl: true,
             },
           );
         }
+      });
+  }
+
+  openTeamDialog(event: Event, elem?: TeamRestDto) {
+    event.stopPropagation();
+    this.dialog
+      .open(AddTeamDialogComponent, {
+        width: '600px',
+        data: {
+          team: elem,
+        },
+      })
+      .afterClosed()
+      .subscribe(() => {
+        this.refresh();
       });
   }
 }

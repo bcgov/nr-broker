@@ -8,8 +8,8 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { VertexNavigation } from '../../service/graph.types';
 import { CollectionApiService } from '../../service/collection-api.service';
+import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
 
 export interface InspectorInstanceDialogReturnDao {
   id: string;
@@ -40,14 +40,16 @@ export class InspectorInstanceDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      vertices: VertexNavigation;
+      vertices: GraphDirectedRestCombo[];
     },
     public readonly dialogRef: MatDialogRef<InspectorInstanceDialogComponent>,
     private readonly collectionApi: CollectionApiService,
   ) {}
 
   ngOnInit(): void {
-    const instances = this.data.vertices.connections['instance'];
+    const instances = this.data.vertices.filter(
+      (vertex) => vertex.edge.name === 'instance',
+    );
     const existing = instances
       ? instances.map((instance) => instance.vertex.name)
       : [];

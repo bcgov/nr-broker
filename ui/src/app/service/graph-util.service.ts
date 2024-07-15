@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { GraphDataResponseEdgeDto } from './dto/graph-data.dto';
 import { CollectionConfigRestDto } from './dto/collection-config-rest.dto';
 import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
+import { EdgeRestDto } from './dto/edge-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -10,14 +10,16 @@ import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
-  configArrToMap(configArr: CollectionConfigRestDto[]): CollectionConfigMap {
+  static configArrToMap(
+    configArr: CollectionConfigRestDto[],
+  ): CollectionConfigMap {
     return configArr.reduce((previousValue, currentValue) => {
       previousValue[currentValue.collection] = currentValue;
       return previousValue;
     }, {} as CollectionConfigMap);
   }
 
-  configArrToSrcTarMap(
+  static configArrToSrcTarMap(
     configArr: CollectionConfigRestDto[],
     configMap: CollectionConfigMap,
   ): CollectionEdgeConfigMap {
@@ -31,7 +33,7 @@ export class GraphUtilService {
     }, {} as CollectionEdgeConfigMap);
   }
 
-  edgeToMapString(e: Pick<GraphDataResponseEdgeDto, 'is' | 'it' | 'name'>) {
+  edgeToMapString(e: Pick<EdgeRestDto, 'is' | 'it' | 'name'>) {
     return `${e.is}>${e.it}:${e.name}`;
   }
 

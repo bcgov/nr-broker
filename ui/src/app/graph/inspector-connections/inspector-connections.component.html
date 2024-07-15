@@ -1,0 +1,66 @@
+<div>
+  <div class="wrapper vertex-edge-container">
+    <div class="fields-wrapper">
+      <h3 class="vertex-heading">Inbound</h3>
+    </div>
+    @if (config.edges.length > 0) {
+      <div class="fields-wrapper" >
+        <button
+          mat-button
+          (click)="openDeleteEdgeDialog(inboundConnections)"
+          [disabled]="!hasAdmin ||
+        (inboundConnections | keyvalue)?.length == 0">Delete</button>
+      </div>
+    }
+  </div>
+  @if ((inboundConnections | keyvalue)?.length == 0) {
+    <p class="vertex-edge-type-container">None</p>
+  }
+  @for (group of $any(inboundConnections | keyvalue); track group.key) {
+    <div class="vertex-edge-type-container">
+      <h5>{{group.key | titlecase}}</h5>
+      <mat-chip-listbox [selectable]="false">
+        @for (item of group.value; track item.vertex.id) {
+          <mat-chip-option (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
+            {{ item.vertex.parentName}} &gt;
+          }{{item.vertex.name}}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+  }
+
+  <div class="wrapper vertex-edge-container">
+    <div class="fields-wrapper">
+      <h3 class="vertex-heading">Outbound</h3>
+    </div>
+    @if (config.edges.length > 0) {
+      <div class="fields-wrapper" >
+        <button
+          mat-button
+          (click)="addEdgeToVertex()"
+          [disabled]="!hasAdmin">Add</button>
+        <button
+          mat-button
+          (click)="openDeleteEdgeDialog(outboundConnections)"
+          [disabled]="!hasAdmin ||
+        (outboundConnections | keyvalue)?.length == 0">Delete</button>
+      </div>
+    }
+  </div>
+  @if ((outboundConnections | keyvalue)?.length == 0) {
+    <p class="vertex-edge-type-container">None</p>
+  }
+  @for (group of $any(outboundConnections | keyvalue); track group.key) {
+    <div class="vertex-edge-type-container">
+      <h5>{{group.key | titlecase}}</h5>
+      <mat-chip-listbox [selectable]="false">
+        @for (item of group.value; track item.vertex.id) {
+          <mat-chip-option
+            (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
+            {{ item.vertex.parentName}} &gt;
+          } {{item.vertex.name}}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+  }
+</div>

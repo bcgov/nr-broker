@@ -27,8 +27,8 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexSearchDto } from '../../service/dto/vertex-rest.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
+import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
+import { CollectionConfigMap, UserDto } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
 import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
@@ -75,16 +75,10 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA)
     public readonly data: { id: string; vertex: string; name: string },
     @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit() {
-    this.graphApi.getCollectionConfig('user').subscribe((config) => {
-      if (config) {
-        this.edges = config.edges.filter((edge) => edge.collection === 'team');
-        this.triggerRefresh.next();
-      }
-    });
-
     this.triggerRefresh
       .pipe(
         switchMap(() => {
@@ -106,13 +100,13 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         for (const edge of this.edges) {
           users[edge.name] = [];
         }
-        for (const upstream of data.data[0].upstream) {
-          userMap[upstream.id] = {
-            id: upstream.id,
-            name: upstream.name,
+        for (const { vertex } of data.data[0].upstream) {
+          userMap[vertex.id] = {
+            id: vertex.id,
+            name: vertex.name,
           };
         }
-        for (const edge of data.data[0].upstream_edge) {
+        for (const { edge } of data.data[0].upstream) {
           this.userCount++;
           users[edge.name].push({
             id: edge.id,
@@ -148,6 +142,13 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         });
       }),
     );
+
+    if (this.configMap['user']) {
+      this.edges = this.configMap['user'].edges.filter(
+        (edge) => edge.collection === 'team',
+      );
+      this.triggerRefresh.next();
+    }
   }
 
   ngOnDestroy() {

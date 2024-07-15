@@ -20,7 +20,7 @@ import {
   trigger,
 } from '@angular/animations';
 import { lastValueFrom } from 'rxjs';
-import { UserDto, VertexNavigation } from '../../service/graph.types';
+import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
   InspectorInstanceDialogComponent,
@@ -31,6 +31,8 @@ import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { PermissionService } from '../../service/permission.service';
+import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -58,7 +60,8 @@ import { PermissionService } from '../../service/permission.service';
   styleUrl: './inspector-instances.component.scss',
 })
 export class InspectorInstancesComponent implements OnChanges {
-  @Input() vertices!: VertexNavigation | null;
+  @Input() vertex!: VertexRestDto;
+  @Input() vertices!: GraphDirectedRestCombo[];
   @Input() service!: ServiceRestDto;
   @Input() details!: any;
   data: any;
@@ -155,7 +158,7 @@ export class InspectorInstancesComponent implements OnChanges {
             await lastValueFrom(
               this.graphApi.addEdge({
                 name: 'instance',
-                source: this.vertices?.vertex.id as string,
+                source: this.vertex.id as string,
                 target: vertex.id,
               }),
             );

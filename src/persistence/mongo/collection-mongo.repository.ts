@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
+import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 
 @Injectable()
@@ -91,7 +91,9 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
+    tags: string[] | undefined,
     upstreamVertex: string | undefined,
+    downstreamVertex: string | undefined,
     id: string | undefined,
     vertexIds: string[] | undefined,
     offset: number,
@@ -99,11 +101,42 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
 
-    const upstreamQuery = upstreamVertex
+    const tagsQuery = tags
       ? [
           {
             $match: {
-              'upstream_edge.source': new ObjectId(upstreamVertex),
+              'collection.tags': { $in: tags },
+            },
+          },
+        ]
+      : [];
+    const upstreamQuery = upstreamVertex
+      ? [
+          {
+            $graphLookup: {
+              from: 'edge',
+              startWith: '$collection.vertex',
+              connectFromField: 'source',
+              connectToField: 'target',
+              as: 'upstream_path',
+              maxDepth: 3,
+            },
+          },
+          {
+            $match: {
+              'upstream_path.source': new ObjectId(upstreamVertex),
+            },
+          },
+          {
+            $unset: ['upstream_path'],
+          },
+        ]
+      : [];
+    const downstreamQuery = downstreamVertex
+      ? [
+          {
+            $match: {
+              'downstream.source': new ObjectId(downstreamVertex),
             },
           },
         ]
@@ -133,39 +166,61 @@ export class CollectionMongoRepository implements CollectionRepository {
         ...idQuery,
         ...vertexQuery,
         {
-          $lookup: {
-            from: 'edge',
-            localField: 'vertex',
-            foreignField: 'target',
-            as: 'upstream_edge',
-          },
+          $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
         },
+        ...tagsQuery,
         ...upstreamQuery,
+        // upstream
         {
           $lookup: {
-            from: 'vertex',
-            localField: 'upstream_edge.source',
-            foreignField: '_id',
+            from: 'edge',
+            localField: 'collection.vertex',
+            foreignField: 'target',
+            pipeline: [
+              {
+                $lookup: {
+                  from: 'vertex',
+                  localField: 'source',
+                  foreignField: '_id',
+                  as: 'vertex',
+                },
+              },
+              { $unwind: '$vertex' },
+            ],
             as: 'upstream',
           },
         },
+        // downstream
         {
           $lookup: {
             from: 'edge',
-            localField: 'vertex',
+            localField: 'collection.vertex',
             foreignField: 'source',
-            as: 'downstream_edge',
-          },
-        },
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'downstream_edge.target',
-            foreignField: '_id',
+            pipeline: [
+              {
+                $lookup: {
+                  from: 'vertex',
+                  localField: 'target',
+                  foreignField: '_id',
+                  as: 'vertex',
+                },
+              },
+              { $unwind: '$vertex' },
+            ],
             as: 'downstream',
           },
         },
-        { $sort: { name: -1 } },
+        ...downstreamQuery,
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'collection.vertex',
+            foreignField: '_id',
+            as: 'vertex',
+          },
+        },
+        { $unwind: '$vertex' },
+        { $sort: { 'collection.name': -1 } },
         {
           $addFields: {
             id: '$_id',
@@ -177,7 +232,7 @@ export class CollectionMongoRepository implements CollectionRepository {
         {
           $facet: {
             data: [
-              { $sort: { name: 1 } },
+              { $sort: { 'collection.name': 1 } },
               { $skip: offset },
               { $limit: limit },
             ],
@@ -189,15 +244,45 @@ export class CollectionMongoRepository implements CollectionRepository {
       .toArray()
       .then((array) => {
         if (array[0]) {
-          const rval = array[0] as unknown as CollectionSearchResult<
-            CollectionDtoUnion[T]
-          >;
+          const rval = array[0] as any;
 
           for (const datum of rval.data) {
-            arrayIdFixer(datum.downstream);
-            arrayIdFixer(datum.downstream_edge);
-            arrayIdFixer(datum.upstream);
-            arrayIdFixer(datum.upstream_edge);
+            datum.collection.id = datum.collection._id;
+            delete datum.collection._id;
+            datum.vertex.id = datum.vertex._id;
+            delete datum.vertex._id;
+            if (datum.upstream) {
+              datum.upstream = datum.upstream.map((edge) => {
+                const vertex = edge.vertex;
+                delete edge.vertex;
+                // fix id
+                edge.id = edge._id;
+                delete edge._id;
+                vertex.id = vertex._id;
+                delete vertex._id;
+                return {
+                  edge,
+                  vertex,
+                };
+              });
+            }
+
+            if (datum.downstream) {
+              datum.downstream = datum.downstream.map((edge) => {
+                const vertex = edge.vertex;
+                delete edge.vertex;
+                // fix id
+                edge.id = edge._id;
+                delete edge._id;
+                vertex.id = vertex._id;
+                delete vertex._id;
+                return {
+                  edge,
+                  vertex,
+                };
+              });
+            }
+            datum.type = 'vertex';
           }
           return rval;
         } else {
@@ -207,6 +292,11 @@ export class CollectionMongoRepository implements CollectionRepository {
           };
         }
       });
+  }
+
+  public async getCollectionTags<T extends keyof CollectionDtoUnion>(type: T) {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo.distinct('tags', {});
   }
 
   public async exportCollection<T extends keyof CollectionDtoUnion>(type: T) {

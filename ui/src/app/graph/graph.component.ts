@@ -88,7 +88,6 @@ export class GraphComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const cachedData = null;
     this.data = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() =>
@@ -100,9 +99,6 @@ export class GraphComponent implements OnInit, OnDestroy {
               .pipe(takeUntil(this.ngUnsubscribe), startWith(null)),
           ]).pipe(
             map(([data, es]) => {
-              if (cachedData) {
-                data = cachedData;
-              }
               if (es === null) {
                 return { data, es };
               }
@@ -148,8 +144,8 @@ export class GraphComponent implements OnInit, OnDestroy {
           // console.log(data);
           // console.log(config);
           // console.log(permissions);
-          const configMap = this.graphUtil.configArrToMap(configArr);
-          const configSrcTarMap = this.graphUtil.configArrToSrcTarMap(
+          const configMap = GraphUtilService.configArrToMap(configArr);
+          const configSrcTarMap = GraphUtilService.configArrToSrcTarMap(
             configArr,
             configMap,
           );

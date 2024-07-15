@@ -103,7 +103,7 @@ export class SearchInputComponent {
         .subscribe((result) => {
           if (result && result.meta.total > 0) {
             this.router.navigate(
-              ['/browse', option.collection, result.data[0].id],
+              ['/browse', option.collection, result.data[0].collection.id],
               {
                 replaceUrl: true,
               },

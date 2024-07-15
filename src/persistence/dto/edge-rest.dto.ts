@@ -1,5 +1,6 @@
 import { IsObject, IsOptional, IsString } from 'class-validator';
 import { EdgePropDto } from './edge-prop.dto';
+import { TimestampRestDto } from './timestamp-rest.dto';
 // Shared DTO: Copy in back-end and front-end should be identical
 
 export class EdgeInsertDto {
@@ -15,10 +16,8 @@ export class EdgeInsertDto {
 }
 
 export class EdgeRestDto extends EdgeInsertDto {
-  @IsString()
   id!: string;
-  @IsString()
-  is!: string;
-  @IsString()
-  it!: string;
+  is!: number;
+  it!: number;
+  timestamps?: TimestampRestDto;
 }

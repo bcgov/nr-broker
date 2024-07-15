@@ -8,7 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
-import { UserDto } from '../../service/graph.types';
+import { CollectionConfigMap, UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
@@ -36,7 +36,10 @@ export class AddTeamDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      team?: any;
+      configMap: CollectionConfigMap;
+      collection?: string;
+      vertexId?: string;
+      data?: any;
     },
     public readonly dialogRef: MatDialogRef<AddTeamDialogComponent>,
     private readonly graphApi: GraphApiService,
@@ -68,9 +71,9 @@ export class AddTeamDialogComponent {
         this.formComponent.form.value,
       );
 
-      if (this.data.team) {
+      if (this.data.data) {
         this.graphApi
-          .editVertex(this.data.team.vertex, {
+          .editVertex(this.data.data.vertex, {
             collection: 'team',
             data: vertexData,
           })
@@ -92,7 +95,7 @@ export class AddTeamDialogComponent {
             target: response.id,
           })
           .subscribe(() => {
-            this.dialogRef.close({ refresh: true });
+            this.dialogRef.close({ refresh: true, id: response.id });
           });
       }
     }

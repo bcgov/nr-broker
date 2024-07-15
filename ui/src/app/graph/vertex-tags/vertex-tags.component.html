@@ -2,7 +2,7 @@
   <div class="tags-container">
     <mat-chip-set>
       @for (tag of collectionData.tags; track tag) {
-      <mat-chip>
+      <mat-chip (click)="browseTag(tag)">
         {{ tag }}
       </mat-chip>
       }

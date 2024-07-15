@@ -17,6 +17,7 @@ import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-r
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
+import { GraphVertexConnections } from '../dto/collection-combo.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -72,6 +73,9 @@ export abstract class GraphRepository {
     collection: keyof CollectionDtoUnion,
     name: string,
   ): Promise<VertexDto | null>;
+  public abstract getVertexConnections(
+    id: string,
+  ): Promise<GraphVertexConnections>;
   public abstract getVertexInfo(id: string): Promise<VertexInfoDto>;
   public abstract searchVertex(
     collection: keyof CollectionDtoUnion,

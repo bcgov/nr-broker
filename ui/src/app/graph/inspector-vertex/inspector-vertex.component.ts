@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { UserDto, VertexNavigation } from '../../service/graph.types';
+import { UserDto } from '../../service/graph.types';
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
 import { InspectorTeamComponent } from '../inspector-team/inspector-team.component';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
@@ -19,8 +19,9 @@ import { CollectionConfigRestDto } from '../../service/dto/collection-config-res
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspector-vertex-fields.component';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { GraphApiService } from '../../service/graph-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-inspector-vertex',
@@ -42,15 +43,17 @@ import { CURRENT_USER } from '../../app-initialize.factory';
 export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: CollectionNames;
   @Input() collectionConfig!: CollectionConfigRestDto;
-  @Input() collectionData: any = null;
-  @Input() outboundConnections!: VertexNavigation | null;
+  @Input() collectionId!: string | null;
+  @Input() comboData!: CollectionCombo<any>;
+
+  // Permissions
   @Input() hasSudo = false;
   @Input() hasUpdate = false;
   serviceDetails: any = null;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
-    private readonly graphApi: GraphApiService,
+    public readonly collectionUtil: CollectionUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -63,7 +66,7 @@ export class InspectorVertexComponent implements OnChanges {
   private loadServiceDetails() {
     if (this.collection === 'service') {
       this.collectionApi
-        .getServiceDetails(this.collectionData.id)
+        .getServiceDetails(this.comboData.collection.id)
         .subscribe((data: any) => {
           this.serviceDetails = data;
         });
