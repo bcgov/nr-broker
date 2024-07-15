@@ -21,6 +21,5 @@ export class VertexTagsComponent {
 
   browseTag(tag: string) {
     this.router.navigate([`/browse/${this.collection}`, { tags: [tag] }]);
-    console.log(tag);
   }
 }
