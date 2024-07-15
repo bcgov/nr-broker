@@ -117,6 +117,9 @@ export class CollectionMongoRepository implements CollectionRepository {
               'upstream_path.source': new ObjectId(upstreamVertex),
             },
           },
+          {
+            $unset: ['upstream_path'],
+          },
         ]
       : [];
     const downstreamQuery = downstreamVertex
@@ -205,7 +208,7 @@ export class CollectionMongoRepository implements CollectionRepository {
           },
         },
         {
-          $unset: ['_id', 'upstream_path'],
+          $unset: ['_id'],
         },
         {
           $facet: {
