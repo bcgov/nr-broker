@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
+import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 
 @Injectable()
@@ -136,7 +136,7 @@ export class CollectionMongoRepository implements CollectionRepository {
       ? [
           {
             $match: {
-              'downstream.edge.source': new ObjectId(downstreamVertex),
+              'downstream.source': new ObjectId(downstreamVertex),
             },
           },
         ]
@@ -169,40 +169,48 @@ export class CollectionMongoRepository implements CollectionRepository {
           $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
         },
         ...tagsQuery,
+        ...upstreamQuery,
+        // upstream
         {
           $lookup: {
             from: 'edge',
             localField: 'collection.vertex',
             foreignField: 'target',
-            as: 'upstream.edge',
+            pipeline: [
+              {
+                $lookup: {
+                  from: 'vertex',
+                  localField: 'source',
+                  foreignField: '_id',
+                  as: 'vertex',
+                },
+              },
+              { $unwind: '$vertex' },
+            ],
+            as: 'upstream',
           },
         },
-        ...upstreamQuery,
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'upstream.edge.source',
-            foreignField: '_id',
-            as: 'upstream.vertex',
-          },
-        },
-        ...downstreamQuery,
+        // downstream
         {
           $lookup: {
             from: 'edge',
             localField: 'collection.vertex',
             foreignField: 'source',
-            as: 'downstream.edge',
+            pipeline: [
+              {
+                $lookup: {
+                  from: 'vertex',
+                  localField: 'target',
+                  foreignField: '_id',
+                  as: 'vertex',
+                },
+              },
+              { $unwind: '$vertex' },
+            ],
+            as: 'downstream',
           },
         },
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'downstream.edge.target',
-            foreignField: '_id',
-            as: 'downstream.vertex',
-          },
-        },
+        ...downstreamQuery,
         {
           $lookup: {
             from: 'vertex',
@@ -239,24 +247,41 @@ export class CollectionMongoRepository implements CollectionRepository {
           const rval = array[0] as any;
 
           for (const datum of rval.data) {
-            arrayIdFixer(datum.downstream.edge);
-            arrayIdFixer(datum.downstream.vertex);
-            arrayIdFixer(datum.upstream.edge);
-            arrayIdFixer(datum.upstream.vertex);
             datum.collection.id = datum.collection._id;
             delete datum.collection._id;
             datum.vertex.id = datum.vertex._id;
             delete datum.vertex._id;
-            datum.upstream = Object.keys(datum.upstream.edge).map((index) => ({
-              edge: datum.upstream.edge[index],
-              vertex: datum.upstream.vertex[index],
-            }));
-            datum.downstream = Object.keys(datum.downstream.edge).map(
-              (index) => ({
-                edge: datum.downstream.edge[index],
-                vertex: datum.downstream.vertex[index],
-              }),
-            );
+            if (datum.upstream) {
+              datum.upstream = datum.upstream.map((edge) => {
+                const vertex = edge.vertex;
+                delete edge.vertex;
+                // fix id
+                edge.id = edge._id;
+                delete edge._id;
+                vertex.id = vertex._id;
+                delete vertex._id;
+                return {
+                  edge,
+                  vertex,
+                };
+              });
+            }
+
+            if (datum.downstream) {
+              datum.downstream = datum.downstream.map((edge) => {
+                const vertex = edge.vertex;
+                delete edge.vertex;
+                // fix id
+                edge.id = edge._id;
+                delete edge._id;
+                vertex.id = vertex._id;
+                delete vertex._id;
+                return {
+                  edge,
+                  vertex,
+                };
+              });
+            }
             datum.type = 'vertex';
           }
           return rval;
