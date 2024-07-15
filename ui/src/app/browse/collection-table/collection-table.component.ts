@@ -40,6 +40,7 @@ import { TeamRestDto } from '../../service/dto/team-rest.dto';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
 import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
+import { PreferencesService } from '../../preferences.service';
 
 interface filterOptions<T> {
   value: T;
@@ -78,8 +79,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collectionFilter: CollectionNames = 'project';
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
-  canFilter = ['team'];
-  showFilter: 'connected' | 'all' = 'connected';
+  canFilter = ['team', 'project', 'brokerAccount', 'service'];
+  showFilter: 'connected' | 'all' =
+    this.preferences.get('browseConnectionFilter') ?? 'connected';
   showFilterOptions = [
     { value: 'connected', viewValue: 'Connected' },
     { value: 'all', viewValue: 'All' },
@@ -92,6 +94,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
+    private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public graphUtil: GraphUtilService,
   ) {}
@@ -156,11 +159,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                   });
                 }),
               ),
-            // this.graphApi.searchEdgesShallow(
-            //   'owner',
-            //   'target',
-            //   this.user.vertex,
-            // ),
           ]);
         }),
       )
@@ -213,6 +211,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
   onFilterChange() {
     this.pageIndex = 0;
+    this.preferences.set('browseConnectionFilter', this.showFilter);
     this.refresh();
   }
 

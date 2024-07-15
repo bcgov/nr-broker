@@ -43,7 +43,10 @@
     @if (canFilter.includes(collectionFilter)) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
-        <mat-select [(ngModel)]="showFilter" (selectionChange)="onFilterChange()" name="status">
+        <mat-select
+          [(ngModel)]="showFilter"
+          (selectionChange)="onFilterChange()"
+          name="connectionFilter">
           @for (opt of showFilterOptions; track opt.value) {
             <mat-option [value]="opt.value">
               {{opt.viewValue}}
@@ -52,14 +55,21 @@
         </mat-select>
       </mat-form-field>
     }
-    <button mat-stroked-button aria-label="Clear" (click)="clear()">
+    <button
+      mat-stroked-button
+      aria-label="Clear"
+      (click)="clear()">
       Clear
     </button>
   @if (loading) {
     <mat-spinner diameter="20"></mat-spinner>
   }
   </form>
-  <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refresh();">
+  <button
+    mat-icon-button
+    class="refresh"
+    aria-label="Refresh Data"
+    (click)="refresh();">
     <mat-icon>refresh</mat-icon>
   </button>
 </div>

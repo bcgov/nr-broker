@@ -8,9 +8,11 @@
 </h2>
 <mat-dialog-content>
   @if (config && !data.data) {
-    <p>Fill out this form to create a new team. You will be added as
-      the initial owner and responsible for adding additional owners
-    and users.</p>
+    <p>
+      Please complete this form to create a new team.
+      You will be added as the initial owner and will be responsible
+      for adding additional owners and users.
+    </p>
   }
   @if (config) {
     <app-vertex-form-builder

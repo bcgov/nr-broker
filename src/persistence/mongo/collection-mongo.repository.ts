@@ -103,8 +103,18 @@ export class CollectionMongoRepository implements CollectionRepository {
     const upstreamQuery = upstreamVertex
       ? [
           {
+            $graphLookup: {
+              from: 'edge',
+              startWith: '$collection.vertex',
+              connectFromField: 'source',
+              connectToField: 'target',
+              as: 'upstream_path',
+              maxDepth: 3,
+            },
+          },
+          {
             $match: {
-              'upstream.edge.source': new ObjectId(upstreamVertex),
+              'upstream_path.source': new ObjectId(upstreamVertex),
             },
           },
         ]
@@ -195,7 +205,7 @@ export class CollectionMongoRepository implements CollectionRepository {
           },
         },
         {
-          $unset: ['_id'],
+          $unset: ['_id', 'upstream_path'],
         },
         {
           $facet: {
