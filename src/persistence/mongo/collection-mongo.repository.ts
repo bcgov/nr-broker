@@ -91,6 +91,7 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
+    tags: string[] | undefined,
     upstreamVertex: string | undefined,
     downstreamVertex: string | undefined,
     id: string | undefined,
@@ -100,6 +101,15 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
 
+    const tagsQuery = tags
+      ? [
+          {
+            $match: {
+              'collection.tags': { $in: tags },
+            },
+          },
+        ]
+      : [];
     const upstreamQuery = upstreamVertex
       ? [
           {
@@ -158,6 +168,7 @@ export class CollectionMongoRepository implements CollectionRepository {
         {
           $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
         },
+        ...tagsQuery,
         {
           $lookup: {
             from: 'edge',
@@ -256,6 +267,11 @@ export class CollectionMongoRepository implements CollectionRepository {
           };
         }
       });
+  }
+
+  public async getCollectionTags<T extends keyof CollectionDtoUnion>(type: T) {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    return repo.distinct('tags', {});
   }
 
   public async exportCollection<T extends keyof CollectionDtoUnion>(type: T) {

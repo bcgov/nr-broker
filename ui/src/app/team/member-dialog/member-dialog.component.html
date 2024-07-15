@@ -43,7 +43,7 @@
     }
     @for (edge of edges; track edge.id) {
       @if (users[edge.name].length > 0) {
-        @if (user.roles.includes('admin') || isOwner) {
+        @if (permission.hasAdmin() || isOwner) {
           <div class="member-header">
             <h2>{{ edge.name | titlecase }}</h2>
 

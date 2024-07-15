@@ -87,6 +87,19 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     { value: 'all', viewValue: 'All' },
   ];
 
+  fields: CollectionFieldConfigMap = {};
+  propDisplayedColumns: string[] = [];
+  filterValue = '';
+  textFilterControl = new FormControl<{ id: string } | string | undefined>(
+    undefined,
+  );
+
+  tagsFilterControl = new FormControl<string[]>([]);
+  tagList: string[] = [];
+  tagValue: string[] = [];
+
+  private triggerRefresh = new Subject<void>();
+
   constructor(
     public readonly permission: PermissionService,
     private readonly route: ActivatedRoute,
@@ -99,15 +112,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     public graphUtil: GraphUtilService,
   ) {}
 
-  fields: CollectionFieldConfigMap = {};
-  propDisplayedColumns: string[] = [];
-  filterValue = '';
-  textFilterControl = new FormControl<{ id: string } | string | undefined>(
-    undefined,
-  );
-
-  private triggerRefresh = new Subject<void>();
-
   ngOnInit(): void {
     this.collectionFilter = this.route.snapshot.params['collection'];
     this.graphApi.getConfig().subscribe((config) => {
@@ -118,19 +122,37 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.onCollectionChange();
     });
 
-    this.textFilterControl.valueChanges
-      .pipe(startWith(undefined), distinctUntilChanged(), debounceTime(1000))
-      .subscribe((searchTerm) => {
-        if (
-          typeof searchTerm !== 'string' ||
-          (searchTerm.length < 3 && searchTerm === this.filterValue)
-        ) {
-          return;
-        }
-        this.filterValue = searchTerm.length < 3 ? '' : searchTerm;
-        this.pageIndex = 0;
-        this.triggerRefresh.next();
-      });
+    combineLatest([
+      this.textFilterControl.valueChanges.pipe(
+        startWith(''),
+        distinctUntilChanged(),
+        debounceTime(1000),
+      ),
+      this.tagsFilterControl.valueChanges.pipe(
+        startWith([]),
+        distinctUntilChanged(),
+        debounceTime(1000),
+      ),
+    ]).subscribe(([searchTerm, tags]) => {
+      if (typeof searchTerm !== 'string' || !Array.isArray(tags)) {
+        return;
+      }
+      const actualSearchTeam = searchTerm.length < 3 ? '' : searchTerm;
+      if (
+        actualSearchTeam === this.filterValue &&
+        tags.length === this.tagValue.length &&
+        tags.every((val, i) => {
+          return this.tagValue[i] === val;
+        })
+      ) {
+        return;
+      }
+      this.filterValue = actualSearchTeam;
+      this.tagValue = tags;
+      this.pageIndex = 0;
+      this.triggerRefresh.next();
+    });
+
     this.triggerRefresh
       .pipe(
         tap(() => {
@@ -143,6 +165,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                 ...(this.filterValue.length >= 3
                   ? { q: this.filterValue }
                   : {}),
+                ...(this.tagValue.length > 0 ? { tags: this.tagValue } : {}),
                 ...(this.canFilter.includes(this.collectionFilter) &&
                 this.showFilter === 'connected'
                   ? { upstreamVertex: this.user.vertex }
@@ -163,6 +186,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe(([data]) => {
+        this.updateRoute();
         this.data = data.data;
         this.total = data.meta.total;
         this.loading = false;
@@ -174,6 +198,10 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     if (params['size']) {
       this.pageSize = params['size'];
     }
+    if (params['tags']) {
+      this.tagValue = params['tags'].split(',');
+      this.tagsFilterControl.setValue(this.tagValue);
+    }
     this.refresh();
   }
 
@@ -181,19 +209,24 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.triggerRefresh.complete();
   }
 
-  refresh() {
+  updateRoute() {
     this.router.navigate(
       [
         `/browse/${this.collectionFilter}`,
         {
           index: this.pageIndex,
           size: this.pageSize,
+          tags: this.tagValue.join(','),
         },
       ],
       {
         replaceUrl: true,
       },
     );
+  }
+
+  refresh() {
+    this.updateRoute();
     this.triggerRefresh.next();
   }
 
@@ -234,7 +267,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.pageIndex = 0;
     this.disableAdd = !config.permissions.create;
 
-    this.refresh();
+    this.collectionApi
+      .getCollectionTags(this.collectionFilter)
+      .subscribe((tags) => {
+        this.tagList = tags;
+      });
+
+    this.clearAndRefresh();
   }
 
   handlePageEvent(event: PageEvent) {
@@ -262,8 +301,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.router.navigate([`/browse/${this.collectionFilter}/${id}`]);
   }
 
-  clear() {
+  clearAndRefresh() {
+    this.tagValue = [];
+    this.filterValue = '';
     this.textFilterControl.setValue('');
+    this.tagsFilterControl.setValue([]);
+    this.refresh();
   }
 
   addVertex() {

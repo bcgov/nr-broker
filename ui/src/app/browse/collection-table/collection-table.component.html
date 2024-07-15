@@ -40,6 +40,16 @@
         matInput
         [formControl]="textFilterControl">
     </mat-form-field>
+    @if (tagList.length > 0) {
+      <mat-form-field>
+        <mat-label>Tags</mat-label>
+        <mat-select [formControl]="tagsFilterControl" multiple>
+          @for (tag of tagList; track tag) {
+            <mat-option [value]="tag">{{tag}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
     @if (canFilter.includes(collectionFilter)) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
@@ -58,7 +68,7 @@
     <button
       mat-stroked-button
       aria-label="Clear"
-      (click)="clear()">
+      (click)="clearAndRefresh()">
       Clear
     </button>
   @if (loading) {

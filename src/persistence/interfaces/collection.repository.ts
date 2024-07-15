@@ -15,6 +15,10 @@ export abstract class CollectionRepository {
     id: string,
   ): Promise<CollectionDtoUnion[T] | null>;
 
+  public abstract getCollectionTags<T extends keyof CollectionDtoUnion>(
+    type: T,
+  ): Promise<string[]>;
+
   public abstract getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
     type: T,
     id: string,
@@ -40,6 +44,7 @@ export abstract class CollectionRepository {
 
   public abstract searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
+    tags: string[] | undefined,
     upstreamVertex: string | undefined,
     downstreamVertex: string | undefined,
     id: string | undefined,

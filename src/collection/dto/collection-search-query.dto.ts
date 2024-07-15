@@ -1,31 +1,38 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CollectionSearchQuery {
   @IsOptional()
   @IsString()
   @Type(() => String)
-  q: string;
+  q?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @Type(() => String)
+  @Transform(({ value }) => (value && !Array.isArray(value) ? [value] : value))
+  tags?: string[];
 
   @IsOptional()
   @IsString()
   @Type(() => String)
-  upstreamVertex: string;
+  upstreamVertex?: string;
 
   @IsOptional()
   @IsString()
   @Type(() => String)
-  downstreamVertex: string;
+  downstreamVertex?: string;
 
   @IsOptional()
   @IsString()
   @Type(() => String)
-  id: string;
+  id?: string;
 
   @IsOptional()
   @IsString()
   @Type(() => String)
-  vertexId: string;
+  vertexId?: string;
 
   @IsInt()
   @Type(() => Number)

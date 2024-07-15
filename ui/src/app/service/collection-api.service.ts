@@ -17,6 +17,15 @@ export class CollectionApiService {
     private readonly http: HttpClient,
   ) {}
 
+  public getCollectionTags<T extends keyof CollectionDtoRestUnion>(name: T) {
+    return this.http.get<string[]>(
+      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/tags`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public getCollectionById<T extends keyof CollectionDtoRestUnion>(
     name: T,
     id: string,
@@ -45,6 +54,7 @@ export class CollectionApiService {
     name: T,
     options: {
       q?: string;
+      tags?: string[];
       upstreamVertex?: string;
       downstreamVertex?: string;
       id?: string;
@@ -57,6 +67,12 @@ export class CollectionApiService {
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         name,
       )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
+        options.tags
+          ? options.tags
+              .map((tag) => `tags=${encodeURIComponent(tag)}&`)
+              .join('')
+          : ''
+      }${
         options.upstreamVertex
           ? `upstreamVertex=${options.upstreamVertex}&`
           : ''

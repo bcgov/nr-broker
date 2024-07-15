@@ -48,7 +48,7 @@ export class CollectionService {
     id: string,
   ) {
     try {
-      return this.collectionRepository
+      return await this.collectionRepository
         .getCollectionById(type, id)
         .then((collection) => this.processForPointers(type, collection));
     } catch (error) {
@@ -204,6 +204,7 @@ export class CollectionService {
   async searchCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     q: string | undefined,
+    tags: string[] | undefined,
     upstreamVertex: string | undefined,
     downstreamVertex: string | undefined,
     id: string | undefined,
@@ -221,8 +222,10 @@ export class CollectionService {
       );
       vertexIds = typeaheadData.data.map((data) => data.id);
     }
+
     return this.collectionRepository.searchCollection(
       type,
+      tags,
       upstreamVertex,
       downstreamVertex,
       id,
@@ -230,6 +233,12 @@ export class CollectionService {
       offset,
       limit,
     );
+  }
+
+  async getCollectionTags<T extends keyof CollectionDtoUnion>(type: T) {
+    return (await this.collectionRepository.getCollectionTags(type))
+      .filter((val) => !!val)
+      .sort();
   }
 
   async exportCollection<T extends keyof CollectionDtoUnion>(

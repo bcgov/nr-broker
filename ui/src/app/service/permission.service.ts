@@ -8,7 +8,7 @@ import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 })
 export class PermissionService {
   private hasAdminPermission: boolean;
-  constructor(@Inject(CURRENT_USER) private readonly user: UserDto) {
+  constructor(@Inject(CURRENT_USER) readonly user: UserDto) {
     this.hasAdminPermission = !!user?.roles?.includes('admin');
   }
 
@@ -20,30 +20,21 @@ export class PermissionService {
     if (!permissions) {
       return false;
     }
-    return (
-      this.user.roles.includes('admin') ||
-      permissions.sudo.indexOf(vertex) !== -1
-    );
+    return this.hasAdminPermission || permissions.sudo.indexOf(vertex) !== -1;
   }
 
   public hasUpdate(permissions: UserPermissionRestDto, vertex: string) {
     if (!permissions) {
       return false;
     }
-    return (
-      this.user.roles.includes('admin') ||
-      permissions.update.indexOf(vertex) !== -1
-    );
+    return this.hasAdminPermission || permissions.update.indexOf(vertex) !== -1;
   }
 
   public hasDelete(permissions: UserPermissionRestDto, vertex: string) {
     if (!permissions) {
       return false;
     }
-    return (
-      this.user.roles.includes('admin') ||
-      permissions.delete.indexOf(vertex) !== -1
-    );
+    return this.hasAdminPermission || permissions.delete.indexOf(vertex) !== -1;
   }
 
   public hasApprove(permissions: UserPermissionRestDto, vertex: string) {
@@ -51,8 +42,7 @@ export class PermissionService {
       return false;
     }
     return (
-      this.user.roles.includes('admin') ||
-      permissions.approve.indexOf(vertex) !== -1
+      this.hasAdminPermission || permissions.approve.indexOf(vertex) !== -1
     );
   }
 }

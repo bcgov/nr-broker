@@ -48,6 +48,12 @@ export class CollectionController {
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
+  @Get(':collection/tags')
+  @UseGuards(BrokerCombinedAuthGuard)
+  async getCollectionTags(@Param('collection') collection: string) {
+    return this.service.getCollectionTags(this.parseCollectionApi(collection));
+  }
+
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiOAuth2(['openid', 'profile'])
@@ -262,6 +268,11 @@ export class CollectionController {
     required: false,
   })
   @ApiQuery({
+    name: 'tags',
+    required: false,
+    isArray: true,
+  })
+  @ApiQuery({
     name: 'id',
     required: false,
   })
@@ -272,6 +283,7 @@ export class CollectionController {
     return this.service.searchCollection(
       this.parseCollectionApi(collection),
       query.q,
+      query.tags,
       query.upstreamVertex,
       query.downstreamVertex,
       query.id,
