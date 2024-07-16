@@ -52,6 +52,7 @@ import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
+import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -76,6 +77,7 @@ import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/i
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
     InspectorConnectionsComponent,
+    InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TeamAccountsComponent,

@@ -1,0 +1,27 @@
+@if (collectionPeople && collectionPeople.length > 0) {
+  <table mat-table [dataSource]="collectionPeople">
+    <!-- Type Column -->
+    <ng-container matColumnDef="role">
+      <th mat-header-cell *matHeaderCellDef> Role </th>
+      <td mat-cell *matCellDef="let element"> {{element.edge.name}} </td>
+    </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Name </th>
+      <td mat-cell *matCellDef="let element">
+        <a routerLink="/browse/user/{{element.collection.id}}">
+          {{element.collection.name}}
+        </a></td>
+    </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="via">
+      <th mat-header-cell *matHeaderCellDef> Via </th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.vertex.name }}
+        ({{ configMap[element.vertex.collection].name }})
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: propPeopleDisplayedColumns;"></tr>
+  </table>
+}

@@ -124,8 +124,6 @@
             [hasAdmin]="hasAdmin"
             (selected)="navigate($event)"
             ></app-inspector-connections>
-          <div>
-          </div>
         }
         @if (comboData.type === 'edge') {
           @if (comboData.edge.prop) {
@@ -142,7 +140,7 @@
           }
           <app-inspector-timestamps
             [timestamps]="comboData.vertex.timestamps"></app-inspector-timestamps>
-          }
+        }
       </div>
     }
   </mat-card-content>

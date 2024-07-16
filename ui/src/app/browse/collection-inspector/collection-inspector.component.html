@@ -110,7 +110,7 @@
       </mat-card>
 
 
-      <mat-card class="full-width">
+      <mat-card class="full-width order-end">
         <mat-card-header>
           <mat-card-title>Intentions</mat-card-title>
         </mat-card-header>
@@ -147,15 +147,29 @@
       </mat-card>
 
       <app-team-services
-        class="full-width"
+        class="full-width order-end"
         [teamVertex]="comboData.collection.vertex"></app-team-services>
 
       <app-team-accounts
-        class="full-width"
+        class="full-width order-end"
         [teamVertex]="comboData.collection.vertex"
         [config]="config"
         [hasSudo]="hasSudo"
         [hasUpdate]="hasUpdate"></app-team-accounts>
+    }
+
+
+    @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>People</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-inspector-people
+          [collection]="comboData.vertex.collection"
+          [vertex]="comboData.collection.vertex"></app-inspector-people>
+        </mat-card-content>
+      </mat-card>
     }
   </div>
 }
