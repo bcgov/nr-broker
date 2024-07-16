@@ -16,6 +16,7 @@ export interface AllowOwnerBaseArgs {
 export interface AllowOwnerCollectionArgs extends AllowOwnerBaseArgs {
   graphObjectType: 'collection';
   graphObjectCollection?: keyof CollectionDtoUnion;
+  graphObjectCollectionFromParamKey?: string;
 }
 
 export interface AllowOwnerEdgeArgs extends AllowOwnerBaseArgs {

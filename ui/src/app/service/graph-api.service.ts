@@ -1,6 +1,6 @@
-import { Inject, Injectable, NgZone } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, finalize, from } from 'rxjs';
+import { Observable, filter, from, map } from 'rxjs';
 import {
   CollectionDtoRestUnion,
   CollectionNames,
@@ -21,6 +21,7 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { GraphEventRestDto } from './dto/graph-event-rest.dto';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 import { CONFIG_ARR } from '../app-initialize.factory';
+import { SseClient } from 'ngx-sse-client';
 
 @Injectable({
   providedIn: 'root',
@@ -29,29 +30,28 @@ export class GraphApiService {
   constructor(
     private readonly util: GraphUtilService,
     private readonly http: HttpClient,
-    private readonly zone: NgZone,
+    private sseClient: SseClient,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
   ) {}
 
   createEventSource(): Observable<GraphEventRestDto> {
-    const eventSource = new EventSource(
-      `${environment.apiUrl}/v1/graph/events`,
-    );
-
-    return new Observable<GraphEventRestDto>((observer) => {
-      eventSource.onerror = (error) => {
-        this.zone.run(() => observer.error(error));
-      };
-      eventSource.onmessage = (event) => {
-        this.zone.run(() => {
-          const messageData = JSON.parse(event.data);
-          observer.next(messageData);
-        });
-      };
-    }).pipe(
-      finalize(() => {
-        // Must close upon finalize or event source will hang
-        eventSource.close();
+    return this.sseClient.stream(`${environment.apiUrl}/v1/graph/events`).pipe(
+      filter((event) => {
+        if (event.type === 'error') {
+          const errorEvent = event as ErrorEvent;
+          console.error(errorEvent.error, errorEvent.message);
+          return false;
+        }
+        return true;
+      }),
+      map((event) => {
+        if (event.type !== 'error') {
+          const messageEvent = event as MessageEvent;
+          // console.info(
+          //   `SSE request with type "${messageEvent.type}" and data "${messageEvent.data}"`,
+          // );
+          return JSON.parse(messageEvent.data);
+        }
       }),
     );
   }

@@ -119,11 +119,11 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     );
     // console.log(`mask: ${request.user.mask}`);
     if (userUpstreamData.graphObjectType === 'collection') {
+      const collection = userUpstreamData.graphObjectCollectionFromParamKey
+        ? request.params[userUpstreamData.graphObjectCollectionFromParamKey]
+        : userUpstreamData.graphObjectCollection;
       const targetCollection =
-        await this.collectionRepository.getCollectionById(
-          userUpstreamData.graphObjectCollection,
-          graphId,
-        );
+        await this.collectionRepository.getCollectionById(collection, graphId);
       if (!targetCollection) {
         return false;
       }

@@ -205,6 +205,13 @@ export class CollectionController {
 
   @Post(':collection/:id/tags/:tag')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollectionFromParamKey: 'collection',
+    graphIdFromParamKey: 'id',
+    permission: 'update',
+    sudoMaskKey: 'sudo',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   async addTagToCollection(
     @Param('collection') collection: string,
@@ -220,6 +227,13 @@ export class CollectionController {
 
   @Put(':collection/:id/tags')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollectionFromParamKey: 'collection',
+    graphIdFromParamKey: 'id',
+    permission: 'update',
+    sudoMaskKey: 'sudo',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   async setTagsOnCollection(
     @Param('collection') collection: string,
@@ -235,6 +249,13 @@ export class CollectionController {
 
   @Delete(':collection/:id/tags/:tag')
   @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollectionFromParamKey: 'collection',
+    graphIdFromParamKey: 'id',
+    permission: 'update',
+    sudoMaskKey: 'sudo',
+  })
   @UseGuards(BrokerOidcAuthGuard)
   async deleteTagFromCollection(
     @Param('collection') collection: string,
