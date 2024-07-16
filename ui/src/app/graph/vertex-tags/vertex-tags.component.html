@@ -1,11 +1,11 @@
 @if (collectionData.tags && collectionData.tags.length > 0) {
   <div class="tags-container">
-    <mat-chip-set>
+    <mat-chip-listbox [selectable]="false">
       @for (tag of collectionData.tags; track tag) {
-      <mat-chip (click)="browseTag(tag)">
+      <mat-chip-option (click)="browseTag(tag)">
         {{ tag }}
-      </mat-chip>
+      </mat-chip-option>
       }
-    </mat-chip-set>
+    </mat-chip-listbox>
   </div>
 }
