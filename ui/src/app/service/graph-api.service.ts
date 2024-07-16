@@ -6,10 +6,7 @@ import {
   CollectionNames,
 } from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
-import {
-  GraphDataResponseDto,
-  UpstreamResponseDto,
-} from './dto/graph-data.dto';
+import { GraphDataResponseDto } from './dto/graph-data.dto';
 import {
   CollectionConfigInstanceRestDto,
   CollectionConfigRestDto,
@@ -22,6 +19,8 @@ import { GraphEventRestDto } from './dto/graph-event-rest.dto';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 import { CONFIG_ARR } from '../app-initialize.factory';
 import { SseClient } from 'ngx-sse-client';
+import { GraphUpDownRestDto } from './dto/graph-updown-rest.dto';
+import { VertexPointerRestDto } from './dto/vertex-pointer-rest.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +38,9 @@ export class GraphApiService {
       filter((event) => {
         if (event.type === 'error') {
           const errorEvent = event as ErrorEvent;
-          console.error(errorEvent.error, errorEvent.message);
+          if (errorEvent.error) {
+            console.error(errorEvent.error, errorEvent.message);
+          }
           return false;
         }
         return true;
@@ -195,12 +196,12 @@ export class GraphApiService {
     );
   }
 
-  getUpstream<T = any>(
+  getUpstream<T extends VertexPointerRestDto = any>(
     id: string,
     index: number,
     matchEdgeNames: string[] | null = null,
   ) {
-    return this.http.post<UpstreamResponseDto<T>[]>(
+    return this.http.post<GraphUpDownRestDto<T>[]>(
       `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}${
         matchEdgeNames
           ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`

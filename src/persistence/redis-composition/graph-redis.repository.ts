@@ -11,7 +11,6 @@ import { EdgeDto } from '../dto/edge.dto';
 import { EnvironmentDto } from '../dto/environment.dto';
 import {
   GraphDataResponseDto,
-  UpstreamResponseDto,
   BrokerAccountProjectMapDto,
   GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
@@ -41,6 +40,7 @@ import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-res
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
+import { GraphUpDownDto } from '../dto/graph-updown.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -217,7 +217,7 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
     index: number,
     matchEdgeNames: string[],
-  ): Promise<UpstreamResponseDto<T>[]> {
+  ): Promise<GraphUpDownDto<T>[]> {
     return this.repo.getUpstreamVertex(id, index, matchEdgeNames);
   }
 
@@ -225,7 +225,7 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
     index: number,
     maxDepth: number,
-  ): Promise<UpstreamResponseDto<T>[]> {
+  ): Promise<GraphUpDownDto<T>[]> {
     return this.repo.getDownstreamVertex(id, index, maxDepth);
   }
 

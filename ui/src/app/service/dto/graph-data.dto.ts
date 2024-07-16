@@ -28,11 +28,6 @@ export interface GraphDataResponseDto {
   categories: GraphDataResponseCategoryDto[];
 }
 
-export interface UpstreamResponseDto<T = any> {
-  collection: T;
-  path: GraphDataResponseEdgeDto;
-}
-
 export class GraphDeleteResponseDto {
   edge!: string[];
   vertex!: string[];

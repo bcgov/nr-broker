@@ -62,6 +62,7 @@ import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-
 import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { InspectorPeopleComponent } from '../inspector-people/inspector-people.component';
 
 @Component({
   selector: 'app-inspector',
@@ -83,6 +84,7 @@ import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
     InspectorConnectionsComponent,
     InspectorEdgeComponent,
     InspectorVertexComponent,
+    InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TagDialogComponent,
@@ -384,29 +386,6 @@ export class InspectorComponent implements OnChanges, OnInit {
           ...data,
         };
       }),
-    );
-  }
-
-  getUpstreamUsers(target: ChartClickTarget | undefined) {
-    // console.log(!['service', 'project'].includes((target as any).data.collection));
-    const mapCollectionToEdgeName: { [key: string]: string[] } = {
-      service: ['developer', 'lead-developer'],
-      project: ['developer', 'lead-developer'],
-      brokerAccount: ['administrator', 'lead-developer'],
-    };
-    if (
-      !target ||
-      target.type !== 'vertex' ||
-      !Object.keys(mapCollectionToEdgeName).includes(target.data.collection)
-    ) {
-      return of([]);
-    }
-    const vertex = target.data;
-
-    return this.graphApi.getUpstream(
-      vertex.id,
-      this.configMap['user'].index,
-      mapCollectionToEdgeName[target.data.collection],
     );
   }
 

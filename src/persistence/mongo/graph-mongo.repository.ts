@@ -14,7 +14,6 @@ import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   GraphDeleteResponseDto,
-  UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
@@ -32,6 +31,7 @@ import {
   GraphDirectedCombo,
   GraphVertexConnections,
 } from '../dto/collection-combo.dto';
+import { GraphUpDownDto } from '../dto/graph-updown.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -1047,7 +1047,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     index: number,
     matchEdgeNames: string[] | null = null,
-  ): Promise<UpstreamResponseDto<T>[]> {
+  ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       where: {
         index,
@@ -1065,16 +1065,16 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'source',
             connectToField: 'target',
-            as: 'path',
+            as: 'edge',
           },
         },
-        { $unwind: { path: '$path' } },
+        { $unwind: '$edge' },
         {
           $match: {
-            'path.is': index,
+            'edge.is': index,
             ...(matchEdgeNames
               ? {
-                  'path.name': { $in: matchEdgeNames },
+                  'edge.name': { $in: matchEdgeNames },
                 }
               : {}),
           },
@@ -1082,25 +1082,36 @@ export class GraphMongoRepository implements GraphRepository {
         {
           $lookup: {
             from: config.collection,
-            localField: 'path.source',
+            localField: 'edge.source',
             foreignField: 'vertex',
             as: 'collection',
           },
         },
+        { $unwind: '$collection' },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'edge.target',
+            foreignField: '_id',
+            as: 'vertex',
+          },
+        },
+        { $unwind: '$vertex' },
       ])
       .toArray()
-      .then((upstreamArr: any[]) => {
-        return upstreamArr.map((upstream) => {
-          const collection = upstream.collection[0];
-          collection.id = collection._id;
-          delete collection._id;
+      .then((streamArr: any[]) => {
+        return streamArr.map((stream) => {
+          stream.collection.id = stream.collection._id;
+          delete stream.collection._id;
 
-          const path = upstream.path;
-          path.id = path._id;
-          delete path._id;
+          stream.edge.id = stream.edge._id;
+          delete stream.edge._id;
+          stream.vertex.id = stream.vertex._id;
+          delete stream.vertex._id;
           return {
-            collection,
-            path,
+            collection: stream.collection,
+            edge: stream.edge,
+            vertex: stream.vertex,
           };
         });
       });
@@ -1110,7 +1121,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     index: number,
     maxDepth: number,
-  ): Promise<UpstreamResponseDto<T>[]> {
+  ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       where: {
         index,
@@ -1128,31 +1139,49 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'target',
             connectToField: 'source',
-            as: 'path',
+            as: 'edge',
             maxDepth,
           },
         },
-        { $unwind: { path: '$path' } },
+        { $unwind: '$edge' },
         {
           $match: {
-            'path.it': index,
+            'edge.it': index,
           },
         },
         {
           $lookup: {
             from: config.collection,
-            localField: 'path.target',
+            localField: 'edge.target',
             foreignField: 'vertex',
             as: 'collection',
           },
         },
+        { $unwind: '$collection' },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'edge.source',
+            foreignField: '_id',
+            as: 'vertex',
+          },
+        },
+        { $unwind: '$vertex' },
       ])
       .toArray()
-      .then((upstreamArr: any[]) => {
-        return upstreamArr.map((upstream) => {
+      .then((streamArr: any[]) => {
+        return streamArr.map((stream) => {
+          stream.collection.id = stream.collection._id;
+          delete stream.collection._id;
+
+          stream.edge.id = stream.edge._id;
+          delete stream.edge._id;
+          stream.vertex.id = stream.vertex._id;
+          delete stream.vertex._id;
           return {
-            collection: upstream.collection[0],
-            path: upstream.path,
+            collection: stream.collection,
+            edge: stream.edge,
+            vertex: stream.vertex,
           };
         });
       });

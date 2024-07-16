@@ -7,7 +7,6 @@ import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   GraphDeleteResponseDto,
-  UpstreamResponseDto,
 } from '../dto/graph-data.dto';
 import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
@@ -18,6 +17,7 @@ import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-res
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
+import { GraphUpDownDto } from '../dto/graph-updown.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -91,12 +91,12 @@ export abstract class GraphRepository {
     id: string,
     index: number,
     matchEdgeNames: string[] | null,
-  ): Promise<UpstreamResponseDto<T>[]>;
+  ): Promise<GraphUpDownDto<T>[]>;
   public abstract getDownstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     maxDepth: number,
-  ): Promise<UpstreamResponseDto<T>[]>;
+  ): Promise<GraphUpDownDto<T>[]>;
   public abstract getBrokerAccountServices(
     id: string,
   ): Promise<BrokerAccountProjectMapDto>;
