@@ -84,7 +84,6 @@ import { InspectorPeopleComponent } from '../inspector-people/inspector-people.c
     InspectorConnectionsComponent,
     InspectorEdgeComponent,
     InspectorVertexComponent,
-    InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TagDialogComponent,
