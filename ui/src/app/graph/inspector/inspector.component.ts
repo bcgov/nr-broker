@@ -62,7 +62,6 @@ import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-
 import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
-import { InspectorPeopleComponent } from '../inspector-people/inspector-people.component';
 
 @Component({
   selector: 'app-inspector',

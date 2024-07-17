@@ -332,7 +332,7 @@ export class CollectionService {
     const project = vertices[0].collection;
     const roleIds = await Promise.all(
       VAULT_ENVIRONMENTS_SHORT.map((env) =>
-        this.getRoleIdForApplicationSupressed(project.name, service.name, env),
+        this.getRoleIdForApplicationSuppressed(project.name, service.name, env),
       ),
     );
 
@@ -351,7 +351,7 @@ export class CollectionService {
     return this.collectionRepository.doUniqueKeyCheck(collection, key, value);
   }
 
-  private async getRoleIdForApplicationSupressed(
+  private async getRoleIdForApplicationSuppressed(
     projectName: string,
     serviceName: string,
     environment: string,
