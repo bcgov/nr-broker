@@ -6,8 +6,10 @@
 ** [Overview](/dev_integrate_overview.md)
 ** [Generate Account Token](/dev_account_token.md)
 ** [Intention Lifecycle](/dev_intention_lifecycle.md)
-** [Using Intentions to Access Vault](/dev_intention_usage.md)
 ** [Intention Action Reference](/dev_intention_actions.md)
+** [Intention Event Reference](/dev_intention_event.md)
+** [Intention User Reference](/dev_intention_user.md)
+** [Using Intentions to Access Vault](/dev_intention_usage.md)
 ** [GitHub Actions](/github_actions.md)
 
 * Operations

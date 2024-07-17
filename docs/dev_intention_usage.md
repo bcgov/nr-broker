@@ -19,13 +19,7 @@ It is not recommended to use the "access" pattern to simply copy the secrets and
 
 **Examples:** Start an OpenShift pod, Run a server application on premise and other continuous activities
 
-If you are following the provision workflow, you'll be using the static role id unique to the instance of your deployment (retrieved via Broker UI or API) and a secret id (retrieved via Broker API) to login your application to Vault.
-
-The first step is to open your intention with the Broker API. You must provide your team's JWT as an authorization bearer token.
-
-You must modify the event, service and user fields in this example. In particular, the user id must be a member of your team (even if this sent by an automated process). Jq is an excellent tool for doing this modification.
-
-You may wish (or be required) to provide additional actions to describe the intention in more detail. (Example: accessing a server to do the provision)
+The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Token](dev_account_token.md)
 
 **Call  1.** POST /v1/intention/open
 
@@ -56,6 +50,10 @@ Header: "Authorization: Bearer $BROKER_JWT"
 }
 ```
 
+The intention you send can be a base JSON file with modified event and user fields. Jq is an excellent tool for doing this modification. In particular, the user id (<username>@idir or <username>@github) must be the member of your team doing the action(even if this is an automated process).
+
+You may wish (or be required) to provide additional details and/or actions to describe the intention in more detail. (Example: the server you are provisioning)
+
 The response will look like this:
 
 ```json
@@ -79,10 +77,10 @@ Next, let's get that secret id so that we can provision our application.
 
 **Call  2.** POST /v1/provision/approle/secret-id
 
-There is no body to send. Two headers must be sent:
+There is no body to send. Two headers can be sent:
 
-* x-vault-role-id (provided to your team)
-* x-broker-token (the token [.actions.provision.token] received for the action in the response to the intention open)
+* x-vault-role-id (Optional: A Broker Account can be set to require it.)
+* x-broker-token (Required: The token [.actions.provision.token] received for the action in the response to the intention open. This is NOT your Broker JWT)
 
 ```json
 {
@@ -136,11 +134,13 @@ You're done! Pass in '.token' from the open response as the 'x-broker-token' hea
 
 If you are following the access workflow, you'll be using the role id (provided) to retrieve a wrapped token with access to Vault. The token will have policies that are identical to a provisioned token. The 'provision/token/self' API allows you to skip sending a request to Vault to do the login yourself. The main difference is that the token cannot be renewed. The example here assumes some kind of database upgrade is going on.
 
-The first step is to open your intention with the Broker API. You must provide your teams JWT as an authorization bearer token.
+The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Token](dev_account_token.md)
 
 You must modify the event, service and user fields in this example. In particular, the user id (<username>@idir or <username>@github) must be a member of your team (even if this sent by an automated process). Jq is an excellent tool for doing this modification.
 
 You may wish (or be required) to provide additional actions to describe the event in more detail.
+
+A periodic process that is accessing secrets may be transient. This means there is no need to save the event long-term and can be filtered out from other activites. If your activity is transient then event.transient should be set to true.
 
 **Call  1.** POST /v1/intention/open
 
@@ -151,7 +151,8 @@ Header: "Authorization: Bearer $BROKER_JWT"
   "event": {
     "provider": "provision-fluentbit-demo",
     "reason": "Job triggered",
-    "url": "JOB_URL"
+    "url": "JOB_URL",
+    "transient": false
   },
   "actions": [
     {
