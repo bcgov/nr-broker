@@ -49,7 +49,7 @@ else
 fi
 
 export VAULT_AUDIT_ROLE="audit_prod"
-export VAULT_APPROLE_PATH="approle"
+export VAULT_APPROLE_PATH="vs_apps_approle"
 export VAULT_BROKER_ROLE="broker_prod"
 if [ "local" = $VAULT_ENV ]
 then

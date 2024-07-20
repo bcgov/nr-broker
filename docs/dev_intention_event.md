@@ -1,6 +1,6 @@
 # Intention Event Reference
 
-All intentions have an event field that describes the event that caused the intention to be opened. The event object is loosely based on Elastic Common Schema [event field](https://www.elastic.co/guide/en/ecs/current/ecs-event.html).
+All intentions have an event field that describes the event that caused the intention to be opened. The event object is loosely based on the Elastic Common Schema [event field](https://www.elastic.co/guide/en/ecs/current/ecs-event.html).
 
 ## Fields
 

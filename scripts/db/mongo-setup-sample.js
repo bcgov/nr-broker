@@ -178,6 +178,11 @@ db.vertex.insertMany([
     name: 'vault-app',
   },
   {
+    _id: ObjectId('644c4d322e2f63acef6bb805'),
+    collection: 'service',
+    name: 'vsync',
+  },
+  {
     _id: ObjectId('644c4d312e2f63acef6bb733'),
     collection: 'serviceInstance',
     name: 'production',
@@ -192,6 +197,16 @@ db.vertex.insertMany([
     collection: 'serviceInstance',
     name: 'development',
   },
+  {
+    _id: ObjectId('644c4d322e2f63acef6bb808'),
+    collection: 'serviceInstance',
+    name: 'production',
+  },
+  {
+    _id: ObjectId('669af2ba1065137fb10ea954'),
+    collection: 'brokerAccount',
+    name: 'localhost',
+  },
 ]);
 
 const prodEnvironment = db.environment.findOne({ name: 'production' });
@@ -205,6 +220,30 @@ db.edge.insertMany([
     it: 2,
     source: ObjectId('644c4d302e2f63acef6bb72e'),
     target: ObjectId('644c4d302e2f63acef6bb72c'),
+  },
+  {
+    _id: ObjectId('644c4d322e2f63acef6bb807'),
+    name: 'component',
+    is: 1,
+    it: 2,
+    source: ObjectId('644c4d302e2f63acef6bb72e'),
+    target: ObjectId('644c4d322e2f63acef6bb805'),
+  },
+  {
+    _id: ObjectId('644c4d322e2f63acef6bb80a'),
+    name: 'instance',
+    is: 2,
+    it: 3,
+    source: '644c4d322e2f63acef6bb805',
+    target: '644c4d322e2f63acef6bb808',
+  },
+  {
+    id: ObjectId('644c4d322e2f63acef6bb80b'),
+    name: 'deploy-type',
+    is: 3,
+    it: 0,
+    source: '644c4d322e2f63acef6bb808',
+    target: prodEnvironment.vertex,
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb735'),
@@ -263,6 +302,14 @@ db.edge.insertMany([
     is: 6,
     it: 2,
   },
+  {
+    _id: ObjectId('669af2d61065137fb10ea956'),
+    name: 'authorized',
+    source: ObjectId('669af2ba1065137fb10ea954'),
+    target: ObjectId('644c4d302e2f63acef6bb72e'),
+    is: 5,
+    it: 1,
+  },
 ]);
 
 db.serviceInstance.insertMany([
@@ -283,6 +330,11 @@ db.serviceInstance.insertMany([
     name: 'development',
     vertex: ObjectId('644c4d312e2f63acef6bb73e'),
     url: 'https://dev.vault-app.example',
+  },
+  {
+    _id: ObjectId('644c4d322e2f63acef6bb809'),
+    name: 'production',
+    vertex: '644c4d322e2f63acef6bb808',
   },
 ]);
 
@@ -312,6 +364,22 @@ db.server.insertMany([
     hostName: 'peak.internal',
     vertex: ObjectId('66034715eb54820a9728bf9a'),
     tags: ['database'],
+  },
+]);
+
+db.brokerAccount.insertMany([
+  {
+    _id: ObjectId('669af2ba1065137fb10ea955'),
+    vertex: ObjectId('669af2ba1065137fb10ea954'),
+    email: 'localhost@example.com',
+    clientId: '33098695-4a5a-497c-a36a-61691785845c',
+    name: 'localhost',
+    enableUserImport: false,
+    requireRoleId: false,
+    requireProjectExists: true,
+    requireServiceExists: false,
+    skipUserValidation: false,
+    maskSemverFailures: false,
   },
 ]);
 
