@@ -9,6 +9,7 @@
 
 import { createHmac, randomUUID } from 'node:crypto';
 import process from 'node:process';
+import { spawnSync } from 'node:child_process';
 
 const hmac = createHmac('sha256', process.env['JWT_SECRET']);
 
@@ -43,3 +44,16 @@ const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
 
 hmac.update(headerStr + '.' + payloadStr);
 console.log(`${headerStr}.${payloadStr}.${hmac.digest('base64url')}`);
+
+spawnSync(
+  'mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB db/mongo-add-jwt-reg.js',
+  [],
+  {
+    env: {
+      JWT_CLIENT_ID: clientId,
+      JWT_EXP: payload.exp,
+      JWT_JTI: payload.jti,
+      JWT_SUB: payload.sub,
+    },
+  },
+);

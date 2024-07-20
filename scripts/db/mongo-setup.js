@@ -6,6 +6,7 @@ db.project.drop();
 db.environment.drop();
 db.jwtRegistry.drop();
 db.jwtBlock.drop();
+db.server.drop();
 db.serviceInstance.drop();
 db.team.drop();
 db.user.drop();
@@ -707,6 +708,7 @@ result = db.graphPermission.insertOne({
     { name: 'owns', index: 5, permissions: ['sudo'] },
     { name: 'authorized', index: 1, permissions: ['update'] },
     { name: 'component', index: 2, permissions: ['sudo', 'update'] },
+    { name: 'instance', index: 3, permissions: ['update'] },
   ],
 });
 
@@ -716,6 +718,7 @@ result = db.graphPermission.insertOne({
     { name: 'lead-developer', index: 6, permissions: [] },
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
+    { name: 'instance', index: 3, permissions: ['update'] },
   ],
 });
 

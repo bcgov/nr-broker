@@ -18,7 +18,13 @@ fi
 
 echo "Setting up: $VAULT_ADDR"
 
+# Setup kv mounts
+vault secrets enable -path=apps -version=2 kv
+vault secrets enable -path=groups -version=2 kv
+# Setup auth mounts
+vault auth enable oidc
 vault auth enable -path $VAULT_APPROLE_PATH approle
+
 echo "path \"*\" { capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"] }" | vault policy write broker-policy -
 vault write auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE policies=broker-policy
 vault write -force auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE
@@ -43,3 +49,5 @@ vault audit enable file file_path=/tmp/vault-audit.txt
 # Sample approles for demo
 vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-db-sync_prod policies=default
 vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-backend_prod policies=default
+
+vault kv put apps/prod/vault/vsync test=test

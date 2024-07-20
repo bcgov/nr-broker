@@ -11,4 +11,4 @@ export SUPERAPP_DB_SYNC_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PA
 export SUPERAPP_BACKEND_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/superapp_superapp-backend_prod/role-id | jq -r '.data.role_id')
 
 export JWT_SECRET=secret
-export BROKER_JWT=$(./gen-team-jwt.mjs)
+export BROKER_JWT=$(./gen-team-jwt.mjs localhost@example.com 33098695-4a5a-497c-a36a-61691785845c)
