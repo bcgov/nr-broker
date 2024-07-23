@@ -12,7 +12,6 @@ export const TOKEN_RENEW_RATIO = 0.75;
 export const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
-export const TOKEN_SERVICE_WRAP_TTL = 60;
 export const TOKEN_SERVICE_ALLOW_ORPHAN =
   process.env.TOKEN_SERVICE_ALLOW_ORPHAN === 'true';
 
@@ -57,6 +56,7 @@ export const AUDIT_LOGSTREAM_SIZE = process.env.AUDIT_LOGSTREAM_SIZE ?? '50M';
 export const AUDIT_LOGSTREAM_MAX_LOGS =
   process.env.AUDIT_LOGSTREAM_MAX_LOGS ?? '7';
 
+export const VAULT_SERVICE_WRAP_TTL = 60;
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = Object.freeze([
   'production',
@@ -70,6 +70,7 @@ export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
   'dev',
   'tools',
 ]);
+export const VAULT_KV_APPS_MOUNT = 'apps';
 export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 

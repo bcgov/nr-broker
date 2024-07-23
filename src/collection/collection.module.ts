@@ -1,17 +1,18 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { AuditModule } from '../audit/audit.module';
-import { AuthModule } from '../auth/auth.module';
-import { GraphModule } from '../graph/graph.module';
 import { CollectionController } from './collection.controller';
 import { CollectionService } from './collection.service';
-import { PersistenceModule } from '../persistence/persistence.module';
 import { AccountService } from './account.service';
 import { UserCollectionService } from './user-collection.service';
+import { AuditModule } from '../audit/audit.module';
+import { AuthModule } from '../auth/auth.module';
+import { AwsModule } from '../aws/aws.module';
+import { GraphModule } from '../graph/graph.module';
+import { IntentionModule } from '../intention/intention.module';
+import { PersistenceModule } from '../persistence/persistence.module';
 import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
-import { IntentionModule } from '../intention/intention.module';
 import { RedisModule } from '../redis/redis.module';
-import { AwsModule } from '../aws/aws.module';
+import { VaultModule } from '../vault/vault.module';
 
 /**
  * The collection module enables the viewing and manipulation of the objects
@@ -28,6 +29,7 @@ import { AwsModule } from '../aws/aws.module';
     RedisModule,
     TokenModule,
     UtilModule,
+    VaultModule,
   ],
   controllers: [CollectionController],
   providers: [AccountService, CollectionService, UserCollectionService],

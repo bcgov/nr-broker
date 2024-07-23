@@ -1,12 +1,25 @@
 # MongoDB
 
-## Connecting to the local database
+## Local Development
+
+### Connecting to the local database
 
 ```bash
 mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB
 ```
 
-## Restoring a database from a dump
+### Configure local database
+
+```bash
+# Configure the local MongoDB with basic setup
+$ ./scripts/mongo-setup.sh
+```
+
+The setup script can be rerun to reset the local database. You may need to reindex the redis cache by calling the api `/v1/graph/reindex-cache`.
+
+## Production
+
+### Restoring a database from a dump
 
 If you have an existing database, connect to it and delete it first.
 
