@@ -42,19 +42,15 @@ interface VaultTokenLookupDto {
 @Injectable()
 export class TokenService {
   private readonly logger = new Logger(TokenService.name);
-  private vaultAddr: string;
-  private brokerToken: string;
   private tokenLookup: VaultTokenLookupDto | undefined;
   private renewAt: number | undefined;
 
   constructor(private readonly vaultService: VaultService) {
-    this.brokerToken = process.env.BROKER_TOKEN;
-    this.vaultAddr = process.env.VAULT_ADDR;
     this.lookupSelf();
   }
 
   public hasValidToken() {
-    return !!this.brokerToken;
+    return !!this.vaultService.hasValidToken();
   }
 
   public provisionSecretId(
@@ -180,7 +176,7 @@ export class TokenService {
   }
 
   lookupSelf() {
-    if (!this.brokerToken) {
+    if (!this.hasValidToken()) {
       return;
     }
     this.vaultService.getAuthTokenLookupSelf().subscribe({
@@ -206,7 +202,7 @@ export class TokenService {
   @Cron(CronExpression.EVERY_MINUTE)
   handleTokenRenewal() {
     if (
-      this.brokerToken === undefined ||
+      !this.hasValidToken() ||
       this.renewAt === undefined ||
       Date.now() < this.renewAt
     ) {

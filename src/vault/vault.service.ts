@@ -20,6 +20,10 @@ export class VaultService {
     this.vaultAddr = process.env.VAULT_ADDR;
   }
 
+  public hasValidToken() {
+    return !!this.brokerToken;
+  }
+
   // /v1/<kv-mount>/* (v2)
 
   public getKvSubkeys(mount: string, path: string) {
