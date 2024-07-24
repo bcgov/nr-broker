@@ -136,8 +136,7 @@ The following will start the tool in monitoring mode to update the local Vault.
 
 ```
 source ./scripts/setenv-curl-local.sh
-podman run --rm -e=VAULT_ADDR=http://$(podman inspect -f "{{.NetworkSettings.IPAddress}}" broker-vault):8200 -e=VAULT_TOKEN=$VAULT_TOKEN -e=BROKER_API_URL=http://host.containers.internal:3000/ -e=BROKER_TOKEN=$BROKER_JWT ghcr.io/bcgov-nr/vault-sync-app:v2.0.1
-```
+podman run --rm -e=VAULT_ADDR=http://$(podman inspect -f "{{.NetworkSettings.IPAddress}}" broker-vault):8200 -e=VAULT_TOKEN=$VAULT_TOKEN -e=BROKER_API_URL=http://host.containers.internal:3000/ -e=BROKER_TOKEN=$BROKER_JWT ghcr.io/bcgov-nr/vault-sync-app:v2.1.0
 
 ### Local MongoDB Disconnects
 

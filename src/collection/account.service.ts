@@ -256,7 +256,7 @@ export class AccountService {
       const projectName = projectDtoArr[0].collection.name;
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
-          [account.clientId]: token,
+          [`broker-jwt:${account.clientId}`]: token,
         });
       } catch (err) {
         // Log?
