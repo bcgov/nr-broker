@@ -32,9 +32,13 @@ export class SystemApiService {
     );
   }
 
-  generateAccountToken(accountId: string, expirationInSeconds: number) {
+  generateAccountToken(
+    accountId: string,
+    expirationInSeconds: number,
+    patchVaultTools: boolean,
+  ) {
     return this.http.post<TokenCreateDto>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}`,
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}&patch=${patchVaultTools}`,
       {
         responseType: 'json',
       },

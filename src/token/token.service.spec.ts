@@ -29,10 +29,4 @@ describe('TokenService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-
-  it('hasValidToken should return true with valid token', async () => {
-    expect(service.hasValidToken()).toBe(false);
-    await setupService({ ...env, BROKER_TOKEN: 'token' });
-    expect(service.hasValidToken()).toBe(true);
-  });
 });

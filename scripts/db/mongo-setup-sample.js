@@ -161,8 +161,23 @@ db.project.insertMany([
 db.service.insertMany([
   {
     _id: ObjectId('644c4d302e2f63acef6bb72d'),
-    name: 'vault-app',
+    name: 'nr-broker',
     vertex: ObjectId('644c4d302e2f63acef6bb72c'),
+    vaultConfig: {
+      brokerGlobal: true,
+      enabled: true,
+      approle: {
+        enabled: true,
+      },
+      policyOptions: {
+        systemPolicies: ['system/admin-token', 'system/admin-audit-hash'],
+      },
+    },
+  },
+  {
+    _id: ObjectId('651607f64bc3a44e24cc2ec9'),
+    name: 'vsync',
+    vertex: ObjectId('644c4d322e2f63acef6bb805'),
   },
 ]);
 
@@ -175,7 +190,7 @@ db.vertex.insertMany([
   {
     _id: ObjectId('644c4d302e2f63acef6bb72c'),
     collection: 'service',
-    name: 'vault-app',
+    name: 'nr-broker',
   },
   {
     _id: ObjectId('644c4d322e2f63acef6bb805'),
@@ -193,11 +208,6 @@ db.vertex.insertMany([
     name: 'test',
   },
   {
-    _id: ObjectId('644c4d312e2f63acef6bb73e'),
-    collection: 'serviceInstance',
-    name: 'development',
-  },
-  {
     _id: ObjectId('644c4d322e2f63acef6bb808'),
     collection: 'serviceInstance',
     name: 'production',
@@ -210,7 +220,9 @@ db.vertex.insertMany([
 ]);
 
 const prodEnvironment = db.environment.findOne({ name: 'production' });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const testEnvironment = db.environment.findOne({ name: 'test' });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const devEnvironment = db.environment.findOne({ name: 'development' });
 db.edge.insertMany([
   {
@@ -234,15 +246,15 @@ db.edge.insertMany([
     name: 'instance',
     is: 2,
     it: 3,
-    source: '644c4d322e2f63acef6bb805',
-    target: '644c4d322e2f63acef6bb808',
+    source: ObjectId('644c4d322e2f63acef6bb805'),
+    target: ObjectId('644c4d322e2f63acef6bb808'),
   },
   {
     id: ObjectId('644c4d322e2f63acef6bb80b'),
     name: 'deploy-type',
     is: 3,
     it: 0,
-    source: '644c4d322e2f63acef6bb808',
+    source: ObjectId('644c4d322e2f63acef6bb808'),
     target: prodEnvironment.vertex,
   },
   {
@@ -252,22 +264,6 @@ db.edge.insertMany([
     it: 3,
     source: ObjectId('644c4d302e2f63acef6bb72c'),
     target: ObjectId('644c4d312e2f63acef6bb733'),
-  },
-  {
-    _id: ObjectId('65b93377cd33470efb73fb28'),
-    name: 'instance',
-    source: ObjectId('644c4d302e2f63acef6bb72c'),
-    target: ObjectId('644c4d312e2f63acef6bb745'),
-    is: 2,
-    it: 3,
-  },
-  {
-    _id: ObjectId('65b93386cd33470efb73fb29'),
-    name: 'instance',
-    source: ObjectId('644c4d302e2f63acef6bb72c'),
-    target: ObjectId('644c4d312e2f63acef6bb73e'),
-    is: 2,
-    it: 3,
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb736'),
@@ -283,15 +279,7 @@ db.edge.insertMany([
     is: 3,
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb745'),
-    target: testEnvironment.vertex,
-  },
-  {
-    _id: ObjectId('644c4d312e2f63acef6bb741'),
-    name: 'deploy-type',
-    is: 3,
-    it: 0,
-    source: ObjectId('644c4d312e2f63acef6bb73e'),
-    target: devEnvironment.vertex,
+    target: prodEnvironment.vertex,
   },
   {
     _id: ObjectId('65b93631cd33470efb73fb2c'),
@@ -317,24 +305,18 @@ db.serviceInstance.insertMany([
     _id: ObjectId('644c4d312e2f63acef6bb734'),
     name: 'production',
     vertex: ObjectId('644c4d312e2f63acef6bb733'),
-    url: 'https://vault-app.example',
+    url: 'http://localhost:3000',
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb746'),
-    name: 'test',
+    name: 'production',
     vertex: ObjectId('644c4d312e2f63acef6bb745'),
-    url: 'https://test.vault-app.example',
-  },
-  {
-    _id: ObjectId('644c4d312e2f63acef6bb73f'),
-    name: 'development',
-    vertex: ObjectId('644c4d312e2f63acef6bb73e'),
-    url: 'https://dev.vault-app.example',
+    url: 'https://production.vault-app.example',
   },
   {
     _id: ObjectId('644c4d322e2f63acef6bb809'),
     name: 'production',
-    vertex: '644c4d322e2f63acef6bb808',
+    vertex: ObjectId('644c4d322e2f63acef6bb808'),
   },
 ]);
 
@@ -390,6 +372,7 @@ db.collectionConfig.updateOne(
     $set: {
       edges: [
         {
+          id: '8AR5oZt8dy',
           collection: 'brokerAccount',
           name: 'owns',
           inboundName: 'owned by',
@@ -397,6 +380,7 @@ db.collectionConfig.updateOne(
           show: true,
         },
         {
+          id: 'FxYMeTm4D',
           collection: 'service',
           name: 'uses',
           inboundName: 'used by',

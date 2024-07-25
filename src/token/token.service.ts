@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
@@ -6,16 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { catchError, map, Observable, switchMap } from 'rxjs';
 import {
   IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
-  TOKEN_SERVICE_WRAP_TTL,
   VAULT_SYNC_APP_AUTH_MOUNT,
   VAULT_AUDIT_DEVICE_NAME,
 } from '../constants';
+import { VaultService } from '../vault/vault.service';
 
 interface VaultTokenLookupDto {
   data: {
@@ -43,19 +42,15 @@ interface VaultTokenLookupDto {
 @Injectable()
 export class TokenService {
   private readonly logger = new Logger(TokenService.name);
-  private vaultAddr: string;
-  private brokerToken: string;
   private tokenLookup: VaultTokenLookupDto | undefined;
   private renewAt: number | undefined;
 
-  constructor(private readonly httpService: HttpService) {
-    this.brokerToken = process.env.BROKER_TOKEN;
-    this.vaultAddr = process.env.VAULT_ADDR;
+  constructor(private readonly vaultService: VaultService) {
     this.lookupSelf();
   }
 
   public hasValidToken() {
-    return !!this.brokerToken;
+    return !!this.vaultService.hasValidToken();
   }
 
   public provisionSecretId(
@@ -66,25 +61,21 @@ export class TokenService {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;
-    return this.httpService
-      .post(
-        // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
-        null,
-        this.prepareWrappedResponseConfig(),
+    return this.vaultService
+      .postAuthMountRoleNameSecretId(
+        VAULT_SYNC_APP_AUTH_MOUNT,
+        `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
+        { wrapResponse: true },
       )
       .pipe(
         map((response) => {
           return response.data;
         }),
         switchMap((wrappedToken) => {
-          return this.httpService
-            .post(
-              `${this.vaultAddr}/v1/sys/audit-hash/file`,
-              {
-                input: wrappedToken.wrap_info.token,
-              },
-              this.prepareConfig(),
+          return this.vaultService
+            .postSysAuditHash(
+              VAULT_AUDIT_DEVICE_NAME,
+              wrappedToken.wrap_info.token,
             )
             .pipe(
               map((auditResponse) => {
@@ -109,27 +100,18 @@ export class TokenService {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;
-    return this.httpService
-      .post(
-        // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/secret-id`,
-        null,
-        this.prepareConfig(),
+    return this.vaultService
+      .postAuthMountRoleNameSecretId(
+        VAULT_SYNC_APP_AUTH_MOUNT,
+        `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
       )
       .pipe(
         map((response) => {
           return response.data.data.secret_id;
         }),
         switchMap((secretId) => {
-          return this.httpService
-            .post(
-              `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/login`,
-              {
-                role_id: roleId,
-                secret_id: secretId,
-              },
-              this.prepareWrappedResponseConfig(),
-            )
+          return this.vaultService
+            .postAuthLogin(VAULT_SYNC_APP_AUTH_MOUNT, roleId, secretId)
             .pipe(
               map((response) => {
                 return response.data;
@@ -137,13 +119,10 @@ export class TokenService {
             );
         }),
         switchMap((wrappedToken) => {
-          return this.httpService
-            .post(
-              `${this.vaultAddr}/v1/sys/audit-hash/${VAULT_AUDIT_DEVICE_NAME}`,
-              {
-                input: wrappedToken.wrap_info.token,
-              },
-              this.prepareConfig(),
+          return this.vaultService
+            .postSysAuditHash(
+              VAULT_AUDIT_DEVICE_NAME,
+              wrappedToken.wrap_info.token,
             )
             .pipe(
               map((auditResponse) => {
@@ -167,11 +146,10 @@ export class TokenService {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;
-    return this.httpService
-      .get(
-        // eslint-disable-next-line prettier/prettier
-        `${this.vaultAddr}/v1/auth/${VAULT_SYNC_APP_AUTH_MOUNT}/role/${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}/role-id`,
-        this.prepareConfig(),
+    return this.vaultService
+      .getAuthMountRoleNameRoleId(
+        VAULT_SYNC_APP_AUTH_MOUNT,
+        `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
       )
       .pipe(
         map((response) => {
@@ -198,36 +176,33 @@ export class TokenService {
   }
 
   lookupSelf() {
-    if (!this.brokerToken) {
+    if (!this.hasValidToken()) {
       return;
     }
-    this.httpService
-      .get(`${this.vaultAddr}/v1/auth/token/lookup-self`, this.prepareConfig())
-      .subscribe({
-        error: () => {
-          this.logger.error('Lookup: fail');
-          this.brokerToken = undefined;
-        },
-        next: (val: AxiosResponse<VaultTokenLookupDto, any>) => {
-          this.logger.log(`Lookup: success`);
-          this.tokenLookup = val.data;
-          const baseTime = this.tokenLookup.data.last_renewal_time
-            ? this.tokenLookup.data.last_renewal_time
-            : this.tokenLookup.data.creation_time;
-          this.renewAt =
-            (baseTime +
-              Math.round(
-                this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
-              )) *
-            1000;
-        },
-      });
+    this.vaultService.getAuthTokenLookupSelf().subscribe({
+      error: () => {
+        this.logger.error('Lookup: fail');
+      },
+      next: (val: AxiosResponse<VaultTokenLookupDto, any>) => {
+        this.logger.log(`Lookup: success`);
+        this.tokenLookup = val.data;
+        const baseTime = this.tokenLookup.data.last_renewal_time
+          ? this.tokenLookup.data.last_renewal_time
+          : this.tokenLookup.data.creation_time;
+        this.renewAt =
+          (baseTime +
+            Math.round(
+              this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
+            )) *
+          1000;
+      },
+    });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
   handleTokenRenewal() {
     if (
-      this.brokerToken === undefined ||
+      !this.hasValidToken() ||
       this.renewAt === undefined ||
       Date.now() < this.renewAt
     ) {
@@ -239,41 +214,20 @@ export class TokenService {
       return;
     }
     this.logger.debug('Renew: start');
-    this.httpService
-      .post(
-        `${this.vaultAddr}/v1/auth/token/renew-self`,
-        null,
-        this.prepareConfig(),
-      )
-      .subscribe({
-        error: () => {
-          this.logger.error('Renew: fail');
-          this.brokerToken = undefined;
-        },
-        next: (val: AxiosResponse<any, any>) => {
-          this.logger.log(
-            `Renew: success (duration: ${val.data.auth.lease_duration})`,
-          );
-          this.lookupSelf();
-        },
-      });
+    this.vaultService.postAuthTokenRenewSelf().subscribe({
+      error: () => {
+        this.logger.error('Renew: fail');
+      },
+      next: (val: AxiosResponse<any, any>) => {
+        this.logger.log(
+          `Renew: success (duration: ${val.data.auth.lease_duration})`,
+        );
+        this.lookupSelf();
+      },
+    });
   }
 
   private convertUnderscoreToDash(str: string) {
     return str.replace('_', '-');
-  }
-
-  private prepareWrappedResponseConfig(): AxiosRequestConfig<any> {
-    const config = this.prepareConfig();
-    config.headers['X-Vault-Wrap-TTL'] = TOKEN_SERVICE_WRAP_TTL;
-    return config;
-  }
-
-  private prepareConfig(): AxiosRequestConfig<any> {
-    return {
-      headers: {
-        'X-Vault-Token': this.brokerToken,
-      },
-    };
   }
 }

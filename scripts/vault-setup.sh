@@ -25,7 +25,7 @@ vault secrets enable -path=groups -version=2 kv
 vault auth enable oidc
 vault auth enable -path $VAULT_APPROLE_PATH approle
 
-echo "path \"*\" { capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"] }" | vault policy write broker-policy -
+echo "path \"*\" { capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"patch\", \"sudo\"] }" | vault policy write broker-policy -
 vault write auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE policies=broker-policy
 vault write -force auth/$VAULT_APPROLE_PATH/role/$VAULT_AUDIT_ROLE
 

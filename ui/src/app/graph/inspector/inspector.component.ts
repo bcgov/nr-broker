@@ -177,7 +177,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   selectEdge(id: string) {
-    console.log(`selectEdge: ${id}`);
+    // console.log(`selectEdge: ${id}`);
     this.graphUtil.openInGraph(id, 'edge');
   }
 

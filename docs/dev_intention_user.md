@@ -1,6 +1,6 @@
 # Intention User Reference
 
-The user object in the intention must uniquely identify a user in the Broker database. This can be done by defining the id field or both the name and domain field. The id field should be the name and domain of a user combined using an at mark (name@domain).
+The user object in the intention must uniquely identify a user in the Broker database. This can be achieved by defining either the id field or both the name and domain fields. As a shortcut, the name field can also specify the domain using an at mark (name@domain).
 
 ## Internal users
 

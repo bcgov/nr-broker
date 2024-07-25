@@ -3,6 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
+import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
@@ -12,11 +13,18 @@ import {
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
+  VAULT_KV_APPS_MOUNT,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { OpensearchService } from '../aws/opensearch.service';
 import { DateUtil, INTERVAL_HOUR_MS } from '../util/date.util';
+import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { ServiceDto } from '../persistence/dto/service.dto';
+import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { ProjectDto } from '../persistence/dto/project.dto';
+import { VaultService } from '../vault/vault.service';
 
 export class TokenCreateDTO {
   token: string;
@@ -25,8 +33,10 @@ export class TokenCreateDTO {
 @Injectable()
 export class AccountService {
   constructor(
-    private readonly opensearchService: OpensearchService,
     private readonly auditService: AuditService,
+    private readonly opensearchService: OpensearchService,
+    private readonly vaultService: VaultService,
+    private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
     private readonly dateUtil: DateUtil,
@@ -118,6 +128,7 @@ export class AccountService {
     req: any,
     id: string,
     expirationInSeconds: number,
+    patchVault: boolean,
     creatorGuid: string,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
@@ -170,6 +181,9 @@ export class AccountService {
 
     const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
     await this.systemRepository.addJwtToRegister(id, payload, creatorId);
+    if (patchVault) {
+      await this.addTokenToAccountServices(token, account);
+    }
     this.auditService.recordAccountTokenLifecycle(
       req,
       payload,
@@ -219,12 +233,64 @@ export class AccountService {
         request,
         registryJwt.accountId.toString(),
         ttl,
+        false,
         creatorId,
         autoRenew,
       );
     } catch (e) {
       throw e;
     }
+  }
+
+  async addTokenToAccountServices(token: string, account: BrokerAccountDto) {
+    const downstreamServices =
+      await this.graphRepository.getDownstreamVertex<ServiceDto>(
+        account.vertex.toString(),
+        CollectionNameEnum.service,
+        3,
+      );
+    for (const service of downstreamServices) {
+      const serviceName = service.collection.name;
+      const projectDtoArr =
+        await this.graphRepository.getUpstreamVertex<ProjectDto>(
+          service.collection.vertex.toString(),
+          CollectionNameEnum.project,
+          null,
+        );
+      const projectName = projectDtoArr[0].collection.name;
+      try {
+        await this.addTokenToServiceTools(projectName, serviceName, {
+          [`broker-jwt:${account.clientId}`]: token,
+        });
+      } catch (err) {
+        // Log?
+      }
+    }
+  }
+
+  async addTokenToServiceTools(
+    projectName: string,
+    serviceName: string,
+    data: any,
+  ) {
+    const path = `tools/${projectName}/${serviceName}`;
+    return lastValueFrom(
+      this.vaultService.getKvSubkeys(VAULT_KV_APPS_MOUNT, path).pipe(
+        catchError((err) => {
+          if (err.response.status === 404) {
+            // Not found... so secret doc should be created rather than patched
+            return of(null);
+          }
+        }),
+        switchMap((subkeys) => {
+          if (subkeys) {
+            return this.vaultService.patchKv(VAULT_KV_APPS_MOUNT, path, data);
+          } else {
+            return this.vaultService.postKv(VAULT_KV_APPS_MOUNT, path, data);
+          }
+        }),
+      ),
+    );
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
