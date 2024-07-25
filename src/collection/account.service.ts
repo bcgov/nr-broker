@@ -128,6 +128,7 @@ export class AccountService {
     req: any,
     id: string,
     expirationInSeconds: number,
+    patchVault: boolean,
     creatorGuid: string,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
@@ -180,7 +181,9 @@ export class AccountService {
 
     const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
     await this.systemRepository.addJwtToRegister(id, payload, creatorId);
-    await this.addTokenToAccountServices(token, account);
+    if (patchVault) {
+      await this.addTokenToAccountServices(token, account);
+    }
     this.auditService.recordAccountTokenLifecycle(
       req,
       payload,
@@ -230,6 +233,7 @@ export class AccountService {
         request,
         registryJwt.accountId.toString(),
         ttl,
+        false,
         creatorId,
         autoRenew,
       );

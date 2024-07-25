@@ -1,13 +1,14 @@
 import { Component, Inject } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
+
 import { SystemApiService } from '../../service/system-api.service';
 
 interface ExpiryDay {
@@ -22,6 +23,7 @@ interface ExpiryDay {
     ClipboardModule,
     FormsModule,
     MatButtonModule,
+    MatCheckboxModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -39,6 +41,8 @@ export class AccountGenerateDialogComponent {
     { value: 7776000, viewValue: '90 days' },
     { value: 31536000, viewValue: '1 year' },
   ];
+  patchVaultTools = true;
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
@@ -50,7 +54,11 @@ export class AccountGenerateDialogComponent {
 
   generate() {
     this.systemApi
-      .generateAccountToken(this.data.accountId, this.selectedPeriod)
+      .generateAccountToken(
+        this.data.accountId,
+        this.selectedPeriod,
+        this.patchVaultTools,
+      )
       .subscribe((data) => {
         this.token = data.token;
       });
