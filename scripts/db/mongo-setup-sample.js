@@ -170,7 +170,7 @@ db.service.insertMany([
         enabled: true,
       },
       policyOptions: {
-        systemPolicies: ['system/admin-token', 'system/admin-audit-hash'],
+        systemPolicies: [],
       },
     },
   },

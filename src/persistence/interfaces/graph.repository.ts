@@ -82,6 +82,7 @@ export abstract class GraphRepository {
     edgeName?: string,
     edgeTarget?: string,
   ): Promise<VertexSearchDto[]>;
+  public abstract getUserConnectedVertex(id: string): Promise<string[]>;
   public abstract getVertexByParentIdAndName(
     collection: keyof CollectionDtoUnion,
     parentId: string,

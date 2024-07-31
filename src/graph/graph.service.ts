@@ -668,6 +668,19 @@ export class GraphService {
     }
   }
 
+  public async connectedVertex(request: Request) {
+    const userGuid: string = get(
+      (request as any).user.userinfo,
+      OAUTH2_CLIENT_MAP_GUID,
+    );
+    const user = await this.collectionRepository.getCollectionByKeyValue(
+      'user',
+      'guid',
+      userGuid,
+    );
+    return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
+  }
+
   public async deleteVertex(
     req: Request,
     id: string,

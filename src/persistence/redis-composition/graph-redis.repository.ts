@@ -205,6 +205,10 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.searchVertex(collection, edgeName, edgeTarget);
   }
 
+  public getUserConnectedVertex(id: string): Promise<string[]> {
+    return this.repo.getUserConnectedVertex(id);
+  }
+
   public getVertexByParentIdAndName(
     collection: keyof CollectionDtoUnion,
     parentId: string,

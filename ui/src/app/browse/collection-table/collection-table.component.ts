@@ -79,7 +79,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collectionFilter: CollectionNames = 'project';
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
-  canFilter = ['team', 'project', 'brokerAccount', 'service'];
+  canFilterConnected: string[] = [];
   showFilter: 'connected' | 'all' =
     this.preferences.get('browseConnectionFilter') ?? 'connected';
   showFilterOptions = [
@@ -116,6 +116,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.collectionFilter = this.route.snapshot.params['collection'];
     this.graphApi.getConfig().subscribe((config) => {
       this.config = config.filter((config) => config.permissions.browse);
+      this.canFilterConnected = config
+        .filter((config) => config.permissions.filter)
+        .map((config) => config.collection);
       this.collectionFilterOptions = this.config.map((config) => {
         return { value: config.collection, viewValue: config.name };
       });
@@ -166,7 +169,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                   ? { q: this.filterValue }
                   : {}),
                 ...(this.tagValue.length > 0 ? { tags: this.tagValue } : {}),
-                ...(this.canFilter.includes(this.collectionFilter) &&
+                ...(this.canFilterConnected.includes(this.collectionFilter) &&
                 this.showFilter === 'connected'
                   ? { upstreamVertex: this.user.vertex }
                   : {}),

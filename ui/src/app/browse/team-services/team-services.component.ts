@@ -8,12 +8,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-team-services',
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
     MatCardModule,
     MatDividerModule,
     MatIconModule,

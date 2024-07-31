@@ -50,7 +50,7 @@
         </mat-select>
       </mat-form-field>
     }
-    @if (canFilter.includes(collectionFilter)) {
+    @if (canFilterConnected.includes(collectionFilter)) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
         <mat-select
@@ -94,7 +94,7 @@
         <mat-card-title>No results found</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <p>Clear filter?</p>
+        <p>Clear filter or show all?</p>
       </mat-card-content>
     </mat-card>
   }

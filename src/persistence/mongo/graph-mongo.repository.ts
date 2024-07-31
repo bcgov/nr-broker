@@ -1015,6 +1015,41 @@ export class GraphMongoRepository implements GraphRepository {
       .toArray() as unknown as VertexSearchDto[];
   }
 
+  public async getUserConnectedVertex(id: string): Promise<string[]> {
+    const configs = await this.collectionConfigRepository.find({
+      'permissions.filter': true,
+    });
+    const canFilterConnected = configs.map((config) => config.index);
+
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'edge',
+            restrictSearchWithMatch: {
+              it: { $in: canFilterConnected },
+            },
+          },
+        },
+      ])
+      .toArray()
+      .then((connectedResult: any[]) => {
+        if (connectedResult.length === 0) {
+          return [];
+        }
+        const connectedVertex = connectedResult[0].edge.map((edge) =>
+          edge.target.toString(),
+        );
+        connectedVertex.push(id);
+        return connectedVertex;
+      });
+  }
+
   public async getVertexByParentIdAndName(
     collection: string,
     parentId: string,

@@ -66,6 +66,15 @@ export class GraphApiService {
     );
   }
 
+  getVertexConnected() {
+    return this.http.post<string[]>(
+      `${environment.apiUrl}/v1/graph/vertex/connected`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   getConfig() {
     return from([this.configArr]);
   }

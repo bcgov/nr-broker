@@ -121,6 +121,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: false,
+    filter: false,
     update: true,
     delete: false,
   },
@@ -188,6 +189,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: true,
+    filter: true,
     update: true,
     delete: true,
   },
@@ -264,6 +266,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: true,
+    filter: true,
     update: true,
     delete: true,
   },
@@ -330,6 +333,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: false,
     create: true,
+    filter: false,
     update: true,
     delete: true,
   },
@@ -431,6 +435,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: false,
+    filter: false,
     update: false,
     delete: true,
   },
@@ -532,6 +537,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: true,
+    filter: true,
     update: true,
     delete: true,
   },
@@ -596,6 +602,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: true,
+    filter: true,
     update: true,
     delete: true,
   },
@@ -689,6 +696,7 @@ result = db.collectionConfig.insertOne({
   permissions: {
     browse: true,
     create: true,
+    filter: false,
     update: true,
     delete: true,
   },
