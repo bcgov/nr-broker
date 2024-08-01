@@ -77,6 +77,7 @@ export class CollectionConfigParent {
 export class CollectionConfigPermissions {
   browse!: boolean;
   create!: boolean;
+  filter!: boolean;
   update!: boolean;
   delete!: boolean;
 }

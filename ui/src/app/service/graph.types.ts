@@ -3,12 +3,14 @@ import {
   CollectionEdgeConfig,
   CollectionFieldConfig,
 } from './dto/collection-config-rest.dto';
+import { CollectionNames } from './dto/collection-dto-union.type';
 import {
   GraphDataResponseEdgeDto,
   GraphDataResponseDto,
   GraphDataResponseVertexDto,
 } from './dto/graph-data.dto';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
+import { VertexRestDto } from './dto/vertex-rest.dto';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;
@@ -32,6 +34,22 @@ export interface ChartClickTargetVertex {
 export interface ChartClickTargetEdge {
   type: 'edge';
   data: GraphDataResponseEdgeDto;
+}
+
+export type InspectorTarget = InspectorTargetVertex | InspectorTargetEdge;
+
+export interface InspectorTargetVertex {
+  type: 'vertex';
+  id: string;
+  collection: CollectionNames;
+  data?: VertexRestDto;
+}
+
+export interface InspectorTargetEdge {
+  type: 'edge';
+  id: string;
+  source: string;
+  target: string;
 }
 
 export interface GraphDataVertex extends GraphDataResponseVertexDto {

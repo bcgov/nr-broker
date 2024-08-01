@@ -54,6 +54,7 @@ export class CollectionConfigDto {
   permissions: {
     browse: boolean;
     create: boolean;
+    filter: boolean;
     update: boolean;
     delete: boolean;
   };

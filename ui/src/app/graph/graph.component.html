@@ -4,21 +4,47 @@
     <button mat-icon-button class="add" aria-label="Add Vertex" (click)="addVertex()" [disabled]="!permission.hasAdmin()">
       <mat-icon>add</mat-icon>
     </button>
-    <button mat-icon-button class="refresh" aria-label="Refresh Data" (click)="refreshData()">
-      <mat-icon>refresh</mat-icon>
-    </button>
+    @if (showFilter == 'connected') {
+      <button
+        mat-icon-button
+        class="filter"
+        aria-label="Toggle connected filter"
+        matTooltip="Show all"
+        matTooltipShowDelay="500"
+        (click)="toggleFilter()">
+        <mat-icon>filter_alt</mat-icon>
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        class="filter"
+        aria-label="Toggle connected filter"
+        matTooltip="Filter to connected"
+        matTooltipShowDelay="500"
+        (click)="toggleFilter()">
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    }
     <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
       <mat-icon>more_vert</mat-icon>
     </button>
 
     <mat-menu #menu="matMenu">
-      <button mat-menu-item [matMenuTriggerFor]="vertex"><mat-icon>scatter_plot</mat-icon>Vertex</button>
-      <button mat-menu-item [matMenuTriggerFor]="edge"><mat-icon>airline_stops</mat-icon>Edge</button>
-      <button mat-menu-item (click)="resetGraphVisibility()"><mat-icon>undo</mat-icon>Reset</button>
+      <button
+        mat-menu-item
+        [matMenuTriggerFor]="vertex"><mat-icon>scatter_plot</mat-icon>Vertex</button>
+      <button
+        mat-menu-item
+        [matMenuTriggerFor]="edge"><mat-icon>airline_stops</mat-icon>Edge</button>
+      <button
+        mat-menu-item
+        (click)="resetGraphVisibility()"><mat-icon>undo</mat-icon>Reset</button>
     </mat-menu>
     <mat-menu #vertex="matMenu">
-      @for (item of latestConfig | keyvalue; track item.value.id) {
-        <button mat-menu-item (click)="toggleVertex(item.value.collection)">@if (isCollectionVisible(item.value.collection)) {
+      @for (item of configMap | keyvalue; track item.value.id) {
+        <button
+          mat-menu-item
+          (click)="toggleVertex(item.value.collection)">@if (isCollectionVisible(item.value.collection)) {
           <mat-icon>check_box</mat-icon>
         } @else {
           <mat-icon>check_box_outline_blank</mat-icon>
@@ -27,18 +53,22 @@
       </mat-menu>
 
       <mat-menu #edge="matMenu">
-        @if (latestConfig) {
-          @for (item of latestConfig | keyvalue; track item.value.id) {
+        @if (configMap) {
+          @for (item of configMap | keyvalue; track item.value.id) {
             @if (item.value.edges && item.value.edges.length > 0) {
-              <button mat-menu-item [matMenuTriggerFor]="edgeList">{{item.value.name}}</button>
+              <button
+                mat-menu-item
+                [matMenuTriggerFor]="edgeList">{{item.value.name}}</button>
             }
             <mat-menu #edgeList="matMenu">
               @for (edge of item.value.edges; track edge.id) {
-                <button mat-menu-item (click)="toggleEdge(item.value, edge)">@if (isEdgeVisible(item.value, edge)) {
+                <button
+                  mat-menu-item
+                  (click)="toggleEdge(item.value, edge)">@if (isEdgeVisible(item.value, edge)) {
                   <mat-icon>check_box</mat-icon>
                 } @else {
                   <mat-icon>check_box_outline_blank</mat-icon>
-                  }<span>{{latestConfig[edge.collection].name}} - {{edge.name}}</span></button>
+                  }<span>{{configMap[edge.collection].name}} - {{edge.name}}</span></button>
                 }
               </mat-menu>
             }
@@ -46,12 +76,11 @@
         </mat-menu>
         <app-echarts
           [dataConfig]="data"
-          (selected)="onGraphSelected($event)"
+          (selected)="onChartSelected($event)"
           (legendChanged)="onLegendChanged($event)"></app-echarts>
       </div>
       <div class="graph-flex-inspector">
         <app-inspector
-          [target]="selected"
-          (selected)="onSelected($event)"></app-inspector>
+          [target]="selected"></app-inspector>
       </div>
     </div>

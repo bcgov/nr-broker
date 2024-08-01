@@ -244,6 +244,13 @@ export class GraphController {
     return this.graph.searchVertex(collection, edgeName, edgeTarget);
   }
 
+  @Post('vertex/connected')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  connectedVertex(@Req() request: Request) {
+    return this.graph.connectedVertex(request);
+  }
+
   @Put('vertex/:id')
   @Roles('admin')
   @AllowOwner({

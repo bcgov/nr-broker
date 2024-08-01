@@ -1,11 +1,9 @@
 import {
   Component,
-  EventEmitter,
   Inject,
   Input,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
 } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -27,14 +25,14 @@ import {
   switchMap,
 } from 'rxjs';
 import {
-  ChartClickTarget,
   Connection,
   VertexNavigation,
   GraphDataVertex,
   UserDto,
   CollectionConfigMap,
-  ChartClickTargetEdge,
-  ChartClickTargetVertex,
+  InspectorTarget,
+  InspectorTargetEdge,
+  InspectorTargetVertex,
 } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
@@ -90,9 +88,8 @@ import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
-  @Input() target!: ChartClickTarget | undefined;
-  targetSubject = new BehaviorSubject<ChartClickTarget | undefined>(undefined);
-  @Output() selected = new EventEmitter<ChartClickTarget>();
+  @Input() target!: InspectorTarget | undefined;
+  targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
 
   public comboData!: CollectionCombo<any> | EdgeComboRestDto | null;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
@@ -146,8 +143,7 @@ export class InspectorComponent implements OnChanges, OnInit {
       if (!target) {
         return;
       }
-      const targetId =
-        target.type === 'edge' ? target.data.target : target.data.id;
+      const targetId = target.type === 'edge' ? target.target : target.id;
       this.hasDelete = this.permission.hasDelete(permissions, targetId);
       this.hasUpdate = this.permission.hasUpdate(permissions, targetId);
       this.hasSudo = this.permission.hasSudo(permissions, targetId);
@@ -158,10 +154,7 @@ export class InspectorComponent implements OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges) {
     const targetChange = changes['target'];
-    if (
-      targetChange &&
-      this.target?.data.id !== targetChange.previousValue?.data?.id
-    ) {
+    if (targetChange && this.target?.id !== targetChange.previousValue?.id) {
       this.comboData = null;
       if (this.target) {
         this.targetSubject.next(this.target);
@@ -173,7 +166,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     if (!this.target) {
       return '';
     }
-    return this.target.data.id;
+    return this.target.id;
   }
 
   selectEdge(id: string) {
@@ -325,8 +318,8 @@ export class InspectorComponent implements OnChanges, OnInit {
         if (this.target && result && result.confirm) {
           const obs =
             this.target.type === 'vertex'
-              ? this.graphApi.deleteVertex(this.target.data.id)
-              : this.graphApi.deleteEdge(this.target.data.id);
+              ? this.graphApi.deleteVertex(this.target.id)
+              : this.graphApi.deleteEdge(this.target.id);
 
           obs.subscribe(() => {
             // this.refreshData();
@@ -350,13 +343,11 @@ export class InspectorComponent implements OnChanges, OnInit {
     this.preferences.set('graphFollows', this.navigationFollows);
   }
 
-  getVertexTargetData(target: ChartClickTargetVertex) {
+  getVertexTargetData(target: InspectorTargetVertex) {
     if (target.type === 'vertex') {
-      const vertex = target.data;
-
       return this.collectionApi
-        .searchCollection(vertex.collection, {
-          vertexId: vertex.id,
+        .searchCollection(target.collection, {
+          vertexId: target.id,
           offset: 0,
           limit: 1,
         })
@@ -370,13 +361,11 @@ export class InspectorComponent implements OnChanges, OnInit {
     return of(null);
   }
 
-  getEdgeTargetData(
-    target: ChartClickTargetEdge,
-  ): Observable<EdgeComboRestDto> {
+  getEdgeTargetData(target: InspectorTargetEdge): Observable<EdgeComboRestDto> {
     return combineLatest({
-      edge: this.graphApi.getEdge(target.data.id),
-      source: this.graphApi.getVertex(target.data.source),
-      target: this.graphApi.getVertex(target.data.target),
+      edge: this.graphApi.getEdge(target.id),
+      source: this.graphApi.getVertex(target.source),
+      target: this.graphApi.getVertex(target.target),
     }).pipe(
       map((data) => {
         return {
@@ -391,7 +380,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     if (!this.target || this.target.type !== 'vertex') {
       return '';
     }
-    return this.configMap[this.target.data.collection].fields[key].type;
+    return this.configMap[this.target.collection].fields[key].type;
   }
 
   refreshData() {

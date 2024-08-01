@@ -14,15 +14,15 @@
             {{target.type | titlecase}}
           }
           @if (target && target.type === 'vertex') {
-            - {{configMap[target.data.collection].name}}
+            - {{configMap[target.collection].name}}
           }
         </mat-card-subtitle>
         <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
           @if (comboData && comboData.type === 'vertex') {
             <span class="inspector-header-link" routerLink="/browse/{{comboData.vertex.collection}}/{{comboData.collection.id}}">{{comboData.vertex.name}}</span>
           }
-          @if (target && target.type === 'edge') {
-            {{target.data.name | titlecase}}
+          @if (comboData && comboData.type === 'edge') {
+            {{comboData.edge.name | titlecase}}
           }
           @if (!target) {
             Inspector
@@ -43,7 +43,7 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!hasUpdate || (target.type === 'vertex' && !configMap[target.data.collection].permissions.update)"
+              [disabled]="!hasUpdate || (target.type === 'vertex' && !configMap[target.collection].permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
@@ -60,7 +60,7 @@
             @if (target.type === 'vertex') {
               <button
                 mat-menu-item
-                [disabled]="!hasUpdate || (!configMap[target.data.collection].permissions.update)"
+                [disabled]="!hasUpdate || (!configMap[target.collection].permissions.update)"
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
@@ -83,7 +83,7 @@
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!hasDelete || (target.type === 'vertex' && !configMap[target.data.collection].permissions.delete)"
+              [disabled]="!hasDelete || (target.type === 'vertex' && !configMap[target.collection].permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
