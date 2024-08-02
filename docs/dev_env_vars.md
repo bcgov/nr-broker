@@ -110,6 +110,14 @@ The MongoDB environment variables used to setup the connection.
 | MONGODB_USERNAME |  | Yes | The username to substitute for the text '{{username}}' in MONGODB_URL. |
 | MONGODB_PASSWORD |  | Yes | The password to substitute for the text '{{password}}' in MONGODB_URL. |
 
+## OpenSearch Integration
+
+The OpenSearch environment variables used to integrate with it.
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| OPENSEARCH_INDEX_BROKER_AUDIT |  |  | The OpenSearch index pattern containing the forwarded audit logs. |
+
 ## Redis
 
 The Redis environment variables used to setup the connection.

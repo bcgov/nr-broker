@@ -615,6 +615,49 @@ result = db.collectionConfig.insertOne({
   collectionVertexName: 'name',
   index: 7,
   edges: [],
+  sync: {
+    index: 'nrm-metrics-d',
+    unique: 'host.hostname',
+    map: {
+      'host.hostname': {
+        type: 'first',
+        dest: 'name',
+      },
+      'host.architecture': {
+        type: 'first',
+        dest: 'architecture',
+      },
+      'host.name': {
+        type: 'pick',
+        endsWith: ['bcgov', 'dmz'],
+        dest: 'hostName',
+      },
+      'host.os.family': {
+        type: 'first',
+        dest: 'osFamily',
+      },
+      'host.os.full': {
+        type: 'first',
+        dest: 'osFull',
+      },
+      'host.os.kernel': {
+        type: 'first',
+        dest: 'osKernel',
+      },
+      'host.os.name': {
+        type: 'first',
+        dest: 'osName',
+      },
+      'host.os.type': {
+        type: 'first',
+        dest: 'osType',
+      },
+      'host.os.version': {
+        type: 'first',
+        dest: 'osVersion',
+      },
+    },
+  },
   fields: {
     name: {
       name: 'Name',
@@ -628,6 +671,7 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'date',
       hint: 'The date when the server was acquired',
+      init: 'now',
     },
     architecture: {
       name: 'Architecture',
@@ -659,7 +703,7 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'OS string containing things like name, version, code name',
     },
-    osKernal: {
+    osKernel: {
       name: 'OS Kernel',
       required: false,
       type: 'string',

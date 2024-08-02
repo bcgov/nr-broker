@@ -153,12 +153,17 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   }
       //   fieldCtrls[f.key] = new FormGroup(opts);
       // }
-      if (f.init && f.init === 'uuid') {
+      if (f.init) {
         if (!this.data) {
           this.data = {};
         }
-        if (!this.data[f.key]) {
-          this.data[f.key] = uuidv4();
+        if (f.init === 'uuid') {
+          if (!this.data[f.key]) {
+            this.data[f.key] = uuidv4();
+          }
+        }
+        if (f.init === 'now') {
+          this.data[f.key] = new Date();
         }
       }
     }

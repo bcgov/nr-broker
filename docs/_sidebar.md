@@ -14,7 +14,7 @@
 
 * Operations
 ** [Manage my Team](/ops_manage_team.md)
-** [Understanding the Audit Log](/audit.md)
+** [Understanding the Audit Log](/operations_audit.md)
 ** [JWT Reference](/operations_jwt.md)
 
 * Development
@@ -28,6 +28,7 @@
 
 * Deploy
 ** [Broker Token](/dev_broker_token.md)
+** [OpenSearch Integration](/operations_opensearch.md)
 ** [Environment Variables](/dev_env_vars.md)
 
 * Reference
