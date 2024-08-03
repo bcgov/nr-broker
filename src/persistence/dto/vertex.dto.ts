@@ -95,6 +95,7 @@ export class VertexDto {
         return plainToInstance(UserDto, vertex.data);
       default:
         // If this is an error then not all collection types are above
+        // eslint-disable-next-line no-case-declarations
         const _exhaustiveCheck: never = vertex.collection;
         return _exhaustiveCheck;
     }
