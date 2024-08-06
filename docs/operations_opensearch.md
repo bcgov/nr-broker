@@ -10,9 +10,9 @@ In order to integrate with OpenSearch, Broker requires the environment variable 
 
 ## Collection Sync
 
-Broker can synchronize collections with unique names from an index.  searches for unique name values from the past 12 hours and iterates over them. A document is sampled for each value, and an entry for the collection is upserted into Broker.
+The broker can synchronize collections with unique names from an index. It searches for unique names from the past 12 hours and iterates over them. For each value, a document is sampled, and an entry for the collection is upserted into the broker.
 
-This is configured by adding a `sync` field to the collectionConfig document for the collection you want to synchronize. You must specify the `index` to query, the unique name value in the source index, and a mapping from the document to the collection.
+This is configured by adding a `sync` field to the `collectionConfig` document for the collection you want to synchronize. You must specify the index to query, the unique name value in the source index, and a mapping for the fields from the document to the collection.
 
 ## Index Patterns
 
