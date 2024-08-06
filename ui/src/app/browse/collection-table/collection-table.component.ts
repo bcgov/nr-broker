@@ -24,8 +24,8 @@ import {
   tap,
 } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
+import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
+import { CollectionConfigMap, UserDto } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
@@ -41,6 +41,7 @@ import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dial
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
 import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
 import { PreferencesService } from '../../preferences.service';
+import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 
 interface filterOptions<T> {
   value: T;
@@ -63,6 +64,7 @@ interface filterOptions<T> {
     MatTableModule,
     ReactiveFormsModule,
     RouterModule,
+    InspectorVertexFieldComponent,
   ],
   templateUrl: './collection-table.component.html',
   styleUrl: './collection-table.component.scss',
@@ -109,7 +111,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
-    public graphUtil: GraphUtilService,
+    public readonly graphUtil: GraphUtilService,
+    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit(): void {
@@ -367,5 +370,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.refresh();
       });
+  }
+
+  getFieldType(key: string) {
+    if (!this.configMap[this.collectionFilter]) {
+      return '';
+    }
+    return this.configMap[this.collectionFilter].fields[key]?.type;
   }
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { DatePipe, KeyValuePipe } from '@angular/common';
+import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
@@ -7,11 +7,12 @@ import {
   CollectionDtoRestUnion,
   CollectionNames,
 } from '../../service/dto/collection-dto-union.type';
+import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspector-vertex-field.component';
 
 @Component({
   selector: 'app-inspector-vertex-fields',
   standalone: true,
-  imports: [DatePipe, KeyValuePipe, MatTableModule],
+  imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
   templateUrl: './inspector-vertex-fields.component.html',
   styleUrl: './inspector-vertex-fields.component.scss',
 })
