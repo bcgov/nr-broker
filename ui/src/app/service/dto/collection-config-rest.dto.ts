@@ -38,7 +38,7 @@ export type CollectionEdgeInstanceConfig = Omit<
 
 export class CollectionFieldConfig {
   hint?: string;
-  init?: 'uuid';
+  init?: 'uuid' | 'now';
   mask?: {
     [Property in UserPermissionNames]?: boolean | string[];
   };
@@ -90,6 +90,7 @@ export class CollectionConfigRestDto {
   collectionVertexName!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  graphVertexOmit?: boolean;
   index!: number;
   name!: string;
   parent!: CollectionConfigParent;
@@ -106,6 +107,23 @@ export class LinksAltRestDto {
 export class LinksRestDto {
   default!: string;
   alt?: LinksAltRestDto[];
+}
+
+export class CollectionSyncConfig {
+  index!: string;
+  unique!: string;
+  map!: {
+    [key: string]:
+      | {
+          type: 'first';
+          dest: string;
+        }
+      | {
+          type: 'pick';
+          endsWith: string[];
+          dest: string;
+        };
+  };
 }
 
 export type CollectionConfigInstanceRestDto = Omit<

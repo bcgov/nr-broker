@@ -5,8 +5,10 @@ import {
   CollectionEdgeInstanceConfig,
   CollectionFieldConfigMap,
   CollectionMap,
+  CollectionSyncConfig,
 } from './collection-config-rest.dto';
 import { EdgeDto } from './edge.dto';
+import { CollectionDtoUnion } from './collection-dto-union.type';
 
 @Entity({ name: 'collectionConfig' })
 export class CollectionConfigDto {
@@ -19,7 +21,8 @@ export class CollectionConfigDto {
 
   @Column()
   @Index()
-  collection: string;
+  @ApiProperty({ type: () => String })
+  collection: keyof CollectionDtoUnion;
 
   @Column()
   collectionMapper: CollectionMap[];
@@ -61,6 +64,9 @@ export class CollectionConfigDto {
 
   @Column()
   show: boolean;
+
+  @Column()
+  sync?: CollectionSyncConfig;
 }
 
 export type CollectionConfigInstanceDto = Omit<CollectionConfigDto, 'edges'> & {

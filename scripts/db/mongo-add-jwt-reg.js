@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const account = db.brokerAccount.findOne({ name: 'localhost' });
 const user = db.user.findOne({});
 

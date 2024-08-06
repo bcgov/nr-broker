@@ -7,6 +7,8 @@
 // 1: JWT sub(ject)
 // 2: JWT client_id (optional -- random one generated if not set)
 
+/* eslint-disable no-undef */
+
 import { createHmac, randomUUID } from 'node:crypto';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';

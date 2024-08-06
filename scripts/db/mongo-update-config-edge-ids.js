@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 db.collectionConfig.find().forEach((doc) => {
   if (!doc.edges) {
     doc.edges = [];

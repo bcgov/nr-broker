@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 db.service.drop();
 db.vertex.drop();
 db.edge.drop();
@@ -628,6 +629,7 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'date',
       hint: 'The date when the server was acquired',
+      init: 'now',
     },
     architecture: {
       name: 'Architecture',
@@ -659,7 +661,7 @@ result = db.collectionConfig.insertOne({
       type: 'string',
       hint: 'OS string containing things like name, version, code name',
     },
-    osKernal: {
+    osKernel: {
       name: 'OS Kernel',
       required: false,
       type: 'string',

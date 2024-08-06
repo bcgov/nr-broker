@@ -19,8 +19,10 @@ import { Request } from 'express';
 import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 
-import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { GraphService } from './graph.service';
+import { GraphSyncService } from './graph-sync/graph-sync.service';
+import { RedisService } from '../redis/redis.service';
+import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
@@ -36,7 +38,6 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
-import { RedisService } from '../redis/redis.service';
 import { REDIS_PUBSUB } from '../constants';
 
 @Controller({
@@ -46,6 +47,7 @@ import { REDIS_PUBSUB } from '../constants';
 export class GraphController {
   constructor(
     private readonly graph: GraphService,
+    private readonly graphSync: GraphSyncService,
     private readonly redis: RedisService,
   ) {}
 
@@ -112,11 +114,19 @@ export class GraphController {
   }
 
   @Post('reindex-cache')
-  @UseGuards(BrokerCombinedAuthGuard)
+  @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
   @Roles('admin')
   cacheReset() {
     return this.graph.reindexCache();
+  }
+
+  @Post('sync-collection')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  @Roles('admin')
+  syncCollection() {
+    return this.graphSync.runCollectionSync();
   }
 
   @Post('edge')
