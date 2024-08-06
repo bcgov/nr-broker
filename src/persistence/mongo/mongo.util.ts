@@ -54,6 +54,7 @@ export function getRepositoryFromCollectionName<
       >;
     default:
       // If this is an error then not all collection types are above
+      // eslint-disable-next-line no-case-declarations
       const _exhaustiveCheck: never = name;
       return _exhaustiveCheck;
   }
@@ -72,6 +73,9 @@ export function extractId(obj: any): ObjectId {
 }
 
 export function arrayIdFixer(array: any[]) {
+  if (!Array.isArray(array)) {
+    return;
+  }
   for (const item of array) {
     item.id = item._id;
     delete item._id;

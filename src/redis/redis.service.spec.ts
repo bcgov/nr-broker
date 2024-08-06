@@ -13,6 +13,7 @@ describe('RedisService', () => {
           useValue: {
             duplicate: () => ({
               on: jest.fn(),
+              // eslint-disable-next-line @typescript-eslint/no-empty-function
               connect: () => new Promise(() => {}),
             }),
           },

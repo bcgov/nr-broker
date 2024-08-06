@@ -204,42 +204,37 @@ export class AccountService {
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
     const actionFailures: ActionError[] = [];
-    try {
-      const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
-      const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
-        brokerJwt.jti,
-      );
-      if (registryJwt && registryJwt.blocked) {
-        // JWT should by in block list anyway
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Authorization failed',
-          error: actionFailures,
-        });
-      }
-      const user = await this.collectionRepository.getCollectionById(
-        'user',
-        registryJwt.createdUserId.toString(),
-      );
-
-      let creatorId: string;
-      if (user) creatorId = user.guid;
-      else {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        creatorId = randomUUID().replace(/-/g, '').substring(0, 12);
-      }
-
-      return this.generateAccountToken(
-        request,
-        registryJwt.accountId.toString(),
-        ttl,
-        false,
-        creatorId,
-        autoRenew,
-      );
-    } catch (e) {
-      throw e;
+    const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
+    const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
+      brokerJwt.jti,
+    );
+    if (registryJwt && registryJwt.blocked) {
+      // JWT should by in block list anyway
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Authorization failed',
+        error: actionFailures,
+      });
     }
+    const user = await this.collectionRepository.getCollectionById(
+      'user',
+      registryJwt.createdUserId.toString(),
+    );
+
+    let creatorId: string;
+    if (user) creatorId = user.guid;
+    else {
+      creatorId = randomUUID().replace(/-/g, '').substring(0, 12);
+    }
+
+    return this.generateAccountToken(
+      request,
+      registryJwt.accountId.toString(),
+      ttl,
+      false,
+      creatorId,
+      autoRenew,
+    );
   }
 
   async addTokenToAccountServices(token: string, account: BrokerAccountDto) {

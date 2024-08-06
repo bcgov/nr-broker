@@ -24,7 +24,6 @@ export class VaultActorPoliciesDto {
   };
 }
 
-/* eslint-disable camelcase -- Library code style issue */
 export class VaultConfigApproleDto {
   // non-standard
   @IsBoolean()
@@ -78,7 +77,6 @@ export class VaultConfigApproleDto {
   @Column()
   token_type?: string;
 }
-/* eslint-enable camelcase */
 
 export class VaultPolicyOptions {
   /** True if an application kv policies should be able to read project kv secrets */

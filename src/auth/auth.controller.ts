@@ -31,10 +31,8 @@ export class AuthController {
   @Get('/logout')
   async logout(@Request() req: ExpressRequest, @Res() res: Response) {
     const id_token = req.user ? (req.user as any).id_token : undefined;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     req.logout(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      req.session.destroy(async (error: any) => {
+      req.session.destroy(async () => {
         const TrustIssuer = await Issuer.discover(
           `${process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER}/.well-known/openid-configuration`,
         );

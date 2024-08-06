@@ -72,11 +72,9 @@ export class AwsService {
   }> {
     const signedHttpRequest = await this.createSignedHttpRequest(HttpRequest);
     const nodeHttpHandler = new NodeHttpHandler();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return nodeHttpHandler.handle(signedHttpRequest as any);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async createSignedHttpRequest(httpRequest: HttpRequest) {
     const sigV4Init = {
       credentials: defaultProvider(),

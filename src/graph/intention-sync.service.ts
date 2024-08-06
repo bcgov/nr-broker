@@ -323,7 +323,9 @@ export class IntentionSyncService {
           target: target,
           ...(prop ? { prop } : {}),
         });
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
     }
   }
 }
