@@ -1,0 +1,34 @@
+<span class="ellipsis">
+  @switch (type) {
+      @case ('boolean') {
+        @if (value) {
+          Yes
+        } @else {
+          No
+        }
+      }
+      @case ('date') {
+        {{value | date:'shortDate':'UTC'}}
+      }
+      @case ('email') {
+        {{value}}
+      }
+      @case ('json') {
+        {{value}}
+      }
+      @case ('number') {
+        {{value}}
+      }
+      @case ('string') {
+        {{value}}
+      }
+      @case ('stringArray') {
+        {{value.join(', ')}}
+      }
+      @case ('url') {
+        <a href="{{value}}" target="_blank">{{value}}</a>
+      }
+      @default {
+      }
+  }
+</span>
