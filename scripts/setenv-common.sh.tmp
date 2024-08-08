@@ -9,6 +9,7 @@ fi
 export BROKER_ENV=$1
 export VAULT_ENV=$1
 
+export AWS_OPENSEARCH_HOST=
 export BROKER_URL=$(
 if [ -n "$BROKER_ENV" ]
   then
@@ -34,7 +35,6 @@ fi
 
 # The index (or alias) to search for documents of the type
 export OPENSEARCH_INDEX_BROKER_AUDIT=audit-broker
-export OPENSEARCH_INDEX_HTTP_ACCESS=http-access
 
 # If set, documents of the type are sent with the @metadata.index set to the value (Debugging/local)
 export BROKER_AUDIT_INDEX_BROKER_AUDIT=audit-test-broker-audit
