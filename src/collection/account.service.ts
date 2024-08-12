@@ -266,6 +266,7 @@ export class AccountService {
             environment: 'tools',
             project: projectName,
             service: serviceName,
+            scmUrl: service.collection.scmUrl,
           },
         });
       } catch (err) {
