@@ -14,6 +14,7 @@ import {
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
   VAULT_KV_APPS_MOUNT,
+  REDIS_PUBSUB,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
@@ -24,6 +25,7 @@ import { ServiceDto } from '../persistence/dto/service.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 
 export class TokenCreateDTO {
@@ -36,6 +38,7 @@ export class AccountService {
     private readonly auditService: AuditService,
     private readonly opensearchService: OpensearchService,
     private readonly vaultService: VaultService,
+    private readonly redisService: RedisService,
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
@@ -256,6 +259,15 @@ export class AccountService {
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
           [`broker-jwt:${account.clientId}`]: token,
+        });
+        this.redisService.publish(REDIS_PUBSUB.VAULT_SERVICE_TOKEN, {
+          data: {
+            clientId: account.clientId,
+            environment: 'tools',
+            project: projectName,
+            service: serviceName,
+            scmUrl: service.collection.scmUrl,
+          },
         });
       } catch (err) {
         // Log?
