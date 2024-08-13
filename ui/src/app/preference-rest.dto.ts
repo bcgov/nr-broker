@@ -4,4 +4,5 @@ export interface PreferenceRestDto {
   graphFollows: 'edge' | 'vertex';
   graphVertexVisibility: { [key: string]: boolean };
   graphEdgeSrcTarVisibility: { [key: string]: boolean };
+  homeSectionTab: number;
 }

@@ -20,6 +20,13 @@ body {
   gap: 16px;
 }
 
+.tab-flex {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .content .cards {
   display: flex;
   flex-direction: column;
@@ -27,9 +34,14 @@ body {
   justify-content: center;
 }
 
+.tab-content a {
+  text-decoration: underline;
+}
+
 mat-card {
   flex: 0 1 calc(75% - 1em);
   margin: 15px;
+  min-width: 400px;
   max-width: 400px;
   transition: all .2s ease-in-out;
   cursor: pointer;
@@ -45,6 +57,14 @@ mat-card a {
 
 mat-card-header {
   justify-content: center;
+  text-align: center;
+}
+
+mat-card-content {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #555;
 }
 
 @media only screen and (min-width: 600px) {
@@ -62,4 +82,13 @@ mat-card-header {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.title-icon {
+  margin-bottom: 8px;
+}
+
+.tab-content {
+  margin-top: 8px;
+  max-width: 600px;
 }
