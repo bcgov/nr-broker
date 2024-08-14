@@ -3,61 +3,111 @@
     <img src="apple-touch-icon.png" width="90" height="90" />
     <h1>NR Broker UI</h1>
   </div>
-  <div class="cards">
 
-    <mat-card>
-      <a routerLink="/graph">
-        <mat-card-header>
-          <mat-card-title>Graph</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            Visualize and inspect projects, services and accounts.
-          </p>
-        </mat-card-content>
-      </a>
-    </mat-card>
+  <mat-tab-group
+    mat-stretch-tabs="false"
+    mat-align-tabs="center"
+    [selectedIndex]="selectedTabIndex"
+    (selectedIndexChange)="setSelectedTabIndex($event)">
+    <mat-tab label="Welcome">
 
-    <mat-card>
-      <a routerLink="/browse">
-        <mat-card-header>
-          <mat-card-title>Browse</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            View data tables and search.
-          </p>
-        </mat-card-content>
-      </a>
-    </mat-card>
+      <div class="tab-flex">
+        <div class="tab-content">
 
-    <mat-card>
-      <a routerLink="/browse/team">
-        <mat-card-header>
-          <mat-card-title>Teams</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            View and update your teams.
-          </p>
-        </mat-card-content>
-      </a>
-    </mat-card>
+          <p>NR Broker is a customizable software deployment business intelligence tool. It automates access to secrets stored in HashiCorp Vault by software (applications, GitHub Actions, etc.), audits activities (builds, installations, provisioning secrets, etc.) and enables access automation.</p>
 
-    <mat-card>
-      <a routerLink="/intention/history">
-        <mat-card-header>
-          <mat-card-title>History</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            View and audit automated service deployment, provisioning and more.
-          </p>
-        </mat-card-content>
-      </a>
-    </mat-card>
+          <p>Broker stores details of collection objects (projects, services, accounts, users, and more) in a database. It uses connections (edges) to connect these objects (vertices) together into a graph.</p>
 
-  </div>
+          <p>New users may wish to review their <a href="#" routerLink="/browse/team">team membership</a> in Broker. You can filter objects in the browse and graph sections based on if you are connected to them. External services will use your team's connections to determine your access.</p>
+
+          <button mat-stroked-button (click)="setSelectedTabIndex(1)" >
+            <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+            Sections
+          </button>
+        </div>
+      </div>
+
+    </mat-tab>
+    <mat-tab label="Sections">
+      <div class="cards">
+
+        <mat-card>
+          <a routerLink="/browse">
+            <mat-card-header>
+              <mat-card-title>
+                <button class="title-icon" mat-fab aria-label="Browse" color="primary">
+                  <mat-icon>table_view</mat-icon>
+                </button>
+                <div>Browse</div>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                View, filter, and sort collection objects in a table. View details of specific objects and their connections.
+              </p>
+            </mat-card-content>
+          </a>
+        </mat-card>
+
+        <mat-card>
+          <a routerLink="/graph">
+            <mat-card-header>
+              <mat-card-title>
+                <button class="title-icon" mat-fab aria-label="Graph" color="primary">
+                  <mat-icon>account_tree</mat-icon>
+                </button>
+                <div>Graph</div></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                Visualize the connections between collection objects. Inspect objects and connection properties.
+              </p>
+            </mat-card-content>
+          </a>
+        </mat-card>
+
+        <mat-card>
+          <a routerLink="/intention/history">
+            <mat-card-header>
+              <mat-card-title>
+                <button class="title-icon" mat-fab aria-label="Graph"
+                color="primary">
+                  <mat-icon>history</mat-icon>
+                </button>
+                <div>History</div>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                View audit of service automation, deployments, provisioning and other activities.
+              </p>
+            </mat-card-content>
+          </a>
+        </mat-card>
+
+        <mat-card>
+          <a routerLink="/browse/team">
+            <mat-card-header>
+              <mat-card-title>
+                <button class="title-icon" mat-fab aria-label="Team" color="primary">
+                  <mat-icon>groups</mat-icon>
+                </button>
+                <div>Teams</div>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                View and update your teams.
+              </p>
+            </mat-card-content>
+          </a>
+        </mat-card>
+
+      </div>
+
+    </mat-tab>
+  </mat-tab-group>
+
 
   <h2>External Services</h2>
 

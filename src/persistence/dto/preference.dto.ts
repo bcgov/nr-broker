@@ -24,12 +24,16 @@ export class PreferenceDto {
   @Column()
   graphEdgeSrcTarVisibility: { [key: string]: boolean } = {};
 
+  @Column()
+  homeSectionTab: number;
+
   public toRestDto(): PreferenceRestDto {
     return {
       browseConnectionFilter: this.browseConnectionFilter ?? 'connected',
       graphFollows: this.graphFollows,
       graphVertexVisibility: this.graphVertexVisibility,
       graphEdgeSrcTarVisibility: this.graphEdgeSrcTarVisibility,
+      homeSectionTab: this.homeSectionTab ?? 0,
     };
   }
 }
