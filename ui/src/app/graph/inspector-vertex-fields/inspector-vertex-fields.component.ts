@@ -39,7 +39,7 @@ export class InspectorVertexFieldsComponent implements OnChanges {
       };
 
       for (const [key, value] of Object.entries(this.collectionConfig.fields)) {
-        if (this.filter === 'no' && !filteredCollectionData[key]) {
+        if (this.filter === 'no' && filteredCollectionData[key] === undefined) {
           filteredCollectionData[key] = '';
         }
         if (value.type === 'embeddedDoc' || value.type === 'embeddedDocArray') {

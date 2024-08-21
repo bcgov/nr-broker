@@ -85,8 +85,11 @@ export class CollectionMongoRepository implements CollectionRepository {
   public async getCollections<T extends keyof CollectionDtoUnion>(
     type: T,
   ): Promise<CollectionDtoUnion[T][]> {
+    const config = await this.getCollectionConfigByName(type);
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo.find();
+    return repo.find({
+      order: { [config.fieldDefaultSort.field]: config.fieldDefaultSort.dir },
+    });
   }
 
   public async searchCollection<T extends keyof CollectionDtoUnion>(
@@ -100,6 +103,8 @@ export class CollectionMongoRepository implements CollectionRepository {
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
+    const config = await this.getCollectionConfigByName(type);
+    console.log(config.fieldDefaultSort);
 
     const tagsQuery = tags
       ? [
@@ -220,7 +225,6 @@ export class CollectionMongoRepository implements CollectionRepository {
           },
         },
         { $unwind: '$vertex' },
-        { $sort: { 'collection.name': -1 } },
         {
           $addFields: {
             id: '$_id',
@@ -232,7 +236,12 @@ export class CollectionMongoRepository implements CollectionRepository {
         {
           $facet: {
             data: [
-              { $sort: { 'collection.name': 1 } },
+              {
+                $sort: {
+                  [`collection.${config.fieldDefaultSort.field}`]:
+                    config.fieldDefaultSort.dir,
+                },
+              },
               { $skip: offset },
               { $limit: limit },
             ],

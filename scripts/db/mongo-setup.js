@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
+const { name } = require('ejs');
+
 /* eslint-disable no-undef */
 db.service.drop();
 db.vertex.drop();
@@ -83,6 +86,10 @@ result = db.collectionConfig.insertOne({
   collectionVertexName: 'name',
   index: 0,
   edges: [],
+  fieldDefaultSort: {
+    field: 'position',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -142,6 +149,10 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -219,6 +230,10 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -304,6 +319,10 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -404,6 +423,10 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     domain: {
       name: 'Domain',
@@ -464,6 +487,10 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -568,6 +595,10 @@ result = db.collectionConfig.insertOne({
       show: false,
     },
   ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
@@ -616,10 +647,15 @@ result = db.collectionConfig.insertOne({
   collectionVertexName: 'name',
   index: 7,
   edges: [],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
   fields: {
     name: {
       name: 'Name',
       required: true,
+      sort: true,
       type: 'string',
       unique: true,
       hint: 'The lowercase name of the server',

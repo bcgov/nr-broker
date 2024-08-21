@@ -13,6 +13,7 @@ import {
   TOKEN_RENEW_RATIO,
   VAULT_SYNC_APP_AUTH_MOUNT,
   VAULT_AUDIT_DEVICE_NAME,
+  VAULT_KV_APPS_MOUNT,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
 
@@ -138,7 +139,7 @@ export class TokenService {
       );
   }
 
-  public getRoleIdForApplication(
+  public getAppRoleInfoForApplication(
     projectName: string,
     appName: string,
     environment: string,
@@ -146,14 +147,19 @@ export class TokenService {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
       : environment;
+    const roleName = `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`;
     return this.vaultService
-      .getAuthMountRoleNameRoleId(
-        VAULT_SYNC_APP_AUTH_MOUNT,
-        `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
-      )
+      .getAuthMountRoleNameRoleId(VAULT_SYNC_APP_AUTH_MOUNT, roleName)
       .pipe(
         map((response) => {
-          return response.data.data.role_id;
+          return {
+            id: response.data.data.role_id,
+            kvUiPath: `ui/vault/secrets/${VAULT_KV_APPS_MOUNT}/kv/list/${env}/${projectName}/${appName}`,
+            kvApiDataPath: `${VAULT_KV_APPS_MOUNT}/data/${env}/${projectName}/${appName}`,
+            kvApiMetadataPath: `${VAULT_KV_APPS_MOUNT}/metadata/${env}/${projectName}/${appName}`,
+            mount: VAULT_SYNC_APP_AUTH_MOUNT,
+            name: roleName,
+          };
         }),
         catchError((err) => {
           if (err.response.status === 403) {

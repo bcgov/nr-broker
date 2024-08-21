@@ -54,6 +54,7 @@ export const AUDIT_LOGSTREAM_SIZE = process.env.AUDIT_LOGSTREAM_SIZE ?? '50M';
 export const AUDIT_LOGSTREAM_MAX_LOGS =
   process.env.AUDIT_LOGSTREAM_MAX_LOGS ?? '7';
 
+export const VAULT_ADDR = process.env.VAULT_ADDR ?? '';
 export const VAULT_SERVICE_WRAP_TTL = 60;
 export const VAULT_AUDIT_DEVICE_NAME = 'file';
 export const VAULT_ENVIRONMENTS = Object.freeze([

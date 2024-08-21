@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { catchError, Observable } from 'rxjs';
 
-import { VAULT_SERVICE_WRAP_TTL } from '../constants';
+import { VAULT_ADDR, VAULT_SERVICE_WRAP_TTL } from '../constants';
 
 export interface VaultServiceOptions {
   wrapResponse?: boolean;
@@ -17,7 +17,7 @@ export class VaultService {
 
   constructor(private readonly httpService: HttpService) {
     this.brokerToken = process.env.BROKER_TOKEN;
-    this.vaultAddr = process.env.VAULT_ADDR;
+    this.vaultAddr = VAULT_ADDR;
   }
 
   public hasValidToken() {

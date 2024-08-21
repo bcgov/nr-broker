@@ -1,0 +1,69 @@
+<h2 mat-dialog-title>Secure Info - {{data.role.env.title}}</h2>
+<mat-dialog-content>
+
+  <div class="heading">
+    <h3>Vault Info</h3>
+    <a
+      mat-button
+      matTooltip="Open service's KV"
+      href="{{data.api}}/{{data.role.info.kvUiPath}}"
+      target="_blank">
+      Open
+    </a>
+  </div>
+
+  <mat-action-list>
+    <mat-list-item
+      matTooltip="Click to copy"
+      matTooltipShowDelay="500"
+      [cdkCopyToClipboard]="data.api +'/v1/'">
+      <span matListItemTitle>API Endpoint</span>
+      <span matListItemLine>{{data.api}}/v1/</span>
+    </mat-list-item>
+    <mat-list-item
+      matTooltip="Click to copy"
+      matTooltipShowDelay="500"
+      [cdkCopyToClipboard]="data.role.info.kvApiDataPath">
+      <span matListItemTitle>API KV Data Path</span>
+      <span matListItemLine>{{data.role.info.kvApiDataPath}}</span>
+    </mat-list-item>
+  </mat-action-list>
+
+  <div class="heading">
+    <h3>Vault AppRole</h3>
+    <mat-slide-toggle
+      matTooltip="Role info should not be shared"
+      matTooltipPosition="left"
+      [(ngModel)]="reveal">Show</mat-slide-toggle>
+  </div>
+
+  <mat-action-list>
+    <mat-list-item
+      matTooltip="Click to copy"
+      matTooltipShowDelay="500"
+      [cdkCopyToClipboard]="'auth/' + data.role.info.mount + '/role/' + data.role.info.name">
+      <span matListItemTitle>Mount Path</span>
+      @if (reveal) {
+        <span matListItemLine>auth/{{data.role.info.mount}}/role/{{data.role.info.name}}</span>
+      } @else {
+        <span matListItemLine>********************************</span>
+      }
+    </mat-list-item>
+    <mat-list-item
+      matTooltip="Click to copy"
+      matTooltipShowDelay="500"
+      [cdkCopyToClipboard]="data.role.info.id">
+      <span matListItemTitle>Role Id</span>
+      @if (reveal) {
+        <span matListItemLine>{{data.role.info.id}}</span>
+      } @else {
+        <span matListItemLine>********************************</span>
+      }
+    </mat-list-item>
+  </mat-action-list>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    mat-dialog-close>Close</button>
+</mat-dialog-actions>

@@ -37,6 +37,12 @@ export class CollectionConfigDto {
   fields: CollectionFieldConfigMap;
 
   @Column()
+  fieldDefaultSort: {
+    field: string;
+    dir: 1 | -1;
+  };
+
+  @Column()
   graphVertexOmit?: boolean;
 
   @Column()

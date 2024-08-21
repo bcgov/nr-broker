@@ -3,6 +3,11 @@
   margin-left: 16px;
 }
 
+.chip-container {
+  margin: 16px;
+  margin-right: 0;
+}
+
 .heading {
   margin-top: 8px;
   display: flex;
@@ -11,9 +16,4 @@
 .heading h3 {
   flex-grow: 1;
   margin: 0;
-}
-
-.heading :last-child {
-  flex: 1;
-  flex-grow: 0;
 }
