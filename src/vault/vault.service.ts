@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { catchError, Observable } from 'rxjs';
+import { catchError, Observable , lastValueFrom} from 'rxjs';
 
 import { VAULT_ADDR, VAULT_SERVICE_WRAP_TTL } from '../constants';
 
@@ -31,6 +31,25 @@ export class VaultService {
       `${this.vaultAddr}/v1/${mount}/subkeys/${path}`,
       this.prepareConfig(),
     );
+  }
+
+  public async getKv(mount: string, path: string): Promise<any> {
+    try {
+      const config = this.prepareConfig();
+      config.headers['Content-Type'] = 'application/json';
+      const observable = this.httpService.get(`${this.vaultAddr}/v1/${mount}/data/${path}`, config);
+      const response: AxiosResponse<any> = await lastValueFrom(observable);
+      const kvData = response.data?.data?.data;
+
+      if (!kvData) {
+        throw new Error('No data found at the specified path');
+      }
+
+      return kvData;
+    } catch (error) {
+      console.error(`Error fetching KV data from Vault: ${error}`);
+      throw error;
+    }
   }
 
   public postKv(mount: string, path: string, data: any) {
