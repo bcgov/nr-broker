@@ -56,14 +56,14 @@ export class VaultRoleGuard implements CanActivate {
         environment &&
         !intention.requireRoleId
       ) {
-        const vaultRoleId = await lastValueFrom(
-          this.tokenService.getRoleIdForApplication(
+        const vaultRoleInfo = await lastValueFrom(
+          this.tokenService.getAppRoleInfoForApplication(
             project,
             application,
             environment,
           ),
         );
-        request.headers[HEADER_VAULT_ROLE_ID] = vaultRoleId;
+        request.headers[HEADER_VAULT_ROLE_ID] = vaultRoleInfo.id;
         return true;
       }
 
@@ -77,8 +77,8 @@ export class VaultRoleGuard implements CanActivate {
         return false;
       }
 
-      const vaultRoleId = await lastValueFrom(
-        this.tokenService.getRoleIdForApplication(
+      const vaultRoleInfo = await lastValueFrom(
+        this.tokenService.getAppRoleInfoForApplication(
           project,
           application,
           environment,
@@ -86,7 +86,7 @@ export class VaultRoleGuard implements CanActivate {
       );
       const receivedRoleId = request.headers[HEADER_VAULT_ROLE_ID];
 
-      if (vaultRoleId !== receivedRoleId) {
+      if (vaultRoleInfo.id !== receivedRoleId) {
         const exception = new BadRequestException({
           statusCode: 403,
           message: 'Broker forbidden access',

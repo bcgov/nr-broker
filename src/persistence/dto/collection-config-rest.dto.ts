@@ -45,6 +45,7 @@ export class CollectionFieldConfig {
   name!: string;
   placeholder?: string;
   required!: boolean;
+  sort?: boolean;
   type!:
     | 'boolean'
     | 'date'

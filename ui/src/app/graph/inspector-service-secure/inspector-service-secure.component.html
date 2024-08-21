@@ -1,62 +1,19 @@
 <div class="edge-container">
   <div class="heading">
-    <h3>Vault Role Ids</h3>
-    <mat-slide-toggle
-      matTooltip="Role ids should not be shared"
-      matTooltipPosition="left"
-      [(ngModel)]="reveal">Show</mat-slide-toggle>
+    <h3>Vault AppRole</h3>
   </div>
 </div>
 
-<mat-action-list>
-  @if (data && data.roleIds && data.roleIds.prod) {
-    <mat-list-item
-      matTooltip="Click to copy role id"
-      matTooltipPosition="left"
-      [cdkCopyToClipboard]="data.roleIds.prod">
-      <span matListItemTitle>Production</span>
-      @if (reveal) {
-        <span matListItemLine>{{ data.roleIds.prod }}</span>
-      }
-      @if (!reveal) {
-        <span matListItemLine>********-****-****-****-************</span>
-      }
-    </mat-list-item>
+<div class="chip-container">
+<mat-chip-listbox [selectable]="false">
+  @if (data) {
+    @for (role of data.appRole; track role.env.id) {
+      <mat-chip-option
+        [disabled]="!role.enabled"
+        (click)="openSecureDialog(data.api, role)">
+        {{role.env.title}}
+      </mat-chip-option>
+    }
   }
-  @if (data && data.roleIds && data.roleIds.test) {
-    <mat-list-item
-      matTooltip="Click to copy role id"
-      matTooltipPosition="left"
-      [cdkCopyToClipboard]="data.roleIds.test">
-      <span matListItemTitle>Test</span>
-      @if (reveal) {
-        <span matListItemLine>{{ data.roleIds.test }}</span>
-      } @else {
-        <span matListItemLine>********-****-****-****-************</span>
-      }
-    </mat-list-item>
-  }
-  @if (data && data.roleIds && data.roleIds.dev) {
-    <mat-list-item
-      matTooltip="Click to copy role id"
-      matTooltipPosition="left"
-      [cdkCopyToClipboard]="data.roleIds.dev">
-      <span matListItemTitle>Development</span>
-      @if (reveal) {
-        <span matListItemLine>{{ data.roleIds.dev }}</span>
-      } @else {
-        <span matListItemLine>********-****-****-****-************</span>
-      }
-    </mat-list-item>
-  }
-  @if (data && data.roleIds && data.roleIds.tools) {
-    <mat-list-item>
-      <span matListItemTitle>Tools</span>
-      @if (reveal) {
-        <span matListItemLine>{{ data.roleIds.tools }}</span>
-      } @else {
-        <span matListItemLine>********-****-****-****-************</span>
-      }
-    </mat-list-item>
-  }
-</mat-action-list>
+</mat-chip-listbox>
+</div>

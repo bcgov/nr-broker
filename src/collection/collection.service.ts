@@ -6,7 +6,7 @@ import { TokenService } from '../token/token.service';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
-import { REDIS_PUBSUB, VAULT_ENVIRONMENTS_SHORT } from '../constants';
+import { REDIS_PUBSUB, VAULT_ADDR } from '../constants';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
@@ -329,17 +329,25 @@ export class CollectionService {
         error: `Could not find project for: ${service.name} : ${serviceId}`,
       });
     }
+    const envs = await this.collectionRepository.getCollections('environment');
     const project = vertices[0].collection;
-    const roleIds = await Promise.all(
-      VAULT_ENVIRONMENTS_SHORT.map((env) =>
-        this.getRoleIdForApplicationSuppressed(project.name, service.name, env),
+    const roleInfo = await Promise.all(
+      envs.map((env) =>
+        this.getAppRoleInfoForApplicationSuppressed(
+          project.name,
+          service.name,
+          env.name,
+        ),
       ),
     );
 
     return {
-      roleIds: Object.fromEntries(
-        VAULT_ENVIRONMENTS_SHORT.map((key, i) => [key, roleIds[i]]),
-      ),
+      api: VAULT_ADDR,
+      appRole: envs.map((env, i) => ({
+        enabled: !!roleInfo[i],
+        env,
+        info: roleInfo[i],
+      })),
     };
   }
 
@@ -351,14 +359,14 @@ export class CollectionService {
     return this.collectionRepository.doUniqueKeyCheck(collection, key, value);
   }
 
-  private async getRoleIdForApplicationSuppressed(
+  private async getAppRoleInfoForApplicationSuppressed(
     projectName: string,
     serviceName: string,
     environment: string,
-  ): Promise<string | null> {
+  ): Promise<any | null> {
     return firstValueFrom(
       this.tokenService
-        .getRoleIdForApplication(projectName, serviceName, environment)
+        .getAppRoleInfoForApplication(projectName, serviceName, environment)
         .pipe(
           catchError((err) => {
             if (err instanceof NotFoundException) {

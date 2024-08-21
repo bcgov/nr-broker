@@ -49,7 +49,7 @@
 
             <button mat-button
               [disabled]="userList.selectedOptions.selected.length == 0"
-            (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
+              (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
           </div>
           <mat-selection-list #userList >
             @for (member of users[edge.name]; track member.id) {
