@@ -209,6 +209,8 @@ export class CollectionService {
     downstreamVertex: string | undefined,
     id: string | undefined,
     vertexId: string | undefined,
+    sort: string | undefined,
+    dir: string | undefined,
     offset: number,
     limit: number,
   ) {
@@ -230,6 +232,8 @@ export class CollectionService {
       downstreamVertex,
       id,
       vertexIds,
+      sort,
+      dir,
       offset,
       limit,
     );

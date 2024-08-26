@@ -295,6 +295,14 @@ export class CollectionController {
     isArray: true,
   })
   @ApiQuery({
+    name: 'sort',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'dir',
+    required: false,
+  })
+  @ApiQuery({
     name: 'id',
     required: false,
   })
@@ -310,6 +318,8 @@ export class CollectionController {
       query.downstreamVertex,
       query.id,
       query.vertexId,
+      query.sort,
+      query.dir,
       query.offset,
       query.limit,
     );

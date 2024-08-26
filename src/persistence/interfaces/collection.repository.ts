@@ -49,6 +49,8 @@ export abstract class CollectionRepository {
     downstreamVertex: string | undefined,
     id: string | undefined,
     vertexIds: string[] | undefined,
+    sort: string | undefined,
+    dir: string | undefined,
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;

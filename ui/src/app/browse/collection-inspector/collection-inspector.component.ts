@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -53,6 +53,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -107,6 +108,17 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasUpdate = false;
   hasApprove = false;
 
+  screenSize: string = '';
+
+  // Create a map from breakpoints to css class
+  displayNameMap = new Map([
+    [Breakpoints.XSmall, 'narrow'],
+    [Breakpoints.Small, 'narrow'],
+    [Breakpoints.Medium, 'wide'],
+    [Breakpoints.Large, 'wide'],
+    [Breakpoints.XLarge, 'wide'],
+  ]);
+
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
 
@@ -120,7 +132,24 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly permission: PermissionService,
     public readonly collectionUtil: CollectionUtilService,
     @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
-  ) {}
+  ) {
+    inject(BreakpointObserver)
+      .observe([
+        Breakpoints.XSmall,
+        Breakpoints.Small,
+        Breakpoints.Medium,
+        Breakpoints.Large,
+        Breakpoints.XLarge,
+      ])
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        for (const query of Object.keys(result.breakpoints)) {
+          if (result.breakpoints[query]) {
+            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
+          }
+        }
+      });
+  }
 
   ngOnInit(): void {
     if (!this.routeSub) {

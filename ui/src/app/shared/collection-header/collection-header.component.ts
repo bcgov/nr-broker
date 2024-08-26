@@ -38,6 +38,7 @@ export class CollectionHeaderComponent {
   collectionData!: CollectionDtoRestUnion[keyof CollectionDtoRestUnion];
   @Input() hasDelete!: boolean;
   @Input() hasUpdate!: boolean;
+  @Input() screenSize!: string;
 
   constructor(
     private readonly dialog: MatDialog,

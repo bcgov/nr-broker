@@ -359,7 +359,7 @@ db.brokerAccount.insertMany([
     name: 'localhost',
     enableUserImport: false,
     requireRoleId: false,
-    requireProjectExists: true,
+    requireProjectExists: false,
     requireServiceExists: false,
     skipUserValidation: false,
     maskSemverFailures: false,

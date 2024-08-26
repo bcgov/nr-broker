@@ -59,6 +59,8 @@ export class CollectionApiService {
       downstreamVertex?: string;
       id?: string;
       vertexId?: string;
+      sortActive?: string;
+      sortDirection?: string;
       offset: number;
       limit: number;
     },
@@ -82,6 +84,10 @@ export class CollectionApiService {
           : ''
       }${options.id ? `id=${options.id}&` : ''}${
         options.vertexId ? `vertexId=${options.vertexId}&` : ''
+      }${options.sortActive && options.sortDirection ? `sort=${options.sortActive}&` : ''}${
+        options.sortActive && options.sortDirection
+          ? `dir=${options.sortDirection}&`
+          : ''
       }offset=${options.offset}&limit=${options.limit}`,
       {
         responseType: 'json',

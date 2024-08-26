@@ -2,7 +2,7 @@
 const account = db.brokerAccount.findOne({ name: 'localhost' });
 const user = db.user.findOne({});
 
-db.jwtRegistryRepository.insertOne({
+db.jwtRegistry.insertOne({
   accountId: account._id,
   claims: {
     client_id: process.env.JWT_CLIENT_ID,

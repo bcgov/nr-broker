@@ -98,11 +98,12 @@
       </mat-card-content>
     </mat-card>
   }
-  @if (data && data.length > 0) {
+  <div [hidden]="!data || (data && data.length === 0 && !loading)">
     <mat-card class="team-table">
       <mat-card-content>
         <table
           mat-table
+          matSort
           [dataSource]="data">
 
           @for (item of (fields | keyvalue); track item.key) {
@@ -110,6 +111,7 @@
               matColumnDef="{{item.key}}">
               <th
                 mat-header-cell
+                mat-sort-header
                 *matHeaderCellDef> {{item.value.name}} </th>
               <td
                 mat-cell
@@ -148,4 +150,4 @@
       </mat-card-content>
 
     </mat-card>
-  }
+</div>

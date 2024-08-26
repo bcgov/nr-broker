@@ -12,39 +12,73 @@
   <span class="spacer"></span>
 
   <div
-    class="spaced-btn">
+    class="spaced-btn {{screenSize}}">
+    @if (screenSize == 'wide') {
+      <button
+        mat-stroked-button
+        extended
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        Delete
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (screenSize == 'wide') {
     <button
       mat-stroked-button
       extended
-      color="warn"
-      [disabled]="!hasDelete || !config.permissions.delete"
-      (click)="delete()">
-      Delete
+      color="primary"
+      (click)="openInGraph()">
+      View on Graph
     </button>
-  </div>
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      Tags
+    </button>
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      Edit
+    </button>
+  } @else {
 
-  <button
-    mat-stroked-button
-    extended
-    color="primary"
-    (click)="openInGraph()">
-    View on Graph
-  </button>
-  <button
-    mat-stroked-button
-    extended
-    color="primary"
-    [disabled]="!hasUpdate"
-    (click)="editTags()">
-    Tags
-  </button>
-  <button
-    mat-stroked-button
-    extended
-    color="primary"
-    [disabled]="!hasUpdate || !config.permissions.update"
-    (click)="edit()">
-    Edit
-  </button>
+    <button
+      mat-icon-button
+      color="primary"
+      (click)="openInGraph()">
+      <mat-icon>account_tree</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      <mat-icon>label</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  }
 </div>
 <mat-divider></mat-divider>
