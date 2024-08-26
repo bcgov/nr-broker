@@ -22,7 +22,6 @@ import {
   INTENTION_MIN_TTL_SECONDS,
   INTENTION_TRANSIENT_TTL_MS,
   IS_PRIMARY_NODE,
-  TOKEN_SERVICE_ALLOW_ORPHAN,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
@@ -127,11 +126,11 @@ export class IntentionService {
         error: actionFailures,
       });
     }
-    // Map JWT to Broker Account -- if possible
+    // Map JWT to Broker Account
     const account = await this.getAccount(registryJwt);
     if (account) {
       this.annotateIntentionAccount(intentionDto, account);
-    } else if (!TOKEN_SERVICE_ALLOW_ORPHAN) {
+    } else {
       actionFailures.push({
         message: 'Token must be bound to a broker account',
         data: {
