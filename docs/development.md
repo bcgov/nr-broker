@@ -110,6 +110,8 @@ The UI should be built before starting the backend server.
 
 ### Running the backend server
 
+After updating GITHUB_CLIENT_ID and GITHUB_PRIVATE_KEY into local vault path apps/prod/vault/vsync
+
 ```bash
 # Run server in watch mode
 # Will source ./scripts/setenv-backend-dev.sh for environment vars

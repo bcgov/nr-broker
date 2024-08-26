@@ -22,7 +22,7 @@ import { RedisModule } from './redis/redis.module';
 import { SystemModule } from './system/system.module';
 import { PackageModule } from './package/package.module';
 import { VaultModule } from './vault/vault.module';
-import { GithubService } from './github/github.service';
+import { GithubModule } from './github/github.module';
 
 /**
  * Convenience function for converting an environment variable to an object
@@ -83,9 +83,10 @@ function envToObj(key: string, envName: string) {
     SystemModule,
     PackageModule,
     VaultModule,
+    GithubModule,
   ],
   controllers: [],
-  providers: [GithubService],
+  providers: [],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

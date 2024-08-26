@@ -258,7 +258,7 @@ export class AccountService {
       const projectName = projectDtoArr[0].collection.name;
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
-          [`broker-jwt:${account.clientId}`]: token,
+          [`broker_jwt_${account.clientId.replace(/-/g, '_')}`]: token,
         });
         this.redisService.publish(REDIS_PUBSUB.VAULT_SERVICE_TOKEN, {
           data: {
@@ -272,6 +272,28 @@ export class AccountService {
       } catch (err) {
         // Log?
       }
+    }
+  }
+
+  async refresh(id: string): Promise<void> {
+    try {
+      const account = await this.collectionRepository.getCollectionById(
+        'brokerAccount',
+        id,
+      );
+
+      if (!account) {
+        throw new Error(`Account with ID ${id} not found`);
+      }
+
+      this.redisService.publish(REDIS_PUBSUB.GRAPH, {
+        data: {
+          event: 'collection-edit',
+          collection: { id, vertex: account.vertex.toString() },
+        },
+      });
+    } catch (error) {
+      console.error(error);
     }
   }
 

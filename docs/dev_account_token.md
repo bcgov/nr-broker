@@ -15,6 +15,14 @@ See: [Broker JWT](/operations_jwt.md)
 
 Teams are encouraged to document the client_id used by a service. This documentation should clearly state the locations the account is used.
 
+## Update the Token into the Github Repo
+
+When the generate a token, by default the new token will be saved in vault 'tools' space along with project and service folders this broker account associated with and sync to all Github Repos of services.
+
+* Have the Github App [broker-jwt-update](https://github.com/organizations/bcgov-nr/settings/apps/broker-jwt-update) to grant the modification access to the individual service Github Repo secrets.
+
+* After a token is generated, all secrets under tools/project/service in vault will be synced to this service Github repo secrets.
+
 ### Renewing a token
 
 Tokens can be regenerated at anytime. The procedure is identical to generating a token. The previous old token will continue working for an hour (if it is not already expired).

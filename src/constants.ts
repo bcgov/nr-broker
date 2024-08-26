@@ -99,5 +99,5 @@ export const REDIS_PUBSUB = {
   VAULT_SERVICE_TOKEN: 'vault-service-token',
 } as const;
 
-export const GITHUB_CLIENT_ID=process.env.GITHUB_CLIENT_ID ?? '';
-export const GITHUB_PRIVATE_KEY=process.env.GITHUB_PRIVATE_KEY ?? '';
+export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? '';
+export const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY ?? '';

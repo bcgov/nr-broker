@@ -45,6 +45,16 @@ export class SystemApiService {
     );
   }
 
+  refresh(accountId: string) {
+    return this.http.post(
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
+      {},
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   getConnectionConfig() {
     return this.http.get<ConnectionConfigRestDto[]>(
       `${environment.apiUrl}/v1/system/preference/connection`,

@@ -46,7 +46,10 @@ export class RedisService {
     this.client.publish(channel, JSON.stringify(event));
   }
 
-  public subscribeAndProcess(channel: (typeof REDIS_PUBSUB)[EventSourceKeys], callback: (event: MessageEvent) => void) {
+  public subscribeAndProcess(
+    channel: (typeof REDIS_PUBSUB)[EventSourceKeys],
+    callback: (event: MessageEvent) => void,
+  ) {
     this.getEventSource(channel).subscribe(callback);
   }
 }

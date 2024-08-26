@@ -73,6 +73,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit {
       })
       .afterClosed()
       .subscribe(() => {
+        this.systemApi.refresh(this.account.id);
         this.requestedAccountId = undefined;
         this.updateAccount();
       });

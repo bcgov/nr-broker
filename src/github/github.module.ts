@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { GithubService } from './github.service';
-import { GithubController } from './github.controller';
+import { VaultModule } from '../vault/vault.module';
+import { RedisModule } from '../redis/redis.module';
+
 @Module({
-  imports: [],
-  providers: [GithubService, GithubController],
+  imports: [VaultModule, RedisModule],
+  providers: [GithubService],
 })
 export class GithubModule {}
