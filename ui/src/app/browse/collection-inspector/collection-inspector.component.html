@@ -2,16 +2,16 @@
 @if (loading) {
   <mat-spinner></mat-spinner>
 } @else {
-
   <app-collection-header
     [config]="config"
     [collection]="collection"
     [collectionData]="comboData.collection"
     [hasUpdate]="hasUpdate"
     [hasDelete]="hasDelete"
+    [screenSize]="screenSize"
   ></app-collection-header>
 
-  <div class="inspector-card-layout">
+  <div class="inspector-card-layout {{ screenSize }}">
     <app-vertex-tags
       class="full-width"
       [collection]="collection"

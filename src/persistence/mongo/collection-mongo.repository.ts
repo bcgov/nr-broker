@@ -99,12 +99,16 @@ export class CollectionMongoRepository implements CollectionRepository {
     downstreamVertex: string | undefined,
     id: string | undefined,
     vertexIds: string[] | undefined,
+    sort: string | undefined,
+    dir: string | undefined,
     offset: number,
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     const config = await this.getCollectionConfigByName(type);
-    console.log(config.fieldDefaultSort);
+    const sortField = sort && dir ? sort : config.fieldDefaultSort.field;
+    const sortDir =
+      sort && dir ? (dir === 'asc' ? 1 : -1) : config.fieldDefaultSort.dir;
 
     const tagsQuery = tags
       ? [
@@ -238,8 +242,7 @@ export class CollectionMongoRepository implements CollectionRepository {
             data: [
               {
                 $sort: {
-                  [`collection.${config.fieldDefaultSort.field}`]:
-                    config.fieldDefaultSort.dir,
+                  [`collection.${sortField}`]: sortDir,
                 },
               },
               { $skip: offset },

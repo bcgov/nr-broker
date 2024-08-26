@@ -9,7 +9,7 @@ import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { plainToInstance } from 'class-transformer';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { FindOptionsWhere } from 'typeorm';
 import merge from 'lodash.merge';
@@ -22,7 +22,6 @@ import {
   INTENTION_MIN_TTL_SECONDS,
   INTENTION_TRANSIENT_TTL_MS,
   IS_PRIMARY_NODE,
-  TOKEN_SERVICE_ALLOW_ORPHAN,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
@@ -127,11 +126,11 @@ export class IntentionService {
         error: actionFailures,
       });
     }
-    // Map JWT to Broker Account -- if possible
-    const account = await this.getAccount(registryJwt);
+    // Map JWT to Broker Account
+    const account = await this.getAccountFromRegistry(registryJwt);
     if (account) {
       this.annotateIntentionAccount(intentionDto, account);
-    } else if (!TOKEN_SERVICE_ALLOW_ORPHAN) {
+    } else {
       actionFailures.push({
         message: 'Token must be bound to a broker account',
         data: {
@@ -501,7 +500,9 @@ export class IntentionService {
 
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {
-      await this.intentionSync.sync(intention);
+      // All openned intention have link to account
+      const account = await this.getAccount(intention.accountId?.toString());
+      await this.intentionSync.sync(intention, account);
     }
     for (const action of intention.actions) {
       if (!action.service.id) {
@@ -662,7 +663,12 @@ export class IntentionService {
         if (!action?.cloud.target) {
           action.cloud.target = plainToInstance(CloudObjectDto, {});
         }
-        merge(action.cloud.target, patchAction.cloud.target);
+        // Convert to plain for merge
+        const target = instanceToPlain(action.cloud.target);
+        const source = instanceToPlain(patchAction.cloud.target);
+        merge(target, source);
+        // Convert to type after merge
+        action.cloud.target = plainToInstance(CloudObjectDto, target);
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -861,13 +867,23 @@ export class IntentionService {
     await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
   }
 
-  private async getAccount(registryJwt: JwtRegistryDto) {
+  private async getAccountFromRegistry(registryJwt: JwtRegistryDto) {
     if (!registryJwt) {
       return null;
     }
     return this.collectionRepository.getCollectionById(
       'brokerAccount',
       registryJwt.accountId.toString(),
+    );
+  }
+
+  private async getAccount(accountId: string) {
+    if (!accountId) {
+      return null;
+    }
+    return this.collectionRepository.getCollectionById(
+      'brokerAccount',
+      accountId,
     );
   }
 }

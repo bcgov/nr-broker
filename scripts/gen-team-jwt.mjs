@@ -45,17 +45,23 @@ const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
 );
 
 hmac.update(headerStr + '.' + payloadStr);
-console.log(`${headerStr}.${payloadStr}.${hmac.digest('base64url')}`);
+const output = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
 
 spawnSync(
   'mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB db/mongo-add-jwt-reg.js',
   [],
   {
+    cwd: process.cwd(),
+    encoding: 'utf-8',
     env: {
+      ...process.env,
       JWT_CLIENT_ID: clientId,
       JWT_EXP: payload.exp,
       JWT_JTI: payload.jti,
       JWT_SUB: payload.sub,
     },
+    shell: true,
   },
 );
+
+console.log(output);

@@ -10,9 +10,6 @@ export const TOKEN_RENEW_RATIO = 0.75;
 export const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
-export const TOKEN_SERVICE_ALLOW_ORPHAN =
-  process.env.TOKEN_SERVICE_ALLOW_ORPHAN === 'true';
-
 export const COLLECTION_MAX_EMBEDDED = 40;
 
 export const INTENTION_DEFAULT_TTL_SECONDS = 600;

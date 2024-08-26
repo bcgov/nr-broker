@@ -33,8 +33,6 @@ if [ -n "$1" ] && [ "kinesis" = "$1" ]; then
 else
   unset APP_ENVIRONMENT
 fi
-# Warning: This should not to be enabled in production
-export TOKEN_SERVICE_ALLOW_ORPHAN="true"
 
 export JWT_SECRET=secret
 

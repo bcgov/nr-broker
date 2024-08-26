@@ -34,6 +34,16 @@ export class CollectionSearchQuery {
   @Type(() => String)
   vertexId?: string;
 
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  sort?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  dir?: string;
+
   @IsInt()
   @Type(() => Number)
   offset: number;

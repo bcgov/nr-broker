@@ -1,4 +1,11 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnDestroy,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,6 +49,7 @@ import { CollectionCombo } from '../../service/dto/collection-search-result.dto'
 import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort';
 
 interface filterOptions<T> {
   value: T;
@@ -61,6 +69,7 @@ interface filterOptions<T> {
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSortModule,
     MatTableModule,
     ReactiveFormsModule,
     RouterModule,
@@ -69,7 +78,7 @@ interface filterOptions<T> {
   templateUrl: './collection-table.component.html',
   styleUrl: './collection-table.component.scss',
 })
-export class CollectionTableComponent implements OnInit, OnDestroy {
+export class CollectionTableComponent implements AfterViewInit, OnDestroy {
   public config: CollectionConfigRestDto[] | undefined;
   data: CollectionCombo<any>[] = [];
   total = 0;
@@ -99,8 +108,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   tagsFilterControl = new FormControl<string[]>([]);
   tagList: string[] = [];
   tagValue: string[] = [];
+  sortDirection: SortDirection = '';
+  sortActive: string | undefined = undefined;
 
   private triggerRefresh = new Subject<void>();
+
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     public readonly permission: PermissionService,
@@ -113,9 +126,10 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     @Inject(CURRENT_USER) public readonly user: UserDto,
     public readonly graphUtil: GraphUtilService,
     @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.collectionFilter = this.route.snapshot.params['collection'];
     this.graphApi.getConfig().subscribe((config) => {
       this.config = config.filter((config) => config.permissions.browse);
@@ -139,23 +153,29 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         debounceTime(1000),
       ),
-    ]).subscribe(([searchTerm, tags]) => {
-      if (typeof searchTerm !== 'string' || !Array.isArray(tags)) {
+      this.sort.sortChange.asObservable(),
+    ]).subscribe(([searchTerm, tags, sort]) => {
+      if (typeof searchTerm !== 'string' || !Array.isArray(tags) || !sort) {
         return;
       }
-      const actualSearchTeam = searchTerm.length < 3 ? '' : searchTerm;
+      const actualSearchTerm = searchTerm.length < 3 ? '' : searchTerm;
       if (
-        actualSearchTeam === this.filterValue &&
+        actualSearchTerm === this.filterValue &&
         tags.length === this.tagValue.length &&
         tags.every((val, i) => {
           return this.tagValue[i] === val;
-        })
+        }) &&
+        this.sortActive === sort.active &&
+        this.sortDirection === sort.direction
       ) {
         return;
       }
-      this.filterValue = actualSearchTeam;
+      this.sortActive = sort.active;
+      this.sortDirection = sort.direction;
+      this.filterValue = actualSearchTerm;
       this.tagValue = tags;
       this.pageIndex = 0;
+      this.changeDetectorRef.detectChanges();
       this.triggerRefresh.next();
     });
 
@@ -176,6 +196,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                 this.showFilter === 'connected'
                   ? { upstreamVertex: this.user.vertex }
                   : {}),
+                sortActive: this.sortActive,
+                sortDirection: this.sortDirection,
                 offset: this.pageIndex * this.pageSize,
                 limit: this.pageSize,
               })
@@ -209,6 +231,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.tagsFilterControl.setValue(this.tagValue);
     }
     this.refresh();
+    this.changeDetectorRef.detectChanges();
   }
 
   ngOnDestroy() {

@@ -12,6 +12,10 @@
   width: calc(50% - 8px);
 }
 
+.inspector-card-layout.narrow > * {
+  width: 100%;
+}
+
 .inspector-card-layout > .full-width {
   width: 100%;
 }
