@@ -16,6 +16,7 @@ import { ActionUtil } from '../util/action.util';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
+import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -46,7 +47,7 @@ export class IntentionSyncService {
     private readonly actionUtil: ActionUtil,
   ) {}
 
-  public async sync(intention: IntentionDto) {
+  public async sync(intention: IntentionDto, account: BrokerAccountDto) {
     // console.log(intention);
     for (const action of intention.actions) {
       const context = {
@@ -66,6 +67,12 @@ export class IntentionSyncService {
         'name',
       );
       this.overlayEdge('component', projectVertex, serviceVertex);
+      if (account) {
+        const accountVertex = await this.graphRepository.getVertex(
+          account.vertex.toString(),
+        );
+        this.overlayEdge('authorized', accountVertex, projectVertex);
+      }
       if (
         action.service.environment &&
         action.action === 'package-installation'

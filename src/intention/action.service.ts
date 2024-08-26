@@ -295,15 +295,19 @@ export class ActionService {
         : null;
 
       if (!service) {
-        return {
-          message: 'Package service not found.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.name',
-            value: action.package?.name,
-          },
-        };
+        if (account?.requireServiceExists) {
+          return {
+            message: 'Package service not found.',
+            data: {
+              action: action.action,
+              action_id: action.id,
+              key: 'action.package.name',
+              value: action.package?.name,
+            },
+          };
+        } else {
+          return null;
+        }
       }
 
       const existingBuild = await this.buildRepository.getBuildByPackageDetail(
