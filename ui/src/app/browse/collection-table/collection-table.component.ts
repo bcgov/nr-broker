@@ -295,6 +295,7 @@ export class CollectionTableComponent implements AfterViewInit, OnDestroy {
     ];
     this.pageIndex = 0;
     this.disableAdd = !config.permissions.create;
+    this.preferences.set('browseCollectionDefault', this.collectionFilter);
 
     this.collectionApi
       .getCollectionTags(this.collectionFilter)
