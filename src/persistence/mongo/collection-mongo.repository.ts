@@ -12,6 +12,7 @@ import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
+import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -171,88 +172,95 @@ export class CollectionMongoRepository implements CollectionRepository {
         ]
       : [];
     return repo
-      .aggregate([
-        ...idQuery,
-        ...vertexQuery,
-        {
-          $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
-        },
-        ...tagsQuery,
-        ...upstreamQuery,
-        // upstream
-        {
-          $lookup: {
-            from: 'edge',
-            localField: 'collection.vertex',
-            foreignField: 'target',
-            pipeline: [
-              {
-                $lookup: {
-                  from: 'vertex',
-                  localField: 'source',
-                  foreignField: '_id',
-                  as: 'vertex',
+      .aggregate(
+        [
+          ...idQuery,
+          ...vertexQuery,
+          {
+            $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
+          },
+          ...tagsQuery,
+          ...upstreamQuery,
+          // upstream
+          {
+            $lookup: {
+              from: 'edge',
+              localField: 'collection.vertex',
+              foreignField: 'target',
+              pipeline: [
+                {
+                  $lookup: {
+                    from: 'vertex',
+                    localField: 'source',
+                    foreignField: '_id',
+                    as: 'vertex',
+                  },
                 },
-              },
-              { $unwind: '$vertex' },
-            ],
-            as: 'upstream',
+                { $unwind: '$vertex' },
+              ],
+              as: 'upstream',
+            },
           },
-        },
-        // downstream
-        {
-          $lookup: {
-            from: 'edge',
-            localField: 'collection.vertex',
-            foreignField: 'source',
-            pipeline: [
-              {
-                $lookup: {
-                  from: 'vertex',
-                  localField: 'target',
-                  foreignField: '_id',
-                  as: 'vertex',
+          // downstream
+          {
+            $lookup: {
+              from: 'edge',
+              localField: 'collection.vertex',
+              foreignField: 'source',
+              pipeline: [
+                {
+                  $lookup: {
+                    from: 'vertex',
+                    localField: 'target',
+                    foreignField: '_id',
+                    as: 'vertex',
+                  },
                 },
-              },
-              { $unwind: '$vertex' },
-            ],
-            as: 'downstream',
+                { $unwind: '$vertex' },
+              ],
+              as: 'downstream',
+            },
           },
-        },
-        ...downstreamQuery,
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'collection.vertex',
-            foreignField: '_id',
-            as: 'vertex',
+          ...downstreamQuery,
+          {
+            $lookup: {
+              from: 'vertex',
+              localField: 'collection.vertex',
+              foreignField: '_id',
+              as: 'vertex',
+            },
           },
-        },
-        { $unwind: '$vertex' },
-        {
-          $addFields: {
-            id: '$_id',
+          { $unwind: '$vertex' },
+          {
+            $addFields: {
+              id: '$_id',
+            },
           },
-        },
-        {
-          $unset: ['_id'],
-        },
-        {
-          $facet: {
-            data: [
-              {
-                $sort: {
-                  [`collection.${sortField}`]: sortDir,
+          {
+            $unset: ['_id'],
+          },
+          {
+            $facet: {
+              data: [
+                {
+                  $sort: {
+                    [`collection.${sortField}`]: sortDir,
+                  },
                 },
-              },
-              { $skip: offset },
-              { $limit: limit },
-            ],
-            meta: [{ $count: 'total' }],
+                { $skip: offset },
+                { $limit: limit },
+              ],
+              meta: [{ $count: 'total' }],
+            },
+          },
+          { $unwind: '$meta' },
+        ],
+        {
+          collation: {
+            locale: COLLECTION_COLLATION_LOCALE,
           },
         },
-        { $unwind: '$meta' },
-      ])
+      )
       .toArray()
       .then((array) => {
         if (array[0]) {

@@ -11,6 +11,7 @@ export const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
 export const COLLECTION_MAX_EMBEDDED = 40;
+export const COLLECTION_COLLATION_LOCALE = 'en';
 
 export const INTENTION_DEFAULT_TTL_SECONDS = 600;
 export const INTENTION_MIN_TTL_SECONDS = 30;
