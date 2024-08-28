@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
 import { PreferenceRestDto } from './preference-rest.dto';
+import { CollectionNames } from './collection-dto-union.type';
 
 @Entity({ name: 'preference' })
 export class PreferenceDto {
@@ -14,6 +15,9 @@ export class PreferenceDto {
 
   @Column()
   browseConnectionFilter: 'connected' | 'all';
+
+  @Column()
+  browseCollectionDefault: CollectionNames;
 
   @Column()
   graphFollows: 'edge' | 'vertex' = 'vertex';
@@ -30,6 +34,7 @@ export class PreferenceDto {
   public toRestDto(): PreferenceRestDto {
     return {
       browseConnectionFilter: this.browseConnectionFilter ?? 'connected',
+      browseCollectionDefault: this.browseCollectionDefault ?? 'project',
       graphFollows: this.graphFollows,
       graphVertexVisibility: this.graphVertexVisibility,
       graphEdgeSrcTarVisibility: this.graphEdgeSrcTarVisibility,
