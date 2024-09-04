@@ -5,8 +5,8 @@
     <mat-form-field class="field-show-filter">
       <mat-label>Collection</mat-label>
       <mat-select
-        [(ngModel)]="collectionFilter"
-        (selectionChange)="onCollectionChange()"
+        [(ngModel)]="collectionSnapshot"
+        (selectionChange)="onCollectionChange($event)"
         name="collection">
         @for (opt of collectionFilterOptions; track opt) {
           <mat-option [value]="opt.value">
@@ -23,7 +23,7 @@
     class="add"
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!((collectionFilter == 'team' || permission.hasAdmin()) && !disableAdd)">
+    [disabled]="!((collectionSnapshot == 'team' || permission.hasAdmin()) && !disableAdd)">
     <mat-icon>add</mat-icon>
     Add
   </button>
@@ -33,29 +33,30 @@
   <form>
     <mat-form-field class="field-typeahead-filter">
       <mat-label>Filter</mat-label>
-      <input type="text"
+      <input
+        type="text"
         placeholder="Filter"
         aria-label="Filter"
         spellcheck="false"
         matInput
-        [formControl]="textFilterControl">
+        [formControl]="textControl">
     </mat-form-field>
     @if (tagList.length > 0) {
       <mat-form-field>
         <mat-label>Tags</mat-label>
-        <mat-select [formControl]="tagsFilterControl" multiple>
+        <mat-select [formControl]="tagsControl" multiple>
           @for (tag of tagList; track tag) {
             <mat-option [value]="tag">{{tag}}</mat-option>
           }
         </mat-select>
       </mat-form-field>
     }
-    @if (canFilterConnected.includes(collectionFilter)) {
+    @if (canFilterConnected.includes(collectionSnapshot)) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
         <mat-select
           [(ngModel)]="showFilter"
-          (selectionChange)="onFilterChange()"
+          (selectionChange)="onFilterChange($event)"
           name="connectionFilter">
           @for (opt of showFilterOptions; track opt.value) {
             <mat-option [value]="opt.value">
@@ -104,6 +105,8 @@
         <table
           mat-table
           matSort
+          [matSortActive]="sortSnapshot.active"
+          [matSortDirection]="sortSnapshot.direction"
           [dataSource]="data">
 
           @for (item of (fields | keyvalue); track item.key) {
@@ -140,7 +143,8 @@
             (click)="openInInspector($event, element.collection.id)"></tr>
         </table>
 
-        <mat-paginator [length]="total"
+        <mat-paginator
+          [length]="total"
           [pageIndex]="pageIndex"
           [pageSize]="pageSize"
           [pageSizeOptions]="[5, 10, 25, 100]"

@@ -1,12 +1,11 @@
+@if (activeServices.length === 0) {
+  <h3>No Provisioned Services</h3>
 
-<h2>Services</h2>
-
-@if (serviceCount === 0) {
-  <h3>No Services</h3>
+  <p>Teams can use services provisioned through Broker.</p>
 }
 
 <div class="card-container">
-@for (service of serviceSearch; track service.id) {
+@for (service of activeServices; track service.id) {
   @if (service.instance) {
 
     <mat-card class="service-card">
@@ -54,5 +53,7 @@
 }
 </div>
 
-<!-- <app-team-service-request
-  [serviceSearch]="serviceSearch"></app-team-service-request> -->
+@if (requestServices.length > 0 && false) {
+  <app-team-service-request
+    [serviceSearch]="requestServices"></app-team-service-request>
+}

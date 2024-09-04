@@ -49,6 +49,11 @@
       (click)="editTags()">
       Tags
     </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        [screenSize]="screenSize"
+        [instance]="collectionData"></app-inspector-team>
+    }
     <button
       mat-stroked-button
       extended
@@ -72,6 +77,11 @@
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        [screenSize]="screenSize"
+        [instance]="collectionData"></app-inspector-team>
+    }
     <button
       mat-icon-button
       color="primary"

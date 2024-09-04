@@ -1,0 +1,20 @@
+
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin:8px;
+}
+.member-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.list-btn-panel {
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+.no-members {
+  margin: 16px;
+}

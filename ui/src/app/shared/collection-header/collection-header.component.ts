@@ -17,6 +17,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
+import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 
 @Component({
   selector: 'app-collection-header',
@@ -27,6 +28,7 @@ import { GraphApiService } from '../../service/graph-api.service';
     MatDividerModule,
     MatCardModule,
     MatIconModule,
+    InspectorTeamComponent,
   ],
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',

@@ -53,7 +53,10 @@
     <mat-divider></mat-divider>
   }
   @if (collection === 'team') {
-    <app-inspector-team
-      [instance]="comboData.collection"></app-inspector-team>
+    <div class="edge-container">
+      <app-inspector-team
+        [screenSize]="'wide'"
+        [instance]="comboData.collection"></app-inspector-team>
+    </div>
   }
 </div>

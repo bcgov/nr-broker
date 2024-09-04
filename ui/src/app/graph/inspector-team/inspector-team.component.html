@@ -1,5 +1,17 @@
-<div class="edge-container">
-  <button mat-stroked-button extended color="primary" (click)="openMemberDialog()">
+@if (screenSize === 'wide') {
+  <button
+    mat-stroked-button
+    extended
+    color="primary"
+    (click)="openMemberDialog()">
     Members
   </button>
-</div>
+} @else {
+  <button
+    mat-icon-button
+    extended
+    color="primary"
+    (click)="openMemberDialog()">
+    <mat-icon>people</mat-icon>
+  </button>
+}
