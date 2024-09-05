@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -12,6 +12,8 @@ import {
   MatSnackBarConfig,
   MatSnackBarModule,
 } from '@angular/material/snack-bar';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import {
   BehaviorSubject,
   Subject,
@@ -53,7 +55,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { TeamSummaryComponent } from '../team-summary/team-summary.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -67,6 +69,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTabsModule,
     CollectionHeaderComponent,
     InspectorAccountComponent,
     InspectorInstallsComponent,
@@ -84,6 +87,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
     TeamAccountsComponent,
     TeamMembersComponent,
     TeamServicesComponent,
+    TeamSummaryComponent,
     VertexTagsComponent,
   ],
   templateUrl: './collection-inspector.component.html',
@@ -108,6 +112,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasUpdate = false;
   hasApprove = false;
 
+  selectedTabIndex = 0;
   screenSize: string = '';
 
   // Create a map from breakpoints to css class
@@ -124,6 +129,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly router: Router,
+    private readonly location: Location,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBar: MatSnackBar,
     private readonly graphApi: GraphApiService,
@@ -248,8 +254,12 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   initComponent() {
-    this.collection = this.activatedRoute.snapshot.params['collection'];
-    this.collectionId = this.activatedRoute.snapshot.params['id'];
+    const params = this.activatedRoute.snapshot.params;
+    this.collection = params['collection'];
+    this.collectionId = params['id'];
+    this.selectedTabIndex = params['index']
+      ? Number.parseInt(params['index'])
+      : 0;
   }
 
   ngOnDestroy() {
@@ -290,6 +300,17 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   back() {
     this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
+
+  selectedTabChange(event: MatTabChangeEvent) {
+    this.selectedTabIndex = event.index;
+    this.updateRoute();
+  }
+
+  updateRoute() {
+    this.location.replaceState(
+      `/browse/${this.collection}/${this.collectionId};index=${this.selectedTabIndex}`,
+    );
   }
 
   private openSnackBar(message: string) {

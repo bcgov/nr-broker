@@ -8,7 +8,7 @@ describe('InspectorTeamComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [InspectorTeamComponent]
+      imports: [InspectorTeamComponent],
     });
     fixture = TestBed.createComponent(InspectorTeamComponent);
     component = fixture.componentInstance;

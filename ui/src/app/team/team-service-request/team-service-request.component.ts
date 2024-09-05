@@ -27,6 +27,7 @@ import { MatDialog } from '@angular/material/dialog';
 export class TeamServiceRequestComponent {
   @Input()
   serviceSearch!: CollectionConfigInstanceRestDto[];
+
   serviceControl = new FormControl<CollectionConfigInstanceRestDto | null>(
     null,
     Validators.required,
@@ -36,6 +37,7 @@ export class TeamServiceRequestComponent {
   constructor(private readonly dialog: MatDialog) {}
   requestService() {
     console.log('requestService');
+    console.log(this.serviceControl.value?.edge.prototype);
 
     // this.dialog
     //   .open(EdgeRequestDialogComponent, {

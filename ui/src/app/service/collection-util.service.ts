@@ -1,12 +1,43 @@
 import { Injectable } from '@angular/core';
-import { CollectionDtoRestUnion } from './dto/collection-dto-union.type';
+import {
+  CollectionDtoRestUnion,
+  CollectionNames,
+} from './dto/collection-dto-union.type';
 import { VertexRestDto } from './dto/vertex-rest.dto';
+import { Router } from '@angular/router';
+import { CollectionApiService } from './collection-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CollectionUtilService {
-  constructor() {}
+  constructor(
+    private readonly router: Router,
+    private readonly collectionApi: CollectionApiService,
+  ) {}
+
+  openInBrowser(collection: CollectionNames, id: string) {
+    this.router.navigate([`/browse/${collection}/${id}`]);
+  }
+
+  openInBrowserByVertexId(collection: CollectionNames, vertexId: string) {
+    this.collectionApi
+      .searchCollection(collection, {
+        vertexId,
+        offset: 0,
+        limit: 1,
+      })
+      .subscribe((result) => {
+        if (result) {
+          this.router.navigate(
+            ['/browse', collection, result.data[0].collection.id, { index: 0 }],
+            {
+              replaceUrl: true,
+            },
+          );
+        }
+      });
+  }
 
   /**
    * Narrows a collection union to a specific collection type based on name.
