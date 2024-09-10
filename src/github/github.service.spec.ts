@@ -1,3 +1,4 @@
+import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GithubService } from './github.service';
 
@@ -7,7 +8,9 @@ describe('GithubService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [GithubService],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     service = module.get<GithubService>(GithubService);
   });
