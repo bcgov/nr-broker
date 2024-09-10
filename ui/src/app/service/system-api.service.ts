@@ -53,4 +53,14 @@ export class SystemApiService {
       },
     );
   }
+
+  refresh(accountId: string) {
+    return this.http.post(
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
+      {},
+      {
+        responseType: 'json',
+      },
+    );
+  }
 }

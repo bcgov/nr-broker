@@ -57,6 +57,32 @@ export class GraphApiService {
     );
   }
 
+  createTokenUpdatedEventSource(): Observable<GraphEventRestDto> {
+    return this.sseClient
+      .stream(`${environment.apiUrl}/v1/graph/token-updated`)
+      .pipe(
+        filter((event) => {
+          if (event.type === 'error') {
+            const errorEvent = event as ErrorEvent;
+            if (errorEvent.error) {
+              console.error(errorEvent.error, errorEvent.message);
+            }
+            return false;
+          }
+          return true;
+        }),
+        map((event) => {
+          if (event.type !== 'error') {
+            const messageEvent = event as MessageEvent;
+            //console.info(
+            //  `SSE request with type "${messageEvent.type}" and data "${messageEvent.data}"`,
+            //);
+            return JSON.parse(messageEvent.data);
+          }
+        }),
+      );
+  }
+
   getData() {
     return this.http.get<GraphDataResponseDto>(
       `${environment.apiUrl}/v1/graph/data`,

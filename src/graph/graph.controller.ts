@@ -95,6 +95,13 @@ export class GraphController {
     return this.redis.getEventSource(REDIS_PUBSUB.GRAPH);
   }
 
+  @Sse('token-updated')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  tokenUpdatedEvents(): Observable<MessageEvent> {
+    return this.redis.getEventSource(REDIS_PUBSUB.VAULT_SERVICE_TOKEN);
+  }
+
   @Post('typeahead')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()

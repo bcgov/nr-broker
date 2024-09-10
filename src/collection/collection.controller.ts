@@ -93,6 +93,19 @@ export class CollectionController {
     return this.accountService.getRegisteryJwts(id);
   }
 
+  @Post('broker-account/:id/refresh')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerCombinedAuthGuard)
+  async refresh(@Param('id') id: string): Promise<void> {
+    return await this.accountService.refresh(id);
+  }
+
   @Post('broker-account/:id/token')
   @Roles('admin')
   @AllowOwner({
