@@ -1,26 +1,20 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import axios, { AxiosInstance } from 'axios';
+import { lastValueFrom } from 'rxjs';
+import sodium from 'libsodium-wrappers';
+import * as jwt from 'jsonwebtoken';
 import {
   GITHUB_CLIENT_ID,
   GITHUB_PRIVATE_KEY,
-  REDIS_PUBSUB,
   VAULT_KV_APPS_MOUNT,
 } from '../constants';
-import axios, { AxiosInstance } from 'axios';
-import * as jwt from 'jsonwebtoken';
-import sodium from 'libsodium-wrappers';
-import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 
 @Injectable()
-export class GithubService implements OnModuleInit {
+export class GithubService {
   private readonly axiosInstance: AxiosInstance;
-  private readonly clientId = GITHUB_CLIENT_ID;
-  private readonly privateKey = GITHUB_PRIVATE_KEY;
 
-  constructor(
-    private readonly vaultService: VaultService,
-    private readonly redisService: RedisService,
-  ) {
+  constructor(private readonly vaultService: VaultService) {
     this.axiosInstance = axios.create({
       baseURL: 'https://api.github.com',
       headers: {
@@ -29,45 +23,30 @@ export class GithubService implements OnModuleInit {
     });
   }
 
-  onModuleInit() {
-    // Subscribe to the Redis channel
-    this.redisService.subscribeAndProcess(
-      REDIS_PUBSUB.VAULT_SERVICE_TOKEN,
-      async (event) => {
-        try {
-          const { project, service, scmUrl } = event.data as {
-            project: string;
-            service: string;
-            scmUrl: string;
-          };
-          const path = `tools/${project}/${service}`;
-          const kvData = await this.vaultService.getKv(
-            VAULT_KV_APPS_MOUNT,
-            path,
-          );
-          if (kvData) {
-            for (const [secretName, secretValue] of Object.entries(kvData)) {
-              if (scmUrl) {
-                await this.updateSecret(
-                  scmUrl,
-                  secretName,
-                  secretValue.toString(),
-                );
-              } else
-                console.log(
-                  'Service does not have Github repo URL to update:',
-                  service,
-                );
-            }
-          }
-        } catch (error) {
-          console.error(
-            'Failed to retrieve KV data or update GitHub secret:',
-            error,
+  public isEnabled() {
+    return GITHUB_CLIENT_ID !== '' && GITHUB_PRIVATE_KEY !== '';
+  }
+
+  public async refresh(project: string, service: string, scmUrl: string) {
+    if (!this.isEnabled()) {
+      throw new Error();
+    }
+    const path = `tools/${project}/${service}`;
+    const kvData = await lastValueFrom(
+      this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
+    );
+    if (kvData) {
+      for (const [secretName, secretValue] of Object.entries(kvData)) {
+        if (scmUrl) {
+          await this.updateSecret(scmUrl, secretName, secretValue.toString());
+        } else {
+          console.log(
+            'Service does not have Github repo URL to update:',
+            service,
           );
         }
-      },
-    );
+      }
+    }
   }
 
   // Generate JWT
@@ -75,9 +54,9 @@ export class GithubService implements OnModuleInit {
     const payload = {
       iat: Math.floor(Date.now() / 1000) - 60,
       exp: Math.floor(Date.now() / 1000) + 2 * 60, // JWT expires in 2 minutes
-      iss: this.clientId,
+      iss: GITHUB_CLIENT_ID,
     };
-    return jwt.sign(payload, this.privateKey, { algorithm: 'RS256' });
+    return jwt.sign(payload, GITHUB_PRIVATE_KEY, { algorithm: 'RS256' });
   }
 
   private async getInstallationId(
@@ -198,6 +177,7 @@ export class GithubService implements OnModuleInit {
   ): Promise<void> {
     const { owner, repo } = this.getOwnerAndRepoFromUrl(repoUrl);
     const token = await this.getInstallationAccessToken(owner, repo);
+    const validatedSecretName = secretName.replace(/[^a-zA-Z0-9_]/g, '_');
 
     try {
       if (token) {
@@ -213,7 +193,7 @@ export class GithubService implements OnModuleInit {
         );
         // Update secret
         await this.axiosInstance.put(
-          `/repos/${owner}/${repo}/actions/secrets/${secretName}`,
+          `/repos/${owner}/${repo}/actions/secrets/${validatedSecretName}`,
           {
             encrypted_value: encryptedSecret,
             key_id: keyId,
@@ -225,7 +205,7 @@ export class GithubService implements OnModuleInit {
           },
         );
         console.log(
-          `Secret ${secretName} updated successfully on ${owner}/${repo}!`,
+          `Secret ${validatedSecretName} updated successfully on ${owner}/${repo}!`,
         );
       } else {
         console.log(

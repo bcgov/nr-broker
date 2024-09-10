@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { catchError, Observable, lastValueFrom } from 'rxjs';
+import { catchError, Observable, map } from 'rxjs';
 
 import { VAULT_ADDR, VAULT_SERVICE_WRAP_TTL } from '../constants';
 
@@ -33,20 +33,22 @@ export class VaultService {
     );
   }
 
-  public async getKv(mount: string, path: string): Promise<any> {
+  public getKv(mount: string, path: string) {
     const config = this.prepareConfig();
     config.headers['Content-Type'] = 'application/json';
-    const observable = this.httpService.get(
-      `${this.vaultAddr}/v1/${mount}/data/${path}`,
-      config,
-    );
-    const response: AxiosResponse<any> = await lastValueFrom(observable);
-    const kvData = response.data?.data?.data;
+    return this.httpService
+      .get(`${this.vaultAddr}/v1/${mount}/data/${path}`, this.prepareConfig())
+      .pipe(
+        map((response) => {
+          const kvData = response.data?.data?.data;
 
-    if (!kvData) {
-      throw new Error(`No secrets found at the specified path: ${path}`);
-    }
-    return kvData;
+          if (!kvData) {
+            throw new Error(`No secrets found at the specified path: ${path}`);
+          }
+
+          return kvData;
+        }),
+      );
   }
 
   public postKv(mount: string, path: string, data: any) {

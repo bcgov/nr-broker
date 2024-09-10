@@ -95,6 +95,10 @@ Once started, you must run the vault setup script to bootstrap it. MongoDB must 
 $ ./scripts/vault-setup.sh
 ```
 
+#### Github secret sync
+
+To setup a Github App to test secret syncing, set the values GITHUB_CLIENT_ID and GITHUB_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
+
 ## Running Locally
 
 The following assumes the setup steps have occurred and the databases have been successfully bootstrapped.
@@ -109,8 +113,6 @@ $ npm run watch
 The UI should be built before starting the backend server.
 
 ### Running the backend server
-
-After updating GITHUB_CLIENT_ID and GITHUB_PRIVATE_KEY into local vault path apps/prod/vault/vsync
 
 ```bash
 # Run server in watch mode
