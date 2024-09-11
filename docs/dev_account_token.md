@@ -13,9 +13,9 @@ See: [Broker JWT](/operations_jwt.md)
 * Find the 'Broker Account' section and the account you want to generate the token for. The token expiry (if one has been created) will be shown. Click the 'Generate' button to open the generate/renew token dialog.
 * Read the instructions and click 'Generate' button.
 
-Teams are encouraged to document the client_id used by a service. This documentation should clearly state the locations the account is used.
+Teams are encouraged to document the client_id used by a service. This documentation should clearly state the locations the account is stored. The `reason` field in intentions should be descriptive enough your team understands where it is opened from.
 
-Generated tokens are saved in vault 'tools' space for all associated service's by default.
+Generated tokens are saved in vault 'tools' space for all associated services by default. This can occur even if Vault has not been enabled for a service.
 
 ## Update Github Secrets
 
@@ -25,11 +25,11 @@ Generated tokens are saved in vault 'tools' space for all associated service's b
 
 * Install the [Github App](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app) in all repositories associated with services. Grant the app read/write access to repository secrets.
 
-* After a token is generated, all secrets in the tools namespace for a service (tools/project/service) in Vault will be synced to the associated service's Github repository as secrets.
+* After a token is generated, all secrets in the tools namespace for a service (`apps-kv-mount`/tools/`project`/`service`) in Vault will be synced to the associated services' Github repository as secrets.
 
 ### Renewing a token
 
-Tokens can be regenerated at anytime. The procedure is identical to generating a token. The previous old token will continue working for an hour (if it is not already expired).
+Tokens can be regenerated at anytime. The procedure is identical to generating a token. The previous token will continue working for an hour (if it is not already expired).
 
 ## How to Lookup an Account from a Token
 

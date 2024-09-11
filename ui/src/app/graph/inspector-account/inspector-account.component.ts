@@ -24,7 +24,6 @@ import { AccountGenerateDialogComponent } from '../account-generate-dialog/accou
 import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
-import { GraphApiService } from '../../service/graph-api.service';
 
 @Component({
   selector: 'app-inspector-account',
@@ -64,18 +63,19 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   constructor(
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
-    private readonly graphApi: GraphApiService,
     private readonly systemApi: SystemApiService,
   ) {}
 
   ngOnInit(): void {
-    this.tokenUpdateSubscription = this.graphApi
-      .createTokenUpdatedEventSource()
+    this.tokenUpdateSubscription = this.systemApi
+      .createAccountTokenEventSource()
       .subscribe({
-        next: () => {
+        next: (data: any) => {
+          console.log(data);
+          // TODO: only update if necessary
           this.updateAccount();
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error receiving token update events:', error);
         },
       });

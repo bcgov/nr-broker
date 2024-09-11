@@ -49,6 +49,54 @@ export class GithubService {
     }
   }
 
+  public async updateSecret(
+    repoUrl: string,
+    secretName: string,
+    secretValue: string,
+  ): Promise<void> {
+    const { owner, repo } = this.getOwnerAndRepoFromUrl(repoUrl);
+    const token = await this.getInstallationAccessToken(owner, repo);
+    const filteredSecretName = secretName.replace(/[^a-zA-Z0-9_]/g, '_');
+
+    try {
+      if (token) {
+        const { key: base64PublicKey, key_id: keyId } = await this.getPublicKey(
+          owner,
+          repo,
+          token,
+        );
+        // Encrypt secret
+        const encryptedSecret = await this.encryptSecret(
+          base64PublicKey.toString('utf-8'),
+          secretValue,
+        );
+        // Update secret
+        await this.axiosInstance.put(
+          `/repos/${owner}/${repo}/actions/secrets/${filteredSecretName}`,
+          {
+            encrypted_value: encryptedSecret,
+            key_id: keyId,
+          },
+          {
+            headers: {
+              Authorization: `token ${token}`,
+            },
+          },
+        );
+        console.log(
+          `Secret ${filteredSecretName} updated successfully on ${owner}/${repo}!`,
+        );
+      } else {
+        console.log(
+          `Github access token is null! No updates on ${owner}/${repo}`,
+        );
+      }
+    } catch (error) {
+      console.error('Errors on updating broker JWT with API calls', error);
+      //throw new Error('Failed to update secret in github repo.');
+    }
+  }
+
   // Generate JWT
   private generateJWT(): string {
     const payload = {
@@ -167,54 +215,6 @@ export class GithubService {
     } catch (error) {
       console.error('Error encrypting the secret:', error);
       //throw new Error('Failed to encrypt the secret.');
-    }
-  }
-
-  public async updateSecret(
-    repoUrl: string,
-    secretName: string,
-    secretValue: string,
-  ): Promise<void> {
-    const { owner, repo } = this.getOwnerAndRepoFromUrl(repoUrl);
-    const token = await this.getInstallationAccessToken(owner, repo);
-    const validatedSecretName = secretName.replace(/[^a-zA-Z0-9_]/g, '_');
-
-    try {
-      if (token) {
-        const { key: base64PublicKey, key_id: keyId } = await this.getPublicKey(
-          owner,
-          repo,
-          token,
-        );
-        // Encrypt secret
-        const encryptedSecret = await this.encryptSecret(
-          base64PublicKey.toString('utf-8'),
-          secretValue,
-        );
-        // Update secret
-        await this.axiosInstance.put(
-          `/repos/${owner}/${repo}/actions/secrets/${validatedSecretName}`,
-          {
-            encrypted_value: encryptedSecret,
-            key_id: keyId,
-          },
-          {
-            headers: {
-              Authorization: `token ${token}`,
-            },
-          },
-        );
-        console.log(
-          `Secret ${validatedSecretName} updated successfully on ${owner}/${repo}!`,
-        );
-      } else {
-        console.log(
-          `Github access token is null! No updates on ${owner}/${repo}`,
-        );
-      }
-    } catch (error) {
-      console.error('Errors on updating broker JWT with API calls', error);
-      //throw new Error('Failed to update secret in github repo.');
     }
   }
 }

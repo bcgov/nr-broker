@@ -1,5 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { filter, map, Observable } from 'rxjs';
+import { SseClient } from 'ngx-sse-client';
+
 import { environment } from '../../environments/environment';
 import { JwtRegistryDto, TokenCreateDto } from './dto/jwt-registry-rest.dto';
 import { ConnectionConfigRestDto } from './dto/connection-config-rest.dto';
@@ -8,7 +11,10 @@ import { ConnectionConfigRestDto } from './dto/connection-config-rest.dto';
   providedIn: 'root',
 })
 export class SystemApiService {
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private sseClient: SseClient,
+  ) {}
 
   getAccountTokens(accountId: string) {
     return this.http.get<JwtRegistryDto[]>(
@@ -43,6 +49,32 @@ export class SystemApiService {
         responseType: 'json',
       },
     );
+  }
+
+  createAccountTokenEventSource(): Observable<any> {
+    return this.sseClient
+      .stream(`${environment.apiUrl}/v1/graph/token-updated`)
+      .pipe(
+        filter((event) => {
+          if (event.type === 'error') {
+            const errorEvent = event as ErrorEvent;
+            if (errorEvent.error) {
+              console.error(errorEvent.error, errorEvent.message);
+            }
+            return false;
+          }
+          return true;
+        }),
+        map((event) => {
+          if (event.type !== 'error') {
+            const messageEvent = event as MessageEvent;
+            //console.info(
+            //  `SSE request with type "${messageEvent.type}" and data "${messageEvent.data}"`,
+            //);
+            return JSON.parse(messageEvent.data);
+          }
+        }),
+      );
   }
 
   getConnectionConfig() {
