@@ -1,0 +1,31 @@
+
+.details-container {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.details-container > * {
+  width: 50%;
+}
+
+.details-container-margin {
+  margin-top: 16px;
+}
+
+.details-header {
+  min-width: 100px;
+  font-weight: 500;
+  color: #333;
+}
+
+.details-line {
+  color: var(--mat-card-subtitle-text-color);
+  min-width: 100px;
+  font-weight: 300;
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+.server-form {
+  margin-top: -18px;
+}

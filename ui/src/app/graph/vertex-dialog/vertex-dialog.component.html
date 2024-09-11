@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>
-  @if (data.vertexId) {
+  @if (data.vertex) {
     Edit
   } @else {
     Add
@@ -21,9 +21,12 @@
         [collection]="collectionControl.value.collection"
         [fieldMap]="collectionControl.value.fields"
         [data]="data.data"
-      (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
-      <mat-divider></mat-divider>
+        (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
+      <mat-divider
+        class="property-editor"></mat-divider>
     }
+    <app-property-editor
+      [graphProperties]="data.vertex?.prop"></app-property-editor>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button
@@ -34,7 +37,7 @@
       color="primary"
       [disabled]="isFormInvalid()"
       (click)="addUpdateVertex()">
-      @if (data.vertexId) {
+      @if (data.vertex) {
         Edit
       } @else {
         Add

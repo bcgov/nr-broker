@@ -56,6 +56,8 @@ import { InspectorPropertiesComponent } from '../../graph/inspector-properties/i
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamSummaryComponent } from '../team-summary/team-summary.component';
+import { ServiceReleasesComponent } from '../service-releases/service-releases.component';
+import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -84,6 +86,8 @@ import { TeamSummaryComponent } from '../team-summary/team-summary.component';
     InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
+    ServiceReleasesComponent,
+    ServiceInstancesComponent,
     TeamAccountsComponent,
     TeamMembersComponent,
     TeamServicesComponent,

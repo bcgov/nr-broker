@@ -27,7 +27,9 @@
 <ng-container matColumnDef="outcome">
   <th mat-header-cell *matHeaderCellDef> </th>
   <td mat-cell *matCellDef="let element">
-    <app-outcome-icon [outcome]="element.action.source.intention.transaction.outcome"></app-outcome-icon>
+    @if (element?.action?.source?.intention) {
+      <app-outcome-icon [outcome]="element.action.source.intention.transaction.outcome"></app-outcome-icon>
+    }
     {{element.name}}
   </td>
 </ng-container>
@@ -35,14 +37,20 @@
 <!-- Version Column -->
 <ng-container matColumnDef="version">
   <th mat-header-cell *matHeaderCellDef> Version </th>
-  <td mat-cell *matCellDef="let element" class="version">{{element.action.source.action.package.version}}
+  <td mat-cell *matCellDef="let element" class="version">
+    @if (element?.action?.source?.action) {
+      {{element.action.source.action.package.version}}
+    }
   </td>
 </ng-container>
 
 <!-- Start Column -->
 <ng-container matColumnDef="start">
   <th mat-header-cell *matHeaderCellDef> Start </th>
-  <td mat-cell *matCellDef="let element">{{element.action.source.intention.transaction.start}}
+  <td mat-cell *matCellDef="let element">
+    @if (element?.action?.source?.intention) {
+      {{element.action.source.intention.transaction.start}}
+    }
   </td>
 </ng-container>
 

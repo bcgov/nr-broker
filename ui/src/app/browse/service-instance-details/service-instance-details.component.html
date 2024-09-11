@@ -1,0 +1,70 @@
+@if (instance) {
+  @if (showName) {
+  <div class="details-container details-container-margin">
+    <div>
+      <div class="details-header">Name</div>
+      <div class="details-line">{{instance.name}}</div>
+    </div>
+  </div>
+  }
+  <div class="details-container">
+    <div>
+
+      <div class="details-header">Status</div>
+      <div class="details-line">
+        @if (!current || !current.source?.intention) {
+          No recorded installation
+        } @else {
+          Installed
+        }
+      </div>
+
+      @if (instance.url) {
+        <div class="details-header">Url</div>
+        <div class="details-line"><a href="{{instance.url}}" target="_blank">{{instance.url}}</a></div>
+      }
+
+      @if (current && current.source?.intention) {
+
+      @if (current.source?.action?.package?.version) {
+        <div class="details-header">Version</div>
+        <div class="details-line">{{current.source.action.package.version}}</div>
+      }
+
+      <div class="details-header">Installed</div>
+      <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+
+      <div class="details-header">User</div>
+      <div class="details-line">{{current.source.intention.user.name}}</div>
+      }
+    </div>
+
+    @if (serverSelection) {
+    <div>
+
+      @if (this.instance.server.length > 1) {
+        <mat-form-field class="server-form">
+          <mat-label>Server</mat-label>
+          <mat-select [(ngModel)]="serverSelection">
+            @for (element of this.instance.server; track element.server.id) {
+              <mat-option [value]="element">{{element.server.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else {
+        <div class="details-header">Server</div>
+        <div class="details-line">{{serverSelection.server.name}}</div>
+      }
+
+      <div class="details-header">Status</div>
+      <div class="details-line">Unknown - Telemetery not available</div>
+
+      <div class="details-header">Platform</div>
+      <div class="details-line">{{serverSelection.server.osType}}</div>
+
+      <div class="details-header">Platform Details</div>
+      <div class="details-line">{{serverSelection.server.osFull}}</div>
+    </div>
+    }
+  </div>
+}

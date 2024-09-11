@@ -4,7 +4,7 @@
   <app-collection-header
     [config]="config"
     [collection]="collection"
-    [collectionData]="comboData.collection"
+    [comboData]="comboData"
     [hasUpdate]="hasUpdate"
     [hasDelete]="hasDelete"
     [screenSize]="screenSize"
@@ -14,7 +14,7 @@
     [selectedIndex]="selectedTabIndex"
     (selectedTabChange)="selectedTabChange($event)">
   <mat-tab label="Collection">
-    <div class="inspector-card-layout {{ screenSize }}">
+    <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
       <app-vertex-tags
         class="full-width"
         [collection]="collection"
@@ -68,18 +68,6 @@
           </mat-card-content>
         </mat-card>
       }
-
-      @if (collection === 'serviceInstance') {
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Instances</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <app-inspector-installs
-              [instance]="comboData.collection"></app-inspector-installs>
-          </mat-card-content>
-        </mat-card>
-      }
       @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
         <mat-card>
           <mat-card-header>
@@ -95,38 +83,35 @@
     </div>
   </mat-tab>
 
-
-  @if (collection === 'service') {
-    <mat-tab label="Releases">
-      <div class="inspector-card-layout {{ screenSize }}">
+  @if (collection === 'serviceInstance') {
+    <mat-tab label="Details">
+      <div class="inspector-tab-margin">
         <mat-card>
           <mat-card-header>
             <mat-card-title>Instances</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <app-inspector-instances
+            <app-inspector-installs
+              [instance]="comboData.collection"></app-inspector-installs>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  }
+
+  @if (collection === 'service') {
+    <mat-tab label="Instances">
+      <div class="inspector-tab-margin">
+            <app-service-instances
               [service]="comboData.collection"
               [vertex]="comboData.vertex"
               [vertices]="comboData.downstream"
-              [details]="serviceDetails"></app-inspector-instances>
-          </mat-card-content>
-        </mat-card>
-      @if (serviceDetails && serviceDetails.builds) {
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Releases</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <app-inspector-service-releases
-              [isApprover]="hasSudo || hasApprove"
-              [builds]="serviceDetails.builds"></app-inspector-service-releases>
-          </mat-card-content>
-        </mat-card>
-      }
+              [details]="serviceDetails"></app-service-instances>
       </div>
     </mat-tab>
     <mat-tab label="Secrets">
-      <div class="inspector-card-layout {{ screenSize }}">
+      <ng-template matTabContent>
+      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
         <mat-card>
           <mat-card-header>
             <mat-card-title>Secrets</mat-card-title>
@@ -143,10 +128,25 @@
           </mat-card-content>
         </mat-card>
       </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Versions">
+      <div class="inspector-tab-margin">
+        <mat-card>
+          <mat-card-content>
+            @if (serviceDetails) {
+            <app-inspector-service-releases
+                  [isApprover]="hasSudo || hasApprove"
+                  [builds]="serviceDetails.builds"></app-inspector-service-releases>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
     </mat-tab>
 
     <mat-tab label="Activity">
-      <div class="inspector-card-layout {{ screenSize }}">
+      <ng-template matTabContent>
+      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
         <mat-card class="full-width order-end">
           <mat-card-header>
             <mat-card-title>Intentions</mat-card-title>
@@ -160,12 +160,13 @@
           </mat-card-content>
         </mat-card>
       </div>
+      </ng-template>
     </mat-tab>
   }
 
   @if (collection === 'team') {
-    <mat-tab label="Members">
-      <div class="inspector-card-layout {{ screenSize }}">
+    <mat-tab label="Team">
+      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
         <mat-card>
           <mat-card-header>
             <mat-card-title>Members</mat-card-title>
@@ -190,14 +191,14 @@
       </div>
     </mat-tab>
     <mat-tab label="Services">
-      <div class="inspector-card-layout {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
         <app-team-services
         class="full-width order-end"
         [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
     <mat-tab label="Accounts">
-      <div class="inspector-card-layout {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
         <app-team-accounts
           class="full-width order-end"
           [teamVertex]="comboData.collection.vertex"

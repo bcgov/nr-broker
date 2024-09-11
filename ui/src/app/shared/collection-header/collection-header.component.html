@@ -7,7 +7,7 @@
   </button>
   <div>
     <div class="collection-subtitle">Browse - {{ config.name }}</div>
-    <div class="collection-title">{{ collectionData.name }}</div>
+    <div class="collection-title">{{ comboData.collection.name }}</div>
   </div>
   <span class="spacer"></span>
 
@@ -52,7 +52,7 @@
     @if (collection == 'team') {
       <app-inspector-team
         [screenSize]="screenSize"
-        [instance]="collectionData"></app-inspector-team>
+        [instance]="comboData.collection"></app-inspector-team>
     }
     <button
       mat-stroked-button
@@ -80,7 +80,7 @@
     @if (collection == 'team') {
       <app-inspector-team
         [screenSize]="screenSize"
-        [instance]="collectionData"></app-inspector-team>
+        [instance]="comboData.collection"></app-inspector-team>
     }
     <button
       mat-icon-button

@@ -296,7 +296,7 @@ export class CollectionService {
       });
     }
     for (const instance of service.serviceInstance) {
-      if (instance.action.source) {
+      if (instance?.action?.source) {
         instance.action.source.intention.auditUrl =
           this.actionUtil.auditUrlForIntention(
             instance.action.source.intention,

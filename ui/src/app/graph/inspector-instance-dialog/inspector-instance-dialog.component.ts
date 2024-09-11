@@ -55,7 +55,7 @@ export class InspectorInstanceDialogComponent implements OnInit {
       : [];
 
     this.collectionApi.exportCollection('environment').subscribe((envArr) => {
-      envArr.sort((a, b) => b.position - a.position);
+      envArr.sort((a, b) => a.position - b.position);
       for (const env of envArr) {
         this.envMap.push({
           id: env.id,

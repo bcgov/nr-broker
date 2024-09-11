@@ -5,10 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GraphUtilService } from '../../service/graph-util.service';
-import {
-  CollectionDtoRestUnion,
-  CollectionNames,
-} from '../../service/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
@@ -18,6 +15,7 @@ import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component'
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
+import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
 
 @Component({
   selector: 'app-collection-header',
@@ -36,8 +34,7 @@ import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-tea
 export class CollectionHeaderComponent {
   @Input() config!: CollectionConfigRestDto;
   @Input() collection!: CollectionNames;
-  @Input()
-  collectionData!: CollectionDtoRestUnion[keyof CollectionDtoRestUnion];
+  @Input() comboData!: CollectionCombo<any>;
   @Input() hasDelete!: boolean;
   @Input() hasUpdate!: boolean;
   @Input() screenSize!: string;
@@ -51,8 +48,8 @@ export class CollectionHeaderComponent {
   ) {}
 
   openInGraph() {
-    if (this.collectionData) {
-      this.graphUtil.openInGraph(this.collectionData.vertex, 'vertex');
+    if (this.comboData) {
+      this.graphUtil.openInGraph(this.comboData.collection.vertex, 'vertex');
     }
   }
 
@@ -71,8 +68,8 @@ export class CollectionHeaderComponent {
         data: {
           configMap: { [this.config.name]: this.config },
           collection: this.config.name,
-          vertexId: this.collectionData.vertex,
-          data: this.collectionData,
+          vertex: this.comboData.vertex,
+          data: this.comboData.collection,
         },
       })
       .afterClosed()
@@ -84,7 +81,7 @@ export class CollectionHeaderComponent {
   }
 
   editTags() {
-    if (!this.config || !this.collectionData) {
+    if (!this.config || !this.comboData) {
       return;
     }
     this.dialog
@@ -92,7 +89,7 @@ export class CollectionHeaderComponent {
         width: '500px',
         data: {
           collection: this.collection,
-          collectionData: this.collectionData,
+          collectionData: this.comboData.collection,
         },
       })
       .afterClosed()
@@ -112,7 +109,7 @@ export class CollectionHeaderComponent {
       .subscribe((result) => {
         if (result && result.confirm) {
           this.graphApi
-            .deleteVertex(this.collectionData.vertex)
+            .deleteVertex(this.comboData.collection.vertex)
             .subscribe(() => {
               // this.refreshData();
             });

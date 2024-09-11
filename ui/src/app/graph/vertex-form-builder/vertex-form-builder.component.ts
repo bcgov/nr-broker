@@ -44,6 +44,10 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
   ngOnInit() {
     const fieldCtrls: { [key: string]: FormGroup | FormControl } = {};
     const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
+    if (!this.data) {
+      this.data = {};
+    }
+    const data = JSON.parse(JSON.stringify(this.data));
 
     for (const key of Object.keys(this.fieldMap)) {
       fieldConfigs.push({
@@ -60,9 +64,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       }
       if (f.type === 'boolean') {
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] !== undefined
-            ? this.data[f.key]
-            : !!f.value,
+          data && data[f.key] !== undefined ? data[f.key] : !!f.value,
           validators,
         );
       }
@@ -73,7 +75,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         const pattern = new RegExp('^[0-9]*$', 'i');
         validators.push(Validators.pattern(pattern));
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key] : 0,
+          data && data[f.key] ? data[f.key] : 0,
           validators,
         );
       }
@@ -83,12 +85,12 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
             this.collectionService,
             this.collection as keyof CollectionDtoRestUnion,
             f.key,
-            this.data && this.data.id ? this.data.id : null,
+            data && data.id ? data.id : null,
           );
           asyncValidators.push(uniqueValidator);
         }
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key] : '',
+          data && data[f.key] ? data[f.key] : '',
           f.unique ? { updateOn: 'blur' } : {},
         );
         fieldCtrls[f.key].addValidators(validators);
@@ -96,7 +98,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       }
       if (f.type === 'stringArray') {
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key].join(', ') : '',
+          data && data[f.key] ? data[f.key].join(', ') : '',
           validators,
         );
       }
@@ -104,7 +106,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       if (f.type === 'email') {
         validators.push(Validators.email);
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key] : '',
+          data && data[f.key] ? data[f.key] : '',
           validators,
         );
       }
@@ -113,9 +115,8 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         if (f.required) {
           validators.push(Validators.required);
         }
-
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key].slice(0, -1) : '',
+          data && data[f.key] ? data[f.key].slice(0, -1) : '',
           validators,
         );
       }
@@ -132,16 +133,14 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         );
         validators.push(Validators.pattern(pattern));
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key] ? this.data[f.key] : '',
+          data && data[f.key] ? data[f.key] : '',
           validators,
         );
       }
 
       if (f.type === 'json') {
         fieldCtrls[f.key] = new FormControl(
-          this.data && this.data[f.key]
-            ? JSON.stringify(this.data[f.key], undefined, 4)
-            : '',
+          data && data[f.key] ? JSON.stringify(data[f.key], undefined, 4) : '',
           validators,
         );
       }
@@ -154,16 +153,13 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   fieldCtrls[f.key] = new FormGroup(opts);
       // }
       if (f.init) {
-        if (!this.data) {
-          this.data = {};
-        }
         if (f.init === 'uuid') {
-          if (!this.data[f.key]) {
-            this.data[f.key] = uuidv4();
+          if (!data[f.key]) {
+            data[f.key] = uuidv4();
           }
         }
         if (f.init === 'now') {
-          this.data[f.key] = new Date();
+          data[f.key] = new Date();
         }
       }
     }

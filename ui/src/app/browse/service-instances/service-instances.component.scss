@@ -1,0 +1,50 @@
+
+.edge-container {
+  margin-bottom: 16px;
+}
+
+.header-container {
+  display: flex;
+  align-items: right;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+h3 {
+  margin: 0;
+}
+
+h4 {
+  margin: 0;
+}
+
+.divider {
+  margin: 0 0 16px;
+}
+
+.divider:last-child {
+  display: none;
+}
+
+
+.environment-subtitle {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.54);
+  font-weight: 500;
+  height: 20px;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.environment-title {
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 18px;
+  font-weight: 500;
+  height: 22px;
+  letter-spacing: 0.25px;
+  line-height: 22px;
+}
+
+.instance-form {
+  margin-top: 16px;
+}

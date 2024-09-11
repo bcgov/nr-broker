@@ -269,11 +269,11 @@ export class GraphMongoRepository implements GraphRepository {
   public async getServiceDetails(
     id: string,
   ): Promise<ServiceDetailsResponseDto> {
-    const serverRepository = getRepositoryFromCollectionName(
+    const serviceRepository = getRepositoryFromCollectionName(
       this.dataSource,
       'service',
     );
-    return serverRepository
+    return serviceRepository
       .aggregate([
         { $match: { _id: new ObjectId(id) } },
         this.collectionLookup(
@@ -290,6 +290,13 @@ export class GraphMongoRepository implements GraphRepository {
               true,
               true,
             ),
+            this.collectionLookup(
+              'server',
+              { name: 'installation' },
+              'forward',
+              true,
+              false,
+            ),
             {
               $lookup: {
                 from: 'intention',
@@ -299,7 +306,9 @@ export class GraphMongoRepository implements GraphRepository {
               },
             },
             { $unwind: '$environment' },
-            { $unwind: '$intention' },
+            {
+              $unwind: { path: '$intention', preserveNullAndEmptyArrays: true },
+            },
           ],
         ),
       ])
@@ -314,6 +323,15 @@ export class GraphMongoRepository implements GraphRepository {
             if (instance.environment) {
               instance.environment.id = instance.environment._id;
               delete instance.environment._id;
+            }
+
+            if (instance.server) {
+              for (const server of instance.server) {
+                server.edge.id = server.edge._id;
+                delete server.edge._id;
+                server.server.id = server.server._id;
+                delete server.server._id;
+              }
             }
 
             if (instance.intention) {
@@ -427,9 +445,15 @@ export class GraphMongoRepository implements GraphRepository {
         pipeline: [
           { $match: edgeMatch },
           {
+            $replaceWith: {
+              edge: '$$ROOT',
+            },
+          },
+          {
             $lookup: {
               from: collection,
-              localField: direction === 'forward' ? 'target' : 'source',
+              localField:
+                direction === 'forward' ? 'edge.target' : 'edge.source',
               foreignField: 'vertex',
               as: collection,
             },

@@ -44,6 +44,7 @@ export class InspectorInstallsComponent implements OnInit {
 
   ngOnInit(): void {
     this.current = this.instance?.action;
+    this.navigate(0);
   }
 
   viewIntention(id: string) {

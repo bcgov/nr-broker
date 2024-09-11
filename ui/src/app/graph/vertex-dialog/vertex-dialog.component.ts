@@ -22,6 +22,8 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
+import { PropertyEditorComponent } from '../property-editor/property-editor.component';
+import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -37,6 +39,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
     MatSelectModule,
     MatOptionModule,
     ReactiveFormsModule,
+    PropertyEditorComponent,
     VertexFormBuilderComponent,
   ],
 })
@@ -47,13 +50,16 @@ export class VertexDialogComponent implements OnInit {
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
 
+  @ViewChild(PropertyEditorComponent)
+  private propertyEditorComponent!: PropertyEditorComponent;
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
       configMap: CollectionConfigMap;
       collection?: string;
-      vertexId?: string;
       data?: any;
+      vertex?: VertexRestDto;
     },
     public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
     private readonly graphApi: GraphApiService,
@@ -85,17 +91,20 @@ export class VertexDialogComponent implements OnInit {
       return;
     }
     const config = this.collectionControl.value;
+    const prop = this.propertyEditorComponent.getPropertyValues();
+
     if (this.isCollectionConfig(config)) {
       const vertexData = this.graphUtil.extractVertexData(
         config,
         this.formComponent.form.value,
       );
 
-      if (this.data.vertexId) {
+      if (this.data.vertex) {
         this.graphApi
-          .editVertex(this.data.vertexId, {
+          .editVertex(this.data.vertex.id, {
             collection: config.collection,
             data: vertexData,
+            ...prop,
           })
           .subscribe(() => {
             this.dialogRef.close({ refresh: true });
@@ -105,6 +114,7 @@ export class VertexDialogComponent implements OnInit {
           .addVertex({
             collection: config.collection,
             data: vertexData,
+            ...prop,
           })
           .subscribe((response) => {
             this.dialogRef.close({ refresh: true, id: response.id });
