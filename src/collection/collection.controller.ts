@@ -3,12 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  MessageEvent,
   NotFoundException,
   Param,
   Post,
   Put,
   Query,
   Request,
+  Sse,
   UseGuards,
   UseInterceptors,
   UsePipes,
@@ -16,7 +18,12 @@ import {
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
-import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
+import { Observable } from 'rxjs';
+import {
+  OAUTH2_CLIENT_MAP_GUID,
+  REDIS_PUBSUB,
+  DAYS_10_IN_SECONDS,
+} from '../constants';
 import { CollectionService } from './collection.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
@@ -35,7 +42,7 @@ import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decora
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { ExpiryQuery } from './dto/expiry-query.dto';
-import { DAYS_10_IN_SECONDS } from '../constants';
+import { RedisService } from '../redis/redis.service';
 
 @Controller({
   path: 'collection',
@@ -45,6 +52,7 @@ export class CollectionController {
   constructor(
     private readonly accountService: AccountService,
     private readonly service: CollectionService,
+    private readonly redis: RedisService,
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
@@ -91,6 +99,19 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async getAccounts(@Param('id') id: string) {
     return this.accountService.getRegisteryJwts(id);
+  }
+
+  @Post('broker-account/:id/refresh')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async refresh(@Param('id') id: string): Promise<void> {
+    return await this.accountService.refresh(id);
   }
 
   @Post('broker-account/:id/token')
@@ -146,6 +167,13 @@ export class CollectionController {
   ) {
     if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
     return this.accountService.renewToken(request, ttl, true);
+  }
+
+  @Sse('broker-account/events')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  tokenUpdatedEvents(): Observable<MessageEvent> {
+    return this.redis.getEventSource(REDIS_PUBSUB.VAULT_SERVICE_TOKEN);
   }
 
   @Get('service/:id/details')

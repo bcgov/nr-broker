@@ -1,8 +1,13 @@
 import { Controller, Get, HttpCode, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus';
+import {
+  HealthCheckService,
+  HttpHealthIndicator,
+  TypeOrmHealthIndicator,
+} from '@nestjs/terminus';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { HealthService } from './health.service';
+import { GithubHealthIndicator } from '../github/github.health';
 
 @Controller({
   path: 'health',
@@ -12,7 +17,9 @@ export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly http: HttpHealthIndicator,
+    private readonly github: GithubHealthIndicator,
     private readonly healthService: HealthService,
+    private readonly db: TypeOrmHealthIndicator,
   ) {}
 
   @Get()
@@ -23,6 +30,8 @@ export class HealthController {
           'broker-api',
           'http://localhost:3000/v1/health/ping',
         ),
+      () => this.db.pingCheck('database'),
+      () => this.github.isHealthy('github'),
     ]);
   }
 

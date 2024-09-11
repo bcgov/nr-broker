@@ -32,3 +32,8 @@ table {
   line-height: 1em;
   vertical-align: -2px;
 }
+
+.fields-wrapper {
+  display: inline-flex;
+  flex-wrap: wrap;
+}

@@ -1,8 +1,21 @@
 @if (account) {
   <div class="edge-container">
-    <h3 class="heading">Token</h3>
-
-    <button mat-button (click)="openGenerateDialog()" [disabled]="!hasSudo">Generate</button>
+    <div class="fields-wrapper">
+      <h3 class="heading">Token</h3>
+    </div>
+    <div class="fields-wrapper">
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo">
+          <mat-icon>add_circle</mat-icon>Generate
+        </button>
+        <button mat-menu-item (click)="sync()" [disabled]="!hasSudo">
+          <mat-icon>sync</mat-icon>Sync secrets
+        </button>
+      </mat-menu>
+    </div>
   </div>
   @if (!lastJwtTokenData) {
     <p class="edge-container">No token found. Click generate to create a token.</p>

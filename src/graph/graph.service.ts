@@ -36,8 +36,6 @@ import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto
 
 @Injectable()
 export class GraphService {
-  // private readonly eventSource = new Subject<MessageEvent>();
-
   constructor(
     private readonly auditService: AuditService,
     private readonly collectionRepository: CollectionRepository,

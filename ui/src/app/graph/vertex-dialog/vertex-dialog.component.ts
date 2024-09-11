@@ -74,7 +74,6 @@ export class VertexDialogComponent implements OnInit {
     } else {
       this.collectionControl.enable();
     }
-    this.data.data;
   }
 
   ngAfterViewInit() {
