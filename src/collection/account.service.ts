@@ -1,5 +1,10 @@
 import { createHmac, randomUUID } from 'node:crypto';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
@@ -27,6 +32,7 @@ import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
+import { GithubService } from '../github/github.service';
 
 export class TokenCreateDTO {
   token: string;
@@ -37,6 +43,7 @@ export class AccountService {
   constructor(
     private readonly auditService: AuditService,
     private readonly opensearchService: OpensearchService,
+    private readonly githubService: GithubService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
     private readonly graphRepository: GraphRepository,
@@ -187,6 +194,9 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
+    if (!this.githubService.isEnabled()) {
+      await this.refresh(account.id.toString());
+    }
     this.auditService.recordAccountTokenLifecycle(
       req,
       payload,
@@ -258,7 +268,7 @@ export class AccountService {
       const projectName = projectDtoArr[0].collection.name;
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
-          [`broker_jwt_${account.clientId.replace(/-/g, '_')}`]: token,
+          [`broker-jwt:${account.clientId}`]: token,
         });
         this.redisService.publish(REDIS_PUBSUB.VAULT_SERVICE_TOKEN, {
           data: {
@@ -301,44 +311,41 @@ export class AccountService {
   }
 
   async refresh(id: string): Promise<void> {
-    try {
-      const account = await this.collectionRepository.getCollectionById(
-        'brokerAccount',
-        id,
-      );
+    const account = await this.collectionRepository.getCollectionById(
+      'brokerAccount',
+      id,
+    );
 
-      if (!account) {
-        throw new Error(`Account with ID ${id} not found`);
-      }
-      const downstreamServices =
-        await this.graphRepository.getDownstreamVertex<ServiceDto>(
-          account.vertex.toString(),
-          CollectionNameEnum.service,
-          3,
+    if (!account) {
+      throw new NotFoundException(`Account with ID ${id} not found`);
+    }
+    if (!this.githubService.isEnabled()) {
+      throw new ServiceUnavailableException();
+    }
+    const downstreamServices =
+      await this.graphRepository.getDownstreamVertex<ServiceDto>(
+        account.vertex.toString(),
+        CollectionNameEnum.service,
+        3,
+      );
+    if (downstreamServices) {
+      for (const service of downstreamServices) {
+        const serviceName = service.collection.name;
+        const projectDtoArr =
+          await this.graphRepository.getUpstreamVertex<ProjectDto>(
+            service.collection.vertex.toString(),
+            CollectionNameEnum.project,
+            null,
+          );
+        const projectName = projectDtoArr[0].collection.name;
+        await this.githubService.refresh(
+          projectName,
+          serviceName,
+          service.collection.scmUrl,
         );
-      if (downstreamServices) {
-        for (const service of downstreamServices) {
-          const serviceName = service.collection.name;
-          const projectDtoArr =
-            await this.graphRepository.getUpstreamVertex<ProjectDto>(
-              service.collection.vertex.toString(),
-              CollectionNameEnum.project,
-              null,
-            );
-          const projectName = projectDtoArr[0].collection.name;
-          this.redisService.publish(REDIS_PUBSUB.VAULT_SERVICE_TOKEN, {
-            data: {
-              clientId: account.clientId,
-              environment: 'tools',
-              project: projectName,
-              service: serviceName,
-              scmUrl: service.collection.scmUrl,
-            },
-          });
-        }
-      } else console.log('No services associated with this broker account');
-    } catch (error) {
-      console.error(error);
+      }
+    } else {
+      // console.log('No services associated with this broker account');
     }
   }
 

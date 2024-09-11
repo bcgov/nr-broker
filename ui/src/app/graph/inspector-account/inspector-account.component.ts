@@ -11,6 +11,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
+import {
+  MatSnackBar,
+  MatSnackBarModule,
+  MatSnackBarConfig,
+} from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
@@ -29,6 +34,7 @@ import { GraphApiService } from '../../service/graph-api.service';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
   ],
@@ -57,8 +63,9 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
 
   constructor(
     private readonly dialog: MatDialog,
-    private readonly systemApi: SystemApiService,
+    private readonly snackBar: MatSnackBar,
     private readonly graphApi: GraphApiService,
+    private readonly systemApi: SystemApiService,
   ) {}
 
   ngOnInit(): void {
@@ -102,17 +109,22 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
       });
   }
 
-  refresh(): void {
+  sync(): void {
     if (this.account && this.userIndex) {
       this.systemApi.refresh(this.account.id).subscribe({
-        next: (response: any) => {
-          console.log('Token synced successfully', response);
+        next: () => {
+          this.openSnackBar('Tools secrets synced successfully');
         },
         error: (err: any) => {
-          console.error('Syncing token failed:', err);
+          console.log(err);
+          this.openSnackBar(
+            'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
+          );
         },
       });
-    } else console.log('The account does not exist!');
+    } else {
+      this.openSnackBar('The account does not exist!');
+    }
   }
 
   private updateAccount(): void {
@@ -172,5 +184,12 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  private openSnackBar(message: string) {
+    const config = new MatSnackBarConfig();
+    config.duration = 5000;
+    config.verticalPosition = 'bottom';
+    this.snackBar.open(message, 'Dismiss', config);
   }
 }

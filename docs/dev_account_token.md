@@ -15,15 +15,17 @@ See: [Broker JWT](/operations_jwt.md)
 
 Teams are encouraged to document the client_id used by a service. This documentation should clearly state the locations the account is used.
 
-## Update the Token into the Github Repo
+Generated tokens are saved in vault 'tools' space for all associated service's by default.
 
-When generate a token, by default the new token will be saved in vault 'tools' space along with project and service folders that this broker account associated with and sync to all Github Repos of services.
+## Update Github Secrets
+
+### Prerequisites
 
 * Have a [Github App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) ready
 
-* Install and Grant the [Github App](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app) to have the read/write access to the individual service Github Repo secrets.
+* Install the [Github App](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app) in all repositories associated with services. Grant the app read/write access to repository secrets.
 
-* After a token is generated, all secrets under tools/project/service in vault will be synced to this service Github repo secrets.
+* After a token is generated, all secrets in the tools namespace for a service (tools/project/service) in Vault will be synced to the associated service's Github repository as secrets.
 
 ### Renewing a token
 

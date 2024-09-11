@@ -6,6 +6,7 @@ import { UserCollectionService } from './user-collection.service';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AwsModule } from '../aws/aws.module';
+import { GithubModule } from '../github/github.module';
 import { GraphModule } from '../graph/graph.module';
 import { IntentionModule } from '../intention/intention.module';
 import { PersistenceModule } from '../persistence/persistence.module';
@@ -24,6 +25,7 @@ import { VaultModule } from '../vault/vault.module';
     AuditModule,
     AuthModule,
     PersistenceModule,
+    GithubModule,
     GraphModule,
     forwardRef(() => IntentionModule),
     RedisModule,

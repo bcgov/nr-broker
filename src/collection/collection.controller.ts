@@ -101,7 +101,7 @@ export class CollectionController {
     graphIdFromParamKey: 'id',
     permission: 'sudo',
   })
-  @UseGuards(BrokerCombinedAuthGuard)
+  @UseGuards(BrokerOidcAuthGuard)
   async refresh(@Param('id') id: string): Promise<void> {
     return await this.accountService.refresh(id);
   }
