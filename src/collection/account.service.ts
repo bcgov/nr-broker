@@ -194,7 +194,7 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
-    if (!this.githubService.isEnabled()) {
+    if (this.githubService.isEnabled()) {
       await this.refresh(account.id.toString());
     }
     this.auditService.recordAccountTokenLifecycle(
