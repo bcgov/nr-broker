@@ -196,7 +196,9 @@ export class CollectionTableComponent
             prev.sort &&
             curr.sort &&
             prev.sort.active === curr.sort.active &&
-            prev.sort.direction === curr.sort.direction
+            prev.sort.direction === curr.sort.direction &&
+            prev.page.index === curr.page.index &&
+            prev.page.size === curr.page.size
           );
         }),
         switchMap((settings) => {
