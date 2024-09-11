@@ -1,0 +1,31 @@
+<mat-form-field class="field-show-filter">
+  <mat-label>Show</mat-label>
+  <mat-select
+    [(ngModel)]="show"
+    name="show">
+      <mat-option [value]="'version'">By Version</mat-option>
+      <mat-option [value]="'instance'">By Instance</mat-option>
+    </mat-select>
+</mat-form-field>
+
+@if (show == 'version') {
+  @if (serviceDetails && serviceDetails.builds) {
+    <mat-card>
+      <mat-card-content>
+        <app-inspector-service-releases
+          [isApprover]="hasSudo || hasApprove"
+          [builds]="serviceDetails.builds"></app-inspector-service-releases>
+      </mat-card-content>
+    </mat-card>
+  }
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <app-inspector-instances
+        [service]="comboData.collection"
+        [vertex]="comboData.vertex"
+        [vertices]="comboData.downstream"
+        [details]="serviceDetails"></app-inspector-instances>
+    </mat-card-content>
+  </mat-card>
+}

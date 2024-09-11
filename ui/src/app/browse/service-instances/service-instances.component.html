@@ -1,0 +1,43 @@
+@if (vertices) {
+<div class="edge-container">
+  <div class="header-container">
+    @if (permission.hasAdmin()) {
+      <div class="header-buttons">
+        <button
+          mat-stroked-button
+          (click)="openInstanceDialog()"
+          [disabled]="!permission.hasAdmin()">Quick Add</button>
+      </div>
+    }
+  </div>
+</div>
+}
+
+<mat-card>
+  <mat-card-content>
+  @for(env of envs; track env.id; let last = $last) {
+    @if (envDetailsMap && envDetailsMap[env.name]) {
+    <div class="environment-subtitle">Environment</div>
+    <div class="environment-title">{{env.title}}</div>
+
+    @if (envDetailsMap && envDetailsMap[env.name].length > 1) {
+      <mat-form-field class="instance-form">
+        <mat-label>Instance</mat-label>
+        <mat-select [(ngModel)]="envDetailSelection[env.name]">
+          @for (element of envDetailsMap[env.name]; track element.id) {
+            <mat-option [value]="element">{{element.name}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (envDetailsMap && envDetailSelection[env.name]) {
+      <app-service-instance-details
+        [instance]="envDetailSelection[env.name]"
+        [showName]="envDetailsMap[env.name].length === 1"
+        ></app-service-instance-details>
+    }
+    <mat-divider class="divider"></mat-divider>
+    }
+  }
+  </mat-card-content>
+</mat-card>

@@ -207,42 +207,28 @@ export class InspectorComponent implements OnChanges, OnInit {
         return config.index === sourceIndex;
       });
       if (config) {
-        this.dialog
-          .open(EdgeDialogComponent, {
-            width: '500px',
-            data: {
-              collection: config.collection,
-              source: this.comboData.source,
-              edge: this.comboData.edge,
-            },
-          })
-          .afterClosed()
-          .subscribe((result) => {
-            if (result && result.refresh) {
-              // this.refreshData();
-            }
-          });
-      }
-    } else if (this.comboData?.type === 'vertex') {
-      this.dialog
-        .open(VertexDialogComponent, {
+        this.dialog.open(EdgeDialogComponent, {
           width: '500px',
           data: {
-            configMap: {
-              [this.comboData.vertex.collection]:
-                this.configMap[this.comboData.vertex.collection],
-            },
-            collection: this.comboData.vertex.collection,
-            vertexId: this.comboData.vertex.id,
-            data: this.comboData.collection,
+            collection: config.collection,
+            source: this.comboData.source,
+            edge: this.comboData.edge,
           },
-        })
-        .afterClosed()
-        .subscribe((result) => {
-          if (result && result.refresh) {
-            // this.refreshData();
-          }
         });
+      }
+    } else if (this.comboData?.type === 'vertex') {
+      this.dialog.open(VertexDialogComponent, {
+        width: '500px',
+        data: {
+          configMap: {
+            [this.comboData.vertex.collection]:
+              this.configMap[this.comboData.vertex.collection],
+          },
+          collection: this.comboData.vertex.collection,
+          data: this.comboData.collection,
+          vertex: this.comboData.vertex,
+        },
+      });
     }
   }
 
