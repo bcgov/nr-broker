@@ -1,4 +1,7 @@
 @if (!loading) {
+  @if(userCount == 0) {
+    <h4>None</h4>
+  }
   @for (edge of edges; track edge.id) {
     @if (users[edge.name].length > 0) {
       <div class="member-header">
