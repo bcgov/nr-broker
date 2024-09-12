@@ -147,7 +147,10 @@ export class CollectionTableComponent
   ngAfterViewInit() {
     // console.log('ngAfterViewInit');
     this.sort.sortChange.asObservable().subscribe({
-      next: (v) => this.sort$.next(v),
+      next: (v) => {
+        this.pageIndexReset();
+        this.sort$.next(v);
+      },
     });
   }
 
@@ -282,6 +285,8 @@ export class CollectionTableComponent
       this.sortSnapshot.active = sort.active;
       this.sortSnapshot.direction = sort.direction;
     });
+    this.tagsControl.valueChanges.subscribe(() => this.pageIndexReset());
+    this.textControl.valueChanges.subscribe(() => this.pageIndexReset());
 
     const params = this.route.snapshot.params;
     if (params['index'] && params['size']) {
@@ -345,7 +350,7 @@ export class CollectionTableComponent
   }
 
   onFilterChange(change: MatSelectChange) {
-    this.pageIndex = 0;
+    this.pageIndexReset();
     this.showFilter$.next(change.value);
     this.preferences.set('browseConnectionFilter', change.value);
   }
@@ -353,14 +358,21 @@ export class CollectionTableComponent
   onCollectionChange(change: MatSelectChange) {
     this.collection$.next(change.value);
 
-    this.pageIndex = 0;
+    this.pageIndexReset();
     this.preferences.set('browseCollectionDefault', this.collectionSnapshot);
     this.sort$.next({ active: '', direction: '' });
 
     this.clearAndRefresh();
   }
 
+  pageIndexReset() {
+    this.pageIndex = 0;
+    this.page$.next({ index: this.pageIndex, size: this.pageSize });
+  }
+
   handlePageEvent(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.page$.next({ index: event.pageIndex, size: event.pageSize });
   }
 
@@ -384,6 +396,7 @@ export class CollectionTableComponent
   }
 
   clearAndRefresh() {
+    this.pageIndexReset();
     this.textControl.setValue('');
     this.tagsControl.setValue([]);
     this.refresh();

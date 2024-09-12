@@ -12,14 +12,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  animate,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
 import { lastValueFrom } from 'rxjs';
+import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
@@ -35,10 +33,7 @@ import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { EnvironmentRestDto } from '../../service/dto/environment-rest.dto';
-import { MatCardModule } from '@angular/material/card';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
-import { MatSelectModule } from '@angular/material/select';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-service-instances',
@@ -50,6 +45,7 @@ import { FormsModule } from '@angular/forms';
     MatDividerModule,
     MatIconModule,
     MatSelectModule,
+    MatProgressSpinnerModule,
     MatTableModule,
     InspectorInstallsComponent,
     InspectorInstanceDialogComponent,
@@ -57,16 +53,6 @@ import { FormsModule } from '@angular/forms';
     OutcomeIconComponent,
   ],
   templateUrl: './service-instances.component.html',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
-      state('expanded', style({ height: '*' })),
-      transition(
-        'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-      ),
-    ]),
-  ],
   styleUrl: './service-instances.component.scss',
 })
 export class ServiceInstancesComponent implements OnChanges {
@@ -74,18 +60,12 @@ export class ServiceInstancesComponent implements OnChanges {
   @Input() vertices!: GraphDirectedRestCombo[];
   @Input() service!: ServiceRestDto;
   @Input() details!: any;
+  @Output() refreshData = new EventEmitter();
+
   envDetailsMap: any;
   envDetailSelection: any;
   envs: EnvironmentRestDto[] = [];
   loading = true;
-  @Output() refreshData = new EventEmitter();
-
-  propDisplayedColumns: string[] = ['outcome', 'version'];
-  propDisplayedColumnsWithExpand: string[] = [
-    ...this.propDisplayedColumns,
-    'expand',
-  ];
-  expandedElement: any | null;
 
   constructor(
     public readonly permission: PermissionService,
@@ -106,32 +86,6 @@ export class ServiceInstancesComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['details']) {
       this.loadServiceDetails();
-    }
-  }
-
-  private loadServiceDetails() {
-    if (this.details) {
-      const data = this.details;
-      this.envDetailsMap = data.serviceInstance.reduce((pv: any, cv: any) => {
-        const env = cv.environment.name;
-        if (pv[env]) {
-          pv[env].push(cv);
-        } else {
-          pv[env] = [cv];
-        }
-        return pv;
-      }, {});
-      this.envDetailSelection = data.serviceInstance.reduce(
-        (pv: any, cv: any) => {
-          const env = cv.environment.name;
-          if (!pv[env]) {
-            pv[env] = cv;
-          }
-          return pv;
-        },
-        {},
-      );
-      this.loading = false;
     }
   }
 
@@ -185,5 +139,31 @@ export class ServiceInstancesComponent implements OnChanges {
           this.refreshData.emit();
         }
       });
+  }
+
+  private loadServiceDetails() {
+    if (this.details) {
+      const data = this.details;
+      this.envDetailsMap = data.serviceInstance.reduce((pv: any, cv: any) => {
+        const env = cv.environment.name;
+        if (pv[env]) {
+          pv[env].push(cv);
+        } else {
+          pv[env] = [cv];
+        }
+        return pv;
+      }, {});
+      this.envDetailSelection = data.serviceInstance.reduce(
+        (pv: any, cv: any) => {
+          const env = cv.environment.name;
+          if (!pv[env]) {
+            pv[env] = cv;
+          }
+          return pv;
+        },
+        {},
+      );
+      this.loading = false;
+    }
   }
 }
