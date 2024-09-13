@@ -360,7 +360,7 @@ export class AccountService {
           this.auditService.recordToolsSync(
             'start',
             'unknown',
-            `Start sync: service.collection.scmUrl`,
+            `Start sync: ${service.collection.scmUrl}`,
             projectName,
             serviceName,
           );
@@ -372,7 +372,7 @@ export class AccountService {
           this.auditService.recordToolsSync(
             'end',
             'success',
-            `End sync: service.collection.scmUrl`,
+            `End sync: ${service.collection.scmUrl}`,
             projectName,
             serviceName,
           );
@@ -386,7 +386,7 @@ export class AccountService {
           this.auditService.recordToolsSync(
             'end',
             'failure',
-            `End sync: service.collection.scmUrl`,
+            `End sync: ${service.collection.scmUrl}`,
             projectName,
             serviceName,
             httpErr,
