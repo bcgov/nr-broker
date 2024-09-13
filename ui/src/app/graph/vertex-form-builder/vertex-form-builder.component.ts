@@ -59,6 +59,18 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     for (const f of fieldConfigs) {
       const asyncValidators: AsyncValidatorFn[] = [];
       const validators: ValidatorFn[] = [];
+
+      if (f.init) {
+        if (f.init === 'uuid') {
+          if (!data[f.key]) {
+            data[f.key] = uuidv4();
+          }
+        }
+        if (f.init === 'now') {
+          data[f.key] = new Date();
+        }
+      }
+
       if (f.required) {
         validators.push(Validators.required);
       }
@@ -152,16 +164,6 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   }
       //   fieldCtrls[f.key] = new FormGroup(opts);
       // }
-      if (f.init) {
-        if (f.init === 'uuid') {
-          if (!data[f.key]) {
-            data[f.key] = uuidv4();
-          }
-        }
-        if (f.init === 'now') {
-          data[f.key] = new Date();
-        }
-      }
     }
     this.fieldConfigs = fieldConfigs;
     this.form = new FormGroup(fieldCtrls);
