@@ -4,6 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
   ServiceUnavailableException,
+  HttpException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -195,7 +196,11 @@ export class AccountService {
       await this.addTokenToAccountServices(token, account);
     }
     if (this.githubService.isEnabled()) {
-      await this.refresh(account.id.toString());
+      try {
+        await this.refresh(account.id.toString());
+      } catch (error) {
+        // Continue - this.refresh() audit failures
+      }
     }
     this.auditService.recordAccountTokenLifecycle(
       req,
@@ -316,10 +321,23 @@ export class AccountService {
       id,
     );
 
+    this.auditService.recordToolsSync(
+      'info',
+      'unknown',
+      `Sync broker account (${account.clientId})`,
+    );
+
     if (!account) {
+      const message = `Account with ID ${id} not found`;
+      this.auditService.recordToolsSync('info', 'failure', message);
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
     if (!this.githubService.isEnabled()) {
+      this.auditService.recordToolsSync(
+        'info',
+        'failure',
+        'Github is not setup',
+      );
       throw new ServiceUnavailableException();
     }
     const downstreamServices =
@@ -338,14 +356,50 @@ export class AccountService {
             null,
           );
         const projectName = projectDtoArr[0].collection.name;
-        await this.githubService.refresh(
-          projectName,
-          serviceName,
-          service.collection.scmUrl,
-        );
+        try {
+          this.auditService.recordToolsSync(
+            'start',
+            'unknown',
+            `Start sync: service.collection.scmUrl`,
+            projectName,
+            serviceName,
+          );
+          await this.githubService.refresh(
+            projectName,
+            serviceName,
+            service.collection.scmUrl,
+          );
+          this.auditService.recordToolsSync(
+            'end',
+            'success',
+            `End sync: service.collection.scmUrl`,
+            projectName,
+            serviceName,
+          );
+        } catch (error) {
+          let httpErr = error;
+          if (!(httpErr instanceof HttpException)) {
+            httpErr = new BadRequestException({
+              message: error.message,
+            });
+          }
+          this.auditService.recordToolsSync(
+            'end',
+            'failure',
+            `End sync: service.collection.scmUrl`,
+            projectName,
+            serviceName,
+            httpErr,
+          );
+          throw httpErr;
+        }
       }
     } else {
-      // console.log('No services associated with this broker account');
+      this.auditService.recordToolsSync(
+        'info',
+        'unknown',
+        `No services associated with this broker account (${account.clientId})`,
+      );
     }
   }
 

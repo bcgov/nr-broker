@@ -7,9 +7,9 @@ import snakecaseKeys from 'snakecase-keys';
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
 import { AuditStreamerService } from './audit-streamer.service';
-import { UserDto } from '../intention/dto/user.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
+import { UserDto } from '../intention/dto/user.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
@@ -442,6 +442,64 @@ export class AuditService {
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc()),
         map(this.addUserAgentFunc(req)),
+      )
+      .subscribe((ecsObj) => {
+        this.stream.putRecord(ecsObj);
+      });
+  }
+
+  /**
+   * Records authorization events in the audit activity log
+   * @param req The initiating http request
+   * @param type Indicates if this is the start or end
+   * @param outcome The outcome of the authorization
+   */
+  public recordToolsSync(
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    project?: string,
+    service?: string,
+    failure?: HttpException,
+  ) {
+    from([
+      {
+        message,
+        event: {
+          action: 'sync-tools',
+          category: 'configuration',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+          outcome,
+        },
+        ...(project
+          ? {
+              labels: {
+                target_project: project,
+              },
+            }
+          : {}),
+        ...(service
+          ? {
+              service: {
+                target: {
+                  name: service,
+                  environment: 'tools',
+                },
+              },
+            }
+          : {}),
+      },
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addErrorFunc(failure)),
+        map(this.addMetadataActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addTimestampFunc()),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
