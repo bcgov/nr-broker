@@ -6,8 +6,8 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   <div>
-    <div class="collection-subtitle">Browse - {{ config.name }}</div>
-    <div class="collection-title">{{ comboData.collection.name }}</div>
+    <div class="collection-subtitle">Browse - {{ config?.name }}</div>
+    <div class="collection-title">{{ name }}</div>
   </div>
   <span class="spacer"></span>
 
@@ -18,7 +18,7 @@
         mat-stroked-button
         extended
         color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
+        [disabled]="!hasDelete || !config?.permissions?.delete"
         (click)="delete()">
         Delete
       </button>
@@ -26,7 +26,7 @@
       <button
         mat-icon-button
         color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
+        [disabled]="!hasDelete || !config?.permissions?.delete"
         (click)="delete()">
         <mat-icon>delete</mat-icon>
       </button>
@@ -51,14 +51,15 @@
     </button>
     @if (collection == 'team') {
       <app-inspector-team
-        [screenSize]="screenSize"
-        [instance]="comboData.collection"></app-inspector-team>
+        [vertex]="vertex"
+        [name]="name"
+        [screenSize]="screenSize"></app-inspector-team>
     }
     <button
       mat-stroked-button
       extended
       color="primary"
-      [disabled]="!hasUpdate || !config.permissions.update"
+      [disabled]="!hasUpdate || !config?.permissions?.update"
       (click)="edit()">
       Edit
     </button>
@@ -79,13 +80,14 @@
     </button>
     @if (collection == 'team') {
       <app-inspector-team
-        [screenSize]="screenSize"
-        [instance]="comboData.collection"></app-inspector-team>
+        [vertex]="vertex"
+        [name]="name"
+        [screenSize]="screenSize"></app-inspector-team>
     }
     <button
       mat-icon-button
       color="primary"
-      [disabled]="!hasUpdate || !config.permissions.update"
+      [disabled]="!hasUpdate || !config?.permissions?.update"
       (click)="edit()">
       <mat-icon>edit</mat-icon>
     </button>

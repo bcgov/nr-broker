@@ -55,8 +55,10 @@
   @if (collection === 'team') {
     <div class="edge-container">
       <app-inspector-team
+        [vertex]="comboData.collection.vertex"
+        [name]="comboData.collection.name"
         [screenSize]="'wide'"
-        [instance]="comboData.collection"></app-inspector-team>
+        ></app-inspector-team>
     </div>
   }
 </div>

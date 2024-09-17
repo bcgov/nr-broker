@@ -42,7 +42,7 @@ import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-tea
 import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
-import { InspectorServiceReleasesComponent } from '../../graph/inspector-service-releases/inspector-service-releases.component';
+import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
 import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
@@ -56,8 +56,8 @@ import { InspectorPropertiesComponent } from '../../graph/inspector-properties/i
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamSummaryComponent } from '../team-summary/team-summary.component';
-import { ServiceReleasesComponent } from '../service-releases/service-releases.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
+import { ServiceBuildDetailsComponent } from '../service-build-details/service-build-details.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -78,7 +78,6 @@ import { ServiceInstancesComponent } from '../service-instances/service-instance
     InspectorInstancesComponent,
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
-    InspectorServiceReleasesComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
@@ -86,7 +85,8 @@ import { ServiceInstancesComponent } from '../service-instances/service-instance
     InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    ServiceReleasesComponent,
+    ServiceBuildDetailsComponent,
+    ServiceBuildsComponent,
     ServiceInstancesComponent,
     TeamAccountsComponent,
     TeamMembersComponent,
@@ -117,6 +117,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   selectedTabIndex = 0;
+  selectedBuild: string | undefined;
   screenSize: string = '';
 
   // Create a map from breakpoints to css class
@@ -264,6 +265,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.selectedTabIndex = params['index']
       ? Number.parseInt(params['index'])
       : 0;
+    this.selectedBuild = params['build'];
   }
 
   ngOnDestroy() {
@@ -308,6 +310,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   selectedTabChange(event: MatTabChangeEvent) {
     this.selectedTabIndex = event.index;
+    this.selectedBuild = undefined;
     this.updateRoute();
   }
 

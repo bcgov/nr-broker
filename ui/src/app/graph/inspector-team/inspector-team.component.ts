@@ -13,23 +13,23 @@ import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.co
   styleUrls: ['./inspector-team.component.scss'],
 })
 export class InspectorTeamComponent {
-  @Input() instance!: any | undefined;
+  @Input() vertex!: any | undefined;
+  @Input() name!: any | undefined;
   @Input() screenSize!: string;
   @Output() graphChanged = new EventEmitter<boolean>();
 
   constructor(private readonly dialog: MatDialog) {}
 
   openMemberDialog() {
-    if (!this.instance) {
+    if (!this.vertex && !this.name) {
       return;
     }
     this.dialog
       .open(MemberDialogComponent, {
         width: '600px',
         data: {
-          id: this.instance.id,
-          vertex: this.instance.vertex,
-          name: this.instance.name,
+          vertex: this.vertex,
+          name: this.name,
         },
       })
       .afterClosed()

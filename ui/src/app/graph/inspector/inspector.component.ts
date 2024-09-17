@@ -220,10 +220,6 @@ export class InspectorComponent implements OnChanges, OnInit {
       this.dialog.open(VertexDialogComponent, {
         width: '500px',
         data: {
-          configMap: {
-            [this.comboData.vertex.collection]:
-              this.configMap[this.comboData.vertex.collection],
-          },
           collection: this.comboData.vertex.collection,
           data: this.comboData.collection,
           vertex: this.comboData.vertex,

@@ -287,7 +287,6 @@ export class CollectionService {
 
   async getServiceDetails(serviceId: string) {
     const service = await this.graphRepository.getServiceDetails(serviceId);
-    const builds = await this.buildRepository.searchBuild(serviceId, 0, 5);
     if (!service) {
       throw new NotFoundException({
         statusCode: 404,
@@ -305,7 +304,6 @@ export class CollectionService {
     }
     return {
       ...service,
-      builds,
     };
   }
 

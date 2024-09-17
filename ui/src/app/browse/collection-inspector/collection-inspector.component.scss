@@ -10,6 +10,10 @@
   gap: 16px;
 }
 
+.inspector-card-gap {
+  margin-bottom: 16px;
+}
+
 .inspector-card-layout > * {
   width: calc(50% - 8px);
 }
@@ -20,6 +24,10 @@
 
 .inspector-card-layout > .full-width {
   width: 100%;
+}
+
+.order-start {
+  order: -10;
 }
 
 .order-end {

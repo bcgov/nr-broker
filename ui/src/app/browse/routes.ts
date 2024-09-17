@@ -1,7 +1,7 @@
+import { inject } from '@angular/core';
 import { Route } from '@angular/router';
 import { CollectionTableComponent } from './collection-table/collection-table.component';
 import { CollectionInspectorComponent } from './collection-inspector/collection-inspector.component';
-import { inject } from '@angular/core';
 import { PreferencesService } from '../preferences.service';
 
 export const BROWSE_ROUTES: Route[] = [

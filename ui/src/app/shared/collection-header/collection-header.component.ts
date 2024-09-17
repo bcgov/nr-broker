@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +15,9 @@ import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component'
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
+import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CollectionConfigMap } from '../../service/graph.types';
+import { combineLatest, of } from 'rxjs';
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
 
 @Component({
@@ -32,12 +35,15 @@ import { CollectionCombo } from '../../service/dto/collection-search-result.dto'
   styleUrl: './collection-header.component.scss',
 })
 export class CollectionHeaderComponent {
-  @Input() config!: CollectionConfigRestDto;
   @Input() collection!: CollectionNames;
-  @Input() comboData!: CollectionCombo<any>;
+  @Input() vertex!: string;
+  @Input() name!: string;
+  @Input({ required: false }) comboData!: CollectionCombo<any>;
   @Input() hasDelete!: boolean;
   @Input() hasUpdate!: boolean;
   @Input() screenSize!: string;
+
+  config: CollectionConfigRestDto | undefined;
 
   constructor(
     private readonly dialog: MatDialog,
@@ -45,11 +51,16 @@ export class CollectionHeaderComponent {
     private readonly graphApi: GraphApiService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
   ) {}
 
+  ngOnInit(): void {
+    this.config = this.configMap[this.collection];
+  }
+
   openInGraph() {
-    if (this.comboData) {
-      this.graphUtil.openInGraph(this.comboData.collection.vertex, 'vertex');
+    if (this.vertex) {
+      this.graphUtil.openInGraph(this.vertex, 'vertex');
     }
   }
 
@@ -58,46 +69,56 @@ export class CollectionHeaderComponent {
   }
 
   isBrowseDisabled() {
-    return !this.config.permissions.browse;
+    return !this.config?.permissions.browse;
   }
 
   edit() {
-    this.dialog
-      .open(VertexDialogComponent, {
-        width: '500px',
-        data: {
-          configMap: { [this.config.name]: this.config },
-          collection: this.config.name,
-          vertex: this.comboData.vertex,
-          data: this.comboData.collection,
-        },
-      })
-      .afterClosed()
-      .subscribe((result) => {
-        if (result && result.refresh) {
-          // this.refreshData();
-        }
-      });
+    combineLatest(
+      this.comboData
+        ? [of(this.comboData.collection), of(this.comboData.vertex)]
+        : [
+            this.graphApi.getCollectionData(this.collection, this.vertex),
+            this.graphApi.getVertex(this.vertex),
+          ],
+    ).subscribe(([data, vertex]) => {
+      this.dialog
+        .open(VertexDialogComponent, {
+          width: '500px',
+          data: {
+            collection: this.collection,
+            vertex,
+            data,
+          },
+        })
+        .afterClosed()
+        .subscribe((result) => {
+          if (result && result.refresh) {
+            // this.refreshData();
+          }
+        });
+    });
   }
 
   editTags() {
-    if (!this.config || !this.comboData) {
-      return;
-    }
-    this.dialog
-      .open(TagDialogComponent, {
-        width: '500px',
-        data: {
-          collection: this.collection,
-          collectionData: this.comboData.collection,
-        },
-      })
-      .afterClosed()
-      .subscribe((result) => {
-        if (result && result.refresh) {
-          // this.refreshData();
-        }
-      });
+    (this.comboData
+      ? of(this.comboData.collection)
+      : this.graphApi.getCollectionData(this.collection, this.vertex)
+    ).subscribe((collectionData) => {
+      this.dialog
+        .open(TagDialogComponent, {
+          width: '500px',
+          data: {
+            collection: this.collection,
+            collectionData,
+          },
+        })
+        .afterClosed()
+        .subscribe((result) => {
+          if (result && result.refresh) {
+            // this.refreshData();
+          }
+        });
+    });
   }
 
   delete() {
@@ -108,11 +129,9 @@ export class CollectionHeaderComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.confirm) {
-          this.graphApi
-            .deleteVertex(this.comboData.collection.vertex)
-            .subscribe(() => {
-              // this.refreshData();
-            });
+          this.graphApi.deleteVertex(this.vertex).subscribe(() => {
+            // this.refreshData();
+          });
         }
       });
   }

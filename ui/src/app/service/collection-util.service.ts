@@ -39,6 +39,14 @@ export class CollectionUtilService {
       });
   }
 
+  openServicePackage(serviceId: string, packageId: string) {
+    console.log(serviceId, packageId);
+    this.router.navigate([
+      `/browse/service/${serviceId}`,
+      { build: packageId, index: 3 },
+    ]);
+  }
+
   /**
    * Narrows a collection union to a specific collection type based on name.
    * Calling code should evaluate if vertex if and collection vertex are a

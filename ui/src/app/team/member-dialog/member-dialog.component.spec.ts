@@ -8,7 +8,7 @@ describe('MemberDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [MemberDialogComponent]
+      imports: [MemberDialogComponent],
     });
     fixture = TestBed.createComponent(MemberDialogComponent);
     component = fixture.componentInstance;

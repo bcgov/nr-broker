@@ -2,8 +2,9 @@
   <mat-spinner></mat-spinner>
 } @else {
   <app-collection-header
-    [config]="config"
     [collection]="collection"
+    [vertex]="comboData.collection.vertex"
+    [name]="comboData.collection.name"
     [comboData]="comboData"
     [hasUpdate]="hasUpdate"
     [hasDelete]="hasDelete"
@@ -40,34 +41,36 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Connections</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <app-inspector-connections
-            [collection]="collection"
-            [config]="config"
-            [vertex]="comboData.collection.vertex"
-            [source]="comboData.vertex"
-            [upstream]="comboData.upstream"
-            [downstream]="comboData.downstream"
-            [hasAdmin]="hasAdmin"
-            (selected)="navigate($event)"
-            ></app-inspector-connections>
-      </mat-card-content>
-    </mat-card>
-
-      @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
+      <div>
+        @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
+          <mat-card class="inspector-card-gap">
+            <mat-card-content>
+              <app-inspector-account
+                [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
+                [userIndex]="4"
+                [hasSudo]="hasSudo"></app-inspector-account>
+            </mat-card-content>
+          </mat-card>
+        }
         <mat-card>
+          <mat-card-header>
+            <mat-card-title>Connections</mat-card-title>
+          </mat-card-header>
           <mat-card-content>
-            <app-inspector-account
-              [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
-              [userIndex]="4"
-              [hasSudo]="hasSudo"></app-inspector-account>
-          </mat-card-content>
-        </mat-card>
-      }
+            <app-inspector-connections
+              [collection]="collection"
+              [config]="config"
+              [vertex]="comboData.collection.vertex"
+              [source]="comboData.vertex"
+              [upstream]="comboData.upstream"
+              [downstream]="comboData.downstream"
+              [hasAdmin]="hasAdmin"
+              (selected)="navigate($event)"
+              ></app-inspector-connections>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
       @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
         <mat-card>
           <mat-card-header>
@@ -130,18 +133,28 @@
       </div>
       </ng-template>
     </mat-tab>
-    <mat-tab label="Versions">
+    <mat-tab label="Builds">
+      <ng-template matTabContent>
       <div class="inspector-tab-margin">
+        @if (selectedBuild) {
+        <app-service-build-details
+            [serviceId]="comboData.collection.id"
+            [buildId]="selectedBuild"
+            [isApprover]="hasSudo || hasApprove"
+            [screenSize]="screenSize"></app-service-build-details>
+        } @else {
         <mat-card>
           <mat-card-content>
             @if (serviceDetails) {
-            <app-inspector-service-releases
-                  [isApprover]="hasSudo || hasApprove"
-                  [builds]="serviceDetails.builds"></app-inspector-service-releases>
+            <app-service-builds
+              [serviceId]="comboData.collection.id"
+              [isApprover]="hasSudo || hasApprove"></app-service-builds>
             }
           </mat-card-content>
         </mat-card>
+        }
       </div>
+      </ng-template>
     </mat-tab>
 
     <mat-tab label="Activity">
