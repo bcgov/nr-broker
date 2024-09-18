@@ -260,7 +260,7 @@ export class AccountService {
       await this.graphRepository.getDownstreamVertex<ServiceDto>(
         account.vertex.toString(),
         CollectionNameEnum.service,
-        3,
+        1,
       );
     for (const service of downstreamServices) {
       const serviceName = service.collection.name;
@@ -344,7 +344,7 @@ export class AccountService {
       await this.graphRepository.getDownstreamVertex<ServiceDto>(
         account.vertex.toString(),
         CollectionNameEnum.service,
-        3,
+        1,
       );
     if (downstreamServices) {
       for (const service of downstreamServices) {
@@ -353,7 +353,7 @@ export class AccountService {
           await this.graphRepository.getUpstreamVertex<ProjectDto>(
             service.collection.vertex.toString(),
             CollectionNameEnum.project,
-            null,
+            ['component'],
           );
         const projectName = projectDtoArr[0].collection.name;
         try {
