@@ -500,7 +500,7 @@ export class IntentionService {
 
     this.auditService.recordIntentionClose(req, intention, reason);
     if (outcome === 'success') {
-      // All openned intention have link to account
+      // All open intention have link to account
       const account = await this.getAccount(intention.accountId?.toString());
       await this.intentionSync.sync(intention, account);
     }

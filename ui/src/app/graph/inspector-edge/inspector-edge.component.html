@@ -12,7 +12,11 @@
     </div>
     <div class="fields-wrapper">
       @if (sourceVertex) {
-        <button mat-icon-button class="copy-id" aria-label="Copy Id" [cdkCopyToClipboard]="sourceVertex.id">
+        <button
+          mat-icon-button
+          class="copy-id"
+          aria-label="Copy Id"
+          [cdkCopyToClipboard]="sourceVertex.id">
           <mat-icon>content_copy</mat-icon>
         </button>
       }

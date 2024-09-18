@@ -209,6 +209,21 @@ export class IntentionMongoRepository implements IntentionRepository {
       });
   }
 
+  public async setActionPackageBuildRef(
+    id: ObjectId,
+    actionId: string,
+    packageId: ObjectId,
+  ): Promise<void> {
+    await this.intentionRepository.updateOne(
+      { _id: id, 'actions.id': actionId },
+      {
+        $set: {
+          'actions.$.package.id': packageId,
+        },
+      },
+    );
+  }
+
   public async cleanupTransient(transientTtl: number): Promise<void> {
     this.intentionRepository.deleteMany({
       'event.transient': true,

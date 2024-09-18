@@ -14,6 +14,7 @@ import {
 } from '@angular/material/snack-bar';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
+import { MatDialog } from '@angular/material/dialog';
 import {
   BehaviorSubject,
   Subject,
@@ -42,7 +43,7 @@ import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-tea
 import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
-import { InspectorServiceReleasesComponent } from '../../graph/inspector-service-releases/inspector-service-releases.component';
+import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
 import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
@@ -56,8 +57,11 @@ import { InspectorPropertiesComponent } from '../../graph/inspector-properties/i
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamSummaryComponent } from '../team-summary/team-summary.component';
-import { ServiceReleasesComponent } from '../service-releases/service-releases.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
+import { ServiceBuildDetailsComponent } from '../service-build-details/service-build-details.component';
+import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
+import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
+import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -78,7 +82,6 @@ import { ServiceInstancesComponent } from '../service-instances/service-instance
     InspectorInstancesComponent,
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
-    InspectorServiceReleasesComponent,
     InspectorTeamComponent,
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
@@ -86,7 +89,8 @@ import { ServiceInstancesComponent } from '../service-instances/service-instance
     InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    ServiceReleasesComponent,
+    ServiceBuildDetailsComponent,
+    ServiceBuildsComponent,
     ServiceInstancesComponent,
     TeamAccountsComponent,
     TeamMembersComponent,
@@ -117,6 +121,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   selectedTabIndex = 0;
+  selectedBuild: string | undefined;
   screenSize: string = '';
 
   // Create a map from breakpoints to css class
@@ -135,6 +140,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly location: Location,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
@@ -264,6 +270,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.selectedTabIndex = params['index']
       ? Number.parseInt(params['index'])
       : 0;
+    this.selectedBuild = params['build'];
   }
 
   ngOnDestroy() {
@@ -308,6 +315,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   selectedTabChange(event: MatTabChangeEvent) {
     this.selectedTabIndex = event.index;
+    this.selectedBuild = undefined;
     this.updateRoute();
   }
 
@@ -315,6 +323,64 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.location.replaceState(
       `/browse/${this.collection}/${this.collectionId};index=${this.selectedTabIndex}`,
     );
+  }
+
+  openInGraph() {
+    if (this.comboData.vertex) {
+      this.graphUtil.openInGraph(this.comboData.vertex.id, 'vertex');
+    }
+  }
+
+  edit() {
+    this.dialog
+      .open(VertexDialogComponent, {
+        width: '500px',
+        data: {
+          collection: this.collection,
+          vertex: this.comboData.vertex,
+          data: this.comboData.collection,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          // this.refreshData();
+        }
+      });
+  }
+
+  editTags() {
+    this.dialog
+      .open(TagDialogComponent, {
+        width: '500px',
+        data: {
+          collection: this.collection,
+          collectionData: this.comboData.collection,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          // this.refreshData();
+        }
+      });
+  }
+
+  delete() {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.confirm) {
+          this.graphApi
+            .deleteVertex(this.comboData.collection.vertex)
+            .subscribe(() => {
+              // this.refreshData();
+            });
+        }
+      });
   }
 
   private openSnackBar(message: string) {

@@ -6,89 +6,12 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   <div>
-    <div class="collection-subtitle">Browse - {{ config.name }}</div>
-    <div class="collection-title">{{ comboData.collection.name }}</div>
+    <div class="collection-subtitle">Browse - {{ config?.name }}</div>
+    <div class="collection-title">{{ name }}</div>
   </div>
   <span class="spacer"></span>
 
-  <div
-    class="spaced-btn {{screenSize}}">
-    @if (screenSize == 'wide') {
-      <button
-        mat-stroked-button
-        extended
-        color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
-        (click)="delete()">
-        Delete
-      </button>
-    } @else {
-      <button
-        mat-icon-button
-        color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
-        (click)="delete()">
-        <mat-icon>delete</mat-icon>
-      </button>
-    }
-  </div>
+  <ng-content></ng-content>
 
-  @if (screenSize == 'wide') {
-    <button
-      mat-stroked-button
-      extended
-      color="primary"
-      (click)="openInGraph()">
-      View on Graph
-    </button>
-    <button
-      mat-stroked-button
-      extended
-      color="primary"
-      [disabled]="!hasUpdate"
-      (click)="editTags()">
-      Tags
-    </button>
-    @if (collection == 'team') {
-      <app-inspector-team
-        [screenSize]="screenSize"
-        [instance]="comboData.collection"></app-inspector-team>
-    }
-    <button
-      mat-stroked-button
-      extended
-      color="primary"
-      [disabled]="!hasUpdate || !config.permissions.update"
-      (click)="edit()">
-      Edit
-    </button>
-  } @else {
-
-    <button
-      mat-icon-button
-      color="primary"
-      (click)="openInGraph()">
-      <mat-icon>account_tree</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      color="primary"
-      [disabled]="!hasUpdate"
-      (click)="editTags()">
-      <mat-icon>label</mat-icon>
-    </button>
-    @if (collection == 'team') {
-      <app-inspector-team
-        [screenSize]="screenSize"
-        [instance]="comboData.collection"></app-inspector-team>
-    }
-    <button
-      mat-icon-button
-      color="primary"
-      [disabled]="!hasUpdate || !config.permissions.update"
-      (click)="edit()">
-      <mat-icon>edit</mat-icon>
-    </button>
-  }
 </div>
 <mat-divider></mat-divider>

@@ -116,7 +116,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
           this.openSnackBar('Tools secrets synced successfully');
         },
         error: (err: any) => {
-          console.log(err);
           this.openSnackBar(
             'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
           );

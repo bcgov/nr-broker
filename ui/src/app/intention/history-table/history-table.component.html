@@ -201,6 +201,13 @@
                     }
                   </div>
                   </mat-card-content>
+                  @if (action.package.id) {
+                  <mat-card-actions align="end">
+                    <button
+                      mat-button
+                      (click)="viewPackage(action)">View Package</button>
+                  </mat-card-actions>
+                  }
                 </mat-card>
               }
             </div>

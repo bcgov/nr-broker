@@ -371,9 +371,7 @@ export class GraphComponent implements OnInit, OnDestroy {
     this.dialog
       .open(VertexDialogComponent, {
         width: '500px',
-        data: {
-          configMap: this.configMap,
-        },
+        data: {},
       })
       .afterClosed()
       .subscribe((result) => {

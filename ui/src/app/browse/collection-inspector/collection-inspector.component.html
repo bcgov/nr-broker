@@ -2,13 +2,100 @@
   <mat-spinner></mat-spinner>
 } @else {
   <app-collection-header
-    [config]="config"
     [collection]="collection"
-    [comboData]="comboData"
-    [hasUpdate]="hasUpdate"
-    [hasDelete]="hasDelete"
+    [name]="comboData.collection.name"
     [screenSize]="screenSize"
-  ></app-collection-header>
+  >
+  <div
+    class="spaced-btn {{screenSize}} collection-btn">
+    @if (screenSize == 'wide') {
+      <button
+        mat-stroked-button
+        extended
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        Delete
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (screenSize == 'wide') {
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      (click)="openInGraph()">
+      View on Graph
+    </button>
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      Tags
+    </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        class="collection-btn"
+        [vertex]="comboData.vertex.id"
+        [name]="comboData.collection.name"
+        [screenSize]="screenSize"></app-inspector-team>
+    }
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      Edit
+    </button>
+  } @else {
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      (click)="openInGraph()">
+      <mat-icon>account_tree</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      <mat-icon>label</mat-icon>
+    </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        class="collection-btn"
+        [vertex]="comboData.vertex.id"
+        [name]="comboData.collection.name"
+        [screenSize]="screenSize"></app-inspector-team>
+    }
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  }
+
+</app-collection-header>
   <mat-tab-group
     [animationDuration]="0"
     [selectedIndex]="selectedTabIndex"
@@ -40,34 +127,36 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Connections</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <app-inspector-connections
-            [collection]="collection"
-            [config]="config"
-            [vertex]="comboData.collection.vertex"
-            [source]="comboData.vertex"
-            [upstream]="comboData.upstream"
-            [downstream]="comboData.downstream"
-            [hasAdmin]="hasAdmin"
-            (selected)="navigate($event)"
-            ></app-inspector-connections>
-      </mat-card-content>
-    </mat-card>
-
-      @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
+      <div>
+        @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
+          <mat-card class="inspector-card-gap">
+            <mat-card-content>
+              <app-inspector-account
+                [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
+                [userIndex]="4"
+                [hasSudo]="hasSudo"></app-inspector-account>
+            </mat-card-content>
+          </mat-card>
+        }
         <mat-card>
+          <mat-card-header>
+            <mat-card-title>Connections</mat-card-title>
+          </mat-card-header>
           <mat-card-content>
-            <app-inspector-account
-              [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
-              [userIndex]="4"
-              [hasSudo]="hasSudo"></app-inspector-account>
-          </mat-card-content>
-        </mat-card>
-      }
+            <app-inspector-connections
+              [collection]="collection"
+              [config]="config"
+              [vertex]="comboData.collection.vertex"
+              [source]="comboData.vertex"
+              [upstream]="comboData.upstream"
+              [downstream]="comboData.downstream"
+              [hasAdmin]="hasAdmin"
+              (selected)="navigate($event)"
+              ></app-inspector-connections>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
       @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
         <mat-card>
           <mat-card-header>
@@ -130,18 +219,20 @@
       </div>
       </ng-template>
     </mat-tab>
-    <mat-tab label="Versions">
+    <mat-tab label="Builds">
+      <ng-template matTabContent>
       <div class="inspector-tab-margin">
         <mat-card>
           <mat-card-content>
             @if (serviceDetails) {
-            <app-inspector-service-releases
-                  [isApprover]="hasSudo || hasApprove"
-                  [builds]="serviceDetails.builds"></app-inspector-service-releases>
+            <app-service-builds
+              [serviceId]="comboData.collection.id"
+              [isApprover]="hasSudo || hasApprove"></app-service-builds>
             }
           </mat-card-content>
         </mat-card>
       </div>
+      </ng-template>
     </mat-tab>
 
     <mat-tab label="Activity">

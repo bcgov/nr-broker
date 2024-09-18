@@ -49,5 +49,11 @@ export abstract class IntentionRepository {
     limit: number,
   ): Promise<IntentionSearchResult>;
 
+  public abstract setActionPackageBuildRef(
+    id: ObjectId,
+    actionId: string,
+    packageId: ObjectId,
+  ): Promise<void>;
+
   public abstract cleanupTransient(transientTtl: number): Promise<void>;
 }

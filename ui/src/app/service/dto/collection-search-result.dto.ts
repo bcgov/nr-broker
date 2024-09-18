@@ -2,13 +2,10 @@
 
 import { GraphDirectedRestCombo } from './collection-combo-rest.dto';
 import { CollectionDtoRestUnion } from './collection-dto-union.type';
-import { PackageBuildRestDto } from './package-build-rest.dto';
 import { VertexRestDto } from './vertex-rest.dto';
 
 export class CollectionSearchResult<
-  T extends
-    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
-    | PackageBuildRestDto,
+  T extends CollectionDtoRestUnion[keyof CollectionDtoRestUnion],
 > {
   data!: CollectionCombo<T>[];
   meta!: {
@@ -17,9 +14,7 @@ export class CollectionSearchResult<
 }
 
 export class CollectionCombo<
-  T extends
-    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
-    | PackageBuildRestDto,
+  T extends CollectionDtoRestUnion[keyof CollectionDtoRestUnion],
 > {
   type!: 'vertex';
   collection!: T;

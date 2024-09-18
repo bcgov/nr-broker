@@ -1,8 +1,9 @@
+import { inject } from '@angular/core';
 import { Route } from '@angular/router';
 import { CollectionTableComponent } from './collection-table/collection-table.component';
 import { CollectionInspectorComponent } from './collection-inspector/collection-inspector.component';
-import { inject } from '@angular/core';
 import { PreferencesService } from '../preferences.service';
+import { ServiceBuildDetailsComponent } from './service-build-details/service-build-details.component';
 
 export const BROWSE_ROUTES: Route[] = [
   {
@@ -18,5 +19,10 @@ export const BROWSE_ROUTES: Route[] = [
     path: ':collection/:id',
     component: CollectionInspectorComponent,
     title: 'Inspector',
+  },
+  {
+    path: ':collection/:id/build/:buildId',
+    component: ServiceBuildDetailsComponent,
+    title: 'Build',
   },
 ];

@@ -24,6 +24,7 @@ import { CollectionConfigRestDto } from '../../service/dto/collection-config-res
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { CONFIG_MAP } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -56,7 +57,6 @@ export class VertexDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      configMap: CollectionConfigMap;
       collection?: string;
       data?: any;
       vertex?: VertexRestDto;
@@ -65,14 +65,15 @@ export class VertexDialogComponent implements OnInit {
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnInit() {
-    this.configs = Object.values(this.data.configMap)
+    this.configs = Object.values(this.configMap)
       .filter((config) => config.permissions.create)
       .sort((a, b) => a.name.localeCompare(b.name));
     if (this.data.collection) {
-      const config = this.data.configMap[this.data.collection];
+      const config = this.configMap[this.data.collection];
       if (config) {
         this.collectionControl.setValue(config);
       }

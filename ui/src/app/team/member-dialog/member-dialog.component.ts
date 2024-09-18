@@ -73,7 +73,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     public readonly dialogRef: MatDialogRef<MemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public readonly data: { id: string; vertex: string; name: string },
+    public readonly data: { vertex: string; name: string },
     @Inject(CURRENT_USER) public readonly user: UserDto,
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
@@ -84,7 +84,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         switchMap(() => {
           this.loading = true;
           return this.collectionApi.searchCollection('team', {
-            id: this.data.id,
+            vertexId: this.data.vertex,
             offset: 0,
             limit: 1,
           });

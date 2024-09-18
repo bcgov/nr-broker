@@ -331,6 +331,14 @@ export class CollectionController {
     required: false,
   })
   @ApiQuery({
+    name: 'offset',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  })
+  @ApiQuery({
     name: 'id',
     required: false,
   })

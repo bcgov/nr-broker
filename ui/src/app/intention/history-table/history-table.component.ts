@@ -39,6 +39,7 @@ import { ActionContentComponent } from '../action-content/action-content.compone
 import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-history-table',
@@ -101,6 +102,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   constructor(
     private readonly router: Router,
     private readonly collectionApi: CollectionApiService,
+    private readonly collectionUtil: CollectionUtilService,
     private readonly graphUtil: GraphUtilService,
     private readonly snackBar: MatSnackBar,
   ) {}
@@ -204,6 +206,13 @@ export class HistoryTableComponent implements OnInit, OnChanges {
       throw new Error(`SCM url for this service is not set`);
     });
     return false;
+  }
+
+  viewPackage(action: any) {
+    this.collectionUtil.openServicePackage(
+      action.service.id,
+      action.package.id,
+    );
   }
 
   private openSnackBar(message: string) {

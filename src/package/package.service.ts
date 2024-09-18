@@ -20,6 +20,16 @@ export class PackageService {
     return this.buildRepository.getBuild(id);
   }
 
+  async search(
+    serviceId: string,
+    sort: string | undefined,
+    dir: string | undefined,
+    offset: number,
+    limit: number,
+  ) {
+    return this.buildRepository.searchBuild(serviceId, offset, limit);
+  }
+
   async approve(req: Request, id: string, userGuid: string): Promise<boolean> {
     const user = req.user;
     const packageDto = await this.buildRepository.getBuild(id);
