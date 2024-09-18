@@ -211,6 +211,12 @@ export class AccountService {
       ['token', 'generated'],
     );
 
+    this.redisService.publish(REDIS_PUBSUB.BROKER_ACCOUNT_TOKEN, {
+      data: {
+        clientId: account.clientId,
+      },
+    });
+
     return {
       token,
     };
@@ -274,15 +280,6 @@ export class AccountService {
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
           [`broker-jwt:${account.clientId}`]: token,
-        });
-        this.redisService.publish(REDIS_PUBSUB.VAULT_SERVICE_TOKEN, {
-          data: {
-            clientId: account.clientId,
-            environment: 'tools',
-            project: projectName,
-            service: serviceName,
-            scmUrl: service.collection.scmUrl,
-          },
         });
       } catch (err) {
         // Log?

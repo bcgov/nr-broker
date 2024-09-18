@@ -71,9 +71,9 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
       .createAccountTokenEventSource()
       .subscribe({
         next: (data: any) => {
-          console.log(data);
-          // TODO: only update if necessary
-          this.updateAccount();
+          if (data.clientId === this.account.clientId) {
+            this.updateAccount();
+          }
         },
         error: (error: any) => {
           console.error('Error receiving token update events:', error);
@@ -105,7 +105,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
       .afterClosed()
       .subscribe(() => {
         this.requestedAccountId = undefined;
-        this.updateAccount();
+        //this.updateAccount();
       });
   }
 

@@ -94,7 +94,7 @@ export const OAUTH2_CLIENT_MAP_USERNAME =
 
 export const REDIS_PUBSUB = {
   GRAPH: 'graph',
-  VAULT_SERVICE_TOKEN: 'vault-service-token',
+  BROKER_ACCOUNT_TOKEN: 'broker-account-token',
 } as const;
 
 export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? '';
