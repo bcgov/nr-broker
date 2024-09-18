@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   CollectionDtoRestUnion,
   CollectionNames,
 } from './dto/collection-dto-union.type';
 import { VertexRestDto } from './dto/vertex-rest.dto';
-import { Router } from '@angular/router';
 import { CollectionApiService } from './collection-api.service';
 
 @Injectable({
@@ -28,13 +28,36 @@ export class CollectionUtilService {
         limit: 1,
       })
       .subscribe((result) => {
-        if (result) {
+        if (result && result.meta.total > 0) {
           this.router.navigate(
             ['/browse', collection, result.data[0].collection.id, { index: 0 }],
             {
               replaceUrl: true,
             },
           );
+        } else {
+          throw new Error('Vertex not found');
+        }
+      });
+  }
+
+  openUserInBrowserByGuid(guid: string) {
+    this.collectionApi
+      .searchCollection('user', {
+        q: guid,
+        offset: 0,
+        limit: 1,
+      })
+      .subscribe((result) => {
+        if (result && result.meta.total > 0) {
+          this.router.navigate(
+            ['/browse', 'user', result.data[0].collection.id, { index: 0 }],
+            {
+              replaceUrl: true,
+            },
+          );
+        } else {
+          throw new Error('User not found');
         }
       });
   }

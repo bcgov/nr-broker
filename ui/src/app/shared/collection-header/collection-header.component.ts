@@ -1,4 +1,10 @@
-import { Component, Inject, Input } from '@angular/core';
+import {
+  Component,
+  Inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,7 +32,7 @@ import { CollectionConfigMap } from '../../service/graph.types';
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',
 })
-export class CollectionHeaderComponent {
+export class CollectionHeaderComponent implements OnChanges {
   @Input() collection!: CollectionNames;
   @Input() name!: string;
   @Input() screenSize!: string;
@@ -42,6 +48,12 @@ export class CollectionHeaderComponent {
 
   ngOnInit(): void {
     this.config = this.configMap[this.collection];
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['collection']) {
+      this.ngOnInit();
+    }
   }
 
   back() {

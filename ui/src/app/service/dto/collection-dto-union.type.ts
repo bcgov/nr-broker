@@ -10,6 +10,7 @@ export type CollectionDtoRestUnion = {
   brokerAccount: BrokerAccountRestDto;
   environment: EnvironmentRestDto;
   project: ProjectRestDto;
+  server: ServiceRestDto;
   serviceInstance: ServiceInstanceRestDto;
   service: ServiceRestDto;
   team: TeamRestDto;
@@ -28,4 +29,5 @@ export const CollectionNameEnum: {
   user: 4,
   brokerAccount: 5,
   team: 6,
+  server: 7,
 } as const;

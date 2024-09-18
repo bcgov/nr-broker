@@ -2,6 +2,7 @@
 .details-container {
   display: flex;
   flex: 0 0 auto;
+  gap: 16px;
 }
 
 .details-container > * {
@@ -10,6 +11,18 @@
 
 .details-container-margin {
   margin-top: 16px;
+}
+
+.details-item {
+  margin-left: -4px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.details-item-clickable:hover {
+  background: whitesmoke;
+  cursor: pointer;
+  border-radius: 8px;
 }
 
 .details-header {
@@ -22,8 +35,6 @@
   color: var(--mat-card-subtitle-text-color);
   min-width: 100px;
   font-weight: 300;
-  margin-top: 4px;
-  margin-bottom: 16px;
 }
 
 .server-form {

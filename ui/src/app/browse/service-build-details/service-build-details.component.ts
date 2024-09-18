@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { combineLatest } from 'rxjs';
 
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
@@ -19,6 +20,7 @@ import { CollectionApiService } from '../../service/collection-api.service';
     CommonModule,
     CollectionHeaderComponent,
     FilesizePipe,
+    MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
   ],
@@ -31,7 +33,8 @@ export class ServiceBuildDetailsComponent implements OnInit {
   buildId!: string;
   name!: string;
   isApprover!: boolean;
-  // screenSize!: string;
+  hasDelete = false;
+  screenSize = 'wide';
 
   loading = true;
   data: PackageBuildRestDto | undefined;
@@ -57,4 +60,7 @@ export class ServiceBuildDetailsComponent implements OnInit {
       this.loading = false;
     });
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  delete() {}
 }

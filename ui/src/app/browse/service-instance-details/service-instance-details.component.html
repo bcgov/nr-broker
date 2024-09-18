@@ -1,7 +1,7 @@
 @if (instance) {
   @if (showName) {
   <div class="details-container details-container-margin">
-    <div>
+    <div class="details-item">
       <div class="details-header">Name</div>
       <div class="details-line">{{instance.name}}</div>
     </div>
@@ -10,32 +10,53 @@
   <div class="details-container">
     <div>
 
-      <div class="details-header">Status</div>
-      <div class="details-line">
-        @if (!current || !current.source?.intention) {
-          No recorded installation
-        } @else {
-          Installed
-        }
+      <div class="details-item">
+        <div class="details-header">Status</div>
+        <div class="details-line">
+          @if (!current || !current.source?.intention) {
+            No recorded installation
+          } @else {
+            Installed
+          }
+        </div>
       </div>
 
       @if (instance.url) {
-        <div class="details-header">Url</div>
-        <div class="details-line"><a href="{{instance.url}}" target="_blank">{{instance.url}}</a></div>
+        <div class="details-item">
+          <div class="details-header">Url</div>
+          <div class="details-line"><a href="{{instance.url}}" target="_blank">{{instance.url}}</a></div>
+        </div>
       }
 
       @if (current && current.source?.intention) {
 
-      @if (current.source?.action?.package?.version) {
-        <div class="details-header">Version</div>
-        <div class="details-line">{{current.source.action.package.version}}</div>
+      @if (current.source?.action?.package?.version && current.source.action.package.id) {
+        <div
+          class="details-item details-item-clickable"
+          matRipple
+          (click)="openServicePackage(current.source.action.package.id)">
+          <div class="details-header">Version</div>
+          <div class="details-line">{{current.source.action.package.version}}</div>
+        </div>
+      } @else {
+        <div class="details-item">
+          <div class="details-header">Version</div>
+          <div class="details-line">{{current.source.action.package.version}}</div>
+        </div>
       }
 
-      <div class="details-header">Installed</div>
-      <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+      <div class="details-item">
+        <div class="details-header">Installed</div>
+        <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+      </div>
 
-      <div class="details-header">User</div>
-      <div class="details-line">{{current.source.intention.user.name}}</div>
+      <div
+        class="details-item details-item-clickable"
+        matRipple
+        (click)="openUserInBrowserByGuid(current.source.intention.user.id)">
+        <div class="details-header">User</div>
+        <div class="details-line">{{current.source.intention.user.name}}</div>
+      </div>
       }
     </div>
 
@@ -52,18 +73,29 @@
           </mat-select>
         </mat-form-field>
       } @else {
-        <div class="details-header">Server</div>
-        <div class="details-line">{{serverSelection.server.name}}</div>
+        <div
+          class="details-item details-item-clickable"
+          matRipple
+          (click)="openInBrowser('server', serverSelection.server.id)">
+          <div class="details-header">Server</div>
+          <div class="details-line">{{serverSelection.server.name}}</div>
+        </div>
       }
 
-      <div class="details-header">Status</div>
-      <div class="details-line">Unknown - Telemetery not available</div>
+      <div class="details-item">
+        <div class="details-header">Status</div>
+        <div class="details-line">Unknown - Telemetery not available</div>
+      </div>
 
-      <div class="details-header">Platform</div>
-      <div class="details-line">{{serverSelection.server.osType}}</div>
+      <div class="details-item">
+        <div class="details-header">Platform</div>
+        <div class="details-line">{{serverSelection.server.osType}}</div>
+      </div>
 
-      <div class="details-header">Platform Details</div>
-      <div class="details-line">{{serverSelection.server.osFull}}</div>
+      <div class="details-item">
+        <div class="details-header">Platform Details</div>
+        <div class="details-line">{{serverSelection.server.osFull}}</div>
+      </div>
     </div>
     }
   </div>
