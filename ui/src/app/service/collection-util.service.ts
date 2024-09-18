@@ -40,11 +40,7 @@ export class CollectionUtilService {
   }
 
   openServicePackage(serviceId: string, packageId: string) {
-    console.log(serviceId, packageId);
-    this.router.navigate([
-      `/browse/service/${serviceId}`,
-      { build: packageId, index: 3 },
-    ]);
+    this.router.navigate([`/browse/service/${serviceId}/build/${packageId}`]);
   }
 
   /**
