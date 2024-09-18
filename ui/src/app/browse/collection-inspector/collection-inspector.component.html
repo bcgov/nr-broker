@@ -49,7 +49,7 @@
     @if (collection == 'team') {
       <app-inspector-team
         class="collection-btn"
-        [vertex]="comboData.vertex"
+        [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
         [screenSize]="screenSize"></app-inspector-team>
     }
@@ -81,7 +81,7 @@
     @if (collection == 'team') {
       <app-inspector-team
         class="collection-btn"
-        [vertex]="comboData.vertex"
+        [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
         [screenSize]="screenSize"></app-inspector-team>
     }

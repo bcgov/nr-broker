@@ -7,28 +7,19 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
 
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
-import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
 
 @Component({
   selector: 'app-collection-header',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatCardModule,
-    MatIconModule,
-    InspectorTeamComponent,
-  ],
+  imports: [CommonModule, MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',
 })
