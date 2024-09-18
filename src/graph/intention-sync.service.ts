@@ -17,6 +17,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
 import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 
 interface OverlayMapBase {
   key: string;
@@ -43,6 +44,7 @@ export class IntentionSyncService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
+    private readonly intentionRepository: IntentionRepository,
     private readonly persistenceUtilService: PersistenceUtilService,
     private readonly actionUtil: ActionUtil,
   ) {}
@@ -127,6 +129,15 @@ export class IntentionSyncService {
         action.package.name,
         parsedVersion,
         action.package,
+      );
+
+      // Warning: Setting it here because close uses sideffects
+      action.package.id = packageBuild.id;
+
+      await this.intentionRepository.setActionPackageBuildRef(
+        intention.id,
+        action.id,
+        packageBuild.id,
       );
     }
 

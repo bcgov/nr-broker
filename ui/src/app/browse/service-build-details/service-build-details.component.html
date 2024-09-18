@@ -1,91 +1,103 @@
 @if (loading || !data) {
   <mat-spinner></mat-spinner>
 } @else {
+  <app-collection-header
+    [collection]="collection"
+    [name]="name"
+    [screenSize]="'wide'"
+    [backSteps]="2"
+  ></app-collection-header>
 
-<mat-card>
-  <mat-card-content>
+  <mat-card class="card-margin">
+    <mat-card-header>
+      <mat-card-title>Package Information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
 
-    <div class="details-subtitle">Version</div>
-    <div class="details-title">{{ data.semvar }}</div>
+      <div class="package-content">
+
+      <div class="details-subtitle">Version</div>
+      <div class="details-title">{{ data.semvar }}</div>
 
 
-    @if (data.package.description) {
-    <p>{{data.package.description}}</p>
-    }
+      @if (data.package.description) {
+      <p>{{data.package.description}}</p>
+      }
 
-    <div class="details-container details-container-margin">
-      <div>
-        @if (data.package.name) {
-        <div class="details-header">Name</div>
-        <div class="details-line">{{data.package.name}}</div>
-        }
-        @if (data.package.architecture) {
-        <div class="details-header">Architecture</div>
-        <div class="details-line">{{data.package.architecture}}</div>
-        }
-        @if (data.package.buildNumber) {
-        <div class="details-header">Build Number</div>
-        <div class="details-line">{{data.package.buildNumber}}</div>
-        }
-        @if (data.package.buildGuid) {
-        <div class="details-header">Build Guid</div>
-        <div class="details-line">{{data.package.buildGuid}}</div>
-        }
-        @if (data.package.buildVersion) {
-        <div class="details-header">Build Version</div>
-        <div class="details-line">{{data.package.buildVersion}}</div>
-        }
-        @if (data.package.checksum) {
-        <div class="details-header">Checksum</div>
-        <div class="details-line">{{data.package.checksum}}</div>
-        }
-        @if (data.package.installScope) {
-        <div class="details-header">Install Scope</div>
-        <div class="details-line">{{data.package.installScope}}</div>
-        }
-        @if (data.package.license) {
-        <div class="details-header">License</div>
-        <div class="details-line">{{data.package.license}}</div>
-        }
-        @if (data.package.path) {
-        <div class="details-header">Path</div>
-        <div class="details-line">{{data.package.path}}</div>
-        }
-        @if (data.package.reference) {
-        <div class="details-header">Reference</div>
-        <div class="details-line">{{data.package.reference}}</div>
-        }
-        @if (data.package.size) {
-        <div class="details-header">Size</div>
-        <div class="details-line">{{data.package.size | filesize}}</div>
-        }
-        @if (data.package.type) {
-        <div class="details-header">Type</div>
-        <div class="details-line">{{data.package.type}}</div>
-        }
+      <div class="details-container details-container-margin">
+        <div>
+          @if (data.package.name) {
+          <div class="details-header">Name</div>
+          <div class="details-line">{{data.package.name}}</div>
+          }
+          @if (data.package.architecture) {
+          <div class="details-header">Architecture</div>
+          <div class="details-line">{{data.package.architecture}}</div>
+          }
+          @if (data.package.buildNumber) {
+          <div class="details-header">Build Number</div>
+          <div class="details-line">{{data.package.buildNumber}}</div>
+          }
+          @if (data.package.buildGuid) {
+          <div class="details-header">Build Guid</div>
+          <div class="details-line">{{data.package.buildGuid}}</div>
+          }
+          @if (data.package.buildVersion) {
+          <div class="details-header">Build Version</div>
+          <div class="details-line">{{data.package.buildVersion}}</div>
+          }
+          @if (data.package.checksum) {
+          <div class="details-header">Checksum</div>
+          <div class="details-line">{{data.package.checksum}}</div>
+          }
+          @if (data.package.installScope) {
+          <div class="details-header">Install Scope</div>
+          <div class="details-line">{{data.package.installScope}}</div>
+          }
+          @if (data.package.license) {
+          <div class="details-header">License</div>
+          <div class="details-line">{{data.package.license}}</div>
+          }
+          @if (data.package.path) {
+          <div class="details-header">Path</div>
+          <div class="details-line">{{data.package.path}}</div>
+          }
+          @if (data.package.reference) {
+          <div class="details-header">Reference</div>
+          <div class="details-line">{{data.package.reference}}</div>
+          }
+          @if (data.package.size) {
+          <div class="details-header">Size</div>
+          <div class="details-line">{{data.package.size | filesize}}</div>
+          }
+          @if (data.package.type) {
+          <div class="details-header">Type</div>
+          <div class="details-line">{{data.package.type}}</div>
+          }
+        </div>
+      </div>
+
+      <h3>Information</h3>
+
+      <div class="details-container">
+        <div>
+
+          @if (data.timestamps.createdAt) {
+          <div class="details-header">Created</div>
+          <div class="details-line">{{data.timestamps.createdAt | date: 'long'}}</div>
+          }
+
+          @if (data.timestamps.updatedAt) {
+          <div class="details-header">Modified</div>
+          <div class="details-line">{{data.timestamps.updatedAt | date: 'long'}}</div>
+          }
+
+        </div>
       </div>
     </div>
 
-    <h3>Information</h3>
-
-    <div class="details-container">
-      <div>
-
-        @if (data.timestamps.createdAt) {
-        <div class="details-header">Created</div>
-        <div class="details-line">{{data.timestamps.createdAt | date: 'long'}}</div>
-        }
-
-        @if (data.timestamps.updatedAt) {
-        <div class="details-header">Modified</div>
-        <div class="details-line">{{data.timestamps.updatedAt | date: 'long'}}</div>
-        }
-
-      </div>
-    </div>
-
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
 }
 
 

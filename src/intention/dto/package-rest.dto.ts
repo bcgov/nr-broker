@@ -1,4 +1,5 @@
 export class PackageRestDto {
+  id?: string;
   architecture?: string;
   buildGuid?: string;
   buildNumber?: number;

@@ -33,3 +33,16 @@
 .order-end {
   order: 10;
 }
+
+.spaced-btn {
+  padding-right: 32px;
+}
+
+.spaced-btn.narrow {
+  padding-right: 0;
+}
+
+.collection-btn {
+  margin: 0;
+  margin-right: 12px;
+}

@@ -3,13 +3,99 @@
 } @else {
   <app-collection-header
     [collection]="collection"
-    [vertex]="comboData.collection.vertex"
     [name]="comboData.collection.name"
-    [comboData]="comboData"
-    [hasUpdate]="hasUpdate"
-    [hasDelete]="hasDelete"
     [screenSize]="screenSize"
-  ></app-collection-header>
+  >
+  <div
+    class="spaced-btn {{screenSize}} collection-btn">
+    @if (screenSize == 'wide') {
+      <button
+        mat-stroked-button
+        extended
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        Delete
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        color="warn"
+        [disabled]="!hasDelete || !config.permissions.delete"
+        (click)="delete()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (screenSize == 'wide') {
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      (click)="openInGraph()">
+      View on Graph
+    </button>
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      Tags
+    </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        class="collection-btn"
+        [vertex]="comboData.vertex"
+        [name]="comboData.collection.name"
+        [screenSize]="screenSize"></app-inspector-team>
+    }
+    <button
+      mat-stroked-button
+      extended
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      Edit
+    </button>
+  } @else {
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      (click)="openInGraph()">
+      <mat-icon>account_tree</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate"
+      (click)="editTags()">
+      <mat-icon>label</mat-icon>
+    </button>
+    @if (collection == 'team') {
+      <app-inspector-team
+        class="collection-btn"
+        [vertex]="comboData.vertex"
+        [name]="comboData.collection.name"
+        [screenSize]="screenSize"></app-inspector-team>
+    }
+    <button
+      mat-icon-button
+      color="primary"
+      class="collection-btn"
+      [disabled]="!hasUpdate || !config.permissions.update"
+      (click)="edit()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  }
+
+</app-collection-header>
   <mat-tab-group
     [animationDuration]="0"
     [selectedIndex]="selectedTabIndex"
@@ -136,13 +222,6 @@
     <mat-tab label="Builds">
       <ng-template matTabContent>
       <div class="inspector-tab-margin">
-        @if (selectedBuild) {
-        <app-service-build-details
-            [serviceId]="comboData.collection.id"
-            [buildId]="selectedBuild"
-            [isApprover]="hasSudo || hasApprove"
-            [screenSize]="screenSize"></app-service-build-details>
-        } @else {
         <mat-card>
           <mat-card-content>
             @if (serviceDetails) {
@@ -152,7 +231,6 @@
             }
           </mat-card-content>
         </mat-card>
-        }
       </div>
       </ng-template>
     </mat-tab>

@@ -14,6 +14,7 @@ import {
 } from '@angular/material/snack-bar';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
+import { MatDialog } from '@angular/material/dialog';
 import {
   BehaviorSubject,
   Subject,
@@ -58,6 +59,9 @@ import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector
 import { TeamSummaryComponent } from '../team-summary/team-summary.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 import { ServiceBuildDetailsComponent } from '../service-build-details/service-build-details.component';
+import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
+import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
+import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -136,6 +140,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly location: Location,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
@@ -318,6 +323,64 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.location.replaceState(
       `/browse/${this.collection}/${this.collectionId};index=${this.selectedTabIndex}`,
     );
+  }
+
+  openInGraph() {
+    if (this.comboData.vertex) {
+      this.graphUtil.openInGraph(this.comboData.vertex.id, 'vertex');
+    }
+  }
+
+  edit() {
+    this.dialog
+      .open(VertexDialogComponent, {
+        width: '500px',
+        data: {
+          collection: this.collection,
+          vertex: this.comboData.vertex,
+          data: this.comboData.collection,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          // this.refreshData();
+        }
+      });
+  }
+
+  editTags() {
+    this.dialog
+      .open(TagDialogComponent, {
+        width: '500px',
+        data: {
+          collection: this.collection,
+          collectionData: this.comboData.collection,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.refresh) {
+          // this.refreshData();
+        }
+      });
+  }
+
+  delete() {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.confirm) {
+          this.graphApi
+            .deleteVertex(this.comboData.collection.vertex)
+            .subscribe(() => {
+              // this.refreshData();
+            });
+        }
+      });
   }
 
   private openSnackBar(message: string) {

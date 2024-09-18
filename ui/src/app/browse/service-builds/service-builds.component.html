@@ -58,7 +58,7 @@
       } @else {
         <button
           mat-stroked-button
-          (click)="approvePackageBuild(element)"
+          (click)="approvePackageBuild($event, element)"
           [disabled]="!isApprover || disableApprove[element.id]">Approve</button>
       }
     </td>

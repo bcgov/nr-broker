@@ -1,8 +1,19 @@
+import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Entity, Column } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class PackageDto {
+  @Column()
+  @IsOptional()
+  @ApiProperty({ type: () => String })
+  @Transform((value) =>
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
+  )
+  id?: ObjectId;
+
   @IsString()
   @IsOptional()
   @Column()

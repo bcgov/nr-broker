@@ -75,7 +75,6 @@ export class ServiceBuildsComponent
     'date',
     'name',
     'type',
-    'checksum',
     'approval',
   ];
 
@@ -188,7 +187,8 @@ export class ServiceBuildsComponent
     this.page$.next({ index: event.pageIndex, size: event.pageSize });
   }
 
-  approvePackageBuild(build: PackageBuildRestDto) {
+  approvePackageBuild(event: Event, build: PackageBuildRestDto) {
+    event.stopPropagation();
     this.disableApprove[build.id] = true;
     this.packageApi.approveBuild(build.id).subscribe(() => {
       this.refresh();
