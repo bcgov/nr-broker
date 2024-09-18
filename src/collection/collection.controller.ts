@@ -173,7 +173,7 @@ export class CollectionController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   tokenUpdatedEvents(): Observable<MessageEvent> {
-    return this.redis.getEventSource(REDIS_PUBSUB.VAULT_SERVICE_TOKEN);
+    return this.redis.getEventSource(REDIS_PUBSUB.BROKER_ACCOUNT_TOKEN);
   }
 
   @Get('service/:id/details')
