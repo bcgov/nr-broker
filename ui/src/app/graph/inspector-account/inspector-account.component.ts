@@ -48,7 +48,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
   expired = false;
-  private requestedAccountId?: string;
   hourlyUsage:
     | {
         success: number;
@@ -103,10 +102,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
         },
       })
       .afterClosed()
-      .subscribe(() => {
-        this.requestedAccountId = undefined;
-        //this.updateAccount();
-      });
+      .subscribe();
   }
 
   sync(): void {
@@ -128,10 +124,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
 
   private updateAccount(): void {
     if (this.account && this.userIndex) {
-      if (this.account.id === this.requestedAccountId) {
-        return;
-      }
-      this.requestedAccountId = this.account.id;
       this.jwtTokens = undefined;
       this.lastJwtTokenData = undefined;
       this.systemApi.getAccountTokens(this.account.id).subscribe({
