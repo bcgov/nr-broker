@@ -5,6 +5,7 @@ import sodium from 'libsodium-wrappers';
 import * as jwt from 'jsonwebtoken';
 import {
   GITHUB_CLIENT_ID,
+  GITHUB_MANAGED_URL_REGEX,
   GITHUB_PRIVATE_KEY,
   VAULT_KV_APPS_MOUNT,
 } from '../constants';
@@ -13,6 +14,7 @@ import { VaultService } from '../vault/vault.service';
 @Injectable()
 export class GithubService {
   private readonly axiosInstance: AxiosInstance;
+  private brokerManagedRegex = new RegExp(GITHUB_MANAGED_URL_REGEX);
 
   constructor(private readonly vaultService: VaultService) {
     this.axiosInstance = axios.create({
@@ -27,11 +29,18 @@ export class GithubService {
     return GITHUB_CLIENT_ID !== '' && GITHUB_PRIVATE_KEY !== '';
   }
 
+  public isBrokerManagedScmUrl(scmUrl: string) {
+    if (!scmUrl) {
+      return false;
+    }
+    return this.brokerManagedRegex.test(scmUrl);
+  }
+
   public async refresh(project: string, service: string, scmUrl: string) {
     if (!this.isEnabled()) {
       throw new Error('Not enabled');
     }
-    if (!scmUrl) {
+    if (!this.isBrokerManagedScmUrl(scmUrl)) {
       throw new Error('Service does not have Github repo URL to update');
     }
     const path = `tools/${project}/${service}`;

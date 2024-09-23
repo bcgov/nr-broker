@@ -99,3 +99,6 @@ export const REDIS_PUBSUB = {
 
 export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? '';
 export const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY ?? '';
+export const GITHUB_MANAGED_URL_REGEX =
+  process.env.GITHUB_MANAGED_URL_REGEX ??
+  '^https://github.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)$';
