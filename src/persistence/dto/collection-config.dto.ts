@@ -43,9 +43,6 @@ export class CollectionConfigDto {
   };
 
   @Column()
-  graphVertexOmit?: boolean;
-
-  @Column()
   index: number;
 
   @Column()

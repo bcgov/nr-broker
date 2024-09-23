@@ -1,5 +1,5 @@
 ARG REPO_LOCATION=
-FROM ${REPO_LOCATION}node:20-alpine as builder
+FROM ${REPO_LOCATION}node:20-alpine AS builder
 ARG NG_BUILD_CONFIG=
 
 RUN npm i -g @nestjs/cli
@@ -56,7 +56,7 @@ EXPOSE 3000
 
 VOLUME /config/envconsul
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Start up command
 ENTRYPOINT ["envconsul", "-config", "/config/envconsul/env.hcl", "node", "dist/main"]

@@ -344,6 +344,7 @@ export class AccountService {
         1,
       );
     if (downstreamServices) {
+      const errors = [];
       for (const service of downstreamServices) {
         const serviceName = service.collection.name;
         const projectDtoArr =
@@ -353,14 +354,30 @@ export class AccountService {
             ['component'],
           );
         const projectName = projectDtoArr[0].collection.name;
-        try {
+
+        // Determine if this is a valid service to sync for
+        if (
+          !this.githubService.isBrokerManagedScmUrl(service.collection.scmUrl)
+        ) {
           this.auditService.recordToolsSync(
-            'start',
+            'info',
             'unknown',
-            `Start sync: ${service.collection.scmUrl}`,
+            `Skip sync: ${service.collection.scmUrl}`,
             projectName,
             serviceName,
           );
+          continue;
+        }
+
+        this.auditService.recordToolsSync(
+          'start',
+          'unknown',
+          `Start sync: ${service.collection.scmUrl}`,
+          projectName,
+          serviceName,
+        );
+
+        try {
           await this.githubService.refresh(
             projectName,
             serviceName,
@@ -388,8 +405,12 @@ export class AccountService {
             serviceName,
             httpErr,
           );
-          throw httpErr;
+          errors.push(httpErr);
         }
+      }
+
+      if (errors.length > 0) {
+        throw errors[0];
       }
     } else {
       this.auditService.recordToolsSync(
