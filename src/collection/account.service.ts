@@ -354,25 +354,40 @@ export class AccountService {
           );
         const projectName = projectDtoArr[0].collection.name;
         try {
-          this.auditService.recordToolsSync(
-            'start',
-            'unknown',
-            `Start sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-          );
-          await this.githubService.refresh(
-            projectName,
-            serviceName,
-            service.collection.scmUrl,
-          );
-          this.auditService.recordToolsSync(
-            'end',
-            'success',
-            `End sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-          );
+          const githubRegex = /^https:\/\/github\.com[:/](.+?)\/(.+?)(\.git)?$/;
+          if (
+            service.collection.scmUrl &&
+            service.collection.scmUrl.trim() !== '' &&
+            githubRegex.test(service.collection.scmUrl)
+          ) {
+            this.auditService.recordToolsSync(
+              'start',
+              'unknown',
+              `Start sync: ${service.collection.scmUrl}`,
+              projectName,
+              serviceName,
+            );
+            await this.githubService.refresh(
+              projectName,
+              serviceName,
+              service.collection.scmUrl,
+            );
+            this.auditService.recordToolsSync(
+              'end',
+              'success',
+              `End sync: ${service.collection.scmUrl}`,
+              projectName,
+              serviceName,
+            );
+          } else {
+            this.auditService.recordToolsSync(
+              'info',
+              'failure',
+              `Invalid GitHub repository URL or empty string for ${serviceName}`,
+              projectName,
+              serviceName,
+            );
+          }
         } catch (error) {
           let httpErr = error;
           if (!(httpErr instanceof HttpException)) {
@@ -388,7 +403,7 @@ export class AccountService {
             serviceName,
             httpErr,
           );
-          //throw httpErr;
+          throw httpErr;
         }
       }
     } else {
