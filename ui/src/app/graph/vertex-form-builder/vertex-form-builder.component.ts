@@ -7,7 +7,6 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-
 import {
   FormControl,
   FormGroup,
@@ -24,6 +23,7 @@ import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field
 import { uniqueNameValidator } from './unique-name.directive';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
+
 @Component({
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
@@ -67,7 +67,9 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
           }
         }
         if (f.init === 'now') {
-          data[f.key] = new Date();
+          if (!data[f.key]) {
+            data[f.key] = new Date().toISOString();
+          }
         }
       }
 

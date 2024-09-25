@@ -101,17 +101,48 @@
     [selectedIndex]="selectedTabIndex"
     (selectedTabChange)="selectedTabChange($event)">
   <mat-tab label="Collection">
-    <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+    <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
       <app-vertex-tags
         class="full-width"
         [collection]="collection"
         [collectionData]="comboData.collection"></app-vertex-tags>
 
       <mat-card>
-        <mat-card-header>
-          <mat-card-title>Details</mat-card-title>
-        </mat-card-header>
         <mat-card-content>
+          <div class="card-title-container">
+            <mat-card-title>Details</mat-card-title>
+            <div>
+              <button mat-icon-button [matMenuTriggerFor]="detailsMenu" class="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #detailsMenu="matMenu">
+                <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
+                  <mat-icon>content_copy</mat-icon>Copy
+                </button>
+              </mat-menu>
+
+              <mat-menu #detailsCopyMenu="matMenu">
+                <button
+                  mat-menu-item
+                  [cdkCopyToClipboard]="comboData.collection.vertex"
+                  >Vertex Id</button>
+                <button
+                  mat-menu-item
+                  [cdkCopyToClipboard]="comboData.collection.id"
+                  >Collection Id</button>
+                <mat-divider></mat-divider>
+                @for (item of (config.fields | keyvalue); track item.key) {
+                  @if (comboData.collection[item.key] && (item.value.type === 'string' || item.value.type === 'email' || item.value.type === 'url')) {
+                    <button
+                      mat-menu-item
+                      [cdkCopyToClipboard]="comboData.collection[item.key]"
+                      >{{ item.value.name }}</button>
+                  }
+                }
+              </mat-menu>
+            </div>
+          </div>
+
           <app-inspector-vertex-fields
             [collection]="collection"
             [collectionConfig]="config"
@@ -134,15 +165,16 @@
               <app-inspector-account
                 [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
                 [userIndex]="4"
-                [hasSudo]="hasSudo"></app-inspector-account>
+                [hasSudo]="hasSudo"
+                [header]="'large'"></app-inspector-account>
             </mat-card-content>
           </mat-card>
         }
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>Connections</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Connections</mat-card-title>
+            </div>
             <app-inspector-connections
               [collection]="collection"
               [config]="config"
@@ -159,10 +191,10 @@
 
       @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>People</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>People</mat-card-title>
+            </div>
             <app-inspector-people
             [collection]="comboData.vertex.collection"
             [vertex]="comboData.collection.vertex"></app-inspector-people>
@@ -176,10 +208,10 @@
     <mat-tab label="Details">
       <div class="inspector-tab-margin">
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>Instances</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Instances</mat-card-title>
+            </div>
             <app-inspector-installs
               [instance]="comboData.collection"></app-inspector-installs>
           </mat-card-content>
@@ -200,12 +232,12 @@
     </mat-tab>
     <mat-tab label="Secrets">
       <ng-template matTabContent>
-      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>Secrets</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Secrets</mat-card-title>
+            </div>
             <app-inspector-vault
               [service]="comboData.collection"
               [isAdministrator]="hasSudo"></app-inspector-vault>
@@ -237,12 +269,12 @@
 
     <mat-tab label="Activity">
       <ng-template matTabContent>
-      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
         <mat-card class="full-width order-end">
-          <mat-card-header>
-            <mat-card-title>Intentions</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Intentions</mat-card-title>
+            </div>
             <app-inspector-intentions
               [id]="comboData.collection.id"
               [name]="comboData.collection.name"
@@ -257,7 +289,7 @@
 
   @if (collection === 'team') {
     <mat-tab label="Team">
-      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
         <mat-card>
           <mat-card-header>
             <mat-card-title>Members</mat-card-title>
@@ -282,14 +314,14 @@
       </div>
     </mat-tab>
     <mat-tab label="Services">
-      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
         <app-team-services
         class="full-width order-end"
         [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
     <mat-tab label="Accounts">
-      <div class="inspector-card-layout inspector-tab-margin  {{ screenSize }}">
+      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
         <app-team-accounts
           class="full-width order-end"
           [teamVertex]="comboData.collection.vertex"

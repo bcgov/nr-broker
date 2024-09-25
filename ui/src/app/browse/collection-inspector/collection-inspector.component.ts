@@ -1,20 +1,22 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   MatSnackBar,
   MatSnackBarConfig,
   MatSnackBarModule,
 } from '@angular/material/snack-bar';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
-import { MatDialog } from '@angular/material/dialog';
 import {
   BehaviorSubject,
   Subject,
@@ -68,11 +70,13 @@ import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.c
   standalone: true,
   imports: [
     CommonModule,
+    ClipboardModule,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
     MatGridListModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTabsModule,

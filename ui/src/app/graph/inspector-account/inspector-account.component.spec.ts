@@ -8,7 +8,7 @@ describe('InspectorAccountComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [InspectorAccountComponent]
+      imports: [InspectorAccountComponent],
     });
     fixture = TestBed.createComponent(InspectorAccountComponent);
     component = fixture.componentInstance;
