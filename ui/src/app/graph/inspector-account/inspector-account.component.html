@@ -1,7 +1,11 @@
 @if (account) {
   <div class="edge-container">
     <div class="fields-wrapper">
-      <h3 class="heading">Token</h3>
+      @if (header === 'small') {
+        <h3 class="heading">Token</h3>
+      } @else {
+        <h2 class="heading">Token</h2>
+      }
     </div>
     <div class="fields-wrapper">
       <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
@@ -14,6 +18,11 @@
         <button mat-menu-item (click)="sync()" [disabled]="!hasSudo">
           <mat-icon>sync</mat-icon>Sync secrets
         </button>
+        @if (lastJwtTokenData) {
+        <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
+          <mat-icon>content_copy</mat-icon>Copy JTI
+        </button>
+        }
       </mat-menu>
     </div>
   </div>

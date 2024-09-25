@@ -6,6 +6,7 @@ import {
   OnInit,
   SimpleChanges,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +19,7 @@ import {
 } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subscription } from 'rxjs';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 import { AccountGenerateDialogComponent } from '../account-generate-dialog/account-generate-dialog.component';
 import { SystemApiService } from '../../service/system-api.service';
@@ -30,6 +31,7 @@ import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
   standalone: true,
   imports: [
     CommonModule,
+    ClipboardModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
@@ -44,6 +46,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   @Input() account!: BrokerAccountRestDto;
   @Input() userIndex!: number | undefined;
   @Input() hasSudo = false;
+  @Input() header: 'small' | 'large' = 'small';
 
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;

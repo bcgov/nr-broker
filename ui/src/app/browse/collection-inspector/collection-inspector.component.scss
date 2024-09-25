@@ -46,3 +46,15 @@
   margin: 0;
   margin-right: 12px;
 }
+
+.card-title-container {
+  margin: 0 0 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title-container > * {
+  margin: 0;
+  flex-wrap: wrap;
+}
