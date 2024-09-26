@@ -7,26 +7,60 @@
     [screenSize]="screenSize"
     [backSteps]="2"
   >
-  <div
-    class="spaced-btn {{screenSize}} collection-btn">
-    <button
-      mat-stroked-button
-      extended
-      color="warn"
-      [disabled]="!hasDelete"
-      (click)="delete()">
-      Delete
-    </button>
-  </div>
+    <div
+      class="spaced-btn" [class]="screenSize">
+      <button
+        mat-stroked-button
+        class="collection-btn"
+        extended
+        color="warn"
+        [disabled]="!hasDelete"
+        (click)="delete()">
+        Delete
+      </button>
+    </div>
+    @if (data.package.buildVersion) {
+    <button mat-stroked-button
+      class="collection-btn"
+      (click)="openPackageBuildVersion(serviceId, data.package.buildVersion)"
+      matTooltip="{{data.package.buildVersion}}"
+      matTooltipShowDelay="500"
+      >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></button>
+    }
 </app-collection-header>
 
-  <div class="details-container details-container-margin">
+  <div class="details-container details-container-margin" [class]="screenSize">
 
   <mat-card class="card-margin">
-    <mat-card-header>
-      <mat-card-title>Package Information</mat-card-title>
-    </mat-card-header>
     <mat-card-content>
+      <div class="card-title-container">
+        <mat-card-title>Package Information</mat-card-title>
+        <div>
+          <button mat-icon-button [matMenuTriggerFor]="detailsMenu" class="menu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #detailsMenu="matMenu">
+            <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
+              <mat-icon>content_copy</mat-icon>Copy
+            </button>
+          </mat-menu>
+
+          <mat-menu #detailsCopyMenu="matMenu">
+            @if (data.package.buildVersion) {
+              <button
+                mat-menu-item
+                [cdkCopyToClipboard]="data.package.buildVersion"
+                >Build Version</button>
+            }
+            @if (data.package.checksum) {
+              <button
+                mat-menu-item
+                [cdkCopyToClipboard]="data.package.checksum"
+                >Checksum</button>
+            }
+          </mat-menu>
+        </div>
+      </div>
 
       <div class="package-content">
 
