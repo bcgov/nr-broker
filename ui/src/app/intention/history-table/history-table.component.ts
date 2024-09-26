@@ -39,6 +39,7 @@ import { ActionContentComponent } from '../action-content/action-content.compone
 import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { PackageUtilService } from '../../service/package-util.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
@@ -104,6 +105,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     private readonly collectionApi: CollectionApiService,
     private readonly collectionUtil: CollectionUtilService,
     private readonly graphUtil: GraphUtilService,
+    private readonly packageUtil: PackageUtilService,
     private readonly snackBar: MatSnackBar,
   ) {}
 
@@ -192,20 +194,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   }
 
   async openPackageBuildVersion(id: string, version: string) {
-    this.collectionApi.getCollectionById('service', id).subscribe((service) => {
-      if (service && service.scmUrl) {
-        if (service.scmUrl.startsWith('https://github.com')) {
-          window.open(`${service.scmUrl}/commit/${version}`, '_blank');
-        } else {
-          this.openSnackBar(`Unsupported SCM url: ${service.scmUrl}`);
-        }
-        return;
-      }
-
-      this.openSnackBar('SCM url for this service is not set');
-      throw new Error(`SCM url for this service is not set`);
-    });
-    return false;
+    return this.packageUtil.openPackageBuildVersion(id, version);
   }
 
   viewPackage(action: any) {

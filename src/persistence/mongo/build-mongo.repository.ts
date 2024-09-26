@@ -20,6 +20,8 @@ export class BuildMongoRepository implements BuildRepository {
   ) {}
 
   public async addBuild(
+    intentionId: string,
+    action: string,
     serviceId: string,
     name: string,
     semvar: SemverVersion,
@@ -30,6 +32,10 @@ export class BuildMongoRepository implements BuildRepository {
       installed: [],
       service: new ObjectId(serviceId),
       name,
+      source: {
+        action,
+        intention: new ObjectId(intentionId),
+      },
       semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
       package: buildPackage,
       timestamps: {

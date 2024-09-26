@@ -8,6 +8,8 @@ import { UserDto } from '../dto/user.dto';
 
 export abstract class BuildRepository {
   public abstract addBuild(
+    intentionId: string,
+    action: string,
     serviceId: string,
     name: string,
     semvar: SemverVersion,

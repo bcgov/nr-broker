@@ -26,6 +26,28 @@ h4 {
   display: none;
 }
 
+.environment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.environment-header > * {
+  width: 50%;
+}
+
+.environment-header > .environment-header-full {
+  width: 100%;
+}
+
+.environment-header > .environment-header-align-center {
+  align-self: center;
+}
+
+.environment-header > .environment-header-right {
+  text-align: right;
+}
 
 .environment-subtitle {
   font-size: 12px;

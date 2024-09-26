@@ -213,7 +213,7 @@
               <mat-card-title>Instances</mat-card-title>
             </div>
             <app-inspector-installs
-              [instance]="comboData.collection"></app-inspector-installs>
+              [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
           </mat-card-content>
         </mat-card>
       </div>
@@ -232,7 +232,7 @@
     </mat-tab>
     <mat-tab label="Secrets">
       <ng-template matTabContent>
-      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <mat-card>
           <mat-card-content>
             <div class="card-title-container">
@@ -253,7 +253,7 @@
     </mat-tab>
     <mat-tab label="Builds">
       <ng-template matTabContent>
-      <div class="inspector-tab-margin">
+      <div class="inspector-tab-full-margin">
         <mat-card>
           <mat-card-content>
             @if (serviceDetails) {
@@ -269,7 +269,7 @@
 
     <mat-tab label="Activity">
       <ng-template matTabContent>
-      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <mat-card class="full-width order-end">
           <mat-card-content>
             <div class="card-title-container">
@@ -289,7 +289,7 @@
 
   @if (collection === 'team') {
     <mat-tab label="Team">
-      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <mat-card>
           <mat-card-header>
             <mat-card-title>Members</mat-card-title>
@@ -314,14 +314,14 @@
       </div>
     </mat-tab>
     <mat-tab label="Services">
-      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <app-team-services
         class="full-width order-end"
         [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
     <mat-tab label="Accounts">
-      <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <app-team-accounts
           class="full-width order-end"
           [teamVertex]="comboData.collection.vertex"

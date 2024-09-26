@@ -34,6 +34,7 @@ import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.
 import { CollectionApiService } from '../../service/collection-api.service';
 import { EnvironmentRestDto } from '../../service/dto/environment-rest.dto';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-service-instances',
@@ -72,6 +73,7 @@ export class ServiceInstancesComponent implements OnChanges {
     private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
+    private readonly collectionUtil: CollectionUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -87,6 +89,10 @@ export class ServiceInstancesComponent implements OnChanges {
     if (changes['details']) {
       this.loadServiceDetails();
     }
+  }
+
+  openInstance(id: string) {
+    this.collectionUtil.openInBrowser('serviceInstance', id);
   }
 
   openInstanceDialog() {

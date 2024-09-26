@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
@@ -10,6 +11,7 @@ import { IntentionActionPointerRestDto } from '../../service/dto/intention-actio
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-service-instance-details',
@@ -17,6 +19,7 @@ import { CollectionNames } from '../../service/dto/collection-dto-union.type';
   imports: [
     CommonModule,
     FormsModule,
+    MatButtonModule,
     MatIconModule,
     MatRippleModule,
     MatSelectModule,
@@ -35,6 +38,7 @@ export class ServiceInstanceDetailsComponent {
   constructor(
     private readonly snackBar: MatSnackBar,
     private readonly collectionUtil: CollectionUtilService,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -42,6 +46,10 @@ export class ServiceInstanceDetailsComponent {
     if (this.instance?.server) {
       this.serverSelection = this.instance.server[0];
     }
+  }
+
+  open() {
+    this.collectionUtil.openInBrowser('serviceInstance', this.instance.id);
   }
 
   openServicePackage(packageId: string) {
@@ -64,5 +72,15 @@ export class ServiceInstanceDetailsComponent {
       config.verticalPosition = 'bottom';
       this.snackBar.open('User not found', 'Dismiss', config);
     }
+  }
+
+  navigateHistoryById(id: string) {
+    this.router.navigate([
+      '/intention/history',
+      {
+        field: 'id',
+        value: id,
+      },
+    ]);
   }
 }

@@ -5,6 +5,13 @@
       <div class="details-header">Name</div>
       <div class="details-line">{{instance.name}}</div>
     </div>
+
+    @if (instance.tags && this.instance.server.length === 1) {
+    <div class="details-item">
+      <div class="details-header">Tags</div>
+      <div class="details-line">{{instance.tags.join(', ')}}</div>
+    </div>
+    }
   </div>
   }
   <div class="details-container">
@@ -22,10 +29,12 @@
       </div>
 
       @if (instance.url) {
-        <div class="details-item">
+      <a href="{{instance.url}}" target="_blank">
+        <div class="details-item details-item-clickable" matRipple>
           <div class="details-header">Url</div>
-          <div class="details-line"><a href="{{instance.url}}" target="_blank">{{instance.url}}</a></div>
+          <div class="details-line">{{instance.url}}</div>
         </div>
+      </a>
       }
 
       @if (current && current.source?.intention) {
@@ -45,7 +54,10 @@
         </div>
       }
 
-      <div class="details-item">
+      <div
+        class="details-item details-item-clickable"
+        matRipple
+        (click)="navigateHistoryById(current.source.intention.id)">
         <div class="details-header">Installed</div>
         <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
       </div>

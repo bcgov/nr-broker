@@ -2,6 +2,10 @@
   margin: 16px 32px;
 }
 
+.inspector-tab-full-margin {
+  margin: 32px;
+}
+
 .inspector-card-layout {
   display: flex;
   flex-wrap: wrap;
@@ -52,6 +56,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card-title-container > *:first-child {
+  line-height: 48px;
 }
 
 .card-title-container > * {

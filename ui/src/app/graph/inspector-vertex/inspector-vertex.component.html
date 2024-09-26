@@ -48,7 +48,7 @@
   @if (collection === 'serviceInstance') {
     <div class="component-spacer">
       <app-inspector-installs
-        [instance]="comboData.collection"></app-inspector-installs>
+        [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
     </div>
     <mat-divider></mat-divider>
   }

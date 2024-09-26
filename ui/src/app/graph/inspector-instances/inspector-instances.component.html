@@ -76,7 +76,7 @@
     <div class="element-detail"
       [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
     <app-inspector-installs
-      [instance]="element"
+      [pointers]="element.actionHistory"
       ></app-inspector-installs>
     </div>
   </td>
