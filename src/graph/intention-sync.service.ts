@@ -125,6 +125,8 @@ export class IntentionSyncService {
     );
     if (!packageBuild) {
       packageBuild = await this.buildRepository.addBuild(
+        intention.id.toString(),
+        this.actionUtil.actionToIdString(action),
         service.id.toString(),
         action.package.name,
         parsedVersion,

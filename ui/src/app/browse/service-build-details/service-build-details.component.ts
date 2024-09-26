@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatMenuModule } from '@angular/material/menu';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
@@ -16,8 +18,7 @@ import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PackageUtilService } from '../../service/package-util.service';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { MatMenuModule } from '@angular/material/menu';
+import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
 
 @Component({
   selector: 'app-service-build-details',
@@ -26,6 +27,7 @@ import { MatMenuModule } from '@angular/material/menu';
     CommonModule,
     ClipboardModule,
     CollectionHeaderComponent,
+    InspectorInstallsComponent,
     FilesizePipe,
     MatButtonModule,
     MatCardModule,
@@ -106,6 +108,10 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
 
   async openPackageBuildVersion(id: string, version: string) {
     return this.packageUtil.openPackageBuildVersion(id, version);
+  }
+
+  openHistoryById(id: string) {
+    this.packageUtil.openHistoryById(id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

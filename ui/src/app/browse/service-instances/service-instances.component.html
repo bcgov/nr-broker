@@ -25,19 +25,41 @@
   }
   @for(env of envs; track env.id; let last = $last) {
     @if (envDetailsMap && envDetailsMap[env.name]) {
-    <div class="environment-subtitle">Environment</div>
-    <div class="environment-title">{{env.title}}</div>
+    <div class="environment-header">
+      <div [class.environment-header-full]="envDetailsMap && envDetailsMap[env.name].length > 1">
+        <div class="environment-subtitle">Environment</div>
+        <div class="environment-title">{{env.title}}</div>
+      </div>
 
     @if (envDetailsMap && envDetailsMap[env.name].length > 1) {
-      <mat-form-field class="instance-form">
-        <mat-label>Instance</mat-label>
-        <mat-select [(ngModel)]="envDetailSelection[env.name]">
-          @for (element of envDetailsMap[env.name]; track element.id) {
-            <mat-option [value]="element">{{element.name}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <div>
+        <mat-form-field class="instance-form">
+          <mat-label>Instance</mat-label>
+          <mat-select [(ngModel)]="envDetailSelection[env.name]">
+            @for (element of envDetailsMap[env.name]; track element.id) {
+              <mat-option [value]="element">{{element.name}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
     }
+
+    @if (envDetailsMap && envDetailSelection[env.name]) {
+      <div
+        class="environment-header-right"
+        [class.environment-header-align-center]="envDetailsMap[env.name].length === 1">
+
+        <button
+          mat-stroked-button
+          extended
+          color="primary"
+          (click)="openInstance(envDetailSelection[env.name].id)">
+          View
+        </button>
+      </div>
+    }
+    </div>
+
     @if (envDetailsMap && envDetailSelection[env.name]) {
       <app-service-instance-details
         [instance]="envDetailSelection[env.name]"

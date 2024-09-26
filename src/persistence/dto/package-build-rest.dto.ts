@@ -19,6 +19,7 @@ export class PackageBuildRestDto {
   id!: string;
   approval!: PackageBuildApprovalRestDto[];
   installed!: IntentionActionPointerRestDto[];
+  source!: IntentionActionPointerRestDto;
   service!: string;
   semvar!: string;
   package!: PackageRestDto;

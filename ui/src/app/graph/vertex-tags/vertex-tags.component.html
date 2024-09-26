@@ -2,7 +2,7 @@
   <div class="tags-container">
     <mat-chip-listbox [selectable]="false">
       @for (tag of collectionData.tags; track tag) {
-      <mat-chip-option (click)="browseTag(tag)">
+      <mat-chip-option [disabled]="!config.permissions.browse" (click)="browseTag(tag)">
         {{ tag }}
       </mat-chip-option>
       }

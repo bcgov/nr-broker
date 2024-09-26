@@ -32,16 +32,23 @@
   margin-bottom: 16px;
 }
 
+.install-version {
+  margin-bottom: 8px;
+}
+
 .install-header {
-  margin-top: 8px;
   min-width: 100px;
-  font-weight: 800;
+  font-weight: 500;
+  color: #333;
 }
 
 .install-line {
   color: var(--mat-card-subtitle-text-color);
   min-width: 100px;
-  font-weight: 400;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .install-alert {

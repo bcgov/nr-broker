@@ -53,6 +53,11 @@ export class PackageBuildDto {
   installed: IntentionActionPointerDto[];
 
   @IsDefined()
+  @Column(() => IntentionActionPointerDto)
+  @Type(() => IntentionActionPointerDto)
+  source: IntentionActionPointerDto;
+
+  @IsDefined()
   @Column()
   @ApiProperty({ type: () => String })
   @Transform((value) =>

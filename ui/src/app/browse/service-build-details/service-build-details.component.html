@@ -40,6 +40,13 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #detailsMenu="matMenu">
+            @if (data.source && data.source.intention) {
+              <button
+                mat-menu-item
+                (click)="openHistoryById(data.source.intention)">
+                <mat-icon>build</mat-icon>View Build
+              </button>
+            }
             <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
               <mat-icon>content_copy</mat-icon>Copy
             </button>
@@ -169,25 +176,26 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- <div>
+  <div>
     <mat-card class="card-margin">
-      <mat-card-header>
-        <mat-card-title>Installation</mat-card-title>
-      </mat-card-header>
       <mat-card-content>
-        Something
+        <div class="card-title-container">
+          <mat-card-title>Installation</mat-card-title>
+        </div>
+        <app-inspector-installs
+          [pointers]="data.installed"></app-inspector-installs>
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="card-margin">
+    <!-- <mat-card class="card-margin">
       <mat-card-header>
         <mat-card-title>Approval</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         Something
       </mat-card-content>
-    </mat-card>
-  </div> -->
+    </mat-card> -->
+  </div>
 
 </div>
 }

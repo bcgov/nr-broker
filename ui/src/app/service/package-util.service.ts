@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { CollectionApiService } from './collection-api.service';
 
 @Injectable({
@@ -7,6 +8,7 @@ import { CollectionApiService } from './collection-api.service';
 })
 export class PackageUtilService {
   constructor(
+    private readonly router: Router,
     private readonly collectionApi: CollectionApiService,
     private readonly snackBar: MatSnackBar,
   ) {}
@@ -26,6 +28,16 @@ export class PackageUtilService {
       throw new Error(`SCM url for this service is not set`);
     });
     return false;
+  }
+
+  async openHistoryById(id: string) {
+    this.router.navigate([
+      '/intention/history',
+      {
+        field: 'id',
+        value: id,
+      },
+    ]);
   }
 
   private openSnackBar(message: string) {

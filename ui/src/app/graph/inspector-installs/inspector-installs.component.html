@@ -31,7 +31,10 @@
           <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>
         }
         @if (current && current.source?.action.source?.intention) {
-          <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View build</button>
+          <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View Build</button>
+        }
+        @if (current && current.source?.action.package?.id) {
+          <button mat-menu-item (click)="openServicePackage(current.source.action.service.id, current.source.action.package.id)">View Package</button>
         }
         <mat-divider></mat-divider>
         @if (current && current.source?.intention?.event.url) {
@@ -53,13 +56,13 @@
     }
   </div>
 </div>
-@if (instance) {
+@if (pointers) {
   @if (!current || !current.source?.intention) {
     <div class="edge-container edge-container-margin-left">No recorded installation</div>
   }
   @if (current && current.source?.intention) {
     <div class="edge-container edge-container-margin-left install-details">
-      <div>
+      <div class="install-version">
         <app-outcome-icon
           [outcome]="current.source.intention.transaction.outcome"></app-outcome-icon>
 
