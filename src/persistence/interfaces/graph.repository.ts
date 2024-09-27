@@ -24,6 +24,9 @@ export abstract class GraphRepository {
   public abstract getData(
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto>;
+  public abstract getDataSlice(
+    collections: string[],
+  ): Promise<GraphDataResponseDto>;
   public abstract getProjectServices(): Promise<
     GraphProjectServicesResponseDto[]
   >;

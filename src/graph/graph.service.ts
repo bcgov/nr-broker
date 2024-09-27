@@ -50,6 +50,12 @@ export class GraphService {
     return this.graphRepository.getData(includeCollection);
   }
 
+  public async getDataSlice(
+    collections: string[],
+  ): Promise<GraphDataResponseDto> {
+    return this.graphRepository.getDataSlice(collections);
+  }
+
   public async getProjectServices() {
     return this.graphRepository.getProjectServices();
   }

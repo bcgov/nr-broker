@@ -48,6 +48,42 @@ export class GraphMongoRepository implements GraphRepository {
     private readonly actionUtil: ActionUtil,
   ) {}
 
+  public async getDataSlice(
+    collections: string[],
+  ): Promise<GraphDataResponseDto> {
+    const configs = await this.collectionConfigRepository.find();
+    const filteredConfigs = configs.filter(
+      (config) => collections.indexOf(config.collection) !== -1,
+    );
+    const verticeArrs = await Promise.all(
+      configs.map((config, category: number) => {
+        if (collections.indexOf(config.collection) === -1) {
+          return Promise.resolve([]);
+        }
+        return this.aggregateVertex(
+          config.collection,
+          category,
+          config.index,
+          false,
+        );
+      }),
+    );
+
+    const edges = await this.edgeRepository.find({
+      is: { $in: filteredConfigs.map((config) => config.index) },
+      it: { $in: filteredConfigs.map((config) => config.index) },
+    });
+    return {
+      edges: edges.map((edge) => edge.toEdgeResponse(false)),
+      vertices: [].concat(...verticeArrs),
+      categories: configs.map((config) => {
+        return {
+          name: config.name,
+        };
+      }),
+    };
+  }
+
   public async getData(
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto> {
@@ -64,7 +100,6 @@ export class GraphMongoRepository implements GraphRepository {
     );
 
     const edges = await this.edgeRepository.find();
-    // console.log(edges);
     return {
       edges: edges.map((edge) => edge.toEdgeResponse(false)),
       vertices: [].concat(...verticeArrs),

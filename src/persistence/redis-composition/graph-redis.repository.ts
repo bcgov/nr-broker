@@ -59,6 +59,12 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getData(includeCollection);
   }
 
+  public async getDataSlice(
+    collections: string[],
+  ): Promise<GraphDataResponseDto> {
+    return this.repo.getDataSlice(collections);
+  }
+
   public async getProjectServices(): Promise<
     GraphProjectServicesResponseDto[]
   > {
@@ -412,9 +418,13 @@ export class GraphRedisRepository implements GraphRepository {
     return `collection_json:${vertex.collection}:${vertex.id.toString()}`;
   }
 
-  private invalidateCache() {
+  private async invalidateCache() {
     // console.log('invalidate: cache');
+    const keys = await this.client.keys(`${PERSISTENCE_CACHE_KEY_GRAPH}-*`);
+    const suffixDelArr = keys.map((key) => this.client.del(key));
+
     return Promise.all([
+      ...suffixDelArr,
       this.client.del(PERSISTENCE_CACHE_KEY_GRAPH),
       this.client.del(PERSISTENCE_CACHE_KEY_CONFIG),
     ]);

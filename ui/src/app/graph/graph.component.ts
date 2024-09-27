@@ -91,12 +91,23 @@ export class GraphComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.preferences.onSet
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((pref) => {
+        if (pref.key === 'graphVertexVisibility') {
+          this.refreshData();
+        }
+      });
     this.data = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() =>
         combineLatest([
           combineLatest([
-            this.graphApi.getData(),
+            this.graphApi.getDataSlice(
+              this.configArr
+                .filter((config) => this.isCollectionVisible(config.collection))
+                .map((config) => config.collection),
+            ),
             this.graphApi.getVertexConnected(),
             this.graphApi
               .createEventSource()

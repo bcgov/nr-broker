@@ -9,9 +9,11 @@ import { Reflector } from '@nestjs/core';
 import { Response as ExpressResponse } from 'express';
 import { Observable, from, of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import * as crypto from 'crypto';
 import { RedisClientType } from 'redis';
 import {
   PERSISTENCE_CACHE_METADATA_KEY,
+  PERSISTENCE_CACHE_METADATA_SUFFIX,
   PERSISTENCE_CACHE_METADATA_TTL,
 } from './persistence.constants';
 
@@ -39,16 +41,43 @@ export class PersistenceCacheInterceptor<T>
       ) ??
       this.reflector.get(PERSISTENCE_CACHE_METADATA_TTL, context.getClass()) ??
       null;
-    const keyValue =
+    let keyValue =
       this.reflector.get(
         PERSISTENCE_CACHE_METADATA_KEY,
         context.getHandler(),
       ) ??
       this.reflector.get(PERSISTENCE_CACHE_METADATA_KEY, context.getClass()) ??
       null;
+    const suffixValue =
+      this.reflector.get(
+        PERSISTENCE_CACHE_METADATA_SUFFIX,
+        context.getHandler(),
+      ) ??
+      this.reflector.get(
+        PERSISTENCE_CACHE_METADATA_SUFFIX,
+        context.getClass(),
+      ) ??
+      null;
 
     if (!keyValue) {
       return next.handle();
+    }
+
+    const request = context.switchToHttp().getRequest();
+    console.log(request.params);
+    console.log(suffixValue);
+    if (
+      suffixValue &&
+      request.params[suffixValue] &&
+      typeof request.params[suffixValue] === 'string'
+    ) {
+      const suffixArr = request.params[suffixValue].split(',').sort();
+      const hash = crypto
+        .createHash('sha256')
+        .update(suffixArr.join('|'))
+        .digest('hex');
+      keyValue = `${keyValue}-${hash}`;
+      console.log(keyValue);
     }
 
     const response = context.switchToHttp().getResponse<ExpressResponse>();
