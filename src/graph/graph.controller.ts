@@ -36,10 +36,10 @@ import { AllowBodyValue } from '../allow-body-value.decorator';
 import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
+import { PersistenceCacheSuffix } from '../persistence/persistence-cache-suffix.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
 import { REDIS_PUBSUB } from '../constants';
-import { PersistenceCacheSuffix } from 'src/persistence/persistence-cache-suffix.decorator';
 
 @Controller({
   path: 'graph',
