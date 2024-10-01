@@ -307,6 +307,27 @@ export class CollectionService {
     };
   }
 
+  async getServiceInstanceDetails(serviceInstanceId: string) {
+    const instance =
+      await this.graphRepository.getServiceInstanceDetails(serviceInstanceId);
+    if (!instance) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not Found',
+        error: `Check service exists: ${serviceInstanceId}`,
+      });
+    }
+
+    if (instance?.action?.source) {
+      instance.action.source.intention.auditUrl =
+        this.actionUtil.auditUrlForIntention(instance.action.source.intention);
+    }
+
+    return {
+      ...instance,
+    };
+  }
+
   async getServiceSecureInfo(serviceId: string) {
     const service = await this.collectionRepository.getCollectionById(
       'service',

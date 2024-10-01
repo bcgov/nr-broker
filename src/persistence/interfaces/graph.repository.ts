@@ -18,6 +18,7 @@ import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -33,6 +34,9 @@ export abstract class GraphRepository {
   public abstract getServiceDetails(
     id: string,
   ): Promise<ServiceDetailsResponseDto>;
+  public abstract getServiceInstanceDetails(
+    id: string,
+  ): Promise<ServiceInstanceDetailsResponseDto>;
   public abstract getUserPermissions(
     id: string,
   ): Promise<UserPermissionRestDto>;

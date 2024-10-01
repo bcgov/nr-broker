@@ -71,13 +71,19 @@
           }
       </div>
 
-      <div class="install-header">Installed</div>
-      <div class="install-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+      <div class="details-item">
+        <div class="details-header">Installed</div>
+        <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
+      </div>
 
-      <div class="install-header">User</div>
-      <div class="install-line">{{current.source.intention.user.name}}</div>
 
-      <!-- <div class="install-alert">@if (!isLast()) {<button mat-button (click)="navigateCurrent()">Show current</button>} @else {&nbsp;}</div> -->
+      <div
+        class="details-item details-item-clickable"
+        matRipple
+        (click)="openUserInBrowserByGuid(current.source.intention.user.id)">
+        <div class="details-header">User</div>
+        <div class="details-line">{{current.source.intention.user.name}}</div>
+      </div>
     </div>
   }
 }

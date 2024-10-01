@@ -1,5 +1,7 @@
 <div class="container">
-  <h3 class="property-heading">Properties</h3>
+  @if (showHeader) {
+    <h3 class="property-heading">Properties</h3>
+  }
   <table mat-table [dataSource]="prop | keyvalue">
     <!-- Key Column -->
     <ng-container matColumnDef="key">

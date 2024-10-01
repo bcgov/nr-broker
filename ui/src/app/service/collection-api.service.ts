@@ -122,6 +122,15 @@ export class CollectionApiService {
     );
   }
 
+  public getServiceInstanceDetails(serviceInstanceId: string) {
+    return this.http.get(
+      `${environment.apiUrl}/v1/collection/service-instance/${serviceInstanceId}/details`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   public doUniqueKeyCheck(
     name: keyof CollectionDtoRestUnion,
     key: string,

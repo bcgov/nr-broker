@@ -32,6 +32,7 @@ import {
   GraphVertexConnections,
 } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -282,34 +283,7 @@ export class GraphMongoRepository implements GraphRepository {
           'forward',
           true,
           true,
-          [
-            this.collectionLookup(
-              'environment',
-              { name: 'deploy-type' },
-              'forward',
-              true,
-              true,
-            ),
-            this.collectionLookup(
-              'server',
-              { name: 'installation' },
-              'forward',
-              true,
-              false,
-            ),
-            {
-              $lookup: {
-                from: 'intention',
-                localField: 'action.intention',
-                foreignField: '_id',
-                as: 'intention',
-              },
-            },
-            { $unwind: '$environment' },
-            {
-              $unwind: { path: '$intention', preserveNullAndEmptyArrays: true },
-            },
-          ],
+          this.serviceInstanceDetailsAggregate(),
         ),
       ])
       .toArray()
@@ -320,39 +294,99 @@ export class GraphMongoRepository implements GraphRepository {
           arrayIdFixer(datum.serviceInstance);
 
           for (const instance of datum.serviceInstance) {
-            if (instance.environment) {
-              instance.environment.id = instance.environment._id;
-              delete instance.environment._id;
-            }
-
-            if (instance.server) {
-              for (const server of instance.server) {
-                server.edge.id = server.edge._id;
-                delete server.edge._id;
-                server.server.id = server.server._id;
-                delete server.server._id;
-              }
-            }
-
-            if (instance.intention) {
-              const intention = instance.intention;
-              intention.id = intention._id;
-              delete intention._id;
-
-              const actions = this.actionUtil.filterActions(
-                intention.actions,
-                this.actionUtil.actionToOptions(instance.action.action),
-              );
-              instance.action.source = {
-                intention,
-                action: actions.length === 1 ? actions[0] : undefined,
-              };
-              delete instance.intention;
-            }
+            this.fixServiceInstanceDetails(instance);
           }
         }
         return datum as ServiceDetailsResponseDto;
       });
+  }
+
+  public async getServiceInstanceDetails(
+    id: string,
+  ): Promise<ServiceInstanceDetailsResponseDto> {
+    const serviceInstanceRepository = getRepositoryFromCollectionName(
+      this.dataSource,
+      'serviceInstance',
+    );
+    return serviceInstanceRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        ...this.serviceInstanceDetailsAggregate(),
+      ])
+      .toArray()
+      .then((array: any) => {
+        arrayIdFixer(array);
+        const datum = array.length > 0 ? array[0] : null;
+        return this.fixServiceInstanceDetails(datum);
+      });
+  }
+
+  private serviceInstanceDetailsAggregate() {
+    return [
+      this.collectionLookup(
+        'environment',
+        { name: 'deploy-type' },
+        'forward',
+        true,
+        true,
+      ),
+      this.collectionLookup(
+        'server',
+        { name: 'installation' },
+        'forward',
+        true,
+        false,
+      ),
+      {
+        $lookup: {
+          from: 'intention',
+          localField: 'action.intention',
+          foreignField: '_id',
+          as: 'intention',
+        },
+      },
+      { $unwind: '$environment' },
+      {
+        $unwind: { path: '$intention', preserveNullAndEmptyArrays: true },
+      },
+    ];
+  }
+
+  private fixServiceInstanceDetails(
+    datum: any,
+  ): ServiceInstanceDetailsResponseDto {
+    if (datum) {
+      if (datum.environment) {
+        datum.environment.id = datum.environment._id;
+        delete datum.environment._id;
+      }
+
+      if (datum.server) {
+        for (const server of datum.server) {
+          server.edge.id = server.edge._id;
+          delete server.edge._id;
+          server.server.id = server.server._id;
+          delete server.server._id;
+        }
+      }
+
+      if (datum.intention) {
+        const intention = datum.intention;
+        intention.id = intention._id;
+        delete intention._id;
+
+        const actions = this.actionUtil.filterActions(
+          intention.actions,
+          this.actionUtil.actionToOptions(datum.action.action),
+        );
+        datum.action.source = {
+          intention,
+          action: actions.length === 1 ? actions[0] : undefined,
+        };
+        delete datum.intention;
+      }
+    }
+    return datum as ServiceInstanceDetailsResponseDto;
   }
 
   public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {

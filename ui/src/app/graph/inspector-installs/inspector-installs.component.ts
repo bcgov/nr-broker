@@ -1,6 +1,13 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import {
+  combineLatest,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+} from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
@@ -9,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { MatRippleModule } from '@angular/material/core';
 import { IntentionActionPointerRestDto } from '../../service/dto/intention-action-pointer-rest.dto';
 import { IntentionApiService } from '../../service/intention-api.service';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
@@ -27,6 +36,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
     MatMenuModule,
     MatListModule,
     MatTooltipModule,
+    MatRippleModule,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-installs.component.html',
@@ -35,21 +45,45 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 export class InspectorInstallsComponent implements OnInit, OnChanges {
   @Input() pointers!: IntentionActionPointerRestDto[] | undefined;
 
+  pointer$ = new Subject<IntentionActionPointerRestDto>();
   current: IntentionActionPointerRestDto | undefined;
 
   constructor(
     private readonly router: Router,
+    private readonly snackBar: MatSnackBar,
     private readonly collectionUtil: CollectionUtilService,
     private readonly intention: IntentionApiService,
   ) {}
 
   ngOnInit(): void {
+    this.pointer$
+      .pipe(
+        distinctUntilChanged(),
+        switchMap((pointer) => {
+          return combineLatest([
+            this.intention.getIntention(pointer.intention),
+            of(pointer),
+          ]);
+        }),
+      )
+      .subscribe(([result, pointer]) => {
+        const actionId = pointer.action?.split('#').pop();
+        this.current = {
+          ...pointer,
+          source: {
+            intention: result,
+            action: result.actions.find(
+              (action: any) => action.id === actionId,
+            ),
+          },
+        };
+      });
+
     this.navigateCurrent();
-    this.navigate(0);
   }
 
   ngOnChanges(): void {
-    this.ngOnInit();
+    this.navigateCurrent();
   }
 
   viewIntention(id: string) {
@@ -69,10 +103,24 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
     this.collectionUtil.openServicePackage(serviceId, packageId);
   }
 
+  openUserInBrowserByGuid(guid: string) {
+    try {
+      this.collectionUtil.openUserInBrowserByGuid(guid);
+    } catch (error) {
+      const config = new MatSnackBarConfig();
+      config.duration = 5000;
+      config.verticalPosition = 'bottom';
+      this.snackBar.open('User not found', 'Dismiss', config);
+    }
+  }
+
   navigateCurrent() {
-    this.current = this.pointers
+    const current = this.pointers
       ? this.pointers[this.pointers.length - 1]
       : undefined;
+    if (current) {
+      this.pointer$.next(current);
+    }
   }
 
   navigate(move: number) {
@@ -86,20 +134,8 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
     if (!history) {
       return;
     }
-    const actionId = history.action?.split('#').pop();
-    this.intention.getIntention(history.intention).subscribe((result) => {
-      if (this.current) {
-        this.current = {
-          ...history,
-          source: {
-            intention: result,
-            action: result.actions.find(
-              (action: any) => action.id === actionId,
-            ),
-          },
-        };
-      }
-    });
+
+    this.pointer$.next(history);
   }
 
   isFirst() {
