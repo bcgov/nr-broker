@@ -1,9 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
@@ -11,7 +13,7 @@ import { IntentionActionPointerRestDto } from '../../service/dto/intention-actio
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
-import { Router } from '@angular/router';
+import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/graph-prop-viewer-dialog.component';
 
 @Component({
   selector: 'app-service-instance-details',
@@ -36,6 +38,7 @@ export class ServiceInstanceDetailsComponent {
   current: IntentionActionPointerRestDto | undefined;
 
   constructor(
+    private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
     private readonly collectionUtil: CollectionUtilService,
     private readonly router: Router,
@@ -72,6 +75,13 @@ export class ServiceInstanceDetailsComponent {
       config.verticalPosition = 'bottom';
       this.snackBar.open('User not found', 'Dismiss', config);
     }
+  }
+
+  openInstancePropertyDialog(prop: any) {
+    this.dialog.open(GraphPropViewerDialogComponent, {
+      width: '500px',
+      data: { prop },
+    });
   }
 
   navigateHistoryById(id: string) {

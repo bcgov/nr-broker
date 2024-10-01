@@ -108,6 +108,19 @@
         <div class="details-header">Platform Details</div>
         <div class="details-line">{{serverSelection.server.osFull}}</div>
       </div>
+
+      <div class="details-item">
+        <div class="details-header">
+          <button
+            mat-stroked-button
+            extended
+            color="primary"
+            [disabled]="!serverSelection.edge.prop || (serverSelection.edge.prop | keyvalue).length === 0"
+            (click)="openInstancePropertyDialog(serverSelection.edge.prop)">
+            Properties
+          </button>
+        </div>
+      </div>
     </div>
     }
   </div>
