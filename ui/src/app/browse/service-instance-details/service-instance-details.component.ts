@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -30,7 +30,7 @@ import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/grap
   templateUrl: './service-instance-details.component.html',
   styleUrl: './service-instance-details.component.scss',
 })
-export class ServiceInstanceDetailsComponent {
+export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
   @Input() instance!: any | undefined;
   @Input() showName!: boolean;
   serverSelection: any | undefined;
@@ -43,6 +43,10 @@ export class ServiceInstanceDetailsComponent {
     private readonly collectionUtil: CollectionUtilService,
     private readonly router: Router,
   ) {}
+
+  ngOnChanges(): void {
+    this.ngOnInit();
+  }
 
   ngOnInit(): void {
     this.current = this.instance?.action;

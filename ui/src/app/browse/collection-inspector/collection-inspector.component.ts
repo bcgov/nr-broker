@@ -64,6 +64,7 @@ import { ServiceBuildDetailsComponent } from '../service-build-details/service-b
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
+import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -95,6 +96,7 @@ import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.c
     InspectorTimestampsComponent,
     ServiceBuildDetailsComponent,
     ServiceBuildsComponent,
+    ServiceInstanceDetailsComponent,
     ServiceInstancesComponent,
     TeamAccountsComponent,
     TeamMembersComponent,
@@ -116,6 +118,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   public config!: CollectionConfigRestDto;
   public comboData!: CollectionCombo<any>;
   public serviceDetails: any = null;
+  public serviceInstanceDetails: any = null;
 
   // Permissions
   hasAdmin = false;
@@ -256,11 +259,20 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.comboData.collection.vertex,
       );
 
+      this.serviceDetails = null;
+      this.serviceInstanceDetails = null;
+
       if (this.collection === 'service') {
         this.collectionApi
           .getServiceDetails(this.comboData.collection.id)
           .subscribe((data: any) => {
             this.serviceDetails = data;
+          });
+      } else if (this.collection === 'serviceInstance') {
+        this.collectionApi
+          .getServiceInstanceDetails(this.comboData.collection.id)
+          .subscribe((data: any) => {
+            this.serviceInstanceDetails = data;
           });
       }
       this.loading = false;
@@ -309,7 +321,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.graphUtil.openInGraph(target.id, 'edge');
+      this.graphUtil.openInGraph(target.id, 'edge', false);
     }
   }
 
@@ -331,7 +343,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   openInGraph() {
     if (this.comboData.vertex) {
-      this.graphUtil.openInGraph(this.comboData.vertex.id, 'vertex');
+      this.graphUtil.openInGraph(this.comboData.vertex.id, 'vertex', false);
     }
   }
 

@@ -196,6 +196,13 @@ export class CollectionController {
     return this.service.getServiceSecureInfo(id);
   }
 
+  @Get('service-instance/:id/details')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  async getServiceInstanceDetails(@Param('id') id: string) {
+    return this.service.getServiceInstanceDetails(id);
+  }
+
   @Get(':collection')
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionByVertexId(

@@ -207,15 +207,24 @@
   @if (collection === 'serviceInstance') {
     <mat-tab label="Details">
       <div class="inspector-tab-margin">
-        <mat-card>
-          <mat-card-content>
-            <div class="card-title-container">
-              <mat-card-title>Instances</mat-card-title>
-            </div>
-            <app-inspector-installs
-              [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
+        <mat-card class="inspector-card-gap">
+          <mat-card-content class="card-content-container">
+            <app-service-instance-details
+              [instance]="serviceInstanceDetails"
+              [showName]="false"></app-service-instance-details>
           </mat-card-content>
         </mat-card>
+        @if (comboData.collection.actionHistory && comboData.collection.actionHistory.length > 0) {
+          <mat-card>
+            <mat-card-content>
+              <div class="card-title-container">
+                <mat-card-title>History</mat-card-title>
+              </div>
+              <app-inspector-installs
+                [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
+            </mat-card-content>
+          </mat-card>
+        }
       </div>
     </mat-tab>
   }

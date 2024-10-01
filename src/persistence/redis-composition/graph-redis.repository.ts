@@ -41,6 +41,7 @@ import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
 import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -73,6 +74,12 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
   ): Promise<ServiceDetailsResponseDto> {
     return this.repo.getServiceDetails(id);
+  }
+
+  public async getServiceInstanceDetails(
+    id: string,
+  ): Promise<ServiceInstanceDetailsResponseDto> {
+    return this.repo.getServiceInstanceDetails(id);
   }
 
   public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {

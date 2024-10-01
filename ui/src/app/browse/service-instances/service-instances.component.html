@@ -13,10 +13,10 @@
 </div>
 }
 
-@if(loading) {
+@if(loading || !details) {
   <mat-spinner></mat-spinner>
 }
-@if (!loading) {
+@if (!loading && details) {
 <mat-card>
   <mat-card-content>
 

@@ -51,7 +51,7 @@ export class GraphUtilService {
     return this.router.routerState.snapshot.url.startsWith('/graph');
   }
 
-  openInGraph(id: string, type: 'edge' | 'vertex') {
+  openInGraph(id: string, type: 'edge' | 'vertex', replaceUrl = true) {
     this.router.navigate(
       [
         '/graph',
@@ -63,7 +63,7 @@ export class GraphUtilService {
         },
       ],
       {
-        replaceUrl: true,
+        replaceUrl,
       },
     );
   }
