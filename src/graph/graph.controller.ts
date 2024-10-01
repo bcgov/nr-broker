@@ -36,6 +36,7 @@ import { AllowBodyValue } from '../allow-body-value.decorator';
 import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
+import { PersistenceCacheSuffix } from '../persistence/persistence-cache-suffix.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
 import { REDIS_PUBSUB } from '../constants';
@@ -50,6 +51,16 @@ export class GraphController {
     private readonly graphSync: GraphSyncService,
     private readonly redis: RedisService,
   ) {}
+
+  @Get('data-slice/:collections')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_GRAPH)
+  @PersistenceCacheSuffix('collections')
+  @UseInterceptors(PersistenceCacheInterceptor)
+  getDataSlice(@Param('collections') collections: string) {
+    return this.graph.getDataSlice(collections.split(','));
+  }
 
   @Get('data')
   @UseGuards(BrokerCombinedAuthGuard)

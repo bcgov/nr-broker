@@ -66,6 +66,15 @@ export class GraphApiService {
     );
   }
 
+  getDataSlice(collections: string[]) {
+    return this.http.get<GraphDataResponseDto>(
+      `${environment.apiUrl}/v1/graph/data-slice/${collections.sort().join(',')}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   getVertexConnected() {
     return this.http.post<string[]>(
       `${environment.apiUrl}/v1/graph/vertex/connected`,
