@@ -19,6 +19,7 @@ import { ServerDto } from './dto/server.dto';
 import { ServiceDto } from './dto/service.dto';
 import { ServiceInstanceDto } from './dto/service-instance.dto';
 import { TeamDto } from './dto/team.dto';
+import { UserAliasRequestDto } from './dto/user-alias-request.dto';
 import { UserDto } from './dto/user.dto';
 import { VertexDto } from './dto/vertex.dto';
 
@@ -92,6 +93,7 @@ const redisFactory = {
       ProjectDto,
       ServerDto,
       TeamDto,
+      UserAliasRequestDto,
       UserDto,
       VertexDto,
     ]),

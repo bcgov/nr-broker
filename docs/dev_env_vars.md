@@ -8,6 +8,7 @@ A suggested deployment strategy is to use [envconsul](https://github.com/hashico
 
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
+| BROKER_URL |  |  | The external URL that this instance is running on. Used to create redirect urls. |
 | HOSTNAME |  |  | The hostname of the server this instance is running on. Used in logs. The instance with a hostname ending in '-0' is the primary node. It will cause issues if there is no primary node or there are multiple primary nodes'. |
 
 ## Audit file logging
@@ -128,6 +129,24 @@ The Redis environment variables used to setup the connection.
 | REDIS_PORT | 6379 |  | The Redis server port |
 | REDIS_USER | '' | Yes | The Redis user |
 | REDIS_PASSWORD | '' | Yes | The Redis password |
+
+## User Alias Services
+
+### GitHub
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| GITHUB_OAUTH_CLIENT_ID |  |  | The client id of the GitHub OAuth App |
+| GITHUB_OAUTH_CLIENT_SECRET |  |  |  The client secret of the GitHub OAuth App |
+
+## Sync Services
+
+### GitHub
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
+| GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
 
 ## Temporary
 

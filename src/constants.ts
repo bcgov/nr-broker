@@ -1,3 +1,5 @@
+export const BROKER_URL = process.env.BROKER_URL ?? '';
+
 export const AWS_REGION = 'ca-central-1';
 export const AWS_KINESIS_BUFFER_TIME = 100;
 export const AWS_KINESIS_MAX_RECORDS = 10;
@@ -68,6 +70,9 @@ export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
   'tools',
 ]);
 export const VAULT_KV_APPS_MOUNT = 'apps';
+export const VAULT_KV_APPS_TOOLS_PATH_TPL =
+  process.env.VAULT_KV_APPS_TOOLS_PATH_TPL ??
+  'tools/<%= projectName %>/<%= serviceName %>';
 export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
 
@@ -97,8 +102,16 @@ export const REDIS_PUBSUB = {
   BROKER_ACCOUNT_TOKEN: 'broker-account-token',
 } as const;
 
-export const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? '';
-export const GITHUB_PRIVATE_KEY = process.env.GITHUB_PRIVATE_KEY ?? '';
+export const GITHUB_OAUTH_CLIENT_ID = process.env.GITHUB_OAUTH_CLIENT_ID ?? '';
+export const GITHUB_OAUTH_CLIENT_SECRET =
+  process.env.GITHUB_OAUTH_CLIENT_SECRET ?? '';
+
+export const GITHUB_SYNC_CLIENT_ID = process.env.GITHUB_SYNC_CLIENT_ID ?? '';
+export const GITHUB_SYNC_PRIVATE_KEY =
+  process.env.GITHUB_SYNC_PRIVATE_KEY ?? '';
+
 export const GITHUB_MANAGED_URL_REGEX =
   process.env.GITHUB_MANAGED_URL_REGEX ??
   '^https://github.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)$';
+
+export const USER_ALIAS_DOMAIN_GITHUB = 'GitHub';

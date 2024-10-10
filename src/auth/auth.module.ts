@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+
 import { AuditModule } from '../audit/audit.module';
 import { JwtStrategy } from './jwt.strategy';
 import { PersistenceModule } from '../persistence/persistence.module';
@@ -44,6 +45,6 @@ const OidcStrategyFactory = {
     AuthService,
   ],
   controllers: [AuthController],
-  exports: [BrokerOidcAuthGuard, BrokerJwtAuthGuard],
+  exports: [AuthService, BrokerOidcAuthGuard, BrokerJwtAuthGuard],
 })
 export class AuthModule {}

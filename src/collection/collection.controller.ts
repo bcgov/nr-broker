@@ -10,13 +10,17 @@ import {
   Put,
   Query,
   Request,
+  Response,
   Sse,
   UseGuards,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Request as ExpressRequest } from 'express';
+import {
+  Response as ExpressResponse,
+  Request as ExpressRequest,
+} from 'express';
 import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import {
@@ -67,6 +71,19 @@ export class CollectionController {
   @ApiOAuth2(['openid', 'profile'])
   async user(@Request() req: ExpressRequest): Promise<UserRolesDto> {
     return await this.userCollectionService.extractUserFromRequest(req);
+  }
+
+  @Get('/user/link-github')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  async linkGithub(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Request() req: ExpressRequest,
+    @Response() res: ExpressResponse,
+  ) {
+    const user = await this.userCollectionService.linkGithub(req, state, code);
+    res.redirect(`/browse/user/${user.id}`);
   }
 
   @Post('user/import')

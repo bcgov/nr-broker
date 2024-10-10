@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
+import ejs from 'ejs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
@@ -21,6 +22,7 @@ import {
   MILLISECONDS_IN_SECOND,
   VAULT_KV_APPS_MOUNT,
   REDIS_PUBSUB,
+  VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
@@ -33,7 +35,7 @@ import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
-import { GithubService } from '../github/github.service';
+import { GithubSyncService } from '../github/github-sync.service';
 
 export class TokenCreateDTO {
   token: string;
@@ -44,7 +46,7 @@ export class AccountService {
   constructor(
     private readonly auditService: AuditService,
     private readonly opensearchService: OpensearchService,
-    private readonly githubService: GithubService,
+    private readonly githubSyncService: GithubSyncService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
     private readonly graphRepository: GraphRepository,
@@ -195,7 +197,7 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
-    if (this.githubService.isEnabled()) {
+    if (this.githubSyncService.isEnabled()) {
       try {
         await this.refresh(account.id.toString());
       } catch (error) {
@@ -292,7 +294,10 @@ export class AccountService {
     serviceName: string,
     data: any,
   ) {
-    const path = `tools/${projectName}/${serviceName}`;
+    const path = ejs.render(VAULT_KV_APPS_TOOLS_PATH_TPL, {
+      projectName,
+      serviceName,
+    });
     return lastValueFrom(
       this.vaultService.getKvSubkeys(VAULT_KV_APPS_MOUNT, path).pipe(
         catchError((err) => {
@@ -329,7 +334,7 @@ export class AccountService {
       this.auditService.recordToolsSync('info', 'failure', message);
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
-    if (!this.githubService.isEnabled()) {
+    if (!this.githubSyncService.isEnabled()) {
       this.auditService.recordToolsSync(
         'info',
         'failure',
@@ -357,7 +362,9 @@ export class AccountService {
 
         // Determine if this is a valid service to sync for
         if (
-          !this.githubService.isBrokerManagedScmUrl(service.collection.scmUrl)
+          !this.githubSyncService.isBrokerManagedScmUrl(
+            service.collection.scmUrl,
+          )
         ) {
           this.auditService.recordToolsSync(
             'info',
@@ -378,7 +385,7 @@ export class AccountService {
         );
 
         try {
-          await this.githubService.refresh(
+          await this.githubSyncService.refresh(
             projectName,
             serviceName,
             service.collection.scmUrl,

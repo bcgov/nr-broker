@@ -126,6 +126,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['title', 'name', 'short', 'position'],
   name: 'Environment',
+  hint: 'An environment refers to the context in which software is deployed and run, encompassing the tools, configurations, and infrastructure that support its operation.',
   permissions: {
     browse: true,
     create: false,
@@ -198,6 +199,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'title', 'website', 'email'],
   name: 'Project',
+  hint: 'A project groups services together.',
   permissions: {
     browse: true,
     create: true,
@@ -279,6 +281,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'title', 'scmUrl'],
   name: 'Service',
+  hint: 'A service is a software component that runs in an environment.',
   permissions: {
     browse: true,
     create: true,
@@ -345,8 +348,8 @@ result = db.collectionConfig.insertOne({
     },
   },
   browseFields: ['name', 'url'],
-  graphVertexOmit: true,
   name: 'Instance',
+  hint: 'A service instance is a provisioned service.',
   parent: {
     edgeName: 'instance',
   },
@@ -428,6 +431,9 @@ result = db.collectionConfig.insertOne({
     dir: 1,
   },
   fields: {
+    alias: {
+      type: 'embeddedDoc',
+    },
     domain: {
       name: 'Domain',
       required: true,
@@ -456,6 +462,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['domain', 'username', 'name', 'email'],
   name: 'User',
+  hint: 'A user is a real or virtual person that can be granted access to Broker.',
   permissions: {
     browse: true,
     create: false,
@@ -562,6 +569,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'email', 'clientId', 'website', 'requireRoleId'],
   name: 'Broker Account',
+  hint: 'A Broker Account grants programmatic access to the API to teams and allows them to provision associated services.',
   permissions: {
     browse: true,
     create: true,
@@ -631,6 +639,7 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'email', 'website'],
   name: 'Team',
+  hint: 'A team is a collection of users with roles that can be setup with service and granted control of accounts.',
   permissions: {
     browse: true,
     create: true,
@@ -731,6 +740,7 @@ result = db.collectionConfig.insertOne({
     'acquired',
   ],
   name: 'Server',
+  hint: 'A server is a real or virtual machine that hosts installs of services.',
   permissions: {
     browse: true,
     create: true,

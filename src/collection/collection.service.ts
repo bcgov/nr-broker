@@ -14,13 +14,11 @@ import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 import { RedisService } from '../redis/redis.service';
 import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
-import { BuildRepository } from '../persistence/interfaces/build.repository';
 import { CollectionComboRestDto } from '../persistence/dto/collection-combo-rest.dto';
 
 @Injectable()
 export class CollectionService {
   constructor(
-    private readonly buildRepository: BuildRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly intentionService: IntentionService,

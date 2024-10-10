@@ -189,6 +189,18 @@
       </mat-card>
     </div>
 
+    @if (collection === 'user') {
+      <mat-card>
+        <mat-card-content>
+          <div class="card-title-container">
+            <mat-card-title>Alias</mat-card-title>
+          </div>
+          <app-user-alias
+          [collection]="comboData.collection"></app-user-alias>
+        </mat-card-content>
+      </mat-card>
+    }
+
       @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
         <mat-card>
           <mat-card-content>

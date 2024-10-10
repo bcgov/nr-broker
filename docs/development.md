@@ -95,10 +95,6 @@ Once started, you must run the vault setup script to bootstrap it. MongoDB must 
 $ ./scripts/vault-setup.sh
 ```
 
-#### Github secret sync
-
-To setup a Github App to test secret syncing, set the values GITHUB_CLIENT_ID and GITHUB_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
-
 ## Running Locally
 
 The following assumes the setup steps have occurred and the databases have been successfully bootstrapped.
@@ -192,6 +188,39 @@ The dockerfile can be built locally by running the following.
 ```bash
 podman build . -t nr-broker
 ```
+
+## Setup Sync Services
+
+Broker can be setup to sync secrets from Vault to other locations. This helps reduce secrets sprawl by ensuring Vault remains the source of truth for your secrets.
+
+### GitHub Sync
+
+GitHub sync requires a GitHub app. It is recommended that the GitHub app be registered under a GitHub organization in production. A GitHub app registered under a personal account can be used for testing. The app requires the following permissions:
+
+* Read and Write: Manage Actions repository secrets.
+
+The app must also be installed in an organization with access to your service repositories.
+
+See:
+
+* https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
+* https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app
+
+To locally setup a GitHub App syncing, set the values GITHUB_SYNC_CLIENT_ID and GITHUB_SYNC_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
+
+## Setup User Alias services
+
+Broker can be setup to allow users to alias their identity in other identity providers to their account.
+
+### GitHub Alias
+
+GitHub user alias requires a GitHub OAuth app. It is recommended that the GitHub OAuth app be registered under a GitHub organization in production. A GitHub OAuth app registered under a personal account can be used for testing.
+
+See:
+
+* https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+
+To locally setup a GitHub App syncing, set the values GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET at the Vault path `apps/prod/vault/vsync`.
 
 ## Province of British Columbia Palette and Font
 

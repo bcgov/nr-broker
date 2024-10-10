@@ -22,6 +22,7 @@ import { HealthStatusService } from '../service/health-status.service';
 import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SearchInputComponent } from './search-input/search-input.component';
+import { CollectionUtilService } from '../service/collection-util.service';
 
 @Component({
   selector: 'app-toolbar',
@@ -45,6 +46,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   constructor(
     private readonly dialog: MatDialog,
     private readonly healthService: HealthStatusService,
+    private readonly collectionUtil: CollectionUtilService,
     @Inject(CURRENT_USER) public readonly user: UserDto,
   ) {}
 
@@ -75,8 +77,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   getHealthCheck(): any {
     try {
-      this.healthService
-        .healthCheck()
+      this.healthService.health$
         .pipe(
           catchError((error: any) => {
             this.healthStatus = false;
@@ -98,6 +99,10 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   showStatusText(isHovered: boolean) {
     this.isHovered = isHovered;
     this.statusText = this.healthStatus ? 'Online' : 'Offline';
+  }
+
+  showUser() {
+    this.collectionUtil.openInBrowserByVertexId('user', this.user.vertex);
   }
 
   showRolesDialog() {

@@ -65,6 +65,7 @@ import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
+import { UserAliasComponent } from '../user-alias/user-alias.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -102,6 +103,7 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
     TeamMembersComponent,
     TeamServicesComponent,
     TeamSummaryComponent,
+    UserAliasComponent,
     VertexTagsComponent,
   ],
   templateUrl: './collection-inspector.component.html',

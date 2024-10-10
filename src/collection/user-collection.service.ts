@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 
+import { USER_ALIAS_DOMAIN_GITHUB } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphService } from '../graph/graph.service';
 import { UserDto } from '../persistence/dto/user.dto';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { GithubService } from '../github/github.service';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * Assists with user collection activities
@@ -15,6 +18,8 @@ import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 export class UserCollectionService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
+    private readonly authService: AuthService,
+    private readonly githubService: GithubService,
     private readonly graphService: GraphService,
   ) {}
 
@@ -72,5 +77,50 @@ export class UserCollectionService {
       return (await this.graphService.addVertex(req, vertex, true)).id;
     }
     return existingUser.vertex;
+  }
+
+  public async linkGithub(req: Request, state: string, code: string) {
+    const existingUser = await this.authService.getUserDto(req);
+    if (
+      !(await this.githubService.isRequestStateMatching(
+        existingUser.id.toString(),
+        state,
+      ))
+    ) {
+      console.log('hi');
+    }
+    // console.log(state);
+    const token = await this.githubService.getUserAccessToken(code);
+    const userData = await this.githubService.getUserInfo(token);
+
+    // console.log(userData);
+
+    const vertex: VertexInsertDto = {
+      collection: 'user',
+      data: {
+        ...existingUser,
+        alias: [
+          {
+            domain: USER_ALIAS_DOMAIN_GITHUB,
+            guid: userData.id,
+            name: userData.name,
+            username: userData.login,
+            raw: userData,
+          },
+        ],
+      },
+    };
+    delete vertex.data.id;
+    delete vertex.data.vertex;
+
+    // console.log(vertex);
+
+    await this.graphService.editVertex(
+      req,
+      existingUser.vertex.toString(),
+      vertex,
+      true,
+    );
+    return this.authService.getUserDto(req);
   }
 }

@@ -30,14 +30,16 @@ import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
 import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { OAUTH2_CLIENT_MAP_GUID, REDIS_PUBSUB } from '../constants';
+import { REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
 import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class GraphService {
   constructor(
     private readonly auditService: AuditService,
+    private readonly authSerivice: AuthService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly validatorUtil: ValidatorUtil,
@@ -65,15 +67,7 @@ export class GraphService {
   }
 
   public async getUserPermissions(request: Request) {
-    const userGuid: string = get(
-      (request as any).user.userinfo,
-      OAUTH2_CLIENT_MAP_GUID,
-    );
-    const user = await this.collectionRepository.getCollectionByKeyValue(
-      'user',
-      'guid',
-      userGuid,
-    );
+    const user = await this.authSerivice.getUserDto(request);
     return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
@@ -673,15 +667,7 @@ export class GraphService {
   }
 
   public async connectedVertex(request: Request) {
-    const userGuid: string = get(
-      (request as any).user.userinfo,
-      OAUTH2_CLIENT_MAP_GUID,
-    );
-    const user = await this.collectionRepository.getCollectionByKeyValue(
-      'user',
-      'guid',
-      userGuid,
-    );
+    const user = await this.authSerivice.getUserDto(request);
     return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
   }
 

@@ -1,0 +1,30 @@
+<div class="edge-container">
+  <div class="heading">
+    <h3>GitHub</h3>
+
+    @if(healthStatus.health$ | async; as health) {
+      @if(isSelf && health.details['github']['alias']) {
+      <button
+        mat-button
+        (click)="linkGitHubAccount()"
+        color="primary"
+        aria-label="Link Account">
+        Link
+      </button>
+      }
+    }
+  </div>
+</div>
+
+@if(!collection?.alias) {
+  <div class="edge-container edge-container-margin-left">Account is not linked</div>
+}
+
+@if(collection?.alias) {
+<div class="edge-container edge-container-margin-left details-container">
+  <div class="details-item">
+    <div class="details-header">Username</div>
+    <div class="details-line">{{ collection.alias[0].username }}</div>
+  </div>
+</div>
+}

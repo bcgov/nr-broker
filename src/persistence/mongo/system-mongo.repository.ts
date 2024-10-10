@@ -1,6 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
-// import { ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 import { ConnectionConfigDto } from '../dto/connection-config.dto';
 import { JwtAllowDto } from '../dto/jwt-allow.dto';
@@ -10,8 +11,8 @@ import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';
 import { PreferenceDto } from '../dto/preference.dto';
 import { PreferenceRestDto } from '../dto/preference-rest.dto';
-import { ObjectId } from 'mongodb';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
+import { UserAliasRequestDto } from '../dto/user-alias-request.dto';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
@@ -23,6 +24,8 @@ export class SystemMongoRepository implements SystemRepository {
     private readonly jwtBlockRepository: MongoRepository<JwtBlockDto>,
     @InjectRepository(JwtRegistryDto)
     private readonly jwtRegistryRepository: MongoRepository<JwtRegistryDto>,
+    @InjectRepository(UserAliasRequestDto)
+    private readonly userAliasRequestRepository: MongoRepository<UserAliasRequestDto>,
     @InjectRepository(PreferenceDto)
     private readonly preferenceRepository: MongoRepository<PreferenceDto>,
   ) {}
@@ -194,5 +197,39 @@ export class SystemMongoRepository implements SystemRepository {
 
   public getConnectionConfigs(): Promise<ConnectionConfigDto[]> {
     return this.connectionConfigRepository.find();
+  }
+
+  public async generateUserAliasRequestState(
+    accountId: string,
+    domain: string,
+  ): Promise<string> {
+    const state = randomUUID();
+    await this.userAliasRequestRepository.deleteMany({
+      accountId: new ObjectId(accountId),
+      domain,
+    });
+
+    await this.userAliasRequestRepository.insertOne({
+      accountId: new ObjectId(accountId),
+      createdAt: new Date(),
+      domain,
+      state,
+    });
+
+    return state;
+  }
+
+  public async getUserAliasRequestState(
+    accountId: string,
+    domain: string,
+  ): Promise<string> {
+    const request = await this.userAliasRequestRepository.findOne({
+      where: {
+        accountId: new ObjectId(accountId),
+        domain,
+      },
+    });
+
+    return request?.state;
   }
 }

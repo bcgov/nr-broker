@@ -64,8 +64,8 @@ export class PersistenceCacheInterceptor<T>
     }
 
     const request = context.switchToHttp().getRequest();
-    console.log(request.params);
-    console.log(suffixValue);
+    // console.log(request.params);
+    // console.log(suffixValue);
     if (
       suffixValue &&
       request.params[suffixValue] &&
@@ -77,7 +77,7 @@ export class PersistenceCacheInterceptor<T>
         .update(suffixArr.join('|'))
         .digest('hex');
       keyValue = `${keyValue}-${hash}`;
-      console.log(keyValue);
+      // console.log(keyValue);
     }
 
     const response = context.switchToHttp().getResponse<ExpressResponse>();
