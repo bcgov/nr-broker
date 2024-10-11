@@ -84,16 +84,18 @@ See: [MongoDB Development](./dev_mongodb.md)
 ### Setup Vault
 
 ```bash
-# Start up local vault
+# Start up local Vault
 $ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault hashicorp/vault
 ```
 
-Once started, you must run the vault setup script to bootstrap it. MongoDB must be running and setup before running this.
+Once started, you must run the Vault setup script to bootstrap it. MongoDB must be running and setup before running this.
 
 ```bash
-# Configure the local vault with basic setup
+# Configure the local Vault with basic setup
 $ ./scripts/vault-setup.sh
 ```
+
+See: [Vault Development](./dev_vault.md)
 
 ## Running Locally
 
@@ -127,16 +129,6 @@ $ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
 If Kinesis and AWS access is not setup then some APIs will return a 503 (service unavailable).
-
-## Running Vault Sync Tool
-
-The [Vault Sync Tool](https://github.com/bcgov-nr/vault-sync-app) configures HashiCorp Vault using NR Broker as a data source for applications and groups. NR Broker does not require the Vault Sync Tool to run for any of its own operations.
-
-The following will start the tool in monitoring mode to update the local Vault.
-
-```
-source ./scripts/setenv-curl-local.sh
-podman run --rm -e=VAULT_ADDR=http://$(podman inspect -f "{{.NetworkSettings.IPAddress}}" broker-vault):8200 -e=VAULT_TOKEN=$VAULT_TOKEN -e=BROKER_API_URL=http://host.containers.internal:3000/ -e=BROKER_TOKEN=$BROKER_JWT ghcr.io/bcgov-nr/vault-sync-app:v2.1.0
 
 ### Local MongoDB Disconnects
 
