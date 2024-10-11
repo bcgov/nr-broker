@@ -1,4 +1,5 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { SystemService } from './system.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 
@@ -13,5 +14,11 @@ export class SystemController {
   @UseGuards(BrokerOidcAuthGuard)
   getConnections() {
     return this.systemService.getConnections();
+  }
+
+  @Post('user-link/github')
+  @UseGuards(BrokerOidcAuthGuard)
+  async getGitHubLink(@Req() request: Request) {
+    return this.systemService.generateGitHubAuthorizeUrl(request);
   }
 }

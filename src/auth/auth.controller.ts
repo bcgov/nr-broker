@@ -1,8 +1,11 @@
-import { Controller, Get, Request, Res, UseGuards } from '@nestjs/common';
-import { Response, Request as ExpressRequest } from 'express';
+import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
+import {
+  Response as ExpressResponse,
+  Request as ExpressRequest,
+} from 'express';
+import { Issuer } from 'openid-client';
 
 import { BrokerOidcRedirectGuard } from './broker-oidc-redirect.guard';
-import { Issuer } from 'openid-client';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +22,7 @@ export class AuthController {
 
   @UseGuards(BrokerOidcRedirectGuard)
   @Get('/callback')
-  loginCallback(@Res() res: Response) {
+  loginCallback(@Response() res: ExpressResponse) {
     res.redirect('/');
   }
 
@@ -29,7 +32,10 @@ export class AuthController {
    * @param res
    */
   @Get('/logout')
-  async logout(@Request() req: ExpressRequest, @Res() res: Response) {
+  async logout(
+    @Request() req: ExpressRequest,
+    @Response() res: ExpressResponse,
+  ) {
     const id_token = req.user ? (req.user as any).id_token : undefined;
     req.logout(() => {
       req.session.destroy(async () => {

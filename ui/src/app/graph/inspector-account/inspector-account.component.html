@@ -15,9 +15,11 @@
         <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo">
           <mat-icon>add_circle</mat-icon>Generate
         </button>
-        <button mat-menu-item (click)="sync()" [disabled]="!hasSudo">
+        @if(healthStatus.health$ | async; as health) {
+        <button mat-menu-item (click)="sync()" [disabled]="!hasSudo || !health.details['github']['sync']">
           <mat-icon>sync</mat-icon>Sync secrets
         </button>
+        }
         @if (lastJwtTokenData) {
         <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
           <mat-icon>content_copy</mat-icon>Copy JTI

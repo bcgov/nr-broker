@@ -33,4 +33,12 @@ export abstract class SystemRepository {
   ): Promise<boolean>;
 
   public abstract getConnectionConfigs(): Promise<ConnectionConfigDto[]>;
+  public abstract generateUserAliasRequestState(
+    accountId: string,
+    domain: string,
+  ): Promise<string>;
+  public abstract getUserAliasRequestState(
+    accountId: string,
+    domain: string,
+  ): Promise<string>;
 }

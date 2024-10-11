@@ -25,6 +25,7 @@ import { AccountGenerateDialogComponent } from '../account-generate-dialog/accou
 import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
 import { JwtRegistryDto } from '../../service/dto/jwt-registry-rest.dto';
+import { HealthStatusService } from '../../service/health-status.service';
 
 @Component({
   selector: 'app-inspector-account',
@@ -66,6 +67,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
     private readonly systemApi: SystemApiService,
+    public readonly healthStatus: HealthStatusService,
   ) {}
 
   ngOnInit(): void {

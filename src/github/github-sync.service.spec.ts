@@ -1,18 +1,18 @@
 import { createMock } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GithubService } from './github.service';
+import { GithubSyncService } from './github-sync.service';
 
-describe('GithubService', () => {
-  let service: GithubService;
+describe('GithubSyncService', () => {
+  let service: GithubSyncService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GithubService],
+      providers: [GithubSyncService],
     })
       .useMocker(createMock)
       .compile();
 
-    service = module.get<GithubService>(GithubService);
+    service = module.get<GithubSyncService>(GithubSyncService);
   });
 
   it('should be defined', () => {

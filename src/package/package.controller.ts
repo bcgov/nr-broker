@@ -47,7 +47,6 @@ export class PackageController {
   async search(
     @Query() query: PackageBuildSearchQuery,
   ): Promise<PackageBuildSearchResult> {
-    console.log(query);
     return this.service.search(
       query.serviceId,
       query.sort,

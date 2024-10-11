@@ -1,0 +1,57 @@
+
+
+.edge-container-margin-left {
+  margin-left: 16px;
+  margin-bottom: 16px;
+}
+
+.edge-container-buttons a {
+  margin-right: 12px;
+}
+
+.heading {
+  margin-left: 16px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+}
+
+.heading h3 {
+  flex-grow: 1;
+  margin: 0;
+}
+
+.heading :last-child {
+  flex-grow: 0;
+}
+
+.details-container {
+  flex: 0 0 auto;
+  margin-bottom: 16px;
+}
+
+.details-item {
+  margin-left: -4px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.details-item-clickable:hover {
+  background: whitesmoke;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.details-header {
+  min-width: 100px;
+  font-weight: 500;
+  color: #333;
+}
+
+.details-line {
+  color: var(--mat-card-subtitle-text-color);
+  min-width: 100px;
+  font-weight: 300;
+}

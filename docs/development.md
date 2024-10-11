@@ -84,20 +84,18 @@ See: [MongoDB Development](./dev_mongodb.md)
 ### Setup Vault
 
 ```bash
-# Start up local vault
+# Start up local Vault
 $ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault hashicorp/vault
 ```
 
-Once started, you must run the vault setup script to bootstrap it. MongoDB must be running and setup before running this.
+Once started, you must run the Vault setup script to bootstrap it. MongoDB must be running and setup before running this.
 
 ```bash
-# Configure the local vault with basic setup
+# Configure the local Vault with basic setup
 $ ./scripts/vault-setup.sh
 ```
 
-#### Github secret sync
-
-To setup a Github App to test secret syncing, set the values GITHUB_CLIENT_ID and GITHUB_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
+See: [Vault Development](./dev_vault.md)
 
 ## Running Locally
 
@@ -131,16 +129,6 @@ $ envconsul -config=env-prod.hcl npm run start:dev
 ```
 
 If Kinesis and AWS access is not setup then some APIs will return a 503 (service unavailable).
-
-## Running Vault Sync Tool
-
-The [Vault Sync Tool](https://github.com/bcgov-nr/vault-sync-app) configures HashiCorp Vault using NR Broker as a data source for applications and groups. NR Broker does not require the Vault Sync Tool to run for any of its own operations.
-
-The following will start the tool in monitoring mode to update the local Vault.
-
-```
-source ./scripts/setenv-curl-local.sh
-podman run --rm -e=VAULT_ADDR=http://$(podman inspect -f "{{.NetworkSettings.IPAddress}}" broker-vault):8200 -e=VAULT_TOKEN=$VAULT_TOKEN -e=BROKER_API_URL=http://host.containers.internal:3000/ -e=BROKER_TOKEN=$BROKER_JWT ghcr.io/bcgov-nr/vault-sync-app:v2.1.0
 
 ### Local MongoDB Disconnects
 
@@ -192,6 +180,39 @@ The dockerfile can be built locally by running the following.
 ```bash
 podman build . -t nr-broker
 ```
+
+## Setup Sync Services
+
+Broker can be setup to sync secrets from Vault to other locations. This helps reduce secrets sprawl by ensuring Vault remains the source of truth for your secrets.
+
+### GitHub Sync
+
+GitHub sync requires a GitHub app. It is recommended that the GitHub app be registered under a GitHub organization in production. A GitHub app registered under a personal account can be used for testing. The app requires the following permissions:
+
+* Read and Write: Manage Actions repository secrets.
+
+The app must also be installed in an organization with access to your service repositories.
+
+See:
+
+* https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
+* https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app
+
+To locally setup a GitHub App syncing, set the values GITHUB_SYNC_CLIENT_ID and GITHUB_SYNC_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
+
+## Setup User Alias services
+
+Broker can be setup to allow users to alias their identity in other identity providers to their account.
+
+### GitHub Alias
+
+GitHub user alias requires a GitHub OAuth app. It is recommended that the GitHub OAuth app be registered under a GitHub organization in production. A GitHub OAuth app registered under a personal account can be used for testing.
+
+See:
+
+* https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+
+To locally setup a GitHub App syncing, set the values GITHUB_OAUTH_CLIENT_ID and GITHUB_OAUTH_CLIENT_SECRET at the Vault path `apps/prod/vault/vsync`.
 
 ## Province of British Columbia Palette and Font
 

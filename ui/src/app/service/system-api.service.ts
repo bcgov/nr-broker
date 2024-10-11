@@ -104,4 +104,14 @@ export class SystemApiService {
       },
     );
   }
+
+  userLinkGithub() {
+    return this.http.post<any>(
+      `${environment.apiUrl}/v1/system/user-link/github`,
+      {},
+      {
+        responseType: 'json',
+      },
+    );
+  }
 }

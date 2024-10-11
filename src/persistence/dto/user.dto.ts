@@ -1,9 +1,35 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { VertexPointerDto } from './vertex-pointer.dto';
+
+export class UserAliasDto {
+  @IsDefined()
+  @IsString()
+  @Column()
+  domain: string;
+
+  @IsDefined()
+  @IsString()
+  @Column()
+  guid: string;
+
+  @IsDefined()
+  @IsString()
+  @Column()
+  name: string;
+
+  @IsDefined()
+  @IsString()
+  @Column()
+  username: string;
+
+  @IsOptional()
+  @Column()
+  raw?: any;
+}
 
 export class UserGroupDto {
   @Column()
@@ -28,6 +54,11 @@ export class UserDto extends VertexPointerDto {
     value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
   )
   id: ObjectId;
+
+  @IsOptional()
+  @Column(() => UserAliasDto, { array: true })
+  @Type(() => UserAliasDto)
+  alias?: UserAliasDto[];
 
   @IsDefined()
   @IsString()
