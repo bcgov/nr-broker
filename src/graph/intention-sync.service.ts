@@ -73,7 +73,15 @@ export class IntentionSyncService {
         const accountVertex = await this.graphRepository.getVertex(
           account.vertex.toString(),
         );
-        this.overlayEdge('authorized', accountVertex, projectVertex);
+        const serviceAuth = await this.graphRepository.getEdgeByNameAndVertices(
+          'authorized',
+          accountVertex.id.toString(),
+          serviceVertex.id.toString(),
+        );
+        if (!serviceAuth) {
+          // If not authorized through service, default to by project.
+          this.overlayEdge('authorized', accountVertex, projectVertex);
+        }
       }
       if (
         action.service.environment &&
@@ -318,7 +326,7 @@ export class IntentionSyncService {
         source,
         target,
       );
-      if (curr && prop) {
+      if (curr) {
         const saveProps =
           propStrategy === 'replace'
             ? prop
