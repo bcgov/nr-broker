@@ -126,7 +126,8 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['title', 'name', 'short', 'position'],
   name: 'Environment',
-  hint: 'An environment refers to the context in which software is deployed and run, encompassing the tools, configurations, and infrastructure that support its operation.',
+  hint: 'The context in which software is deployed and run, encompassing the tools, configurations, and infrastructure that support its operation.',
+  color: '2ec7c9',
   permissions: {
     browse: true,
     create: false,
@@ -199,7 +200,8 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'title', 'website', 'email'],
   name: 'Project',
-  hint: 'A project groups services together.',
+  hint: 'A project groups services and common information.',
+  color: 'b6a2de',
   permissions: {
     browse: true,
     create: true,
@@ -282,6 +284,7 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'title', 'scmUrl'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
+  color: '5ab1ef',
   permissions: {
     browse: true,
     create: true,
@@ -350,6 +353,7 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'url'],
   name: 'Instance',
   hint: 'A service instance is a provisioned service.',
+  color: 'ffb980',
   parent: {
     edgeName: 'instance',
   },
@@ -462,7 +466,8 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['domain', 'username', 'name', 'email'],
   name: 'User',
-  hint: 'A user is a real or virtual person that can be granted access to Broker.',
+  hint: 'A user is a real or virtual person that can be granted access in Broker.',
+  color: 'd87a80',
   permissions: {
     browse: true,
     create: false,
@@ -569,7 +574,8 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'email', 'clientId', 'website', 'requireRoleId'],
   name: 'Broker Account',
-  hint: 'A Broker Account grants programmatic access to the API to teams and allows them to provision associated services.',
+  hint: 'A Broker Account grants programmatic access to the API to teams and allows them to access associated services.',
+  color: '8d98b3',
   permissions: {
     browse: true,
     create: true,
@@ -639,7 +645,8 @@ result = db.collectionConfig.insertOne({
   },
   browseFields: ['name', 'email', 'website'],
   name: 'Team',
-  hint: 'A team is a collection of users with roles that can be setup with service and granted control of accounts.',
+  hint: 'A team is a collection of users with roles that can be granted control of accounts and access to services.',
+  color: 'e5cf0d',
   permissions: {
     browse: true,
     create: true,
@@ -741,6 +748,7 @@ result = db.collectionConfig.insertOne({
   ],
   name: 'Server',
   hint: 'A server is a real or virtual machine that hosts installs of services.',
+  color: '97b552',
   permissions: {
     browse: true,
     create: true,

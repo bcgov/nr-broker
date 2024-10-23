@@ -18,6 +18,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
@@ -56,6 +57,7 @@ type ShowFilter = 'connected' | 'all';
 interface filterOptions<T> {
   value: T;
   viewValue: string;
+  tooltip: string;
 }
 
 interface TablePageQuery {
@@ -87,6 +89,7 @@ interface TableQuery {
     MatSelectModule,
     MatSortModule,
     MatTableModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     RouterModule,
     InspectorVertexFieldComponent,
@@ -107,10 +110,10 @@ export class CollectionTableComponent
   collection$ = new Subject<CollectionNames>();
   collectionSnapshot: CollectionNames = 'project';
   textControl = new FormControl<string>('');
+  showControl = new FormControl<string>('');
   tagsControl = new FormControl<string[]>([]);
   sort$ = new Subject<Sort>();
   sortSnapshot: Sort = { active: '', direction: '' };
-  showFilter$ = new Subject<ShowFilter>();
   page$ = new Subject<TablePageQuery>();
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -160,7 +163,7 @@ export class CollectionTableComponent
       this.collection$.asObservable(),
       this.textControl.valueChanges.pipe(startWith('')),
       this.tagsControl.valueChanges.pipe(startWith([])),
-      this.showFilter$.asObservable(),
+      this.showControl.valueChanges.pipe(startWith('all')),
       this.sort$.asObservable().pipe(startWith({ active: '', direction: '' })),
       this.page$.asObservable(),
       this.triggerRefresh,
@@ -245,7 +248,11 @@ export class CollectionTableComponent
         .filter((config) => config.permissions.filter)
         .map((config) => config.collection);
       this.collectionFilterOptions = this.config.map((config) => {
-        return { value: config.collection, viewValue: config.name };
+        return {
+          value: config.collection,
+          viewValue: config.name,
+          tooltip: config.hint,
+        };
       });
     });
 
@@ -275,16 +282,11 @@ export class CollectionTableComponent
     });
     this.collection$.next(this.route.snapshot.params['collection']);
 
-    this.showFilter$.subscribe((showFilter) => {
-      this.showFilter = showFilter;
-    });
-    this.showFilter$.next(
-      this.preferences.get('browseConnectionFilter') ?? 'connected',
-    );
     this.sort$.subscribe((sort) => {
       this.sortSnapshot.active = sort.active;
       this.sortSnapshot.direction = sort.direction;
     });
+    this.showControl.valueChanges.subscribe(() => this.pageIndexReset());
     this.tagsControl.valueChanges.subscribe(() => this.pageIndexReset());
     this.textControl.valueChanges.subscribe(() => this.pageIndexReset());
 
@@ -307,6 +309,12 @@ export class CollectionTableComponent
       const tags = params['tags'].split(',');
       this.tagsControl.setValue(tags);
     }
+    this.showControl.setValue(
+      params['showFilter'] === 'all' || params['showFilter'] === 'connected'
+        ? params['showFilter']
+        : 'all',
+    );
+
     this.refresh();
     this.changeDetectorRef.detectChanges();
   }
@@ -324,6 +332,7 @@ export class CollectionTableComponent
           size: settings.page.size,
           sortActive: settings.sort.active,
           sortDirection: settings.sort.direction,
+          showFilter: settings.showFilter,
           tags: settings.tags.join(','),
         },
       ],
@@ -349,11 +358,11 @@ export class CollectionTableComponent
     ).length;
   }
 
-  onFilterChange(change: MatSelectChange) {
-    this.pageIndexReset();
-    this.showFilter$.next(change.value);
-    this.preferences.set('browseConnectionFilter', change.value);
-  }
+  // onFilterChange(change: MatSelectChange) {
+  //   this.pageIndexReset();
+  //   this.showFilter$.next(change.value);
+  //   this.preferences.set('browseConnectionFilter', change.value);
+  // }
 
   onCollectionChange(change: MatSelectChange) {
     this.collection$.next(change.value);
@@ -399,6 +408,7 @@ export class CollectionTableComponent
     this.pageIndexReset();
     this.textControl.setValue('');
     this.tagsControl.setValue([]);
+    this.showControl.setValue('all');
     this.refresh();
   }
 

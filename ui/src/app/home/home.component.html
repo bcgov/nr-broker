@@ -87,7 +87,7 @@
         </mat-card>
 
         <mat-card>
-          <a routerLink="/browse/team">
+          <a [routerLink]="['/browse/team', {showFilter: 'connected'}]">
             <mat-card-header>
               <mat-card-title>
                 <button class="title-icon" mat-fab aria-label="Team" color="primary">

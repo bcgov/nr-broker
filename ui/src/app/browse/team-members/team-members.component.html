@@ -7,6 +7,7 @@
       <div class="member-header">
         <h2>{{ edge.name | titlecase }}</h2>
       </div>
+      <mat-divider></mat-divider>
       <mat-action-list role="list">
         @for (member of users[edge.name]; track member.id) {
           <mat-list-item role="listitem" (click)="navigateUser(member.vertex)">

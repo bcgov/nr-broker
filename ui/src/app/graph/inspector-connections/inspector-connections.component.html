@@ -21,9 +21,12 @@
       <h5>{{group.key | titlecase}}</h5>
       <mat-chip-listbox [selectable]="false">
         @for (item of group.value; track item.vertex.id) {
-          <mat-chip-option (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
+          <mat-chip-option
+            [ngStyle]="{'background-color': '#' + configMap[item.vertex.collection].color}"
+            (click)="navigateConnection($event, item)">
+            <span [ngStyle]="{color: this.getVisibleTextColor(configMap[item.vertex.collection].color)}">@if (item.vertex.parentName) {
             {{ item.vertex.parentName}} &gt;
-          }{{item.vertex.name}}</mat-chip-option>
+          }{{item.vertex.name}}</span></mat-chip-option>
         }
       </mat-chip-listbox>
     </div>
@@ -56,6 +59,7 @@
       <mat-chip-listbox [selectable]="false">
         @for (item of group.value; track item.vertex.id) {
           <mat-chip-option
+            [ngStyle]="{'background-color': '#' + configMap[item.vertex.collection].color}"
             (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
             {{ item.vertex.parentName}} &gt;
           } {{item.vertex.name}}</mat-chip-option>

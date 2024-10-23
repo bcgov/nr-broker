@@ -312,10 +312,10 @@
     <mat-tab label="Team">
       <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>Members</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Members</mat-card-title>
+            </div>
             <app-team-members
               [collectionData]="comboData.collection"
               [upstream]="comboData.upstream"></app-team-members>
@@ -323,10 +323,10 @@
         </mat-card>
 
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>Summary</mat-card-title>
-          </mat-card-header>
           <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Summary</mat-card-title>
+            </div>
             <app-team-summary
               [collectionData]="comboData.collection"
               [upstream]="comboData.upstream"></app-team-summary>

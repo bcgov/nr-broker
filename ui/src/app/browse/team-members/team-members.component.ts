@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatListModule } from '@angular/material/list';
 import { Subject, switchMap } from 'rxjs';
@@ -25,6 +26,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   imports: [
     CommonModule,
     InspectorTeamComponent,
+    MatDividerModule,
     MatListModule,
     MatTableModule,
   ],

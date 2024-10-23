@@ -1,6 +1,7 @@
 import {
   Component,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
   OnInit,
@@ -22,6 +23,9 @@ import {
   GraphDirectedRestComboMap,
 } from '../../service/dto/collection-combo-rest.dto';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_MAP } from '../../app-initialize.factory';
+import { ColorUtilService } from '../../util/color-util.service';
 
 @Component({
   selector: 'app-inspector-connections',
@@ -53,6 +57,8 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
   constructor(
     private readonly preferences: PreferencesService,
     private readonly dialog: MatDialog,
+    private readonly colorUtil: ColorUtilService,
+    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 
   ngOnChanges(): void {
@@ -121,5 +127,13 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
     } else {
       this.selected.emit(item.vertex);
     }
+  }
+
+  getVisibleTextColor(backgroundColor: string) {
+    return this.colorUtil.calculateLuminance(
+      this.colorUtil.hexToRgb(backgroundColor),
+    ) > 0.5
+      ? '#000000'
+      : '#FFFFFF';
   }
 }

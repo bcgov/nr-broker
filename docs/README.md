@@ -10,6 +10,6 @@ Users can search, browse objects, view a graph representation and review activit
 
 ## Deployment Specific Information
 
-If this documentation refers to things as 'deployment specific' then you should refer to your team's own documentation. Your deployment should show a link to your documentation on the homepage.
+If this documentation refers to things as 'deployment specific' then you should refer to your own documentation. Your deployment should show a link to your documentation on the homepage.
 
 This documentation is generic to all NR Broker installations.

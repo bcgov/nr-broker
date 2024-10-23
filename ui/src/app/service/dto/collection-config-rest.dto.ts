@@ -45,6 +45,7 @@ export class CollectionFieldConfig {
   name!: string;
   placeholder?: string;
   required!: boolean;
+  sort?: boolean;
   type!:
     | 'boolean'
     | 'date'
@@ -88,8 +89,10 @@ export class CollectionConfigRestDto {
   collection!: CollectionNames;
   collectionMapper!: CollectionMap[];
   collectionVertexName!: string;
+  color!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  hint!: string;
   index!: number;
   name!: string;
   parent!: CollectionConfigParent;

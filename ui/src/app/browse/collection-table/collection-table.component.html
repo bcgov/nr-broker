@@ -9,7 +9,11 @@
         (selectionChange)="onCollectionChange($event)"
         name="collection">
         @for (opt of collectionFilterOptions; track opt) {
-          <mat-option [value]="opt.value">
+          <mat-option
+            [value]="opt.value"
+            [matTooltip]="opt.tooltip"
+            matTooltipShowDelay="500"
+            matTooltipPosition="right">
             {{opt.viewValue}}
           </mat-option>
         }
@@ -54,10 +58,7 @@
     @if (canFilterConnected.includes(collectionSnapshot)) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
-        <mat-select
-          [(ngModel)]="showFilter"
-          (selectionChange)="onFilterChange($event)"
-          name="connectionFilter">
+        <mat-select [formControl]="showControl">
           @for (opt of showFilterOptions; track opt.value) {
             <mat-option [value]="opt.value">
               {{opt.viewValue}}
@@ -95,7 +96,7 @@
         <mat-card-title>No results found</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <p>Clear filter or show all?</p>
+        <p>Click 'clear' to remove all filters</p>
       </mat-card-content>
     </mat-card>
   }
