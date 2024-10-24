@@ -5,6 +5,7 @@ import {
   Output,
   OnInit,
   EventEmitter,
+  Inject,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsOption } from 'echarts';
@@ -21,6 +22,8 @@ import {
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
+import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CONFIG_ARR } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-echarts',
@@ -49,6 +52,7 @@ export class EchartsComponent implements OnInit {
     private readonly graphUtil: GraphUtilService,
     private readonly preferences: PreferencesService,
     private readonly elRef: ElementRef,
+    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigRestDto[],
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +66,7 @@ export class EchartsComponent implements OnInit {
       }
     });
     this.options = {
+      color: this.configArr.map((config) => `#${config.color}`),
       textStyle: {
         fontFamily: getComputedStyle(this.elRef.nativeElement).fontFamily,
       },

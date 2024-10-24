@@ -1,8 +1,6 @@
 # Understanding the Audit Log
 
-NR Broker outputs both audit and access log streams to a configurable HTTP endpoint. How to receive, save and make the data searchable is outside the scope of the NR Broker documentation.
-
-It is recommended that your deployment forwards the logs to an OpenSearch deployment that also receives Vault's audit log and HTTP log as well. The logs from both NR Broker and Vault can then be examined together to give a fulsome view of activity.
+NR Broker outputs both audit and access log streams to a configurable HTTP endpoint and a rotated log file.
 
 ## Format
 
@@ -19,19 +17,32 @@ The `event.dataset` field can be used to determine the type of event.
 
 If you are looking for a specific type of audit event, you're going to be looking at the event.action field.
 
+See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-action
+
 | event.action | Description |
 | --- | --- |
-| intention-open | Initial event when an application opens. |
-| intention-close | Final event when an intention is closed. |
 | authentication | JWT authentication event (occurs before intention is opened) |
-| auth-database-access | Request for database access |
-| auth-package-installation | Request to install a package (software) onto a server |
-| auth-package-provision | Request to provision a secret id for an application |
-| auth-server-access | Request to access a server |
+| intention-close | Final event when an intention is closed. |
+| intention-open | Initial event when an application opens. |
+| package-approval |  |
+| process-end |  |
+| process-start |  |
+| sync-tools |  |
 | generate-secret-id | Generation of a secret id for an application |
-| generate-token | Generation of a token for an application |
+| token-generation | Generation of a token for an application |
 
-See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-action
+#### Actions
+
+All "*action*-" events also have an "*auth*-" counterpart that records success or failure authorizing an action when an intention is opened.
+
+| event.action | Description |
+| --- | --- |
+| *action*-backup | Backup of data. |
+| *action*-database-access | Accesses a database. |
+| *action*-server-access | Accesses a server. |
+| *action*-package-configure | Alters an installed package's configuration. |
+| *action*-package-installation | Installs a package (software) onto a server. |
+| *action*-package-provision | Provision a secret id for a service. Can also configure a package. |
 
 ### Audit Tracing Fields
 
@@ -41,7 +52,7 @@ See: https://www.elastic.co/guide/en/ecs/current/ecs-tracing.html
 
 ### Audit Auth Fields
 
-All auth fields are custom to the Broker audit log.
+All auth fields are custom to the Broker audit log. If you are using a strict Elastic Common Schema, these fields should be added.
 
 | Field | Mandatory | Type | Description | Values |
 | ----- | --------- | ---- | ----------- | ------ |
@@ -63,3 +74,13 @@ Once you find the unwrap audit document, the response field contains the hashed 
 For a 'generate-token' action, find the field response.auth.accessor (or response.auth.client_token). This is the (hashed) token the client will be used to make requests to Vault. So, you can search for usages of that token auth.accessor (or: auth.client_token). If nothing is found, the token was never used.
 
 The Broker creation event (field: auth.client_token) can locate the Vault (field: auth.client_token) unwrap event  The Vault unwrap event (fields in response.auth.\*) can locate Vault usage events.
+
+## Searching and combining with other services
+
+This information is deployment specific. Your deployment should show a link to your documentation on the homepage.
+
+## Setting up an audit data ingestion pipeline
+
+How to receive, save and make the data searchable is outside the scope of the NR Broker documentation.
+
+It is recommended that your deployment forward NR Broker's logs to a search and observability suite like OpenSearch. Vault's audit log and HTTP log should be forward here as well. The logs from both NR Broker and Vault should be examined together to give a fulsome view of activity.
