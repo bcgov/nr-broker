@@ -31,6 +31,9 @@ export class CollectionConfigDto {
   collectionVertexName: string;
 
   @Column()
+  color: string;
+
+  @Column()
   edges: CollectionEdgeConfig[];
 
   @Column()
@@ -41,6 +44,9 @@ export class CollectionConfigDto {
     field: string;
     dir: 1 | -1;
   };
+
+  @Column()
+  hint: string;
 
   @Column()
   index: number;

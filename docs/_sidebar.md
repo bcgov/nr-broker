@@ -26,6 +26,7 @@
 * Maintenance
 ** [Adding Internal Users](/operations_internal_user.md)
 ** [Customize Homepage](/dev_customize_connections.md)
+** [Tools Secret Syncronization](/operations_secret_sync.md)
 
 * Deploy
 ** [Broker Token](/dev_broker_token.md)
