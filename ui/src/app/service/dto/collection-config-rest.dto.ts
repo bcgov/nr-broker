@@ -37,7 +37,8 @@ export type CollectionEdgeInstanceConfig = Omit<
 };
 
 export class CollectionFieldConfig {
-  hint?: string;
+  color!: string;
+  hint!: string;
   init?: 'uuid' | 'now';
   mask?: {
     [Property in UserPermissionNames]?: boolean | string[];

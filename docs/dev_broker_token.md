@@ -40,6 +40,8 @@ path "auth/vs_apps_approle/role/vault_nr-broker_*" {
 }
 ```
 
+If you are enabling secret syncronization through NR Broker, the token must be able to read the tools path for services. See: [Tools Secret Syncronization](/operations_secret_sync.md)
+
 See also: [Environment Variables](/dev_env_vars.md)
 
 ## How to Generate

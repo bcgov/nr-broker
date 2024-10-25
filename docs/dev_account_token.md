@@ -14,19 +14,9 @@ See: [Broker JWT](/operations_jwt.md)
 
 Teams are encouraged to document the client_id used by a service. This documentation should clearly state the locations the account is stored. The `reason` field in intentions should be descriptive enough your team understands where it is opened from.
 
-Generated tokens are saved in vault 'tools' space for all associated services by default. This can occur even if Vault has not been enabled for a service.
+Generated tokens are saved in Vault 'tools' space for all associated services by default. This can occur even if Vault has not been enabled for a service. Vault sycronization may be setup to transfer the secret to other locations. See: [Tools Secret Syncronization](/operations_secret_sync.md)
 
 The information in the token is in the clear and can be read using tools like [jwt.io](https://jwt.io).
-
-## Update Github Secrets
-
-### Prerequisites
-
-* Have a [Github App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) ready
-
-* Install the [Github App](https://docs.github.com/en/apps/using-github-apps/installing-your-own-github-app) in all repositories associated with services. Grant the app read/write access to repository secrets.
-
-* After a token is generated, all secrets in the tools namespace for a service (`apps-kv-mount`/tools/`project`/`service`) in Vault will be synced to the associated services' Github repository as secrets.
 
 ### Renewing a token
 
