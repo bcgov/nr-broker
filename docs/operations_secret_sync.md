@@ -1,6 +1,6 @@
 # Tools Secret Syncronization
 
-Note: Vault has an enterprise unrelated features for doing secret syncronization as well.
+Note: This document is about NR Broker secret syncronization. Vault can do secret syncronization as well.
 
 ## Github Secrets
 
