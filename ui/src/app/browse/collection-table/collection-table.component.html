@@ -131,10 +131,32 @@
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
-              <button mat-stroked-button extended color="primary"
-                (click)="openInGraph($event, element)">
-                View on Graph
-              </button>
+              @if (screenSize == 'wide') {
+                <button
+                  mat-stroked-button
+                  extended
+                  color="primary"
+                  class="collection-btn"
+                  (click)="openInGraph($event, element)">
+                  View on Graph
+                </button>
+              } @else {
+                <button
+                  mat-icon-button
+                  color="primary"
+                  class="collection-btn"
+                  (click)="openInGraph($event, element)">
+                  <mat-icon>account_tree</mat-icon>
+                </button>
+              }
+              @if (collectionSnapshot == 'team') {
+                <app-inspector-team
+                  class="collection-btn"
+                  [vertex]="element.collection.vertex"
+                  [name]="element.collection.name"
+                  [screenSize]="screenSize"
+                  (click)="$event.stopPropagation()"></app-inspector-team>
+              }
             </td>
           </ng-container>
 

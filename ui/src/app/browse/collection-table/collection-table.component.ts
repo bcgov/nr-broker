@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  inject,
   Inject,
   OnDestroy,
   OnInit,
@@ -22,6 +23,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   Subject,
   catchError,
@@ -31,6 +33,7 @@ import {
   of,
   startWith,
   switchMap,
+  takeUntil,
 } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
@@ -51,6 +54,7 @@ import { CollectionCombo } from '../../service/dto/collection-search-result.dto'
 import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
+import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 
 type ShowFilter = 'connected' | 'all';
 
@@ -93,6 +97,7 @@ interface TableQuery {
     ReactiveFormsModule,
     RouterModule,
     InspectorVertexFieldComponent,
+    InspectorTeamComponent,
   ],
   templateUrl: './collection-table.component.html',
   styleUrl: './collection-table.component.scss',
@@ -106,6 +111,16 @@ export class CollectionTableComponent
   pageSize = 10;
   loading = true;
   disableAdd = true;
+  screenSize: string = '';
+
+  // Create a map from breakpoints to css class
+  displayNameMap = new Map([
+    [Breakpoints.XSmall, 'narrow'],
+    [Breakpoints.Small, 'narrow'],
+    [Breakpoints.Medium, 'wide'],
+    [Breakpoints.Large, 'wide'],
+    [Breakpoints.XLarge, 'wide'],
+  ]);
 
   collection$ = new Subject<CollectionNames>();
   collectionSnapshot: CollectionNames = 'project';
@@ -132,6 +147,7 @@ export class CollectionTableComponent
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
   private triggerRefresh = new Subject<number>();
+  private ngUnsubscribe: Subject<any> = new Subject();
 
   constructor(
     public readonly permission: PermissionService,
@@ -145,7 +161,24 @@ export class CollectionTableComponent
     public readonly graphUtil: GraphUtilService,
     @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
     private changeDetectorRef: ChangeDetectorRef,
-  ) {}
+  ) {
+    inject(BreakpointObserver)
+      .observe([
+        Breakpoints.XSmall,
+        Breakpoints.Small,
+        Breakpoints.Medium,
+        Breakpoints.Large,
+        Breakpoints.XLarge,
+      ])
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((result) => {
+        for (const query of Object.keys(result.breakpoints)) {
+          if (result.breakpoints[query]) {
+            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
+          }
+        }
+      });
+  }
 
   ngAfterViewInit() {
     // console.log('ngAfterViewInit');
