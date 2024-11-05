@@ -1,10 +1,10 @@
 import { Component, Inject, Input, OnChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { SystemApiService } from '../../service/system-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
 import { HealthStatusService } from '../../service/health-status.service';
-import { CommonModule } from '@angular/common';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-user-alias',
@@ -21,7 +21,7 @@ export class UserAliasComponent implements OnChanges {
   constructor(
     private readonly systemApi: SystemApiService,
     public readonly healthStatus: HealthStatusService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
   ) {}
 
   ngOnChanges(): void {

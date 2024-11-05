@@ -15,7 +15,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDialog } from '@angular/material/dialog';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { UserDto } from '../service/graph.types';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
@@ -23,6 +22,10 @@ import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SearchInputComponent } from './search-input/search-input.component';
 import { CollectionUtilService } from '../service/collection-util.service';
+import { UserSelfRestDto } from '../service/dto/user-rest.dto';
+import { PreferencesService } from '../preferences.service';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
 
 @Component({
   selector: 'app-toolbar',
@@ -47,13 +50,16 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     private readonly dialog: MatDialog,
     private readonly healthService: HealthStatusService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    private readonly preferences: PreferencesService,
+    private readonly snackBar: MatSnackBar,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
   ) {}
 
   healthStatus: boolean | undefined;
   private unsubscribe = new Subject<void>();
   isHovered: boolean | undefined;
   statusText: string | undefined;
+  showLinkDialog = false;
 
   ngOnInit(): void {
     try {
@@ -68,6 +74,10 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
     // Initial health check
     this.getHealthCheck();
+
+    if (!this.user.alias && !this.preferences.get('ignoreGitHubLink')) {
+      this.showLinkDialog = true;
+    }
   }
 
   ngOnDestroy(): void {
@@ -84,11 +94,16 @@ export class ToolbarComponent implements OnInit, OnDestroy {
             throw error;
           }),
         )
-        .subscribe((data: any) => {
+        .subscribe((data) => {
           if (data === null) {
             this.healthStatus = false;
           } else {
             this.healthStatus = data.status === 'ok';
+          }
+          if (this.showLinkDialog && data?.details['github']['alias']) {
+            const config = new MatSnackBarConfig();
+            config.verticalPosition = 'bottom';
+            this.snackBar.openFromComponent(LinkSnackbarComponent, config);
           }
         });
     } catch (error: any) {

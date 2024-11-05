@@ -1,5 +1,5 @@
 <span class="ellipsis">
-  @switch (type) {
+  @switch (config?.type) {
       @case ('boolean') {
         @if (value) {
           Yes
@@ -27,6 +27,13 @@
       }
       @case ('url') {
         <a href="{{value}}" target="_blank">{{value}}</a>
+      }
+      @case ('embeddedDoc') {
+        @if (value) {
+          Yes
+        } @else {
+          No
+        }
       }
       @default {
       }

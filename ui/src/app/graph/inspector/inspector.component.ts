@@ -28,7 +28,6 @@ import {
   Connection,
   VertexNavigation,
   GraphDataVertex,
-  UserDto,
   CollectionConfigMap,
   InspectorTarget,
   InspectorTargetEdge,
@@ -60,6 +59,7 @@ import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-
 import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-inspector',
@@ -110,7 +110,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     private readonly dialog: MatDialog,
     private readonly preferences: PreferencesService,
     private readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}

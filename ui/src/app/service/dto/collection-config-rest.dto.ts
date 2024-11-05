@@ -37,7 +37,6 @@ export type CollectionEdgeInstanceConfig = Omit<
 };
 
 export class CollectionFieldConfig {
-  color!: string;
   hint!: string;
   init?: 'uuid' | 'now';
   mask?: {
@@ -60,7 +59,7 @@ export class CollectionFieldConfig {
     | 'url';
   unique?: boolean;
   uniqueParent?: boolean;
-  value?: string;
+  value?: string | boolean;
 }
 
 export class CollectionFieldConfigMap {

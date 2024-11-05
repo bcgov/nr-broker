@@ -31,6 +31,9 @@ export class PreferenceDto {
   @Column()
   homeSectionTab: number;
 
+  @Column()
+  ignoreGitHubLink: boolean = false;
+
   public toRestDto(): PreferenceRestDto {
     return {
       browseConnectionFilter: this.browseConnectionFilter ?? 'connected',
@@ -39,6 +42,7 @@ export class PreferenceDto {
       graphVertexVisibility: this.graphVertexVisibility,
       graphEdgeSrcTarVisibility: this.graphEdgeSrcTarVisibility,
       homeSectionTab: this.homeSectionTab ?? 0,
+      ignoreGitHubLink: this.ignoreGitHubLink ?? false,
     };
   }
 }

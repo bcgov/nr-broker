@@ -22,9 +22,13 @@
 
 @if(collection?.alias) {
 <div class="edge-container edge-container-margin-left details-container">
-  <div class="details-item">
-    <div class="details-header">Username</div>
-    <div class="details-line">{{ collection.alias[0].username }}</div>
-  </div>
+  <a href="https://github.com/{{ collection.alias[0].username }}" target="_blank">
+    <div
+      class="details-item details-item-clickable"
+      matRipple>
+      <div class="details-header">Username</div>
+      <div class="details-line">{{ collection.alias[0].username }}</div>
+    </div>
+  </a>
 </div>
 }

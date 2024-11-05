@@ -20,7 +20,6 @@ import {
   trigger,
 } from '@angular/animations';
 import { lastValueFrom } from 'rxjs';
-import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
   InspectorInstanceDialogComponent,
@@ -33,6 +32,7 @@ import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.com
 import { PermissionService } from '../../service/permission.service';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -81,7 +81,7 @@ export class InspectorInstancesComponent implements OnChanges {
     public readonly permission: PermissionService,
     private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {

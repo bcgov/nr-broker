@@ -202,18 +202,18 @@
       </mat-card>
     }
 
-      @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
-        <mat-card>
-          <mat-card-content>
-            <div class="card-title-container">
-              <mat-card-title>People</mat-card-title>
-            </div>
-            <app-inspector-people
-            [collection]="comboData.vertex.collection"
-            [vertex]="comboData.collection.vertex"></app-inspector-people>
-          </mat-card-content>
-        </mat-card>
-      }
+    @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount') {
+      <mat-card>
+        <mat-card-content>
+          <div class="card-title-container">
+            <mat-card-title>People</mat-card-title>
+          </div>
+          <app-inspector-people
+          [collection]="comboData.vertex.collection"
+          [vertex]="comboData.collection.vertex"></app-inspector-people>
+        </mat-card-content>
+      </mat-card>
+    }
     </div>
   </mat-tab>
 

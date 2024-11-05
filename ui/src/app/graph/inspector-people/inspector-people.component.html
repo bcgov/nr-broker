@@ -17,8 +17,12 @@
     <ng-container matColumnDef="via">
       <th mat-header-cell *matHeaderCellDef> Via </th>
       <td mat-cell *matCellDef="let element">
-        {{ element.vertex.name }}
-        ({{ configMap[element.vertex.collection].name }})
+        <a
+          href="#"
+          (click)="navigate(configMap[element.vertex.collection].collection, element.vertex.id); false">
+          {{ element.vertex.name }}
+          ({{ configMap[element.vertex.collection].name }})
+        </a>
       </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns"></tr>

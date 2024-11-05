@@ -4,12 +4,12 @@ import merge from 'lodash.merge';
 import os from 'os';
 import snakecaseKeys from 'snakecase-keys';
 
+import { AuditStreamerService } from './audit-streamer.service';
 import { ActionDto } from '../intention/dto/action.dto';
 import { IntentionDto } from '../intention/dto/intention.dto';
-import { AuditStreamerService } from './audit-streamer.service';
+import { UserDto } from '../intention/dto/user.dto';
 import { EdgeDto } from '../persistence/dto/edge.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
-import { UserDto } from '../intention/dto/user.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
 import { VertexDto } from '../persistence/dto/vertex.dto';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';

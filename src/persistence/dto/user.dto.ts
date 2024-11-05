@@ -25,10 +25,6 @@ export class UserAliasDto {
   @IsString()
   @Column()
   username: string;
-
-  @IsOptional()
-  @Column()
-  raw?: any;
 }
 
 export class UserGroupDto {
@@ -69,10 +65,6 @@ export class UserDto extends VertexPointerDto {
   @IsString()
   @Column()
   email: string;
-
-  @Column(() => UserGroupDto)
-  @IsOptional()
-  group?: UserGroupDto;
 
   @IsDefined()
   @IsString()
