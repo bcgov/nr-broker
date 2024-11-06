@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 
 import { USER_ALIAS_DOMAIN_GITHUB } from '../constants';
@@ -44,7 +44,15 @@ export class UserCollectionService {
   async extractUserFromRequest(req: Request): Promise<UserRolesDto> {
     const loggedInUser = new UserRolesDto('', (req.user as any).userinfo);
     const vertex = await this.upsertUser(req, loggedInUser.toUserImportDto());
-    return new UserRolesDto(vertex.toString(), (req.user as any).userinfo);
+    const collection = await this.collectionRepository.getCollectionByVertexId(
+      'user',
+      vertex.toString(),
+    );
+    return new UserRolesDto(
+      vertex.toString(),
+      (req.user as any).userinfo,
+      collection,
+    );
   }
 
   async upsertUser(req: Request, userInfo: UserImportDto) {
@@ -87,13 +95,11 @@ export class UserCollectionService {
         state,
       ))
     ) {
-      console.log('hi');
+      throw new BadRequestException('Request state does not match');
     }
-    // console.log(state);
+
     const token = await this.githubService.getUserAccessToken(code);
     const userData = await this.githubService.getUserInfo(token);
-
-    // console.log(userData);
 
     const vertex: VertexInsertDto = {
       collection: 'user',
@@ -105,15 +111,12 @@ export class UserCollectionService {
             guid: userData.id,
             name: userData.name,
             username: userData.login,
-            raw: userData,
           },
         ],
       },
     };
     delete vertex.data.id;
     delete vertex.data.vertex;
-
-    // console.log(vertex);
 
     await this.graphService.editVertex(
       req,

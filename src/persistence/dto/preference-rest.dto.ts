@@ -8,4 +8,5 @@ export interface PreferenceRestDto {
   graphVertexVisibility: { [key: string]: boolean };
   graphEdgeSrcTarVisibility: { [key: string]: boolean };
   homeSectionTab: number;
+  ignoreGitHubLink: boolean;
 }

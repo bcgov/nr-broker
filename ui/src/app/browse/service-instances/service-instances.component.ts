@@ -18,7 +18,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { UserDto } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
   InspectorInstanceDialogComponent,
@@ -35,6 +34,7 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { EnvironmentRestDto } from '../../service/dto/environment-rest.dto';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-service-instances',
@@ -74,7 +74,7 @@ export class ServiceInstancesComponent implements OnChanges {
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
   ) {}
 
   ngOnInit(): void {

@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@angular/core';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { UserDto } from './graph.types';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
+import { UserSelfRestDto } from './dto/user-rest.dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PermissionService {
   private hasAdminPermission: boolean;
-  constructor(@Inject(CURRENT_USER) readonly user: UserDto) {
+  constructor(@Inject(CURRENT_USER) readonly user: UserSelfRestDto) {
     this.hasAdminPermission = !!user?.roles?.includes('admin');
   }
 

@@ -15,7 +15,7 @@
       <td mat-cell
         *matCellDef="let element">
         <app-inspector-vertex-field
-          [type]="getFieldType(element.key)"
+          [config]="getFieldConfig(element.key)"
           [value]="element.value"></app-inspector-vertex-field>
       </td>
     </ng-container>

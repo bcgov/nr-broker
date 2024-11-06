@@ -121,7 +121,7 @@
                 mat-cell
                 *matCellDef="let element">
                 <app-inspector-vertex-field
-                  [type]="getFieldType(item.key)"
+                  [config]="getFieldConfig(item.key)"
                   [value]="element.collection[item.key]"></app-inspector-vertex-field>
               </td>
             </ng-container>

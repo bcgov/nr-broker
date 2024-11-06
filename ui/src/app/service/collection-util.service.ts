@@ -20,7 +20,11 @@ export class CollectionUtilService {
     this.router.navigate([`/browse/${collection}/${id}`]);
   }
 
-  openInBrowserByVertexId(collection: CollectionNames, vertexId: string) {
+  openInBrowserByVertexId(
+    collection: CollectionNames,
+    vertexId: string,
+    replaceUrl = false,
+  ) {
     this.collectionApi
       .searchCollection(collection, {
         vertexId,
@@ -32,7 +36,7 @@ export class CollectionUtilService {
           this.router.navigate(
             ['/browse', collection, result.data[0].collection.id, { index: 0 }],
             {
-              replaceUrl: true,
+              replaceUrl,
             },
           );
         } else {

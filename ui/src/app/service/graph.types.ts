@@ -97,13 +97,3 @@ export interface EdgeNavigation {
   sourceVertex: GraphDataVertex;
   targetVertex: GraphDataVertex;
 }
-
-export interface UserDto {
-  id: string;
-  email: string;
-  guid: string;
-  name: string;
-  roles: string[];
-  username: string;
-  vertex: string;
-}

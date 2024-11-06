@@ -8,12 +8,13 @@ import {
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CollectionConfigMap, UserDto } from '../../service/graph.types';
+import { CollectionConfigMap } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
 import { lastValueFrom } from 'rxjs';
 import { GraphUtilService } from '../../service/graph-util.service';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-add-team-dialog',
@@ -44,7 +45,7 @@ export class AddTeamDialogComponent {
     public readonly dialogRef: MatDialogRef<AddTeamDialogComponent>,
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
   ) {}
 
   ngOnInit(): void {

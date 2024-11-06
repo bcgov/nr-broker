@@ -62,10 +62,10 @@ export class InspectorVertexFieldsComponent implements OnChanges {
     }
   }
 
-  getFieldType(key: string) {
+  getFieldConfig(key: string) {
     if (!this.collectionConfig) {
-      return '';
+      return undefined;
     }
-    return this.collectionConfig.fields[key]?.type;
+    return this.collectionConfig.fields[key];
   }
 }

@@ -5,22 +5,25 @@ import { environment } from '../environments/environment';
 import {
   CollectionConfigMap,
   CollectionEdgeConfigMap,
-  UserDto,
 } from './service/graph.types';
 import { PreferenceRestDto } from './preference-rest.dto';
 import { CollectionConfigRestDto } from './service/dto/collection-config-rest.dto';
 import { GraphUtilService } from './service/graph-util.service';
+import { UserSelfRestDto } from './service/dto/user-rest.dto';
 
-let userInfo: UserDto;
+let userInfo: UserSelfRestDto;
 let preferencesInit: PreferenceRestDto;
 let configArr: CollectionConfigRestDto[];
 let configMap: CollectionConfigMap;
 let configSrcTarMap: CollectionEdgeConfigMap;
 
-export const CURRENT_USER = new InjectionToken<UserDto>('CURRENT_USER', {
-  providedIn: 'root',
-  factory: () => userInfo,
-});
+export const CURRENT_USER = new InjectionToken<UserSelfRestDto>(
+  'CURRENT_USER',
+  {
+    providedIn: 'root',
+    factory: () => userInfo,
+  },
+);
 
 export const INITIAL_PREFERENCES = new InjectionToken<PreferenceRestDto>(
   'INITIAL_PREFERENCES',
@@ -56,18 +59,20 @@ export function appInitializeUserFactory(
   http: HttpClient,
 ): () => Observable<any> {
   return () =>
-    http.get<UserDto>(`${environment.apiUrl}/v1/collection/user/self`).pipe(
-      tap((user) => {
-        userInfo = user;
-      }),
-      catchError((e) => {
-        if (e.status === 401) {
-          window.location.href = `${environment.apiUrl}/auth/login`;
-        }
-        // Create obserable that never completes to stall start up
-        return new Observable();
-      }),
-    );
+    http
+      .get<UserSelfRestDto>(`${environment.apiUrl}/v1/collection/user/self`)
+      .pipe(
+        tap((user) => {
+          userInfo = user;
+        }),
+        catchError((e) => {
+          if (e.status === 401) {
+            window.location.href = `${environment.apiUrl}/auth/login`;
+          }
+          // Create obserable that never completes to stall start up
+          return new Observable();
+        }),
+      );
 }
 
 export function appInitializePrefFactory(

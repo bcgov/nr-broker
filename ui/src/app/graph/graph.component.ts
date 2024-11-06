@@ -23,7 +23,6 @@ import {
   GraphData,
   GraphDataConfig,
   InspectorTarget,
-  UserDto,
 } from '../service/graph.types';
 import { GraphApiService } from '../service/graph-api.service';
 import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
@@ -46,6 +45,7 @@ import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
 import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
 import { PermissionService } from '../service/permission.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { UserSelfRestDto } from '../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-graph',
@@ -81,7 +81,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   constructor(
     public readonly permission: PermissionService,
     public readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
     private readonly dialog: MatDialog,

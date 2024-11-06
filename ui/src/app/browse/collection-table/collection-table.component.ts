@@ -37,7 +37,7 @@ import {
 } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigMap, UserDto } from '../../service/graph.types';
+import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
@@ -55,6 +55,7 @@ import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.
 import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 type ShowFilter = 'connected' | 'all';
 
@@ -157,7 +158,7 @@ export class CollectionTableComponent
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly preferences: PreferencesService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
     public readonly graphUtil: GraphUtilService,
     @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
     private changeDetectorRef: ChangeDetectorRef,
@@ -505,10 +506,10 @@ export class CollectionTableComponent
       });
   }
 
-  getFieldType(key: string) {
+  getFieldConfig(key: string) {
     if (!this.configMap[this.collectionSnapshot]) {
-      return '';
+      return undefined;
     }
-    return this.configMap[this.collectionSnapshot].fields[key]?.type;
+    return this.configMap[this.collectionSnapshot].fields[key];
   }
 }

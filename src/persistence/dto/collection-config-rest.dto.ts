@@ -37,7 +37,6 @@ export type CollectionEdgeInstanceConfig = Omit<
 };
 
 export class CollectionFieldConfig {
-  color!: string;
   hint!: string;
   init?: 'uuid' | 'now';
   mask?: {
@@ -60,7 +59,8 @@ export class CollectionFieldConfig {
     | 'url';
   unique?: boolean;
   uniqueParent?: boolean;
-  value?: string;
+  value?: string | boolean;
+  valuePath?: string;
 }
 
 export class CollectionFieldConfigMap {
@@ -90,8 +90,10 @@ export class CollectionConfigRestDto {
   collection!: CollectionNames;
   collectionMapper!: CollectionMap[];
   collectionVertexName!: string;
+  color!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  hint!: string;
   index!: number;
   name!: string;
   parent!: CollectionConfigParent;

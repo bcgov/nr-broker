@@ -1,9 +1,9 @@
 import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-
 import { MatDialogModule } from '@angular/material/dialog';
+
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 @Component({
   selector: 'app-roles-dialog',
   templateUrl: './roles-dialog.component.html',
@@ -12,5 +12,5 @@ import { UserDto } from '../../service/graph.types';
   imports: [MatDialogModule, MatButtonModule],
 })
 export class RolesDialogComponent {
-  constructor(@Inject(CURRENT_USER) public readonly user: UserDto) {}
+  constructor(@Inject(CURRENT_USER) public readonly user: UserSelfRestDto) {}
 }

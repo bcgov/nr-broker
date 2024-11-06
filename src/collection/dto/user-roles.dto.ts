@@ -9,13 +9,16 @@ import {
   OAUTH2_CLIENT_MAP_ROLES,
   OAUTH2_CLIENT_DOMAIN,
 } from '../../constants';
+import { UserDto } from '../../persistence/dto/user.dto';
 
 export class UserRolesDto extends UserImportDto {
+  alias?: any;
   roles!: string[];
 
   constructor(
     public readonly vertex: string,
     userInfo: any,
+    collection: UserDto | undefined = undefined,
   ) {
     super();
     // Map or use static value
@@ -27,6 +30,9 @@ export class UserRolesDto extends UserImportDto {
     this.name = get(userInfo, OAUTH2_CLIENT_MAP_NAME);
     this.roles = get(userInfo, OAUTH2_CLIENT_MAP_ROLES, []);
     this.username = get(userInfo, OAUTH2_CLIENT_MAP_USERNAME, '').toLowerCase();
+    if (collection) {
+      this.alias = collection.alias;
+    }
   }
 
   toUserImportDto(): UserImportDto {

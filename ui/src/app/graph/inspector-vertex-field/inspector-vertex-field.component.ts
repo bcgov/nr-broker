@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { CollectionFieldConfig } from '../../service/dto/collection-config-rest.dto';
 
 @Component({
   selector: 'app-inspector-vertex-field',
@@ -9,6 +10,6 @@ import { Component, Input } from '@angular/core';
   styleUrl: './inspector-vertex-field.component.scss',
 })
 export class InspectorVertexFieldComponent {
-  @Input() public type!: string;
+  @Input() public config: CollectionFieldConfig | undefined;
   @Input() public value: any;
 }

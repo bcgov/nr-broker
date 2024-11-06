@@ -19,7 +19,7 @@
 
           <p>Broker stores details of collection objects (projects, services, accounts, users, and more) in a database. It uses connections (edges) to connect these objects (vertices) together into a graph.</p>
 
-          <p>New users may wish to review their <a href="#" routerLink="/browse/team">team membership</a> in Broker. You can filter objects in the browse and graph sections based on if you are connected to them. External services will use your team's connections to determine your access.</p>
+          <p>New users may wish to review their <a href="#" [routerLink]="['/browse/team', {showFilter: 'connected'}]">team membership</a> in Broker. You can filter objects in the browse and graph sections based on if you are connected to them. External services will use your team's connections to determine your access.</p>
 
           <button mat-stroked-button (click)="setSelectedTabIndex(1)" >
             <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>

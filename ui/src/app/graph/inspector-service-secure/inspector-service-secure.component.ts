@@ -13,10 +13,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { ServiceRestDto } from '../../service/dto/service-rest.dto';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { UserDto } from '../../service/graph.types';
 import { InspectorServiceSecureDialogComponent } from '../inspector-service-secure-dialog/inspector-service-secure-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-inspector-service-secure',
@@ -39,7 +39,7 @@ export class InspectorServiceSecureComponent implements OnChanges {
 
   constructor(
     private readonly collectionApi: CollectionApiService,
-    @Inject(CURRENT_USER) public readonly user: UserDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
     private readonly dialog: MatDialog,
   ) {}
 
