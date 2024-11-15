@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { get } from 'radash';
+import { get } from 'lodash';
 
 @Component({
   selector: 'app-action-content',

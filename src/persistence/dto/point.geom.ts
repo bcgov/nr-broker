@@ -1,10 +1,10 @@
-import { Column, Entity } from 'typeorm';
+import { Embeddable, Property } from '@mikro-orm/core';
 
-@Entity()
+@Embeddable()
 export class PointGeom {
-  @Column()
+  @Property()
   type: 'Point';
 
-  @Column()
+  @Property()
   coordinates: number[];
 }

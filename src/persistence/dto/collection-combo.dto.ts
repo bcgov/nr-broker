@@ -1,10 +1,10 @@
 import { CollectionDtoUnion } from './collection-dto-union.type';
-import { EdgeDto } from './edge.dto';
-import { VertexDto } from './vertex.dto';
+import { EdgeEntity } from './edge.entity';
+import { VertexEntity } from './vertex.entity';
 
 export class GraphDirectedCombo {
-  vertex: VertexDto;
-  edge: EdgeDto;
+  vertex: VertexEntity;
+  edge: EdgeEntity;
 }
 export class GraphVertexConnections {
   upstream: GraphDirectedCombo[];
@@ -15,5 +15,5 @@ export class CollectionComboDto<
   T extends keyof CollectionDtoUnion,
 > extends GraphVertexConnections {
   collection: CollectionDtoUnion[T];
-  vertex: VertexDto;
+  vertex: VertexEntity;
 }

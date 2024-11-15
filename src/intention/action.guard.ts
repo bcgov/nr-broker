@@ -9,7 +9,7 @@ import { validate } from 'class-validator';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from './dto/intention.entity';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -28,8 +28,8 @@ export class ActionGuard implements CanActivate {
         message: 'Intention not found',
       });
     }
-    const intention = plainToInstance(IntentionDto, intObj);
-    const action = IntentionDto.projectAction(intention, token);
+    const intention = plainToInstance(IntentionEntity, intObj);
+    const action = IntentionEntity.projectAction(intention, token);
     const errors = await validate(action, {
       whitelist: true,
       forbidNonWhitelisted: true,
@@ -39,7 +39,7 @@ export class ActionGuard implements CanActivate {
       // console.log(errors[0].children);
       throw new BadRequestException('Validation failed');
     }
-    request.brokerIntentionDto = intention;
+    request.brokerIntentionEntity = intention;
     request.brokerActionDto = action;
     return !!action;
   }

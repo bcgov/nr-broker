@@ -1,74 +1,70 @@
 import { randomUUID } from 'node:crypto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MongoRepository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
 
-import { ConnectionConfigDto } from '../dto/connection-config.dto';
-import { JwtAllowDto } from '../dto/jwt-allow.dto';
-import { JwtBlockDto } from '../dto/jwt-block.dto';
-import { JwtRegistryDto } from '../dto/jwt-registry.dto';
+import { ConnectionConfigEntity } from '../dto/connection-config.entity';
+import { JwtAllowEntity } from '../dto/jwt-allow.dto';
+import { JwtBlockEntity } from '../dto/jwt-block.dto';
+import { JwtRegistryEntity } from '../dto/jwt-registry.entity';
 import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';
-import { PreferenceDto } from '../dto/preference.dto';
+import { PreferenceEntity } from '../dto/preference.entity';
 import { PreferenceRestDto } from '../dto/preference-rest.dto';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
-import { UserAliasRequestDto } from '../dto/user-alias-request.dto';
+import { UserAliasRequestEntity } from '../dto/user-alias-request.entity';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
-    @InjectRepository(ConnectionConfigDto)
-    private readonly connectionConfigRepository: MongoRepository<ConnectionConfigDto>,
-    @InjectRepository(JwtAllowDto)
-    private readonly jwtAllowRepository: MongoRepository<JwtAllowDto>,
-    @InjectRepository(JwtBlockDto)
-    private readonly jwtBlockRepository: MongoRepository<JwtBlockDto>,
-    @InjectRepository(JwtRegistryDto)
-    private readonly jwtRegistryRepository: MongoRepository<JwtRegistryDto>,
-    @InjectRepository(UserAliasRequestDto)
-    private readonly userAliasRequestRepository: MongoRepository<UserAliasRequestDto>,
-    @InjectRepository(PreferenceDto)
-    private readonly preferenceRepository: MongoRepository<PreferenceDto>,
+    @InjectRepository(ConnectionConfigEntity)
+    private readonly connectionConfigRepository: MongoEntityRepository<ConnectionConfigEntity>,
+    @InjectRepository(JwtAllowEntity)
+    private readonly jwtAllowRepository: MongoEntityRepository<JwtAllowEntity>,
+    @InjectRepository(JwtBlockEntity)
+    private readonly jwtBlockRepository: MongoEntityRepository<JwtBlockEntity>,
+    @InjectRepository(JwtRegistryEntity)
+    private readonly jwtRegistryRepository: MongoEntityRepository<JwtRegistryEntity>,
+    @InjectRepository(UserAliasRequestEntity)
+    private readonly userAliasRequestRepository: MongoEntityRepository<UserAliasRequestEntity>,
+    @InjectRepository(PreferenceEntity)
+    private readonly preferenceRepository: MongoEntityRepository<PreferenceEntity>,
   ) {}
 
   public async jwtMatchesAllowed(jwt: JwtDto): Promise<boolean> {
     return !!(await this.jwtAllowRepository.findOne({
-      where: {
-        $and: [
-          {
-            $or: [
-              { client_id: jwt.client_id },
-              { client_id: { $exists: false } },
-            ],
-          },
-          {
-            $or: [{ jti: jwt.jti }, { jti: { $exists: false } }],
-          },
-          {
-            $or: [{ sub: jwt.sub }, { sub: { $exists: false } }],
-          },
-        ],
-      } as any,
-    }));
+      $and: [
+        {
+          $or: [
+            { client_id: jwt.client_id },
+            { client_id: { $exists: false } },
+          ],
+        },
+        {
+          $or: [{ jti: jwt.jti }, { jti: { $exists: false } }],
+        },
+        {
+          $or: [{ sub: jwt.sub }, { sub: { $exists: false } }],
+        },
+      ],
+    } as any));
   }
   public async jwtMatchesBlocked(jwt: JwtDto): Promise<boolean> {
     return !!(await this.jwtBlockRepository.findOne({
-      where: {
-        $and: [
-          {
-            $or: [
-              { client_id: jwt.client_id },
-              { client_id: { $exists: false } },
-            ],
-          },
-          {
-            $or: [{ jti: jwt.jti }, { jti: { $exists: false } }],
-          },
-          {
-            $or: [{ sub: jwt.sub }, { sub: { $exists: false } }],
-          },
-        ],
-      } as any,
-    }));
+      $and: [
+        {
+          $or: [
+            { client_id: jwt.client_id },
+            { client_id: { $exists: false } },
+          ],
+        },
+        {
+          $or: [{ jti: jwt.jti }, { jti: { $exists: false } }],
+        },
+        {
+          $or: [{ sub: jwt.sub }, { sub: { $exists: false } }],
+        },
+      ],
+    } as any));
   }
 
   public async addJwtToRegister(
@@ -76,7 +72,7 @@ export class SystemMongoRepository implements SystemRepository {
     payload: any,
     creator: string,
   ): Promise<boolean> {
-    const result = await this.jwtRegistryRepository.insertOne({
+    const result = await this.jwtRegistryRepository.insert({
       accountId: new ObjectId(accountId),
       claims: {
         client_id: payload.client_id,
@@ -88,45 +84,43 @@ export class SystemMongoRepository implements SystemRepository {
       createdAt: new Date(),
     });
 
-    if (!result.acknowledged) {
+    if (!result) {
       throw new Error();
     }
 
     return true;
   }
 
-  public async getRegisteryJwts(accountId: string): Promise<JwtRegistryDto[]> {
+  public async getRegisteryJwts(
+    accountId: string,
+  ): Promise<JwtRegistryEntity[]> {
     return this.jwtRegistryRepository.find({
-      where: {
-        accountId: new ObjectId(accountId),
-      },
+      accountId: new ObjectId(accountId),
     });
   }
 
-  public async getRegisteryJwtByClaimJti(jti: string): Promise<JwtRegistryDto> {
+  public async getRegisteryJwtByClaimJti(
+    jti: string,
+  ): Promise<JwtRegistryEntity> {
     return this.jwtRegistryRepository.findOne({
-      where: {
-        'claims.jti': jti,
-      },
-    });
+      'claims.jti': jti,
+    } as any);
   }
 
   public async findExpiredRegistryJwts(
     currentTime: number,
-  ): Promise<JwtRegistryDto[]> {
+  ): Promise<JwtRegistryEntity[]> {
     return this.jwtRegistryRepository.find({
-      where: {
-        claims: { exp: { $lt: currentTime } },
-      },
+      claims: { exp: { $lt: currentTime } },
     });
   }
 
-  public async deleteRegistryJwt(jwt: JwtRegistryDto): Promise<boolean> {
-    await this.jwtRegistryRepository.delete(jwt.id);
-    await this.jwtBlockRepository.delete({
+  public async deleteRegistryJwt(jwt: JwtRegistryEntity): Promise<boolean> {
+    await this.jwtRegistryRepository.nativeDelete(jwt.id);
+    await this.jwtBlockRepository.nativeDelete({
       jti: jwt.claims.jti,
     });
-    await this.jwtAllowRepository.delete({
+    await this.jwtAllowRepository.nativeDelete({
       jti: jwt.claims.jti,
     });
 
@@ -136,31 +130,29 @@ export class SystemMongoRepository implements SystemRepository {
   public async groupRegistryByAccountId(): Promise<
     GroupRegistryByAccountDto[]
   > {
-    return this.jwtRegistryRepository
-      .aggregate([
-        { $fill: { output: { blocked: { value: false } } } },
-        {
-          $group: {
-            _id: { accountId: '$accountId' },
-            createdAt: { $push: '$createdAt' },
-            jti: { $push: '$claims.jti' },
-            blocked: { $push: '$blocked' },
-          },
+    return this.jwtRegistryRepository.aggregate([
+      { $fill: { output: { blocked: { value: false } } } },
+      {
+        $group: {
+          _id: { accountId: '$accountId' },
+          createdAt: { $push: '$createdAt' },
+          jti: { $push: '$claims.jti' },
+          blocked: { $push: '$blocked' },
         },
-      ])
-      .toArray() as unknown as GroupRegistryByAccountDto[];
+      },
+    ]) as unknown as GroupRegistryByAccountDto[];
   }
 
   public async blockJwtByJti(jti: string) {
-    const result = await this.jwtBlockRepository.insertOne({
+    const result = await this.jwtBlockRepository.insert({
       jti,
     });
 
-    if (!result.acknowledged) {
+    if (!result) {
       throw new Error();
     }
 
-    await this.jwtRegistryRepository.updateOne(
+    await this.jwtRegistryRepository.getCollection().updateOne(
       { 'claims.jti': jti },
       {
         $set: { blocked: true },
@@ -170,11 +162,9 @@ export class SystemMongoRepository implements SystemRepository {
     return true;
   }
 
-  public getPreferences(guid: string): Promise<PreferenceDto> {
+  public getPreferences(guid: string): Promise<PreferenceEntity> {
     return this.preferenceRepository.findOne({
-      where: {
-        guid,
-      },
+      guid,
     });
   }
 
@@ -182,7 +172,7 @@ export class SystemMongoRepository implements SystemRepository {
     guid: string,
     preference: PreferenceRestDto,
   ): Promise<boolean> {
-    const result = await this.preferenceRepository.updateOne(
+    const result = await this.preferenceRepository.getCollection().updateOne(
       { guid },
       {
         $set: preference,
@@ -195,8 +185,8 @@ export class SystemMongoRepository implements SystemRepository {
     return result.matchedCount === 1 || result.upsertedCount === 1;
   }
 
-  public getConnectionConfigs(): Promise<ConnectionConfigDto[]> {
-    return this.connectionConfigRepository.find();
+  public getConnectionConfigs(): Promise<ConnectionConfigEntity[]> {
+    return this.connectionConfigRepository.findAll();
   }
 
   public async generateUserAliasRequestState(
@@ -204,12 +194,12 @@ export class SystemMongoRepository implements SystemRepository {
     domain: string,
   ): Promise<string> {
     const state = randomUUID();
-    await this.userAliasRequestRepository.deleteMany({
+    await this.userAliasRequestRepository.getCollection().deleteMany({
       accountId: new ObjectId(accountId),
       domain,
     });
 
-    await this.userAliasRequestRepository.insertOne({
+    await this.userAliasRequestRepository.insert({
       accountId: new ObjectId(accountId),
       createdAt: new Date(),
       domain,
@@ -224,10 +214,8 @@ export class SystemMongoRepository implements SystemRepository {
     domain: string,
   ): Promise<string> {
     const request = await this.userAliasRequestRepository.findOne({
-      where: {
-        accountId: new ObjectId(accountId),
-        domain,
-      },
+      accountId: new ObjectId(accountId),
+      domain,
     });
 
     return request?.state;

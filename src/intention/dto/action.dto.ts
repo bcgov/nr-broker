@@ -9,7 +9,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 import { UserDto } from './user.dto';
 import { ServiceDto } from './service.dto';
 import { TransactionDto } from './transaction.dto';
@@ -40,94 +40,94 @@ export function isActionName(actionName: string): actionName is ActionName {
 export class ActionDto {
   @IsString()
   @IsIn(ACTION_NAMES)
-  @Column()
+  @Property()
   action: ActionName;
 
   @IsString()
-  @Column()
+  @Property()
   id: string;
 
   @ValidateNested()
   @IsOptional()
   @IsArray()
-  @Column(() => ArtifactDto)
+  @Property()
   @Type(() => ArtifactDto)
   artifacts?: ArtifactDto[];
 
   @IsArray()
-  @Column()
+  @Property()
   provision: string[];
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudDto)
+  @Property()
   @Type(() => CloudDto)
   cloud?: CloudDto;
 
   @ValidateNested()
   @IsDefined()
-  @Column(() => ServiceDto)
+  @Property()
   @Type(() => ServiceDto)
   service: ServiceDto;
 
   @IsOptional()
   @IsString()
   @ApiHideProperty()
-  @Column()
+  @Property()
   lifecycle?: 'started' | 'ended';
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => PackageDto)
+  @Property()
   @Type(() => PackageDto)
   package?: PackageDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => ActionSourceDto)
+  @Property()
   @Type(() => ActionSourceDto)
   source?: ActionSourceDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
-  @Column(() => TransactionDto)
+  @Property()
   @Type(() => TransactionDto)
   transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
-  @Column(() => TransactionDto)
+  @Property()
   @Type(() => TransactionDto)
   trace?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => UrlDto)
+  @Property()
   @Type(() => UrlDto)
   url?: UrlDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
-  @Column(() => UserDto)
+  @Property()
   @Type(() => UserDto)
   user?: UserDto;
 
   @IsOptional()
   @IsBoolean()
   @ApiHideProperty()
-  @Column()
+  @Property()
   valid?: boolean;
 
   @IsOptional()
   @IsString()
-  @Column()
+  @Property()
   vaultEnvironment?: 'production' | 'test' | 'development' | 'tools';
 
   @IsOptional()
   @IsString()
-  @Column()
+  @Property()
   vaultInstance?: 'production' | 'test' | 'development';
 }

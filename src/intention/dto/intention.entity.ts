@@ -2,13 +2,18 @@ import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
   IsDefined,
-  IsNumber,
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { Entity, ObjectIdColumn, Column, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+  Index,
+  Embedded,
+} from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { ActionDto } from './action.dto';
 import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
@@ -26,11 +31,11 @@ import { ProcessStartActionDto } from './process-start-action.dto';
 import { ServerAccessActionDto } from './server-access-action.dto';
 import { UrlDto } from './url.dto';
 
-@Entity({ name: 'intention' })
+@Entity({ tableName: 'intention' })
 // @Index(['actions.transaction.hash'])
-export class IntentionDto {
+export class IntentionEntity {
   static projectAction(
-    intention: IntentionDto,
+    intention: IntentionEntity,
     token: string,
   ): ActionDto | null {
     if (intention) {
@@ -40,14 +45,15 @@ export class IntentionDto {
     return null;
   }
 
-  @ObjectIdColumn()
-  @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
-  )
-  id: ObjectId;
+  @ApiHideProperty()
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
 
-  @Column()
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
+
+  @Property()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
     value.obj.accountId ? new ObjectId(value.obj.accountId.toString()) : null,
@@ -57,7 +63,7 @@ export class IntentionDto {
   @ValidateNested()
   @IsDefined()
   @IsArray()
-  @Column(() => ActionDto)
+  @Property()
   @Type(() => ActionDto, {
     discriminator: {
       property: 'action',
@@ -83,51 +89,40 @@ export class IntentionDto {
 
   @ValidateNested()
   @IsDefined()
-  @Column(() => EventDto)
+  @Property()
   @Type(() => EventDto)
   event: EventDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
-  @Column(() => BrokerJwtDto)
+  @Property()
   @Type(() => BrokerJwtDto)
   jwt?: BrokerJwtDto;
 
   @ValidateNested()
   @IsOptional()
   @ApiHideProperty()
-  @Column(() => TransactionDto)
+  @Property()
   @Type(() => TransactionDto)
   transaction?: TransactionDto;
 
-  @ValidateNested()
-  @IsOptional()
-  @Column(() => UrlDto)
-  @Type(() => UrlDto)
+  @Embedded({ entity: () => UrlDto, nullable: true })
   url?: UrlDto;
 
-  @ValidateNested()
-  @IsDefined()
-  @Column(() => UserDto)
-  @Type(() => UserDto)
+  @Embedded({ entity: () => UserDto })
   user: UserDto;
 
-  @IsOptional()
-  @IsNumber()
   @ApiHideProperty()
-  @Column()
+  @Property({ nullable: true })
   @Index()
   expiry?: number;
 
-  @IsOptional()
-  @IsBoolean()
   @ApiHideProperty()
-  @Column()
+  @Property({ nullable: true })
   @Index()
   closed?: boolean;
 
-  @Column()
-  @ApiProperty()
+  @Property({ nullable: true })
   requireRoleId?: boolean;
 }

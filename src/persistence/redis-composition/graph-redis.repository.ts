@@ -1,34 +1,35 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MongoRepository } from 'typeorm';
 import { RedisClientType, SchemaFieldTypes } from 'redis';
 
 import { GraphRepository } from '../interfaces/graph.repository';
-import { BrokerAccountDto } from '../dto/broker-account.dto';
-import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { BrokerAccountEntity } from '../dto/broker-account.entity';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../dto/collection-dto-union.type';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
-import { EdgeDto } from '../dto/edge.dto';
-import { EnvironmentDto } from '../dto/environment.dto';
+import { EdgeEntity } from '../dto/edge.entity';
+import { EnvironmentEntity } from '../dto/environment.entity';
 import {
   GraphDataResponseDto,
   BrokerAccountProjectMapDto,
   GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
-import { ProjectDto } from '../dto/project.dto';
-import { ServiceInstanceDto } from '../dto/service-instance.dto';
-import { ServiceDto } from '../dto/service.dto';
-import { TeamDto } from '../dto/team.dto';
-import { UserDto } from '../dto/user.dto';
+import { ProjectEntity } from '../dto/project.entity';
+import { ServiceInstanceEntity } from '../dto/service-instance.entity';
+import { ServiceEntity } from '../dto/service.entity';
+import { TeamEntity } from '../dto/team.entity';
+import { UserEntity } from '../dto/user.entity';
 import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
-import { VertexDto } from '../dto/vertex.dto';
+import { VertexEntity } from '../dto/vertex.entity';
 import { GraphMongoRepository } from '../mongo/graph-mongo.repository';
 import { CollectionMongoRepository } from '../mongo/collection-mongo.repository';
 import {
-  CollectionConfigDto,
+  CollectionConfigEntity,
   CollectionConfigInstanceDto,
-} from '../dto/collection-config.dto';
+} from '../dto/collection-config.entity';
 import {
   PERSISTENCE_CACHE_KEY_CONFIG,
   PERSISTENCE_CACHE_KEY_GRAPH,
@@ -42,6 +43,8 @@ import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { MongoEntityRepository } from '@mikro-orm/mongodb';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -49,8 +52,8 @@ export class GraphRedisRepository implements GraphRepository {
     private readonly repo: GraphMongoRepository,
     private readonly collection: CollectionMongoRepository,
     private readonly util: PersistenceRedisUtilService,
-    @InjectRepository(CollectionConfigDto)
-    private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
+    @InjectRepository(CollectionConfigEntity)
+    private readonly collectionConfigRepository: MongoEntityRepository<CollectionConfigEntity>,
     @Inject('REDIS_CLIENT') private client: RedisClientType,
   ) {}
 
@@ -92,13 +95,13 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getUserPermissions(id);
   }
 
-  public async addEdge(edge: EdgeInsertDto): Promise<EdgeDto> {
+  public async addEdge(edge: EdgeInsertDto): Promise<EdgeEntity> {
     const returnVal = await this.repo.addEdge(edge);
     this.invalidateCache();
     return returnVal;
   }
 
-  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto> {
+  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeEntity> {
     const returnVal = await this.repo.editEdge(id, edge);
     this.invalidateCache();
     return returnVal;
@@ -110,7 +113,7 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public getEdge(id: string): Promise<EdgeDto> {
+  public getEdge(id: string): Promise<EdgeEntity> {
     return this.repo.getEdge(id);
   }
 
@@ -118,7 +121,7 @@ export class GraphRedisRepository implements GraphRepository {
     name: string,
     source: string,
     target: string,
-  ): Promise<EdgeDto> {
+  ): Promise<EdgeEntity> {
     return this.repo.getEdgeByNameAndVertices(name, source, target);
   }
 
@@ -126,7 +129,7 @@ export class GraphRedisRepository implements GraphRepository {
     name?: string,
     source?: string,
     target?: string,
-  ): Promise<EdgeDto[]> {
+  ): Promise<EdgeEntity[]> {
     return this.repo.searchEdgesShallow(name, source, target);
   }
 
@@ -143,16 +146,16 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   public async addVertex(
-    vertex: VertexDto,
+    vertex: VertexEntity,
     collection:
-      | BrokerAccountDto
-      | EnvironmentDto
-      | ProjectDto
-      | ServiceInstanceDto
-      | ServiceDto
-      | TeamDto
-      | UserDto,
-  ): Promise<VertexDto> {
+      | BrokerAccountEntity
+      | EnvironmentEntity
+      | ProjectEntity
+      | ServiceInstanceEntity
+      | ServiceEntity
+      | TeamEntity
+      | UserEntity,
+  ): Promise<VertexEntity> {
     const returnVal = await this.repo.addVertex(vertex, collection);
     this.upsertVertexTypeaheadIndex(returnVal);
     this.invalidateCache();
@@ -161,17 +164,17 @@ export class GraphRedisRepository implements GraphRepository {
 
   public async editVertex(
     id: string,
-    vertex: VertexDto,
+    vertex: VertexEntity,
     collection:
-      | BrokerAccountDto
-      | EnvironmentDto
-      | ProjectDto
-      | ServiceInstanceDto
-      | ServiceDto
-      | TeamDto
-      | UserDto,
+      | BrokerAccountEntity
+      | EnvironmentEntity
+      | ProjectEntity
+      | ServiceInstanceEntity
+      | ServiceEntity
+      | TeamEntity
+      | UserEntity,
     ignoreBlankFields?: boolean,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     const returnVal = await this.repo.editVertex(
       id,
       vertex,
@@ -191,14 +194,14 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
-  public getVertex(id: string): Promise<VertexDto> {
+  public getVertex(id: string): Promise<VertexEntity> {
     return this.repo.getVertex(id);
   }
 
   public getVertexByName(
     collection: keyof CollectionDtoUnion,
     name: string,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     return this.repo.getVertexByName(collection, name);
   }
 
@@ -226,7 +229,7 @@ export class GraphRedisRepository implements GraphRepository {
     collection: keyof CollectionDtoUnion,
     parentId: string,
     name: string,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     return this.repo.getVertexByParentIdAndName(collection, parentId, name);
   }
 
@@ -338,7 +341,7 @@ export class GraphRedisRepository implements GraphRepository {
     );
     const data = await this.getData(false);
     for (const vertex of data.vertices) {
-      await this.upsertVertexTypeaheadIndex(vertex as unknown as VertexDto);
+      await this.upsertVertexTypeaheadIndex(vertex as unknown as VertexEntity);
     }
 
     // Invalidate cached data as well
@@ -349,13 +352,13 @@ export class GraphRedisRepository implements GraphRepository {
 
   private async getCollectionConfig(
     collection: string,
-  ): Promise<CollectionConfigDto | null> {
+  ): Promise<CollectionConfigEntity | null> {
     return this.collectionConfigRepository.findOne({
-      where: { collection },
+      collection: collection as CollectionNames,
     });
   }
 
-  private async upsertVertexTypeaheadIndex(vertex: VertexDto) {
+  private async upsertVertexTypeaheadIndex(vertex: VertexEntity) {
     const collection = await this.collection.getCollectionByVertexId(
       vertex.collection,
       vertex.id.toString(),
@@ -396,8 +399,8 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   private async getParentVertexName(
-    config: CollectionConfigDto,
-    vertex: VertexDto,
+    config: CollectionConfigEntity,
+    vertex: VertexEntity,
   ) {
     if (config.parent?.edgeName) {
       const edges = await this.repo.searchEdgesShallow(
@@ -417,11 +420,11 @@ export class GraphRedisRepository implements GraphRepository {
     return null;
   }
 
-  private async removeVertexTypeaheadIndex(vertex: VertexDto) {
+  private async removeVertexTypeaheadIndex(vertex: VertexEntity) {
     this.client.json.del(this.toClientJsonKey(vertex));
   }
 
-  private toClientJsonKey(vertex: VertexDto) {
+  private toClientJsonKey(vertex: VertexEntity) {
     return `collection_json:${vertex.collection}:${vertex.id.toString()}`;
   }
 

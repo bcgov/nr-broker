@@ -12,15 +12,15 @@ import {
 } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { get } from 'radash';
+import { get } from 'lodash';
 
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PackageService } from './package.service';
-import { PackageBuildDto } from '../persistence/dto/package-build.dto';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { PackageBuildSearchQuery } from '../collection/dto/package-build-search-query.dto';
 import { PackageBuildSearchResult } from '../persistence/dto/package-build-rest.dto';
+import { PackageBuildEntity } from '../persistence/dto/package-build.entity';
 
 @Controller({
   path: 'package',
@@ -58,7 +58,7 @@ export class PackageController {
 
   @Get(':id')
   @UseGuards(BrokerCombinedAuthGuard)
-  async get(@Param('id') id: string): Promise<PackageBuildDto> {
+  async get(@Param('id') id: string): Promise<PackageBuildEntity> {
     return this.service.get(id);
   }
 

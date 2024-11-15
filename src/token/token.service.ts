@@ -16,6 +16,7 @@ import {
   VAULT_KV_APPS_MOUNT,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
+import { CreateRequestContext } from '@mikro-orm/core';
 
 interface VaultTokenLookupDto {
   data: {
@@ -205,6 +206,7 @@ export class TokenService {
     });
   }
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
   handleTokenRenewal() {
     if (

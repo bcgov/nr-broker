@@ -1,13 +1,13 @@
 import { IsObject, IsOptional, ValidateNested } from 'class-validator';
 import { EdgePropDto } from '../../persistence/dto/edge-prop.dto';
 import { Type } from 'class-transformer';
-import { Column } from 'typeorm';
 import { CloudObjectDto } from './cloud-object.dto';
+import { Property } from '@mikro-orm/core';
 
 export class InstallDto {
   @IsOptional()
   @ValidateNested()
-  @Column(() => CloudObjectDto)
+  @Property()
   @Type(() => CloudObjectDto)
   cloudTarget?: CloudObjectDto;
 

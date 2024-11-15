@@ -3,11 +3,11 @@ import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
 import { TokenService } from '../token/token.service';
-import { ProjectDto } from '../persistence/dto/project.dto';
+import { ProjectEntity } from '../persistence/dto/project.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
 import { REDIS_PUBSUB, VAULT_ADDR } from '../constants';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { ServiceInstanceEntity } from '../persistence/dto/service-instance.entity';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
 import { IntentionService } from '../intention/intention.service';
@@ -105,7 +105,7 @@ export class CollectionService {
     collection: CollectionDtoUnion[T],
   ) {
     if (type === 'serviceInstance') {
-      const serviceInstance = collection as ServiceInstanceDto;
+      const serviceInstance = collection as ServiceInstanceEntity;
       if (serviceInstance.action && serviceInstance.action.intention) {
         await this.joinIntention(serviceInstance.action);
       }
@@ -338,11 +338,12 @@ export class CollectionService {
         error: `Check service exists: ${serviceId}`,
       });
     }
-    const vertices = await this.graphRepository.getUpstreamVertex<ProjectDto>(
-      service.vertex.toString(),
-      CollectionIndex.Project,
-      null,
-    );
+    const vertices =
+      await this.graphRepository.getUpstreamVertex<ProjectEntity>(
+        service.vertex.toString(),
+        CollectionIndex.Project,
+        null,
+      );
     if (vertices.length !== 1) {
       throw new NotFoundException({
         statusCode: 404,

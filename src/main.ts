@@ -17,6 +17,9 @@ async function bootstrap() {
   });
   app.enableCors();
 
+  // Starts listening for shutdown hooks
+  // app.enableShutdownHooks();
+
   // Swagger docs
   const config = new DocumentBuilder()
     .setTitle('NR Broker')

@@ -1,14 +1,13 @@
-import { IsOptional } from 'class-validator';
-import { Column, Index } from 'typeorm';
+import { Embeddable, Index, Property } from '@mikro-orm/core';
 
+@Embeddable()
 export class TimestampDto {
   @Index()
-  @Column()
+  @Property()
   createdAt: Date;
 
-  @IsOptional()
   @Index()
-  @Column()
+  @Property({ nullable: true })
   updatedAt?: Date;
 
   static create() {

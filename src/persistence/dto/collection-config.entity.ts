@@ -1,5 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
+import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+  Index,
+} from '@mikro-orm/core';
+import { ObjectId } from 'mongodb';
 import {
   CollectionEdgeConfig,
   CollectionEdgeInstanceConfig,
@@ -7,62 +14,66 @@ import {
   CollectionMap,
   CollectionSyncConfig,
 } from './collection-config-rest.dto';
-import { EdgeDto } from './edge.dto';
+import { EdgeEntity } from './edge.entity';
 import { CollectionDtoUnion } from './collection-dto-union.type';
 
-@Entity({ name: 'collectionConfig' })
-export class CollectionConfigDto {
-  @ObjectIdColumn()
-  @ApiProperty({ type: () => String })
-  id: ObjectId;
+@Entity({ tableName: 'collectionConfig' })
+export class CollectionConfigEntity {
+  @ApiHideProperty()
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
 
-  @Column()
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
+
+  @Property()
   browseFields: string[];
 
-  @Column()
+  @Property()
   @Index()
   @ApiProperty({ type: () => String })
   collection: keyof CollectionDtoUnion;
 
-  @Column()
+  @Property()
   collectionMapper: CollectionMap[];
 
-  @Column()
+  @Property()
   collectionVertexName: string;
 
-  @Column()
+  @Property()
   color: string;
 
-  @Column()
+  @Property()
   edges: CollectionEdgeConfig[];
 
-  @Column()
+  @Property()
   fields: CollectionFieldConfigMap;
 
-  @Column()
+  @Property()
   fieldDefaultSort: {
     field: string;
     dir: 1 | -1;
   };
 
-  @Column()
+  @Property()
   hint: string;
 
-  @Column()
+  @Property()
   index: number;
 
-  @Column()
+  @Property()
   name: string;
 
-  @Column()
+  @Property({ nullable: true })
   ownableCollections?: string[];
 
-  @Column()
+  @Property()
   parent: {
     edgeName: string;
   };
 
-  @Column()
+  @Property()
   permissions: {
     browse: boolean;
     create: boolean;
@@ -71,14 +82,17 @@ export class CollectionConfigDto {
     delete: boolean;
   };
 
-  @Column()
+  @Property()
   show: boolean;
 
-  @Column()
+  @Property({ nullable: true })
   sync?: CollectionSyncConfig;
 }
 
-export type CollectionConfigInstanceDto = Omit<CollectionConfigDto, 'edges'> & {
+export type CollectionConfigInstanceDto = Omit<
+  CollectionConfigEntity,
+  'edges'
+> & {
   edge: CollectionEdgeInstanceConfig;
-  instance: EdgeDto;
+  instance: EdgeEntity;
 };

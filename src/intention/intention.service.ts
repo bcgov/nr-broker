@@ -11,11 +11,10 @@ import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
-import { FindOptionsWhere } from 'typeorm';
 import merge from 'lodash.merge';
 import { validate } from 'class-validator';
 
-import { IntentionDto } from './dto/intention.dto';
+import { IntentionEntity } from './dto/intention.entity';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
   INTENTION_MAX_TTL_SECONDS,
@@ -32,13 +31,13 @@ import { IntentionSyncService } from '../graph/intention-sync.service';
 import { ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { JwtRegistryEntity } from '../persistence/dto/jwt-registry.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import {
-  EnvironmentDtoMap,
+  EnvironmentEntityMap,
   PersistenceUtilService,
 } from '../persistence/persistence-util.service';
-import { ServiceDto } from '../persistence/dto/service.dto';
+import { ServiceEntity } from '../persistence/dto/service.entity';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ArtifactDto } from './dto/artifact.dto';
 import {
@@ -48,11 +47,12 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 import { PackageDto } from './dto/package.dto';
 import { CloudDto } from './dto/cloud.dto';
 import { CloudObjectDto } from './dto/cloud-object.dto';
+import { CreateRequestContext } from '@mikro-orm/core';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -95,7 +95,7 @@ export class IntentionService {
    */
   public async open(
     req: Request,
-    intentionDto: IntentionDto,
+    intentionDto: IntentionEntity,
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
     dryRun = false,
   ): Promise<IntentionOpenResponse> {
@@ -154,7 +154,7 @@ export class IntentionService {
 
       if (service) {
         // annotate with service id
-        action.service.id = service.id;
+        action.service.id = service._id;
         await this.annotateActionPackageFromExistingArtifact(action);
       }
 
@@ -262,8 +262,8 @@ export class IntentionService {
     token: string,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
-  ): Promise<IntentionDto> {
-    const intention: IntentionDto =
+  ): Promise<IntentionEntity> {
+    const intention: IntentionEntity =
       await this.intentionRepository.getIntentionByToken(token);
     if (!intention) {
       throw new NotFoundException({
@@ -329,7 +329,7 @@ export class IntentionService {
           ...(query.outcome
             ? { 'transaction.outcome': query.outcome }
             : { 'transaction.outcome': 'success' }),
-        } as FindOptionsWhere<IntentionDto>,
+        } as any, // as FindOptionsWhere<IntentionEntity>,
         query.offset,
         query.limit,
       );
@@ -359,7 +359,7 @@ export class IntentionService {
   }
 
   private findArtifacts(
-    intention: IntentionDto | null,
+    intention: IntentionEntity | null,
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {
@@ -443,7 +443,7 @@ export class IntentionService {
     };
     if (!action.source) {
       action.source = {
-        intention: artifactSearchResult.data[0].intention.id,
+        intention: artifactSearchResult.data[0].intention._id,
       };
     }
     action.source.action = this.actionUtil.actionToIdString(
@@ -452,7 +452,7 @@ export class IntentionService {
   }
 
   private async finalizeIntention(
-    intention: IntentionDto,
+    intention: IntentionEntity,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
     req: Request = undefined,
@@ -512,7 +512,7 @@ export class IntentionService {
           action.service.name,
         );
         if (colObj) {
-          action.service.id = colObj.id;
+          action.service.id = colObj._id;
         }
       }
     }
@@ -530,7 +530,7 @@ export class IntentionService {
    */
   public async actionLifecycle(
     req: Request,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
     outcome: string | undefined,
     type: 'start' | 'end',
@@ -575,7 +575,7 @@ export class IntentionService {
    */
   public async actionArtifactRegister(
     req: ActionGuardRequest,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
     artifact: ArtifactDto,
     ignoreLifecycle = false,
@@ -629,7 +629,7 @@ export class IntentionService {
    */
   public async patchAction(
     req: ActionGuardRequest,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
     patchAction: ActionPatchRestDto,
   ) {
@@ -740,7 +740,7 @@ export class IntentionService {
   }
 
   private annotateIntentionTransaction(
-    intentionDto: IntentionDto,
+    intentionDto: IntentionEntity,
     ttl: number,
   ) {
     const startDate = new Date();
@@ -752,17 +752,17 @@ export class IntentionService {
   }
 
   private annotateIntentionAccount(
-    intentionDto: IntentionDto,
-    account: BrokerAccountDto,
+    intentionDto: IntentionEntity,
+    account: BrokerAccountEntity,
   ) {
-    intentionDto.accountId = account.id;
+    intentionDto.accountId = account._id;
     intentionDto.requireRoleId = account.requireRoleId;
   }
 
   private annotateAction(
-    intentionDto: IntentionDto,
+    intentionDto: IntentionEntity,
     action: ActionDto,
-    envMap: EnvironmentDtoMap,
+    envMap: EnvironmentEntityMap,
   ) {
     const env = this.actionUtil.environmentName(action);
     const envDto = envMap[env];
@@ -782,8 +782,8 @@ export class IntentionService {
   }
 
   private async validateActions(
-    intentionDto: IntentionDto,
-    account: BrokerAccountDto | null,
+    intentionDto: IntentionEntity,
+    account: BrokerAccountEntity | null,
   ): Promise<ActionError[]> {
     let targetServices = [];
     const validationResult: ActionError[] = [];
@@ -805,7 +805,7 @@ export class IntentionService {
       if (service) {
         if (action.service.target) {
           const targetSearch =
-            await this.graphRepository.getDownstreamVertex<ServiceDto>(
+            await this.graphRepository.getDownstreamVertex<ServiceEntity>(
               service.vertex.toString(),
               CollectionNameEnum.service,
               1,
@@ -844,6 +844,7 @@ export class IntentionService {
     };
   }
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
   async handleIntentionExpiry() {
     if (!IS_PRIMARY_NODE) {
@@ -858,6 +859,7 @@ export class IntentionService {
     }
   }
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_HOUR)
   async handleTransientCleanup() {
     if (!IS_PRIMARY_NODE) {
@@ -867,7 +869,7 @@ export class IntentionService {
     await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
   }
 
-  private async getAccountFromRegistry(registryJwt: JwtRegistryDto) {
+  private async getAccountFromRegistry(registryJwt: JwtRegistryEntity) {
     if (!registryJwt) {
       return null;
     }

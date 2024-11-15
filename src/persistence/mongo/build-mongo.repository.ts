@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MongoRepository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
+
 import { PackageDto } from '../../intention/dto/package.dto';
-import { PackageBuildDto } from '../dto/package-build.dto';
 import { SemverVersion } from '../../util/action.util';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 import { BuildRepository } from '../interfaces/build.repository';
 import { arrayIdFixer } from './mongo.util';
-import { UserDto } from '../dto/user.dto';
-import { EnvironmentDto } from '../dto/environment.dto';
-
+import { UserEntity } from '../dto/user.entity';
+import { EnvironmentEntity } from '../dto/environment.entity';
+import { PackageBuildEntity } from '../dto/package-build.entity';
 @Injectable()
 export class BuildMongoRepository implements BuildRepository {
   constructor(
-    @InjectRepository(PackageBuildDto)
-    private readonly packageBuildRepository: MongoRepository<PackageBuildDto>,
+    @InjectRepository(PackageBuildEntity)
+    private readonly packageBuildRepository: MongoEntityRepository<PackageBuildEntity>,
   ) {}
 
   public async addBuild(
@@ -27,7 +27,7 @@ export class BuildMongoRepository implements BuildRepository {
     semvar: SemverVersion,
     buildPackage: PackageDto,
   ) {
-    const result = await this.packageBuildRepository.insertOne({
+    const result = await this.packageBuildRepository.insert({
       approval: [],
       installed: [],
       service: new ObjectId(serviceId),
@@ -43,20 +43,17 @@ export class BuildMongoRepository implements BuildRepository {
         updatedAt: new Date(),
       },
     });
-    if (!result.acknowledged) {
-      throw new Error();
-    }
-    const rval = await this.getBuild(result.insertedId.toString());
-    if (rval === null) {
+    if (!result) {
       throw new Error();
     }
 
-    return rval;
+    return await this.getBuild(result.toString());
   }
 
   public async getBuild(id: string) {
-    return this.packageBuildRepository.findOne({
-      where: { _id: new ObjectId(id) },
+    console.log(`getBuild: ${id}`);
+    return await this.packageBuildRepository.findOneOrFail({
+      _id: new ObjectId(id),
     });
   }
 
@@ -80,20 +77,22 @@ export class BuildMongoRepository implements BuildRepository {
     buildId: string,
     pointer: IntentionActionPointerDto,
   ) {
-    const collResult = await this.packageBuildRepository.updateOne(
-      { _id: new ObjectId(buildId) },
-      {
-        $set: {
-          'timestamps.updatedAt': new Date(),
-        },
-        $push: {
-          installed: {
-            $each: [pointer],
-            $slice: -COLLECTION_MAX_EMBEDDED,
+    const collResult = await this.packageBuildRepository
+      .getCollection()
+      .updateOne(
+        { _id: new ObjectId(buildId) },
+        {
+          $set: {
+            'timestamps.updatedAt': new Date(),
           },
-        } as any,
-      },
-    );
+          $push: {
+            installed: {
+              $each: [pointer],
+              $slice: -COLLECTION_MAX_EMBEDDED,
+            },
+          } as any,
+        },
+      );
     if (collResult.matchedCount !== 1) {
       throw new Error();
     }
@@ -103,6 +102,7 @@ export class BuildMongoRepository implements BuildRepository {
 
   public async searchBuild(serviceId: string, offset: number, limit: number) {
     return this.packageBuildRepository
+      .getCollection()
       .aggregate([
         {
           $match: {
@@ -139,12 +139,12 @@ export class BuildMongoRepository implements BuildRepository {
   }
 
   public async approvePackage(
-    packageBuild: PackageBuildDto,
-    user: UserDto,
-    environment: EnvironmentDto,
-  ): Promise<PackageBuildDto> {
-    const result = await this.packageBuildRepository.updateOne(
-      { _id: packageBuild.id },
+    packageBuild: PackageBuildEntity,
+    user: UserEntity,
+    environment: EnvironmentEntity,
+  ): Promise<PackageBuildEntity> {
+    const result = await this.packageBuildRepository.getCollection().updateOne(
+      { _id: packageBuild._id },
       {
         $set: {
           'timestamps.updatedAt': new Date(),
@@ -166,11 +166,6 @@ export class BuildMongoRepository implements BuildRepository {
     if (result.matchedCount !== 1) {
       throw new Error();
     }
-    const rval = await this.getBuild(packageBuild.id.toString());
-    if (rval === null) {
-      throw new Error();
-    }
-
-    return rval;
+    return this.getBuild(packageBuild.id.toString());
   }
 }

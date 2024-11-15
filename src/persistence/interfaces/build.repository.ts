@@ -1,10 +1,10 @@
 import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
-import { EnvironmentDto } from '../dto/environment.dto';
+import { EnvironmentEntity } from '../dto/environment.entity';
 import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
 import { PackageBuildSearchResult } from '../dto/package-build-rest.dto';
-import { PackageBuildDto } from '../dto/package-build.dto';
-import { UserDto } from '../dto/user.dto';
+import { PackageBuildEntity } from '../dto/package-build.entity';
+import { UserEntity } from '../dto/user.entity';
 
 export abstract class BuildRepository {
   public abstract addBuild(
@@ -14,20 +14,20 @@ export abstract class BuildRepository {
     name: string,
     semvar: SemverVersion,
     buildPackage: PackageDto,
-  ): Promise<PackageBuildDto>;
+  ): Promise<PackageBuildEntity>;
 
-  public abstract getBuild(id: string): Promise<PackageBuildDto>;
+  public abstract getBuild(id: string): Promise<PackageBuildEntity>;
 
   public abstract getBuildByPackageDetail(
     serviceId: string,
     name: string,
     semvar: SemverVersion,
-  ): Promise<PackageBuildDto>;
+  ): Promise<PackageBuildEntity>;
 
   public abstract addInstallActionToBuild(
     buildId: string,
     pointer: IntentionActionPointerDto,
-  ): Promise<PackageBuildDto>;
+  ): Promise<PackageBuildEntity>;
 
   public abstract searchBuild(
     serviceId: string,
@@ -36,8 +36,8 @@ export abstract class BuildRepository {
   ): Promise<PackageBuildSearchResult>;
 
   public abstract approvePackage(
-    packageBuild: PackageBuildDto,
-    user: UserDto,
-    environment: EnvironmentDto,
-  ): Promise<PackageBuildDto>;
+    packageBuild: PackageBuildEntity,
+    user: UserEntity,
+    environment: EnvironmentEntity,
+  ): Promise<PackageBuildEntity>;
 }

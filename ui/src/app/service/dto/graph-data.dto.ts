@@ -1,7 +1,7 @@
 import { CollectionNames } from './collection-dto-union.type';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-export interface GraphDataResponseEdgeDto {
+export interface GraphDataResponseEdgeEntity {
   id: string;
   is: number;
   it: number;
@@ -10,7 +10,7 @@ export interface GraphDataResponseEdgeDto {
   target: string;
 }
 
-export interface GraphDataResponseVertexDto {
+export interface GraphDataResponseVertexEntity {
   id: string;
   category: number;
   collection: CollectionNames;
@@ -23,8 +23,8 @@ export interface GraphDataResponseCategoryDto {
 }
 
 export interface GraphDataResponseDto {
-  edges: GraphDataResponseEdgeDto[];
-  vertices: GraphDataResponseVertexDto[];
+  edges: GraphDataResponseEdgeEntity[];
+  vertices: GraphDataResponseVertexEntity[];
   categories: GraphDataResponseCategoryDto[];
 }
 

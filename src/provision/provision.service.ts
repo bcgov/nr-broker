@@ -5,7 +5,7 @@ import { ActionUtil } from '../util/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from '../intention/dto/intention.entity';
 
 @Injectable()
 export class ProvisionService {
@@ -23,7 +23,7 @@ export class ProvisionService {
    */
   public generateSecretId(
     req: Request,
-    intentionDto: IntentionDto,
+    intentionDto: IntentionEntity,
     actionDto: ActionDto,
   ) {
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
@@ -71,7 +71,7 @@ export class ProvisionService {
    */
   public generateToken(
     req: Request,
-    intentionDto: IntentionDto,
+    intentionDto: IntentionEntity,
     actionDto: ActionDto,
     roleId: string,
   ) {

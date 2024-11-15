@@ -3,9 +3,9 @@ import { ActionError } from './action.error';
 import { ActionUtil } from '../util/action.util';
 import { ActionDto } from './dto/action.dto';
 import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
-import { IntentionDto } from './dto/intention.dto';
+import { IntentionEntity } from './dto/intention.entity';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
@@ -14,7 +14,7 @@ import {
   ACTION_VALIDATE_TEAM_DBA,
   INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
 } from '../constants';
-import { UserDto } from '../persistence/dto/user.dto';
+import { UserEntity } from '../persistence/dto/user.entity';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
@@ -36,10 +36,10 @@ export class ActionService {
   ) {}
 
   public async bindUserToAction(
-    account: BrokerAccountDto | null,
+    account: BrokerAccountEntity | null,
     action: ActionDto,
   ) {
-    let user: UserDto;
+    let user: UserEntity;
     if (!action.user) {
       return;
     }
@@ -64,7 +64,7 @@ export class ActionService {
     if (account) {
       action.user.group = {
         ...(action.user.group ?? {}),
-        id: account.id,
+        id: account._id,
         name: account.name,
         domain: 'broker',
       };
@@ -72,9 +72,9 @@ export class ActionService {
   }
 
   public async validate(
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
-    account: BrokerAccountDto | null,
+    account: BrokerAccountEntity | null,
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     targetServices: string[],
     requireProjectExists: boolean,
@@ -107,7 +107,7 @@ export class ActionService {
   }
 
   private validateUserSet(
-    account: BrokerAccountDto | null,
+    account: BrokerAccountEntity | null,
     user: any,
     action: ActionDto,
   ): ActionError | null {
@@ -216,7 +216,7 @@ export class ActionService {
 
   private async validateDatabaseAccessAction(
     user: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
   ): Promise<ActionError | null> {
     if (action instanceof DatabaseAccessActionDto) {
@@ -247,8 +247,8 @@ export class ActionService {
   }
 
   private async validatePackageBuildAction(
-    account: BrokerAccountDto | null,
-    intention: IntentionDto,
+    account: BrokerAccountEntity | null,
+    intention: IntentionEntity,
     action: ActionDto,
   ): Promise<ActionError | null> {
     if (action instanceof PackageBuildActionDto) {
@@ -362,9 +362,9 @@ export class ActionService {
   }
 
   private async validatePackageInstallAction(
-    account: BrokerAccountDto | null,
+    account: BrokerAccountEntity | null,
     user: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
   ): Promise<ActionError | null> {
     if (action instanceof PackageInstallationActionDto) {
@@ -460,7 +460,7 @@ export class ActionService {
 
   private async validateAssistedDelivery(
     user: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
   ): Promise<ActionError | null> {
     const project = await this.collectionRepository.getCollectionByKeyValue(

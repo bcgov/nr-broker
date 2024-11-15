@@ -1,5 +1,5 @@
-import { Entity } from 'typeorm';
+import { Entity } from '@mikro-orm/core';
 import { JwtDto } from './jwt.dto';
 
-@Entity({ name: 'jwtAllow' })
-export class JwtAllowDto extends JwtDto {}
+@Entity({ tableName: 'jwtAllow' })
+export class JwtAllowEntity extends JwtDto {}

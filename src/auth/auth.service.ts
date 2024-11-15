@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { get } from 'radash';
+import { get } from 'lodash';
 import { Request } from 'express';
 
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';

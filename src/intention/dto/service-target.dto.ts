@@ -1,26 +1,26 @@
+import { Entity, Property } from '@mikro-orm/core';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 
 @Entity()
 export class ServiceTargetDto {
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   environment: string;
 
   // Defaults to environment
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   instanceName?: string;
 
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   name: string;
 
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   project: string;
 }

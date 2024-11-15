@@ -1,6 +1,6 @@
 import { EdgeRestDto } from './edge-rest.dto';
 import {
-  GraphDataResponseVertexDto,
+  GraphDataResponseVertexEntity,
   GraphDeleteResponseDto,
 } from './graph-data.dto';
 
@@ -23,7 +23,7 @@ export class GraphEdgeEventRestDto {
 
 export class GraphVertexEventRestDto {
   event!: 'vertex-add' | 'vertex-edit';
-  vertex!: GraphDataResponseVertexDto;
+  vertex!: GraphDataResponseVertexEntity;
 }
 
 export class GraphDeleteEventRestDto extends GraphDeleteResponseDto {

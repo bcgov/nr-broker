@@ -1,18 +1,18 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 import { EdgePropDto } from '../../persistence/dto/edge-prop.dto';
+import { Entity, Property } from '@mikro-orm/core';
 
 @Entity()
 class CloudObjectAccountDto {
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   id: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   name: string;
 }
 
@@ -20,19 +20,19 @@ class CloudObjectAccountDto {
 class CloudObjectInstanceDto {
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   id: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   name: string;
 }
 
 @Entity()
 class CloudObjectMachineDto {
   @IsString()
-  @Column()
+  @Property()
   type: string;
 }
 
@@ -40,19 +40,19 @@ class CloudObjectMachineDto {
 class CloudObjectProjectDto {
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   id: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   name: string;
 }
 
 @Entity()
 class CloudObjectServiceDto {
   @IsString()
-  @Column()
+  @Property()
   name: string;
 }
 
@@ -60,57 +60,57 @@ class CloudObjectServiceDto {
 export class CloudObjectDto {
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudObjectAccountDto)
+  @Property()
   @Type(() => CloudObjectAccountDto)
   account?: CloudObjectAccountDto;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   availability_zone?: string;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudObjectInstanceDto)
+  @Property()
   @Type(() => CloudObjectInstanceDto)
   instance?: CloudObjectInstanceDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudObjectMachineDto)
+  @Property()
   @Type(() => CloudObjectMachineDto)
   machine?: CloudObjectMachineDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudObjectProjectDto)
+  @Property()
   @Type(() => CloudObjectProjectDto)
   project?: CloudObjectProjectDto;
 
   @IsOptional()
-  @Column()
+  @Property()
   @Type(() => EdgePropDto)
   prop?: EdgePropDto;
 
   @IsString()
   @IsIn(['merge', 'replace'])
   @IsOptional()
-  @Column()
+  @Property()
   propStrategy?: 'merge' | 'replace';
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   provider?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   region?: string;
 
   @ValidateNested()
   @IsOptional()
-  @Column()
+  @Property()
   @Type(() => CloudObjectServiceDto)
   service?: CloudObjectServiceDto;
 }

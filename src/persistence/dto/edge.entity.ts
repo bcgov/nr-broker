@@ -1,71 +1,58 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
-import { ObjectId } from 'mongodb';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
-  IsDefined,
-  IsNotEmptyObject,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+  Embedded,
+  Entity,
+  Index,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+} from '@mikro-orm/core';
+import { ObjectId } from 'mongodb';
+import { IsNotEmptyObject } from 'class-validator';
 import { EdgeInsertDto, EdgeRestDto } from './edge-rest.dto';
 import { EdgePropDto } from './edge-prop.dto';
-import { Transform, Type } from 'class-transformer';
 import { IsValidProp } from '../../util/validator.util';
 import { TimestampDto } from './timestamp.dto';
 
-@Entity({ name: 'edge' })
-@Index(['source', 'name'])
-export class EdgeDto {
-  @ObjectIdColumn()
-  @ApiProperty({ type: () => String })
-  id: ObjectId;
+@Entity({ tableName: 'edge' })
+// @Index(['source', 'name'])
+export class EdgeEntity {
+  @ApiHideProperty()
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
 
-  @Column()
-  @IsDefined()
-  @IsNumber()
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
+
+  @Property()
   is: number;
 
-  @Column()
-  @IsDefined()
-  @IsNumber()
+  @Property()
   it: number;
 
-  @Column()
-  @IsDefined()
-  @IsString()
+  @Property()
   name: string;
 
-  @Column()
-  @IsOptional()
+  @Property({ nullable: true })
   @IsValidProp()
   @IsNotEmptyObject()
   prop?: EdgePropDto;
 
-  @Column()
+  @Property()
   @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.source ? new ObjectId(value.obj.source.toString()) : null,
-  )
-  @IsDefined()
   source: ObjectId;
 
-  @Column()
+  @Property()
   @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.target ? new ObjectId(value.obj.target.toString()) : null,
-  )
   @Index()
-  @IsDefined()
   target: ObjectId;
 
-  @IsOptional()
-  @Column(() => TimestampDto)
-  @Type(() => TimestampDto)
+  @Embedded({ entity: () => TimestampDto, nullable: true })
   timestamps?: TimestampDto;
 
-  static upgradeInsertDto(value: EdgeInsertDto): EdgeDto {
-    const edge = new EdgeDto();
+  static upgradeInsertDto(value: EdgeInsertDto): EdgeEntity {
+    const edge = new EdgeEntity();
     edge.name = value.name;
     if (value.prop) {
       edge.prop = value.prop;

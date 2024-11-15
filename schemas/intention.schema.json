@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bcgov-nr/nr-broker/schemas/intention.schema.json",
+  "title": "Intention",
+
+  "description": "A request to perform activities",
+  "type": "object",
+
+  "properties": {
+    "event": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

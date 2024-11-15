@@ -1,14 +1,11 @@
-import { IsDefined, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Embeddable, Property } from '@mikro-orm/core';
 
-@Entity()
+@Embeddable()
 export class UrlDto {
   /**
    * The full url to the object
    * See: https://www.elastic.co/guide/en/ecs/current/ecs-url.html#field-url-full
    */
-  @Column()
-  @IsString()
-  @IsDefined()
+  @Property()
   full?: string;
 }

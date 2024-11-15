@@ -1,5 +1,5 @@
 import { Equals, IsIn } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 import { ActionDto } from './action.dto';
 
 @Entity()
@@ -10,6 +10,6 @@ export class ProcessStartActionDto extends ActionDto {
   @IsIn([], {
     each: true,
   })
-  @Column()
+  @Property()
   provision: string[];
 }

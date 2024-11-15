@@ -5,9 +5,9 @@ import {
 } from './dto/collection-config-rest.dto';
 import { CollectionNames } from './dto/collection-dto-union.type';
 import {
-  GraphDataResponseEdgeDto,
+  GraphDataResponseEdgeEntity,
   GraphDataResponseDto,
-  GraphDataResponseVertexDto,
+  GraphDataResponseVertexEntity,
 } from './dto/graph-data.dto';
 import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
 import { VertexRestDto } from './dto/vertex-rest.dto';
@@ -33,7 +33,7 @@ export interface ChartClickTargetVertex {
 
 export interface ChartClickTargetEdge {
   type: 'edge';
-  data: GraphDataResponseEdgeDto;
+  data: GraphDataResponseEdgeEntity;
 }
 
 export type InspectorTarget = InspectorTargetVertex | InspectorTargetEdge;
@@ -52,7 +52,7 @@ export interface InspectorTargetEdge {
   target: string;
 }
 
-export interface GraphDataVertex extends GraphDataResponseVertexDto {
+export interface GraphDataVertex extends GraphDataResponseVertexEntity {
   parentName?: string;
   prop?: any;
 }
@@ -66,7 +66,7 @@ export interface GraphDataConfig {
 
 export interface GraphData extends GraphDataResponseDto {
   idToEdge: {
-    [key: string]: GraphDataResponseEdgeDto;
+    [key: string]: GraphDataResponseEdgeEntity;
   };
   idToVertex: {
     [key: string]: GraphDataVertex;
@@ -88,12 +88,12 @@ export interface ConnectionMap {
 }
 
 export interface Connection {
-  edge: GraphDataResponseEdgeDto;
+  edge: GraphDataResponseEdgeEntity;
   vertex: GraphDataVertex;
 }
 
 export interface EdgeNavigation {
-  edge: GraphDataResponseEdgeDto;
+  edge: GraphDataResponseEdgeEntity;
   sourceVertex: GraphDataVertex;
   targetVertex: GraphDataVertex;
 }

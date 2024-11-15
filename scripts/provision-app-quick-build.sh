@@ -4,7 +4,7 @@
 cd "$this_dir"
 
 PACKAGE_BUILD_VERSION=$(git rev-parse --verify HEAD)
-PACKAGE_VERSION="12.0.3"
+PACKAGE_VERSION="19.1.4"
 sha256=($(echo $RANDOM $RANDOM $RANDOM | shasum -a 256))
 
 echo "===> Intention open"

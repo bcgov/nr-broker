@@ -1,26 +1,16 @@
+import { Embeddable, Property } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
 import { ObjectId } from 'mongodb';
-import { Column, Entity } from 'typeorm';
 
-@Entity()
+@Embeddable()
 export class UserGroupDto {
-  @IsString()
-  @IsOptional()
-  @Column()
+  @Property()
   domain: string;
 
-  @IsOptional()
-  @Column()
+  @Property()
   @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
-  )
   id: ObjectId;
 
-  @IsString()
-  @IsOptional()
-  @Column()
+  @Property()
   name: string;
 }

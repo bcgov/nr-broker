@@ -1,28 +1,28 @@
 import { BrokerAccountRestDto } from './broker-account-rest.dto';
-import { BrokerAccountDto } from './broker-account.dto';
+import { BrokerAccountEntity } from './broker-account.entity';
 import { EnvironmentRestDto } from './environment-rest.dto';
-import { EnvironmentDto } from './environment.dto';
+import { EnvironmentEntity } from './environment.entity';
 import { ProjectRestDto } from './project-rest.dto';
-import { ProjectDto } from './project.dto';
-import { ServerDto } from './server.dto';
+import { ProjectEntity } from './project.entity';
+import { ServerEntity } from './server.entity';
 import { ServiceInstanceRestDto } from './service-instance-rest.dto';
-import { ServiceInstanceDto } from './service-instance.dto';
+import { ServiceInstanceEntity } from './service-instance.entity';
 import { ServiceRestDto } from './service-rest.dto';
-import { ServiceDto } from './service.dto';
+import { ServiceEntity } from './service.entity';
 import { TeamRestDto } from './team-rest.dto';
-import { TeamDto } from './team.dto';
+import { TeamEntity } from './team.entity';
 import { UserRestDto } from './user-rest.dto';
-import { UserDto } from './user.dto';
+import { UserEntity } from './user.entity';
 
 export type CollectionDtoUnion = {
-  brokerAccount: BrokerAccountDto;
-  environment: EnvironmentDto;
-  project: ProjectDto;
-  server: ServerDto;
-  serviceInstance: ServiceInstanceDto;
-  service: ServiceDto;
-  team: TeamDto;
-  user: UserDto;
+  brokerAccount: BrokerAccountEntity;
+  environment: EnvironmentEntity;
+  project: ProjectEntity;
+  server: ServerEntity;
+  serviceInstance: ServiceInstanceEntity;
+  service: ServiceEntity;
+  team: TeamEntity;
+  user: UserEntity;
 };
 
 export type CollectionDtoRestUnion = {

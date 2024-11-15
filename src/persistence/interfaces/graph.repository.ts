@@ -1,8 +1,8 @@
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
-import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
+import { CollectionConfigInstanceDto } from '../dto/collection-config.entity';
 import { EdgeInsertDto } from '../dto/edge-rest.dto';
-import { EdgeDto } from '../dto/edge.dto';
+import { EdgeEntity } from '../dto/edge.entity';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
@@ -11,7 +11,7 @@ import {
 import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { VertexSearchDto } from '../dto/vertex-rest.dto';
-import { VertexDto } from '../dto/vertex.dto';
+import { VertexEntity } from '../dto/vertex.entity';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
 import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
@@ -44,20 +44,23 @@ export abstract class GraphRepository {
     id: string,
   ): Promise<UserPermissionRestDto>;
   // Edge
-  public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeDto>;
-  public abstract editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto>;
+  public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeEntity>;
+  public abstract editEdge(
+    id: string,
+    edge: EdgeInsertDto,
+  ): Promise<EdgeEntity>;
   public abstract deleteEdge(id: string): Promise<GraphDeleteResponseDto>;
-  public abstract getEdge(id: string): Promise<EdgeDto | null>;
+  public abstract getEdge(id: string): Promise<EdgeEntity | null>;
   public abstract getEdgeByNameAndVertices(
     name: string,
     source: string,
     target: string,
-  ): Promise<EdgeDto>;
+  ): Promise<EdgeEntity>;
   public abstract searchEdgesShallow(
     name: string,
     source?: string,
     target?: string,
-  ): Promise<EdgeDto[]>;
+  ): Promise<EdgeEntity[]>;
   public abstract getEdgeConfigByVertex(
     sourceId: string,
     targetCollection?: string,
@@ -65,21 +68,21 @@ export abstract class GraphRepository {
   ): Promise<CollectionConfigInstanceDto[]>;
   // Vertex
   public abstract addVertex(
-    vertex: VertexDto,
+    vertex: VertexEntity,
     collection: CollectionDtoUnion[typeof vertex.collection],
-  ): Promise<VertexDto>;
+  ): Promise<VertexEntity>;
   public abstract editVertex(
     id: string,
-    vertex: VertexDto,
+    vertex: VertexEntity,
     collection: CollectionDtoUnion[typeof vertex.collection],
     ignoreBlankFields?: boolean,
-  ): Promise<VertexDto>;
+  ): Promise<VertexEntity>;
   public abstract deleteVertex(id: string): Promise<GraphDeleteResponseDto>;
-  public abstract getVertex(id: string): Promise<VertexDto | null>;
+  public abstract getVertex(id: string): Promise<VertexEntity | null>;
   public abstract getVertexByName(
     collection: keyof CollectionDtoUnion,
     name: string,
-  ): Promise<VertexDto | null>;
+  ): Promise<VertexEntity | null>;
   public abstract getVertexConnections(
     id: string,
   ): Promise<GraphVertexConnections>;
@@ -94,7 +97,7 @@ export abstract class GraphRepository {
     collection: keyof CollectionDtoUnion,
     parentId: string,
     name: string,
-  ): Promise<VertexDto | null>;
+  ): Promise<VertexEntity | null>;
   public abstract getUpstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,

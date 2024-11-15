@@ -41,6 +41,13 @@ curl -s -X POST $BROKER_URL/v1/intention/action/patch \
         -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
         -d '{"cloud":{"target":{"propStrategy":"replace","prop":{"port": "5000", "something": "else"}}}}'
 
+
+ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
+curl -s -X POST $BROKER_URL/v1/intention/action/patch \
+        -H 'Content-Type: application/json' \
+        -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
+        -d '{"cloud":{"target":{"propStrategy":"replace","prop":{"java_version": "8"}}}}'
+
 echo "===> Intention close"
 
 # Use saved intention token to close intention

@@ -1,17 +1,23 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Entity, ObjectIdColumn, Column, Index } from 'typeorm';
-import { IsDefined, ValidateNested } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import {
+  Embedded,
+  Entity,
+  Index,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+} from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
+import { IsDefined, ValidateNested } from 'class-validator';
 
 import { PackageDto } from '../../intention/dto/package.dto';
 import { TimestampDto } from './timestamp.dto';
 import { IntentionActionPointerDto } from './intention-action-pointer.dto';
 
 @Entity()
-export class PackageBuildApprovalDto {
+export class PackageBuildApprovalEntity {
   @IsDefined()
-  @Column()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
     value.obj.environment
@@ -21,64 +27,61 @@ export class PackageBuildApprovalDto {
   environment: ObjectId;
 
   @IsDefined()
-  @Column()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
-    value.obj.userId ? new ObjectId(value.obj.userId.toString()) : null,
+    value.obj.user ? new ObjectId(value.obj.user.toString()) : null,
   )
+  @Property()
   user: ObjectId;
 
   @IsDefined()
-  @Column()
+  @Property()
   at: Date;
 }
 
-@Entity({ name: 'packageBuild' })
-export class PackageBuildDto {
-  @ObjectIdColumn()
+@Entity({ tableName: 'packageBuild' })
+export class PackageBuildEntity {
   @ApiHideProperty()
   @Transform((value) =>
     value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
   )
-  id: ObjectId;
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
+
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
 
   @IsDefined()
-  @Column(() => PackageBuildApprovalDto)
-  @Type(() => PackageBuildApprovalDto)
-  approval: PackageBuildApprovalDto[];
+  @Type(() => PackageBuildApprovalEntity)
+  @Property()
+  approval: PackageBuildApprovalEntity[];
 
-  @IsDefined()
-  @Column(() => IntentionActionPointerDto, { array: true })
-  @Type(() => IntentionActionPointerDto)
+  @Embedded(() => IntentionActionPointerDto, { array: true })
   installed: IntentionActionPointerDto[];
 
-  @IsDefined()
-  @Column(() => IntentionActionPointerDto)
-  @Type(() => IntentionActionPointerDto)
+  @Embedded({ entity: () => IntentionActionPointerDto, nullable: true })
   source: IntentionActionPointerDto;
 
   @IsDefined()
-  @Column()
   @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.vertex ? new ObjectId(value.obj.vertex.toString()) : null,
-  )
   @Index()
+  @Property()
   service: ObjectId;
 
-  @IsDefined()
-  @Column()
+  @Property()
+  name: string;
+
   @Index()
+  @Property()
   semvar: string;
 
   @IsDefined()
   @ValidateNested()
-  @Column(() => PackageDto)
   @Type(() => PackageDto)
+  @Property()
   package: PackageDto;
 
-  @IsDefined()
-  @Column(() => TimestampDto)
-  @Type(() => TimestampDto)
+  @Embedded({ entity: () => TimestampDto })
   timestamps: TimestampDto;
 }

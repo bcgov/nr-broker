@@ -1,9 +1,9 @@
 import { Controller, Get, HttpCode, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import {
   HealthCheckService,
   HttpHealthIndicator,
-  TypeOrmHealthIndicator,
+  MikroOrmHealthIndicator,
 } from '@nestjs/terminus';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { HealthService } from './health.service';
@@ -19,9 +19,12 @@ export class HealthController {
     private readonly http: HttpHealthIndicator,
     private readonly github: GithubHealthIndicator,
     private readonly healthService: HealthService,
-    private readonly db: TypeOrmHealthIndicator,
+    private readonly db: MikroOrmHealthIndicator,
   ) {}
 
+  /**
+   * Broker's full health check details
+   */
   @Get()
   check() {
     return this.health.check([
@@ -35,16 +38,30 @@ export class HealthController {
     ]);
   }
 
+  /**
+   * Lightweight Broker health check
+   */
   @Get('ping')
   @HttpCode(204)
+  @ApiResponse({
+    status: 204,
+    description: 'Status code if healthy',
+  })
   ping() {
     this.healthService.check();
   }
 
+  /**
+   * Lightweight Broker token check
+   */
   @Get('token-check')
   @HttpCode(204)
   @UseGuards(BrokerJwtAuthGuard)
   @ApiBearerAuth()
+  @ApiResponse({
+    status: 204,
+    description: 'Status code if healthy',
+  })
   tokenCheck() {
     return;
   }

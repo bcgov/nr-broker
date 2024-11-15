@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { get } from 'radash';
+import { get } from 'lodash';
 import ejs from 'ejs';
 import {
   INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS,
@@ -8,7 +8,7 @@ import {
   VAULT_PROVISIONED_ACTION_SET,
 } from '../constants';
 import { ActionDto, isActionName } from '../intention/dto/action.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from '../intention/dto/intention.entity';
 
 export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
@@ -124,7 +124,7 @@ export class ActionUtil {
    * @param intention The intention to create the audit url for
    * @returns The audit url string
    */
-  public auditUrlForIntention(intention: IntentionDto): string {
+  public auditUrlForIntention(intention: IntentionEntity): string {
     return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 

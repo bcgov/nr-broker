@@ -1,14 +1,21 @@
-import { ObjectLiteral, FindOptionsWhere } from 'typeorm';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { CollectionConfigDto } from '../dto/collection-config.dto';
-import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { CollectionConfigEntity } from '../dto/collection-config.entity';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from '../dto/collection-dto-union.type';
 
 export abstract class CollectionRepository {
-  public abstract getCollectionConfigs(): Promise<CollectionConfigDto[]>;
+  public abstract assignCollection(
+    collection: CollectionNames,
+    data: any,
+  ): CollectionDtoUnion[typeof collection];
+
+  public abstract getCollectionConfigs(): Promise<CollectionConfigEntity[]>;
 
   public abstract getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
-  ): Promise<CollectionConfigDto>;
+  ): Promise<CollectionConfigEntity>;
 
   public abstract getCollectionById<T extends keyof CollectionDtoUnion>(
     type: T,
@@ -32,11 +39,11 @@ export abstract class CollectionRepository {
 
   public abstract getCollection<T extends keyof CollectionDtoUnion>(
     type: T,
-    whereClause:
-      | ObjectLiteral
-      | FindOptionsWhere<CollectionDtoUnion[T]>
-      | FindOptionsWhere<CollectionDtoUnion[T]>[],
+    whereClause: any,
   ): Promise<CollectionDtoUnion[T] | null>;
+  // | ObjectLiteral
+  // | FindOptionsWhere<CollectionDtoUnion[T]>
+  // | FindOptionsWhere<CollectionDtoUnion[T]>[],
 
   public abstract getCollections<T extends keyof CollectionDtoUnion>(
     type: T,

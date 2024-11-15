@@ -2,10 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { AuditService } from '../audit/audit.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { PackageBuildDto } from '../persistence/dto/package-build.dto';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
 import { RedisService } from '../redis/redis.service';
 import { REDIS_PUBSUB } from '../constants';
+import { PackageBuildEntity } from '../persistence/dto/package-build.entity';
 
 @Injectable()
 export class PackageService {
@@ -16,7 +16,7 @@ export class PackageService {
     private readonly redisService: RedisService,
   ) {}
 
-  async get(id: string): Promise<PackageBuildDto> {
+  async get(id: string): Promise<PackageBuildEntity> {
     return this.buildRepository.getBuild(id);
   }
 

@@ -1,5 +1,5 @@
+import { Entity, Property } from '@mikro-orm/core';
 import { IsOptional, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 
 @Entity()
 export class EventDto {
@@ -9,7 +9,7 @@ export class EventDto {
    * Example: provision-fluentbit-demo
    * See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-provider
    */
-  @Column()
+  @Property()
   @IsString()
   provider: string;
 
@@ -17,7 +17,7 @@ export class EventDto {
    * This should be a short text message outlining what triggered the usage of the broker.
    * See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-reason
    */
-  @Column()
+  @Property()
   @IsString()
   reason: string;
 
@@ -27,14 +27,14 @@ export class EventDto {
    * database as needed.
    */
   @IsOptional()
-  @Column()
+  @Property()
   transient?: boolean;
 
   /**
    * This should be the url to the job run or action that started this usage.
    * See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-url
    */
-  @Column()
+  @Property()
   @IsString()
   @IsOptional()
   url: string;

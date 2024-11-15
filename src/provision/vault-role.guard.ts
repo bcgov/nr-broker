@@ -11,11 +11,11 @@ import { TokenService } from '../token/token.service';
 import { HEADER_VAULT_ROLE_ID } from '../constants';
 import { ActionDto } from '../intention/dto/action.dto';
 import { ActionUtil } from '../util/action.util';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from '../intention/dto/intention.entity';
 import { AuditService } from '../audit/audit.service';
 
 export interface RoleGuardRequest extends Request {
-  brokerIntentionDto?: IntentionDto;
+  brokerIntentionEntity?: IntentionEntity;
   brokerActionDto?: ActionDto;
 }
 
@@ -40,7 +40,7 @@ export class VaultRoleGuard implements CanActivate {
       const request = context.switchToHttp().getRequest<RoleGuardRequest>();
 
       const action: ActionDto = request.brokerActionDto;
-      const intention = request.brokerIntentionDto;
+      const intention = request.brokerIntentionEntity;
       const application = action?.service?.target
         ? action?.service?.target?.name
         : action?.service?.name;

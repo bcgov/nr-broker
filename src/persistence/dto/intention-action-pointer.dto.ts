@@ -1,27 +1,21 @@
-import { Column } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { IsDefined, IsString } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IntentionDto } from '../../intention/dto/intention.dto';
+import { Embeddable, Property } from '@mikro-orm/core';
+import { IntentionEntity } from '../../intention/dto/intention.entity';
 import { ActionDto } from '../../intention/dto/action.dto';
 
+@Embeddable()
 export class IntentionActionPointerDto {
-  @IsString()
-  @IsDefined()
-  @Column()
+  @Property()
   action: string;
 
-  @IsDefined()
-  @Column()
+  @Property()
   @ApiProperty({ type: () => String })
-  @Type(() => ObjectId)
-  @Transform((value) => new ObjectId(value.obj.intention.toString()))
   intention: ObjectId;
 
   // For returning joined intention
   source?: {
-    intention: IntentionDto;
+    intention: IntentionEntity;
     action: ActionDto;
   };
 }

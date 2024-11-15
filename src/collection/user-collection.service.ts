@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { USER_ALIAS_DOMAIN_GITHUB } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphService } from '../graph/graph.service';
-import { UserDto } from '../persistence/dto/user.dto';
+import { UserEntity } from '../persistence/dto/user.entity';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
@@ -23,7 +23,7 @@ export class UserCollectionService {
     private readonly graphService: GraphService,
   ) {}
 
-  async lookupUserByGuid(guid: string): Promise<UserDto> {
+  async lookupUserByGuid(guid: string): Promise<UserEntity> {
     return this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
@@ -31,7 +31,10 @@ export class UserCollectionService {
     );
   }
 
-  async lookupUserByName(username: string, domain?: string): Promise<UserDto> {
+  async lookupUserByName(
+    username: string,
+    domain?: string,
+  ): Promise<UserEntity> {
     if (!domain) {
       [username, domain] = username.split('@');
     }

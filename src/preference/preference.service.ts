@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { PreferenceRestDto } from '../persistence/dto/preference-rest.dto';
-import { PreferenceDto } from '../persistence/dto/preference.dto';
+import { PreferenceEntity } from '../persistence/dto/preference.entity';
 
 @Injectable()
 export class PreferenceService {
@@ -11,7 +11,7 @@ export class PreferenceService {
     const pref = await this.systemRepository.getPreferences(guid);
     return pref
       ? pref.toRestDto()
-      : Promise.resolve(new PreferenceDto().toRestDto());
+      : Promise.resolve(new PreferenceEntity().toRestDto());
   }
 
   async setPreferences(guid: string, preference: PreferenceRestDto) {

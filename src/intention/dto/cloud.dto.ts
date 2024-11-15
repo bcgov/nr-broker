@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsDefined, IsOptional, ValidateNested } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 
 import { CloudObjectDto } from './cloud-object.dto';
 
@@ -8,13 +8,13 @@ import { CloudObjectDto } from './cloud-object.dto';
 export class CloudDto {
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudObjectDto)
+  @Property()
   @Type(() => CloudObjectDto)
   source?: CloudObjectDto;
 
   @IsDefined()
   @ValidateNested()
-  @Column(() => CloudObjectDto)
+  @Property()
   @Type(() => CloudObjectDto)
   target: CloudObjectDto;
 }

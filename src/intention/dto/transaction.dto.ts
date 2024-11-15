@@ -1,33 +1,33 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 
 @Entity()
 export class TransactionDto {
   @IsString()
-  @Column()
+  @Property()
   token: string;
 
   @IsString()
-  @Column()
+  @Property()
   hash: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   start?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   end?: string;
 
   @IsNumber()
   @IsOptional()
-  @Column()
+  @Property()
   duration?: number;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   outcome?: string;
 }

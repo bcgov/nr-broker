@@ -6,7 +6,7 @@ import {
   Length,
   ValidateNested,
 } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 import { ServiceTargetDto } from './service-target.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
@@ -15,10 +15,10 @@ import { ObjectId } from 'mongodb';
 export class ServiceDto {
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   environment: string;
 
-  @Column()
+  @Property()
   @IsOptional()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
@@ -29,24 +29,24 @@ export class ServiceDto {
   // Defaults to environment
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   instanceName?: string;
 
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   @Length(1)
   name: string;
 
   @IsString()
   @IsDefined()
-  @Column()
+  @Property()
   @Length(1)
   project: string;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => ServiceTargetDto)
+  @Property()
   @Type(() => ServiceTargetDto)
   target?: ServiceTargetDto;
 }

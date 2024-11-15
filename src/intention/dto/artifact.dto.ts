@@ -6,28 +6,28 @@ import {
   Length,
 } from 'class-validator';
 import { IsValidHash } from '../../util/validator.util';
-import { Entity, Column } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 
 @Entity()
 export class ArtifactDto {
-  @Column()
+  @Property()
   @IsOptional()
   @IsString()
   @IsValidHash()
   checksum?: string;
 
-  @Column()
+  @Property()
   @IsDefined()
   @IsString()
   @Length(1)
   name: string;
 
-  @Column()
+  @Property()
   @IsOptional()
   @IsNumber()
   size?: number;
 
-  @Column()
+  @Property()
   @IsOptional()
   @IsString()
   type?: string;

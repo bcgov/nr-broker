@@ -1,37 +1,52 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, Index, ObjectId, ObjectIdColumn } from 'typeorm';
+import {
+  Entity,
+  Index,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+} from '@mikro-orm/core';
+import { ObjectId } from 'mongodb';
+import { ApiHideProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { PreferenceRestDto } from './preference-rest.dto';
 import { CollectionNames } from './collection-dto-union.type';
 
-@Entity({ name: 'preference' })
-export class PreferenceDto {
-  @ObjectIdColumn()
-  @ApiProperty({ type: () => String })
-  id: ObjectId;
+@Entity({ tableName: 'preference' })
+export class PreferenceEntity {
+  @ApiHideProperty()
+  @Transform((value) =>
+    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
+  )
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
 
-  @Column()
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
+
+  @Property()
   @Index()
   guid: string;
 
-  @Column()
+  @Property()
   browseConnectionFilter: 'connected' | 'all';
 
-  @Column()
+  @Property()
   browseCollectionDefault: CollectionNames;
 
-  @Column()
+  @Property()
   graphFollows: 'edge' | 'vertex' = 'vertex';
 
-  @Column()
+  @Property()
   graphVertexVisibility: { [key: string]: boolean } = {};
 
-  @Column()
+  @Property()
   graphEdgeSrcTarVisibility: { [key: string]: boolean } = {};
 
-  @Column()
+  @Property()
   homeSectionTab: number;
 
-  @Column()
+  @Property()
   ignoreGitHubLink: boolean = false;
 
   public toRestDto(): PreferenceRestDto {

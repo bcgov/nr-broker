@@ -1,12 +1,12 @@
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { ApiProperty } from '@nestjs/swagger';
+import { Entity, Property } from '@mikro-orm/core';
 
 @Entity()
 export class PackageDto {
-  @Column()
+  @Property()
   @IsOptional()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
@@ -16,71 +16,71 @@ export class PackageDto {
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   architecture?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   buildGuid?: string;
 
   @IsNumber()
   @IsOptional()
-  @Column()
+  @Property()
   buildNumber?: number;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   buildVersion?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   checksum?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   description?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   installScope?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   license?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   name?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   path?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   reference?: string;
 
   @IsNumber()
   @IsOptional()
-  @Column()
+  @Property()
   size?: number;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   type?: string;
 
   @IsString()
   @IsOptional()
-  @Column()
+  @Property()
   version?: string;
 }

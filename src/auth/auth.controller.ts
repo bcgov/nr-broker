@@ -9,17 +9,26 @@ import { BrokerOidcRedirectGuard } from './broker-oidc-redirect.guard';
 
 @Controller('auth')
 export class AuthController {
+  /**
+   * API for triggering OIDC login
+   */
   @UseGuards(BrokerOidcRedirectGuard)
   @Get('/login')
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   login() {}
 
+  /**
+   * Get user details of person currently logged in
+   */
   @UseGuards(BrokerOidcRedirectGuard)
   @Get('/user')
   user(@Request() req: any) {
     return req.user;
   }
 
+  /**
+   * OIDC callback endpoint
+   */
   @UseGuards(BrokerOidcRedirectGuard)
   @Get('/callback')
   loginCallback(@Response() res: ExpressResponse) {
@@ -28,8 +37,6 @@ export class AuthController {
 
   /**
    * Logout user from OIDC
-   * @param req
-   * @param res
    */
   @Get('/logout')
   async logout(

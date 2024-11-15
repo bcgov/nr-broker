@@ -13,7 +13,7 @@ import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
-import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { JwtRegistryEntity } from '../persistence/dto/jwt-registry.entity';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
   OPENSEARCH_INDEX_BROKER_AUDIT,
@@ -28,14 +28,15 @@ import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { OpensearchService } from '../aws/opensearch.service';
 import { DateUtil, INTERVAL_HOUR_MS } from '../util/date.util';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
-import { ServiceDto } from '../persistence/dto/service.dto';
+import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
+import { ServiceEntity } from '../persistence/dto/service.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { ProjectDto } from '../persistence/dto/project.dto';
+import { ProjectEntity } from '../persistence/dto/project.entity';
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
+import { CreateRequestContext } from '@mikro-orm/core';
 
 export class TokenCreateDTO {
   token: string;
@@ -55,7 +56,7 @@ export class AccountService {
     private readonly dateUtil: DateUtil,
   ) {}
 
-  async getRegisteryJwts(accountId: string): Promise<JwtRegistryDto[]> {
+  async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
     return this.systemRepository.getRegisteryJwts(accountId);
   }
 
@@ -263,9 +264,9 @@ export class AccountService {
     );
   }
 
-  async addTokenToAccountServices(token: string, account: BrokerAccountDto) {
+  async addTokenToAccountServices(token: string, account: BrokerAccountEntity) {
     const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceDto>(
+      await this.graphRepository.getDownstreamVertex<ServiceEntity>(
         account.vertex.toString(),
         CollectionNameEnum.service,
         1,
@@ -273,7 +274,7 @@ export class AccountService {
     for (const service of downstreamServices) {
       const serviceName = service.collection.name;
       const projectDtoArr =
-        await this.graphRepository.getUpstreamVertex<ProjectDto>(
+        await this.graphRepository.getUpstreamVertex<ProjectEntity>(
           service.collection.vertex.toString(),
           CollectionNameEnum.project,
           null,
@@ -343,7 +344,7 @@ export class AccountService {
       throw new ServiceUnavailableException();
     }
     const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceDto>(
+      await this.graphRepository.getDownstreamVertex<ServiceEntity>(
         account.vertex.toString(),
         CollectionNameEnum.service,
         1,
@@ -353,7 +354,7 @@ export class AccountService {
       for (const service of downstreamServices) {
         const serviceName = service.collection.name;
         const projectDtoArr =
-          await this.graphRepository.getUpstreamVertex<ProjectDto>(
+          await this.graphRepository.getUpstreamVertex<ProjectEntity>(
             service.collection.vertex.toString(),
             CollectionNameEnum.project,
             ['component'],
@@ -428,6 +429,7 @@ export class AccountService {
     }
   }
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
   async runJwtLifecycle() {
     const CURRENT_TIME_MS = Date.now();
@@ -477,6 +479,7 @@ export class AccountService {
     }
   }
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_HOUR)
   async runJwtExpirationNotification() {
     const CURRENT_TIME_MS = Date.now();

@@ -6,12 +6,12 @@ import snakecaseKeys from 'snakecase-keys';
 
 import { AuditStreamerService } from './audit-streamer.service';
 import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from '../intention/dto/intention.entity';
 import { UserDto } from '../intention/dto/user.dto';
-import { EdgeDto } from '../persistence/dto/edge.dto';
+import { EdgeEntity } from '../persistence/dto/edge.entity';
 import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { VertexDto } from '../persistence/dto/vertex.dto';
+import { VertexEntity } from '../persistence/dto/vertex.entity';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
 import { ActionError } from '../intention/action.error';
 import { ArtifactDto } from '../intention/dto/artifact.dto';
@@ -61,7 +61,7 @@ export class AuditService {
    */
   public recordIntentionOpen(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     success: boolean,
     exception: HttpException | null,
   ) {
@@ -109,7 +109,7 @@ export class AuditService {
    */
   public recordActionAuthorization(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     actionFailures: ActionError[],
   ) {
     const now = new Date();
@@ -168,7 +168,7 @@ export class AuditService {
    */
   public recordIntentionClose(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     reason: string,
   ) {
     const now = new Date();
@@ -217,7 +217,7 @@ export class AuditService {
    */
   public recordIntentionActionLifecycle(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
     type: 'start' | 'end',
   ) {
@@ -263,7 +263,7 @@ export class AuditService {
    */
   public recordIntentionActionUsage(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     action: ActionDto,
     assignObj: any,
     exception: HttpException | null = null,
@@ -342,7 +342,12 @@ export class AuditService {
     user: any,
     outcome: 'success' | 'failure' | 'unknown',
     set: 'vertex' | 'edge',
-    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
+    graphObj:
+      | string
+      | VertexEntity
+      | VertexInsertDto
+      | EdgeEntity
+      | EdgeInsertDto,
   ) {
     from([
       {
@@ -690,7 +695,12 @@ export class AuditService {
    */
   private addGraphObjectFunc(
     set: 'vertex' | 'edge',
-    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
+    graphObj:
+      | string
+      | VertexEntity
+      | VertexInsertDto
+      | EdgeEntity
+      | EdgeInsertDto,
   ) {
     if (!graphObj) {
       return (ecsObj: any) => ecsObj;
@@ -705,13 +715,13 @@ export class AuditService {
         });
       };
     } else if (
-      graphObj instanceof VertexDto ||
+      graphObj instanceof VertexEntity ||
       graphObj instanceof VertexInsertDto
     ) {
       return (ecsObj: any) => {
         return merge(ecsObj, {
           graph: {
-            ...(graphObj instanceof VertexDto
+            ...(graphObj instanceof VertexEntity
               ? {
                   id: graphObj.id.toString(),
                   name: graphObj.name,
@@ -731,7 +741,7 @@ export class AuditService {
       return (ecsObj: any) => {
         return merge(ecsObj, {
           graph: {
-            ...(graphObj instanceof EdgeDto
+            ...(graphObj instanceof EdgeEntity
               ? {
                   id: graphObj.id.toString(),
                 }

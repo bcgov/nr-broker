@@ -1,28 +1,27 @@
-import { FindOptionsWhere } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { ActionDto } from '../../intention/dto/action.dto';
-import { IntentionDto } from '../../intention/dto/intention.dto';
+import { IntentionEntity } from '../../intention/dto/intention.entity';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ArtifactDto } from '../../intention/dto/artifact.dto';
 
 export abstract class IntentionRepository {
-  public abstract addIntention(intention: IntentionDto): Promise<any>;
+  public abstract addIntention(intention: IntentionEntity): Promise<any>;
 
   public abstract getIntention(
     id: string | ObjectId,
-  ): Promise<IntentionDto | null>;
+  ): Promise<IntentionEntity | null>;
 
-  public abstract findAllIntention(): Promise<IntentionDto[]>;
+  public abstract findAllIntention(): Promise<IntentionEntity[]>;
 
-  public abstract findExpiredIntentions(): Promise<IntentionDto[]>;
+  public abstract findExpiredIntentions(): Promise<IntentionEntity[]>;
 
   public abstract getIntentionByToken(
     token: string,
-  ): Promise<IntentionDto | null>;
+  ): Promise<IntentionEntity | null>;
 
   public abstract getIntentionByActionToken(
     token: string,
-  ): Promise<IntentionDto | null>;
+  ): Promise<IntentionEntity | null>;
 
   public abstract getIntentionActionByToken(
     token: string,
@@ -41,16 +40,18 @@ export abstract class IntentionRepository {
 
   public abstract closeIntentionByToken(token: string): Promise<boolean>;
 
-  public abstract closeIntention(intention: IntentionDto): Promise<boolean>;
+  public abstract closeIntention(intention: IntentionEntity): Promise<boolean>;
 
   public abstract searchIntentions(
-    where: FindOptionsWhere<IntentionDto> | FindOptionsWhere<IntentionDto>[],
+    where: any,
+    // | FindOptionsWhere<IntentionEntity>
+    // | FindOptionsWhere<IntentionEntity>[],
     offset: number,
     limit: number,
   ): Promise<IntentionSearchResult>;
 
   public abstract setActionPackageBuildRef(
-    id: ObjectId,
+    id: ObjectId | string,
     actionId: string,
     packageId: ObjectId,
   ): Promise<void>;

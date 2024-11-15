@@ -1,29 +1,25 @@
+import { PrimaryKey, Property, SerializedPrimaryKey } from '@mikro-orm/core';
 import { ApiHideProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
-import { Column, ObjectIdColumn, ObjectId } from 'typeorm';
+import { ObjectId } from 'mongodb';
 
 export abstract class JwtDto {
-  @ObjectIdColumn()
   @ApiHideProperty()
-  id: ObjectId;
+  @PrimaryKey()
+  @Property()
+  _id: ObjectId;
 
-  @Column()
-  @IsString()
-  @IsOptional()
+  @SerializedPrimaryKey()
+  id!: string; // won't be saved in the database
+
+  @Property({ nullable: true })
   client_id?: string;
 
-  @Column()
-  @IsString()
-  @IsOptional()
+  @Property({ nullable: true })
   expiry?: string;
 
-  @Column()
-  @IsString()
-  @IsOptional()
+  @Property({ nullable: true })
   jti?: string;
 
-  @Column()
-  @IsString()
-  @IsOptional()
+  @Property({ nullable: true })
   sub?: string;
 }

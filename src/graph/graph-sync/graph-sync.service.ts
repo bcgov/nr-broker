@@ -5,12 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { GraphService } from '../graph.service';
 import { OpensearchService } from '../../aws/opensearch.service';
-import { CollectionConfigDto } from '../../persistence/dto/collection-config.dto';
+import { CollectionConfigEntity } from '../../persistence/dto/collection-config.entity';
 import { CollectionDtoUnion } from '../../persistence/dto/collection-dto-union.type';
 import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
 import { VertexInsertDto } from '../../persistence/dto/vertex-rest.dto';
 import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
 import { IS_PRIMARY_NODE } from '../../constants';
+import { CreateRequestContext } from '@mikro-orm/core';
 
 @Injectable()
 export class GraphSyncService {
@@ -22,6 +23,7 @@ export class GraphSyncService {
     private readonly dateUtil: DateUtil,
   ) {}
 
+  @CreateRequestContext()
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
   async runCollectionSync() {
     if (!IS_PRIMARY_NODE) {
@@ -38,7 +40,7 @@ export class GraphSyncService {
     }
   }
 
-  private async syncCollection(config: CollectionConfigDto) {
+  private async syncCollection(config: CollectionConfigEntity) {
     if (!config.sync) {
       return;
     }
@@ -132,7 +134,7 @@ export class GraphSyncService {
     }
   }
 
-  private initFields(config: CollectionConfigDto, data: any) {
+  private initFields(config: CollectionConfigEntity, data: any) {
     for (const key of Object.keys(config.fields)) {
       const initVal = config.fields[key].init;
       if (initVal === 'now') {

@@ -11,7 +11,7 @@ export interface JwtRegistryClaimsDto {
   sub: string;
 }
 
-export interface JwtRegistryDto {
+export interface JwtRegistryEntity {
   id: string;
   accountId: string;
   blocked?: boolean;

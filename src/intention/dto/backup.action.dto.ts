@@ -1,7 +1,7 @@
 import { Equals, IsIn, ValidateIf } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 import { ACTION_PROVISION_TOKEN_SELF } from '../../constants';
 import { ActionDto } from './action.dto';
+import { Entity, Property } from '@mikro-orm/core';
 
 @Entity()
 export class BackupActionDto extends ActionDto {
@@ -12,6 +12,6 @@ export class BackupActionDto extends ActionDto {
   @IsIn([ACTION_PROVISION_TOKEN_SELF], {
     each: true,
   })
-  @Column()
+  @Property()
   provision: string[];
 }
