@@ -51,7 +51,6 @@ export class BuildMongoRepository implements BuildRepository {
   }
 
   public async getBuild(id: string) {
-    console.log(`getBuild: ${id}`);
     return await this.packageBuildRepository.findOneOrFail({
       _id: new ObjectId(id),
     });

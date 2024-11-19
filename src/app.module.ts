@@ -49,6 +49,7 @@ import { GithubModule } from './github/github.module';
       autoLoadEntities: true,
       clientUrl: getMongoDbConnectionUrl(),
       driver: MongoDriver,
+      ensureIndexes: true,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', process.env.NESTJS_UI_ROOT_PATH),

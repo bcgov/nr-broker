@@ -81,7 +81,6 @@ export class CollectionMongoRepository implements CollectionRepository {
     id: string,
   ): Promise<CollectionDtoUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    console.log(await repo.findOne({ _id: new ObjectId(id) } as any));
     return repo.findOne({ _id: new ObjectId(id) } as any);
   }
 

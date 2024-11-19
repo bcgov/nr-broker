@@ -92,7 +92,6 @@ export class GraphService {
       });
       return resp.toEdgeResponse();
     } catch (e) {
-      console.log(e);
       this.auditService.recordGraphAction(
         req,
         'graph-edge-add',

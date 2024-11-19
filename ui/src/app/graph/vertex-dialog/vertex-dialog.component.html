@@ -27,9 +27,9 @@
         (onSubmit)="addUpdateVertex()"></app-vertex-form-builder>
       <mat-divider
         class="property-editor"></mat-divider>
+      <app-property-editor
+        [graphProperties]="data.vertex?.prop"></app-property-editor>
     }
-    <app-property-editor
-      [graphProperties]="data.vertex?.prop"></app-property-editor>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button
