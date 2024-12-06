@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { EnvironmentEntity } from './dto/environment.entity';
-import { JwtRegistryEntity } from './dto/jwt-registry.entity';
+import { EnvironmentEntity } from './entity/environment.entity';
+import { JwtRegistryEntity } from './entity/jwt-registry.entity';
 import { CollectionRepository } from './interfaces/collection.repository';
 import { GraphRepository } from './interfaces/graph.repository';
 

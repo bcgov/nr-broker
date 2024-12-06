@@ -12,17 +12,16 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-team-accounts',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    InspectorVertexComponent,
-  ],
-  templateUrl: './team-accounts.component.html',
-  styleUrl: './team-accounts.component.scss',
+    selector: 'app-team-accounts',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatCardModule,
+        MatIconModule,
+        InspectorVertexComponent,
+    ],
+    templateUrl: './team-accounts.component.html',
+    styleUrl: './team-accounts.component.scss'
 })
 export class TeamAccountsComponent implements OnInit {
   @Input() teamVertex!: string;

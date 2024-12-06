@@ -8,11 +8,10 @@ import { CollectionConfigRestDto } from '../../service/dto/collection-config-res
 import { CollectionConfigMap } from '../../service/graph.types';
 
 @Component({
-  selector: 'app-vertex-tags',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatChipsModule],
-  templateUrl: './vertex-tags.component.html',
-  styleUrl: './vertex-tags.component.scss',
+    selector: 'app-vertex-tags',
+    imports: [CommonModule, RouterModule, MatChipsModule],
+    templateUrl: './vertex-tags.component.html',
+    styleUrl: './vertex-tags.component.scss'
 })
 export class VertexTagsComponent implements OnInit, OnChanges {
   @Input()

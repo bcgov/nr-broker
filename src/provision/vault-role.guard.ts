@@ -9,14 +9,14 @@ import { lastValueFrom } from 'rxjs';
 import { Request } from 'express';
 import { TokenService } from '../token/token.service';
 import { HEADER_VAULT_ROLE_ID } from '../constants';
-import { ActionDto } from '../intention/dto/action.dto';
 import { ActionUtil } from '../util/action.util';
-import { IntentionEntity } from '../intention/dto/intention.entity';
+import { IntentionEntity } from '../intention/entity/intention.entity';
 import { AuditService } from '../audit/audit.service';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 export interface RoleGuardRequest extends Request {
   brokerIntentionEntity?: IntentionEntity;
-  brokerActionDto?: ActionDto;
+  brokerActionDto?: ActionEmbeddable;
 }
 
 /**
@@ -39,7 +39,7 @@ export class VaultRoleGuard implements CanActivate {
     if (roles.indexOf('provision') !== -1) {
       const request = context.switchToHttp().getRequest<RoleGuardRequest>();
 
-      const action: ActionDto = request.brokerActionDto;
+      const action: ActionEmbeddable = request.brokerActionDto;
       const intention = request.brokerIntentionEntity;
       const application = action?.service?.target
         ? action?.service?.target?.name

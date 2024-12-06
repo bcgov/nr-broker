@@ -20,7 +20,7 @@ export class SystemService {
   }
 
   async generateGitHubAuthorizeUrl(request: Request) {
-    const user = await this.authService.getUserDto(request);
+    const user = await this.authService.getUser(request);
 
     return {
       url: await this.github.generateAuthorizeUrl(user.id.toString()),

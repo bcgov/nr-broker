@@ -4,20 +4,20 @@ import deepEqual from 'deep-equal';
 import { plainToClass } from 'class-transformer';
 
 import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
-import { IntentionEntity } from '../intention/dto/intention.entity';
-import { ActionDto } from '../intention/dto/action.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
-import { VertexEntity } from '../persistence/dto/vertex.entity';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
+import { IntentionActionPointerEmbeddable } from '../persistence/entity/intention-action-pointer.embeddable';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
-import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 interface OverlayMapBase {
   key: string;
@@ -99,7 +99,7 @@ export class IntentionSyncService {
 
   private async syncPackageBuild(
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
     serviceVertex: VertexEntity,
   ) {
     if (!action.package || !action.package.name || !action.package.version) {
@@ -154,7 +154,7 @@ export class IntentionSyncService {
     if (action.action === 'package-installation') {
       await this.buildRepository.addInstallActionToBuild(
         packageBuild.id.toString(),
-        plainToClass(IntentionActionPointerDto, {
+        plainToClass(IntentionActionPointerEmbeddable, {
           action: this.actionUtil.actionToIdString(action),
           intention: intention.id,
         }),
@@ -164,7 +164,7 @@ export class IntentionSyncService {
 
   public async syncPackageInstall(
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
     serviceVertex: VertexEntity,
   ) {
     const envMap = await this.persistenceUtilService.getEnvMap();
@@ -222,7 +222,7 @@ export class IntentionSyncService {
     }
   }
 
-  public async syncServer(action: ActionDto) {
+  public async syncServer(action: ActionEmbeddable) {
     const serverName = action.cloud?.target?.instance?.name;
     if (!serverName) {
       return null;
@@ -264,7 +264,7 @@ export class IntentionSyncService {
 
   private async overlayVertex(
     context: {
-      action: ActionDto;
+      action: ActionEmbeddable;
       intention: IntentionEntity;
     },
     collection: CollectionNames,

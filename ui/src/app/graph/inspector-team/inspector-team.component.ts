@@ -6,11 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
 
 @Component({
-  selector: 'app-inspector-team',
-  standalone: true,
-  imports: [MatButtonModule, MatIconModule],
-  templateUrl: './inspector-team.component.html',
-  styleUrls: ['./inspector-team.component.scss'],
+    selector: 'app-inspector-team',
+    imports: [MatButtonModule, MatIconModule],
+    templateUrl: './inspector-team.component.html',
+    styleUrls: ['./inspector-team.component.scss']
 })
 export class InspectorTeamComponent {
   @Input() vertex!: any | undefined;

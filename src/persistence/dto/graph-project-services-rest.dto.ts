@@ -1,6 +1,6 @@
-import { ProjectRestDto } from './project-rest.dto';
-import { ServiceRestDto } from './service-rest.dto';
+import { ProjectDto } from './project.dto';
+import { ServiceDto } from './service.dto';
 
-export class GraphProjectServicesResponseDto extends ProjectRestDto {
-  services!: (ServiceRestDto & { env: string[]; shortEnv: string[] })[];
+export class GraphProjectServicesResponseDto extends ProjectDto {
+  services!: (ServiceDto & { env: string[]; shortEnv: string[] })[];
 }

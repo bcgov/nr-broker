@@ -10,16 +10,15 @@ import { SystemApiService } from '../../service/system-api.service';
 import { PreferencesService } from '../../preferences.service';
 
 @Component({
-  selector: 'app-link-snackbar',
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatSnackBarLabel,
-    MatSnackBarActions,
-    MatSnackBarAction,
-  ],
-  templateUrl: './link-snackbar.component.html',
-  styleUrl: './link-snackbar.component.scss',
+    selector: 'app-link-snackbar',
+    imports: [
+        MatButtonModule,
+        MatSnackBarLabel,
+        MatSnackBarActions,
+        MatSnackBarAction,
+    ],
+    templateUrl: './link-snackbar.component.html',
+    styleUrl: './link-snackbar.component.scss'
 })
 export class LinkSnackbarComponent {
   snackBarRef = inject(MatSnackBarRef);

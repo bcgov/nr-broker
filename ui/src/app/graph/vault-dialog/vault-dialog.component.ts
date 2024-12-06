@@ -15,20 +15,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
-  selector: 'app-vault-dialog',
-  standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-  ],
-  templateUrl: './vault-dialog.component.html',
-  styleUrl: './vault-dialog.component.scss',
+    selector: 'app-vault-dialog',
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        MatDialogModule,
+        MatDividerModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+    ],
+    templateUrl: './vault-dialog.component.html',
+    styleUrl: './vault-dialog.component.scss'
 })
 export class VaultDialogComponent implements OnInit {
   public config: {

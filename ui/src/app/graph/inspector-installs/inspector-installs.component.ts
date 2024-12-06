@@ -24,23 +24,22 @@ import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.com
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
-  selector: 'app-inspector-installs',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatDividerModule,
-    MatExpansionModule,
-    MatIconModule,
-    MatMenuModule,
-    MatListModule,
-    MatTooltipModule,
-    MatRippleModule,
-    OutcomeIconComponent,
-  ],
-  templateUrl: './inspector-installs.component.html',
-  styleUrls: ['./inspector-installs.component.scss'],
+    selector: 'app-inspector-installs',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatButtonToggleModule,
+        MatDividerModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatMenuModule,
+        MatListModule,
+        MatTooltipModule,
+        MatRippleModule,
+        OutcomeIconComponent,
+    ],
+    templateUrl: './inspector-installs.component.html',
+    styleUrls: ['./inspector-installs.component.scss']
 })
 export class InspectorInstallsComponent implements OnInit, OnChanges {
   @Input() pointers!: IntentionActionPointerRestDto[] | undefined;

@@ -35,21 +35,20 @@ interface TablePageQuery {
 }
 
 @Component({
-  selector: 'app-service-builds',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ClipboardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDividerModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatProgressSpinnerModule,
-    MatTableModule,
-  ],
-  templateUrl: './service-builds.component.html',
-  styleUrl: './service-builds.component.scss',
+    selector: 'app-service-builds',
+    imports: [
+        CommonModule,
+        ClipboardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDividerModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatProgressSpinnerModule,
+        MatTableModule,
+    ],
+    templateUrl: './service-builds.component.html',
+    styleUrl: './service-builds.component.scss'
 })
 export class ServiceBuildsComponent
   implements AfterViewInit, OnInit, OnDestroy

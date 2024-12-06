@@ -10,20 +10,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 
 @Component({
-  selector: 'app-vertex-form-field',
-  templateUrl: './vertex-form-field.component.html',
-  styleUrls: ['./vertex-form-field.component.scss'],
-  standalone: true,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatCheckboxModule,
-    MatDatepickerModule,
-    MatInputModule,
-    MatTooltipModule,
-    TextFieldModule,
-  ],
+    selector: 'app-vertex-form-field',
+    templateUrl: './vertex-form-field.component.html',
+    styleUrls: ['./vertex-form-field.component.scss'],
+    imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatCheckboxModule,
+        MatDatepickerModule,
+        MatInputModule,
+        MatTooltipModule,
+        TextFieldModule,
+    ]
 })
 export class VertexFormFieldComponent {
   @Input() field!: CollectionFieldConfigNameMapped;

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsOption } from 'echarts';
-import { NgxEchartsDirective, provideEcharts } from 'ngx-echarts';
+import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import {
   BehaviorSubject,
   map,
@@ -29,9 +29,8 @@ import { CONFIG_ARR } from '../../app-initialize.factory';
   selector: 'app-echarts',
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
-  standalone: true,
   imports: [NgxEchartsDirective, AsyncPipe],
-  providers: [provideEcharts()],
+  providers: [provideEchartsCore({ echarts: () => import('echarts') })],
 })
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;

@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { ActionDto } from '../../intention/dto/action.dto';
-import { IntentionEntity } from '../../intention/dto/intention.entity';
+import { IntentionEntity } from '../../intention/entity/intention.entity';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
-import { ArtifactDto } from '../../intention/dto/artifact.dto';
+import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
+import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
 
 export abstract class IntentionRepository {
   public abstract addIntention(intention: IntentionEntity): Promise<any>;
@@ -25,18 +25,18 @@ export abstract class IntentionRepository {
 
   public abstract getIntentionActionByToken(
     token: string,
-  ): Promise<ActionDto | null>;
+  ): Promise<ActionEmbeddable | null>;
 
   public abstract setIntentionActionLifecycle(
     token: string,
     outcome: string | undefined,
     type: 'start' | 'end',
-  ): Promise<ActionDto>;
+  ): Promise<ActionEmbeddable>;
 
   public abstract addIntentionActionArtifact(
     token: string,
-    artifact: ArtifactDto,
-  ): Promise<ActionDto>;
+    artifact: ArtifactEmbeddable,
+  ): Promise<ActionEmbeddable>;
 
   public abstract closeIntentionByToken(token: string): Promise<boolean>;
 

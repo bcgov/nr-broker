@@ -9,7 +9,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 export class AuthService {
   constructor(private readonly collectionRepository: CollectionRepository) {}
 
-  public getUserDto(request: Request) {
+  public getUser(request: Request) {
     const userGuid: string = get(
       (request as any).user.userinfo,
       OAUTH2_CLIENT_MAP_GUID,

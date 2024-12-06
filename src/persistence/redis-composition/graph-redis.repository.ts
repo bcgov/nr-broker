@@ -2,34 +2,29 @@ import { Inject, Injectable } from '@nestjs/common';
 import { RedisClientType, SchemaFieldTypes } from 'redis';
 
 import { GraphRepository } from '../interfaces/graph.repository';
-import { BrokerAccountEntity } from '../dto/broker-account.entity';
-import {
-  CollectionDtoUnion,
-  CollectionNames,
-} from '../dto/collection-dto-union.type';
-import { EdgeInsertDto } from '../dto/edge-rest.dto';
-import { EdgeEntity } from '../dto/edge.entity';
-import { EnvironmentEntity } from '../dto/environment.entity';
+import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { EdgeInsertDto } from '../dto/edge.dto';
+import { EdgeEntity } from '../entity/edge.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
 import {
   GraphDataResponseDto,
   BrokerAccountProjectMapDto,
   GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
-import { ProjectEntity } from '../dto/project.entity';
-import { ServiceInstanceEntity } from '../dto/service-instance.entity';
-import { ServiceEntity } from '../dto/service.entity';
-import { TeamEntity } from '../dto/team.entity';
-import { UserEntity } from '../dto/user.entity';
+import { ProjectEntity } from '../entity/project.entity';
+import { ServiceInstanceEntity } from '../entity/service-instance.entity';
+import { ServiceEntity } from '../entity/service.entity';
+import { TeamEntity } from '../entity/team.entity';
+import { UserEntity } from '../entity/user.entity';
 import { VertexInfoDto } from '../dto/vertex-info.dto';
-import { VertexPointerDto } from '../dto/vertex-pointer.dto';
-import { VertexSearchDto } from '../dto/vertex-rest.dto';
-import { VertexEntity } from '../dto/vertex.entity';
+import { VertexSearchDto } from '../dto/vertex.dto';
+import { VertexEntity } from '../entity/vertex.entity';
 import { GraphMongoRepository } from '../mongo/graph-mongo.repository';
 import { CollectionMongoRepository } from '../mongo/collection-mongo.repository';
 import {
   CollectionConfigEntity,
   CollectionConfigInstanceDto,
-} from '../dto/collection-config.entity';
+} from '../entity/collection-config.entity';
 import {
   PERSISTENCE_CACHE_KEY_CONFIG,
   PERSISTENCE_CACHE_KEY_GRAPH,
@@ -38,13 +33,18 @@ import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
-import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
-import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
+import { ServiceDetailsResponseDto } from '../dto/service.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
-import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { MongoEntityRepository } from '@mikro-orm/mongodb';
+import {
+  CollectionEntityUnion,
+  CollectionNames,
+} from '../entity/collection-entity-union.type';
+import { UserPermissionDto } from '../dto/user-permission.dto';
+import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -91,7 +91,7 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getServiceInstanceDetails(id);
   }
 
-  public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
+  public async getUserPermissions(id: string): Promise<UserPermissionDto> {
     return this.repo.getUserPermissions(id);
   }
 
@@ -199,7 +199,7 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   public getVertexByName(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     name: string,
   ): Promise<VertexEntity> {
     return this.repo.getVertexByName(collection, name);
@@ -214,7 +214,7 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   public searchVertex(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     edgeName?: string,
     edgeTarget?: string,
   ): Promise<VertexSearchDto[]> {
@@ -226,7 +226,7 @@ export class GraphRedisRepository implements GraphRepository {
   }
 
   public getVertexByParentIdAndName(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     parentId: string,
     name: string,
   ): Promise<VertexEntity> {
@@ -255,7 +255,7 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getBrokerAccountServices(id);
   }
 
-  public async vertexTypeahead<T extends keyof CollectionDtoUnion>(
+  public async vertexTypeahead<T extends keyof CollectionEntityUnion>(
     text: string,
     collections?: T[],
     offset?: number,

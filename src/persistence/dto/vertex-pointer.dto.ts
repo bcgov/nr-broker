@@ -1,14 +1,6 @@
-import { Property, Index } from '@mikro-orm/core';
-import { ObjectId } from 'mongodb';
-import { ApiProperty } from '@nestjs/swagger';
+// Shared DTO: Copy in back-end and front-end should be identical
 
-export abstract class VertexPointerDto {
-  @Property()
-  @ApiProperty({ type: () => String })
-  @Index()
-  vertex: ObjectId;
-
-  @Property({ nullable: true })
-  @Index()
+export class VertexPointerDto {
+  vertex!: string;
   tags?: string[];
 }

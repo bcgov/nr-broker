@@ -2,12 +2,12 @@
 
 import { ActionDto } from './action.dto';
 import { ArtifactDto } from './artifact.dto';
-import { IntentionEntity } from './intention.entity';
+import { IntentionDto } from './intention.dto';
 
 export class ArtifactActionCombo {
   action!: ActionDto;
   artifact!: ArtifactDto;
-  intention!: IntentionEntity;
+  intention!: IntentionDto;
 }
 export class ArtifactSearchResult {
   data!: ArtifactActionCombo[];

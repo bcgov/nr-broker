@@ -4,16 +4,15 @@ import { GraphDataVertex } from '../../service/graph.types';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
 
 @Component({
-  selector: 'app-vertex-name',
-  template: `@if (vertex) {
+    selector: 'app-vertex-name',
+    template: `@if (vertex) {
     @if (vertex.parentName) {
       {{ vertex.parentName }} &gt;
     }
     {{ vertex.name }}
   }`,
-  styles: [],
-  standalone: true,
-  imports: [],
+    styles: [],
+    imports: []
 })
 export class VertexNameComponent {
   @Input() vertex: GraphDataVertex | GraphTypeaheadData | undefined;

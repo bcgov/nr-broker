@@ -4,8 +4,8 @@ import { map, tap } from 'rxjs';
 import { ActionUtil } from '../util/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
-import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionEntity } from '../intention/dto/intention.entity';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 @Injectable()
 export class ProvisionService {
@@ -24,7 +24,7 @@ export class ProvisionService {
   public generateSecretId(
     req: Request,
     intentionDto: IntentionEntity,
-    actionDto: ActionDto,
+    actionDto: ActionEmbeddable,
   ) {
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
@@ -72,7 +72,7 @@ export class ProvisionService {
   public generateToken(
     req: Request,
     intentionDto: IntentionEntity,
-    actionDto: ActionDto,
+    actionDto: ActionEmbeddable,
     roleId: string,
   ) {
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {

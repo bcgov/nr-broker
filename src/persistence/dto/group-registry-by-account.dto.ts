@@ -1,7 +1,5 @@
-import { ObjectId } from 'mongodb';
-
-export interface GroupRegistryByAccountDto {
-  _id: { accountId: ObjectId };
+export class GroupRegistryByAccountDto {
+  _id: { accountId: string };
   createdAt: Date[];
   jti: string[];
   blocked: boolean[];

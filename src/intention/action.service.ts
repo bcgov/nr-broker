@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ActionError } from './action.error';
 import { ActionUtil } from '../util/action.util';
-import { ActionDto } from './dto/action.dto';
-import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
-import { IntentionEntity } from './dto/intention.entity';
+import { IntentionEntity } from './entity/intention.entity';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
-import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
@@ -14,12 +12,14 @@ import {
   ACTION_VALIDATE_TEAM_DBA,
   INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
 } from '../constants';
-import { UserEntity } from '../persistence/dto/user.entity';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
-import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
-import { PackageBuildActionDto } from './dto/package-build-action.dto';
-import { PackageDto } from './dto/package.dto';
+import { ActionEmbeddable } from './entity/action.embeddable';
+import { PackageInstallationActionEmbeddable } from './entity/package-installation-action.embeddable';
+import { DatabaseAccessActionEmbeddable } from './entity/database-access-action.embeddable';
+import { PackageBuildActionEmbeddable } from './entity/package-build-action.embeddable';
+import { PackageEmbeddable } from './entity/package.embeddable';
+import { UserEntity } from '../persistence/entity/user.entity';
 
 /**
  * Assists with the validation of intention actions
@@ -35,45 +35,9 @@ export class ActionService {
     private readonly persistenceUtil: PersistenceUtilService,
   ) {}
 
-  public async bindUserToAction(
-    account: BrokerAccountEntity | null,
-    action: ActionDto,
-  ) {
-    let user: UserEntity;
-    if (!action.user) {
-      return;
-    }
-
-    if (action.user.id) {
-      user = await this.userCollectionService.lookupUserByGuid(action.user.id);
-    } else if (action.user.name) {
-      user = await this.userCollectionService.lookupUserByName(
-        action.user.name,
-        action.user.domain,
-      );
-    }
-
-    if (user) {
-      action.user.domain = user.domain;
-      action.user.email = user.email;
-      action.user.full_name = user.name;
-      action.user.id = user.guid;
-      action.user.name = user.username;
-    }
-
-    if (account) {
-      action.user.group = {
-        ...(action.user.group ?? {}),
-        id: account._id,
-        name: account.name,
-        domain: 'broker',
-      };
-    }
-  }
-
   public async validate(
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
     account: BrokerAccountEntity | null,
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     targetServices: string[],
@@ -81,7 +45,7 @@ export class ActionService {
     requireServiceExists: boolean,
   ): Promise<ActionError> | null {
     const user = await this.userCollectionService.lookupUserByGuid(
-      action.user?.id,
+      action.user.id,
     );
 
     return (
@@ -108,12 +72,14 @@ export class ActionService {
 
   private validateUserSet(
     account: BrokerAccountEntity | null,
-    user: any,
-    action: ActionDto,
+    user: UserEntity,
+    action: ActionEmbeddable,
   ): ActionError | null {
     if (account && account.skipUserValidation) {
       return null;
     }
+    console.log(user);
+    console.log(!user);
     if (!user) {
       return {
         message:
@@ -129,7 +95,7 @@ export class ActionService {
     return null;
   }
 
-  private validateVaultEnv(action: ActionDto): ActionError | null {
+  private validateVaultEnv(action: ActionEmbeddable): ActionError | null {
     if (
       this.actionUtil.isProvisioned(action) &&
       !this.actionUtil.isValidVaultEnvironment(action)
@@ -152,7 +118,7 @@ export class ActionService {
   }
 
   private validateAccountBoundProject(
-    action: ActionDto,
+    action: ActionEmbeddable,
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     requireProjectExists: boolean,
     requireServiceExists: boolean,
@@ -191,7 +157,7 @@ export class ActionService {
   }
 
   private validateTargetService(
-    action: ActionDto,
+    action: ActionEmbeddable,
     targetServices: string[],
   ): ActionError | null {
     if (!action.service.target) {
@@ -215,11 +181,11 @@ export class ActionService {
   }
 
   private async validateDatabaseAccessAction(
-    user: any,
+    user: UserEntity,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
   ): Promise<ActionError | null> {
-    if (action instanceof DatabaseAccessActionDto) {
+    if (action instanceof DatabaseAccessActionEmbeddable) {
       // Ensure user validation done. May have been skipped if option set.
       const userValidation = this.validateUserSet(null, user, action);
       if (userValidation) {
@@ -249,9 +215,9 @@ export class ActionService {
   private async validatePackageBuildAction(
     account: BrokerAccountEntity | null,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
   ): Promise<ActionError | null> {
-    if (action instanceof PackageBuildActionDto) {
+    if (action instanceof PackageBuildActionEmbeddable) {
       // TODO: check for existing build
       const validateSemverError = this.validateSemver(action);
       if (validateSemverError) {
@@ -345,8 +311,8 @@ export class ActionService {
   }
 
   private checkValueChanged(
-    newPackage: PackageDto | undefined,
-    curPackage: PackageDto | undefined,
+    newPackage: PackageEmbeddable | undefined,
+    curPackage: PackageEmbeddable | undefined,
     value: string,
   ) {
     if (
@@ -363,11 +329,12 @@ export class ActionService {
 
   private async validatePackageInstallAction(
     account: BrokerAccountEntity | null,
-    user: any,
+    user: UserEntity,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
   ): Promise<ActionError | null> {
-    if (action instanceof PackageInstallationActionDto) {
+    if (action instanceof PackageInstallationActionEmbeddable) {
+      console.log(await this.persistenceUtil.getEnvMap());
       const env = (await this.persistenceUtil.getEnvMap())[
         action.service.environment
       ];
@@ -437,11 +404,12 @@ export class ActionService {
     return null;
   }
 
-  private parseActionVersion(action: ActionDto) {
+  private parseActionVersion(action: ActionEmbeddable) {
     return this.actionUtil.parseVersion(action.package?.version ?? '');
   }
 
-  private validateSemver(action: ActionDto): ActionError | null {
+  private validateSemver(action: ActionEmbeddable): ActionError | null {
+    console.log(action);
     const parsedVersion = this.parseActionVersion(action);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
       return {
@@ -459,9 +427,9 @@ export class ActionService {
   }
 
   private async validateAssistedDelivery(
-    user: any,
+    user: UserEntity,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
   ): Promise<ActionError | null> {
     const project = await this.collectionRepository.getCollectionByKeyValue(
       'project',

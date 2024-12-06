@@ -36,14 +36,12 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-inspector-instances',
-  standalone: true,
   imports: [
     MatButtonModule,
     MatDividerModule,
     MatIconModule,
     MatTableModule,
     InspectorInstallsComponent,
-    InspectorInstanceDialogComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',

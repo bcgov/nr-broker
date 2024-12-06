@@ -12,19 +12,18 @@ import { ConnectionConfigRestDto } from '../service/dto/connection-config-rest.d
 import { PreferencesService } from '../preferences.service';
 
 @Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [
-    RouterModule,
-    MatButtonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTabsModule,
-  ],
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
+    selector: 'app-home',
+    imports: [
+        RouterModule,
+        MatButtonModule,
+        MatCardModule,
+        MatDividerModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatTabsModule,
+    ],
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
   loading = true;

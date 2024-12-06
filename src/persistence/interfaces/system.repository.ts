@@ -1,12 +1,13 @@
 import { ConnectionConfigEntity } from '../dto/connection-config.entity';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
-import { JwtRegistryEntity } from '../dto/jwt-registry.entity';
-import { PreferenceRestDto } from '../dto/preference-rest.dto';
-import { PreferenceEntity } from '../dto/preference.entity';
+import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
+import { PreferenceDto } from '../dto/preference.dto';
+import { PreferenceEntity } from '../entity/preference.entity';
+import { JwtDto } from '../dto/jwt.dto';
 
 export abstract class SystemRepository {
-  public abstract jwtMatchesAllowed(jwt: any): Promise<boolean>;
-  public abstract jwtMatchesBlocked(jwt: any): Promise<boolean>;
+  public abstract jwtMatchesAllowed(jwt: JwtDto): Promise<boolean>;
+  public abstract jwtMatchesBlocked(jwt: JwtDto): Promise<boolean>;
   public abstract addJwtToRegister(
     accountId: string,
     payload: any,
@@ -29,7 +30,7 @@ export abstract class SystemRepository {
   public abstract getPreferences(guid: string): Promise<PreferenceEntity>;
   public abstract setPreferences(
     guid: string,
-    preference: PreferenceRestDto,
+    preference: PreferenceDto,
   ): Promise<boolean>;
 
   public abstract getConnectionConfigs(): Promise<ConnectionConfigEntity[]>;

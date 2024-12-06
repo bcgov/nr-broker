@@ -19,8 +19,10 @@ import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PackageService } from './package.service';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { PackageBuildSearchQuery } from '../collection/dto/package-build-search-query.dto';
-import { PackageBuildSearchResult } from '../persistence/dto/package-build-rest.dto';
-import { PackageBuildEntity } from '../persistence/dto/package-build.entity';
+import {
+  PackageBuildDto,
+  PackageBuildSearchResult,
+} from '../persistence/dto/package-build.dto';
 
 @Controller({
   path: 'package',
@@ -58,8 +60,8 @@ export class PackageController {
 
   @Get(':id')
   @UseGuards(BrokerCombinedAuthGuard)
-  async get(@Param('id') id: string): Promise<PackageBuildEntity> {
-    return this.service.get(id);
+  async get(@Param('id') id: string): Promise<PackageBuildDto> {
+    return this.service.get(id) as unknown as PackageBuildDto;
   }
 
   @Post(':id/approve')

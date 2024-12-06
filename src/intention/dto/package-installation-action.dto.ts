@@ -1,15 +1,16 @@
 import { Equals, IsIn } from 'class-validator';
-import { Entity, Property } from '@mikro-orm/core';
 import { ActionDto } from './action.dto';
 
-@Entity()
+export const PACKAGE_INSTALLATION_PROVISION_NAMES = [];
+export type PackageInstallationProvisionName =
+  (typeof PACKAGE_INSTALLATION_PROVISION_NAMES)[number];
+
 export class PackageInstallationActionDto extends ActionDto {
   @Equals('package-installation')
   action: 'package-installation';
 
-  @IsIn([], {
+  @IsIn(PACKAGE_INSTALLATION_PROVISION_NAMES, {
     each: true,
   })
-  @Property()
-  provision: string[];
+  provision: PackageInstallationProvisionName[];
 }

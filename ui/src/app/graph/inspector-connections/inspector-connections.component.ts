@@ -28,17 +28,16 @@ import { CONFIG_MAP } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
 
 @Component({
-  selector: 'app-inspector-connections',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatDividerModule,
-  ],
-  templateUrl: './inspector-connections.component.html',
-  styleUrl: './inspector-connections.component.scss',
+    selector: 'app-inspector-connections',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatChipsModule,
+        MatDialogModule,
+        MatDividerModule,
+    ],
+    templateUrl: './inspector-connections.component.html',
+    styleUrl: './inspector-connections.component.scss'
 })
 export class InspectorConnectionsComponent implements OnInit, OnChanges {
   @Input() collection!: CollectionNames;

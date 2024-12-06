@@ -4,22 +4,23 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 // eslint-disable-next-line prettier/prettier
 import { MongoEntityManager, MongoEntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
-import {
-  CollectionDtoUnion,
-  CollectionNames,
-} from '../dto/collection-dto-union.type';
-import { CollectionConfigEntity } from '../dto/collection-config.entity';
+import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { COLLECTION_COLLATION_LOCALE } from '../../constants';
-import { BrokerAccountEntity } from '../dto/broker-account.entity';
-import { EnvironmentEntity } from '../dto/environment.entity';
-import { ProjectEntity } from '../dto/project.entity';
-import { ServerEntity } from '../dto/server.entity';
-import { ServiceInstanceEntity } from '../dto/service-instance.entity';
-import { ServiceEntity } from '../dto/service.entity';
-import { TeamEntity } from '../dto/team.entity';
-import { UserEntity } from '../dto/user.entity';
+import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { ProjectEntity } from '../entity/project.entity';
+import { ServerEntity } from '../entity/server.entity';
+import { ServiceInstanceEntity } from '../entity/service-instance.entity';
+import { ServiceEntity } from '../entity/service.entity';
+import { TeamEntity } from '../entity/team.entity';
+import { UserEntity } from '../entity/user.entity';
+import {
+  CollectionEntityUnion,
+  CollectionNames,
+} from '../entity/collection-entity-union.type';
+import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -32,9 +33,9 @@ export class CollectionMongoRepository implements CollectionRepository {
   public assignCollection(
     collection: CollectionNames,
     data: any,
-  ): CollectionDtoUnion[typeof collection] {
+  ): CollectionEntityUnion[typeof collection] {
     const entity = this.constructCollection(collection);
-    wrap(entity).assign(data);
+    wrap(entity).assign(data, { em: this.dataSource });
     return entity;
   }
 
@@ -76,15 +77,15 @@ export class CollectionMongoRepository implements CollectionRepository {
     });
   }
 
-  public async getCollectionById<T extends keyof CollectionDtoUnion>(
+  public async getCollectionById<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
-  ): Promise<CollectionDtoUnion[T] | null> {
+  ): Promise<CollectionEntityUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne({ _id: new ObjectId(id) } as any);
   }
 
-  public async saveTags<T extends keyof CollectionDtoUnion>(
+  public async saveTags<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
     tags: string[],
@@ -97,40 +98,45 @@ export class CollectionMongoRepository implements CollectionRepository {
     return tags;
   }
 
-  public async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
+  public async getCollectionByVertexId<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
-  ): Promise<CollectionDtoUnion[T] | null> {
+  ): Promise<CollectionEntityUnion[T] | null> {
     return this.getCollection(type, { vertex: new ObjectId(id) });
   }
 
-  public async getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
+  public async getCollectionByKeyValue<T extends keyof CollectionEntityUnion>(
     type: T,
-    key: keyof CollectionDtoUnion[T],
+    key: keyof CollectionEntityUnion[T],
     value: string,
-  ): Promise<CollectionDtoUnion[T] | null> {
+  ): Promise<CollectionEntityUnion[T] | null> {
     return this.getCollection(type, { [key]: value });
   }
 
-  public async getCollection<T extends keyof CollectionDtoUnion>(
+  public async getCollection<T extends keyof CollectionEntityUnion>(
     type: T,
     whereClause: any,
     // | ObjectLiteral
     // | FindOptionsWhere<CollectionDtoUnion[T]>
     // | FindOptionsWhere<CollectionDtoUnion[T]>[],
-  ): Promise<CollectionDtoUnion[T] | null> {
+  ): Promise<CollectionEntityUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne(whereClause);
   }
 
-  public async getCollections<T extends keyof CollectionDtoUnion>(
+  public async getCollections<T extends keyof CollectionEntityUnion>(
     type: T,
-  ): Promise<CollectionDtoUnion[T][]> {
+  ): Promise<CollectionEntityUnion[T][]> {
     const config = await this.getCollectionConfigByName(type);
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo.find({
-      order: { [config.fieldDefaultSort.field]: config.fieldDefaultSort.dir },
-    } as any);
+    return repo.find(
+      {},
+      {
+        orderBy: {
+          [config.fieldDefaultSort.field]: config.fieldDefaultSort.dir,
+        } as any,
+      },
+    );
   }
 
   public async searchCollection<T extends keyof CollectionDtoUnion>(
@@ -355,20 +361,22 @@ export class CollectionMongoRepository implements CollectionRepository {
       });
   }
 
-  public async getCollectionTags<T extends keyof CollectionDtoUnion>(
+  public async getCollectionTags<T extends keyof CollectionEntityUnion>(
     type: T,
   ): Promise<string[]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.getCollection().distinct('tags', {});
   }
 
-  public async exportCollection<T extends keyof CollectionDtoUnion>(type: T) {
+  public async exportCollection<T extends keyof CollectionEntityUnion>(
+    type: T,
+  ) {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findAll();
   }
 
   public async doUniqueKeyCheck(
-    type: keyof CollectionDtoUnion,
+    type: keyof CollectionEntityUnion,
     key: string,
     value: string,
   ): Promise<string[]> {

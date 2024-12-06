@@ -10,14 +10,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 import { IntentionActionPointerRestDto } from '../../service/dto/intention-action-pointer-rest.dto';
-import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/graph-prop-viewer-dialog.component';
 
 @Component({
   selector: 'app-service-instance-details',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -25,7 +23,6 @@ import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/grap
     MatIconModule,
     MatRippleModule,
     MatSelectModule,
-    OutcomeIconComponent,
   ],
   templateUrl: './service-instance-details.component.html',
   styleUrl: './service-instance-details.component.scss',

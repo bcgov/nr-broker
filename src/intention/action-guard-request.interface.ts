@@ -1,25 +1,25 @@
 import { Request } from 'express';
-import { PackageConfigureActionDto } from './dto/package-configure-action.dto';
-import { DatabaseAccessActionDto } from './dto/database-access-action.dto';
-import { PackageInstallationActionDto } from './dto/package-installation-action.dto';
-import { PackageProvisionActionDto } from './dto/package-provision-action.dto';
-import { ServerAccessActionDto } from './dto/server-access-action.dto';
-import { PackageBuildActionDto } from './dto/package-build-action.dto';
-import { BackupActionDto } from '../intention/dto/backup.action.dto';
-import { IntentionEntity } from './dto/intention.entity';
-import { ProcessStartActionDto } from './dto/process-start-action.dto';
-import { ProcessEndActionDto } from './dto/process-end-action.dto';
+import { IntentionEntity } from './entity/intention.entity';
+import { BackupActionEmbeddable } from './entity/backup.action.embeddable';
+import { DatabaseAccessActionEmbeddable } from './entity/database-access-action.embeddable';
+import { PackageBuildActionEmbeddable } from './entity/package-build-action.embeddable';
+import { PackageConfigureActionEmbeddable } from './entity/package-configure-action.embeddable';
+import { PackageInstallationActionEmbeddable } from './entity/package-installation-action.embeddable';
+import { PackageProvisionActionEmbeddable } from './entity/package-provision-action.embeddable';
+import { ProcessEndActionEmbeddable } from './entity/process-end-action.embeddable';
+import { ProcessStartActionEmbeddable } from './entity/process-start-action.embeddable';
+import { ServerAccessActionEmbeddable } from './entity/server-access-action.embeddable';
 
 export interface ActionGuardRequest extends Request {
   brokerIntentionEntity?: IntentionEntity;
   brokerActionDto?:
-    | BackupActionDto
-    | DatabaseAccessActionDto
-    | ServerAccessActionDto
-    | PackageBuildActionDto
-    | PackageConfigureActionDto
-    | PackageInstallationActionDto
-    | PackageProvisionActionDto
-    | ProcessStartActionDto
-    | ProcessEndActionDto;
+    | BackupActionEmbeddable
+    | DatabaseAccessActionEmbeddable
+    | ServerAccessActionEmbeddable
+    | PackageBuildActionEmbeddable
+    | PackageConfigureActionEmbeddable
+    | PackageInstallationActionEmbeddable
+    | PackageProvisionActionEmbeddable
+    | ProcessStartActionEmbeddable
+    | ProcessEndActionEmbeddable;
 }

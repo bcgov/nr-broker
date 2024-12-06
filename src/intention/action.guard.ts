@@ -1,16 +1,13 @@
 import {
-  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { validate } from 'class-validator';
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
-import { IntentionEntity } from './dto/intention.entity';
-import { plainToInstance } from 'class-transformer';
+import { IntentionEntity } from './entity/intention.entity';
 
 @Injectable()
 export class ActionGuard implements CanActivate {
@@ -28,18 +25,14 @@ export class ActionGuard implements CanActivate {
         message: 'Intention not found',
       });
     }
-    const intention = plainToInstance(IntentionEntity, intObj);
-    const action = IntentionEntity.projectAction(intention, token);
-    const errors = await validate(action, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-    });
-    if (errors.length > 0) {
-      // console.log(errors[0].children);
-      throw new BadRequestException('Validation failed');
+    const action = IntentionEntity.projectAction(intObj, token);
+    if (!action) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Action not found',
+      });
     }
-    request.brokerIntentionEntity = intention;
+    request.brokerIntentionEntity = intObj;
     request.brokerActionDto = action;
     return !!action;
   }

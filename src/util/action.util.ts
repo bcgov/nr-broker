@@ -7,8 +7,13 @@ import {
   VAULT_ENVIRONMENTS,
   VAULT_PROVISIONED_ACTION_SET,
 } from '../constants';
-import { ActionDto, isActionName } from '../intention/dto/action.dto';
-import { IntentionEntity } from '../intention/dto/intention.entity';
+import {
+  ACTION_NAMES,
+  ActionDto,
+  ActionName,
+} from '../intention/dto/action.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
@@ -30,7 +35,7 @@ export class ActionUtil {
   private readonly VERSION_REGEX =
     /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-  public resolveVaultEnvironment(action: ActionDto): string | undefined {
+  public resolveVaultEnvironment(action: ActionEmbeddable): string | undefined {
     return (
       action.vaultEnvironment ??
       (action.service.target && action.service.target.environment) ??
@@ -38,13 +43,13 @@ export class ActionUtil {
     );
   }
 
-  public isValidVaultEnvironment(action: ActionDto): boolean {
+  public isValidVaultEnvironment(action: ActionEmbeddable): boolean {
     return (
       VAULT_ENVIRONMENTS.indexOf(this.resolveVaultEnvironment(action)) != -1
     );
   }
 
-  public isProvisioned(action: ActionDto): boolean {
+  public isProvisioned(action: ActionEmbeddable): boolean {
     return action.provision.reduce((pv, cv) => {
       return pv || VAULT_PROVISIONED_ACTION_SET.has(cv);
     }, false);
@@ -56,8 +61,8 @@ export class ActionUtil {
       const actionArr = action.split('#');
       if (actionArr.length === 2) {
         if (actionArr[0] !== '') {
-          if (isActionName(actionArr[0])) {
-            actionOptions.action = actionArr[0];
+          if (actionArr[0] in ACTION_NAMES) {
+            actionOptions.action = actionArr[0] as ActionName;
           } else {
             throw new BadRequestException({
               statusCode: 400,
@@ -67,8 +72,8 @@ export class ActionUtil {
           }
         }
         actionOptions.id = actionArr[1];
-      } else if (actionArr.length === 1 && isActionName(actionArr[0])) {
-        actionOptions.action = actionArr[0];
+      } else if (actionArr.length === 1 && actionArr[0] in ACTION_NAMES) {
+        actionOptions.action = actionArr[0] as ActionName;
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -80,10 +85,10 @@ export class ActionUtil {
     return actionOptions;
   }
 
-  public filterActions(
-    actions: ActionDto[] | null,
+  public filterActions<T extends ActionEmbeddable>(
+    actions: T[] | null,
     actionOptions: FindArtifactActionOptions,
-  ): ActionDto[] {
+  ): T[] {
     if (!actions) {
       return [];
     }
@@ -97,11 +102,11 @@ export class ActionUtil {
     });
   }
 
-  public actionToIdString(action: ActionDto) {
+  public actionToIdString(action: ActionEmbeddable) {
     return `${action.action}#${action.id}`;
   }
 
-  public environmentName(action: ActionDto) {
+  public environmentName(action: ActionEmbeddable | ActionDto) {
     return INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
         return get({ action }, path, pv);
@@ -110,7 +115,7 @@ export class ActionUtil {
     );
   }
 
-  public instanceName(action: ActionDto) {
+  public instanceName(action: ActionEmbeddable) {
     return INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
         return get({ action }, path, pv);

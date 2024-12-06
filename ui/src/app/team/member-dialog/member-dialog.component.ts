@@ -35,24 +35,23 @@ import { PermissionService } from '../../service/permission.service';
 import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
-  selector: 'app-member-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './member-dialog.component.html',
-  styleUrls: ['./member-dialog.component.scss'],
+    selector: 'app-member-dialog',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatAutocompleteModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatDividerModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatListModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './member-dialog.component.html',
+    styleUrls: ['./member-dialog.component.scss']
 })
 export class MemberDialogComponent implements OnInit, OnDestroy {
   edges: CollectionEdgeConfig[] | undefined;

@@ -28,20 +28,19 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
 
 @Component({
-  selector: 'app-toolbar',
-  templateUrl: './toolbar.component.html',
-  styleUrls: ['./toolbar.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatMenuModule,
-    MatDividerModule,
-    SearchInputComponent,
-  ],
+    selector: 'app-toolbar',
+    templateUrl: './toolbar.component.html',
+    styleUrls: ['./toolbar.component.scss'],
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatButtonModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatMenuModule,
+        MatDividerModule,
+        SearchInputComponent,
+    ]
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
   @Output() sidebarClick = new EventEmitter<boolean>();

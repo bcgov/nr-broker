@@ -7,17 +7,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
-  selector: 'app-property-editor',
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    ReactiveFormsModule,
-  ],
-  templateUrl: './property-editor.component.html',
-  styleUrls: ['./property-editor.component.scss'],
+    selector: 'app-property-editor',
+    imports: [
+        MatButtonModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        ReactiveFormsModule,
+    ],
+    templateUrl: './property-editor.component.html',
+    styleUrls: ['./property-editor.component.scss']
 })
 export class PropertyEditorComponent implements OnInit {
   @Input() graphProperties: any;

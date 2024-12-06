@@ -19,17 +19,16 @@ import { MatChipsModule } from '@angular/material/chips';
 import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
-  selector: 'app-inspector-service-secure',
-  standalone: true,
-  imports: [
-    ClipboardModule,
-    FormsModule,
-    MatChipsModule,
-    MatIconModule,
-    MatTooltipModule,
-  ],
-  templateUrl: './inspector-service-secure.component.html',
-  styleUrl: './inspector-service-secure.component.scss',
+    selector: 'app-inspector-service-secure',
+    imports: [
+        ClipboardModule,
+        FormsModule,
+        MatChipsModule,
+        MatIconModule,
+        MatTooltipModule,
+    ],
+    templateUrl: './inspector-service-secure.component.html',
+    styleUrl: './inspector-service-secure.component.scss'
 })
 export class InspectorServiceSecureComponent implements OnChanges {
   @Input() service!: ServiceRestDto;

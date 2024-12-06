@@ -11,30 +11,31 @@ import { get, set } from 'lodash';
 // import { validate } from 'class-validator';
 
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { VertexEntity } from '../persistence/dto/vertex.entity';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { AuditService } from '../audit/audit.service';
 import {
   GraphDataResponseDto,
   GraphDeleteResponseDto,
 } from '../persistence/dto/graph-data.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { EdgeInsertDto, EdgeRestDto } from '../persistence/dto/edge-rest.dto';
-import { EdgeEntity } from '../persistence/dto/edge.entity';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { EdgeInsertDto, EdgeDto } from '../persistence/dto/edge.dto';
+import { EdgeEntity } from '../persistence/entity/edge.entity';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import {
   CollectionDtoUnion,
   CollectionNameEnum,
   CollectionNames,
 } from '../persistence/dto/collection-dto-union.type';
-import { CollectionConfigEntity } from '../persistence/dto/collection-config.entity';
+import { CollectionConfigEntity } from '../persistence/entity/collection-config.entity';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
-import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
-import { ServiceInstanceEntity } from '../persistence/dto/service-instance.entity';
-import { EnvironmentEntity } from '../persistence/dto/environment.entity';
+import { CollectionConfigInstanceDto } from '../persistence/dto/collection-config.dto';
 import { REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
-import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto';
+import { UserPermissionNames } from '../persistence/dto/user-permission.dto';
 import { AuthService } from '../auth/auth.service';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
 // import { ValidatorUtil } from '../util/validator.util';
 
 @Injectable()
@@ -69,14 +70,11 @@ export class GraphService {
   }
 
   public async getUserPermissions(request: Request) {
-    const user = await this.authSerivice.getUserDto(request);
+    const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
-  public async addEdge(
-    req: Request,
-    edge: EdgeInsertDto,
-  ): Promise<EdgeRestDto> {
+  public async addEdge(req: Request, edge: EdgeInsertDto): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge);
       this.auditService.recordGraphAction(
@@ -113,7 +111,7 @@ export class GraphService {
     req: Request,
     id: string,
     edge: EdgeInsertDto,
-  ): Promise<EdgeRestDto> {
+  ): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.editEdge(id, edge);
       this.auditService.recordGraphAction(
@@ -145,7 +143,7 @@ export class GraphService {
     }
   }
 
-  public async getEdge(id: string): Promise<EdgeRestDto> {
+  public async getEdge(id: string): Promise<EdgeDto> {
     try {
       const edge = await this.graphRepository.getEdge(id);
       if (edge === null) {
@@ -370,7 +368,7 @@ export class GraphService {
   ): Promise<
     [
       vertex: VertexEntity,
-      collection: CollectionDtoUnion[typeof vertexInsert.collection],
+      collection: CollectionEntityUnion[typeof vertexInsert.collection],
       config: CollectionConfigEntity,
     ]
   > {
@@ -489,7 +487,7 @@ export class GraphService {
   private mapCollectionToVertex(
     config: CollectionConfigEntity,
     vertex: VertexEntity,
-    collection: CollectionDtoUnion[typeof vertex.collection],
+    collection: CollectionEntityUnion[typeof vertex.collection],
   ) {
     for (const map of config.collectionMapper) {
       vertex = set(vertex, map.setPath, get(collection, map.getPath));
@@ -672,7 +670,7 @@ export class GraphService {
   }
 
   public async connectedVertex(request: Request) {
-    const user = await this.authSerivice.getUserDto(request);
+    const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
   }
 
@@ -748,7 +746,7 @@ export class GraphService {
         .getEdgeConfigByVertex(id, targetCollection, edgeName)
         .then(async (response) => {
           const converted =
-            response as unknown as CollectionConfigInstanceRestDto[];
+            response as unknown as CollectionConfigInstanceDto[];
           for (const ccInstance of converted) {
             if (ccInstance.edge.prototype.url && ccInstance.instance) {
               ccInstance.links = {
@@ -756,7 +754,7 @@ export class GraphService {
               };
               if (ccInstance.edge.collection === 'service') {
                 const ds =
-                  await this.graphRepository.getDownstreamVertex<ServiceInstanceEntity>(
+                  await this.graphRepository.getDownstreamVertex<ServiceInstanceDto>(
                     ccInstance.instance.target,
                     CollectionNameEnum.serviceInstance,
                     2,
@@ -766,7 +764,7 @@ export class GraphService {
                   let position = 0;
                   for (const serviceInstance of ds) {
                     const environment =
-                      await this.graphRepository.getDownstreamVertex<EnvironmentEntity>(
+                      await this.graphRepository.getDownstreamVertex<EnvironmentDto>(
                         serviceInstance.collection.vertex.toString(),
                         CollectionNameEnum.environment,
                         1,
@@ -805,7 +803,7 @@ export class GraphService {
             }
           }
           return response;
-        })) as unknown as CollectionConfigInstanceRestDto[];
+        })) as unknown as CollectionConfigInstanceDto[];
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

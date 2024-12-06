@@ -4,11 +4,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { get } from 'lodash';
 
 @Component({
-  selector: 'app-action-content',
-  standalone: true,
-  imports: [MatTooltipModule],
-  templateUrl: './action-content.component.html',
-  styleUrls: ['./action-content.component.scss'],
+    selector: 'app-action-content',
+    imports: [MatTooltipModule],
+    templateUrl: './action-content.component.html',
+    styleUrls: ['./action-content.component.scss']
 })
 export class ActionContentComponent implements OnInit {
   @Input() intention: any;

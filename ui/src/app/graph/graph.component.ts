@@ -48,19 +48,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserSelfRestDto } from '../service/dto/user-rest.dto';
 
 @Component({
-  selector: 'app-graph',
-  templateUrl: './graph.component.html',
-  styleUrls: ['./graph.component.scss'],
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatMenuModule,
-    MatTooltipModule,
-    CommonModule,
-    EchartsComponent,
-    InspectorComponent,
-  ],
+    selector: 'app-graph',
+    templateUrl: './graph.component.html',
+    styleUrls: ['./graph.component.scss'],
+    imports: [
+        MatButtonModule,
+        MatIconModule,
+        MatMenuModule,
+        MatTooltipModule,
+        CommonModule,
+        EchartsComponent,
+        InspectorComponent,
+    ]
 })
 export class GraphComponent implements OnInit, OnDestroy {
   public data!: Observable<GraphDataConfig>;

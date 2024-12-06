@@ -10,20 +10,17 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatListModule, MatSelectionList } from '@angular/material/list';
 import { GraphApiService } from '../../service/graph-api.service';
-import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { ConnectionMap } from '../../service/graph.types';
 
 @Component({
   selector: 'app-delete-edge-dialog',
   templateUrl: './delete-edge-dialog.component.html',
   styleUrls: ['./delete-edge-dialog.component.scss'],
-  standalone: true,
   imports: [
     MatDialogModule,
     MatFormFieldModule,
     MatOptionModule,
     MatListModule,
-    VertexNameComponent,
     MatButtonModule,
     CommonModule,
   ],

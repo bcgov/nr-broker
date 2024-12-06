@@ -47,6 +47,7 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { ExpiryQuery } from './dto/expiry-query.dto';
 import { RedisService } from '../redis/redis.service';
+import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 
 @Controller({
   path: 'collection',
@@ -115,7 +116,9 @@ export class CollectionController {
   @Get('broker-account/:id/token')
   @UseGuards(BrokerOidcAuthGuard)
   async getAccounts(@Param('id') id: string) {
-    return this.accountService.getRegisteryJwts(id);
+    return this.accountService.getRegisteryJwts(id) as unknown as Promise<
+      JwtRegistryDto[]
+    >;
   }
 
   @Post('broker-account/:id/refresh')

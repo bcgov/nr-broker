@@ -9,7 +9,7 @@ import {
   OAUTH2_CLIENT_MAP_ROLES,
   OAUTH2_CLIENT_DOMAIN,
 } from '../../constants';
-import { UserEntity } from '../../persistence/dto/user.entity';
+import { UserEntity } from '../../persistence/entity/user.entity';
 
 export class UserRolesDto extends UserImportDto {
   alias?: any;

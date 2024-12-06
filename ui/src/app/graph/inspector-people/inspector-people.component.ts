@@ -13,11 +13,10 @@ import { GraphUpDownRestDto } from '../../service/dto/graph-updown-rest.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
-  selector: 'app-inspector-people',
-  standalone: true,
-  imports: [MatTableModule, RouterModule],
-  templateUrl: './inspector-people.component.html',
-  styleUrl: './inspector-people.component.scss',
+    selector: 'app-inspector-people',
+    imports: [MatTableModule, RouterModule],
+    templateUrl: './inspector-people.component.html',
+    styleUrl: './inspector-people.component.scss'
 })
 export class InspectorPeopleComponent implements OnChanges {
   @Input() collection!: CollectionNames;

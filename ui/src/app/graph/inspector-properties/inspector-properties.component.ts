@@ -5,11 +5,10 @@ import { VertexPropDto } from '../../service/dto/vertex-rest.dto';
 import { EdgePropDto } from '../../service/dto/edge-prop.dto';
 
 @Component({
-  selector: 'app-inspector-properties',
-  standalone: true,
-  imports: [CommonModule, MatTableModule],
-  templateUrl: './inspector-properties.component.html',
-  styleUrl: './inspector-properties.component.scss',
+    selector: 'app-inspector-properties',
+    imports: [CommonModule, MatTableModule],
+    templateUrl: './inspector-properties.component.html',
+    styleUrl: './inspector-properties.component.scss'
 })
 export class InspectorPropertiesComponent {
   @Input() prop!: VertexPropDto | EdgePropDto;

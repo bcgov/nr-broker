@@ -13,7 +13,7 @@ import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
-import { JwtRegistryEntity } from '../persistence/dto/jwt-registry.entity';
+import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
   OPENSEARCH_INDEX_BROKER_AUDIT,
@@ -28,15 +28,15 @@ import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { OpensearchService } from '../aws/opensearch.service';
 import { DateUtil, INTERVAL_HOUR_MS } from '../util/date.util';
-import { BrokerAccountEntity } from '../persistence/dto/broker-account.entity';
-import { ServiceEntity } from '../persistence/dto/service.entity';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { ProjectEntity } from '../persistence/dto/project.entity';
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { CreateRequestContext } from '@mikro-orm/core';
+import { ServiceDto } from '../persistence/dto/service.dto';
+import { ProjectDto } from '../persistence/dto/project.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -266,7 +266,7 @@ export class AccountService {
 
   async addTokenToAccountServices(token: string, account: BrokerAccountEntity) {
     const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceEntity>(
+      await this.graphRepository.getDownstreamVertex<ServiceDto>(
         account.vertex.toString(),
         CollectionNameEnum.service,
         1,
@@ -274,7 +274,7 @@ export class AccountService {
     for (const service of downstreamServices) {
       const serviceName = service.collection.name;
       const projectDtoArr =
-        await this.graphRepository.getUpstreamVertex<ProjectEntity>(
+        await this.graphRepository.getUpstreamVertex<ProjectDto>(
           service.collection.vertex.toString(),
           CollectionNameEnum.project,
           null,
@@ -344,7 +344,7 @@ export class AccountService {
       throw new ServiceUnavailableException();
     }
     const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceEntity>(
+      await this.graphRepository.getDownstreamVertex<ServiceDto>(
         account.vertex.toString(),
         CollectionNameEnum.service,
         1,
@@ -354,7 +354,7 @@ export class AccountService {
       for (const service of downstreamServices) {
         const serviceName = service.collection.name;
         const projectDtoArr =
-          await this.graphRepository.getUpstreamVertex<ProjectEntity>(
+          await this.graphRepository.getUpstreamVertex<ProjectDto>(
             service.collection.vertex.toString(),
             CollectionNameEnum.project,
             ['component'],

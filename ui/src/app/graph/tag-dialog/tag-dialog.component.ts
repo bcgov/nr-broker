@@ -20,19 +20,18 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
 
 @Component({
-  selector: 'app-tag-dialog',
-  standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatIconModule,
-  ],
-  templateUrl: './tag-dialog.component.html',
-  styleUrl: './tag-dialog.component.scss',
+    selector: 'app-tag-dialog',
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatChipsModule,
+        MatDialogModule,
+        MatDividerModule,
+        MatFormFieldModule,
+        MatIconModule,
+    ],
+    templateUrl: './tag-dialog.component.html',
+    styleUrl: './tag-dialog.component.scss'
 })
 export class TagDialogComponent {
   addOnBlur = true;

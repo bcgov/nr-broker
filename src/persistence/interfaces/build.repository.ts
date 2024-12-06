@@ -1,10 +1,10 @@
-import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
-import { EnvironmentEntity } from '../dto/environment.entity';
-import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
-import { PackageBuildSearchResult } from '../dto/package-build-rest.dto';
-import { PackageBuildEntity } from '../dto/package-build.entity';
-import { UserEntity } from '../dto/user.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { IntentionActionPointerEmbeddable } from '../entity/intention-action-pointer.embeddable';
+import { PackageBuildEntity } from '../entity/package-build.entity';
+import { UserEntity } from '../entity/user.entity';
+import { PackageBuildSearchResult } from '../dto/package-build.dto';
+import { PackageEmbeddable } from '../../intention/entity/package.embeddable';
 
 export abstract class BuildRepository {
   public abstract addBuild(
@@ -13,7 +13,7 @@ export abstract class BuildRepository {
     serviceId: string,
     name: string,
     semvar: SemverVersion,
-    buildPackage: PackageDto,
+    buildPackage: PackageEmbeddable,
   ): Promise<PackageBuildEntity>;
 
   public abstract getBuild(id: string): Promise<PackageBuildEntity>;
@@ -26,7 +26,7 @@ export abstract class BuildRepository {
 
   public abstract addInstallActionToBuild(
     buildId: string,
-    pointer: IntentionActionPointerDto,
+    pointer: IntentionActionPointerEmbeddable,
   ): Promise<PackageBuildEntity>;
 
   public abstract searchBuild(

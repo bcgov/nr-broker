@@ -38,7 +38,6 @@ import { CollectionConfigRestDto } from '../../service/dto/collection-config-res
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
-import { InspectorInstancesComponent } from '../../graph/inspector-instances/inspector-instances.component';
 import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
 import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
@@ -60,16 +59,14 @@ import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/i
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamSummaryComponent } from '../team-summary/team-summary.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
-import { ServiceBuildDetailsComponent } from '../service-build-details/service-build-details.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
-import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { UserAliasComponent } from '../user-alias/user-alias.component';
+import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 
 @Component({
   selector: 'app-collection-inspector',
-  standalone: true,
   imports: [
     CommonModule,
     ClipboardModule,
@@ -85,7 +82,6 @@ import { UserAliasComponent } from '../user-alias/user-alias.component';
     CollectionHeaderComponent,
     InspectorAccountComponent,
     InspectorInstallsComponent,
-    InspectorInstancesComponent,
     InspectorIntentionsComponent,
     InspectorServiceSecureComponent,
     InspectorTeamComponent,
@@ -95,7 +91,6 @@ import { UserAliasComponent } from '../user-alias/user-alias.component';
     InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    ServiceBuildDetailsComponent,
     ServiceBuildsComponent,
     ServiceInstanceDetailsComponent,
     ServiceInstancesComponent,

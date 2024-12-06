@@ -5,16 +5,16 @@ import os from 'os';
 import snakecaseKeys from 'snakecase-keys';
 
 import { AuditStreamerService } from './audit-streamer.service';
-import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionEntity } from '../intention/dto/intention.entity';
-import { UserDto } from '../intention/dto/user.dto';
-import { EdgeEntity } from '../persistence/dto/edge.entity';
-import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { VertexEntity } from '../persistence/dto/vertex.entity';
+import { EdgeEntity } from '../persistence/entity/edge.entity';
+import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
 import { ActionError } from '../intention/action.error';
-import { ArtifactDto } from '../intention/dto/artifact.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
+import { UserEmbeddable } from '../intention/entity/user.embeddable';
 
 const hostInfo = {
   host: {
@@ -134,7 +134,7 @@ export class AuditService {
         },
       ])
         .pipe(
-          map(this.addActionFunc(action)),
+          map(this.addActionFunc(intention, action)),
           map(this.addEcsFunc),
           map(
             this.addErrorFunc(
@@ -218,7 +218,7 @@ export class AuditService {
   public recordIntentionActionLifecycle(
     req: any,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
     type: 'start' | 'end',
   ) {
     const now = new Date();
@@ -240,7 +240,7 @@ export class AuditService {
       }),
     ])
       .pipe(
-        map(this.addActionFunc(action)),
+        map(this.addActionFunc(intention, action)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
@@ -264,10 +264,10 @@ export class AuditService {
   public recordIntentionActionUsage(
     req: any,
     intention: IntentionEntity,
-    action: ActionDto,
+    action: ActionEmbeddable,
     assignObj: any,
     exception: HttpException | null = null,
-    artifact: ArtifactDto | null = null,
+    artifact: ArtifactEmbeddable | null = null,
   ) {
     const now = new Date();
     from([
@@ -281,7 +281,7 @@ export class AuditService {
       }),
     ])
       .pipe(
-        map(this.addActionFunc(action, artifact)),
+        map(this.addActionFunc(intention, action, artifact)),
         map(this.addEcsFunc),
         map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
@@ -604,7 +604,11 @@ export class AuditService {
    * @param action The action DTO
    * @returns Function to manipulate the ECS document
    */
-  private addActionFunc(action: ActionDto, artifact: ArtifactDto = undefined) {
+  private addActionFunc(
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
+    artifact: ArtifactEmbeddable = undefined,
+  ) {
     return (ecsObj: any) => {
       return merge(
         ecsObj,
@@ -642,7 +646,7 @@ export class AuditService {
             id: action.trace.hash,
           },
           transaction: {
-            id: action.transaction.hash,
+            id: intention.transaction.hash,
           },
         }),
       );
@@ -950,7 +954,7 @@ export class AuditService {
    * @param user The user
    * @returns Function to manipulate the ECS document
    */
-  private addUserFunc(user: UserDto | null) {
+  private addUserFunc(user: UserEmbeddable | null) {
     if (!user) {
       return (ecsObj: any) => ecsObj;
     }

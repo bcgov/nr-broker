@@ -11,18 +11,17 @@ import { CONFIG_MAP } from '../../app-initialize.factory';
 import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
 
 @Component({
-  selector: 'app-inspector-edge',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ClipboardModule,
-    MatButtonModule,
-    MatChipsModule,
-    MatIconModule,
-    VertexNameComponent,
-  ],
-  templateUrl: './inspector-edge.component.html',
-  styleUrl: './inspector-edge.component.scss',
+    selector: 'app-inspector-edge',
+    imports: [
+        CommonModule,
+        ClipboardModule,
+        MatButtonModule,
+        MatChipsModule,
+        MatIconModule,
+        VertexNameComponent,
+    ],
+    templateUrl: './inspector-edge.component.html',
+    styleUrl: './inspector-edge.component.scss'
 })
 export class InspectorEdgeComponent {
   @Input() edge!: EdgeRestDto;

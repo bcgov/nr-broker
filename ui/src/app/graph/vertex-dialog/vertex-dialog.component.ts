@@ -27,22 +27,21 @@ import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 
 @Component({
-  selector: 'app-vertex-dialog',
-  templateUrl: './vertex-dialog.component.html',
-  styleUrls: ['./vertex-dialog.component.scss'],
-  standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatOptionModule,
-    ReactiveFormsModule,
-    PropertyEditorComponent,
-    VertexFormBuilderComponent,
-  ],
+    selector: 'app-vertex-dialog',
+    templateUrl: './vertex-dialog.component.html',
+    styleUrls: ['./vertex-dialog.component.scss'],
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatDividerModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatOptionModule,
+        ReactiveFormsModule,
+        PropertyEditorComponent,
+        VertexFormBuilderComponent,
+    ]
 })
 export class VertexDialogComponent implements OnInit {
   collectionControl = new FormControl<string | CollectionConfigRestDto>('');

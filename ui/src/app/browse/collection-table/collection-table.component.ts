@@ -80,28 +80,27 @@ interface TableQuery {
 }
 
 @Component({
-  selector: 'app-collection-table',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatSortModule,
-    MatTableModule,
-    MatTooltipModule,
-    ReactiveFormsModule,
-    RouterModule,
-    InspectorVertexFieldComponent,
-    InspectorTeamComponent,
-  ],
-  templateUrl: './collection-table.component.html',
-  styleUrl: './collection-table.component.scss',
+    selector: 'app-collection-table',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatButtonModule,
+        MatCardModule,
+        MatIconModule,
+        MatInputModule,
+        MatPaginatorModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatSortModule,
+        MatTableModule,
+        MatTooltipModule,
+        ReactiveFormsModule,
+        RouterModule,
+        InspectorVertexFieldComponent,
+        InspectorTeamComponent,
+    ],
+    templateUrl: './collection-table.component.html',
+    styleUrl: './collection-table.component.scss'
 })
 export class CollectionTableComponent
   implements AfterViewInit, OnInit, OnDestroy

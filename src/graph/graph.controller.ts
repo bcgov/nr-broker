@@ -25,8 +25,8 @@ import { RedisService } from '../redis/redis.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
-import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { AllowOwner } from '../allow-owner.decorator';
 import {
   CollectionDtoUnion,

@@ -15,7 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
-import { AsyncPipe, TitleCasePipe, KeyValuePipe } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import {
   BehaviorSubject,
   Observable,
@@ -65,11 +65,8 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
   selector: 'app-inspector',
   templateUrl: './inspector.component.html',
   styleUrls: ['./inspector.component.scss'],
-  standalone: true,
   imports: [
-    AsyncPipe,
     ClipboardModule,
-    KeyValuePipe,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
@@ -83,7 +80,6 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
     InspectorVertexComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    TagDialogComponent,
     TitleCasePipe,
   ],
 })

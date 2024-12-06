@@ -18,26 +18,26 @@ import { GraphRedisRepository } from './redis-composition/graph-redis.repository
 import { PersistenceUtilService } from './persistence-util.service';
 import { PersistenceRedisUtilService } from './persistence-redis-util.service';
 import { UtilModule } from '../util/util.module';
-import { PackageBuildEntity } from './dto/package-build.entity';
-import { IntentionEntity } from 'src/intention/dto/intention.entity';
-import { BrokerAccountEntity } from './dto/broker-account.entity';
-import { CollectionConfigEntity } from './dto/collection-config.entity';
+import { PackageBuildEntity } from './entity/package-build.entity';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { BrokerAccountEntity } from './entity/broker-account.entity';
+import { CollectionConfigEntity } from './entity/collection-config.entity';
 import { ConnectionConfigEntity } from './dto/connection-config.entity';
-import { EdgeEntity } from './dto/edge.entity';
-import { EnvironmentEntity } from './dto/environment.entity';
-import { JwtAllowEntity } from './dto/jwt-allow.dto';
-import { JwtBlockEntity } from './dto/jwt-block.dto';
-import { JwtRegistryEntity } from './dto/jwt-registry.entity';
-import { PreferenceEntity } from './dto/preference.entity';
-import { ProjectEntity } from './dto/project.entity';
-import { ServerEntity } from './dto/server.entity';
-import { ServiceInstanceEntity } from './dto/service-instance.entity';
-import { ServiceEntity } from './dto/service.entity';
-import { TeamEntity } from './dto/team.entity';
-import { UserEntity } from './dto/user.entity';
-import { VertexEntity } from './dto/vertex.entity';
-import { GraphPermissionEntity } from './dto/graph-permission.entity';
-import { UserAliasRequestEntity } from './dto/user-alias-request.entity';
+import { EdgeEntity } from './entity/edge.entity';
+import { EnvironmentEntity } from './entity/environment.entity';
+import { JwtAllowEntity } from './entity/jwt-allow.entity';
+import { JwtBlockEntity } from './entity/jwt-block.entity';
+import { JwtRegistryEntity } from './entity/jwt-registry.entity';
+import { PreferenceEntity } from './entity/preference.entity';
+import { ProjectEntity } from './entity/project.entity';
+import { ServerEntity } from './entity/server.entity';
+import { ServiceInstanceEntity } from './entity/service-instance.entity';
+import { ServiceEntity } from './entity/service.entity';
+import { TeamEntity } from './entity/team.entity';
+import { UserEntity } from './entity/user.entity';
+import { VertexEntity } from './entity/vertex.entity';
+import { GraphPermissionEntity } from './entity/graph-permission.entity';
+import { UserAliasRequestEntity } from './entity/user-alias-request.entity';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',

@@ -10,11 +10,10 @@ import {
 import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspector-vertex-field.component';
 
 @Component({
-  selector: 'app-inspector-vertex-fields',
-  standalone: true,
-  imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
-  templateUrl: './inspector-vertex-fields.component.html',
-  styleUrl: './inspector-vertex-fields.component.scss',
+    selector: 'app-inspector-vertex-fields',
+    imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
+    templateUrl: './inspector-vertex-fields.component.html',
+    styleUrl: './inspector-vertex-fields.component.scss'
 })
 export class InspectorVertexFieldsComponent implements OnChanges {
   @Input() collection!: CollectionNames;

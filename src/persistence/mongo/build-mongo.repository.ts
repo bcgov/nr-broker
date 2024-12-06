@@ -3,18 +3,20 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
 
-import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
-import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
+import { IntentionActionPointerEmbeddable } from '../entity/intention-action-pointer.embeddable';
 import { BuildRepository } from '../interfaces/build.repository';
 import { arrayIdFixer } from './mongo.util';
-import { UserEntity } from '../dto/user.entity';
-import { EnvironmentEntity } from '../dto/environment.entity';
-import { PackageBuildEntity } from '../dto/package-build.entity';
+import { UserEntity } from '../entity/user.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { PackageBuildEntity } from '../entity/package-build.entity';
+import { PackageEmbeddable } from '../../intention/entity/package.embeddable';
+import { EntityManager } from '@mikro-orm/core';
 @Injectable()
 export class BuildMongoRepository implements BuildRepository {
   constructor(
+    private readonly em: EntityManager,
     @InjectRepository(PackageBuildEntity)
     private readonly packageBuildRepository: MongoEntityRepository<PackageBuildEntity>,
   ) {}
@@ -25,29 +27,20 @@ export class BuildMongoRepository implements BuildRepository {
     serviceId: string,
     name: string,
     semvar: SemverVersion,
-    buildPackage: PackageDto,
+    buildPackage: PackageEmbeddable,
   ) {
-    const result = await this.packageBuildRepository.insert({
-      approval: [],
-      installed: [],
-      service: new ObjectId(serviceId),
+    const packageBuild = new PackageBuildEntity(
+      new ObjectId(serviceId),
       name,
-      source: {
-        action,
-        intention: new ObjectId(intentionId),
-      },
-      semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
-      package: buildPackage,
-      timestamps: {
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-    if (!result) {
-      throw new Error();
-    }
+      action,
+      new ObjectId(intentionId),
+      `${semvar.major}.${semvar.minor}.${semvar.patch}`,
+      buildPackage,
+    );
 
-    return await this.getBuild(result.toString());
+    await this.em.persist(packageBuild).flush();
+
+    return packageBuild;
   }
 
   public async getBuild(id: string) {
@@ -74,7 +67,7 @@ export class BuildMongoRepository implements BuildRepository {
 
   public async addInstallActionToBuild(
     buildId: string,
-    pointer: IntentionActionPointerDto,
+    pointer: IntentionActionPointerEmbeddable,
   ) {
     const collResult = await this.packageBuildRepository
       .getCollection()

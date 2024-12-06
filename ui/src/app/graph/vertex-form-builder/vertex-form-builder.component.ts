@@ -25,11 +25,10 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
 
 @Component({
-  selector: 'app-vertex-form-builder',
-  templateUrl: './vertex-form-builder.component.html',
-  styleUrls: ['./vertex-form-builder.component.scss'],
-  standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
+    selector: 'app-vertex-form-builder',
+    templateUrl: './vertex-form-builder.component.html',
+    styleUrls: ['./vertex-form-builder.component.scss'],
+    imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent]
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();

@@ -1,14 +1,14 @@
 import { EdgePropDto } from './edge-prop.dto';
-import { EnvironmentRestDto } from './environment-rest.dto';
-import { ServiceInstanceRestDto } from './service-instance-rest.dto';
-import { ServiceRestDto } from './service-rest.dto';
+import { EnvironmentDto } from './environment.dto';
+import { ServiceInstanceDto } from './service-instance.dto';
+import { ServiceDto } from './service.dto';
 
-export class GraphServerInstallInstanceDto extends ServiceInstanceRestDto {
+export class GraphServerInstallInstanceDto extends ServiceInstanceDto {
   edgeProp: EdgePropDto;
-  environment: EnvironmentRestDto;
-  service: ServiceRestDto;
+  environment: EnvironmentDto;
+  service: ServiceDto;
 }
 
-export class GraphServerInstallsResponseDto extends ServiceInstanceRestDto {
+export class GraphServerInstallsResponseDto extends ServiceInstanceDto {
   instances: GraphServerInstallInstanceDto[];
 }

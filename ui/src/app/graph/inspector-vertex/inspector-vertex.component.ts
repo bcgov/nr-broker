@@ -24,21 +24,20 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
-  selector: 'app-inspector-vertex',
-  standalone: true,
-  imports: [
-    InspectorAccountComponent,
-    InspectorInstallsComponent,
-    InspectorInstancesComponent,
-    InspectorServiceSecureComponent,
-    InspectorTeamComponent,
-    InspectorVaultComponent,
-    InspectorVertexFieldsComponent,
-    VertexTagsComponent,
-    MatDividerModule,
-  ],
-  templateUrl: './inspector-vertex.component.html',
-  styleUrl: './inspector-vertex.component.scss',
+    selector: 'app-inspector-vertex',
+    imports: [
+        InspectorAccountComponent,
+        InspectorInstallsComponent,
+        InspectorInstancesComponent,
+        InspectorServiceSecureComponent,
+        InspectorTeamComponent,
+        InspectorVaultComponent,
+        InspectorVertexFieldsComponent,
+        VertexTagsComponent,
+        MatDividerModule,
+    ],
+    templateUrl: './inspector-vertex.component.html',
+    styleUrl: './inspector-vertex.component.scss'
 })
 export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: CollectionNames;

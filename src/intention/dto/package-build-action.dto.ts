@@ -1,16 +1,19 @@
 import { Equals, IsIn } from 'class-validator';
-import { Entity, Property } from '@mikro-orm/core';
 import { ACTION_PROVISION_APPROLE_SECRET_ID } from '../../constants';
 import { ActionDto } from './action.dto';
 
-@Entity()
+export const PACKAGE_BUILD_PROVISION_NAMES = [
+  ACTION_PROVISION_APPROLE_SECRET_ID,
+];
+export type PackageBuildProvisionName =
+  (typeof PACKAGE_BUILD_PROVISION_NAMES)[number];
+
 export class PackageBuildActionDto extends ActionDto {
   @Equals('package-build')
   action: 'package-build';
 
-  @IsIn([ACTION_PROVISION_APPROLE_SECRET_ID], {
+  @IsIn(PACKAGE_BUILD_PROVISION_NAMES, {
     each: true,
   })
-  @Property()
-  provision: string[];
+  provision: PackageBuildProvisionName[];
 }

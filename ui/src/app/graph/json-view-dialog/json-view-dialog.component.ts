@@ -7,11 +7,10 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-json-view-dialog',
-  templateUrl: './json-view-dialog.component.html',
-  styleUrls: ['./json-view-dialog.component.scss'],
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+    selector: 'app-json-view-dialog',
+    templateUrl: './json-view-dialog.component.html',
+    styleUrls: ['./json-view-dialog.component.scss'],
+    imports: [MatDialogModule, MatButtonModule]
 })
 export class JsonViewDialogComponent {
   constructor(

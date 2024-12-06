@@ -1,30 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { MongoEntityRepository } from '@mikro-orm/mongodb';
+import { EntityManager } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
-import { ActionDto } from '../../intention/dto/action.dto';
-import { IntentionEntity } from '../../intention/dto/intention.entity';
+
+import { LIFECYCLE_NAMES } from '../../intention/dto/action.dto';
+import { IntentionEntity } from '../../intention/entity/intention.entity';
 import { IntentionRepository } from '../interfaces/intention.repository';
 import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
-import { ArtifactDto } from '../../intention/dto/artifact.dto';
+import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
+import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
   constructor(
+    private readonly em: EntityManager,
     @InjectRepository(IntentionEntity)
     private readonly intentionRepository: MongoEntityRepository<IntentionEntity>,
   ) {}
 
   public async addIntention(intention: IntentionEntity): Promise<any> {
-    if (intention.id) {
-      const id = extractId(intention);
-      await this.intentionRepository
-        .getCollection()
-        .replaceOne({ _id: id }, intention);
-      return intention;
-    }
-    return await this.intentionRepository.insert(intention);
+    await this.em.persist(intention).flush();
   }
 
   public async getIntention(
@@ -65,7 +62,7 @@ export class IntentionMongoRepository implements IntentionRepository {
 
   public async getIntentionActionByToken(
     token: string,
-  ): Promise<ActionDto | null> {
+  ): Promise<ActionEmbeddable | null> {
     const action = await this.intentionRepository
       .findOne({ 'actions.trace.token': token, closed: { $ne: true } } as any)
       // project the matching ActionDto
@@ -81,7 +78,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     token: string,
     outcome: string | undefined,
     type: 'start' | 'end',
-  ): Promise<ActionDto> {
+  ): Promise<ActionEmbeddable> {
     const intention = await this.intentionRepository.findOne({
       'actions.trace.token': token,
       closed: { $ne: true },
@@ -97,7 +94,8 @@ export class IntentionMongoRepository implements IntentionRepository {
 
     if (action) {
       const currentTime = new Date().toISOString();
-      action.lifecycle = type === 'start' ? 'started' : 'ended';
+      action.lifecycle =
+        type === 'start' ? LIFECYCLE_NAMES.STARTED : LIFECYCLE_NAMES.ENDED;
       if (action.lifecycle === 'started') {
         action.trace.start = currentTime;
       }
@@ -120,8 +118,8 @@ export class IntentionMongoRepository implements IntentionRepository {
 
   public async addIntentionActionArtifact(
     token: string,
-    artifact: ArtifactDto,
-  ): Promise<ActionDto> {
+    artifact: ArtifactEmbeddable,
+  ): Promise<ActionEmbeddable> {
     const intention = await this.intentionRepository.findOne({
       'actions.trace.token': token,
       closed: { $ne: true },

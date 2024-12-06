@@ -17,16 +17,15 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
-  selector: 'app-add-team-dialog',
-  standalone: true,
-  imports: [
-    MatButtonModule,
-    MatDialogModule,
-    MatDividerModule,
-    VertexFormBuilderComponent,
-  ],
-  templateUrl: './add-team-dialog.component.html',
-  styleUrl: './add-team-dialog.component.scss',
+    selector: 'app-add-team-dialog',
+    imports: [
+        MatButtonModule,
+        MatDialogModule,
+        MatDividerModule,
+        VertexFormBuilderComponent,
+    ],
+    templateUrl: './add-team-dialog.component.html',
+    styleUrl: './add-team-dialog.component.scss'
 })
 export class AddTeamDialogComponent {
   public config: CollectionConfigRestDto | undefined;

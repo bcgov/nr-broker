@@ -5,10 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { GraphService } from '../graph.service';
 import { OpensearchService } from '../../aws/opensearch.service';
-import { CollectionConfigEntity } from '../../persistence/dto/collection-config.entity';
+import { CollectionConfigEntity } from '../../persistence/entity/collection-config.entity';
 import { CollectionDtoUnion } from '../../persistence/dto/collection-dto-union.type';
 import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
-import { VertexInsertDto } from '../../persistence/dto/vertex-rest.dto';
+import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
 import { IS_PRIMARY_NODE } from '../../constants';
 import { CreateRequestContext } from '@mikro-orm/core';

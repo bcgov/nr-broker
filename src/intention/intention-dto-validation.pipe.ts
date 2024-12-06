@@ -5,10 +5,10 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { IntentionEntity } from './dto/intention.entity';
-import { UnknownActionBadRequestException } from './dto/unknown-action-bad-request.exception';
-import { ValidatorUtil } from '../util/validator.util';
 import { plainToInstance } from 'class-transformer';
+import { UnknownActionBadRequestException } from './unknown-action-bad-request.exception';
+import { ValidatorUtil } from '../util/validator.util';
+import { IntentionDto } from './dto/intention.dto';
 
 @Injectable()
 export class IntentionEntityValidationPipe implements PipeTransform {
@@ -19,7 +19,7 @@ export class IntentionEntityValidationPipe implements PipeTransform {
     }
     // Validate as a generic intention
     try {
-      const object = plainToInstance(IntentionEntity, value);
+      const object = plainToInstance(IntentionDto, value);
       const errors = await validate(object, {
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -40,7 +40,7 @@ export class IntentionEntityValidationPipe implements PipeTransform {
       ) {
         throw error;
       }
-      throw new BadRequestException('Validation failed');
+      throw new BadRequestException('Pipe: Validation failed');
     }
   }
 

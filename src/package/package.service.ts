@@ -5,7 +5,7 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { BuildRepository } from '../persistence/interfaces/build.repository';
 import { RedisService } from '../redis/redis.service';
 import { REDIS_PUBSUB } from '../constants';
-import { PackageBuildEntity } from '../persistence/dto/package-build.entity';
+import { PackageBuildEntity } from '../persistence/entity/package-build.entity';
 
 @Injectable()
 export class PackageService {

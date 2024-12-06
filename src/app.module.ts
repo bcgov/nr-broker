@@ -25,20 +25,6 @@ import { PackageModule } from './package/package.module';
 import { VaultModule } from './vault/vault.module';
 import { GithubModule } from './github/github.module';
 
-/**
- * Convenience function for converting an environment variable to an object
- * @param key Object key
- * @param envName Name of environment variable
- * @returns Object
- */
-// function envToObj(key: string, envName: string) {
-//   return process.env[envName]
-//     ? {
-//         [key]: process.env[envName],
-//       }
-//     : {};
-// }
-
 @Module({
   imports: [
     ConfigModule.forRoot({

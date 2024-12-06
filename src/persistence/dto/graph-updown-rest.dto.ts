@@ -1,9 +1,9 @@
-import { EdgeRestDto } from './edge-rest.dto';
-import { VertexPointerRestDto } from './vertex-pointer-rest.dto';
-import { VertexRestDto } from './vertex-rest.dto';
+import { EdgeDto } from './edge.dto';
+import { VertexPointerDto } from './vertex-pointer.dto';
+import { VertexDto } from './vertex.dto';
 
-export class GraphUpDownRestDto<T extends VertexPointerRestDto> {
+export class GraphUpDownDto<T extends VertexPointerDto> {
   collection!: T;
-  edge!: EdgeRestDto;
-  vertex!: VertexRestDto;
+  edge!: EdgeDto;
+  vertex!: VertexDto;
 }

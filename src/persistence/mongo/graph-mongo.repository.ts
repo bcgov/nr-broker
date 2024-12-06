@@ -6,40 +6,38 @@ import {
   wrap,
 } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
-import { EdgeEntity } from '../dto/edge.entity';
-import { VertexEntity } from '../dto/vertex.entity';
+import { EdgeEntity } from '../entity/edge.entity';
+import { VertexEntity } from '../entity/vertex.entity';
 import { GraphRepository } from '../interfaces/graph.repository';
 import {
   CollectionConfigEntity,
   CollectionConfigInstanceDto,
-} from '../dto/collection-config.entity';
+} from '../entity/collection-config.entity';
 import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
-import { VertexSearchDto } from '../dto/vertex-rest.dto';
-import { EdgeInsertDto } from '../dto/edge-rest.dto';
+import { VertexSearchDto } from '../dto/vertex.dto';
+import { EdgeInsertDto } from '../dto/edge.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
-import {
-  CollectionDtoUnion,
-  CollectionNames,
-} from '../dto/collection-dto-union.type';
-import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
-import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
+import { ServiceDetailsResponseDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
-import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
-import { GraphPermissionEntity } from '../dto/graph-permission.entity';
-import { TimestampDto } from '../dto/timestamp.dto';
-import {
-  GraphDirectedCombo,
-  GraphVertexConnections,
-} from '../dto/collection-combo.dto';
+import { GraphPermissionEntity } from '../entity/graph-permission.entity';
+import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
+import { GraphDirectedCombo } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
-import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
+import {
+  CollectionEntityUnion,
+  CollectionNames,
+} from '../entity/collection-entity-union.type';
+import { UserPermissionDto } from '../dto/user-permission.dto';
+import { GraphVertexConnections } from '../../persistence/dto/collection-combo.dto';
+import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -428,7 +426,7 @@ export class GraphMongoRepository implements GraphRepository {
     return datum as ServiceInstanceDetailsResponseDto;
   }
 
-  public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
+  public async getUserPermissions(id: string): Promise<UserPermissionDto> {
     const permissions = await this.permissionRepository.find({ name: 'user' });
     const configs = permissions.map((permission) => permission.data);
     const maxDepth = configs
@@ -458,9 +456,9 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     configs: any[],
     paths: any[],
-  ): UserPermissionRestDto {
+  ): UserPermissionDto {
     let ids = [];
-    const matches: UserPermissionRestDto = {
+    const matches: UserPermissionDto = {
       create: [],
       delete: [],
       sudo: [],
@@ -574,7 +572,7 @@ export class GraphMongoRepository implements GraphRepository {
     const edge = EdgeEntity.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
-    edge.timestamps = TimestampDto.create();
+    edge.timestamps = TimestampEmbeddable.create();
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
@@ -855,9 +853,9 @@ export class GraphMongoRepository implements GraphRepository {
 
   public async addVertex(
     vertex: VertexEntity,
-    collection: CollectionDtoUnion[typeof vertex.collection],
+    collection: CollectionEntityUnion[typeof vertex.collection],
   ): Promise<VertexEntity> {
-    vertex.timestamps = TimestampDto.create();
+    vertex.timestamps = TimestampEmbeddable.create();
 
     await this.dataSource.persistAndFlush(vertex);
     if (!vertex.id) {
@@ -883,7 +881,7 @@ export class GraphMongoRepository implements GraphRepository {
   public async editVertex(
     id: string,
     vertex: VertexEntity,
-    collection: CollectionDtoUnion[typeof vertex.collection],
+    collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields = false,
   ): Promise<VertexEntity> {
     const curVertex = await this.getVertex(id);
@@ -983,7 +981,7 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   public async getVertexByName(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     name: string,
   ): Promise<VertexEntity | null> {
     return this.vertexRepository.findOne({ name, collection });

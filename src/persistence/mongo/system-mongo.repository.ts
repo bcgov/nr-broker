@@ -4,15 +4,15 @@ import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
 
 import { ConnectionConfigEntity } from '../dto/connection-config.entity';
-import { JwtAllowEntity } from '../dto/jwt-allow.dto';
-import { JwtBlockEntity } from '../dto/jwt-block.dto';
-import { JwtRegistryEntity } from '../dto/jwt-registry.entity';
+import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';
-import { PreferenceEntity } from '../dto/preference.entity';
-import { PreferenceRestDto } from '../dto/preference-rest.dto';
+import { PreferenceEntity } from '../entity/preference.entity';
+import { PreferenceDto } from '../dto/preference.dto';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
-import { UserAliasRequestEntity } from '../dto/user-alias-request.entity';
+import { UserAliasRequestEntity } from '../entity/user-alias-request.entity';
+import { JwtBlockEntity } from '../entity/jwt-block.entity';
+import { JwtAllowEntity } from '../entity/jwt-allow.entity';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
@@ -170,7 +170,7 @@ export class SystemMongoRepository implements SystemRepository {
 
   public async setPreferences(
     guid: string,
-    preference: PreferenceRestDto,
+    preference: PreferenceDto,
   ): Promise<boolean> {
     const result = await this.preferenceRepository.getCollection().updateOne(
       { guid },

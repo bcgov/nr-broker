@@ -6,9 +6,9 @@ import {
   SerializedPrimaryKey,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
-import { VertexEntity } from './vertex.entity';
-import { EdgeEntity } from './edge.entity';
 import { Transform } from 'class-transformer';
+import { VertexDto } from './vertex.dto';
+import { EdgeDto } from './edge.dto';
 
 @Entity({ tableName: 'graphRequestDto' })
 export class GraphRequestDto {
@@ -30,7 +30,7 @@ export class GraphRequestDto {
   type: 'edge' | 'vertex';
 
   @Property()
-  data: Omit<EdgeEntity, 'id'> | Omit<VertexEntity, 'id'>;
+  data: Omit<EdgeDto, 'id'> | Omit<VertexDto, 'id'>;
 
   @Property()
   @ApiProperty({ type: () => String })

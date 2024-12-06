@@ -25,8 +25,6 @@ import {
 } from '../../graph/inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
 import { ServiceRestDto } from '../../service/dto/service-rest.dto';
-import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
-import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { PermissionService } from '../../service/permission.service';
 import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
 import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
@@ -38,7 +36,6 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 
 @Component({
   selector: 'app-service-instances',
-  standalone: true,
   imports: [
     FormsModule,
     MatButtonModule,
@@ -48,10 +45,7 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    InspectorInstallsComponent,
-    InspectorInstanceDialogComponent,
     ServiceInstanceDetailsComponent,
-    OutcomeIconComponent,
   ],
   templateUrl: './service-instances.component.html',
   styleUrl: './service-instances.component.scss',

@@ -12,7 +12,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatListModule } from '@angular/material/list';
 import { Subject, switchMap } from 'rxjs';
 
-import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
@@ -22,14 +21,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-team-members',
-  standalone: true,
-  imports: [
-    CommonModule,
-    InspectorTeamComponent,
-    MatDividerModule,
-    MatListModule,
-    MatTableModule,
-  ],
+  imports: [CommonModule, MatDividerModule, MatListModule, MatTableModule],
   templateUrl: './team-members.component.html',
   styleUrl: './team-members.component.scss',
 })

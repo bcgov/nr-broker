@@ -1,17 +1,17 @@
-import { BrokerAccountEntity } from '../dto/broker-account.entity';
-import { EnvironmentEntity } from '../dto/environment.entity';
-import { ProjectEntity } from '../dto/project.entity';
-import { ServerEntity } from '../dto/server.entity';
-import { ServiceInstanceEntity } from '../dto/service-instance.entity';
-import { ServiceEntity } from '../dto/service.entity';
-import { UserEntity } from '../dto/user.entity';
-import { TeamEntity } from '../dto/team.entity';
-import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { ProjectEntity } from '../entity/project.entity';
+import { ServerEntity } from '../entity/server.entity';
+import { ServiceInstanceEntity } from '../entity/service-instance.entity';
+import { ServiceEntity } from '../entity/service.entity';
+import { UserEntity } from '../entity/user.entity';
+import { TeamEntity } from '../entity/team.entity';
 import {
   MongoEntityManager,
   MongoEntityRepository,
   ObjectId,
 } from '@mikro-orm/mongodb';
+import { CollectionEntityUnion } from '../entity/collection-entity-union.type';
 
 export function getMongoDbConnectionUrl() {
   return process.env.MONGODB_URL.replace(
@@ -21,44 +21,44 @@ export function getMongoDbConnectionUrl() {
 }
 
 export function getRepositoryFromCollectionName<
-  T extends keyof CollectionDtoUnion,
+  T extends keyof CollectionEntityUnion,
 >(
   dataSource: MongoEntityManager,
   name: T,
-): MongoEntityRepository<CollectionDtoUnion[T]> {
+): MongoEntityRepository<CollectionEntityUnion[T]> {
   switch (name) {
     case 'brokerAccount':
       return dataSource.getRepository(
         BrokerAccountEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'environment':
       return dataSource.getRepository(
         EnvironmentEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'project':
       return dataSource.getRepository(
         ProjectEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'server':
       return dataSource.getRepository(
         ServerEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'serviceInstance':
       return dataSource.getRepository(
         ServiceInstanceEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'service':
       return dataSource.getRepository(
         ServiceEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'team':
       return dataSource.getRepository(
         TeamEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'user':
       return dataSource.getRepository(
         UserEntity,
-      ) as unknown as MongoEntityRepository<CollectionDtoUnion[T]>;
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     default:
       // If this is an error then not all collection types are above
       // eslint-disable-next-line no-case-declarations

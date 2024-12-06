@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
+
 import { HEADER_BROKER_TOKEN } from '../constants';
 import { ActionUtil } from '../util/action.util';
 import { IntentionEntityValidationPipe } from './intention-dto-validation.pipe';
@@ -25,8 +26,8 @@ import { IntentionSearchQuery } from './dto/intention-search-query.dto';
 import { IntentionCloseDto } from './dto/intention-close.dto';
 import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
-import { IntentionEntity } from './dto/intention.entity';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
+import { IntentionDto } from './dto/intention.dto';
 
 @Controller({
   path: 'intention',
@@ -44,7 +45,7 @@ export class IntentionController {
   async openIntention(
     @Req() request: Request,
     @Body(IntentionEntityValidationPipe)
-    intentionDto: IntentionEntity,
+    intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
     @Query('quickstart') quickStart: boolean | undefined,
   ) {
@@ -65,7 +66,7 @@ export class IntentionController {
   preflightIntention(
     @Req() request: Request,
     @Body(IntentionEntityValidationPipe)
-    intentionDto: IntentionEntity,
+    intentionDto: IntentionDto,
     @Query('ttl') ttl: number | undefined,
   ) {
     return this.intentionService.open(request, intentionDto, ttl, true);

@@ -18,11 +18,10 @@ import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
 
 @Component({
-  selector: 'app-collection-header',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDividerModule, MatIconModule],
-  templateUrl: './collection-header.component.html',
-  styleUrl: './collection-header.component.scss',
+    selector: 'app-collection-header',
+    imports: [CommonModule, MatButtonModule, MatDividerModule, MatIconModule],
+    templateUrl: './collection-header.component.html',
+    styleUrl: './collection-header.component.scss'
 })
 export class CollectionHeaderComponent implements OnChanges {
   @Input() collection!: CollectionNames;

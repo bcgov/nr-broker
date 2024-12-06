@@ -12,17 +12,16 @@ import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-co
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-team-service-request',
-  standalone: true,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-  ],
-  templateUrl: './team-service-request.component.html',
-  styleUrl: './team-service-request.component.scss',
+    selector: 'app-team-service-request',
+    imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatSelectModule,
+    ],
+    templateUrl: './team-service-request.component.html',
+    styleUrl: './team-service-request.component.scss'
 })
 export class TeamServiceRequestComponent {
   @Input()

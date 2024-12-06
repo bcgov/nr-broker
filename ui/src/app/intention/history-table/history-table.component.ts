@@ -43,37 +43,33 @@ import { PackageUtilService } from '../../service/package-util.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
-  selector: 'app-history-table',
-  standalone: true,
-  imports: [
-    ClipboardModule,
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatListModule,
-    MatMenuModule,
-    MatProgressBarModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    ActionContentComponent,
-    FilesizePipe,
-    GanttGraphComponent,
-    OutcomeIconComponent,
-  ],
-  templateUrl: './history-table.component.html',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
-      state('expanded', style({ height: '*' })),
-      transition(
-        'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-      ),
-    ]),
-  ],
-  styleUrl: './history-table.component.scss',
+    selector: 'app-history-table',
+    imports: [
+        ClipboardModule,
+        CommonModule,
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatListModule,
+        MatMenuModule,
+        MatProgressBarModule,
+        MatTableModule,
+        MatTooltipModule,
+        MatSnackBarModule,
+        ActionContentComponent,
+        FilesizePipe,
+        GanttGraphComponent,
+        OutcomeIconComponent,
+    ],
+    templateUrl: './history-table.component.html',
+    animations: [
+        trigger('detailExpand', [
+            state('collapsed,void', style({ height: '0px', minHeight: '0' })),
+            state('expanded', style({ height: '*' })),
+            transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+        ]),
+    ],
+    styleUrl: './history-table.component.scss'
 })
 export class HistoryTableComponent implements OnInit, OnChanges {
   @Input() intentionData: any[] = [];

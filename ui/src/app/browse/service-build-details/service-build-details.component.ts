@@ -21,23 +21,22 @@ import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
 
 @Component({
-  selector: 'app-service-build-details',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ClipboardModule,
-    CollectionHeaderComponent,
-    InspectorInstallsComponent,
-    FilesizePipe,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-  ],
-  templateUrl: './service-build-details.component.html',
-  styleUrl: './service-build-details.component.scss',
+    selector: 'app-service-build-details',
+    imports: [
+        CommonModule,
+        ClipboardModule,
+        CollectionHeaderComponent,
+        InspectorInstallsComponent,
+        FilesizePipe,
+        MatButtonModule,
+        MatCardModule,
+        MatIconModule,
+        MatMenuModule,
+        MatTooltipModule,
+        MatProgressSpinnerModule,
+    ],
+    templateUrl: './service-build-details.component.html',
+    styleUrl: './service-build-details.component.scss'
 })
 export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   collection!: CollectionNames;

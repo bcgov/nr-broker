@@ -23,17 +23,16 @@ export interface InspectorInstanceDialogReturnDao {
 }
 
 @Component({
-  selector: 'app-inspector-instance-dialog',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatDialogModule,
-  ],
-  templateUrl: './inspector-instance-dialog.component.html',
-  styleUrl: './inspector-instance-dialog.component.scss',
+    selector: 'app-inspector-instance-dialog',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        MatDialogModule,
+    ],
+    templateUrl: './inspector-instance-dialog.component.html',
+    styleUrl: './inspector-instance-dialog.component.scss'
 })
 export class InspectorInstanceDialogComponent implements OnInit {
   public envMap: InspectorInstanceDialogReturnDao[] = [];
