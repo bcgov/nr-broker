@@ -1,17 +1,32 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsDefined,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { EdgePropDto } from './edge-prop.dto';
 import { TimestampDto } from './timestamp.dto';
+import { Type } from 'class-transformer';
 // Shared DTO: Copy in back-end and front-end should be identical
 
 export class EdgeInsertDto {
   @IsString()
+  @IsDefined()
   name!: string;
+
+  @ValidateNested()
   @IsOptional()
   @IsObject()
+  @Type(() => EdgePropDto)
   prop?: EdgePropDto;
+
   @IsString()
+  @IsDefined()
   source!: string;
+
   @IsString()
+  @IsDefined()
   target!: string;
 }
 

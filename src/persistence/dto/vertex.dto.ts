@@ -1,7 +1,17 @@
-import { IsObject, IsString, IsOptional } from 'class-validator';
-import { CollectionNames } from './collection-dto-union.type';
+import {
+  IsObject,
+  IsString,
+  IsOptional,
+  ValidateNested,
+  IsDefined,
+} from 'class-validator';
+import {
+  CollectionBaseDtoUnionObject,
+  CollectionNames,
+} from './collection-dto-union.type';
 import { PointGeomDto } from './point-geom.dto';
 import { TimestampDto } from './timestamp.dto';
+import { Type } from 'class-transformer';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 
@@ -12,16 +22,21 @@ export class VertexPropDto {
 export class VertexSearchDto {
   @IsString()
   id!: string;
+
   @IsString()
   collection!: CollectionNames;
+
   @IsOptional()
   @IsObject()
   geo?: PointGeomDto;
+
   @IsString()
   name!: string;
+
   @IsOptional()
   @IsObject()
   prop?: VertexPropDto;
+
   @IsObject()
   edge!: {
     prop?: VertexPropDto;
@@ -31,29 +46,48 @@ export class VertexSearchDto {
 export class VertexDto {
   @IsString()
   id!: string;
+
   @IsString()
   collection!: CollectionNames;
+
   @IsString()
   name!: string;
+
   @IsOptional()
   @IsObject()
+  @Type(() => PointGeomDto)
   geo?: PointGeomDto;
+
   @IsOptional()
   @IsObject()
   prop?: VertexPropDto;
+
   @IsOptional()
   @IsObject()
+  @Type(() => TimestampDto)
   timestamps?: TimestampDto;
 }
 
 export class VertexInsertDto {
   @IsString()
+  @IsDefined()
   collection!: CollectionNames;
+
+  @ValidateNested()
+  @IsDefined()
+  @Type((opts) => {
+    return CollectionBaseDtoUnionObject[opts.object.collection];
+  })
   data: any;
+
+  @ValidateNested()
   @IsOptional()
   @IsObject()
+  @Type(() => PointGeomDto)
   geo?: PointGeomDto;
+
   @IsOptional()
   @IsObject()
+  @Type(() => VertexPropDto)
   prop?: VertexPropDto;
 }

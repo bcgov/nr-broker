@@ -199,11 +199,13 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
   editEdge(
     @Req() request: Request,
     @Param('id') id: string,
     @Body() edge: EdgeInsertDto,
   ) {
+    console.log(edge);
     return this.graph.editEdge(request, id, edge);
   }
 
@@ -237,7 +239,9 @@ export class GraphController {
   ])
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({ transform: true, skipUndefinedProperties: true }),
+  )
   addVertex(@Req() request: Request, @Body() vertex: VertexInsertDto) {
     return this.graph.addVertex(request, vertex);
   }
@@ -282,7 +286,9 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({ transform: true, skipUndefinedProperties: true }),
+  )
   editVertex(
     @Req() request: Request,
     @Param('id') id: string,

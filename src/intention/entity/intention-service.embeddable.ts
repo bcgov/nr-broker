@@ -47,6 +47,10 @@ export class IntentionServiceEmbeddable {
   @Property()
   project: string;
 
-  @Embedded({ entity: () => ServiceTargetEmbeddable, nullable: true, object: true })
+  @Embedded({
+    entity: () => ServiceTargetEmbeddable,
+    nullable: true,
+    object: true,
+  })
   target?: ServiceTargetEmbeddable;
 }

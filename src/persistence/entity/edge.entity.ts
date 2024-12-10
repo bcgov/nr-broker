@@ -9,9 +9,8 @@ import {
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { EdgeInsertDto, EdgeDto } from '../dto/edge.dto';
-import { EdgePropDto } from '../dto/edge-prop.dto';
-// import { IsValidProp } from '../../util/validator.util';
 import { TimestampEmbeddable } from './timestamp.embeddable';
+import { EdgePropEmbeddable } from './edge-prop.embeddable';
 
 @Entity({ tableName: 'edge' })
 export class EdgeEntity {
@@ -32,8 +31,11 @@ export class EdgeEntity {
   @Property()
   name: string;
 
-  @Embedded({ entity: () => EdgePropDto, nullable: true, object: true })
-  prop?: EdgePropDto = new EdgePropDto();
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  prop?: EdgePropEmbeddable = new EdgePropEmbeddable();
 
   @Property()
   @ApiProperty({ type: () => String })

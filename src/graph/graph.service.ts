@@ -8,7 +8,7 @@ import { Request } from 'express';
 import ejs from 'ejs';
 import { ValidationError, wrap } from '@mikro-orm/core';
 import { get, set } from 'lodash';
-// import { validate } from 'class-validator';
+import { validate } from 'class-validator';
 
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
@@ -36,7 +36,7 @@ import { AuthService } from '../auth/auth.service';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
 import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
-// import { ValidatorUtil } from '../util/validator.util';
+import { ValidatorUtil } from '../util/validator.util';
 
 @Injectable()
 export class GraphService {
@@ -46,7 +46,7 @@ export class GraphService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly redisService: RedisService,
-    // private readonly validatorUtil: ValidatorUtil,
+    private readonly validatorUtil: ValidatorUtil,
   ) {}
 
   public async getData(
@@ -385,12 +385,25 @@ export class GraphService {
       });
     }
 
-    for (const [key, field] of Object.entries(config.fields)) {
-      if (field.type === 'date' && vertexInsert.data[key]) {
-        vertexInsert.data[key] = new Date(
-          vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
-        );
-      }
+    // for (const [key, field] of Object.entries(config.fields)) {
+    //   if (field.type === 'date' && vertexInsert.data[key]) {
+    //     vertexInsert.data[key] = new Date(
+    //       vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
+    //     );
+    //   }
+    // }
+    console.log(vertexInsert);
+    const errors = await validate(vertexInsert, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Collection validation error',
+        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
+      });
     }
 
     const collection = this.collectionRepository.assignCollection(
@@ -403,18 +416,6 @@ export class GraphService {
         message: 'No data',
       });
     }
-    // const errors = await validate(collection, {
-    //   whitelist: true,
-    //   forbidNonWhitelisted: true,
-    //   forbidUnknownValues: true,
-    // });
-    // if (errors.length > 0) {
-    //   throw new BadRequestException({
-    //     statusCode: 400,
-    //     message: 'Collection validation error',
-    //     error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
-    //   });
-    // }
 
     if (
       checkPermission &&

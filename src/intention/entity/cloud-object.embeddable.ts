@@ -88,8 +88,11 @@ export class CloudObjectEmbeddable {
   })
   project?: CloudObjectProjectEmbeddable;
 
-  @Embedded({ entity: () => EdgePropEmbeddable, nullable: true, object: true })
-  prop?: EdgePropEmbeddable;
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  prop?: EdgePropEmbeddable = new EdgePropEmbeddable();
 
   @Enum({ items: () => PROP_STRATEGY_VALUES, nullable: true })
   propStrategy?: PROP_STRATEGY_VALUES;
