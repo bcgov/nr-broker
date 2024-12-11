@@ -13,7 +13,7 @@ import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PreferenceService } from './preference.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { PreferenceDto } from '../persistence/dto/preference.dto';
-import { get } from 'lodash';
+import get from 'lodash.get';
 
 @Controller({
   path: 'preference',

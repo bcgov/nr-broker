@@ -23,6 +23,7 @@ import {
 } from 'express';
 import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
+import get from 'lodash.get';
 import {
   OAUTH2_CLIENT_MAP_GUID,
   REDIS_PUBSUB,
@@ -39,7 +40,6 @@ import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
-import { get } from 'lodash';
 import { UserCollectionService } from './user-collection.service';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';

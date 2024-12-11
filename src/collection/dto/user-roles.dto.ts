@@ -1,4 +1,4 @@
-import { get } from 'lodash';
+import get from 'lodash.get';
 import { UserImportDto } from './user-import.dto';
 import {
   OAUTH2_CLIENT_MAP_DOMAIN,

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { get, set } from 'lodash';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import deepEqual from 'deep-equal';
 import { plainToClass } from 'class-transformer';
 

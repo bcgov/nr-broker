@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { get } from 'lodash';
+import get from 'lodash.get';
 
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';

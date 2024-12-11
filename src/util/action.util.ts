@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { get } from 'lodash';
+import get from 'lodash.get';
 import ejs from 'ejs';
 import {
   INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS,

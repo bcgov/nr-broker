@@ -7,7 +7,8 @@ import {
 import { Request } from 'express';
 import ejs from 'ejs';
 import { ValidationError, wrap } from '@mikro-orm/core';
-import { get, set } from 'lodash';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import { validate } from 'class-validator';
 
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
