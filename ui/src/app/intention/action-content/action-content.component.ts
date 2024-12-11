@@ -1,13 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { get } from 'lodash';
+import get from 'lodash.get';
 
 @Component({
-    selector: 'app-action-content',
-    imports: [MatTooltipModule],
-    templateUrl: './action-content.component.html',
-    styleUrls: ['./action-content.component.scss']
+  selector: 'app-action-content',
+  imports: [MatTooltipModule],
+  templateUrl: './action-content.component.html',
+  styleUrls: ['./action-content.component.scss'],
 })
 export class ActionContentComponent implements OnInit {
   @Input() intention: any;
