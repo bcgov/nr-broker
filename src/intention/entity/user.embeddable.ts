@@ -1,7 +1,7 @@
 import { Embeddable, Embedded, Property } from '@mikro-orm/core';
-import { UserGroupEmbeddable } from './user-group.embeddable.js';
-import { UserEntity } from '../../persistence/entity/user.entity.js';
-import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity.js';
+import { UserGroupEmbeddable } from './user-group.embeddable';
+import { UserEntity } from '../../persistence/entity/user.entity';
+import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
 
 @Embeddable()
 export class UserEmbeddable {

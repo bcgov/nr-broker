@@ -3,7 +3,7 @@ import {
   ACTION_PROVISION_TOKEN_SELF,
 } from '../constants';
 import { ActionUtil } from './action.util';
-import { ActionDto } from '../intention/dto/action.dto';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 describe('ActionUtil', () => {
   let util: ActionUtil;
@@ -16,13 +16,13 @@ describe('ActionUtil', () => {
     expect(
       util.resolveVaultEnvironment({
         service: { environment: 'production' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe('production');
     expect(
       util.resolveVaultEnvironment({
         vaultEnvironment: 'production',
         service: { environment: 'arrgh' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe('production');
   });
 
@@ -30,28 +30,28 @@ describe('ActionUtil', () => {
     expect(
       util.isValidVaultEnvironment({
         service: { environment: 'production' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
     expect(
       util.isValidVaultEnvironment({
         service: { environment: 'test' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
     expect(
       util.isValidVaultEnvironment({
         service: { environment: 'development' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
     expect(
       util.isValidVaultEnvironment({
         service: { environment: 'arrgh' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(false);
     expect(
       util.isValidVaultEnvironment({
         vaultEnvironment: 'production',
         service: { environment: 'arrgh' },
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
   });
 
@@ -59,22 +59,22 @@ describe('ActionUtil', () => {
     expect(
       util.isProvisioned({
         provision: [],
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(false);
     expect(
       util.isProvisioned({
         provision: ['something'],
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(false);
     expect(
       util.isProvisioned({
         provision: [ACTION_PROVISION_TOKEN_SELF],
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
     expect(
       util.isProvisioned({
         provision: [ACTION_PROVISION_APPROLE_SECRET_ID],
-      } as ActionDto),
+      } as ActionEmbeddable),
     ).toBe(true);
   });
 
