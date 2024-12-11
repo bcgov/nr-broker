@@ -22,7 +22,7 @@ import { interval, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SearchInputComponent } from './search-input/search-input.component';
 import { CollectionUtilService } from '../service/collection-util.service';
-import { UserSelfRestDto } from '../service/dto/user-rest.dto';
+import { UserSelfDto } from '../service/dto/user.dto';
 import { PreferencesService } from '../preferences.service';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
@@ -51,7 +51,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     private readonly collectionUtil: CollectionUtilService,
     private readonly preferences: PreferencesService,
     private readonly snackBar: MatSnackBar,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   healthStatus: boolean | undefined;

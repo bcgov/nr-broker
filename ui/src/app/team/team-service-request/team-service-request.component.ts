@@ -8,7 +8,7 @@ import {
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigInstanceDto } from '../../service/dto/collection-config.dto';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -25,9 +25,9 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class TeamServiceRequestComponent {
   @Input()
-  serviceSearch!: CollectionConfigInstanceRestDto[];
+  serviceSearch!: CollectionConfigInstanceDto[];
 
-  serviceControl = new FormControl<CollectionConfigInstanceRestDto | null>(
+  serviceControl = new FormControl<CollectionConfigInstanceDto | null>(
     null,
     Validators.required,
   );

@@ -6,26 +6,23 @@ import {
   CollectionConfigMap,
   CollectionEdgeConfigMap,
 } from './service/graph.types';
-import { PreferenceRestDto } from './preference-rest.dto';
-import { CollectionConfigRestDto } from './service/dto/collection-config-rest.dto';
+import { PreferenceDto } from './preference.dto';
+import { CollectionConfigDto } from './service/dto/collection-config.dto';
 import { GraphUtilService } from './service/graph-util.service';
-import { UserSelfRestDto } from './service/dto/user-rest.dto';
+import { UserSelfDto } from './service/dto/user.dto';
 
-let userInfo: UserSelfRestDto;
-let preferencesInit: PreferenceRestDto;
-let configArr: CollectionConfigRestDto[];
+let userInfo: UserSelfDto;
+let preferencesInit: PreferenceDto;
+let configArr: CollectionConfigDto[];
 let configMap: CollectionConfigMap;
 let configSrcTarMap: CollectionEdgeConfigMap;
 
-export const CURRENT_USER = new InjectionToken<UserSelfRestDto>(
-  'CURRENT_USER',
-  {
-    providedIn: 'root',
-    factory: () => userInfo,
-  },
-);
+export const CURRENT_USER = new InjectionToken<UserSelfDto>('CURRENT_USER', {
+  providedIn: 'root',
+  factory: () => userInfo,
+});
 
-export const INITIAL_PREFERENCES = new InjectionToken<PreferenceRestDto>(
+export const INITIAL_PREFERENCES = new InjectionToken<PreferenceDto>(
   'INITIAL_PREFERENCES',
   {
     providedIn: 'root',
@@ -33,7 +30,7 @@ export const INITIAL_PREFERENCES = new InjectionToken<PreferenceRestDto>(
   },
 );
 
-export const CONFIG_ARR = new InjectionToken<CollectionConfigRestDto[]>(
+export const CONFIG_ARR = new InjectionToken<CollectionConfigDto[]>(
   'CONFIG_ARR',
   {
     providedIn: 'root',
@@ -57,7 +54,7 @@ export const CONFIG_EDGE_CONFIG_MAP =
 
 export function appInitializeUserFactory(http: HttpClient): Observable<any> {
   return http
-    .get<UserSelfRestDto>(`${environment.apiUrl}/v1/collection/user/self`)
+    .get<UserSelfDto>(`${environment.apiUrl}/v1/collection/user/self`)
     .pipe(
       tap((user) => {
         userInfo = user;
@@ -74,7 +71,7 @@ export function appInitializeUserFactory(http: HttpClient): Observable<any> {
 
 export function appInitializePrefFactory(http: HttpClient): Observable<any> {
   return http
-    .get<PreferenceRestDto>(`${environment.apiUrl}/v1/preference/self`)
+    .get<PreferenceDto>(`${environment.apiUrl}/v1/preference/self`)
     .pipe(
       tap((preferences) => {
         preferencesInit = preferences;
@@ -91,9 +88,7 @@ export function appInitializePrefFactory(http: HttpClient): Observable<any> {
 
 export function appInitializeConfigFactory(http: HttpClient): Observable<any> {
   return http
-    .get<
-      CollectionConfigRestDto[]
-    >(`${environment.apiUrl}/v1/collection/config`)
+    .get<CollectionConfigDto[]>(`${environment.apiUrl}/v1/collection/config`)
     .pipe(
       tap((configArrInner) => {
         configArr = configArrInner;

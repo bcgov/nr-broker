@@ -1,4 +1,4 @@
-import { ConnectionConfigEntity } from '../dto/connection-config.entity';
+import { ConnectionConfigEntity } from '../entity/connection-config.entity';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
 import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { PreferenceDto } from '../dto/preference.dto';

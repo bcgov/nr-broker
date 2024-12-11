@@ -1,11 +1,11 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-import { GraphDirectedRestCombo } from './collection-combo-rest.dto';
-import { CollectionDtoRestUnion } from './collection-dto-union.type';
-import { VertexRestDto } from './vertex-rest.dto';
+import { GraphDirectedCombo } from './collection-combo.dto';
+import { CollectionDtoUnion } from './collection-dto-union.type';
+import { VertexDto } from './vertex.dto';
 
 export class CollectionSearchResult<
-  T extends CollectionDtoRestUnion[keyof CollectionDtoRestUnion],
+  T extends CollectionDtoUnion[keyof CollectionDtoUnion],
 > {
   data!: CollectionCombo<T>[];
   meta!: {
@@ -14,11 +14,11 @@ export class CollectionSearchResult<
 }
 
 export class CollectionCombo<
-  T extends CollectionDtoRestUnion[keyof CollectionDtoRestUnion],
+  T extends CollectionDtoUnion[keyof CollectionDtoUnion],
 > {
   type!: 'vertex';
   collection!: T;
-  vertex!: VertexRestDto;
-  upstream!: GraphDirectedRestCombo[];
-  downstream!: GraphDirectedRestCombo[];
+  vertex!: VertexDto;
+  upstream!: GraphDirectedCombo[];
+  downstream!: GraphDirectedCombo[];
 }

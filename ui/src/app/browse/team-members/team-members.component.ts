@@ -12,10 +12,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatListModule } from '@angular/material/list';
 import { Subject, switchMap } from 'rxjs';
 
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
+import { CollectionEdgeConfig } from '../../service/dto/collection-config.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
@@ -27,7 +27,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 })
 export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
   @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedRestCombo[];
+  @Input() upstream!: GraphDirectedCombo[];
   edges: CollectionEdgeConfig[] | undefined;
 
   private triggerRefresh = new Subject<void>();

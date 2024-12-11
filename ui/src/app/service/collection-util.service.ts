@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  CollectionDtoRestUnion,
+  CollectionDtoUnion,
   CollectionNames,
 } from './dto/collection-dto-union.type';
-import { VertexRestDto } from './dto/vertex-rest.dto';
+import { VertexDto } from './dto/vertex.dto';
 import { CollectionApiService } from './collection-api.service';
 
 @Injectable({
@@ -79,13 +79,13 @@ export class CollectionUtilService {
    * @param collection The collection to narrow.
    * @returns The narrowed collection
    */
-  narrowCollectionType<T extends keyof CollectionDtoRestUnion>(
+  narrowCollectionType<T extends keyof CollectionDtoUnion>(
     name: T,
-    vertex: VertexRestDto,
-    collection: CollectionDtoRestUnion[keyof CollectionDtoRestUnion],
+    vertex: VertexDto,
+    collection: CollectionDtoUnion[keyof CollectionDtoUnion],
   ) {
     if (vertex.collection === name && collection.vertex === vertex.id) {
-      return collection as CollectionDtoRestUnion[T];
+      return collection as CollectionDtoUnion[T];
     }
     // Calling code should ALWAYS evaluate name and collection name's equality
     throw new Error();

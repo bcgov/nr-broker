@@ -24,15 +24,15 @@ import {
   InspectorInstanceDialogReturnDao,
 } from '../../graph/inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { ServiceDto } from '../../service/dto/service.dto';
 import { PermissionService } from '../../service/permission.service';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { VertexDto } from '../../service/dto/vertex.dto';
+import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { EnvironmentRestDto } from '../../service/dto/environment-rest.dto';
+import { EnvironmentDto } from '../../service/dto/environment.dto';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/dto/user.dto';
 
 @Component({
   selector: 'app-service-instances',
@@ -51,15 +51,15 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
   styleUrl: './service-instances.component.scss',
 })
 export class ServiceInstancesComponent implements OnChanges {
-  @Input() vertex!: VertexRestDto;
-  @Input() vertices!: GraphDirectedRestCombo[];
-  @Input() service!: ServiceRestDto;
+  @Input() vertex!: VertexDto;
+  @Input() vertices!: GraphDirectedCombo[];
+  @Input() service!: ServiceDto;
   @Input() details!: any;
   @Output() refreshData = new EventEmitter();
 
   envDetailsMap: any;
   envDetailSelection: any;
-  envs: EnvironmentRestDto[] = [];
+  envs: EnvironmentDto[] = [];
   loading = true;
 
   constructor(
@@ -68,7 +68,7 @@ export class ServiceInstancesComponent implements OnChanges {
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnInit(): void {

@@ -28,22 +28,22 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-search-input',
-    imports: [
-        MatAutocompleteModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatToolbarModule,
-        MatIconModule,
-        MatInputModule,
-        MatMenuModule,
-        MatSelectModule,
-        MatDividerModule,
-        CommonModule,
-        VertexNameComponent,
-    ],
-    templateUrl: './search-input.component.html',
-    styleUrl: './search-input.component.scss'
+  selector: 'app-search-input',
+  imports: [
+    MatAutocompleteModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatInputModule,
+    MatMenuModule,
+    MatSelectModule,
+    MatDividerModule,
+    CommonModule,
+    VertexNameComponent,
+  ],
+  templateUrl: './search-input.component.html',
+  styleUrl: './search-input.component.scss',
 })
 export class SearchInputComponent {
   filteredOptions!: Observable<GraphTypeaheadResult>;

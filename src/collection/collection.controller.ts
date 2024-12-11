@@ -61,12 +61,18 @@ export class CollectionController {
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
+  /**
+   * The set of tags for this collection
+   */
   @Get(':collection/tags')
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionTags(@Param('collection') collection: string) {
     return this.service.getCollectionTags(this.parseCollectionApi(collection));
   }
 
+  /**
+   * Logged in user with roles
+   */
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiOAuth2(['openid', 'profile'])
@@ -74,6 +80,9 @@ export class CollectionController {
     return await this.userCollectionService.extractUserFromRequest(req);
   }
 
+  /**
+   * Github account link return endpoint
+   */
   @Get('/user/link-github')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -87,6 +96,9 @@ export class CollectionController {
     res.redirect(`/browse/user/${user.id}`);
   }
 
+  /**
+   * Upsert user information
+   */
   @Post('user/import')
   @UseGuards(BrokerCombinedAuthGuard)
   @Roles('admin')

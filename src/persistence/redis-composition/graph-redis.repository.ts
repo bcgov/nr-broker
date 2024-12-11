@@ -31,8 +31,8 @@ import {
 } from '../persistence.constants';
 import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
-import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
-import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
+import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
 import { ServiceDetailsResponseDto } from '../dto/service.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';

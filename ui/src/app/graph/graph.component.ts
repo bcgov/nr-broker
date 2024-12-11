@@ -34,18 +34,18 @@ import {
 } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
 import {
-  CollectionConfigRestDto,
+  CollectionConfigDto,
   CollectionEdgeConfig,
-} from '../service/dto/collection-config-rest.dto';
+} from '../service/dto/collection-config.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
-import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
-import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
+import { GraphEventDto } from '../service/dto/graph-event.dto';
+import { UserPermissionDto } from '../service/dto/user-permission.dto';
 import { PermissionService } from '../service/permission.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { UserSelfRestDto } from '../service/dto/user-rest.dto';
+import { UserSelfDto } from '../service/dto/user.dto';
 
 @Component({
     selector: 'app-graph',
@@ -80,8 +80,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   constructor(
     public readonly permission: PermissionService,
     public readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
     private readonly dialog: MatDialog,
     private readonly route: ActivatedRoute,
@@ -157,10 +157,10 @@ export class GraphComponent implements OnInit, OnDestroy {
           {
             data: GraphDataResponseDto;
             connected: string[];
-            es: GraphEventRestDto | null;
+            es: GraphEventDto | null;
           },
           showFilter: 'connected' | 'all',
-          UserPermissionRestDto,
+          UserPermissionDto,
         ]) => {
           // console.log(data);
           // console.log(config);
@@ -421,7 +421,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   isEdgeVisible(
-    colllectionConfig: CollectionConfigRestDto,
+    colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ): boolean {
     if (!this.configMap) {
@@ -440,7 +440,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   toggleEdge(
-    colllectionConfig: CollectionConfigRestDto,
+    colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ) {
     if (!this.configMap) {

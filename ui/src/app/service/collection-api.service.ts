@@ -5,7 +5,7 @@ import {
   CollectionCombo,
   CollectionSearchResult,
 } from './dto/collection-search-result.dto';
-import { CollectionDtoRestUnion } from './dto/collection-dto-union.type';
+import { CollectionDtoUnion } from './dto/collection-dto-union.type';
 import { GraphUtilService } from './graph-util.service';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class CollectionApiService {
     private readonly http: HttpClient,
   ) {}
 
-  public getCollectionTags<T extends keyof CollectionDtoRestUnion>(name: T) {
+  public getCollectionTags<T extends keyof CollectionDtoUnion>(name: T) {
     return this.http.get<string[]>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/tags`,
       {
@@ -26,11 +26,11 @@ export class CollectionApiService {
     );
   }
 
-  public getCollectionById<T extends keyof CollectionDtoRestUnion>(
+  public getCollectionById<T extends keyof CollectionDtoUnion>(
     name: T,
     id: string,
   ) {
-    return this.http.get<CollectionDtoRestUnion[T]>(
+    return this.http.get<CollectionDtoUnion[T]>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}`,
       {
         responseType: 'json',
@@ -38,11 +38,11 @@ export class CollectionApiService {
     );
   }
 
-  public getCollectionComboById<T extends keyof CollectionDtoRestUnion>(
+  public getCollectionComboById<T extends keyof CollectionDtoUnion>(
     name: T,
     id: string,
   ) {
-    return this.http.get<CollectionCombo<CollectionDtoRestUnion[T]>>(
+    return this.http.get<CollectionCombo<CollectionDtoUnion[T]>>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}/combo`,
       {
         responseType: 'json',
@@ -50,7 +50,7 @@ export class CollectionApiService {
     );
   }
 
-  public searchCollection<T extends keyof CollectionDtoRestUnion>(
+  public searchCollection<T extends keyof CollectionDtoUnion>(
     name: T,
     options: {
       q?: string;
@@ -65,7 +65,7 @@ export class CollectionApiService {
       limit: number;
     },
   ) {
-    return this.http.post<CollectionSearchResult<CollectionDtoRestUnion[T]>>(
+    return this.http.post<CollectionSearchResult<CollectionDtoUnion[T]>>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(
         name,
       )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
@@ -95,8 +95,8 @@ export class CollectionApiService {
     );
   }
 
-  public exportCollection<T extends keyof CollectionDtoRestUnion>(name: T) {
-    return this.http.post<CollectionDtoRestUnion[T][]>(
+  public exportCollection<T extends keyof CollectionDtoUnion>(name: T) {
+    return this.http.post<CollectionDtoUnion[T][]>(
       `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/export`,
       {
         responseType: 'json',
@@ -132,7 +132,7 @@ export class CollectionApiService {
   }
 
   public doUniqueKeyCheck(
-    name: keyof CollectionDtoRestUnion,
+    name: keyof CollectionDtoUnion,
     key: string,
     value: string,
   ) {
@@ -147,7 +147,7 @@ export class CollectionApiService {
   }
 
   public setCollectionTags(
-    name: keyof CollectionDtoRestUnion,
+    name: keyof CollectionDtoUnion,
     id: string,
     tags: string[],
   ) {

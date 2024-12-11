@@ -1,7 +1,7 @@
 import { CollectionNames } from './service/dto/collection-dto-union.type';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-export interface PreferenceRestDto {
+export interface PreferenceDto {
   browseConnectionFilter: 'connected' | 'all';
   browseCollectionDefault: CollectionNames;
   graphFollows: 'edge' | 'vertex';

@@ -1,23 +1,23 @@
 import {
-  CollectionConfigRestDto,
+  CollectionConfigDto,
   CollectionEdgeConfig,
   CollectionFieldConfig,
-} from './dto/collection-config-rest.dto';
+} from './dto/collection-config.dto';
 import { CollectionNames } from './dto/collection-dto-union.type';
 import {
   GraphDataResponseEdgeEntity,
   GraphDataResponseDto,
   GraphDataResponseVertexEntity,
 } from './dto/graph-data.dto';
-import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
-import { VertexRestDto } from './dto/vertex-rest.dto';
+import { UserPermissionDto } from './dto/user-permission.dto';
+import { VertexDto } from './dto/vertex.dto';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;
 }
 
 export type CollectionConfigMap = {
-  [key: string]: CollectionConfigRestDto;
+  [key: string]: CollectionConfigDto;
 };
 
 export type CollectionEdgeConfigMap = {
@@ -42,7 +42,7 @@ export interface InspectorTargetVertex {
   type: 'vertex';
   id: string;
   collection: CollectionNames;
-  data?: VertexRestDto;
+  data?: VertexDto;
 }
 
 export interface InspectorTargetEdge {
@@ -61,7 +61,7 @@ export interface GraphDataConfig {
   data: GraphData;
   config: CollectionConfigMap;
   configSrcTarMap: CollectionEdgeConfigMap;
-  permissions: UserPermissionRestDto;
+  permissions: UserPermissionDto;
 }
 
 export interface GraphData extends GraphDataResponseDto {

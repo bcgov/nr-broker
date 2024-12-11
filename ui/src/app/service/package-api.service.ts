@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import {
-  PackageBuildRestDto,
+  PackageBuildDto,
   PackageBuildSearchResult,
-} from './dto/package-build-rest.dto';
+} from './dto/package-build.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +13,7 @@ export class PackageApiService {
   constructor(private readonly http: HttpClient) {}
 
   getBuild(id: string) {
-    return this.http.get<PackageBuildRestDto>(
+    return this.http.get<PackageBuildDto>(
       `${environment.apiUrl}/v1/package/${id}`,
       {
         responseType: 'json',

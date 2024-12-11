@@ -11,12 +11,12 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { ServiceDto } from '../../service/dto/service.dto';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { InspectorServiceSecureDialogComponent } from '../inspector-service-secure-dialog/inspector-service-secure-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/dto/user.dto';
 
 @Component({
     selector: 'app-inspector-service-secure',
@@ -31,14 +31,14 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
     styleUrl: './inspector-service-secure.component.scss'
 })
 export class InspectorServiceSecureComponent implements OnChanges {
-  @Input() service!: ServiceRestDto;
+  @Input() service!: ServiceDto;
   @Input() userIndex!: number | undefined;
   data: any;
   reveal = false;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     private readonly dialog: MatDialog,
   ) {}
 

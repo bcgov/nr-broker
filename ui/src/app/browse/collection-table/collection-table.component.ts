@@ -43,19 +43,19 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import {
-  CollectionConfigRestDto,
+  CollectionConfigDto,
   CollectionFieldConfigMap,
-} from '../../service/dto/collection-config-rest.dto';
+} from '../../service/dto/collection-config.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
-import { TeamRestDto } from '../../service/dto/team-rest.dto';
+import { TeamDto } from '../../service/dto/team.dto';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
-import { CollectionComboRestDto } from '../../service/dto/collection-combo-rest.dto';
+import { CollectionComboDto } from '../../service/dto/collection-combo.dto';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/dto/user.dto';
 
 type ShowFilter = 'connected' | 'all';
 
@@ -140,7 +140,7 @@ export class CollectionTableComponent
     { value: 'all', viewValue: 'All' },
   ];
 
-  config: CollectionConfigRestDto[] | undefined;
+  config: CollectionConfigDto[] | undefined;
   fields: CollectionFieldConfigMap = {};
   propDisplayedColumns: string[] = [];
   tagList: string[] = [];
@@ -157,7 +157,7 @@ export class CollectionTableComponent
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly preferences: PreferencesService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     public readonly graphUtil: GraphUtilService,
     @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
     private changeDetectorRef: ChangeDetectorRef,
@@ -379,13 +379,13 @@ export class CollectionTableComponent
     this.triggerRefresh.next(Math.random());
   }
 
-  countUpstream(elem: CollectionComboRestDto<any>, names: string[]) {
+  countUpstream(elem: CollectionComboDto<any>, names: string[]) {
     return elem.upstream.filter(
       (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }
 
-  countDownstream(elem: CollectionComboRestDto<any>, names: string[]) {
+  countDownstream(elem: CollectionComboDto<any>, names: string[]) {
     return elem.downstream.filter(
       (combo: any) => names.indexOf(combo.edge.name) !== -1,
     ).length;
@@ -426,7 +426,7 @@ export class CollectionTableComponent
     }
   }
 
-  openInGraph(event: Event, elem: CollectionComboRestDto<any>) {
+  openInGraph(event: Event, elem: CollectionComboDto<any>) {
     event.stopPropagation();
     this.graphUtil.openInGraph(elem.vertex.id, 'vertex');
   }
@@ -490,7 +490,7 @@ export class CollectionTableComponent
       });
   }
 
-  openTeamDialog(event: Event, elem?: TeamRestDto) {
+  openTeamDialog(event: Event, elem?: TeamDto) {
     event.stopPropagation();
     this.dialog
       .open(AddTeamDialogComponent, {

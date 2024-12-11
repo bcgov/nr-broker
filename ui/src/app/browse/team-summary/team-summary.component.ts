@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
@@ -11,7 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 })
 export class TeamSummaryComponent implements OnInit, OnChanges {
   @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedRestCombo[];
+  @Input() upstream!: GraphDirectedCombo[];
   propDisplayedColumns: string[] = ['key', 'value'];
 
   public userData: { [key: string]: number } = {};

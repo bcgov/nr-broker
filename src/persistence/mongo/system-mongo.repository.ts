@@ -3,7 +3,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
 
-import { ConnectionConfigEntity } from '../dto/connection-config.entity';
+import { ConnectionConfigEntity } from '../entity/connection-config.entity';
 import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';

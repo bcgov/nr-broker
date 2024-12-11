@@ -27,13 +27,13 @@ import {
   GraphDataVertex,
 } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
+import { CollectionEdgeConfig } from '../../service/dto/collection-config.dto';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
-import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { EdgeDto } from '../../service/dto/edge.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { VertexDto } from '../../service/dto/vertex.dto';
 
 @Component({
     selector: 'app-edge-dialog',
@@ -68,8 +68,8 @@ export class EdgeDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
       collection: string;
-      source: VertexRestDto;
-      edge?: EdgeRestDto;
+      source: VertexDto;
+      edge?: EdgeDto;
     },
     public readonly dialogRef: MatDialogRef<EdgeDialogComponent>,
     private readonly graphApi: GraphApiService,

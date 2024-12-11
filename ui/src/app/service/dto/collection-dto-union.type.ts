@@ -1,23 +1,55 @@
-import { BrokerAccountRestDto } from './broker-account-rest.dto';
-import { EnvironmentRestDto } from './environment-rest.dto';
-import { ProjectRestDto } from './project-rest.dto';
-import { ServiceInstanceRestDto } from './service-instance-rest.dto';
-import { ServiceRestDto } from './service-rest.dto';
-import { TeamRestDto } from './team-rest.dto';
-import { UserRestDto } from './user-rest.dto';
+import { BrokerAccountBaseDto, BrokerAccountDto } from './broker-account.dto';
+import { EnvironmentBaseDto, EnvironmentDto } from './environment.dto';
+import { ProjectBaseDto, ProjectDto } from './project.dto';
+import { ServerBaseDto, ServerDto } from './server.dto';
+import {
+  ServiceInstanceBaseDto,
+  ServiceInstanceDto,
+} from './service-instance.dto';
+import { ServiceBaseDto, ServiceDto } from './service.dto';
+import { TeamBaseDto, TeamDto } from './team.dto';
+import { UserBaseDto, UserDto } from './user.dto';
 
-export type CollectionDtoRestUnion = {
-  brokerAccount: BrokerAccountRestDto;
-  environment: EnvironmentRestDto;
-  project: ProjectRestDto;
-  server: ServiceRestDto;
-  serviceInstance: ServiceInstanceRestDto;
-  service: ServiceRestDto;
-  team: TeamRestDto;
-  user: UserRestDto;
+export const CollectionBaseDtoUnionObject = {
+  brokerAccount: BrokerAccountBaseDto,
+  environment: EnvironmentBaseDto,
+  project: ProjectBaseDto,
+  server: ServerBaseDto,
+  serviceInstance: ServiceInstanceBaseDto,
+  service: ServiceBaseDto,
+  team: TeamBaseDto,
+  user: UserBaseDto,
+};
+export const CollectionDtoUnionObject = {
+  brokerAccount: BrokerAccountDto,
+  environment: EnvironmentDto,
+  project: ProjectDto,
+  server: ServerDto,
+  serviceInstance: ServiceInstanceDto,
+  service: ServiceDto,
+  team: TeamDto,
+  user: UserDto,
+};
+export type CollectionDtoUnion = {
+  brokerAccount: BrokerAccountDto;
+  environment: EnvironmentDto;
+  project: ProjectDto;
+  server: ServerDto;
+  serviceInstance: ServiceInstanceDto;
+  service: ServiceDto;
+  team: TeamDto;
+  user: UserDto;
 };
 
-export type CollectionNames = keyof CollectionDtoRestUnion;
+export const CollectionBaseSubTypes = Object.entries(
+  CollectionBaseDtoUnionObject,
+).map(([key, value]) => ({
+  name: key,
+  value: value,
+}));
+
+export type CollectionNames = keyof CollectionDtoUnion;
+export type CollectionValues = CollectionDtoUnion[CollectionNames];
 
 export const CollectionNameEnum: {
   [Property in CollectionNames]: number;

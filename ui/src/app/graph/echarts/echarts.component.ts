@@ -22,7 +22,7 @@ import {
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 
 @Component({
@@ -51,7 +51,7 @@ export class EchartsComponent implements OnInit {
     private readonly graphUtil: GraphUtilService,
     private readonly preferences: PreferencesService,
     private readonly elRef: ElementRef,
-    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigRestDto[],
+    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigDto[],
   ) {}
 
   ngOnInit(): void {

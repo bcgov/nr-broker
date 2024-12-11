@@ -17,7 +17,7 @@ import {
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { MatIconModule } from '@angular/material/icon';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/dto/collection-dto-union.type';
 
 @Component({
     selector: 'app-tag-dialog',
@@ -43,7 +43,7 @@ export class TagDialogComponent {
     private readonly collectionApi: CollectionApiService,
     @Inject(MAT_DIALOG_DATA)
     private readonly data: {
-      collection: keyof CollectionDtoRestUnion;
+      collection: keyof CollectionDtoUnion;
       collectionData: any;
     },
   ) {}

@@ -1,6 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export class VaultActorPoliciesRestDto {
+export class VaultActorPoliciesDto {
   approle!: {
     [key: string]: ReadonlyArray<string>;
   };
@@ -9,8 +9,7 @@ export class VaultActorPoliciesRestDto {
   };
 }
 
-/* eslint-disable camelcase -- Library code style issue */
-export class VaultConfigApproleRestDto {
+export class VaultConfigApproleDto {
   // non-standard
   enabled!: boolean;
   // standard
@@ -29,7 +28,6 @@ export class VaultConfigApproleRestDto {
   token_period?: number | string;
   token_type?: string;
 }
-/* eslint-enable camelcase */
 
 export class VaultPolicyOptionsRest {
   /** True if an application kv policies should be able to read project kv secrets */
@@ -40,11 +38,11 @@ export class VaultPolicyOptionsRest {
   tokenPeriod?: 'hourly' | 'bidaily' | 'daily' | 'weekly';
 }
 
-export class VaultConfigRestDto {
+export class VaultConfigDto {
   /** Per-environment overrides of policies for each type of actor */
-  actor?: VaultActorPoliciesRestDto;
+  actor?: VaultActorPoliciesDto;
   /** How to configure the approle for this application */
-  approle?: VaultConfigApproleRestDto;
+  approle?: VaultConfigApproleDto;
   /** This application may broker logins for all other applications */
   brokerGlobal?: boolean;
   /** Array of applications this application may login for */

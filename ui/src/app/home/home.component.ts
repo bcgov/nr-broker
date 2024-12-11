@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { SystemApiService } from '../service/system-api.service';
-import { ConnectionConfigRestDto } from '../service/dto/connection-config-rest.dto';
+import { ConnectionConfigDto } from '../service/dto/connection-config.dto';
 import { PreferencesService } from '../preferences.service';
 
 @Component({
@@ -28,8 +28,8 @@ import { PreferencesService } from '../preferences.service';
 export class HomeComponent implements OnInit {
   loading = true;
   selectedTabIndex = 0;
-  services: ConnectionConfigRestDto[] = [];
-  documents: ConnectionConfigRestDto[] = [];
+  services: ConnectionConfigDto[] = [];
+  documents: ConnectionConfigDto[] = [];
 
   constructor(
     private readonly systemApiService: SystemApiService,

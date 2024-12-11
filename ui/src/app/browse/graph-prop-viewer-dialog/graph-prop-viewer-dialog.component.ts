@@ -7,7 +7,7 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
-import { VertexPropDto } from '../../service/dto/vertex-rest.dto';
+import { VertexPropDto } from '../../service/dto/vertex.dto';
 import { EdgePropDto } from '../../service/dto/edge-prop.dto';
 
 @Component({

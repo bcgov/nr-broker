@@ -7,7 +7,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
@@ -16,42 +16,42 @@ import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
-import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { EdgeDto } from '../../service/dto/edge.dto';
 import { PreferencesService } from '../../preferences.service';
 import {
-  GraphDirectedRestCombo,
-  GraphDirectedRestComboMap,
-} from '../../service/dto/collection-combo-rest.dto';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+  GraphDirectedCombo,
+  GraphDirectedComboMap,
+} from '../../service/dto/collection-combo.dto';
+import { VertexDto } from '../../service/dto/vertex.dto';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
 
 @Component({
-    selector: 'app-inspector-connections',
-    imports: [
-        CommonModule,
-        MatButtonModule,
-        MatChipsModule,
-        MatDialogModule,
-        MatDividerModule,
-    ],
-    templateUrl: './inspector-connections.component.html',
-    styleUrl: './inspector-connections.component.scss'
+  selector: 'app-inspector-connections',
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatDialogModule,
+    MatDividerModule,
+  ],
+  templateUrl: './inspector-connections.component.html',
+  styleUrl: './inspector-connections.component.scss',
 })
 export class InspectorConnectionsComponent implements OnInit, OnChanges {
   @Input() collection!: CollectionNames;
-  @Input() config!: CollectionConfigRestDto;
+  @Input() config!: CollectionConfigDto;
   @Input() vertex!: string;
-  @Input() source!: VertexRestDto;
-  @Input() upstream!: GraphDirectedRestCombo[];
-  @Input() downstream!: GraphDirectedRestCombo[];
+  @Input() source!: VertexDto;
+  @Input() upstream!: GraphDirectedCombo[];
+  @Input() downstream!: GraphDirectedCombo[];
   @Input() hasAdmin!: boolean;
 
-  @Output() selected = new EventEmitter<EdgeRestDto | VertexRestDto>();
+  @Output() selected = new EventEmitter<EdgeDto | VertexDto>();
 
-  inboundConnections: GraphDirectedRestComboMap = {};
-  outboundConnections: GraphDirectedRestComboMap = {};
+  inboundConnections: GraphDirectedComboMap = {};
+  outboundConnections: GraphDirectedComboMap = {};
 
   constructor(
     private readonly preferences: PreferencesService,
@@ -70,10 +70,8 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
     this.inboundConnections = this.groupEdges(this.upstream);
   }
 
-  private groupEdges(
-    comboArr: GraphDirectedRestCombo[],
-  ): GraphDirectedRestComboMap {
-    const map: GraphDirectedRestComboMap = {};
+  private groupEdges(comboArr: GraphDirectedCombo[]): GraphDirectedComboMap {
+    const map: GraphDirectedComboMap = {};
     for (const combo of comboArr) {
       if (!map[combo.edge.name]) {
         map[combo.edge.name] = [];
@@ -103,7 +101,7 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
       });
   }
 
-  openDeleteEdgeDialog(connections: GraphDirectedRestComboMap) {
+  openDeleteEdgeDialog(connections: GraphDirectedComboMap) {
     this.dialog
       .open(DeleteEdgeDialogComponent, {
         width: '500px',
@@ -119,7 +117,7 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
       });
   }
 
-  navigateConnection($event: MouseEvent, item: GraphDirectedRestCombo) {
+  navigateConnection($event: MouseEvent, item: GraphDirectedCombo) {
     const isEdgeNav = this.preferences.get('graphFollows') === 'edge';
     if ($event.altKey ? !isEdgeNav : isEdgeNav) {
       this.selected.emit(item.edge);

@@ -9,8 +9,8 @@ import {
 } from '../dto/graph-data.dto';
 import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexSearchDto } from '../dto/vertex.dto';
-import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
-import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
+import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
 import { ServiceDetailsResponseDto } from '../dto/service.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';

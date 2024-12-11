@@ -17,20 +17,20 @@ interface ExpiryDay {
 }
 
 @Component({
-    selector: 'app-account-generate-dialog',
-    imports: [
-        ClipboardModule,
-        FormsModule,
-        MatButtonModule,
-        MatCheckboxModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        MatSelectModule,
-    ],
-    templateUrl: './account-generate-dialog.component.html',
-    styleUrls: ['./account-generate-dialog.component.scss']
+  selector: 'app-account-generate-dialog',
+  imports: [
+    ClipboardModule,
+    FormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
+  templateUrl: './account-generate-dialog.component.html',
+  styleUrls: ['./account-generate-dialog.component.scss'],
 })
 export class AccountGenerateDialogComponent {
   token = '';

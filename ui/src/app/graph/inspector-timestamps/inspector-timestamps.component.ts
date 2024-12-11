@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TimestampRestDto } from '../../service/dto/timestamp-rest.dto';
+import { TimestampDto } from '../../service/dto/timestamp.dto';
 import { MatListModule } from '@angular/material/list';
 
 @Component({
@@ -10,5 +10,5 @@ import { MatListModule } from '@angular/material/list';
     styleUrl: './inspector-timestamps.component.scss'
 })
 export class InspectorTimestampsComponent {
-  @Input() timestamps?: TimestampRestDto;
+  @Input() timestamps?: TimestampDto;
 }

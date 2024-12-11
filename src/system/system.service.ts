@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
-import { ConnectionConfigRestDto } from '../persistence/dto/connection-config-rest.dto';
+import { ConnectionConfigRestDto } from '../persistence/dto/connection-config.dto';
 import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
 

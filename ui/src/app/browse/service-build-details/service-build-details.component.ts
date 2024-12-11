@@ -13,7 +13,7 @@ import { combineLatest, Subject, takeUntil } from 'rxjs';
 
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildRestDto } from '../../service/dto/package-build-rest.dto';
+import { PackageBuildDto } from '../../service/dto/package-build.dto';
 import { FilesizePipe } from '../../util/filesize.pipe';
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -21,22 +21,22 @@ import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
 
 @Component({
-    selector: 'app-service-build-details',
-    imports: [
-        CommonModule,
-        ClipboardModule,
-        CollectionHeaderComponent,
-        InspectorInstallsComponent,
-        FilesizePipe,
-        MatButtonModule,
-        MatCardModule,
-        MatIconModule,
-        MatMenuModule,
-        MatTooltipModule,
-        MatProgressSpinnerModule,
-    ],
-    templateUrl: './service-build-details.component.html',
-    styleUrl: './service-build-details.component.scss'
+  selector: 'app-service-build-details',
+  imports: [
+    CommonModule,
+    ClipboardModule,
+    CollectionHeaderComponent,
+    InspectorInstallsComponent,
+    FilesizePipe,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+  ],
+  templateUrl: './service-build-details.component.html',
+  styleUrl: './service-build-details.component.scss',
 })
 export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   collection!: CollectionNames;
@@ -57,7 +57,7 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   ]);
 
   loading = true;
-  data: PackageBuildRestDto | undefined;
+  data: PackageBuildDto | undefined;
 
   private ngUnsubscribe: Subject<any> = new Subject();
 

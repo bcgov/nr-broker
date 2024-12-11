@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigInstanceDto } from '../../service/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -30,8 +30,8 @@ export class TeamServicesComponent {
 
   propDisplayedColumns: string[] = ['key', 'value'];
 
-  activeServices: CollectionConfigInstanceRestDto[] = [];
-  requestServices: CollectionConfigInstanceRestDto[] = [];
+  activeServices: CollectionConfigInstanceDto[] = [];
+  requestServices: CollectionConfigInstanceDto[] = [];
   serviceCount = 0;
 
   constructor(private readonly graphApi: GraphApiService) {}

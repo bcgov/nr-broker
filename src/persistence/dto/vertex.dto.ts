@@ -5,13 +5,13 @@ import {
   ValidateNested,
   IsDefined,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import {
   CollectionBaseDtoUnionObject,
   CollectionNames,
 } from './collection-dto-union.type';
 import { PointGeomDto } from './point-geom.dto';
 import { TimestampDto } from './timestamp.dto';
-import { Type } from 'class-transformer';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 
@@ -76,7 +76,9 @@ export class VertexInsertDto {
   @ValidateNested()
   @IsDefined()
   @Type((opts) => {
-    return CollectionBaseDtoUnionObject[opts.object.collection];
+    return CollectionBaseDtoUnionObject[
+      opts?.object['collection'] as CollectionNames
+    ];
   })
   data: any;
 

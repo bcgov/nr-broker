@@ -2,25 +2,25 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, filter, from, map } from 'rxjs';
 import {
-  CollectionDtoRestUnion,
+  CollectionDtoUnion,
   CollectionNames,
 } from './dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
 import { GraphDataResponseDto } from './dto/graph-data.dto';
 import {
-  CollectionConfigInstanceRestDto,
-  CollectionConfigRestDto,
-} from './dto/collection-config-rest.dto';
-import { EdgeInsertDto, EdgeRestDto } from './dto/edge-rest.dto';
-import { VertexInsertDto, VertexRestDto } from './dto/vertex-rest.dto';
+  CollectionConfigInstanceDto,
+  CollectionConfigDto,
+} from './dto/collection-config.dto';
+import { EdgeInsertDto, EdgeDto } from './dto/edge.dto';
+import { VertexInsertDto, VertexDto } from './dto/vertex.dto';
 import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
-import { GraphEventRestDto } from './dto/graph-event-rest.dto';
-import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
+import { GraphEventDto } from './dto/graph-event.dto';
+import { UserPermissionDto } from './dto/user-permission.dto';
 import { CONFIG_ARR } from '../app-initialize.factory';
 import { SseClient } from 'ngx-sse-client';
-import { GraphUpDownRestDto } from './dto/graph-updown-rest.dto';
-import { VertexPointerRestDto } from './dto/vertex-pointer-rest.dto';
+import { GraphUpDownDto } from './dto/graph-updown.dto';
+import { VertexPointerDto } from './dto/vertex-pointer.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -30,10 +30,10 @@ export class GraphApiService {
     private readonly util: GraphUtilService,
     private readonly http: HttpClient,
     private sseClient: SseClient,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
   ) {}
 
-  createEventSource(): Observable<GraphEventRestDto> {
+  createEventSource(): Observable<GraphEventDto> {
     return this.sseClient.stream(`${environment.apiUrl}/v1/graph/events`).pipe(
       filter((event) => {
         if (event.type === 'error') {
@@ -96,7 +96,7 @@ export class GraphApiService {
     return config ? from([config]) : from([]);
   }
 
-  getCollectionData<T extends keyof CollectionDtoRestUnion>(
+  getCollectionData<T extends keyof CollectionDtoUnion>(
     collection: T,
     vertexId: string,
   ) {
@@ -111,7 +111,7 @@ export class GraphApiService {
   }
 
   getEdge(id: string) {
-    return this.http.get<EdgeRestDto>(
+    return this.http.get<EdgeDto>(
       `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
       {
         responseType: 'json',
@@ -177,7 +177,7 @@ export class GraphApiService {
   }
 
   getVertex(id: string) {
-    return this.http.get<VertexRestDto>(
+    return this.http.get<VertexDto>(
       `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
       {
         responseType: 'json',
@@ -186,7 +186,7 @@ export class GraphApiService {
   }
 
   addVertex(vertex: VertexInsertDto) {
-    return this.http.post<VertexRestDto>(
+    return this.http.post<VertexDto>(
       `${environment.apiUrl}/v1/graph/vertex`,
       vertex,
       {
@@ -214,12 +214,12 @@ export class GraphApiService {
     );
   }
 
-  getUpstream<T extends VertexPointerRestDto = any>(
+  getUpstream<T extends VertexPointerDto = any>(
     id: string,
     index: number,
     matchEdgeNames: string[] | null = null,
   ) {
-    return this.http.post<GraphUpDownRestDto<T>[]>(
+    return this.http.post<GraphUpDownDto<T>[]>(
       `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}${
         matchEdgeNames
           ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
@@ -232,7 +232,7 @@ export class GraphApiService {
   }
 
   getUserPermissions() {
-    return this.http.get<UserPermissionRestDto>(
+    return this.http.get<UserPermissionDto>(
       `${environment.apiUrl}/v1/graph/data/user-permissions`,
       {
         responseType: 'json',
@@ -264,7 +264,7 @@ export class GraphApiService {
     if (edgeName) {
       params.push(`edgeName=${encodeURIComponent(edgeName)}`);
     }
-    return this.http.get<CollectionConfigInstanceRestDto[]>(
+    return this.http.get<CollectionConfigInstanceDto[]>(
       `${environment.apiUrl}/v1/graph/vertex/${sourceId}/edge-config${
         params.length > 0 ? '?' + params.join('&') : ''
       }`,

@@ -10,11 +10,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
 import { lastValueFrom } from 'rxjs';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/dto/user.dto';
 
 @Component({
     selector: 'app-add-team-dialog',
@@ -28,7 +28,7 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
     styleUrl: './add-team-dialog.component.scss'
 })
 export class AddTeamDialogComponent {
-  public config: CollectionConfigRestDto | undefined;
+  public config: CollectionConfigDto | undefined;
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
@@ -44,7 +44,7 @@ export class AddTeamDialogComponent {
     public readonly dialogRef: MatDialogRef<AddTeamDialogComponent>,
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnInit(): void {

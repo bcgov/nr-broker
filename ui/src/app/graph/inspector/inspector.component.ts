@@ -50,16 +50,16 @@ import { PermissionService } from '../../service/permission.service';
 import { InspectorConnectionsComponent } from '../inspector-connections/inspector-connections.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
-import { EdgeComboRestDto } from '../../service/dto/edge-combo-rest.dto';
+import { EdgeComboDto } from '../../service/dto/edge-combo.dto';
 import { InspectorPropertiesComponent } from '../inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-timestamps.component';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { EdgeDto } from '../../service/dto/edge.dto';
+import { VertexDto } from '../../service/dto/vertex.dto';
+import { UserSelfDto } from '../../service/dto/user.dto';
 
 @Component({
   selector: 'app-inspector',
@@ -87,7 +87,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   @Input() target!: InspectorTarget | undefined;
   targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
 
-  public comboData!: CollectionCombo<any> | EdgeComboRestDto | null;
+  public comboData!: CollectionCombo<any> | EdgeComboDto | null;
   navigationFollows: 'vertex' | 'edge' = 'vertex';
 
   propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
@@ -106,8 +106,8 @@ export class InspectorComponent implements OnChanges, OnInit {
     private readonly dialog: MatDialog,
     private readonly preferences: PreferencesService,
     private readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 
@@ -175,7 +175,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     this.graphUtil.openInGraph(id, 'vertex');
   }
 
-  navigate(target: EdgeRestDto | VertexRestDto) {
+  navigate(target: EdgeDto | VertexDto) {
     if ('collection' in target) {
       this.collectionApi
         .searchCollection(target.collection, {
@@ -339,7 +339,7 @@ export class InspectorComponent implements OnChanges, OnInit {
     return of(null);
   }
 
-  getEdgeTargetData(target: InspectorTargetEdge): Observable<EdgeComboRestDto> {
+  getEdgeTargetData(target: InspectorTargetEdge): Observable<EdgeComboDto> {
     return combineLatest({
       edge: this.graphApi.getEdge(target.id),
       source: this.graphApi.getVertex(target.source),

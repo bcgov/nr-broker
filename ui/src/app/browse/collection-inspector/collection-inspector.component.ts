@@ -34,7 +34,7 @@ import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
@@ -51,8 +51,8 @@ import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
 import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
-import { EdgeRestDto } from '../../service/dto/edge-rest.dto';
+import { VertexDto } from '../../service/dto/vertex.dto';
+import { EdgeDto } from '../../service/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
@@ -112,7 +112,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   // Loaded data
   public loading = true;
-  public config!: CollectionConfigRestDto;
+  public config!: CollectionConfigDto;
   public comboData!: CollectionCombo<any>;
   public serviceDetails: any = null;
   public serviceInstanceDetails: any = null;
@@ -299,7 +299,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.triggerRefresh.next(true);
   }
 
-  navigate(target: EdgeRestDto | VertexRestDto) {
+  navigate(target: EdgeDto | VertexDto) {
     if ('collection' in target) {
       this.collectionApi
         .searchCollection(target.collection, {

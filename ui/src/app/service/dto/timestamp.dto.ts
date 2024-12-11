@@ -1,4 +1,4 @@
-export class TimestampRestDto {
+export class TimestampDto {
   createdAt?: number;
   updatedAt?: number;
 }

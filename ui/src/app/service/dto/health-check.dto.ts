@@ -20,7 +20,7 @@ export class HealthIndicatorResult {
   };
 }
 
-export class HealthCheckRestDto {
+export class HealthCheckDto {
   status!: HealthCheckStatus;
   info!: HealthIndicatorResult;
   error!: HealthIndicatorResult;

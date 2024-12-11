@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildRestDto } from '../../service/dto/package-build-rest.dto';
+import { PackageBuildDto } from '../../service/dto/package-build.dto';
 import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -186,7 +186,7 @@ export class ServiceBuildsComponent
     this.page$.next({ index: event.pageIndex, size: event.pageSize });
   }
 
-  approvePackageBuild(event: Event, build: PackageBuildRestDto) {
+  approvePackageBuild(event: Event, build: PackageBuildDto) {
     event.stopPropagation();
     this.disableApprove[build.id] = true;
     this.packageApi.approveBuild(build.id).subscribe(() => {
@@ -194,7 +194,7 @@ export class ServiceBuildsComponent
     });
   }
 
-  openInBrowser(event: Event, elem: PackageBuildRestDto) {
+  openInBrowser(event: Event, elem: PackageBuildDto) {
     event.stopPropagation();
     this.collectionUtil.openServicePackage(elem.service, elem.id);
   }

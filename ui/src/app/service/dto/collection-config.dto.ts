@@ -1,6 +1,6 @@
 import { CollectionNames } from './collection-dto-union.type';
-import { EdgeRestDto } from './edge-rest.dto';
-import { UserPermissionNames } from './user-permission-rest.dto';
+import { EdgeDto } from './edge.dto';
+import { UserPermissionNames } from './user-permission.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export class CollectionEdgePermissions {
@@ -60,6 +60,7 @@ export class CollectionFieldConfig {
   unique?: boolean;
   uniqueParent?: boolean;
   value?: string | boolean;
+  valuePath?: string;
 }
 
 export class CollectionFieldConfigMap {
@@ -83,7 +84,7 @@ export class CollectionConfigPermissions {
   delete!: boolean;
 }
 
-export class CollectionConfigRestDto {
+export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
   collection!: CollectionNames;
@@ -100,15 +101,15 @@ export class CollectionConfigRestDto {
   show!: boolean;
 }
 
-export class LinksAltRestDto {
+export class LinksAltDto {
   environmentPosition!: number;
   environmentTitle!: string;
   name!: string;
   url!: string;
 }
-export class LinksRestDto {
+export class LinksDto {
   default!: string;
-  alt?: LinksAltRestDto[];
+  alt?: LinksAltDto[];
 }
 
 export class CollectionSyncConfig {
@@ -128,11 +129,8 @@ export class CollectionSyncConfig {
   };
 }
 
-export type CollectionConfigInstanceRestDto = Omit<
-  CollectionConfigRestDto,
-  'edges'
-> & {
+export type CollectionConfigInstanceDto = Omit<CollectionConfigDto, 'edges'> & {
   edge: CollectionEdgeInstanceConfig;
-  instance?: EdgeRestDto;
-  links?: LinksRestDto;
+  instance?: EdgeDto;
+  links?: LinksDto;
 };
