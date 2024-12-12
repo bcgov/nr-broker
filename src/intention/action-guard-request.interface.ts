@@ -11,8 +11,8 @@ import { ProcessStartActionEmbeddable } from './entity/process-start-action.embe
 import { ServerAccessActionEmbeddable } from './entity/server-access-action.embeddable';
 
 export interface ActionGuardRequest extends Request {
-  brokerIntentionEntity?: IntentionEntity;
-  brokerActionDto?:
+  brokerIntention?: IntentionEntity;
+  brokerAction?:
     | BackupActionEmbeddable
     | DatabaseAccessActionEmbeddable
     | ServerAccessActionEmbeddable

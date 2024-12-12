@@ -32,8 +32,8 @@ export class ActionGuard implements CanActivate {
         message: 'Action not found',
       });
     }
-    request.brokerIntentionEntity = intObj;
-    request.brokerActionDto = action;
+    request.brokerIntention = intObj;
+    request.brokerAction = action;
     return !!action;
   }
 }

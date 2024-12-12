@@ -386,14 +386,6 @@ export class GraphService {
       });
     }
 
-    // for (const [key, field] of Object.entries(config.fields)) {
-    //   if (field.type === 'date' && vertexInsert.data[key]) {
-    //     vertexInsert.data[key] = new Date(
-    //       vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
-    //     );
-    //   }
-    // }
-    console.log(vertexInsert);
     const errors = await validate(vertexInsert, {
       whitelist: true,
       forbidNonWhitelisted: true,

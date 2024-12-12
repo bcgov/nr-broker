@@ -19,6 +19,7 @@ import { BuildRepository } from '../persistence/interfaces/build.repository';
 import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -287,10 +288,10 @@ export class IntentionSyncService {
 
     return this.graphService.upsertVertex(
       null,
-      {
+      plainToClass(VertexInsertDto, {
         collection,
         data,
-      },
+      }),
       targetBy,
       target,
     );

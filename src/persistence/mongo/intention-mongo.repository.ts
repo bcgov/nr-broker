@@ -75,22 +75,14 @@ export class IntentionMongoRepository implements IntentionRepository {
   }
 
   public async setIntentionActionLifecycle(
-    token: string,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     outcome: string | undefined,
     type: 'start' | 'end',
-  ): Promise<ActionEmbeddable> {
-    const intention = await this.intentionRepository.findOne({
-      'actions.trace.token': token,
-      closed: { $ne: true },
-    } as any);
-    if (intention === null) {
+  ): Promise<boolean> {
+    if (intention.closed) {
       throw new Error();
     }
-
-    const action = intention.actions
-      .filter((action) => action.trace.token === token)
-      // There will only ever be one
-      .find(() => true);
 
     if (action) {
       const currentTime = new Date().toISOString();
@@ -109,11 +101,8 @@ export class IntentionMongoRepository implements IntentionRepository {
           Date.parse(action.trace.start).valueOf();
       }
     }
-    const id = extractId(intention);
-    await this.intentionRepository
-      .getCollection()
-      .replaceOne({ _id: id }, intention);
-    return action;
+    this.em.persist(intention).flush();
+    return true;
   }
 
   public async addIntentionActionArtifact(
@@ -154,11 +143,8 @@ export class IntentionMongoRepository implements IntentionRepository {
   public async closeIntention(intention: IntentionEntity): Promise<boolean> {
     if (intention) {
       intention.closed = true;
-      const id = extractId(intention);
-      const result = await this.intentionRepository
-        .getCollection()
-        .replaceOne({ _id: id }, intention);
-      return result.modifiedCount === 1;
+      await this.em.persist(intention).flush();
+      return true;
     }
     return false;
   }
@@ -170,10 +156,13 @@ export class IntentionMongoRepository implements IntentionRepository {
     offset: number,
     limit: number,
   ): Promise<IntentionSearchResult> {
-    if (where['_id']) {
+    if (where['_id'] && typeof where['_id'] === 'string') {
       where['_id'] = new ObjectId(where['_id']);
     }
-    if (where['actions.service.id']) {
+    if (
+      where['actions.service.id'] &&
+      typeof where['actions.service.id'] === 'string'
+    ) {
       where['actions.service.id'] = new ObjectId(where['actions.service.id']);
     }
     return this.intentionRepository

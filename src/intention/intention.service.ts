@@ -390,7 +390,6 @@ export class IntentionService {
   ): Promise<IntentionEntity> {
     const intention: IntentionEntity =
       await this.intentionRepository.getIntentionByToken(token);
-    console.log(token);
     if (!intention) {
       throw new NotFoundException({
         statusCode: 404,
@@ -653,8 +652,8 @@ export class IntentionService {
   /**
    * Logs the start and end of an action
    * @param req The associated request object
-   * @param intention The intention to start the action for
-   * @param action The action to log the lifecycle for
+   * @param intention The intention containing the action
+   * @param action The action to alter according to the lifecycle
    * @param outcome The outcome of the action
    * @param type Start or end of action
    * @returns Promise returning true if successfully logged and false otherwise
@@ -683,8 +682,9 @@ export class IntentionService {
         error: `Action's current lifecycle state (${action.lifecycle}) can not do transition: ${type}`,
       });
     }
-    action = await this.intentionRepository.setIntentionActionLifecycle(
-      action.trace.token,
+    await this.intentionRepository.setIntentionActionLifecycle(
+      intention,
+      action,
       outcome,
       type,
     );
@@ -873,6 +873,7 @@ export class IntentionService {
   private createIntentionTransaction(ttl: number) {
     const startDate = new Date();
     const transaction = TransactionEmbeddable.create();
+    transaction.start = startDate.toISOString();
     const expiry = startDate.valueOf() + ttl * 1000;
 
     return {

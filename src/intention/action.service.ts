@@ -78,8 +78,6 @@ export class ActionService {
     if (account && account.skipUserValidation) {
       return null;
     }
-    console.log(user);
-    console.log(!user);
     if (!user) {
       return {
         message:
@@ -334,7 +332,6 @@ export class ActionService {
     action: ActionEmbeddable,
   ): Promise<ActionError | null> {
     if (action instanceof PackageInstallationActionEmbeddable) {
-      console.log(await this.persistenceUtil.getEnvMap());
       const env = (await this.persistenceUtil.getEnvMap())[
         action.service.environment
       ];

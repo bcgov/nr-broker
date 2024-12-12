@@ -122,8 +122,8 @@ export class IntentionController {
     }
     await this.intentionService.actionLifecycle(
       request,
-      request.brokerIntentionEntity,
-      request.brokerActionDto,
+      request.brokerIntention,
+      request.brokerAction,
       outcome,
       'end',
     );
@@ -137,7 +137,7 @@ export class IntentionController {
     @Req() request: ActionGuardRequest,
     @Body() artifact: ArtifactDto,
   ) {
-    if (!['backup', 'package-build'].includes(request.brokerActionDto.action)) {
+    if (!['backup', 'package-build'].includes(request.brokerAction.action)) {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal action',
@@ -147,8 +147,8 @@ export class IntentionController {
     }
     return await this.intentionService.actionArtifactRegister(
       request,
-      request.brokerIntentionEntity,
-      request.brokerActionDto,
+      request.brokerIntention,
+      request.brokerAction,
       artifact,
     );
   }
@@ -163,7 +163,7 @@ export class IntentionController {
   ) {
     if (
       !['package-build', 'package-installation'].includes(
-        request.brokerActionDto.action,
+        request.brokerAction.action,
       )
     ) {
       throw new BadRequestException({
@@ -177,14 +177,14 @@ export class IntentionController {
     try {
       return await this.intentionService.patchAction(
         request,
-        request.brokerIntentionEntity,
-        request.brokerActionDto,
+        request.brokerIntention,
+        request.brokerAction,
         actionPatch,
       );
     } catch (e) {
       await this.intentionService.close(
         request,
-        request.brokerIntentionEntity.transaction.token,
+        request.brokerIntention.transaction.token,
         'failure',
         'Patch failure',
       );
@@ -206,8 +206,8 @@ export class IntentionController {
   async actionStart(@Req() request: ActionGuardRequest) {
     await this.intentionService.actionLifecycle(
       request,
-      request.brokerIntentionEntity,
-      request.brokerActionDto,
+      request.brokerIntention,
+      request.brokerAction,
       undefined,
       'start',
     );

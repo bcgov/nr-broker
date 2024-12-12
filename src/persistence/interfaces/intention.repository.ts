@@ -28,10 +28,11 @@ export abstract class IntentionRepository {
   ): Promise<ActionEmbeddable | null>;
 
   public abstract setIntentionActionLifecycle(
-    token: string,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     outcome: string | undefined,
     type: 'start' | 'end',
-  ): Promise<ActionEmbeddable>;
+  ): Promise<boolean>;
 
   public abstract addIntentionActionArtifact(
     token: string,

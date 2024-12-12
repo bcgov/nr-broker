@@ -15,8 +15,8 @@ import { AuditService } from '../audit/audit.service';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 
 export interface RoleGuardRequest extends Request {
-  brokerIntentionEntity?: IntentionEntity;
-  brokerActionDto?: ActionEmbeddable;
+  brokerIntention?: IntentionEntity;
+  brokerAction?: ActionEmbeddable;
 }
 
 /**
@@ -39,8 +39,8 @@ export class VaultRoleGuard implements CanActivate {
     if (roles.indexOf('provision') !== -1) {
       const request = context.switchToHttp().getRequest<RoleGuardRequest>();
 
-      const action: ActionEmbeddable = request.brokerActionDto;
-      const intention = request.brokerIntentionEntity;
+      const action: ActionEmbeddable = request.brokerAction;
+      const intention = request.brokerIntention;
       const application = action?.service?.target
         ? action?.service?.target?.name
         : action?.service?.name;

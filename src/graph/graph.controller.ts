@@ -205,7 +205,6 @@ export class GraphController {
     @Param('id') id: string,
     @Body() edge: EdgeInsertDto,
   ) {
-    console.log(edge);
     return this.graph.editEdge(request, id, edge);
   }
 
