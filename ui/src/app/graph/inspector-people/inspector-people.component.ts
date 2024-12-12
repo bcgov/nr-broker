@@ -13,10 +13,10 @@ import { GraphUpDownDto } from '../../service/dto/graph-updown.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
-    selector: 'app-inspector-people',
-    imports: [MatTableModule, RouterModule],
-    templateUrl: './inspector-people.component.html',
-    styleUrl: './inspector-people.component.scss'
+  selector: 'app-inspector-people',
+  imports: [MatTableModule, RouterModule],
+  templateUrl: './inspector-people.component.html',
+  styleUrl: './inspector-people.component.scss',
 })
 export class InspectorPeopleComponent implements OnChanges {
   @Input() collection!: CollectionNames;
@@ -34,7 +34,6 @@ export class InspectorPeopleComponent implements OnChanges {
   ngOnChanges() {
     this.getUpstreamUsers(this.vertex).subscribe((data) => {
       this.collectionPeople = data;
-      console.log(data);
     });
   }
 

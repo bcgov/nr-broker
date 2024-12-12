@@ -87,10 +87,6 @@ export abstract class ActionEmbeddable {
   })
   source?: ActionSourceEmbeddable;
 
-  // @ApiHideProperty()
-  // @Embedded({ entity: () => TransactionEmbeddable })
-  // transaction: TransactionEmbeddable;
-
   @ApiHideProperty()
   @Embedded({ entity: () => TransactionEmbeddable })
   trace: TransactionEmbeddable;

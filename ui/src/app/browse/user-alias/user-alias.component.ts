@@ -7,10 +7,10 @@ import { HealthStatusService } from '../../service/health-status.service';
 import { UserSelfDto } from '../../service/dto/user.dto';
 
 @Component({
-    selector: 'app-user-alias',
-    imports: [CommonModule, MatButtonModule],
-    templateUrl: './user-alias.component.html',
-    styleUrl: './user-alias.component.scss'
+  selector: 'app-user-alias',
+  imports: [CommonModule, MatButtonModule],
+  templateUrl: './user-alias.component.html',
+  styleUrl: './user-alias.component.scss',
 })
 export class UserAliasComponent implements OnChanges {
   @Input() collection: any;

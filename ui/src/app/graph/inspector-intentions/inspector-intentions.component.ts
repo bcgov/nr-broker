@@ -9,16 +9,16 @@ import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../../intention/history-table/history-table.component';
 
 @Component({
-    selector: 'app-inspector-intentions',
-    imports: [
-        CommonModule,
-        MatButtonModule,
-        MatExpansionModule,
-        MatListModule,
-        HistoryTableComponent,
-    ],
-    templateUrl: './inspector-intentions.component.html',
-    styleUrls: ['./inspector-intentions.component.scss']
+  selector: 'app-inspector-intentions',
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatExpansionModule,
+    MatListModule,
+    HistoryTableComponent,
+  ],
+  templateUrl: './inspector-intentions.component.html',
+  styleUrls: ['./inspector-intentions.component.scss'],
 })
 export class InspectorIntentionsComponent implements OnChanges {
   @Input() id!: string;

@@ -406,7 +406,6 @@ export class ActionService {
   }
 
   private validateSemver(action: ActionEmbeddable): ActionError | null {
-    console.log(action);
     const parsedVersion = this.parseActionVersion(action);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
       return {

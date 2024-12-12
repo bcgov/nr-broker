@@ -2,8 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDefined,
+  IsNumber,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { ObjectId } from 'mongodb';
@@ -20,6 +23,8 @@ import { ProcessEndActionDto } from './process-end-action.dto';
 import { ProcessStartActionDto } from './process-start-action.dto';
 import { ServerAccessActionDto } from './server-access-action.dto';
 import { UrlDto } from './url.dto';
+import { TransactionDto } from './transaction.dto';
+import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
 
 export class IntentionDto {
   id: string;
@@ -53,25 +58,26 @@ export class IntentionDto {
   actions: ActionDto[];
 
   // Not a column - decoration
-  // @IsOptional()
-  // auditUrl?: string;
+  // Out
+  @IsOptional()
+  @IsString()
+  auditUrl?: string;
 
   @ValidateNested()
   @IsDefined()
   @Type(() => EventDto)
   event: EventDto;
 
-  // @ValidateNested()
-  // @IsOptional()
-  // @ApiHideProperty()
-  // @Type(() => BrokerJwtDto)
-  // jwt?: BrokerJwtDto;
+  // Out
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => BrokerJwtDto)
+  jwt?: BrokerJwtDto;
 
-  // @ValidateNested()
-  // @IsOptional()
-  // @ApiHideProperty()
-  // @Type(() => TransactionDto)
-  // transaction?: TransactionDto;
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => TransactionDto)
+  transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
@@ -83,16 +89,18 @@ export class IntentionDto {
   @Type(() => UserDto)
   user: UserDto;
 
-  // @IsOptional()
-  // @IsNumber()
-  // @ApiHideProperty()
-  // expiry?: number;
+  // Out
+  @IsOptional()
+  @IsNumber()
+  expiry?: number;
 
-  // @IsOptional()
-  // @IsBoolean()
-  // @ApiHideProperty()
-  // closed?: boolean;
+  // Out
+  @IsOptional()
+  @IsBoolean()
+  closed?: boolean;
 
-  // @ApiProperty()
-  // requireRoleId?: boolean;
+  // Out
+  @IsOptional()
+  @IsBoolean()
+  requireRoleId?: boolean;
 }

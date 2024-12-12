@@ -12,18 +12,18 @@ import { ConnectionConfigDto } from '../service/dto/connection-config.dto';
 import { PreferencesService } from '../preferences.service';
 
 @Component({
-    selector: 'app-home',
-    imports: [
-        RouterModule,
-        MatButtonModule,
-        MatCardModule,
-        MatDividerModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatTabsModule,
-    ],
-    templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss']
+  selector: 'app-home',
+  imports: [
+    RouterModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+  ],
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
   loading = true;

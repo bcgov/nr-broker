@@ -1,8 +1,9 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class TransactionDto {
-  @IsString()
-  token: string;
+  // Token is hidden and unavailable in the DTO
+  // @IsString()
+  // token: string;
 
   @IsString()
   hash: string;

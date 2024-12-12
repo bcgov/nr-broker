@@ -5,16 +5,16 @@ import { EChartsOption } from 'echarts';
 import prettyMilliseconds from 'pretty-ms';
 
 @Component({
-    selector: 'app-gantt-graph',
-    imports: [NgxEchartsModule],
-    providers: [
-        {
-            provide: NGX_ECHARTS_CONFIG,
-            useFactory: () => ({ echarts: () => import('echarts') }),
-        },
-    ],
-    templateUrl: './gantt-graph.component.html',
-    styleUrl: './gantt-graph.component.scss'
+  selector: 'app-gantt-graph',
+  imports: [NgxEchartsModule],
+  providers: [
+    {
+      provide: NGX_ECHARTS_CONFIG,
+      useFactory: () => ({ echarts: () => import('echarts') }),
+    },
+  ],
+  templateUrl: './gantt-graph.component.html',
+  styleUrl: './gantt-graph.component.scss',
 })
 export class GanttGraphComponent implements OnInit {
   @Input() intention: any;

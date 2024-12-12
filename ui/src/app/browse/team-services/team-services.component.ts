@@ -11,19 +11,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { TeamServiceRequestComponent } from '../../team/team-service-request/team-service-request.component';
 
 @Component({
-    selector: 'app-team-services',
-    imports: [
-        CommonModule,
-        MatButtonModule,
-        MatCardModule,
-        MatDividerModule,
-        MatIconModule,
-        MatTableModule,
-        MatTooltipModule,
-        TeamServiceRequestComponent,
-    ],
-    templateUrl: './team-services.component.html',
-    styleUrl: './team-services.component.scss'
+  selector: 'app-team-services',
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatIconModule,
+    MatTableModule,
+    MatTooltipModule,
+    TeamServiceRequestComponent,
+  ],
+  templateUrl: './team-services.component.html',
+  styleUrl: './team-services.component.scss',
 })
 export class TeamServicesComponent {
   @Input() teamVertex!: string;

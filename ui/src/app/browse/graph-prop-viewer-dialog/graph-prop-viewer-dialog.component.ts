@@ -11,15 +11,15 @@ import { VertexPropDto } from '../../service/dto/vertex.dto';
 import { EdgePropDto } from '../../service/dto/edge-prop.dto';
 
 @Component({
-    selector: 'app-graph-prop-viewer-dialog',
-    imports: [
-        CommonModule,
-        MatButtonModule,
-        MatDialogModule,
-        InspectorPropertiesComponent,
-    ],
-    templateUrl: './graph-prop-viewer-dialog.component.html',
-    styleUrl: './graph-prop-viewer-dialog.component.scss'
+  selector: 'app-graph-prop-viewer-dialog',
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatDialogModule,
+    InspectorPropertiesComponent,
+  ],
+  templateUrl: './graph-prop-viewer-dialog.component.html',
+  styleUrl: './graph-prop-viewer-dialog.component.scss',
 })
 export class GraphPropViewerDialogComponent {
   constructor(

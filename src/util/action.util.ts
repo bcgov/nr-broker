@@ -130,7 +130,6 @@ export class ActionUtil {
    * @returns The audit url string
    */
   public auditUrlForIntention(intention: IntentionEntity): string {
-    console.log(intention);
     return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 

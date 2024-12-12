@@ -28,19 +28,19 @@ import { JwtRegistryDto } from '../../service/dto/jwt-registry.dto';
 import { HealthStatusService } from '../../service/health-status.service';
 
 @Component({
-    selector: 'app-inspector-account',
-    imports: [
-        CommonModule,
-        ClipboardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatMenuModule,
-        MatSnackBarModule,
-        MatTableModule,
-        MatTooltipModule,
-    ],
-    templateUrl: './inspector-account.component.html',
-    styleUrls: ['./inspector-account.component.scss']
+  selector: 'app-inspector-account',
+  imports: [
+    CommonModule,
+    ClipboardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatTooltipModule,
+  ],
+  templateUrl: './inspector-account.component.html',
+  styleUrls: ['./inspector-account.component.scss'],
 })
 export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   @Input() account!: BrokerAccountDto;

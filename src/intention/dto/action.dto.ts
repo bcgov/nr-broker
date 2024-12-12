@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDefined,
   IsIn,
   IsOptional,
@@ -14,6 +15,7 @@ import { UrlDto } from './url.dto';
 import { ArtifactDto } from './artifact.dto';
 import { ActionSourceDto } from './action-source.dto';
 import { UserDto } from './user.dto';
+import { TransactionDto } from './transaction.dto';
 
 export const ACTION_NAMES = [
   'backup',
@@ -91,15 +93,10 @@ export class ActionDto {
   @Type(() => ActionSourceDto)
   source?: ActionSourceDto;
 
-  // @ValidateNested()
-  // @IsOptional()
-  // @Type(() => TransactionDto)
-  // transaction?: TransactionDto;
-
-  // @ValidateNested()
-  // @IsOptional()
-  // @Type(() => TransactionDto)
-  // trace?: TransactionDto;
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => TransactionDto)
+  trace?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
@@ -111,10 +108,9 @@ export class ActionDto {
   @Type(() => UserDto)
   user?: UserDto;
 
-  // @IsOptional()
-  // @IsBoolean()
-  // @ApiHideProperty()
-  // valid?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  valid?: boolean;
 
   @IsOptional()
   @IsString()

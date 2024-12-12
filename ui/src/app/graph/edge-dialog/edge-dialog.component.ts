@@ -36,24 +36,24 @@ import { CONFIG_MAP } from '../../app-initialize.factory';
 import { VertexDto } from '../../service/dto/vertex.dto';
 
 @Component({
-    selector: 'app-edge-dialog',
-    templateUrl: './edge-dialog.component.html',
-    styleUrls: ['./edge-dialog.component.scss'],
-    imports: [
-        CommonModule,
-        FormsModule,
-        MatAutocompleteModule,
-        MatButtonModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        MatOptionModule,
-        MatSelectModule,
-        PropertyEditorComponent,
-        ReactiveFormsModule,
-        VertexNameComponent,
-    ]
+  selector: 'app-edge-dialog',
+  templateUrl: './edge-dialog.component.html',
+  styleUrls: ['./edge-dialog.component.scss'],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatOptionModule,
+    MatSelectModule,
+    PropertyEditorComponent,
+    ReactiveFormsModule,
+    VertexNameComponent,
+  ],
 })
 export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
