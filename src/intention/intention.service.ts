@@ -7,9 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { instanceToPlain } from 'class-transformer';
 import { ObjectId } from 'mongodb';
-import merge from 'lodash.merge';
 import { validate } from 'class-validator';
 
 import { IntentionEntity } from './entity/intention.entity';
@@ -67,6 +65,9 @@ import { ProcessStartActionEmbeddable } from './entity/process-start-action.embe
 import { ServerAccessActionEmbeddable } from './entity/server-access-action.embeddable';
 import { PackageEmbeddable } from './entity/package.embeddable';
 import { ServiceDto } from '../persistence/dto/service.dto';
+import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
+import { CloudEmbeddable } from './entity/cloud.embeddable';
+import { ValidatorUtil } from '../util/validator.util';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -98,6 +99,7 @@ export class IntentionService {
     private readonly systemRepository: SystemRepository,
     private readonly persistenceUtilService: PersistenceUtilService,
     private readonly intentionUtilService: IntentionUtilService,
+    private readonly validatorUtil: ValidatorUtil,
   ) {}
 
   /**
@@ -772,6 +774,19 @@ export class IntentionService {
       });
     }
 
+    const errors = await validate(patchAction, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Patch validation error',
+        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
+      });
+    }
+
     // Patch according to action
     if (action.action === 'package-build') {
       if (patchAction?.package) {
@@ -788,18 +803,13 @@ export class IntentionService {
       }
     } else if (action.action === 'package-installation') {
       if (patchAction?.cloud?.target) {
-        // if (!action?.cloud) {
-        //   action.cloud = CloudObjectEmbeddable;
-        // }
-        // if (!action?.cloud.target) {
-        //   action.cloud.target = plainToInstance(CloudObjectDto, {});
-        // }
-        // Convert to plain for merge
-        const target = instanceToPlain(action.cloud.target);
-        const source = instanceToPlain(patchAction.cloud.target);
-        merge(target, source);
-        // Convert to type after merge
-        // action.cloud.target = plainToInstance(CloudObjectDto, target);
+        if (!action?.cloud) {
+          action.cloud = new CloudEmbeddable(new CloudObjectEmbeddable());
+        }
+        action.cloud.target = CloudObjectEmbeddable.merge(
+          action.cloud.target,
+          patchAction.cloud.target,
+        );
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -809,14 +819,6 @@ export class IntentionService {
       }
     }
 
-    const errors = await validate(action, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-    });
-    if (errors.length > 0) {
-      throw new BadRequestException('Validation failed');
-    }
     const account = intention.accountId
       ? await this.collectionRepository.getCollectionById(
           'brokerAccount',
@@ -824,10 +826,6 @@ export class IntentionService {
         )
       : null;
 
-    // replace with patched action
-    intention.actions = intention.actions.map((currentAction) =>
-      currentAction.id === action.id ? action : currentAction,
-    );
     const actionValidationErrors = await this.validateActions(
       intention,
       account,
@@ -857,7 +855,9 @@ export class IntentionService {
       null,
       null,
     );
-    return await this.intentionRepository.addIntention(intention);
+    await this.intentionRepository.addIntention(intention);
+
+    return action;
   }
 
   private checkTimeToLiveBounds(ttl: number) {

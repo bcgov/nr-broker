@@ -1,5 +1,6 @@
 import { Embeddable, Embedded, Enum, Property } from '@mikro-orm/core';
 import { EdgePropEmbeddable } from '../../persistence/entity/edge-prop.embeddable';
+import { CloudObjectDto } from '../dto/cloud-object.dto';
 
 @Embeddable()
 class CloudObjectAccountEmbeddable {
@@ -54,9 +55,57 @@ export enum PROP_STRATEGY_VALUES {
 
 @Embeddable()
 export class CloudObjectEmbeddable {
-  // fromDto(cloudObjectDto: CloudObjectDto) {
-  //   new CloudObjectEmbeddable();
-  // }
+  static merge(...theArgs: Array<CloudObjectDto | CloudObjectEmbeddable>) {
+    const rval = new CloudObjectEmbeddable();
+    for (const arg of theArgs) {
+      if (arg.account || rval.account) {
+        rval.account = rval.account ?? new CloudObjectAccountEmbeddable();
+        rval.account.id = arg.account.id ?? rval.account.id;
+        rval.account.name = arg.account.name ?? rval.account.name;
+      }
+
+      rval.availability_zone = arg.availability_zone ?? rval.availability_zone;
+
+      if (arg.instance || rval.instance) {
+        rval.instance = rval.instance ?? new CloudObjectInstanceEmbeddable();
+        rval.account.id = arg.account.id ?? rval.account.id;
+        rval.account.name = arg.account.name ?? rval.account.name;
+      }
+
+      if (arg.machine) {
+        rval.machine = new CloudObjectMachineEmbeddable(arg.machine.type);
+      }
+
+      if (arg.project || rval.project) {
+        rval.project = rval.project ?? new CloudObjectInstanceEmbeddable();
+        rval.project.id = arg.project.id ?? rval.project.id;
+        rval.project.name = arg.project.name ?? rval.project.name;
+      }
+      if (arg.prop) {
+        rval.prop = rval.prop ?? new EdgePropEmbeddable();
+        for (const [key, value] of Object.entries(arg.prop)) {
+          rval.prop[key] = value;
+        }
+      }
+
+      rval.propStrategy =
+        PROP_STRATEGY_VALUES[arg.propStrategy] ??
+        PROP_STRATEGY_VALUES[rval.propStrategy];
+      rval.provider = arg.provider ?? rval.provider;
+      rval.region = arg.region ?? rval.region;
+
+      if (arg.service) {
+        rval.service = new CloudObjectServiceEmbeddable(arg.service.name);
+      }
+    }
+
+    return rval;
+  }
+
+  static fromDto(dto: CloudObjectEmbeddable) {
+    return CloudObjectEmbeddable.merge(dto);
+  }
+
   @Embedded({
     entity: () => CloudObjectAccountEmbeddable,
     nullable: true,

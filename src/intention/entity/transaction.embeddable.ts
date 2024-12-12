@@ -16,7 +16,7 @@ export class TransactionEmbeddable {
     return new TransactionEmbeddable(hasher.digest('hex'), token);
   }
 
-  @Property()
+  @Property({ hidden: true })
   token: string;
 
   @Property()
