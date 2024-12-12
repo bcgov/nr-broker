@@ -1,4 +1,3 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Entity,
   PrimaryKey,
@@ -71,7 +70,6 @@ export class IntentionEntity {
     return null;
   }
 
-  @ApiHideProperty()
   @PrimaryKey()
   @Property()
   _id: ObjectId;
@@ -80,7 +78,6 @@ export class IntentionEntity {
   id!: string; // won't be saved in the database
 
   @Property({ nullable: true })
-  @ApiProperty({ type: () => String })
   accountId?: ObjectId;
 
   @Embedded({
@@ -106,11 +103,9 @@ export class IntentionEntity {
   @Embedded({ entity: () => EventEmbeddable, object: true })
   event: EventEmbeddable;
 
-  @ApiHideProperty()
   @Embedded({ entity: () => BrokerJwtEmbeddable, nullable: true, object: true })
   jwt?: BrokerJwtEmbeddable;
 
-  @ApiHideProperty()
   @Embedded({ entity: () => TransactionEmbeddable, object: true })
   transaction: TransactionEmbeddable;
 
@@ -120,12 +115,10 @@ export class IntentionEntity {
   @Embedded({ entity: () => UserEmbeddable, object: true })
   user: UserEmbeddable;
 
-  @ApiHideProperty()
   @Property({ nullable: true })
   @Index()
   expiry: number;
 
-  @ApiHideProperty()
   @Property({ nullable: true })
   @Index()
   closed?: boolean;

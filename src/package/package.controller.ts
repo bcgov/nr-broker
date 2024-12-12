@@ -61,7 +61,7 @@ export class PackageController {
   @Get(':id')
   @UseGuards(BrokerCombinedAuthGuard)
   async get(@Param('id') id: string): Promise<PackageBuildDto> {
-    return this.service.get(id) as unknown as PackageBuildDto;
+    return this.service.get(id) as unknown as Promise<PackageBuildDto>;
   }
 
   @Post(':id/approve')

@@ -217,7 +217,9 @@ export class IntentionController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   getIntention(@Param('id') id: string) {
-    return this.intentionService.getIntention(id);
+    return this.intentionService.getIntention(
+      id,
+    ) as unknown as Promise<IntentionDto>;
   }
 
   @Post('search')
