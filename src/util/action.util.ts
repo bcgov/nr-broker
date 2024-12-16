@@ -61,7 +61,7 @@ export class ActionUtil {
       const actionArr = action.split('#');
       if (actionArr.length === 2) {
         if (actionArr[0] !== '') {
-          if (actionArr[0] in ACTION_NAMES) {
+          if (ACTION_NAMES.includes(actionArr[0] as any)) {
             actionOptions.action = actionArr[0] as ActionName;
           } else {
             throw new BadRequestException({
@@ -72,7 +72,10 @@ export class ActionUtil {
           }
         }
         actionOptions.id = actionArr[1];
-      } else if (actionArr.length === 1 && actionArr[0] in ACTION_NAMES) {
+      } else if (
+        actionArr.length === 1 &&
+        ACTION_NAMES.includes(actionArr[0] as any)
+      ) {
         actionOptions.action = actionArr[0] as ActionName;
       } else {
         throw new BadRequestException({
@@ -102,7 +105,7 @@ export class ActionUtil {
     });
   }
 
-  public actionToIdString(action: ActionEmbeddable) {
+  public actionToIdString(action: ActionEmbeddable | ActionDto) {
     return `${action.action}#${action.id}`;
   }
 

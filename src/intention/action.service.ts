@@ -409,8 +409,9 @@ export class ActionService {
     const parsedVersion = this.parseActionVersion(action);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
       return {
-        message:
-          'Package actions must specify a valid semver version. See: https://semver.org',
+        message: action.package?.version
+          ? 'Package actions must specify a valid semver version. See: https://semver.org'
+          : 'No package version set. If using source intention, check action.source values.',
         data: {
           action: action.action,
           action_id: action.id,

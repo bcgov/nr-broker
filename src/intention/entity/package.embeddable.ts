@@ -8,7 +8,7 @@ import { PackageDto } from '../dto/package.dto';
 export class PackageEmbeddable {
   static merge(...theArgs: Array<PackageDto | PackageEmbeddable>) {
     const rval = new PackageEmbeddable();
-    for (const arg of theArgs) {
+    for (const arg of theArgs.filter((arg) => arg)) {
       rval.architecture = arg.architecture ?? rval.architecture;
       rval.buildGuid = arg.buildGuid ?? rval.buildGuid;
       rval.buildNumber = arg.buildNumber ?? rval.buildNumber;

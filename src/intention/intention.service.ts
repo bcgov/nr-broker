@@ -68,6 +68,7 @@ import { ServiceDto } from '../persistence/dto/service.dto';
 import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
 import { CloudEmbeddable } from './entity/cloud.embeddable';
 import { ValidatorUtil } from '../util/validator.util';
+import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -229,15 +230,21 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'package-installation':
+          case 'package-installation': {
+            const packageSource = await this.sourcePackageFromBuild(
+              action,
+              serviceEmbed,
+            );
             return new PackageInstallationActionEmbeddable(
               action,
               actionUser,
               serviceEmbed,
               vaultEnvironment,
               trace,
-              PackageEmbeddable.fromDto(action.package),
+              packageSource ? packageSource.package : undefined,
+              packageSource ? packageSource.source : undefined,
             );
+          }
           case 'package-provision':
             return new PackageProvisionActionEmbeddable(
               action,
@@ -477,6 +484,7 @@ export class IntentionService {
           .reduce((pv, cv) => pv.concat(cv), []),
       };
     } catch (e) {
+      console.log(e);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search arguement',
@@ -512,13 +520,20 @@ export class IntentionService {
     return artifactCombos;
   }
 
-  private async annotateActionPackageFromExistingArtifact(
-    action: ActionEmbeddable,
-  ) {
-    if (action.action !== 'package-installation' || !action.service.id) {
-      // Only annotates package installations
+  private async sourcePackageFromBuild(
+    action: ActionDto,
+    serviceEmbed: IntentionServiceEmbeddable,
+  ): Promise<
+    { source?: ActionSourceEmbeddable; package: PackageEmbeddable } | undefined
+  > {
+    const defaultVal = action.package
+      ? {
+          package: PackageEmbeddable.fromDto(action.package),
+        }
+      : undefined;
+    if (!serviceEmbed.id) {
       // Only existing services (with service.id set) will have artifacts
-      return;
+      return defaultVal;
     }
     let artifactSearchResult: ArtifactSearchResult;
 
@@ -542,7 +557,7 @@ export class IntentionService {
         artifactSearchResult.data.length !== 1
       ) {
         // Skip: Could not uniquely identify artifact based on source
-        return;
+        return defaultVal;
       }
     } else if (action.package?.name && action.package?.version) {
       // Find latest artifact for this service with same package name and version
@@ -558,29 +573,25 @@ export class IntentionService {
         limit: 1,
       });
     } else {
-      return;
+      return defaultVal;
     }
 
     if (artifactSearchResult.meta.total === 0) {
       // Could not identify artifact
-      return;
+      return defaultVal;
     }
 
-    action.package = PackageEmbeddable.merge(
-      artifactSearchResult.data[0].action.package ?? {},
-      artifactSearchResult.data[0].artifact,
-      action.package,
-    );
-    if (!action.source) {
-      action.source = {
-        intention: new ObjectId(
-          artifactSearchResult.data[0].intention.id.toString(),
-        ),
-      };
-    }
-    // action.source.action = this.actionUtil.actionToIdString(
-    //   artifactSearchResult.data[0].action,
-    // );
+    return {
+      source: new ActionSourceEmbeddable(
+        this.actionUtil.actionToIdString(artifactSearchResult.data[0].action),
+        new ObjectId(artifactSearchResult.data[0].intention.id),
+      ),
+      package: PackageEmbeddable.merge(
+        artifactSearchResult.data[0].action.package ?? {},
+        artifactSearchResult.data[0].artifact,
+        action.package,
+      ),
+    };
   }
 
   private async finalizeIntention(

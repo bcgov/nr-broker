@@ -4,6 +4,11 @@ import { ObjectId } from 'mongodb';
 
 @Embeddable()
 export class ActionSourceEmbeddable {
+  constructor(action: string, intention: ObjectId) {
+    this.action = action;
+    this.intention = intention;
+  }
+
   @Property({ nullable: true })
   action?: string;
 
