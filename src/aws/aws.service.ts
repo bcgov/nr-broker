@@ -78,7 +78,7 @@ export class AwsService {
   private async createSignedHttpRequest(httpRequest: HttpRequest) {
     const sigV4Init = {
       credentials: defaultProvider(),
-      region: process.env.AWS_DEFAULT_REGION || 'ca-central-1',
+      region: process.env.AWS_DEFAULT_REGION || AWS_REGION,
       service: 'es',
       sha256: Sha256,
     };
@@ -132,7 +132,7 @@ export class AwsService {
       region: process.env.AWS_DEFAULT_REGION || AWS_REGION,
     });
     const stsAssumeRoleCommand = new AssumeRoleCommand({
-      RoleArn: process.env.AWS_KINESIS_ROLE_ARN,
+      RoleArn: process.env.AWS_ROLE_ARN,
       RoleSessionName: 'broker',
     });
     // Send command

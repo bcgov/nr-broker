@@ -7,6 +7,8 @@ import {
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
 import { catchError, map, Observable, switchMap } from 'rxjs';
+import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+
 import {
   IS_PRIMARY_NODE,
   SHORT_ENV_CONVERSION,
@@ -16,7 +18,6 @@ import {
   VAULT_KV_APPS_MOUNT,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
-import { CreateRequestContext } from '@mikro-orm/core';
 
 interface VaultTokenLookupDto {
   data: {
@@ -47,7 +48,11 @@ export class TokenService {
   private tokenLookup: VaultTokenLookupDto | undefined;
   private renewAt: number | undefined;
 
-  constructor(private readonly vaultService: VaultService) {
+  constructor(
+    private readonly vaultService: VaultService,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
+  ) {
     this.lookupSelf();
   }
 
@@ -206,8 +211,8 @@ export class TokenService {
     });
   }
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
+  @CreateRequestContext()
   handleTokenRenewal() {
     if (
       !this.hasValidToken() ||

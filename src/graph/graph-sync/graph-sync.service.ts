@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
 import { first, get, mapEntries, shake } from 'radash';
 import { v4 as uuidv4 } from 'uuid';
+import { plainToInstance } from 'class-transformer';
 
 import { GraphService } from '../graph.service';
 import { OpensearchService } from '../../aws/opensearch.service';
@@ -11,7 +13,6 @@ import { CollectionRepository } from '../../persistence/interfaces/collection.re
 import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
 import { IS_PRIMARY_NODE } from '../../constants';
-import { CreateRequestContext } from '@mikro-orm/core';
 
 @Injectable()
 export class GraphSyncService {
@@ -21,10 +22,12 @@ export class GraphSyncService {
     private readonly opensearchService: OpensearchService,
     private readonly collectionRepository: CollectionRepository,
     private readonly dateUtil: DateUtil,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
   ) {}
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  @CreateRequestContext()
   async runCollectionSync() {
     if (!IS_PRIMARY_NODE) {
       // Nodes that are not the primary one should not run sync
@@ -96,7 +99,7 @@ export class GraphSyncService {
       }
       const doc = bucketResult.hits.hits[0]._source;
 
-      const upsert: VertexInsertDto = {
+      const upsert = plainToInstance(VertexInsertDto, {
         collection: config.collection as keyof CollectionDtoUnion,
         data: shake(
           this.initFields(
@@ -121,7 +124,7 @@ export class GraphSyncService {
             }),
           ),
         ),
-      };
+      });
 
       try {
         await this.graphService.upsertVertex(null, upsert, 'name', key);

@@ -69,6 +69,7 @@ import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
 import { CloudEmbeddable } from './entity/cloud.embeddable';
 import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
+import { MikroORM } from '@mikro-orm/mongodb';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -101,6 +102,8 @@ export class IntentionService {
     private readonly persistenceUtilService: PersistenceUtilService,
     private readonly intentionUtilService: IntentionUtilService,
     private readonly validatorUtil: ValidatorUtil,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
   ) {}
 
   /**
@@ -961,8 +964,8 @@ export class IntentionService {
     return validationResult;
   }
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
+  @CreateRequestContext()
   async handleIntentionExpiry() {
     if (!IS_PRIMARY_NODE) {
       // Nodes that are not the primary one should not do expiry
@@ -976,8 +979,8 @@ export class IntentionService {
     }
   }
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_HOUR)
+  @CreateRequestContext()
   async handleTransientCleanup() {
     if (!IS_PRIMARY_NODE) {
       // Nodes that are not the primary one should not do cleanup

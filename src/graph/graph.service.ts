@@ -422,20 +422,6 @@ export class GraphService {
     }
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
-    // const vertexErrors = await validate(vertex, {
-    //   whitelist: true,
-    //   forbidNonWhitelisted: true,
-    //   forbidUnknownValues: true,
-    // });
-    // if (vertexErrors.length > 0) {
-    //   throw new BadRequestException({
-    //     statusCode: 400,
-    //     message: 'Vertex validation error',
-    //     error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(
-    //       vertexErrors[0],
-    //     ),
-    //   });
-    // }
 
     return [vertex, collection, config];
   }

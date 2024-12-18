@@ -11,6 +11,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
+import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
@@ -34,7 +36,6 @@ import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
-import { CreateRequestContext } from '@mikro-orm/core';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 
@@ -54,6 +55,8 @@ export class AccountService {
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
     private readonly dateUtil: DateUtil,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
@@ -429,8 +432,8 @@ export class AccountService {
     }
   }
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_MINUTE)
+  @CreateRequestContext()
   async runJwtLifecycle() {
     const CURRENT_TIME_MS = Date.now();
     const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
@@ -479,8 +482,8 @@ export class AccountService {
     }
   }
 
-  @CreateRequestContext()
   @Cron(CronExpression.EVERY_HOUR)
+  @CreateRequestContext()
   async runJwtExpirationNotification() {
     const CURRENT_TIME_MS = Date.now();
     const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);

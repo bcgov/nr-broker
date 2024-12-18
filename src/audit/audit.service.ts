@@ -15,6 +15,7 @@ import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
 import { UserEmbeddable } from '../intention/entity/user.embeddable';
+import { APP_ENVIRONMENT } from '../constants';
 
 const hostInfo = {
   host: {
@@ -890,9 +891,7 @@ export class AuditService {
     return merge(ecsObj, {
       service: {
         name: 'nr-broker-backend',
-        environment: process.env.APP_ENVIRONMENT
-          ? process.env.APP_ENVIRONMENT
-          : 'unknown',
+        environment: APP_ENVIRONMENT ?? 'unknown',
       },
     });
   }
