@@ -4,8 +4,11 @@ import { filter, finalize, map, Observable, share } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
 
 import { environment } from '../../environments/environment';
-import { JwtRegistryDto, TokenCreateDto } from './dto/jwt-registry-rest.dto';
-import { ConnectionConfigRestDto } from './dto/connection-config-rest.dto';
+import {
+  JwtRegistryDto,
+  TokenCreateDto,
+} from './persistence/dto/jwt-registry.dto';
+import { ConnectionConfigDto } from './persistence/dto/connection-config.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -87,7 +90,7 @@ export class SystemApiService {
   }
 
   getConnectionConfig() {
-    return this.http.get<ConnectionConfigRestDto[]>(
+    return this.http.get<ConnectionConfigDto[]>(
       `${environment.apiUrl}/v1/system/preference/connection`,
       {
         responseType: 'json',

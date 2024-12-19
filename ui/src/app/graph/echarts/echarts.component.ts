@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsOption } from 'echarts';
-import { NgxEchartsDirective, provideEcharts } from 'ngx-echarts';
+import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import {
   BehaviorSubject,
   map,
@@ -22,16 +22,15 @@ import {
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-echarts',
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
-  standalone: true,
   imports: [NgxEchartsDirective, AsyncPipe],
-  providers: [provideEcharts()],
+  providers: [provideEchartsCore({ echarts: () => import('echarts') })],
 })
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;
@@ -52,7 +51,7 @@ export class EchartsComponent implements OnInit {
     private readonly graphUtil: GraphUtilService,
     private readonly preferences: PreferencesService,
     private readonly elRef: ElementRef,
-    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigRestDto[],
+    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigDto[],
   ) {}
 
   ngOnInit(): void {

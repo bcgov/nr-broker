@@ -1,27 +1,6 @@
 import { Logger, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { createClient, createCluster } from 'redis';
-
-import { BrokerAccountDto } from './dto/broker-account.dto';
-import { CollectionConfigDto } from './dto/collection-config.dto';
-import { ConnectionConfigDto } from './dto/connection-config.dto';
-import { EdgeDto } from './dto/edge.dto';
-import { EnvironmentDto } from './dto/environment.dto';
-import { GraphPermissionDto } from './dto/graph-permission.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
-import { JwtAllowDto } from './dto/jwt-allow.dto';
-import { JwtBlockDto } from './dto/jwt-block.dto';
-import { JwtRegistryDto } from './dto/jwt-registry.dto';
-import { PackageBuildDto } from './dto/package-build.dto';
-import { PreferenceDto } from './dto/preference.dto';
-import { ProjectDto } from './dto/project.dto';
-import { ServerDto } from './dto/server.dto';
-import { ServiceDto } from './dto/service.dto';
-import { ServiceInstanceDto } from './dto/service-instance.dto';
-import { TeamDto } from './dto/team.dto';
-import { UserAliasRequestDto } from './dto/user-alias-request.dto';
-import { UserDto } from './dto/user.dto';
-import { VertexDto } from './dto/vertex.dto';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 
 import { BuildRepository } from './interfaces/build.repository';
 import { CollectionRepository } from './interfaces/collection.repository';
@@ -34,12 +13,31 @@ import { CollectionMongoRepository } from './mongo/collection-mongo.repository';
 import { GraphMongoRepository } from './mongo/graph-mongo.repository';
 import { IntentionMongoRepository } from './mongo/intention-mongo.repository';
 import { SystemMongoRepository } from './mongo/system-mongo.repository';
-
 import { GraphRedisRepository } from './redis-composition/graph-redis.repository';
 
 import { PersistenceUtilService } from './persistence-util.service';
 import { PersistenceRedisUtilService } from './persistence-redis-util.service';
 import { UtilModule } from '../util/util.module';
+import { PackageBuildEntity } from './entity/package-build.entity';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { BrokerAccountEntity } from './entity/broker-account.entity';
+import { CollectionConfigEntity } from './entity/collection-config.entity';
+import { ConnectionConfigEntity } from './entity/connection-config.entity';
+import { EdgeEntity } from './entity/edge.entity';
+import { EnvironmentEntity } from './entity/environment.entity';
+import { JwtAllowEntity } from './entity/jwt-allow.entity';
+import { JwtBlockEntity } from './entity/jwt-block.entity';
+import { JwtRegistryEntity } from './entity/jwt-registry.entity';
+import { PreferenceEntity } from './entity/preference.entity';
+import { ProjectEntity } from './entity/project.entity';
+import { ServerEntity } from './entity/server.entity';
+import { ServiceInstanceEntity } from './entity/service-instance.entity';
+import { ServiceEntity } from './entity/service.entity';
+import { TeamEntity } from './entity/team.entity';
+import { UserEntity } from './entity/user.entity';
+import { VertexEntity } from './entity/vertex.entity';
+import { GraphPermissionEntity } from './entity/graph-permission.entity';
+import { UserAliasRequestEntity } from './entity/user-alias-request.entity';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',
@@ -75,27 +73,27 @@ const redisFactory = {
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      BrokerAccountDto,
-      CollectionConfigDto,
-      ConnectionConfigDto,
-      EdgeDto,
-      EnvironmentDto,
-      GraphPermissionDto,
-      IntentionDto,
-      JwtAllowDto,
-      JwtBlockDto,
-      JwtRegistryDto,
-      ServiceDto,
-      ServiceInstanceDto,
-      PackageBuildDto,
-      PreferenceDto,
-      ProjectDto,
-      ServerDto,
-      TeamDto,
-      UserAliasRequestDto,
-      UserDto,
-      VertexDto,
+    MikroOrmModule.forFeature([
+      BrokerAccountEntity,
+      CollectionConfigEntity,
+      ConnectionConfigEntity,
+      EdgeEntity,
+      EnvironmentEntity,
+      GraphPermissionEntity,
+      IntentionEntity,
+      JwtAllowEntity,
+      JwtBlockEntity,
+      JwtRegistryEntity,
+      ServiceEntity,
+      ServiceInstanceEntity,
+      PackageBuildEntity,
+      PreferenceEntity,
+      ProjectEntity,
+      ServerEntity,
+      TeamEntity,
+      UserAliasRequestEntity,
+      UserEntity,
+      VertexEntity,
     ]),
     UtilModule,
   ],

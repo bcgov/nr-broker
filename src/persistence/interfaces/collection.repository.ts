@@ -1,48 +1,57 @@
-import { ObjectLiteral, FindOptionsWhere } from 'typeorm';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { CollectionConfigDto } from '../dto/collection-config.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { CollectionConfigEntity } from '../entity/collection-config.entity';
+import {
+  CollectionEntityUnion,
+  CollectionNames,
+} from '../entity/collection-entity-union.type';
 
 export abstract class CollectionRepository {
-  public abstract getCollectionConfigs(): Promise<CollectionConfigDto[]>;
+  public abstract assignCollection(
+    collection: CollectionNames,
+    data: any,
+  ): CollectionEntityUnion[typeof collection];
+
+  public abstract getCollectionConfigs(): Promise<CollectionConfigEntity[]>;
 
   public abstract getCollectionConfigByName(
-    collection: keyof CollectionDtoUnion,
-  ): Promise<CollectionConfigDto>;
+    collection: keyof CollectionEntityUnion,
+  ): Promise<CollectionConfigEntity>;
 
-  public abstract getCollectionById<T extends keyof CollectionDtoUnion>(
+  public abstract getCollectionById<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
-  ): Promise<CollectionDtoUnion[T] | null>;
+  ): Promise<CollectionEntityUnion[T] | null>;
 
-  public abstract getCollectionTags<T extends keyof CollectionDtoUnion>(
+  public abstract getCollectionTags<T extends keyof CollectionEntityUnion>(
     type: T,
   ): Promise<string[]>;
 
-  public abstract getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
-    type: T,
-    id: string,
-  ): Promise<CollectionDtoUnion[T] | null>;
+  public abstract getCollectionByVertexId<
+    T extends keyof CollectionEntityUnion,
+  >(type: T, id: string): Promise<CollectionEntityUnion[T] | null>;
 
-  public abstract getCollectionByKeyValue<T extends keyof CollectionDtoUnion>(
+  public abstract getCollectionByKeyValue<
+    T extends keyof CollectionEntityUnion,
+  >(
     type: T,
-    key: keyof CollectionDtoUnion[T],
+    key: keyof CollectionEntityUnion[T],
     value: string,
-  ): Promise<CollectionDtoUnion[T] | null>;
+  ): Promise<CollectionEntityUnion[T] | null>;
 
-  public abstract getCollection<T extends keyof CollectionDtoUnion>(
+  public abstract getCollection<T extends keyof CollectionEntityUnion>(
     type: T,
-    whereClause:
-      | ObjectLiteral
-      | FindOptionsWhere<CollectionDtoUnion[T]>
-      | FindOptionsWhere<CollectionDtoUnion[T]>[],
-  ): Promise<CollectionDtoUnion[T] | null>;
+    whereClause: any,
+  ): Promise<CollectionEntityUnion[T] | null>;
+  // | ObjectLiteral
+  // | FindOptionsWhere<CollectionEntityUnion[T]>
+  // | FindOptionsWhere<CollectionEntityUnion[T]>[],
 
-  public abstract getCollections<T extends keyof CollectionDtoUnion>(
+  public abstract getCollections<T extends keyof CollectionEntityUnion>(
     type: T,
-  ): Promise<CollectionDtoUnion[T][]>;
+  ): Promise<CollectionEntityUnion[T][]>;
 
-  public abstract searchCollection<T extends keyof CollectionDtoUnion>(
+  public abstract searchCollection<T extends keyof CollectionEntityUnion>(
     type: T,
     tags: string[] | undefined,
     upstreamVertex: string | undefined,
@@ -55,18 +64,18 @@ export abstract class CollectionRepository {
     limit: number,
   ): Promise<CollectionSearchResult<CollectionDtoUnion[T]>>;
 
-  public abstract exportCollection<T extends keyof CollectionDtoUnion>(
+  public abstract exportCollection<T extends keyof CollectionEntityUnion>(
     type: T,
-  ): Promise<CollectionDtoUnion[T][]>;
+  ): Promise<CollectionEntityUnion[T][]>;
 
   public abstract doUniqueKeyCheck(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     key: string,
     value: string,
   ): Promise<string[]>;
 
   public abstract saveTags(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     id: string,
     tags: string[],
   ): Promise<string[]>;

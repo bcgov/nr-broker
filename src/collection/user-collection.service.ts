@@ -4,10 +4,10 @@ import { Request } from 'express';
 import { USER_ALIAS_DOMAIN_GITHUB } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphService } from '../graph/graph.service';
-import { UserDto } from '../persistence/dto/user.dto';
+import { UserEntity } from '../persistence/entity/user.entity';
 import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
 
@@ -23,7 +23,7 @@ export class UserCollectionService {
     private readonly graphService: GraphService,
   ) {}
 
-  async lookupUserByGuid(guid: string): Promise<UserDto> {
+  async lookupUserByGuid(guid: string): Promise<UserEntity> {
     return this.collectionRepository.getCollectionByKeyValue(
       'user',
       'guid',
@@ -31,7 +31,10 @@ export class UserCollectionService {
     );
   }
 
-  async lookupUserByName(username: string, domain?: string): Promise<UserDto> {
+  async lookupUserByName(
+    username: string,
+    domain?: string,
+  ): Promise<UserEntity> {
     if (!domain) {
       [username, domain] = username.split('@');
     }
@@ -88,7 +91,7 @@ export class UserCollectionService {
   }
 
   public async linkGithub(req: Request, state: string, code: string) {
-    const existingUser = await this.authService.getUserDto(req);
+    const existingUser = await this.authService.getUser(req);
     if (
       !(await this.githubService.isRequestStateMatching(
         existingUser.id.toString(),
@@ -124,6 +127,6 @@ export class UserCollectionService {
       vertex,
       true,
     );
-    return this.authService.getUserDto(req);
+    return this.authService.getUser(req);
   }
 }

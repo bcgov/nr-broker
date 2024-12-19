@@ -6,16 +6,11 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import * as crypto from 'crypto';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { ObjectId } from 'mongodb';
-import { FindOptionsWhere } from 'typeorm';
-import merge from 'lodash.merge';
 import { validate } from 'class-validator';
 
-import { IntentionDto } from './dto/intention.dto';
+import { IntentionEntity } from './entity/intention.entity';
 import {
   INTENTION_DEFAULT_TTL_SECONDS,
   INTENTION_MAX_TTL_SECONDS,
@@ -26,19 +21,18 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { ActionError } from './action.error';
-import { BrokerJwtDto } from '../auth/broker-jwt.dto';
+import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
 import { ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import {
-  EnvironmentDtoMap,
+  EnvironmentEntityMap,
   PersistenceUtilService,
 } from '../persistence/persistence-util.service';
-import { ServiceDto } from '../persistence/dto/service.dto';
 import { ActionGuardRequest } from './action-guard-request.interface';
 import { ArtifactDto } from './dto/artifact.dto';
 import {
@@ -48,11 +42,34 @@ import {
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
-import { PackageDto } from './dto/package.dto';
-import { CloudDto } from './dto/cloud.dto';
-import { CloudObjectDto } from './dto/cloud-object.dto';
+import { CreateRequestContext } from '@mikro-orm/core';
+import { IntentionDto } from './dto/intention.dto';
+import { IntentionUtilService } from './intention-util.service';
+import { TransactionEmbeddable } from './entity/transaction.embeddable';
+import { EventEmbeddable } from './entity/event.embeddable';
+import {
+  ActionEmbeddable,
+  ENVIRONMENT_NAMES,
+} from './entity/action.embeddable';
+import { BackupActionEmbeddable } from './entity/backup.action.embeddable';
+import { PackageInstallationActionEmbeddable } from './entity/package-installation-action.embeddable';
+import { IntentionServiceEmbeddable } from './entity/intention-service.embeddable';
+import { DatabaseAccessActionEmbeddable } from './entity/database-access-action.embeddable';
+import { PackageBuildActionEmbeddable } from './entity/package-build-action.embeddable';
+import { PackageConfigureActionEmbeddable } from './entity/package-configure-action.embeddable';
+import { PackageProvisionActionEmbeddable } from './entity/package-provision-action.embeddable';
+import { ProcessEndActionEmbeddable } from './entity/process-end-action.embeddable';
+import { ProcessStartActionEmbeddable } from './entity/process-start-action.embeddable';
+import { ServerAccessActionEmbeddable } from './entity/server-access-action.embeddable';
+import { PackageEmbeddable } from './entity/package.embeddable';
+import { ServiceDto } from '../persistence/dto/service.dto';
+import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
+import { CloudEmbeddable } from './entity/cloud.embeddable';
+import { ValidatorUtil } from '../util/validator.util';
+import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
+import { MikroORM } from '@mikro-orm/mongodb';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -83,6 +100,10 @@ export class IntentionService {
     private readonly intentionRepository: IntentionRepository,
     private readonly systemRepository: SystemRepository,
     private readonly persistenceUtilService: PersistenceUtilService,
+    private readonly intentionUtilService: IntentionUtilService,
+    private readonly validatorUtil: ValidatorUtil,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
   ) {}
 
   /**
@@ -99,18 +120,21 @@ export class IntentionService {
     ttl: number = INTENTION_DEFAULT_TTL_SECONDS,
     dryRun = false,
   ): Promise<IntentionOpenResponse> {
-    const actions = {};
+    const actionResults = {};
     const actionFailures: ActionError[] = [];
     const envMap = await this.persistenceUtilService.getEnvMap();
 
     // Only JWT "users" can make an open request
-    const brokerJwt = plainToInstance(BrokerJwtDto, req.user);
+    const brokerJwt = BrokerJwtEmbeddable.fromUser(req.user);
+    if (brokerJwt === null) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'No valid JWT user info',
+      });
+    }
     this.checkTimeToLiveBounds(ttl);
 
-    // Annotate intention
-    intentionDto.jwt = brokerJwt;
-    intentionDto.requireRoleId = true;
-    this.annotateIntentionTransaction(intentionDto, ttl);
+    const transaction = this.createIntentionTransaction(ttl);
 
     // Find JWT in registry
     const registryJwt =
@@ -123,57 +147,170 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
-        error: actionFailures,
       });
     }
     // Map JWT to Broker Account
     const account = await this.getAccountFromRegistry(registryJwt);
-    if (account) {
-      this.annotateIntentionAccount(intentionDto, account);
-    } else {
+    if (!account) {
       actionFailures.push({
         message: 'Token must be bound to a broker account',
         data: {
           action: '',
           action_id: '',
           key: 'jwt.jti',
-          value: intentionDto.jwt?.jti,
+          value: brokerJwt.jti,
         },
       });
     }
 
-    // Annotate all actions
-    for (const action of intentionDto.actions) {
-      this.annotateAction(intentionDto, action, envMap);
-      await this.actionService.bindUserToAction(account, action);
-      const service = await this.collectionRepository.getCollectionByKeyValue(
-        'service',
-        'name',
-        action.service.name,
-      );
-
-      if (service) {
-        // annotate with service id
-        action.service.id = service.id;
-        await this.annotateActionPackageFromExistingArtifact(action);
-      }
-
-      action.transaction = intentionDto.transaction;
-      action.trace = this.createTokenAndHash();
-    }
-
-    const actionValidationErrors = await this.validateActions(
-      intentionDto,
+    const intentionUser = await this.intentionUtilService.convertUserDtoToEmbed(
+      intentionDto.user,
       account,
     );
 
-    for (const [index, action] of intentionDto.actions.entries()) {
+    // Convert all actions
+    const actions: (
+      | BackupActionEmbeddable
+      | DatabaseAccessActionEmbeddable
+      | ServerAccessActionEmbeddable
+      | PackageBuildActionEmbeddable
+      | PackageConfigureActionEmbeddable
+      | PackageInstallationActionEmbeddable
+      | PackageProvisionActionEmbeddable
+      | ProcessEndActionEmbeddable
+      | ProcessStartActionEmbeddable
+    )[] = await Promise.all(
+      intentionDto.actions.map(async (action) => {
+        const actionUser = action.user
+          ? await this.intentionUtilService.convertUserDtoToEmbed(
+              action.user,
+              account,
+            )
+          : intentionUser;
+        const service = await this.collectionRepository.getCollectionByKeyValue(
+          'service',
+          'name',
+          action.service.name,
+        );
+        const serviceEmbed = IntentionServiceEmbeddable.fromDto(action.service);
+        if (service) {
+          serviceEmbed.id = service._id;
+        }
+        const trace = TransactionEmbeddable.create();
+        const vaultEnvironment =
+          ENVIRONMENT_NAMES[this.computeVaultEnvironment(action, envMap)];
+
+        switch (action.action) {
+          case 'backup':
+            return new BackupActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'database-access':
+            return new DatabaseAccessActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'package-build':
+            return new PackageBuildActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'package-configure':
+            return new PackageConfigureActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'package-installation': {
+            const packageSource = await this.sourcePackageFromBuild(
+              action,
+              serviceEmbed,
+            );
+            return new PackageInstallationActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+              packageSource ? packageSource.package : undefined,
+              packageSource ? packageSource.source : undefined,
+            );
+          }
+          case 'package-provision':
+            return new PackageProvisionActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'process-end':
+            return new ProcessEndActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'process-start':
+            return new ProcessStartActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          case 'server-access':
+            return new ServerAccessActionEmbeddable(
+              action,
+              actionUser,
+              serviceEmbed,
+              vaultEnvironment,
+              trace,
+            );
+          default:
+            // If this is an error then not all collection types are above
+            // eslint-disable-next-line no-case-declarations
+            const _exhaustiveCheck: never = action.action;
+            return _exhaustiveCheck;
+        }
+      }),
+    );
+
+    const intention = new IntentionEntity(
+      actions,
+      EventEmbeddable.fromDto(intentionDto.event),
+      brokerJwt,
+      intentionUser,
+      transaction.transaction,
+      transaction.expiry,
+      account,
+    );
+
+    const actionValidationErrors = await this.validateActions(
+      intention,
+      account,
+    );
+
+    for (const [index, action] of intention.actions.entries()) {
       const validationResult = actionValidationErrors[index];
       action.valid = validationResult === null;
       if (!action.valid) {
         actionFailures.push(validationResult);
       }
-      actions[action.id] = {
+      actionResults[action.id] = {
         token: action.trace.token,
         trace_id: action.trace.hash,
         outcome: validationResult === null ? 'success' : 'failure',
@@ -191,13 +328,13 @@ export class IntentionService {
     if (!dryRun) {
       this.auditService.recordIntentionOpen(
         req,
-        intentionDto,
+        intention,
         isSuccessfulOpen,
         exception,
       );
       this.auditService.recordActionAuthorization(
         req,
-        intentionDto,
+        intention,
         actionFailures,
       );
     }
@@ -205,14 +342,14 @@ export class IntentionService {
       throw exception;
     }
     if (!dryRun) {
-      await this.intentionRepository.addIntention(intentionDto);
+      await this.intentionRepository.addIntention(intention);
     }
     return {
-      actions,
-      id: intentionDto.id.toString(),
-      token: intentionDto.transaction.token,
-      transaction_id: intentionDto.transaction.hash,
-      expiry: new Date(intentionDto.expiry).toUTCString(),
+      actions: actionResults,
+      id: intention.id,
+      token: intention.transaction.token,
+      transaction_id: intention.transaction.hash,
+      expiry: new Date(intention.expiry).toUTCString(),
     };
   }
 
@@ -262,8 +399,8 @@ export class IntentionService {
     token: string,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
-  ): Promise<IntentionDto> {
-    const intention: IntentionDto =
+  ): Promise<IntentionEntity> {
+    const intention: IntentionEntity =
       await this.intentionRepository.getIntentionByToken(token);
     if (!intention) {
       throw new NotFoundException({
@@ -329,7 +466,7 @@ export class IntentionService {
           ...(query.outcome
             ? { 'transaction.outcome': query.outcome }
             : { 'transaction.outcome': 'success' }),
-        } as FindOptionsWhere<IntentionDto>,
+        } as any, // as FindOptionsWhere<IntentionEntity>,
         query.offset,
         query.limit,
       );
@@ -359,11 +496,12 @@ export class IntentionService {
   }
 
   private findArtifacts(
-    intention: IntentionDto | null,
+    intention: IntentionEntity | null,
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {
-    const artifactCombos: ArtifactActionCombo[] = [];
+    // TODO: fix ArtifactActionCombo[]
+    const artifactCombos: any[] = [];
     for (const action of this.actionUtil.filterActions(
       intention.actions,
       actionOptions,
@@ -384,11 +522,20 @@ export class IntentionService {
     return artifactCombos;
   }
 
-  private async annotateActionPackageFromExistingArtifact(action: ActionDto) {
-    if (action.action !== 'package-installation' || !action.service.id) {
-      // Only annotates package installations
+  private async sourcePackageFromBuild(
+    action: ActionDto,
+    serviceEmbed: IntentionServiceEmbeddable,
+  ): Promise<
+    { source?: ActionSourceEmbeddable; package: PackageEmbeddable } | undefined
+  > {
+    const defaultVal = action.package
+      ? {
+          package: PackageEmbeddable.fromDto(action.package),
+        }
+      : undefined;
+    if (!serviceEmbed.id) {
       // Only existing services (with service.id set) will have artifacts
-      return;
+      return defaultVal;
     }
     let artifactSearchResult: ArtifactSearchResult;
 
@@ -412,7 +559,7 @@ export class IntentionService {
         artifactSearchResult.data.length !== 1
       ) {
         // Skip: Could not uniquely identify artifact based on source
-        return;
+        return defaultVal;
       }
     } else if (action.package?.name && action.package?.version) {
       // Find latest artifact for this service with same package name and version
@@ -428,31 +575,29 @@ export class IntentionService {
         limit: 1,
       });
     } else {
-      return;
+      return defaultVal;
     }
 
     if (artifactSearchResult.meta.total === 0) {
       // Could not identify artifact
-      return;
+      return defaultVal;
     }
 
-    action.package = {
-      ...(artifactSearchResult.data[0].action.package ?? {}),
-      ...artifactSearchResult.data[0].artifact,
-      ...action.package,
+    return {
+      source: new ActionSourceEmbeddable(
+        this.actionUtil.actionToIdString(artifactSearchResult.data[0].action),
+        new ObjectId(artifactSearchResult.data[0].intention.id),
+      ),
+      package: PackageEmbeddable.merge(
+        artifactSearchResult.data[0].action.package ?? {},
+        artifactSearchResult.data[0].artifact,
+        action.package,
+      ),
     };
-    if (!action.source) {
-      action.source = {
-        intention: artifactSearchResult.data[0].intention.id,
-      };
-    }
-    action.source.action = this.actionUtil.actionToIdString(
-      artifactSearchResult.data[0].action,
-    );
   }
 
   private async finalizeIntention(
-    intention: IntentionDto,
+    intention: IntentionEntity,
     outcome: 'failure' | 'success' | 'unknown',
     reason: string | undefined,
     req: Request = undefined,
@@ -512,7 +657,7 @@ export class IntentionService {
           action.service.name,
         );
         if (colObj) {
-          action.service.id = colObj.id;
+          action.service.id = colObj._id;
         }
       }
     }
@@ -522,16 +667,16 @@ export class IntentionService {
   /**
    * Logs the start and end of an action
    * @param req The associated request object
-   * @param intention The intention to start the action for
-   * @param action The action to log the lifecycle for
+   * @param intention The intention containing the action
+   * @param action The action to alter according to the lifecycle
    * @param outcome The outcome of the action
    * @param type Start or end of action
    * @returns Promise returning true if successfully logged and false otherwise
    */
   public async actionLifecycle(
     req: Request,
-    intention: IntentionDto,
-    action: ActionDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     outcome: string | undefined,
     type: 'start' | 'end',
   ): Promise<boolean> {
@@ -552,8 +697,9 @@ export class IntentionService {
         error: `Action's current lifecycle state (${action.lifecycle}) can not do transition: ${type}`,
       });
     }
-    action = await this.intentionRepository.setIntentionActionLifecycle(
-      action.trace.token,
+    await this.intentionRepository.setIntentionActionLifecycle(
+      intention,
+      action,
       outcome,
       type,
     );
@@ -575,8 +721,8 @@ export class IntentionService {
    */
   public async actionArtifactRegister(
     req: ActionGuardRequest,
-    intention: IntentionDto,
-    action: ActionDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     artifact: ArtifactDto,
     ignoreLifecycle = false,
   ) {
@@ -629,8 +775,8 @@ export class IntentionService {
    */
   public async patchAction(
     req: ActionGuardRequest,
-    intention: IntentionDto,
-    action: ActionDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     patchAction: ActionPatchRestDto,
   ) {
     if (action.lifecycle !== 'started') {
@@ -641,13 +787,26 @@ export class IntentionService {
       });
     }
 
+    const errors = await validate(patchAction, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    });
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Patch validation error',
+        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
+      });
+    }
+
     // Patch according to action
     if (action.action === 'package-build') {
       if (patchAction?.package) {
-        action.package = plainToInstance(PackageDto, {
-          ...(action.package ?? {}),
-          ...patchAction.package,
-        });
+        action.package = PackageEmbeddable.merge(
+          action.package ?? {},
+          patchAction.package,
+        );
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -658,17 +817,12 @@ export class IntentionService {
     } else if (action.action === 'package-installation') {
       if (patchAction?.cloud?.target) {
         if (!action?.cloud) {
-          action.cloud = plainToInstance(CloudDto, { target: {} });
+          action.cloud = new CloudEmbeddable(new CloudObjectEmbeddable());
         }
-        if (!action?.cloud.target) {
-          action.cloud.target = plainToInstance(CloudObjectDto, {});
-        }
-        // Convert to plain for merge
-        const target = instanceToPlain(action.cloud.target);
-        const source = instanceToPlain(patchAction.cloud.target);
-        merge(target, source);
-        // Convert to type after merge
-        action.cloud.target = plainToInstance(CloudObjectDto, target);
+        action.cloud.target = CloudObjectEmbeddable.merge(
+          action.cloud.target,
+          patchAction.cloud.target,
+        );
       } else {
         throw new BadRequestException({
           statusCode: 400,
@@ -678,14 +832,6 @@ export class IntentionService {
       }
     }
 
-    const errors = await validate(action, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-    });
-    if (errors.length > 0) {
-      throw new BadRequestException('Validation failed');
-    }
     const account = intention.accountId
       ? await this.collectionRepository.getCollectionById(
           'brokerAccount',
@@ -693,10 +839,6 @@ export class IntentionService {
         )
       : null;
 
-    // replace with patched action
-    intention.actions = intention.actions.map((currentAction) =>
-      currentAction.id === action.id ? action : currentAction,
-    );
     const actionValidationErrors = await this.validateActions(
       intention,
       account,
@@ -726,7 +868,9 @@ export class IntentionService {
       null,
       null,
     );
-    return await this.intentionRepository.addIntention(intention);
+    await this.intentionRepository.addIntention(intention);
+
+    return action;
   }
 
   private checkTimeToLiveBounds(ttl: number) {
@@ -739,30 +883,21 @@ export class IntentionService {
     }
   }
 
-  private annotateIntentionTransaction(
-    intentionDto: IntentionDto,
-    ttl: number,
-  ) {
+  private createIntentionTransaction(ttl: number) {
     const startDate = new Date();
-    intentionDto.transaction = {
-      ...this.createTokenAndHash(),
-      start: startDate.toISOString(),
+    const transaction = TransactionEmbeddable.create();
+    transaction.start = startDate.toISOString();
+    const expiry = startDate.valueOf() + ttl * 1000;
+
+    return {
+      transaction,
+      expiry,
     };
-    intentionDto.expiry = startDate.valueOf() + ttl * 1000;
   }
 
-  private annotateIntentionAccount(
-    intentionDto: IntentionDto,
-    account: BrokerAccountDto,
-  ) {
-    intentionDto.accountId = account.id;
-    intentionDto.requireRoleId = account.requireRoleId;
-  }
-
-  private annotateAction(
-    intentionDto: IntentionDto,
-    action: ActionDto,
-    envMap: EnvironmentDtoMap,
+  private computeVaultEnvironment(
+    action: ActionEmbeddable | ActionDto,
+    envMap: EnvironmentEntityMap,
   ) {
     const env = this.actionUtil.environmentName(action);
     const envDto = envMap[env];
@@ -774,16 +909,14 @@ export class IntentionService {
         envDto.name === 'development' ||
         envDto.name === 'tools')
     ) {
-      action.vaultEnvironment = envDto.name;
+      return envDto.name;
     }
-    if (!action.user) {
-      action.user = intentionDto.user;
-    }
+    return action.vaultEnvironment;
   }
 
   private async validateActions(
-    intentionDto: IntentionDto,
-    account: BrokerAccountDto | null,
+    intentionDto: IntentionEntity,
+    account: BrokerAccountEntity | null,
   ): Promise<ActionError[]> {
     let targetServices = [];
     const validationResult: ActionError[] = [];
@@ -830,21 +963,8 @@ export class IntentionService {
     return validationResult;
   }
 
-  /**
-   * Creates a unique token and cooresponding hash of it.
-   * @returns Object containing token and hash
-   */
-  private createTokenAndHash() {
-    const token = uuidv4();
-    const hasher = crypto.createHash('sha256');
-    hasher.update(token);
-    return {
-      token,
-      hash: hasher.digest('hex'),
-    };
-  }
-
   @Cron(CronExpression.EVERY_MINUTE)
+  @CreateRequestContext()
   async handleIntentionExpiry() {
     if (!IS_PRIMARY_NODE) {
       // Nodes that are not the primary one should not do expiry
@@ -859,6 +979,7 @@ export class IntentionService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
+  @CreateRequestContext()
   async handleTransientCleanup() {
     if (!IS_PRIMARY_NODE) {
       // Nodes that are not the primary one should not do cleanup
@@ -867,7 +988,7 @@ export class IntentionService {
     await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
   }
 
-  private async getAccountFromRegistry(registryJwt: JwtRegistryDto) {
+  private async getAccountFromRegistry(registryJwt: JwtRegistryEntity) {
     if (!registryJwt) {
       return null;
     }

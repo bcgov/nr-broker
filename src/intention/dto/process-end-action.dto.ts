@@ -1,8 +1,10 @@
 import { Equals, IsIn } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 import { ActionDto } from './action.dto';
 
-@Entity()
+export const PROCESS_END_PROVISION_NAMES = [];
+export type ProcessEndProvisionName =
+  (typeof PROCESS_END_PROVISION_NAMES)[number];
+
 export class ProcessEndActionDto extends ActionDto {
   @Equals('process-end')
   action: 'process-end';
@@ -10,6 +12,5 @@ export class ProcessEndActionDto extends ActionDto {
   @IsIn([], {
     each: true,
   })
-  @Column()
-  provision: string[];
+  provision: ProcessEndProvisionName[];
 }

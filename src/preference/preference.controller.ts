@@ -12,8 +12,8 @@ import { Request as ExpressRequest } from 'express';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PreferenceService } from './preference.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
-import { PreferenceRestDto } from '../persistence/dto/preference-rest.dto';
-import { get } from 'radash';
+import { PreferenceDto } from '../persistence/dto/preference.dto';
+import get from 'lodash.get';
 
 @Controller({
   path: 'preference',
@@ -24,7 +24,7 @@ export class PreferenceController {
 
   @Get('self')
   @UseGuards(BrokerOidcAuthGuard)
-  async getSelf(@Request() req: ExpressRequest): Promise<PreferenceRestDto> {
+  async getSelf(@Request() req: ExpressRequest): Promise<PreferenceDto> {
     const guid: string = get(
       (req.user as any).userinfo,
       OAUTH2_CLIENT_MAP_GUID,
@@ -39,7 +39,7 @@ export class PreferenceController {
   @UseGuards(BrokerOidcAuthGuard)
   async setSelf(
     @Request() req: ExpressRequest,
-    @Body() preference: PreferenceRestDto,
+    @Body() preference: PreferenceDto,
   ): Promise<boolean> {
     const guid: string = get(
       (req.user as any).userinfo,

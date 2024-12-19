@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@angular/core';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { UserPermissionRestDto } from './dto/user-permission-rest.dto';
-import { UserSelfRestDto } from './dto/user-rest.dto';
+import { UserPermissionDto } from './persistence/dto/user-permission.dto';
+import { UserSelfDto } from './persistence/dto/user.dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PermissionService {
   private hasAdminPermission: boolean;
-  constructor(@Inject(CURRENT_USER) readonly user: UserSelfRestDto) {
+  constructor(@Inject(CURRENT_USER) readonly user: UserSelfDto) {
     this.hasAdminPermission = !!user?.roles?.includes('admin');
   }
 
@@ -16,28 +16,28 @@ export class PermissionService {
     return this.hasAdminPermission;
   }
 
-  public hasSudo(permissions: UserPermissionRestDto, vertex: string) {
+  public hasSudo(permissions: UserPermissionDto, vertex: string) {
     if (!permissions) {
       return false;
     }
     return this.hasAdminPermission || permissions.sudo.indexOf(vertex) !== -1;
   }
 
-  public hasUpdate(permissions: UserPermissionRestDto, vertex: string) {
+  public hasUpdate(permissions: UserPermissionDto, vertex: string) {
     if (!permissions) {
       return false;
     }
     return this.hasAdminPermission || permissions.update.indexOf(vertex) !== -1;
   }
 
-  public hasDelete(permissions: UserPermissionRestDto, vertex: string) {
+  public hasDelete(permissions: UserPermissionDto, vertex: string) {
     if (!permissions) {
       return false;
     }
     return this.hasAdminPermission || permissions.delete.indexOf(vertex) !== -1;
   }
 
-  public hasApprove(permissions: UserPermissionRestDto, vertex: string) {
+  public hasApprove(permissions: UserPermissionDto, vertex: string) {
     if (!permissions) {
       return false;
     }

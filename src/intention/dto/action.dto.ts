@@ -1,4 +1,3 @@
-import { ApiHideProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -9,15 +8,14 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Entity, Column } from 'typeorm';
-import { UserDto } from './user.dto';
-import { ServiceDto } from './service.dto';
-import { TransactionDto } from './transaction.dto';
+import { IntentionServiceDto } from './intention-service.dto';
 import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
 import { UrlDto } from './url.dto';
 import { ArtifactDto } from './artifact.dto';
 import { ActionSourceDto } from './action-source.dto';
+import { UserDto } from './user.dto';
+import { TransactionDto } from './transaction.dto';
 
 export const ACTION_NAMES = [
   'backup',
@@ -30,104 +28,97 @@ export const ACTION_NAMES = [
   'process-end',
   'process-start',
 ] as const;
-type ActionName = (typeof ACTION_NAMES)[number];
+export type ActionName = (typeof ACTION_NAMES)[number];
 
 export function isActionName(actionName: string): actionName is ActionName {
   return ACTION_NAMES.includes(actionName as ActionName);
 }
 
-@Entity()
+export const VAULT_ENVIRONMENT_NAMES = [
+  'production',
+  'test',
+  'development',
+  'tools',
+];
+export type VaultEnvironmentName = (typeof VAULT_ENVIRONMENT_NAMES)[number];
+
+export const VAULT_INSTANCE_NAMES = ['production', 'test', 'development'];
+export type VaultInstanceName = (typeof VAULT_INSTANCE_NAMES)[number];
+
+export enum LIFECYCLE_NAMES {
+  STARTED = 'started',
+  ENDED = 'ended',
+}
+
 export class ActionDto {
   @IsString()
   @IsIn(ACTION_NAMES)
-  @Column()
   action: ActionName;
 
   @IsString()
-  @Column()
+  @IsDefined()
   id: string;
 
   @ValidateNested()
   @IsOptional()
   @IsArray()
-  @Column(() => ArtifactDto)
   @Type(() => ArtifactDto)
   artifacts?: ArtifactDto[];
 
   @IsArray()
-  @Column()
+  @IsDefined()
   provision: string[];
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => CloudDto)
   @Type(() => CloudDto)
   cloud?: CloudDto;
 
   @ValidateNested()
   @IsDefined()
-  @Column(() => ServiceDto)
-  @Type(() => ServiceDto)
-  service: ServiceDto;
+  @Type(() => IntentionServiceDto)
+  service: IntentionServiceDto;
 
   @IsOptional()
   @IsString()
-  @ApiHideProperty()
-  @Column()
   lifecycle?: 'started' | 'ended';
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => PackageDto)
   @Type(() => PackageDto)
   package?: PackageDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => ActionSourceDto)
   @Type(() => ActionSourceDto)
   source?: ActionSourceDto;
 
   @ValidateNested()
   @IsOptional()
-  @ApiHideProperty()
-  @Column(() => TransactionDto)
-  @Type(() => TransactionDto)
-  transaction?: TransactionDto;
-
-  @ValidateNested()
-  @IsOptional()
-  @ApiHideProperty()
-  @Column(() => TransactionDto)
   @Type(() => TransactionDto)
   trace?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => UrlDto)
   @Type(() => UrlDto)
   url?: UrlDto;
 
   @ValidateNested()
   @IsOptional()
-  @ApiHideProperty()
-  @Column(() => UserDto)
   @Type(() => UserDto)
   user?: UserDto;
 
   @IsOptional()
   @IsBoolean()
-  @ApiHideProperty()
-  @Column()
   valid?: boolean;
 
   @IsOptional()
   @IsString()
-  @Column()
-  vaultEnvironment?: 'production' | 'test' | 'development' | 'tools';
+  @IsIn(VAULT_ENVIRONMENT_NAMES)
+  vaultEnvironment?: VaultEnvironmentName;
 
   @IsOptional()
   @IsString()
-  @Column()
-  vaultInstance?: 'production' | 'test' | 'development';
+  @IsIn(VAULT_INSTANCE_NAMES)
+  vaultInstance?: VaultInstanceName;
 }

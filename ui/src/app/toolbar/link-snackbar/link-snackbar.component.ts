@@ -11,7 +11,6 @@ import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-link-snackbar',
-  standalone: true,
   imports: [
     MatButtonModule,
     MatSnackBarLabel,

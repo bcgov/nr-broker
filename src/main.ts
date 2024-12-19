@@ -7,6 +7,7 @@ import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import { AppModule } from './app.module';
 import { getMongoDbConnectionUrl } from './persistence/mongo/mongo.util';
+import { APP_ENVIRONMENT } from './constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,6 +17,11 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
   app.enableCors();
+
+  // Starts listening for shutdown hooks
+  if (APP_ENVIRONMENT) {
+    app.enableShutdownHooks();
+  }
 
   // Swagger docs
   const config = new DocumentBuilder()

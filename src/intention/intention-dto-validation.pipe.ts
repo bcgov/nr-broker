@@ -5,13 +5,13 @@ import {
   PipeTransform,
 } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { IntentionDto } from './dto/intention.dto';
-import { UnknownActionBadRequestException } from './dto/unknown-action-bad-request.exception';
-import { ValidatorUtil } from '../util/validator.util';
 import { plainToInstance } from 'class-transformer';
+import { UnknownActionBadRequestException } from './unknown-action-bad-request.exception';
+import { ValidatorUtil } from '../util/validator.util';
+import { IntentionDto } from './dto/intention.dto';
 
 @Injectable()
-export class IntentionDtoValidationPipe implements PipeTransform {
+export class IntentionEntityValidationPipe implements PipeTransform {
   constructor(private readonly validatorUtil: ValidatorUtil) {}
   async transform(value: any, { metatype }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
@@ -40,7 +40,7 @@ export class IntentionDtoValidationPipe implements PipeTransform {
       ) {
         throw error;
       }
-      throw new BadRequestException('Validation failed');
+      throw new BadRequestException('Pipe: Validation failed');
     }
   }
 

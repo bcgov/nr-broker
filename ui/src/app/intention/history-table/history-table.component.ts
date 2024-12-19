@@ -37,14 +37,13 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { FilesizePipe } from '../../util/filesize.pipe';
-import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { PackageUtilService } from '../../service/package-util.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-history-table',
-  standalone: true,
   imports: [
     ClipboardModule,
     CommonModule,
@@ -168,7 +167,7 @@ export class HistoryTableComponent implements OnInit, OnChanges {
 
   openCollection(
     $event: MouseEvent,
-    collection: keyof CollectionDtoRestUnion,
+    collection: keyof CollectionDtoUnion,
     key: string,
     value: string,
   ) {

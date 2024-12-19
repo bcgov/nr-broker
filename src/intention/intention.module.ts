@@ -9,6 +9,7 @@ import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
 import { ActionUtil } from '../util/action.util';
+import { IntentionUtilService } from './intention-util.service';
 
 /**
  * The intention module allows broker accounts to interact with intentions.
@@ -23,7 +24,12 @@ import { ActionUtil } from '../util/action.util';
     UtilModule,
   ],
   controllers: [IntentionController],
-  providers: [IntentionService, ActionService, ActionUtil],
+  providers: [
+    IntentionService,
+    ActionService,
+    ActionUtil,
+    IntentionUtilService,
+  ],
   exports: [ActionUtil, ActionService, IntentionService],
 })
 export class IntentionModule {}

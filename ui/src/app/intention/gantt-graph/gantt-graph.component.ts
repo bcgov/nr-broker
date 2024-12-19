@@ -6,7 +6,6 @@ import prettyMilliseconds from 'pretty-ms';
 
 @Component({
   selector: 'app-gantt-graph',
-  standalone: true,
   imports: [NgxEchartsModule],
   providers: [
     {

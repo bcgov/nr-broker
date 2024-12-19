@@ -6,16 +6,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import prettyMilliseconds from 'pretty-ms';
 
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { YesNoPipe } from '../../util/yes-no.pipe';
 import { GraphApiService } from '../../service/graph-api.service';
-import { DurationPipe } from '../../util/duration.pipe';
 import { PermissionService } from '../../service/permission.service';
 
 @Component({
   selector: 'app-inspector-vault',
-  standalone: true,
   imports: [
     MatButtonModule,
     MatDialogModule,
@@ -23,13 +21,12 @@ import { PermissionService } from '../../service/permission.service';
     MatListModule,
     MatTooltipModule,
     YesNoPipe,
-    DurationPipe,
   ],
   templateUrl: './inspector-vault.component.html',
   styleUrl: './inspector-vault.component.scss',
 })
 export class InspectorVaultComponent {
-  @Input() service!: ServiceRestDto;
+  @Input() service!: ServiceDto;
   @Input() isAdministrator!: boolean;
 
   @Output() refreshData = new EventEmitter();

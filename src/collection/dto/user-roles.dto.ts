@@ -1,4 +1,4 @@
-import { get } from 'radash';
+import get from 'lodash.get';
 import { UserImportDto } from './user-import.dto';
 import {
   OAUTH2_CLIENT_MAP_DOMAIN,
@@ -9,7 +9,7 @@ import {
   OAUTH2_CLIENT_MAP_ROLES,
   OAUTH2_CLIENT_DOMAIN,
 } from '../../constants';
-import { UserDto } from '../../persistence/dto/user.dto';
+import { UserEntity } from '../../persistence/entity/user.entity';
 
 export class UserRolesDto extends UserImportDto {
   alias?: any;
@@ -18,7 +18,7 @@ export class UserRolesDto extends UserImportDto {
   constructor(
     public readonly vertex: string,
     userInfo: any,
-    collection: UserDto | undefined = undefined,
+    collection: UserEntity | undefined = undefined,
   ) {
     super();
     // Map or use static value

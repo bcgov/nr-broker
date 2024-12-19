@@ -1,10 +1,10 @@
-import { PackageDto } from '../../intention/dto/package.dto';
 import { SemverVersion } from '../../util/action.util';
-import { EnvironmentDto } from '../dto/environment.dto';
-import { IntentionActionPointerDto } from '../dto/intention-action-pointer.dto';
-import { PackageBuildSearchResult } from '../dto/package-build-rest.dto';
-import { PackageBuildDto } from '../dto/package-build.dto';
-import { UserDto } from '../dto/user.dto';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { IntentionActionPointerEmbeddable } from '../entity/intention-action-pointer.embeddable';
+import { PackageBuildEntity } from '../entity/package-build.entity';
+import { UserEntity } from '../entity/user.entity';
+import { PackageBuildSearchResult } from '../dto/package-build.dto';
+import { PackageEmbeddable } from '../../intention/entity/package.embeddable';
 
 export abstract class BuildRepository {
   public abstract addBuild(
@@ -13,21 +13,21 @@ export abstract class BuildRepository {
     serviceId: string,
     name: string,
     semvar: SemverVersion,
-    buildPackage: PackageDto,
-  ): Promise<PackageBuildDto>;
+    buildPackage: PackageEmbeddable,
+  ): Promise<PackageBuildEntity>;
 
-  public abstract getBuild(id: string): Promise<PackageBuildDto>;
+  public abstract getBuild(id: string): Promise<PackageBuildEntity>;
 
   public abstract getBuildByPackageDetail(
     serviceId: string,
     name: string,
     semvar: SemverVersion,
-  ): Promise<PackageBuildDto>;
+  ): Promise<PackageBuildEntity>;
 
   public abstract addInstallActionToBuild(
     buildId: string,
-    pointer: IntentionActionPointerDto,
-  ): Promise<PackageBuildDto>;
+    pointer: IntentionActionPointerEmbeddable,
+  ): Promise<PackageBuildEntity>;
 
   public abstract searchBuild(
     serviceId: string,
@@ -36,8 +36,8 @@ export abstract class BuildRepository {
   ): Promise<PackageBuildSearchResult>;
 
   public abstract approvePackage(
-    packageBuild: PackageBuildDto,
-    user: UserDto,
-    environment: EnvironmentDto,
-  ): Promise<PackageBuildDto>;
+    packageBuild: PackageBuildEntity,
+    user: UserEntity,
+    environment: EnvironmentEntity,
+  ): Promise<PackageBuildEntity>;
 }

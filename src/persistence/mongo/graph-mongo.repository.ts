@@ -1,58 +1,65 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MongoRepository, ObjectLiteral } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import {
+  MongoEntityManager,
+  MongoEntityRepository,
+  wrap,
+} from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
-import { EdgeDto } from '../dto/edge.dto';
-import { VertexDto } from '../dto/vertex.dto';
+import { EdgeEntity } from '../entity/edge.entity';
+import { VertexEntity } from '../entity/vertex.entity';
 import { GraphRepository } from '../interfaces/graph.repository';
 import {
-  CollectionConfigDto,
+  CollectionConfigEntity,
   CollectionConfigInstanceDto,
-} from '../dto/collection-config.dto';
+} from '../entity/collection-config.entity';
 import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
   GraphDataResponseDto,
   GraphDeleteResponseDto,
 } from '../dto/graph-data.dto';
-import { VertexSearchDto } from '../dto/vertex-rest.dto';
-import { EdgeInsertDto } from '../dto/edge-rest.dto';
+import { VertexSearchDto } from '../dto/vertex.dto';
+import { EdgeInsertDto } from '../dto/edge.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
-import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
-import { VertexPointerDto } from '../dto/vertex-pointer.dto';
-import { GraphProjectServicesResponseDto } from '../dto/graph-project-services-rest.dto';
-import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs-rest.dto';
-import { ServiceDetailsResponseDto } from '../dto/service-rest.dto';
+import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
+import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
+import { ServiceDetailsResponseDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
-import { UserPermissionRestDto } from '../dto/user-permission-rest.dto';
-import { GraphPermissionDto } from '../dto/graph-permission.dto';
-import { TimestampDto } from '../dto/timestamp.dto';
-import {
-  GraphDirectedCombo,
-  GraphVertexConnections,
-} from '../dto/collection-combo.dto';
+import { GraphPermissionEntity } from '../entity/graph-permission.entity';
+import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
+import { GraphDirectedCombo } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
-import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance-rest.dto';
+import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
+import {
+  CollectionEntityUnion,
+  CollectionNames,
+} from '../entity/collection-entity-union.type';
+import { UserPermissionDto } from '../dto/user-permission.dto';
+import { GraphVertexConnections } from '../../persistence/dto/collection-combo.dto';
+import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
+  // private readonly dataSource: MongoEntityManager;
+
   constructor(
-    private readonly dataSource: DataSource,
-    @InjectRepository(CollectionConfigDto)
-    private readonly collectionConfigRepository: MongoRepository<CollectionConfigDto>,
-    @InjectRepository(EdgeDto)
-    private readonly edgeRepository: MongoRepository<EdgeDto>,
-    @InjectRepository(VertexDto)
-    private readonly vertexRepository: MongoRepository<VertexDto>,
-    @InjectRepository(GraphPermissionDto)
-    private readonly permissionRepository: MongoRepository<GraphPermissionDto>,
+    @InjectRepository(CollectionConfigEntity)
+    private readonly collectionConfigRepository: MongoEntityRepository<CollectionConfigEntity>,
+    @InjectRepository(EdgeEntity)
+    private readonly edgeRepository: MongoEntityRepository<EdgeEntity>,
+    @InjectRepository(VertexEntity)
+    private readonly vertexRepository: MongoEntityRepository<VertexEntity>,
+    @InjectRepository(GraphPermissionEntity)
+    private readonly permissionRepository: MongoEntityRepository<GraphPermissionEntity>,
     private readonly actionUtil: ActionUtil,
+    private readonly dataSource: MongoEntityManager,
   ) {}
 
   public async getDataSlice(
     collections: string[],
   ): Promise<GraphDataResponseDto> {
-    const configs = await this.collectionConfigRepository.find();
+    const configs = await this.collectionConfigRepository.findAll();
     const filteredConfigs = configs.filter(
       (config) => collections.indexOf(config.collection) !== -1,
     );
@@ -88,7 +95,7 @@ export class GraphMongoRepository implements GraphRepository {
   public async getData(
     includeCollection: boolean,
   ): Promise<GraphDataResponseDto> {
-    const configs = await this.collectionConfigRepository.find();
+    const configs = await this.collectionConfigRepository.findAll();
     const verticeArrs = await Promise.all(
       configs.map((config, category: number) => {
         return this.aggregateVertex(
@@ -100,7 +107,7 @@ export class GraphMongoRepository implements GraphRepository {
       }),
     );
 
-    const edges = await this.edgeRepository.find();
+    const edges = await this.edgeRepository.findAll();
     return {
       edges: edges.map((edge) => edge.toEdgeResponse(false)),
       vertices: [].concat(...verticeArrs),
@@ -131,7 +138,6 @@ export class GraphMongoRepository implements GraphRepository {
     }
     return this.vertexRepository
       .aggregate(aggregateArr)
-      .toArray()
       .then((vertices: any[]) =>
         vertices.map((vertex) => ({
           id: vertex._id,
@@ -149,9 +155,9 @@ export class GraphMongoRepository implements GraphRepository {
 
   private async getCollectionConfig(
     collection: string,
-  ): Promise<CollectionConfigDto | null> {
+  ): Promise<CollectionConfigEntity | null> {
     return this.collectionConfigRepository.findOne({
-      where: { collection },
+      collection: collection as CollectionNames,
     });
   }
 
@@ -207,7 +213,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
       ])
-      .toArray()
       .then((array: any) => {
         arrayIdFixer(array);
 
@@ -276,7 +281,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
       ])
-      .toArray()
       .then((array: any) => {
         arrayIdFixer(array);
 
@@ -321,7 +325,6 @@ export class GraphMongoRepository implements GraphRepository {
           this.serviceInstanceDetailsAggregate(),
         ),
       ])
-      .toArray()
       .then((array: any) => {
         arrayIdFixer(array);
         const datum = array.length > 0 ? array[0] : null;
@@ -348,7 +351,6 @@ export class GraphMongoRepository implements GraphRepository {
         { $match: { _id: new ObjectId(id) } },
         ...this.serviceInstanceDetailsAggregate(),
       ])
-      .toArray()
       .then((array: any) => {
         arrayIdFixer(array);
         const datum = array.length > 0 ? array[0] : null;
@@ -424,10 +426,8 @@ export class GraphMongoRepository implements GraphRepository {
     return datum as ServiceInstanceDetailsResponseDto;
   }
 
-  public async getUserPermissions(id: string): Promise<UserPermissionRestDto> {
-    const permissions = await this.permissionRepository.find({
-      where: { name: 'user' },
-    });
+  public async getUserPermissions(id: string): Promise<UserPermissionDto> {
+    const permissions = await this.permissionRepository.find({ name: 'user' });
     const configs = permissions.map((permission) => permission.data);
     const maxDepth = configs
       .map((config) => config.length)
@@ -447,7 +447,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
       ])
-      .toArray()
       .then((upstreamArr: any[]) => {
         return this.collectPermissions(id, configs, upstreamArr[0].paths);
       });
@@ -457,9 +456,9 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     configs: any[],
     paths: any[],
-  ): UserPermissionRestDto {
+  ): UserPermissionDto {
     let ids = [];
-    const matches: UserPermissionRestDto = {
+    const matches: UserPermissionDto = {
       create: [],
       delete: [],
       sudo: [],
@@ -545,7 +544,7 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   // Edge
-  public async addEdge(edgeInsert: EdgeInsertDto): Promise<EdgeDto> {
+  public async addEdge(edgeInsert: EdgeInsertDto): Promise<EdgeEntity> {
     const sourceVertex = await this.getVertex(edgeInsert.source);
     const targetVertex = await this.getVertex(edgeInsert.target);
     const sourceConfig = await this.getCollectionConfig(
@@ -560,7 +559,7 @@ export class GraphMongoRepository implements GraphRepository {
       sourceConfig === null ||
       targetConfig === null
     ) {
-      throw new Error();
+      throw new Error('Unable to locate source and/or target');
     }
     const edgeConfig = sourceConfig.edges.find(
       (edgeConfig) => edgeConfig.name === edgeInsert.name,
@@ -568,12 +567,12 @@ export class GraphMongoRepository implements GraphRepository {
 
     // No edges to self
     if (edgeInsert.source === edgeInsert.target) {
-      throw new Error();
+      throw new Error('No edges to self');
     }
-    const edge = EdgeDto.upgradeInsertDto(edgeInsert);
+    const edge = EdgeEntity.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
-    edge.timestamps = TimestampDto.create();
+    edge.timestamps = TimestampEmbeddable.create();
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
@@ -582,7 +581,7 @@ export class GraphMongoRepository implements GraphRepository {
       name: edge.name,
     });
     if (relationCnt > 0) {
-      throw new Error();
+      throw new Error('No duplicate edges');
     }
 
     if (edgeConfig.relation === 'oneToOne') {
@@ -592,23 +591,20 @@ export class GraphMongoRepository implements GraphRepository {
         name: edge.name,
       });
       if (relationCnt > 0) {
-        throw new Error();
+        throw new Error('One-to-one relation already exists');
       }
     }
-    const result = await this.edgeRepository.insertOne(edge);
-    if (!result.acknowledged) {
-      throw new Error();
-    }
-    const rval = await this.getEdge(result.insertedId.toString());
-    if (rval === null) {
+    await this.dataSource.persistAndFlush(edge);
+    // console.log(edge);
+    if (!edge.id) {
       throw new Error();
     }
 
-    return rval;
+    return edge;
   }
 
-  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeDto> {
-    const result = await this.edgeRepository.updateOne(
+  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeEntity> {
+    const result = await this.edgeRepository.getCollection().updateOne(
       { _id: new ObjectId(id) },
       edge.prop
         ? {
@@ -654,7 +650,7 @@ export class GraphMongoRepository implements GraphRepository {
       config === null ||
       edgeConfig === null
     ) {
-      throw new Error();
+      throw new Error('Unable to locate edge and/or source vertex');
     }
     if (
       edgeConfig.onDelete === 'cascade' &&
@@ -667,30 +663,23 @@ export class GraphMongoRepository implements GraphRepository {
       );
     }
     // console.log(`edgeRepository.delete(${id})`);
-    const result = await this.edgeRepository.delete(id);
-    if (result.affected !== 1) {
-      throw new Error();
-    }
+    await this.dataSource.removeAndFlush(edge);
     return resp;
   }
 
-  public getEdge(id: string): Promise<EdgeDto | null> {
-    return this.edgeRepository.findOne({
-      where: { _id: new ObjectId(id) },
-    });
+  public getEdge(id: string): Promise<EdgeEntity | null> {
+    return this.edgeRepository.findOne({ _id: new ObjectId(id) });
   }
 
   public getEdgeByNameAndVertices(
     name: string,
     source: string,
     target: string,
-  ): Promise<EdgeDto> {
+  ): Promise<EdgeEntity> {
     return this.edgeRepository.findOne({
-      where: {
-        name,
-        source: new ObjectId(source),
-        target: new ObjectId(target),
-      },
+      name,
+      source: new ObjectId(source),
+      target: new ObjectId(target),
     });
   }
 
@@ -698,25 +687,23 @@ export class GraphMongoRepository implements GraphRepository {
     name?: string,
     source?: string,
     target?: string,
-  ): Promise<EdgeDto[]> {
+  ): Promise<EdgeEntity[]> {
     return this.edgeRepository.find({
-      where: {
-        ...(name ? { name } : {}),
-        ...(source ? { source: new ObjectId(source) } : {}),
-        ...(target ? { target: new ObjectId(target) } : {}),
-      },
+      ...(name ? { name } : {}),
+      ...(source ? { source: new ObjectId(source) } : {}),
+      ...(target ? { target: new ObjectId(target) } : {}),
     });
   }
 
   public getEdgeSourceCount(source: string): Promise<number> {
     return this.edgeRepository.count({
-      source,
+      source: new ObjectId(source),
     });
   }
 
   public getEdgeTargetCount(target: string): Promise<number> {
     return this.edgeRepository.count({
-      target,
+      target: new ObjectId(target),
     });
   }
 
@@ -775,7 +762,6 @@ export class GraphMongoRepository implements GraphRepository {
         },
         { $unwind: { path: '$instance', preserveNullAndEmptyArrays: true } },
       ])
-      .toArray()
       .then((array: any) => {
         arrayIdFixer(array);
 
@@ -807,7 +793,7 @@ export class GraphMongoRepository implements GraphRepository {
 
     // Find and delete all edges using vertex as a target
     const tarEdges = await this.edgeRepository.find({
-      where: { target: new ObjectId(vertex.id) },
+      target: new ObjectId(vertex.id),
     });
     // console.log('tarEdges');
     // console.log(tarEdges);
@@ -824,7 +810,7 @@ export class GraphMongoRepository implements GraphRepository {
 
     // Find and delete all edges using vertex as a source
     const srcEdges = await this.edgeRepository.find({
-      where: { source: new ObjectId(vertex.id) },
+      source: new ObjectId(vertex.id),
     });
     // console.log('srcEdges');
     // console.log(srcEdges);
@@ -845,14 +831,14 @@ export class GraphMongoRepository implements GraphRepository {
       vertex.collection,
     );
     const entry = await collectionRepository.findOne({
-      where: { vertex: new ObjectId(vertex.id) },
+      vertex: new ObjectId(vertex.id),
     });
     // console.log(entry);
     if (entry !== null) {
-      await collectionRepository.delete(entry.id);
+      await this.dataSource.removeAndFlush(entry);
     }
     // Delete vertex
-    await this.vertexRepository.delete(id);
+    await this.vertexRepository.nativeDelete({ _id: new ObjectId(id) });
     return resp;
   }
 
@@ -866,35 +852,26 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   public async addVertex(
-    vertex: VertexDto,
-    collection: CollectionDtoUnion[typeof vertex.collection],
-  ): Promise<VertexDto> {
-    const repository = getRepositoryFromCollectionName(
-      this.dataSource,
-      vertex.collection,
-    );
+    vertex: VertexEntity,
+    collection: CollectionEntityUnion[typeof vertex.collection],
+  ): Promise<VertexEntity> {
+    vertex.timestamps = TimestampEmbeddable.create();
 
-    vertex.timestamps = TimestampDto.create();
-
-    const vertResult = await this.vertexRepository.insertOne(vertex);
-    if (!vertResult.acknowledged) {
+    await this.dataSource.persistAndFlush(vertex);
+    if (!vertex.id) {
       throw new Error();
     }
-    collection.vertex = vertResult.insertedId;
+    collection.vertex = vertex._id;
     // console.log(collection);
     try {
-      const collResult = await repository.insertOne(collection);
-      // console.log(collResult);
-      if (!collResult.acknowledged) {
-        throw new Error();
-      }
+      await this.dataSource.persistAndFlush(collection);
     } catch (e: any) {
       // Delete orphan vertex
-      await this.deleteVertex(vertResult.insertedId.toString());
+      await this.dataSource.removeAndFlush(vertex);
       throw e;
     }
 
-    const rval = await this.getVertex(vertResult.insertedId.toString());
+    const rval = await this.getVertex(vertex.id);
     if (rval === null) {
       throw new Error();
     }
@@ -903,10 +880,10 @@ export class GraphMongoRepository implements GraphRepository {
 
   public async editVertex(
     id: string,
-    vertex: VertexDto,
-    collection: CollectionDtoUnion[typeof vertex.collection],
+    vertex: VertexEntity,
+    collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields = false,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
       throw new Error();
@@ -916,36 +893,40 @@ export class GraphMongoRepository implements GraphRepository {
       this.dataSource,
       vertex.collection,
     );
-    // Don't allow vertex or id to be set
-    delete collection.id;
-    delete collection.vertex;
+    const collectionData = wrap(collection).toJSON();
+    // Don't allow id, tag or vertex to be set
+    delete collectionData.id;
+    delete collectionData.vertex;
+    delete collectionData.tags;
 
     const unsetFields = {};
     const pushFields = {};
     // Setup fields to push (arrays)
-    for (const fkey of Object.keys(collection)) {
-      if (config.fields[fkey].type === 'embeddedDocArray') {
+    for (const fkey of Object.keys(collectionData)) {
+      if (
+        config.fields[fkey] &&
+        config.fields[fkey].type === 'embeddedDocArray'
+      ) {
         pushFields[fkey] = {
-          $each: collection[fkey],
+          $each: collectionData[fkey],
           $slice: -COLLECTION_MAX_EMBEDDED,
         };
-        delete collection[fkey];
+        delete collectionData[fkey];
       }
     }
     // Setup fields to unset
-    for (const fkey of Object.keys(collection)) {
+    for (const fkey of Object.keys(collectionData)) {
       if (config.fields[fkey] === undefined) {
         unsetFields[fkey] = '';
-      }
-      if (config.fields[fkey].type === 'embeddedDoc') {
-        // delete collection[fkey];
+      } else if (config.fields[fkey].type === 'embeddedDoc') {
+        // delete collectionData[fkey];
       }
     }
     if (!ignoreBlankFields) {
       for (const fkey of Object.keys(config.fields)) {
         if (
           pushFields[fkey] === undefined &&
-          collection[fkey] === undefined &&
+          collectionData[fkey] === undefined &&
           config.fields[fkey].type !== 'embeddedDoc' &&
           config.fields[fkey].type !== 'embeddedDocArray'
         ) {
@@ -953,12 +934,11 @@ export class GraphMongoRepository implements GraphRepository {
         }
       }
     }
-
     // Update collection
-    const collResult = await repository.updateOne(
+    const collResult = await repository.getCollection().updateOne(
       { vertex: new ObjectId(id) },
       {
-        $set: collection,
+        $set: collectionData,
         $setOnInsert: {
           vertex: new ObjectId(id),
         },
@@ -967,11 +947,12 @@ export class GraphMongoRepository implements GraphRepository {
       },
       { upsert: true },
     );
+
     if (collResult.matchedCount !== 1 && collResult.upsertedCount !== 1) {
       throw new Error();
     }
     // console.log(vertex);
-    const vertResult = await this.vertexRepository.updateOne(
+    const vertResult = await this.vertexRepository.getCollection().updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
@@ -995,19 +976,15 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
-  public getVertex(id: string): Promise<VertexDto | null> {
-    return this.vertexRepository.findOne({
-      where: { _id: new ObjectId(id) },
-    });
+  public getVertex(id: string): Promise<VertexEntity | null> {
+    return this.vertexRepository.findOne({ _id: new ObjectId(id) });
   }
 
   public async getVertexByName(
-    collection: keyof CollectionDtoUnion,
+    collection: keyof CollectionEntityUnion,
     name: string,
-  ): Promise<VertexDto | null> {
-    return this.vertexRepository.findOne({
-      where: { name, collection },
-    });
+  ): Promise<VertexEntity | null> {
+    return this.vertexRepository.findOne({ name, collection });
   }
 
   public async getVertexConnections(
@@ -1031,7 +1008,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
           { $unwind: '$vertex' },
         ])
-        .toArray()
         .then((arr: any[]) => {
           return arr.map((combo) => {
             combo.edge.id = combo.edge._id;
@@ -1057,7 +1033,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
           { $unwind: '$vertex' },
         ])
-        .toArray()
         .then((arr: any[]) => {
           return arr.map((combo) => {
             combo.edge.id = combo.edge._id;
@@ -1082,7 +1057,7 @@ export class GraphMongoRepository implements GraphRepository {
     edgeName?: string,
     edgeTarget?: string,
   ): Promise<VertexSearchDto[]> {
-    const pipeline: ObjectLiteral[] = [{ $match: { collection } }];
+    const pipeline: any[] = [{ $match: { collection } }];
     if (edgeName !== undefined && edgeTarget !== undefined) {
       pipeline.push(
         {
@@ -1103,15 +1078,15 @@ export class GraphMongoRepository implements GraphRepository {
       { $addFields: { id: '$_id', 'edge.id': '$edge._id' } },
       { $unset: ['_id', 'edge._id'] },
     );
-    return this.vertexRepository
-      .aggregate(pipeline)
-      .toArray() as unknown as VertexSearchDto[];
+    return this.vertexRepository.aggregate(
+      pipeline,
+    ) as unknown as VertexSearchDto[];
   }
 
   public async getUserConnectedVertex(id: string): Promise<string[]> {
     const configs = await this.collectionConfigRepository.find({
       'permissions.filter': true,
-    });
+    } as any);
     const canFilterConnected = configs.map((config) => config.index);
 
     return this.vertexRepository
@@ -1130,7 +1105,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
       ])
-      .toArray()
       .then((connectedResult: any[]) => {
         if (connectedResult.length === 0) {
           return [];
@@ -1147,27 +1121,25 @@ export class GraphMongoRepository implements GraphRepository {
     collection: string,
     parentId: string,
     name: string,
-  ): Promise<VertexDto | null> {
-    const vertices = await this.edgeRepository
-      .aggregate([
-        { $match: { source: new ObjectId(parentId) } },
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'target',
-            foreignField: '_id',
-            as: 'vertices',
-            pipeline: [{ $match: { name, collection } }],
-          },
+  ): Promise<VertexEntity | null> {
+    const vertices = await this.edgeRepository.aggregate([
+      { $match: { source: new ObjectId(parentId) } },
+      {
+        $lookup: {
+          from: 'vertex',
+          localField: 'target',
+          foreignField: '_id',
+          as: 'vertices',
+          pipeline: [{ $match: { name, collection } }],
         },
-        { $unwind: '$vertices' },
-        { $replaceRoot: { newRoot: '$vertices' } },
-      ])
-      .toArray();
+      },
+      { $unwind: '$vertices' },
+      { $replaceRoot: { newRoot: '$vertices' } },
+    ]);
     if (vertices.length === 1) {
       vertices[0].id = (vertices[0] as any)._id;
       delete (vertices[0] as any)._id;
-      return vertices[0] as unknown as VertexDto;
+      return vertices[0] as unknown as VertexEntity;
     }
   }
 
@@ -1177,9 +1149,7 @@ export class GraphMongoRepository implements GraphRepository {
     matchEdgeNames: string[] | null = null,
   ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
-      where: {
-        index,
-      },
+      index,
     });
     if (config === null) {
       throw new Error();
@@ -1226,7 +1196,6 @@ export class GraphMongoRepository implements GraphRepository {
         },
         { $unwind: '$vertex' },
       ])
-      .toArray()
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
           stream.collection.id = stream.collection._id;
@@ -1251,9 +1220,7 @@ export class GraphMongoRepository implements GraphRepository {
     maxDepth: number,
   ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
-      where: {
-        index,
-      },
+      index,
     });
     if (config === null) {
       throw new Error();
@@ -1296,7 +1263,6 @@ export class GraphMongoRepository implements GraphRepository {
         },
         { $unwind: '$vertex' },
       ])
-      .toArray()
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
           stream.collection.id = stream.collection._id;
@@ -1367,7 +1333,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
       ])
-      .toArray()
       .then((servProjArr: any[]) => {
         const acc: BrokerAccountProjectMapDto = {};
         for (const servProj of servProjArr) {

@@ -1,11 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { get } from 'radash';
+import get from 'lodash.get';
 
 @Component({
   selector: 'app-action-content',
-  standalone: true,
   imports: [MatTooltipModule],
   templateUrl: './action-content.component.html',
   styleUrls: ['./action-content.component.scss'],

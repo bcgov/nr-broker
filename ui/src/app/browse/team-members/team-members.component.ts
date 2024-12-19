@@ -12,30 +12,22 @@ import { MatTableModule } from '@angular/material/table';
 import { MatListModule } from '@angular/material/list';
 import { Subject, switchMap } from 'rxjs';
 
-import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
+import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-team-members',
-  standalone: true,
-  imports: [
-    CommonModule,
-    InspectorTeamComponent,
-    MatDividerModule,
-    MatListModule,
-    MatTableModule,
-  ],
+  imports: [CommonModule, MatDividerModule, MatListModule, MatTableModule],
   templateUrl: './team-members.component.html',
   styleUrl: './team-members.component.scss',
 })
 export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
   @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedRestCombo[];
+  @Input() upstream!: GraphDirectedCombo[];
   edges: CollectionEdgeConfig[] | undefined;
 
   private triggerRefresh = new Subject<void>();

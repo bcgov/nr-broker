@@ -1,4 +1,4 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
@@ -6,14 +6,12 @@ import {
   IsDefined,
   IsNumber,
   IsOptional,
+  IsString,
   ValidateNested,
 } from 'class-validator';
-import { Entity, ObjectIdColumn, Column, Index } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { ActionDto } from './action.dto';
-import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
 import { EventDto } from './event.dto';
-import { TransactionDto } from './transaction.dto';
 import { UserDto } from './user.dto';
 import { BackupActionDto } from './backup.action.dto';
 import { DatabaseAccessActionDto } from './database-access-action.dto';
@@ -25,29 +23,12 @@ import { ProcessEndActionDto } from './process-end-action.dto';
 import { ProcessStartActionDto } from './process-start-action.dto';
 import { ServerAccessActionDto } from './server-access-action.dto';
 import { UrlDto } from './url.dto';
+import { TransactionDto } from './transaction.dto';
+import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
 
-@Entity({ name: 'intention' })
-// @Index(['actions.transaction.hash'])
 export class IntentionDto {
-  static projectAction(
-    intention: IntentionDto,
-    token: string,
-  ): ActionDto | null {
-    if (intention) {
-      // project the matching ActionDto
-      return intention.actions.find((action) => action.trace.token === token);
-    }
-    return null;
-  }
+  id: string;
 
-  @ObjectIdColumn()
-  @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
-  )
-  id: ObjectId;
-
-  @Column()
   @ApiProperty({ type: () => String })
   @Transform((value) =>
     value.obj.accountId ? new ObjectId(value.obj.accountId.toString()) : null,
@@ -57,7 +38,6 @@ export class IntentionDto {
   @ValidateNested()
   @IsDefined()
   @IsArray()
-  @Column(() => ActionDto)
   @Type(() => ActionDto, {
     discriminator: {
       property: 'action',
@@ -78,56 +58,49 @@ export class IntentionDto {
   actions: ActionDto[];
 
   // Not a column - decoration
+  // Out
   @IsOptional()
+  @IsString()
   auditUrl?: string;
 
   @ValidateNested()
   @IsDefined()
-  @Column(() => EventDto)
   @Type(() => EventDto)
   event: EventDto;
 
+  // Out
   @ValidateNested()
   @IsOptional()
-  @ApiHideProperty()
-  @Column(() => BrokerJwtDto)
   @Type(() => BrokerJwtDto)
   jwt?: BrokerJwtDto;
 
   @ValidateNested()
   @IsOptional()
-  @ApiHideProperty()
-  @Column(() => TransactionDto)
   @Type(() => TransactionDto)
   transaction?: TransactionDto;
 
   @ValidateNested()
   @IsOptional()
-  @Column(() => UrlDto)
   @Type(() => UrlDto)
   url?: UrlDto;
 
   @ValidateNested()
   @IsDefined()
-  @Column(() => UserDto)
   @Type(() => UserDto)
   user: UserDto;
 
+  // Out
   @IsOptional()
   @IsNumber()
-  @ApiHideProperty()
-  @Column()
-  @Index()
   expiry?: number;
 
+  // Out
   @IsOptional()
   @IsBoolean()
-  @ApiHideProperty()
-  @Column()
-  @Index()
   closed?: boolean;
 
-  @Column()
-  @ApiProperty()
+  // Out
+  @IsOptional()
+  @IsBoolean()
   requireRoleId?: boolean;
 }

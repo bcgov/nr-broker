@@ -1,23 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { get, set } from 'radash';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import deepEqual from 'deep-equal';
 import { plainToClass } from 'class-transformer';
 
 import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
-import { IntentionDto } from '../intention/dto/intention.dto';
-import { ActionDto } from '../intention/dto/action.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
-import { VertexDto } from '../persistence/dto/vertex.dto';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { GraphService } from './graph.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
 import { ActionUtil } from '../util/action.util';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
+import { IntentionActionPointerEmbeddable } from '../persistence/entity/intention-action-pointer.embeddable';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 
 interface OverlayMapBase {
   key: string;
@@ -49,7 +51,7 @@ export class IntentionSyncService {
     private readonly actionUtil: ActionUtil,
   ) {}
 
-  public async sync(intention: IntentionDto, account: BrokerAccountDto) {
+  public async sync(intention: IntentionEntity, account: BrokerAccountEntity) {
     // console.log(intention);
     for (const action of intention.actions) {
       const context = {
@@ -98,9 +100,9 @@ export class IntentionSyncService {
   }
 
   private async syncPackageBuild(
-    intention: IntentionDto,
-    action: ActionDto,
-    serviceVertex: VertexDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
+    serviceVertex: VertexEntity,
   ) {
     if (!action.package || !action.package.name || !action.package.version) {
       // Not enough package information to save
@@ -142,19 +144,19 @@ export class IntentionSyncService {
       );
 
       // Warning: Setting it here because close uses sideffects
-      action.package.id = packageBuild.id;
+      action.package.id = packageBuild._id;
 
       await this.intentionRepository.setActionPackageBuildRef(
         intention.id,
         action.id,
-        packageBuild.id,
+        packageBuild._id,
       );
     }
 
     if (action.action === 'package-installation') {
       await this.buildRepository.addInstallActionToBuild(
         packageBuild.id.toString(),
-        plainToClass(IntentionActionPointerDto, {
+        plainToClass(IntentionActionPointerEmbeddable, {
           action: this.actionUtil.actionToIdString(action),
           intention: intention.id,
         }),
@@ -163,9 +165,9 @@ export class IntentionSyncService {
   }
 
   public async syncPackageInstall(
-    intention: IntentionDto,
-    action: ActionDto,
-    serviceVertex: VertexDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
+    serviceVertex: VertexEntity,
   ) {
     const envMap = await this.persistenceUtilService.getEnvMap();
     const context = {
@@ -222,7 +224,7 @@ export class IntentionSyncService {
     }
   }
 
-  public async syncServer(action: ActionDto) {
+  public async syncServer(action: ActionEmbeddable) {
     const serverName = action.cloud?.target?.instance?.name;
     if (!serverName) {
       return null;
@@ -240,9 +242,9 @@ export class IntentionSyncService {
   }
 
   public async syncInstallationProperties(
-    serviceVertex: VertexDto,
+    serviceVertex: VertexEntity,
     instanceName: string,
-    serverVertex: VertexDto,
+    serverVertex: VertexEntity,
     propStrategy: 'merge' | 'replace' = 'merge',
     prop: EdgePropDto,
   ) {
@@ -264,8 +266,8 @@ export class IntentionSyncService {
 
   private async overlayVertex(
     context: {
-      action: ActionDto;
-      intention: IntentionDto;
+      action: ActionEmbeddable;
+      intention: IntentionEntity;
     },
     collection: CollectionNames,
     configs: OverlayMap[],
@@ -286,10 +288,10 @@ export class IntentionSyncService {
 
     return this.graphService.upsertVertex(
       null,
-      {
+      plainToClass(VertexInsertDto, {
         collection,
         data,
-      },
+      }),
       targetBy,
       target,
     );
@@ -297,8 +299,8 @@ export class IntentionSyncService {
 
   private async overlayEdge(
     name: string,
-    source: VertexDto,
-    target: VertexDto,
+    source: VertexEntity,
+    target: VertexEntity,
     propStrategy: 'merge' | 'replace' = 'merge',
     prop?: EdgePropDto,
   ) {

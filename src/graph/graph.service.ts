@@ -6,34 +6,38 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import ejs from 'ejs';
+import { ValidationError, wrap } from '@mikro-orm/core';
+import get from 'lodash.get';
+import set from 'lodash.set';
+import { validate } from 'class-validator';
+
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { VertexDto } from '../persistence/dto/vertex.dto';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { AuditService } from '../audit/audit.service';
 import {
   GraphDataResponseDto,
   GraphDeleteResponseDto,
 } from '../persistence/dto/graph-data.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { EdgeInsertDto, EdgeRestDto } from '../persistence/dto/edge-rest.dto';
-import { EdgeDto } from '../persistence/dto/edge.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { EdgeInsertDto, EdgeDto } from '../persistence/dto/edge.dto';
+import { EdgeEntity } from '../persistence/entity/edge.entity';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import {
   CollectionDtoUnion,
   CollectionNameEnum,
   CollectionNames,
 } from '../persistence/dto/collection-dto-union.type';
-import { validate } from 'class-validator';
-import { ValidatorUtil } from '../util/validator.util';
-import { get, set } from 'radash';
-import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
+import { CollectionConfigEntity } from '../persistence/entity/collection-config.entity';
 import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
-import { CollectionConfigInstanceRestDto } from '../persistence/dto/collection-config-rest.dto';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
-import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { CollectionConfigInstanceDto } from '../persistence/dto/collection-config.dto';
 import { REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
-import { UserPermissionNames } from '../persistence/dto/user-permission-rest.dto';
+import { UserPermissionNames } from '../persistence/dto/user-permission.dto';
 import { AuthService } from '../auth/auth.service';
+import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { EnvironmentDto } from '../persistence/dto/environment.dto';
+import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
+import { ValidatorUtil } from '../util/validator.util';
 
 @Injectable()
 export class GraphService {
@@ -42,8 +46,8 @@ export class GraphService {
     private readonly authSerivice: AuthService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
-    private readonly validatorUtil: ValidatorUtil,
     private readonly redisService: RedisService,
+    private readonly validatorUtil: ValidatorUtil,
   ) {}
 
   public async getData(
@@ -67,14 +71,11 @@ export class GraphService {
   }
 
   public async getUserPermissions(request: Request) {
-    const user = await this.authSerivice.getUserDto(request);
+    const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
-  public async addEdge(
-    req: Request,
-    edge: EdgeInsertDto,
-  ): Promise<EdgeRestDto> {
+  public async addEdge(req: Request, edge: EdgeInsertDto): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge);
       this.auditService.recordGraphAction(
@@ -101,7 +102,8 @@ export class GraphService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Bad request',
-        error: '',
+        error:
+          e instanceof Error || e instanceof ValidationError ? e.message : '',
       });
     }
   }
@@ -110,7 +112,7 @@ export class GraphService {
     req: Request,
     id: string,
     edge: EdgeInsertDto,
-  ): Promise<EdgeRestDto> {
+  ): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.editEdge(id, edge);
       this.auditService.recordGraphAction(
@@ -142,7 +144,7 @@ export class GraphService {
     }
   }
 
-  public async getEdge(id: string): Promise<EdgeRestDto> {
+  public async getEdge(id: string): Promise<EdgeDto> {
     try {
       const edge = await this.graphRepository.getEdge(id);
       if (edge === null) {
@@ -198,7 +200,7 @@ export class GraphService {
     req: Request,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'create',
@@ -235,12 +237,12 @@ export class GraphService {
           vertex: {
             category: CollectionNameEnum[resp.collection],
             index: config.index,
-            ...resp,
+            ...wrap(resp).toJSON(),
           },
         },
       });
       return resp;
-    } catch (error) {
+    } catch (e) {
       this.auditService.recordGraphAction(
         req,
         'graph-vertex-add',
@@ -252,7 +254,8 @@ export class GraphService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Bad request',
-        error: '',
+        error:
+          e instanceof Error || e instanceof ValidationError ? e.message : '',
       });
     }
   }
@@ -263,7 +266,7 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
     ignoreBlankFields = false,
-  ): Promise<VertexDto> {
+  ): Promise<VertexEntity> {
     // eslint-disable-next-line prefer-const
     let [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
@@ -315,8 +318,6 @@ export class GraphService {
         }
       }
     }
-    // console.log(vertex);
-    // console.log(collection);
     try {
       const resp = await this.graphRepository.editVertex(
         id,
@@ -339,7 +340,7 @@ export class GraphService {
           vertex: {
             category: CollectionNameEnum[resp.collection],
             index: config.index,
-            ...resp,
+            ...wrap(resp).toJSON(),
           },
         },
       });
@@ -367,12 +368,12 @@ export class GraphService {
     checkPermission: false | 'update' | 'create',
   ): Promise<
     [
-      vertex: VertexDto,
-      collection: CollectionDtoUnion[typeof vertexInsert.collection],
-      config: CollectionConfigDto,
+      vertex: VertexEntity,
+      collection: CollectionEntityUnion[typeof vertexInsert.collection],
+      config: CollectionConfigEntity,
     ]
   > {
-    let vertex = VertexDto.upgradeInsertDto(vertexInsert);
+    let vertex = VertexEntity.upgradeInsertDto(vertexInsert);
     const config = await this.collectionRepository.getCollectionConfigByName(
       vertexInsert.collection,
     );
@@ -385,22 +386,7 @@ export class GraphService {
       });
     }
 
-    for (const [key, field] of Object.entries(config.fields)) {
-      if (field.type === 'date' && vertexInsert.data[key]) {
-        vertexInsert.data[key] = new Date(
-          vertexInsert.data[key].split('T')[0] + 'T00:00:00.000Z',
-        );
-      }
-    }
-
-    const collection = VertexDto.upgradeDataToInstance(vertexInsert);
-    if (!collection) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'No data',
-      });
-    }
-    const errors = await validate(collection, {
+    const errors = await validate(vertexInsert, {
       whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
@@ -410,6 +396,17 @@ export class GraphService {
         statusCode: 400,
         message: 'Collection validation error',
         error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(errors[0]),
+      });
+    }
+
+    const collection = this.collectionRepository.assignCollection(
+      vertexInsert.collection,
+      vertexInsert.data,
+    );
+    if (!collection) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'No data',
       });
     }
 
@@ -425,27 +422,13 @@ export class GraphService {
     }
 
     vertex = this.mapCollectionToVertex(config, vertex, collection);
-    const vertexErrors = await validate(vertex, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-    });
-    if (vertexErrors.length > 0) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Vertex validation error',
-        error: this.validatorUtil.buildFirstFailedPropertyErrorMsg(
-          vertexErrors[0],
-        ),
-      });
-    }
 
     return [vertex, collection, config];
   }
 
   private async maskCollectionFields(
     maskType: UserPermissionNames,
-    config: CollectionConfigDto,
+    config: CollectionConfigEntity,
     newCollection: any,
     oldCollection: any,
   ) {
@@ -482,9 +465,9 @@ export class GraphService {
   }
 
   private mapCollectionToVertex(
-    config: CollectionConfigDto,
-    vertex: VertexDto,
-    collection: CollectionDtoUnion[typeof vertex.collection],
+    config: CollectionConfigEntity,
+    vertex: VertexEntity,
+    collection: CollectionEntityUnion[typeof vertex.collection],
   ) {
     for (const map of config.collectionMapper) {
       vertex = set(vertex, map.setPath, get(collection, map.getPath));
@@ -497,8 +480,8 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
-  ): Promise<VertexDto> {
-    const vertex = VertexDto.upgradeInsertDto(vertexInsert);
+  ): Promise<VertexEntity> {
+    const vertex = VertexEntity.upgradeInsertDto(vertexInsert);
 
     if (targetBy === 'id') {
       return this.editVertex(req, target, vertexInsert, true, true);
@@ -578,7 +561,7 @@ export class GraphService {
     name: string,
     source: string,
     target: string,
-  ): Promise<EdgeDto> {
+  ): Promise<EdgeEntity> {
     try {
       const edge = await this.graphRepository.getEdgeByNameAndVertices(
         name,
@@ -603,7 +586,7 @@ export class GraphService {
     map: 'id' | 'source' | 'target' | '',
     source?: string,
     target?: string,
-  ): Promise<string[] | EdgeDto[]> {
+  ): Promise<string[] | EdgeEntity[]> {
     const results = await this.graphRepository.searchEdgesShallow(
       name,
       source,
@@ -615,7 +598,7 @@ export class GraphService {
     return results;
   }
 
-  public async getVertex(id: string): Promise<VertexDto> {
+  public async getVertex(id: string): Promise<VertexEntity> {
     try {
       const vertex = await this.graphRepository.getVertex(id);
       if (vertex === null) {
@@ -667,7 +650,7 @@ export class GraphService {
   }
 
   public async connectedVertex(request: Request) {
-    const user = await this.authSerivice.getUserDto(request);
+    const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
   }
 
@@ -743,7 +726,7 @@ export class GraphService {
         .getEdgeConfigByVertex(id, targetCollection, edgeName)
         .then(async (response) => {
           const converted =
-            response as unknown as CollectionConfigInstanceRestDto[];
+            response as unknown as CollectionConfigInstanceDto[];
           for (const ccInstance of converted) {
             if (ccInstance.edge.prototype.url && ccInstance.instance) {
               ccInstance.links = {
@@ -800,7 +783,7 @@ export class GraphService {
             }
           }
           return response;
-        })) as unknown as CollectionConfigInstanceRestDto[];
+        })) as unknown as CollectionConfigInstanceDto[];
     } catch (error) {
       throw new NotFoundException({
         statusCode: 404,

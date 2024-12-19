@@ -1,7 +1,8 @@
 import {
   enableProdMode,
-  APP_INITIALIZER,
   importProvidersFrom,
+  inject,
+  provideAppInitializer,
 } from '@angular/core';
 
 import { environment } from './environments/environment';
@@ -41,24 +42,18 @@ bootstrapApplication(AppComponent, {
       ReactiveFormsModule,
       RouterModule.forRoot(ROUTES),
     ),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializePrefFactory,
-      deps: [HttpClient],
-      multi: true,
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializeUserFactory,
-      deps: [HttpClient],
-      multi: true,
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializeConfigFactory,
-      deps: [HttpClient],
-      multi: true,
-    },
+    provideAppInitializer(() => {
+      const http = inject(HttpClient);
+      return appInitializePrefFactory(http);
+    }),
+    provideAppInitializer(() => {
+      const http = inject(HttpClient);
+      return appInitializeUserFactory(http);
+    }),
+    provideAppInitializer(() => {
+      const http = inject(HttpClient);
+      return appInitializeConfigFactory(http);
+    }),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     {
       provide: TitleStrategy,

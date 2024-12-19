@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { EnvironmentDto } from './dto/environment.dto';
-import { JwtRegistryDto } from './dto/jwt-registry.dto';
+import { EnvironmentEntity } from './entity/environment.entity';
+import { JwtRegistryEntity } from './entity/jwt-registry.entity';
 import { CollectionRepository } from './interfaces/collection.repository';
 import { GraphRepository } from './interfaces/graph.repository';
 
@@ -33,8 +33,8 @@ const REDIS_ESCAPES_REPLACEMENTS = {
   '~': '\\~',
 };
 
-export interface EnvironmentDtoMap {
-  [key: string]: EnvironmentDto;
+export interface EnvironmentEntityMap {
+  [key: string]: EnvironmentEntity;
 }
 
 @Injectable()
@@ -44,7 +44,7 @@ export class PersistenceUtilService {
     private readonly graphRepository: GraphRepository,
   ) {}
 
-  public async getAccount(registryJwt: JwtRegistryDto) {
+  public async getAccount(registryJwt: JwtRegistryEntity) {
     if (!registryJwt) {
       return null;
     }
@@ -103,9 +103,9 @@ export class PersistenceUtilService {
     }
   }
 
-  public async getEnvMap(): Promise<EnvironmentDtoMap> {
+  public async getEnvMap(): Promise<EnvironmentEntityMap> {
     const envs = await this.collectionRepository.getCollections('environment');
-    const envMap: { [key: string]: EnvironmentDto } = {};
+    const envMap: { [key: string]: EnvironmentEntity } = {};
     for (const env of envs) {
       envMap[env.name] = env;
       if (env.short) {

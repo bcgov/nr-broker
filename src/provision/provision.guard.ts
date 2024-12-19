@@ -18,7 +18,7 @@ export class ProvisionGuard implements CanActivate {
       return false;
     }
     const request = context.switchToHttp().getRequest<RoleGuardRequest>();
-    const action = request.brokerActionDto;
+    const action = request.brokerAction;
     return roles.every((role) => action?.provision.includes(role));
   }
 }

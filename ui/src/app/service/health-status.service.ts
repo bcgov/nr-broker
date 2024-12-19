@@ -3,13 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, startWith, switchMap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { HealthCheckRestDto } from './dto/health-check-rest.dto';
+import { HealthCheckDto } from './health/health-check.dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HealthStatusService {
-  private healthSubject = new BehaviorSubject<null | HealthCheckRestDto>(null);
+  private healthSubject = new BehaviorSubject<null | HealthCheckDto>(null);
   public health$ = this.healthSubject.asObservable();
 
   constructor(private readonly http: HttpClient) {
@@ -17,7 +17,7 @@ export class HealthStatusService {
   }
 
   public healthCheck() {
-    return this.http.get<HealthCheckRestDto>(`${environment.apiUrl}/v1/health`);
+    return this.http.get<HealthCheckDto>(`${environment.apiUrl}/v1/health`);
   }
 
   private startPolling() {

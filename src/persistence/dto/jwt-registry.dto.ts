@@ -1,66 +1,21 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsDate,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import { Column, Entity, ObjectIdColumn, Index } from 'typeorm';
-import { ObjectId } from 'mongodb';
-import { Transform } from 'class-transformer';
+// Shared DTO: Copy in back-end and front-end should be identical
 
-export class JwtRegistryClaimsDto {
-  @Column()
-  @IsString()
+export interface TokenCreateDto {
+  token: string;
+}
+
+export interface JwtRegistryClaimsDto {
   client_id: string;
-
-  @Column()
-  @IsNumber()
   exp: number;
-
-  @Column()
-  @IsString()
   jti: string;
-
-  @Column()
-  @IsString()
   sub: string;
 }
 
-@Entity({ name: 'jwtRegistry' })
-export class JwtRegistryDto {
-  @ObjectIdColumn()
-  @ApiHideProperty()
-  id: ObjectId;
-
-  @Column()
-  @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.accountId ? new ObjectId(value.obj.accountId.toString()) : null,
-  )
-  @Index()
-  accountId: ObjectId;
-
-  @Column()
-  @IsBoolean()
-  @IsOptional()
+export interface JwtRegistryDto {
+  id: string;
+  accountId: string;
   blocked?: boolean;
-
-  @Column(() => JwtRegistryClaimsDto)
   claims: JwtRegistryClaimsDto;
-
-  @Column()
-  @ApiProperty({ type: () => String })
-  @Transform((value) =>
-    value.obj.createdUserId
-      ? new ObjectId(value.obj.createdUserId.toString())
-      : null,
-  )
-  @Index()
-  createdUserId: ObjectId;
-
-  @Column()
-  @IsDate()
-  createdAt: Date;
+  createdUserId: string;
+  createdAt: string;
 }

@@ -2,25 +2,24 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import {
-  CollectionDtoRestUnion,
+  CollectionDtoUnion,
   CollectionNames,
-} from '../../service/dto/collection-dto-union.type';
+} from '../../service/persistence/dto/collection-dto-union.type';
 import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspector-vertex-field.component';
 
 @Component({
-  selector: 'app-inspector-vertex-fields',
-  standalone: true,
-  imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
-  templateUrl: './inspector-vertex-fields.component.html',
-  styleUrl: './inspector-vertex-fields.component.scss',
+    selector: 'app-inspector-vertex-fields',
+    imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
+    templateUrl: './inspector-vertex-fields.component.html',
+    styleUrl: './inspector-vertex-fields.component.scss'
 })
 export class InspectorVertexFieldsComponent implements OnChanges {
   @Input() collection!: CollectionNames;
-  @Input() collectionConfig!: CollectionConfigRestDto;
+  @Input() collectionConfig!: CollectionConfigDto;
   @Input() collectionData:
-    | CollectionDtoRestUnion[keyof CollectionDtoRestUnion]
+    | CollectionDtoUnion[keyof CollectionDtoUnion]
     | null = null;
   @Input() filter!: 'yes' | 'no';
 

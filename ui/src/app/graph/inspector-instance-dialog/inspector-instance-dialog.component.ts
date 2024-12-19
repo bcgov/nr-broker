@@ -9,7 +9,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 
 export interface InspectorInstanceDialogReturnDao {
   id: string;
@@ -24,7 +24,6 @@ export interface InspectorInstanceDialogReturnDao {
 
 @Component({
   selector: 'app-inspector-instance-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -40,7 +39,7 @@ export class InspectorInstanceDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      vertices: GraphDirectedRestCombo[];
+      vertices: GraphDirectedCombo[];
     },
     public readonly dialogRef: MatDialogRef<InspectorInstanceDialogComponent>,
     private readonly collectionApi: CollectionApiService,

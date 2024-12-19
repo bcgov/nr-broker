@@ -9,15 +9,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
-import { IntentionActionPointerRestDto } from '../../service/dto/intention-action-pointer-rest.dto';
-import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { IntentionActionPointerDto } from '../../service/persistence/dto/intention-action-pointer.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/graph-prop-viewer-dialog.component';
 
 @Component({
   selector: 'app-service-instance-details',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -25,7 +23,6 @@ import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/grap
     MatIconModule,
     MatRippleModule,
     MatSelectModule,
-    OutcomeIconComponent,
   ],
   templateUrl: './service-instance-details.component.html',
   styleUrl: './service-instance-details.component.scss',
@@ -35,7 +32,7 @@ export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
   @Input() showName!: boolean;
   serverSelection: any | undefined;
 
-  current: IntentionActionPointerRestDto | undefined;
+  current: IntentionActionPointerDto | undefined;
 
   constructor(
     private readonly dialog: MatDialog,

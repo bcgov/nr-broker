@@ -8,6 +8,5 @@ import { RouterModule } from '@angular/router';
   imports: [MatButtonModule, MatCardModule, RouterModule],
   templateUrl: './page-not-found.component.html',
   styleUrls: ['./page-not-found.component.scss'],
-  standalone: true,
 })
 export class PageNotFoundComponent {}

@@ -14,18 +14,17 @@ import { InspectorServiceSecureComponent } from '../inspector-service-secure/ins
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
 import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspector-vertex-fields.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-inspector-vertex',
-  standalone: true,
   imports: [
     InspectorAccountComponent,
     InspectorInstallsComponent,
@@ -42,7 +41,7 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
 })
 export class InspectorVertexComponent implements OnChanges {
   @Input() collection!: CollectionNames;
-  @Input() collectionConfig!: CollectionConfigRestDto;
+  @Input() collectionConfig!: CollectionConfigDto;
   @Input() collectionId!: string | null;
   @Input() comboData!: CollectionCombo<any>;
 
@@ -54,7 +53,7 @@ export class InspectorVertexComponent implements OnChanges {
   constructor(
     private readonly collectionApi: CollectionApiService,
     public readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {

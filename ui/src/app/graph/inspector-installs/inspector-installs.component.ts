@@ -18,14 +18,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatRippleModule } from '@angular/material/core';
-import { IntentionActionPointerRestDto } from '../../service/dto/intention-action-pointer-rest.dto';
+import { IntentionActionPointerDto } from '../../service/persistence/dto/intention-action-pointer.dto';
 import { IntentionApiService } from '../../service/intention-api.service';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-inspector-installs',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,
@@ -43,10 +42,10 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrls: ['./inspector-installs.component.scss'],
 })
 export class InspectorInstallsComponent implements OnInit, OnChanges {
-  @Input() pointers!: IntentionActionPointerRestDto[] | undefined;
+  @Input() pointers!: IntentionActionPointerDto[] | undefined;
 
-  pointer$ = new Subject<IntentionActionPointerRestDto>();
-  current: IntentionActionPointerRestDto | undefined;
+  pointer$ = new Subject<IntentionActionPointerDto>();
+  current: IntentionActionPointerDto | undefined;
 
   constructor(
     private readonly router: Router,

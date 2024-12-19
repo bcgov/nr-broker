@@ -18,17 +18,16 @@ import {
 } from '@angular/forms';
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
-import { CollectionFieldConfigMap } from '../../service/dto/collection-config-rest.dto';
+import { CollectionFieldConfigMap } from '../../service/persistence/dto/collection-config.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
 import { uniqueNameValidator } from './unique-name.directive';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionDtoRestUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
   styleUrls: ['./vertex-form-builder.component.scss'],
-  standalone: true,
   imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
@@ -97,7 +96,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         if (f.unique) {
           const uniqueValidator = uniqueNameValidator(
             this.collectionService,
-            this.collection as keyof CollectionDtoRestUnion,
+            this.collection as keyof CollectionDtoUnion,
             f.key,
             data && data.id ? data.id : null,
           );

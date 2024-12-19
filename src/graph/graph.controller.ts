@@ -25,8 +25,8 @@ import { RedisService } from '../redis/redis.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
-import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
+import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { AllowOwner } from '../allow-owner.decorator';
 import {
   CollectionDtoUnion,
@@ -199,6 +199,7 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
   editEdge(
     @Req() request: Request,
     @Param('id') id: string,
@@ -237,7 +238,9 @@ export class GraphController {
   ])
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({ transform: true, skipUndefinedProperties: true }),
+  )
   addVertex(@Req() request: Request, @Body() vertex: VertexInsertDto) {
     return this.graph.addVertex(request, vertex);
   }
@@ -282,7 +285,9 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({ transform: true, skipUndefinedProperties: true }),
+  )
   editVertex(
     @Req() request: Request,
     @Param('id') id: string,

@@ -4,8 +4,8 @@ import { CanActivateFn } from '@angular/router';
 import { postloginGuard } from './postlogin.guard';
 
 describe('postloginGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) => 
-      TestBed.runInInjectionContext(() => postloginGuard(...guardParameters));
+  const executeGuard: CanActivateFn = (...guardParameters) =>
+    TestBed.runInInjectionContext(() => postloginGuard(...guardParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

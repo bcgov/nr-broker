@@ -8,9 +8,9 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { AuditService } from '../audit/audit.service';
 import { plainToInstance } from 'class-transformer';
-import { BrokerJwtDto } from './broker-jwt.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
+import { BrokerJwtDto } from './broker-jwt.dto';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.

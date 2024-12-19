@@ -20,17 +20,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 
 @Component({
   selector: 'app-vertex-dialog',
   templateUrl: './vertex-dialog.component.html',
   styleUrls: ['./vertex-dialog.component.scss'],
-  standalone: true,
   imports: [
     FormsModule,
     MatButtonModule,
@@ -45,8 +44,8 @@ import { CONFIG_MAP } from '../../app-initialize.factory';
   ],
 })
 export class VertexDialogComponent implements OnInit {
-  collectionControl = new FormControl<string | CollectionConfigRestDto>('');
-  configs!: CollectionConfigRestDto[];
+  collectionControl = new FormControl<string | CollectionConfigDto>('');
+  configs!: CollectionConfigDto[];
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
@@ -59,7 +58,7 @@ export class VertexDialogComponent implements OnInit {
     public readonly data: {
       collection?: string;
       data?: any;
-      vertex?: VertexRestDto;
+      vertex?: VertexDto;
     },
     public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
     private readonly graphApi: GraphApiService,
@@ -132,7 +131,7 @@ export class VertexDialogComponent implements OnInit {
     return !this.formComponent?.form?.valid;
   }
 
-  isCollectionConfig(cc: any): cc is CollectionConfigRestDto {
+  isCollectionConfig(cc: any): cc is CollectionConfigDto {
     return cc.fields !== undefined;
   }
 }

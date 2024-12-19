@@ -1,12 +1,13 @@
-import { ConnectionConfigDto } from '../dto/connection-config.dto';
+import { ConnectionConfigEntity } from '../entity/connection-config.entity';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
-import { JwtRegistryDto } from '../dto/jwt-registry.dto';
-import { PreferenceRestDto } from '../dto/preference-rest.dto';
+import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { PreferenceDto } from '../dto/preference.dto';
+import { PreferenceEntity } from '../entity/preference.entity';
+import { JwtDto } from '../dto/jwt.dto';
 
 export abstract class SystemRepository {
-  public abstract jwtMatchesAllowed(jwt: any): Promise<boolean>;
-  public abstract jwtMatchesBlocked(jwt: any): Promise<boolean>;
+  public abstract jwtMatchesAllowed(jwt: JwtDto): Promise<boolean>;
+  public abstract jwtMatchesBlocked(jwt: JwtDto): Promise<boolean>;
   public abstract addJwtToRegister(
     accountId: string,
     payload: any,
@@ -14,25 +15,25 @@ export abstract class SystemRepository {
   ): Promise<boolean>;
   public abstract getRegisteryJwts(
     accountId: string,
-  ): Promise<JwtRegistryDto[]>;
+  ): Promise<JwtRegistryEntity[]>;
   public abstract getRegisteryJwtByClaimJti(
     jti: string,
-  ): Promise<JwtRegistryDto>;
+  ): Promise<JwtRegistryEntity>;
   public abstract findExpiredRegistryJwts(
     currentTime: number,
-  ): Promise<JwtRegistryDto[]>;
-  public abstract deleteRegistryJwt(jwt: JwtRegistryDto): Promise<boolean>;
+  ): Promise<JwtRegistryEntity[]>;
+  public abstract deleteRegistryJwt(jwt: JwtRegistryEntity): Promise<boolean>;
   public abstract groupRegistryByAccountId(): Promise<
     GroupRegistryByAccountDto[]
   >;
   public abstract blockJwtByJti(jti: string): Promise<boolean>;
-  public abstract getPreferences(guid: string): Promise<PreferenceDto>;
+  public abstract getPreferences(guid: string): Promise<PreferenceEntity>;
   public abstract setPreferences(
     guid: string,
-    preference: PreferenceRestDto,
+    preference: PreferenceDto,
   ): Promise<boolean>;
 
-  public abstract getConnectionConfigs(): Promise<ConnectionConfigDto[]>;
+  public abstract getConnectionConfigs(): Promise<ConnectionConfigEntity[]>;
   public abstract generateUserAliasRequestState(
     accountId: string,
     domain: string,

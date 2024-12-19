@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { get } from 'radash';
+import get from 'lodash.get';
 import {
   ALLOW_OWNER_METADATA_KEY,
   AllowOwnerArgs,

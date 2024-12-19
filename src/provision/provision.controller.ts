@@ -28,8 +28,8 @@ export class ProvisionController {
   async provisionIntentionSecretId(@Req() request: ActionGuardRequest) {
     return this.provisionService.generateSecretId(
       request,
-      request.brokerIntentionDto,
-      request.brokerActionDto,
+      request.brokerIntention,
+      request.brokerAction,
     );
   }
 
@@ -42,8 +42,8 @@ export class ProvisionController {
   async provisionIntentionToken(@Req() request: ActionGuardRequest) {
     const roleHeader = request.headers[HEADER_VAULT_ROLE_ID];
     const roleId = typeof roleHeader === 'string' ? roleHeader : roleHeader[0];
-    const intentionDto = request.brokerIntentionDto;
-    const actionDto = request.brokerActionDto;
+    const intentionDto = request.brokerIntention;
+    const actionDto = request.brokerAction;
     return this.provisionService.generateToken(
       request,
       intentionDto,

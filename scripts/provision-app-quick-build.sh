@@ -4,7 +4,7 @@
 cd "$this_dir"
 
 PACKAGE_BUILD_VERSION=$(git rev-parse --verify HEAD)
-PACKAGE_VERSION="12.0.3"
+PACKAGE_VERSION="19.1.4"
 sha256=($(echo $RANDOM $RANDOM $RANDOM | shasum -a 256))
 
 echo "===> Intention open"
@@ -39,10 +39,13 @@ echo "===> ..."
 echo "===> Build - Success!"
 # Patch action with build info
 ACTIONS_BUILD_TOKEN=$(echo $RESPONSE | jq -r '.actions.build.token')
+PATCH_JSON_STR='{"package":{"checksum": "sha256:'$sha256'", "size": '$RANDOM', "type": "zip" }}'
+echo "===> Patch"
+echo $PATCH_JSON_STR | jq '.'
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/action/patch \
         -H 'Content-Type: application/json' \
         -H 'X-Broker-Token: '"$ACTIONS_BUILD_TOKEN"'' \
-        -d '{"package":{"checksum": "sha256:'$sha256'", "size": '$RANDOM', "type": "zip" }}' \
+        -d ''"$PATCH_JSON_STR"'' \
     )
 echo $RESPONSE | jq '.'
 if [ "$(echo $RESPONSE | jq '.error')" != "null" ]; then

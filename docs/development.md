@@ -132,6 +132,8 @@ If Kinesis and AWS access is not setup then some APIs will return a 503 (service
 
 ### Local MongoDB Disconnects
 
+Note: The latest versions of Podman seems to have resolved this.
+
 The connection to MongoDB may time out if your machine goes to sleep. The easiest way to recover is to stop the backend, restart the containers and rerun the vault setup. The provided restart script will do the container and setup steps for you.
 
 ```bash
@@ -203,6 +205,10 @@ To locally setup a GitHub App syncing, set the values GITHUB_SYNC_CLIENT_ID and 
 ## Setup User Alias services
 
 Broker can be setup to allow users to alias their identity in other identity providers to their account.
+
+## Setup Collection Sync from OpenSearch
+
+Broker can synchronize collections with unique names from an OpenSearch index. See: [OpenSearch Integration](./operations_opensearch.md)
 
 ### GitHub Alias
 

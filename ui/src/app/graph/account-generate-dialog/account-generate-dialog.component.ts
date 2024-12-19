@@ -18,7 +18,6 @@ interface ExpiryDay {
 
 @Component({
   selector: 'app-account-generate-dialog',
-  standalone: true,
   imports: [
     ClipboardModule,
     FormsModule,

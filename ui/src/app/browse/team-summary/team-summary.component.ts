@@ -1,19 +1,17 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
 @Component({
   selector: 'app-team-summary',
-  standalone: true,
-  imports: [CommonModule, InspectorTeamComponent, MatTableModule],
+  imports: [CommonModule, MatTableModule],
   templateUrl: './team-summary.component.html',
   styleUrl: './team-summary.component.scss',
 })
 export class TeamSummaryComponent implements OnInit, OnChanges {
   @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedRestCombo[];
+  @Input() upstream!: GraphDirectedCombo[];
   propDisplayedColumns: string[] = ['key', 'value'];
 
   public userData: { [key: string]: number } = {};

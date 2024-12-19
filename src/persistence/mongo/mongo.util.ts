@@ -1,13 +1,17 @@
-import { DataSource, MongoRepository, ObjectId } from 'typeorm';
-import { BrokerAccountDto } from '../dto/broker-account.dto';
-import { EnvironmentDto } from '../dto/environment.dto';
-import { ProjectDto } from '../dto/project.dto';
-import { ServerDto } from '../dto/server.dto';
-import { ServiceInstanceDto } from '../dto/service-instance.dto';
-import { ServiceDto } from '../dto/service.dto';
-import { UserDto } from '../dto/user.dto';
-import { TeamDto } from '../dto/team.dto';
-import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { EnvironmentEntity } from '../entity/environment.entity';
+import { ProjectEntity } from '../entity/project.entity';
+import { ServerEntity } from '../entity/server.entity';
+import { ServiceInstanceEntity } from '../entity/service-instance.entity';
+import { ServiceEntity } from '../entity/service.entity';
+import { UserEntity } from '../entity/user.entity';
+import { TeamEntity } from '../entity/team.entity';
+import {
+  MongoEntityManager,
+  MongoEntityRepository,
+  ObjectId,
+} from '@mikro-orm/mongodb';
+import { CollectionEntityUnion } from '../entity/collection-entity-union.type';
 
 export function getMongoDbConnectionUrl() {
   return process.env.MONGODB_URL.replace(
@@ -17,41 +21,44 @@ export function getMongoDbConnectionUrl() {
 }
 
 export function getRepositoryFromCollectionName<
-  T extends keyof CollectionDtoUnion,
->(dataSource: DataSource, name: T): MongoRepository<CollectionDtoUnion[T]> {
+  T extends keyof CollectionEntityUnion,
+>(
+  dataSource: MongoEntityManager,
+  name: T,
+): MongoEntityRepository<CollectionEntityUnion[T]> {
   switch (name) {
     case 'brokerAccount':
-      return dataSource.getMongoRepository(BrokerAccountDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        BrokerAccountEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'environment':
-      return dataSource.getMongoRepository(EnvironmentDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        EnvironmentEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'project':
-      return dataSource.getMongoRepository(ProjectDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        ProjectEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'server':
-      return dataSource.getMongoRepository(ServerDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        ServerEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'serviceInstance':
-      return dataSource.getMongoRepository(
-        ServiceInstanceDto,
-      ) as MongoRepository<CollectionDtoUnion[T]>;
+      return dataSource.getRepository(
+        ServiceInstanceEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'service':
-      return dataSource.getMongoRepository(ServiceDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        ServiceEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'team':
-      return dataSource.getMongoRepository(TeamDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        TeamEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'user':
-      return dataSource.getMongoRepository(UserDto) as MongoRepository<
-        CollectionDtoUnion[T]
-      >;
+      return dataSource.getRepository(
+        UserEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     default:
       // If this is an error then not all collection types are above
       // eslint-disable-next-line no-case-declarations

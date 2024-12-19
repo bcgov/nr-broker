@@ -1,19 +1,18 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
-import { BrokerAccountRestDto } from '../../service/dto/broker-account-rest.dto';
+import { CollectionSearchResult } from '../../service/collection/dto/collection-search-result.dto';
+import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
 import { CommonModule } from '@angular/common';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { TeamRestDto } from '../../service/dto/team-rest.dto';
+import { TeamDto } from '../../service/persistence/dto/team.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-team-accounts',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,
@@ -28,9 +27,9 @@ export class TeamAccountsComponent implements OnInit {
   @Input() teamVertex!: string;
   @Input() hasSudo!: boolean;
   @Input() hasUpdate!: boolean;
-  @Input() config!: CollectionConfigRestDto;
+  @Input() config!: CollectionConfigDto;
 
-  accountSearch: CollectionSearchResult<BrokerAccountRestDto> = {
+  accountSearch: CollectionSearchResult<BrokerAccountDto> = {
     data: [],
     meta: {
       total: 0,
@@ -54,7 +53,7 @@ export class TeamAccountsComponent implements OnInit {
       });
   }
 
-  openInGraph(elem: TeamRestDto) {
+  openInGraph(elem: TeamDto) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
   }
 }

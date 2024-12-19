@@ -25,18 +25,17 @@ import {
   switchMap,
 } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
-import { VertexSearchDto } from '../../service/dto/vertex-rest.dto';
+import { VertexSearchDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { CollectionEdgeConfig } from '../../service/dto/collection-config-rest.dto';
-import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
+import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
+import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-member-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -75,7 +74,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     public readonly dialogRef: MatDialogRef<MemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA)
     public readonly data: { vertex: string; name: string },
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
   ) {}
 

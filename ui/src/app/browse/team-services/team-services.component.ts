@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CollectionConfigInstanceRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +12,6 @@ import { TeamServiceRequestComponent } from '../../team/team-service-request/tea
 
 @Component({
   selector: 'app-team-services',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,
@@ -31,8 +30,8 @@ export class TeamServicesComponent {
 
   propDisplayedColumns: string[] = ['key', 'value'];
 
-  activeServices: CollectionConfigInstanceRestDto[] = [];
-  requestServices: CollectionConfigInstanceRestDto[] = [];
+  activeServices: CollectionConfigInstanceDto[] = [];
+  requestServices: CollectionConfigInstanceDto[] = [];
   serviceCount = 0;
 
   constructor(private readonly graphApi: GraphApiService) {}

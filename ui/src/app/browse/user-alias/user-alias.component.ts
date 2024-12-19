@@ -4,11 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { SystemApiService } from '../../service/system-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { HealthStatusService } from '../../service/health-status.service';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-user-alias',
-  standalone: true,
   imports: [CommonModule, MatButtonModule],
   templateUrl: './user-alias.component.html',
   styleUrl: './user-alias.component.scss',
@@ -21,7 +20,7 @@ export class UserAliasComponent implements OnChanges {
   constructor(
     private readonly systemApi: SystemApiService,
     public readonly healthStatus: HealthStatusService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnChanges(): void {

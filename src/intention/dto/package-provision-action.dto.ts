@@ -1,16 +1,19 @@
 import { Equals, IsIn } from 'class-validator';
-import { Entity, Column } from 'typeorm';
 import { ACTION_PROVISION_APPROLE_SECRET_ID } from '../../constants';
 import { ActionDto } from './action.dto';
 
-@Entity()
+export const PACKAGE_PROVISION_PROVISION_NAMES = [
+  ACTION_PROVISION_APPROLE_SECRET_ID,
+];
+export type PackageProvisionProvisionName =
+  (typeof PACKAGE_PROVISION_PROVISION_NAMES)[number];
+
 export class PackageProvisionActionDto extends ActionDto {
   @Equals('package-provision')
   action: 'package-provision';
 
-  @IsIn([ACTION_PROVISION_APPROLE_SECRET_ID], {
+  @IsIn(PACKAGE_PROVISION_PROVISION_NAMES, {
     each: true,
   })
-  @Column()
-  provision: string[];
+  provision: PackageProvisionProvisionName[];
 }

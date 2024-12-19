@@ -26,24 +26,22 @@ import {
   InspectorInstanceDialogReturnDao,
 } from '../inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceRestDto } from '../../service/dto/service-rest.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { PermissionService } from '../../service/permission.service';
-import { VertexRestDto } from '../../service/dto/vertex-rest.dto';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
-import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-inspector-instances',
-  standalone: true,
   imports: [
     MatButtonModule,
     MatDividerModule,
     MatIconModule,
     MatTableModule,
     InspectorInstallsComponent,
-    InspectorInstanceDialogComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
@@ -60,9 +58,9 @@ import { UserSelfRestDto } from '../../service/dto/user-rest.dto';
   styleUrl: './inspector-instances.component.scss',
 })
 export class InspectorInstancesComponent implements OnChanges {
-  @Input() vertex!: VertexRestDto;
-  @Input() vertices!: GraphDirectedRestCombo[];
-  @Input() service!: ServiceRestDto;
+  @Input() vertex!: VertexDto;
+  @Input() vertices!: GraphDirectedCombo[];
+  @Input() service!: ServiceDto;
   @Input() details!: any;
   data: any;
   tableData: any[] = [];
@@ -81,7 +79,7 @@ export class InspectorInstancesComponent implements OnChanges {
     public readonly permission: PermissionService,
     private readonly dialog: MatDialog,
     private readonly graphApi: GraphApiService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {

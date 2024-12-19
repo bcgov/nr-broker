@@ -5,16 +5,17 @@ import os from 'os';
 import snakecaseKeys from 'snakecase-keys';
 
 import { AuditStreamerService } from './audit-streamer.service';
-import { ActionDto } from '../intention/dto/action.dto';
-import { IntentionDto } from '../intention/dto/intention.dto';
-import { UserDto } from '../intention/dto/user.dto';
-import { EdgeDto } from '../persistence/dto/edge.dto';
-import { EdgeInsertDto } from '../persistence/dto/edge-rest.dto';
-import { VertexInsertDto } from '../persistence/dto/vertex-rest.dto';
-import { VertexDto } from '../persistence/dto/vertex.dto';
+import { EdgeEntity } from '../persistence/entity/edge.entity';
+import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { UserRolesDto } from '../collection/dto/user-roles.dto';
 import { ActionError } from '../intention/action.error';
-import { ArtifactDto } from '../intention/dto/artifact.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
+import { UserEmbeddable } from '../intention/entity/user.embeddable';
+import { APP_ENVIRONMENT } from '../constants';
 
 const hostInfo = {
   host: {
@@ -61,7 +62,7 @@ export class AuditService {
    */
   public recordIntentionOpen(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     success: boolean,
     exception: HttpException | null,
   ) {
@@ -109,7 +110,7 @@ export class AuditService {
    */
   public recordActionAuthorization(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     actionFailures: ActionError[],
   ) {
     const now = new Date();
@@ -134,7 +135,7 @@ export class AuditService {
         },
       ])
         .pipe(
-          map(this.addActionFunc(action)),
+          map(this.addActionFunc(intention, action)),
           map(this.addEcsFunc),
           map(
             this.addErrorFunc(
@@ -168,7 +169,7 @@ export class AuditService {
    */
   public recordIntentionClose(
     req: any,
-    intention: IntentionDto,
+    intention: IntentionEntity,
     reason: string,
   ) {
     const now = new Date();
@@ -217,8 +218,8 @@ export class AuditService {
    */
   public recordIntentionActionLifecycle(
     req: any,
-    intention: IntentionDto,
-    action: ActionDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     type: 'start' | 'end',
   ) {
     const now = new Date();
@@ -240,7 +241,7 @@ export class AuditService {
       }),
     ])
       .pipe(
-        map(this.addActionFunc(action)),
+        map(this.addActionFunc(intention, action)),
         map(this.addEcsFunc),
         map(this.addHostFunc),
         map(this.addLabelsFunc),
@@ -263,11 +264,11 @@ export class AuditService {
    */
   public recordIntentionActionUsage(
     req: any,
-    intention: IntentionDto,
-    action: ActionDto,
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
     assignObj: any,
     exception: HttpException | null = null,
-    artifact: ArtifactDto | null = null,
+    artifact: ArtifactEmbeddable | null = null,
   ) {
     const now = new Date();
     from([
@@ -281,7 +282,7 @@ export class AuditService {
       }),
     ])
       .pipe(
-        map(this.addActionFunc(action, artifact)),
+        map(this.addActionFunc(intention, action, artifact)),
         map(this.addEcsFunc),
         map(this.addErrorFunc(exception)),
         map(this.addHostFunc),
@@ -342,7 +343,12 @@ export class AuditService {
     user: any,
     outcome: 'success' | 'failure' | 'unknown',
     set: 'vertex' | 'edge',
-    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
+    graphObj:
+      | string
+      | VertexEntity
+      | VertexInsertDto
+      | EdgeEntity
+      | EdgeInsertDto,
   ) {
     from([
       {
@@ -599,7 +605,11 @@ export class AuditService {
    * @param action The action DTO
    * @returns Function to manipulate the ECS document
    */
-  private addActionFunc(action: ActionDto, artifact: ArtifactDto = undefined) {
+  private addActionFunc(
+    intention: IntentionEntity,
+    action: ActionEmbeddable,
+    artifact: ArtifactEmbeddable = undefined,
+  ) {
     return (ecsObj: any) => {
       return merge(
         ecsObj,
@@ -637,7 +647,7 @@ export class AuditService {
             id: action.trace.hash,
           },
           transaction: {
-            id: action.transaction.hash,
+            id: intention.transaction.hash,
           },
         }),
       );
@@ -690,7 +700,12 @@ export class AuditService {
    */
   private addGraphObjectFunc(
     set: 'vertex' | 'edge',
-    graphObj: string | VertexDto | VertexInsertDto | EdgeDto | EdgeInsertDto,
+    graphObj:
+      | string
+      | VertexEntity
+      | VertexInsertDto
+      | EdgeEntity
+      | EdgeInsertDto,
   ) {
     if (!graphObj) {
       return (ecsObj: any) => ecsObj;
@@ -705,13 +720,13 @@ export class AuditService {
         });
       };
     } else if (
-      graphObj instanceof VertexDto ||
+      graphObj instanceof VertexEntity ||
       graphObj instanceof VertexInsertDto
     ) {
       return (ecsObj: any) => {
         return merge(ecsObj, {
           graph: {
-            ...(graphObj instanceof VertexDto
+            ...(graphObj instanceof VertexEntity
               ? {
                   id: graphObj.id.toString(),
                   name: graphObj.name,
@@ -731,7 +746,7 @@ export class AuditService {
       return (ecsObj: any) => {
         return merge(ecsObj, {
           graph: {
-            ...(graphObj instanceof EdgeDto
+            ...(graphObj instanceof EdgeEntity
               ? {
                   id: graphObj.id.toString(),
                 }
@@ -876,9 +891,7 @@ export class AuditService {
     return merge(ecsObj, {
       service: {
         name: 'nr-broker-backend',
-        environment: process.env.APP_ENVIRONMENT
-          ? process.env.APP_ENVIRONMENT
-          : 'unknown',
+        environment: APP_ENVIRONMENT ?? 'unknown',
       },
     });
   }
@@ -940,7 +953,7 @@ export class AuditService {
    * @param user The user
    * @returns Function to manipulate the ECS document
    */
-  private addUserFunc(user: UserDto | null) {
+  private addUserFunc(user: UserEmbeddable | null) {
     if (!user) {
       return (ecsObj: any) => ecsObj;
     }

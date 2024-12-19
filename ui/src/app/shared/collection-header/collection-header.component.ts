@@ -11,15 +11,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigRestDto } from '../../service/dto/collection-config-rest.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { GraphDirectedRestCombo } from '../../service/dto/collection-combo-rest.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 
 @Component({
   selector: 'app-collection-header',
-  standalone: true,
   imports: [CommonModule, MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',
@@ -29,10 +28,10 @@ export class CollectionHeaderComponent implements OnChanges {
   @Input() name!: string;
   @Input() screenSize!: string;
   @Input() backSteps = 1;
-  @Input() upstream: GraphDirectedRestCombo[] | undefined = undefined;
+  @Input() upstream: GraphDirectedCombo[] | undefined = undefined;
   parentName = '';
 
-  config: CollectionConfigRestDto | undefined;
+  config: CollectionConfigDto | undefined;
 
   constructor(
     private readonly router: Router,
@@ -43,7 +42,7 @@ export class CollectionHeaderComponent implements OnChanges {
   ngOnInit(): void {
     this.parentName = '';
     this.config = this.configMap[this.collection];
-    if (this.config.parent?.edgeName && this.upstream) {
+    if (this.config?.parent?.edgeName && this.upstream) {
       for (const upstream of this.upstream) {
         if (upstream.edge.name === this.config.parent.edgeName) {
           this.parentName = upstream.vertex.name;

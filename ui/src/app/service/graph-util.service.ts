@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { CollectionConfigRestDto } from './dto/collection-config-rest.dto';
+import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
 import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
-import { EdgeRestDto } from './dto/edge-rest.dto';
+import { EdgeDto } from './persistence/dto/edge.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -10,9 +10,7 @@ import { EdgeRestDto } from './dto/edge-rest.dto';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
-  static configArrToMap(
-    configArr: CollectionConfigRestDto[],
-  ): CollectionConfigMap {
+  static configArrToMap(configArr: CollectionConfigDto[]): CollectionConfigMap {
     return configArr.reduce((previousValue, currentValue) => {
       previousValue[currentValue.collection] = currentValue;
       return previousValue;
@@ -20,7 +18,7 @@ export class GraphUtilService {
   }
 
   static configArrToSrcTarMap(
-    configArr: CollectionConfigRestDto[],
+    configArr: CollectionConfigDto[],
     configMap: CollectionConfigMap,
   ): CollectionEdgeConfigMap {
     return configArr.reduce((previousValue, currentValue) => {
@@ -33,7 +31,7 @@ export class GraphUtilService {
     }, {} as CollectionEdgeConfigMap);
   }
 
-  edgeToMapString(e: Pick<EdgeRestDto, 'is' | 'it' | 'name'>) {
+  edgeToMapString(e: Pick<EdgeDto, 'is' | 'it' | 'name'>) {
     return `${e.is}>${e.it}:${e.name}`;
   }
 
@@ -68,7 +66,7 @@ export class GraphUtilService {
     );
   }
 
-  extractVertexData(config: CollectionConfigRestDto, data: any) {
+  extractVertexData(config: CollectionConfigDto, data: any) {
     const vertexData = {
       ...data,
     };

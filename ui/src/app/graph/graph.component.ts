@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { CommonModule } from '@angular/common';
 import {
   BehaviorSubject,
   combineLatest,
@@ -32,26 +33,24 @@ import {
   CONFIG_MAP,
   CURRENT_USER,
 } from '../app-initialize.factory';
-import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
+import { GraphDataResponseDto } from '../service/persistence/dto/graph-data.dto';
 import {
-  CollectionConfigRestDto,
+  CollectionConfigDto,
   CollectionEdgeConfig,
-} from '../service/dto/collection-config-rest.dto';
+} from '../service/persistence/dto/collection-config.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
-import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
-import { GraphEventRestDto } from '../service/dto/graph-event-rest.dto';
-import { UserPermissionRestDto } from '../service/dto/user-permission-rest.dto';
+import { GraphEventDto } from '../service/persistence/dto/graph-event.dto';
+import { UserPermissionDto } from '../service/persistence/dto/user-permission.dto';
 import { PermissionService } from '../service/permission.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { UserSelfRestDto } from '../service/dto/user-rest.dto';
+import { UserSelfDto } from '../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.scss'],
-  standalone: true,
   imports: [
     MatButtonModule,
     MatIconModule,
@@ -81,8 +80,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   constructor(
     public readonly permission: PermissionService,
     public readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfRestDto,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigRestDto[],
+    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
     @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
     private readonly dialog: MatDialog,
     private readonly route: ActivatedRoute,
@@ -158,10 +157,10 @@ export class GraphComponent implements OnInit, OnDestroy {
           {
             data: GraphDataResponseDto;
             connected: string[];
-            es: GraphEventRestDto | null;
+            es: GraphEventDto | null;
           },
           showFilter: 'connected' | 'all',
-          UserPermissionRestDto,
+          UserPermissionDto,
         ]) => {
           // console.log(data);
           // console.log(config);
@@ -422,7 +421,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   isEdgeVisible(
-    colllectionConfig: CollectionConfigRestDto,
+    colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ): boolean {
     if (!this.configMap) {
@@ -441,7 +440,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   toggleEdge(
-    colllectionConfig: CollectionConfigRestDto,
+    colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ) {
     if (!this.configMap) {

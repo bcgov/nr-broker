@@ -13,16 +13,15 @@ import { combineLatest, Subject, takeUntil } from 'rxjs';
 
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildRestDto } from '../../service/dto/package-build-rest.dto';
+import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
 import { FilesizePipe } from '../../util/filesize.pipe';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
 
 @Component({
   selector: 'app-service-build-details',
-  standalone: true,
   imports: [
     CommonModule,
     ClipboardModule,
@@ -58,7 +57,7 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   ]);
 
   loading = true;
-  data: PackageBuildRestDto | undefined;
+  data: PackageBuildDto | undefined;
 
   private ngUnsubscribe: Subject<any> = new Subject();
 

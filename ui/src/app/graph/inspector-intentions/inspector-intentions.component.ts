@@ -10,7 +10,6 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
 
 @Component({
   selector: 'app-inspector-intentions',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,

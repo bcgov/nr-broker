@@ -31,7 +31,6 @@ import { HistoryTableComponent } from '../history-table/history-table.component'
 
 @Component({
   selector: 'app-history',
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,

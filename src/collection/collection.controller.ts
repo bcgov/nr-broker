@@ -23,6 +23,7 @@ import {
 } from 'express';
 import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
+import get from 'lodash.get';
 import {
   OAUTH2_CLIENT_MAP_GUID,
   REDIS_PUBSUB,
@@ -39,7 +40,6 @@ import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
-import { get } from 'radash';
 import { UserCollectionService } from './user-collection.service';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
@@ -47,6 +47,7 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { ExpiryQuery } from './dto/expiry-query.dto';
 import { RedisService } from '../redis/redis.service';
+import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 
 @Controller({
   path: 'collection',
@@ -60,12 +61,18 @@ export class CollectionController {
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
+  /**
+   * The set of tags for this collection
+   */
   @Get(':collection/tags')
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionTags(@Param('collection') collection: string) {
     return this.service.getCollectionTags(this.parseCollectionApi(collection));
   }
 
+  /**
+   * Logged in user with roles
+   */
   @Get('user/self')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiOAuth2(['openid', 'profile'])
@@ -73,6 +80,9 @@ export class CollectionController {
     return await this.userCollectionService.extractUserFromRequest(req);
   }
 
+  /**
+   * Github account link return endpoint
+   */
   @Get('/user/link-github')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
@@ -86,6 +96,9 @@ export class CollectionController {
     res.redirect(`/browse/user/${user.id}`);
   }
 
+  /**
+   * Upsert user information
+   */
   @Post('user/import')
   @UseGuards(BrokerCombinedAuthGuard)
   @Roles('admin')
@@ -115,7 +128,9 @@ export class CollectionController {
   @Get('broker-account/:id/token')
   @UseGuards(BrokerOidcAuthGuard)
   async getAccounts(@Param('id') id: string) {
-    return this.accountService.getRegisteryJwts(id);
+    return this.accountService.getRegisteryJwts(id) as unknown as Promise<
+      JwtRegistryDto[]
+    >;
   }
 
   @Post('broker-account/:id/refresh')

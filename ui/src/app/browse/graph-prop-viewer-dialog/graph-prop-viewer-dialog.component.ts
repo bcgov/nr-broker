@@ -7,12 +7,11 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
-import { VertexPropDto } from '../../service/dto/vertex-rest.dto';
-import { EdgePropDto } from '../../service/dto/edge-prop.dto';
+import { VertexPropDto } from '../../service/persistence/dto/vertex.dto';
+import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
 
 @Component({
   selector: 'app-graph-prop-viewer-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,

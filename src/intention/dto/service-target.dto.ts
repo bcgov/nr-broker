@@ -1,26 +1,21 @@
 import { IsDefined, IsOptional, IsString } from 'class-validator';
-import { Entity, Column } from 'typeorm';
+import { ENVIRONMENT_NAMES } from '../entity/action.embeddable';
 
-@Entity()
 export class ServiceTargetDto {
   @IsString()
   @IsDefined()
-  @Column()
-  environment: string;
+  environment: ENVIRONMENT_NAMES;
 
   // Defaults to environment
   @IsString()
   @IsOptional()
-  @Column()
   instanceName?: string;
 
   @IsString()
   @IsDefined()
-  @Column()
   name: string;
 
   @IsString()
   @IsDefined()
-  @Column()
   project: string;
 }

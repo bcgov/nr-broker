@@ -3,18 +3,19 @@ import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
 import { TokenService } from '../token/token.service';
-import { ProjectDto } from '../persistence/dto/project.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
 import { REDIS_PUBSUB, VAULT_ADDR } from '../constants';
-import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
+import { ServiceInstanceEntity } from '../persistence/entity/service-instance.entity';
 import { ActionUtil } from '../util/action.util';
-import { CollectionConfigRestDto } from '../persistence/dto/collection-config-rest.dto';
+import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
 import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 import { RedisService } from '../redis/redis.service';
-import { IntentionActionPointerDto } from '../persistence/dto/intention-action-pointer.dto';
-import { CollectionComboRestDto } from '../persistence/dto/collection-combo-rest.dto';
+import { IntentionActionPointerEmbeddable } from '../persistence/entity/intention-action-pointer.embeddable';
+import { CollectionComboDto } from '../persistence/dto/collection-combo.dto';
+import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
+import { ProjectDto } from '../persistence/dto/project.dto';
 
 @Injectable()
 export class CollectionService {
@@ -27,21 +28,21 @@ export class CollectionService {
     private readonly redisService: RedisService,
   ) {}
 
-  public async getCollectionConfig(): Promise<CollectionConfigRestDto[]> {
+  public async getCollectionConfig(): Promise<CollectionConfigDto[]> {
     return this.collectionRepository.getCollectionConfigs() as unknown as Promise<
-      CollectionConfigRestDto[]
+      CollectionConfigDto[]
     >;
   }
 
   public async getCollectionConfigByName(
     collection: keyof CollectionDtoUnion,
-  ): Promise<CollectionConfigRestDto | null> {
+  ): Promise<CollectionConfigDto | null> {
     return this.collectionRepository.getCollectionConfigByName(
       collection,
-    ) as unknown as Promise<CollectionConfigRestDto | null>;
+    ) as unknown as Promise<CollectionConfigDto | null>;
   }
 
-  async getCollectionById<T extends keyof CollectionDtoUnion>(
+  async getCollectionById<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
   ) {
@@ -61,7 +62,7 @@ export class CollectionService {
   async getCollectionComboById<T extends keyof CollectionDtoUnion>(
     type: T,
     id: string,
-  ): Promise<CollectionComboRestDto<T>> {
+  ): Promise<CollectionComboDto<T>> {
     const collection = await this.getCollectionById(type, id);
     if (!collection) {
       throw new NotFoundException({
@@ -80,7 +81,7 @@ export class CollectionService {
       collection,
       vertex,
       ...connections,
-    } as unknown as CollectionComboRestDto<T>;
+    } as unknown as CollectionComboDto<T>;
   }
 
   async getCollectionByVertexId<T extends keyof CollectionDtoUnion>(
@@ -100,12 +101,12 @@ export class CollectionService {
     }
   }
 
-  private async processForPointers<T extends keyof CollectionDtoUnion>(
+  private async processForPointers<T extends keyof CollectionEntityUnion>(
     type: T,
-    collection: CollectionDtoUnion[T],
+    collection: CollectionEntityUnion[T],
   ) {
     if (type === 'serviceInstance') {
-      const serviceInstance = collection as ServiceInstanceDto;
+      const serviceInstance = collection as ServiceInstanceEntity;
       if (serviceInstance.action && serviceInstance.action.intention) {
         await this.joinIntention(serviceInstance.action);
       }
@@ -260,7 +261,9 @@ export class CollectionService {
   }
 
   private async joinIntention(
-    pointer: IntentionActionPointerDto[] | IntentionActionPointerDto,
+    pointer:
+      | IntentionActionPointerEmbeddable[]
+      | IntentionActionPointerEmbeddable,
   ) {
     const actionPointers = Array.isArray(pointer) ? pointer : [pointer];
     for (const actionPointer of actionPointers) {
