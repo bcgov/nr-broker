@@ -11,7 +11,7 @@ import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 
 @Embeddable()
-export class UserAliasDto {
+export class UserAliasEmbeddable {
   @Property()
   domain: string;
 
@@ -35,8 +35,8 @@ export class UserEntity extends VertexPointerEntity {
   @SerializedPrimaryKey()
   id!: string; // won't be saved in the database
 
-  @Embedded(() => UserAliasDto, { array: true, nullable: true })
-  alias?: UserAliasDto[];
+  @Embedded(() => UserAliasEmbeddable, { array: true, nullable: true })
+  alias?: UserAliasEmbeddable[];
 
   @Property()
   domain: string;
