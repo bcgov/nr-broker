@@ -487,7 +487,6 @@ export class IntentionService {
           .reduce((pv, cv) => pv.concat(cv), []),
       };
     } catch (e) {
-      console.log(e);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search arguement',
