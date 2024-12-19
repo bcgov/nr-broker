@@ -1,7 +1,12 @@
-import { PrimaryKey, Property, SerializedPrimaryKey } from '@mikro-orm/core';
+import {
+  BaseEntity,
+  PrimaryKey,
+  Property,
+  SerializedPrimaryKey,
+} from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 
-export abstract class JwtEntity {
+export abstract class JwtEntity extends BaseEntity {
   @PrimaryKey()
   @Property()
   _id: ObjectId;
