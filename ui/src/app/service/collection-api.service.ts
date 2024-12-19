@@ -4,8 +4,8 @@ import { environment } from '../../environments/environment';
 import {
   CollectionCombo,
   CollectionSearchResult,
-} from './dto/collection-search-result.dto';
-import { CollectionDtoUnion } from './dto/collection-dto-union.type';
+} from './collection/dto/collection-search-result.dto';
+import { CollectionDtoUnion } from './persistence/dto/collection-dto-union.type';
 import { GraphUtilService } from './graph-util.service';
 
 @Injectable({

@@ -1,4 +1,4 @@
-import { CollectionNames } from './service/dto/collection-dto-union.type';
+import { CollectionNames } from './service/persistence/dto/collection-dto-union.type';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export interface PreferenceDto {

@@ -2,11 +2,11 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import {
   CollectionDtoUnion,
   CollectionNames,
-} from '../../service/dto/collection-dto-union.type';
+} from '../../service/persistence/dto/collection-dto-union.type';
 import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspector-vertex-field.component';
 
 @Component({

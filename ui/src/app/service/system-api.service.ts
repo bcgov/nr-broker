@@ -4,8 +4,11 @@ import { filter, finalize, map, Observable, share } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
 
 import { environment } from '../../environments/environment';
-import { JwtRegistryDto, TokenCreateDto } from './dto/jwt-registry.dto';
-import { ConnectionConfigDto } from './dto/connection-config.dto';
+import {
+  JwtRegistryDto,
+  TokenCreateDto,
+} from './persistence/dto/jwt-registry.dto';
+import { ConnectionConfigDto } from './persistence/dto/connection-config.dto';
 
 @Injectable({
   providedIn: 'root',

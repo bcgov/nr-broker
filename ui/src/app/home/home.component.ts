@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { SystemApiService } from '../service/system-api.service';
-import { ConnectionConfigDto } from '../service/dto/connection-config.dto';
+import { ConnectionConfigDto } from '../service/persistence/dto/connection-config.dto';
 import { PreferencesService } from '../preferences.service';
 
 @Component({

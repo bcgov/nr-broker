@@ -13,9 +13,9 @@ import { combineLatest, Subject, takeUntil } from 'rxjs';
 
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildDto } from '../../service/dto/package-build.dto';
+import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
 import { FilesizePipe } from '../../util/filesize.pipe';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';

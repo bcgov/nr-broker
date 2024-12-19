@@ -10,22 +10,22 @@ import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
 import { lastValueFrom } from 'rxjs';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
-    selector: 'app-add-team-dialog',
-    imports: [
-        MatButtonModule,
-        MatDialogModule,
-        MatDividerModule,
-        VertexFormBuilderComponent,
-    ],
-    templateUrl: './add-team-dialog.component.html',
-    styleUrl: './add-team-dialog.component.scss'
+  selector: 'app-add-team-dialog',
+  imports: [
+    MatButtonModule,
+    MatDialogModule,
+    MatDividerModule,
+    VertexFormBuilderComponent,
+  ],
+  templateUrl: './add-team-dialog.component.html',
+  styleUrl: './add-team-dialog.component.scss',
 })
 export class AddTeamDialogComponent {
   public config: CollectionConfigDto | undefined;

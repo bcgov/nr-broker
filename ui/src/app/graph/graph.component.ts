@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { CommonModule } from '@angular/common';
 import {
   BehaviorSubject,
   combineLatest,
@@ -32,34 +33,33 @@ import {
   CONFIG_MAP,
   CURRENT_USER,
 } from '../app-initialize.factory';
-import { GraphDataResponseDto } from '../service/dto/graph-data.dto';
+import { GraphDataResponseDto } from '../service/persistence/dto/graph-data.dto';
 import {
   CollectionConfigDto,
   CollectionEdgeConfig,
-} from '../service/dto/collection-config.dto';
+} from '../service/persistence/dto/collection-config.dto';
 import { InspectorComponent } from './inspector/inspector.component';
 import { PreferencesService } from '../preferences.service';
-import { CommonModule } from '@angular/common';
 import { GraphUtilService } from '../service/graph-util.service';
-import { GraphEventDto } from '../service/dto/graph-event.dto';
-import { UserPermissionDto } from '../service/dto/user-permission.dto';
+import { GraphEventDto } from '../service/persistence/dto/graph-event.dto';
+import { UserPermissionDto } from '../service/persistence/dto/user-permission.dto';
 import { PermissionService } from '../service/permission.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { UserSelfDto } from '../service/dto/user.dto';
+import { UserSelfDto } from '../service/persistence/dto/user.dto';
 
 @Component({
-    selector: 'app-graph',
-    templateUrl: './graph.component.html',
-    styleUrls: ['./graph.component.scss'],
-    imports: [
-        MatButtonModule,
-        MatIconModule,
-        MatMenuModule,
-        MatTooltipModule,
-        CommonModule,
-        EchartsComponent,
-        InspectorComponent,
-    ]
+  selector: 'app-graph',
+  templateUrl: './graph.component.html',
+  styleUrls: ['./graph.component.scss'],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    CommonModule,
+    EchartsComponent,
+    InspectorComponent,
+  ],
 })
 export class GraphComponent implements OnInit, OnDestroy {
   public data!: Observable<GraphDataConfig>;

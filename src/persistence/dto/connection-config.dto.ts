@@ -1,6 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export class ConnectionConfigRestDto {
+export class ConnectionConfigDto {
   id!: string;
   collection!: string;
   description!: string;

@@ -8,20 +8,20 @@ import {
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { CollectionConfigInstanceDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-    selector: 'app-team-service-request',
-    imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatSelectModule,
-    ],
-    templateUrl: './team-service-request.component.html',
-    styleUrl: './team-service-request.component.scss'
+  selector: 'app-team-service-request',
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+  ],
+  templateUrl: './team-service-request.component.html',
+  styleUrl: './team-service-request.component.scss',
 })
 export class TeamServiceRequestComponent {
   @Input()

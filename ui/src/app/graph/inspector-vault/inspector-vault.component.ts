@@ -6,7 +6,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import prettyMilliseconds from 'pretty-ms';
 
-import { ServiceDto } from '../../service/dto/service.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { YesNoPipe } from '../../util/yes-no.pipe';
 import { GraphApiService } from '../../service/graph-api.service';

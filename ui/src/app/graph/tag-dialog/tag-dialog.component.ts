@@ -17,21 +17,21 @@ import {
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { MatIconModule } from '@angular/material/icon';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionDtoUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
-    selector: 'app-tag-dialog',
-    imports: [
-        FormsModule,
-        MatButtonModule,
-        MatChipsModule,
-        MatDialogModule,
-        MatDividerModule,
-        MatFormFieldModule,
-        MatIconModule,
-    ],
-    templateUrl: './tag-dialog.component.html',
-    styleUrl: './tag-dialog.component.scss'
+  selector: 'app-tag-dialog',
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatIconModule,
+  ],
+  templateUrl: './tag-dialog.component.html',
+  styleUrl: './tag-dialog.component.scss',
 })
 export class TagDialogComponent {
   addOnBlur = true;

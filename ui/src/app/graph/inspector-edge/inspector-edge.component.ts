@@ -6,9 +6,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
-import { VertexDto } from '../../service/dto/vertex.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
-import { EdgeDto } from '../../service/dto/edge.dto';
+import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 
 @Component({
   selector: 'app-inspector-edge',

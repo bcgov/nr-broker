@@ -7,9 +7,9 @@ import {
   CollectionEdgeConfigMap,
 } from './service/graph.types';
 import { PreferenceDto } from './preference.dto';
-import { CollectionConfigDto } from './service/dto/collection-config.dto';
+import { CollectionConfigDto } from './service/persistence/dto/collection-config.dto';
 import { GraphUtilService } from './service/graph-util.service';
-import { UserSelfDto } from './service/dto/user.dto';
+import { UserSelfDto } from './service/persistence/dto/user.dto';
 
 let userInfo: UserSelfDto;
 let preferencesInit: PreferenceDto;

@@ -24,15 +24,15 @@ import {
   InspectorInstanceDialogReturnDao,
 } from '../../graph/inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceDto } from '../../service/dto/service.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { PermissionService } from '../../service/permission.service';
-import { VertexDto } from '../../service/dto/vertex.dto';
-import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { EnvironmentDto } from '../../service/dto/environment.dto';
+import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-service-instances',

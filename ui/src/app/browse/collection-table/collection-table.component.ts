@@ -40,22 +40,22 @@ import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { GraphApiService } from '../../service/graph-api.service';
-import { GraphTypeaheadData } from '../../service/dto/graph-typeahead-result.dto';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { GraphTypeaheadData } from '../../service/graph/dto/graph-typeahead-result.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import {
   CollectionConfigDto,
   CollectionFieldConfigMap,
-} from '../../service/dto/collection-config.dto';
+} from '../../service/persistence/dto/collection-config.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
-import { TeamDto } from '../../service/dto/team.dto';
+import { TeamDto } from '../../service/persistence/dto/team.dto';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
-import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
-import { CollectionComboDto } from '../../service/dto/collection-combo.dto';
+import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
+import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
 import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 type ShowFilter = 'connected' | 'all';
 

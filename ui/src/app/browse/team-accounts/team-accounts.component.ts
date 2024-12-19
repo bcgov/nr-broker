@@ -1,13 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionSearchResult } from '../../service/dto/collection-search-result.dto';
-import { BrokerAccountDto } from '../../service/dto/broker-account.dto';
+import { CollectionSearchResult } from '../../service/collection/dto/collection-search-result.dto';
+import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
 import { CommonModule } from '@angular/common';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { TeamDto } from '../../service/dto/team.dto';
+import { TeamDto } from '../../service/persistence/dto/team.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { MatButtonModule } from '@angular/material/button';
 

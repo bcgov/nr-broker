@@ -4,7 +4,7 @@ import { environment } from '../../environments/environment';
 import {
   PackageBuildDto,
   PackageBuildSearchResult,
-} from './dto/package-build.dto';
+} from './persistence/dto/package-build.dto';
 
 @Injectable({
   providedIn: 'root',

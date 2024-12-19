@@ -18,6 +18,10 @@ export class BrokerAccountBaseDto extends CollectionBaseDto {
 
   @IsBoolean()
   @IsDefined()
+  enableUserImport!: boolean;
+
+  @IsBoolean()
+  @IsDefined()
   requireRoleId!: boolean;
 
   @IsBoolean()

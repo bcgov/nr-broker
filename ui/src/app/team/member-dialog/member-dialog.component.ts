@@ -25,33 +25,33 @@ import {
   switchMap,
 } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
-import { VertexSearchDto } from '../../service/dto/vertex.dto';
+import { VertexSearchDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { CollectionEdgeConfig } from '../../service/dto/collection-config.dto';
-import { GraphTypeaheadResult } from '../../service/dto/graph-typeahead-result.dto';
+import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
+import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
-    selector: 'app-member-dialog',
-    imports: [
-        CommonModule,
-        FormsModule,
-        MatAutocompleteModule,
-        MatButtonModule,
-        MatDialogModule,
-        MatDividerModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatListModule,
-        MatProgressSpinnerModule,
-        MatSelectModule,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './member-dialog.component.html',
-    styleUrls: ['./member-dialog.component.scss']
+  selector: 'app-member-dialog',
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatListModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './member-dialog.component.html',
+  styleUrls: ['./member-dialog.component.scss'],
 })
 export class MemberDialogComponent implements OnInit, OnDestroy {
   edges: CollectionEdgeConfig[] | undefined;

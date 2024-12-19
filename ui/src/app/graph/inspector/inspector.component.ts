@@ -50,16 +50,16 @@ import { PermissionService } from '../../service/permission.service';
 import { InspectorConnectionsComponent } from '../inspector-connections/inspector-connections.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
-import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
-import { EdgeComboDto } from '../../service/dto/edge-combo.dto';
+import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
+import { EdgeComboDto } from '../../service/persistence/dto/edge-combo.dto';
 import { InspectorPropertiesComponent } from '../inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-timestamps.component';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { EdgeDto } from '../../service/dto/edge.dto';
-import { VertexDto } from '../../service/dto/vertex.dto';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { EdgeDto } from '../../service/persistence/dto/edge.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-inspector',

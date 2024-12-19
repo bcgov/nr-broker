@@ -14,14 +14,14 @@ import { InspectorServiceSecureComponent } from '../inspector-service-secure/ins
 import { InspectorInstancesComponent } from '../inspector-instances/inspector-instances.component';
 import { InspectorVaultComponent } from '../inspector-vault/inspector-vault.component';
 import { VertexTagsComponent } from '../vertex-tags/vertex-tags.component';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { InspectorVertexFieldsComponent } from '../inspector-vertex-fields/inspector-vertex-fields.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-inspector-vertex',

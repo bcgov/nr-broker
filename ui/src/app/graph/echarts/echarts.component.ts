@@ -22,7 +22,7 @@ import {
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 
 @Component({

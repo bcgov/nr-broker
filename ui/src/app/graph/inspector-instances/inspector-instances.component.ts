@@ -26,13 +26,13 @@ import {
   InspectorInstanceDialogReturnDao,
 } from '../inspector-instance-dialog/inspector-instance-dialog.component';
 import { GraphApiService } from '../../service/graph-api.service';
-import { ServiceDto } from '../../service/dto/service.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { InspectorInstallsComponent } from '../inspector-installs/inspector-installs.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { PermissionService } from '../../service/permission.service';
-import { VertexDto } from '../../service/dto/vertex.dto';
-import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-inspector-instances',

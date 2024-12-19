@@ -9,7 +9,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 
 export interface InspectorInstanceDialogReturnDao {
   id: string;

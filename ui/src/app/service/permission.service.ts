@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { CURRENT_USER } from '../app-initialize.factory';
-import { UserPermissionDto } from './dto/user-permission.dto';
-import { UserSelfDto } from './dto/user.dto';
+import { UserPermissionDto } from './persistence/dto/user-permission.dto';
+import { UserSelfDto } from './persistence/dto/user.dto';
 
 @Injectable({
   providedIn: 'root',

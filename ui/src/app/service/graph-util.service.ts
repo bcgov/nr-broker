@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { CollectionConfigDto } from './dto/collection-config.dto';
+import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
 import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
-import { EdgeDto } from './dto/edge.dto';
+import { EdgeDto } from './persistence/dto/edge.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -10,9 +10,7 @@ import { EdgeDto } from './dto/edge.dto';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
-  static configArrToMap(
-    configArr: CollectionConfigDto[],
-  ): CollectionConfigMap {
+  static configArrToMap(configArr: CollectionConfigDto[]): CollectionConfigMap {
     return configArr.reduce((previousValue, currentValue) => {
       previousValue[currentValue.collection] = currentValue;
       return previousValue;

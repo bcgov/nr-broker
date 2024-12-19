@@ -9,6 +9,6 @@ export class IntentionActionPointerDto {
 
   @IsString()
   @IsDefined()
-  intention: string;
+  intention!: string;
   source?: any;
 }

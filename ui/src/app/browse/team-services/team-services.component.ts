@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CollectionConfigInstanceDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';

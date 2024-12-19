@@ -11,11 +11,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 
 @Component({
   selector: 'app-collection-header',
@@ -42,7 +42,7 @@ export class CollectionHeaderComponent implements OnChanges {
   ngOnInit(): void {
     this.parentName = '';
     this.config = this.configMap[this.collection];
-    if (this.config.parent?.edgeName && this.upstream) {
+    if (this.config?.parent?.edgeName && this.upstream) {
       for (const upstream of this.upstream) {
         if (upstream.edge.name === this.config.parent.edgeName) {
           this.parentName = upstream.vertex.name;

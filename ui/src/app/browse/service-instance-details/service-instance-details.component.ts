@@ -9,9 +9,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
-import { IntentionActionPointerDto } from '../../service/dto/intention-action-pointer.dto';
+import { IntentionActionPointerDto } from '../../service/persistence/dto/intention-action-pointer.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/graph-prop-viewer-dialog.component';
 
 @Component({

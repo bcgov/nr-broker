@@ -11,12 +11,12 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { ServiceDto } from '../../service/dto/service.dto';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { InspectorServiceSecureDialogComponent } from '../inspector-service-secure-dialog/inspector-service-secure-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
     selector: 'app-inspector-service-secure',

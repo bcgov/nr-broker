@@ -1,4 +1,4 @@
-import { PackageDto } from './package.dto';
+import { PackageDto } from '../../intention/dto/package.dto';
 import { IntentionActionPointerDto } from './intention-action-pointer.dto';
 import { TimestampDto } from './timestamp.dto';
 

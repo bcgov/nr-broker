@@ -2,7 +2,7 @@ import { IsOptional, IsString } from 'class-validator';
 
 export abstract class JwtDto {
   @IsString()
-  id: string;
+  id!: string;
 
   @IsString()
   @IsOptional()

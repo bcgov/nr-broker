@@ -10,7 +10,7 @@ import {
 import {
   GraphTypeaheadData,
   GraphTypeaheadResult,
-} from '../../service/dto/graph-typeahead-result.dto';
+} from '../../service/graph/dto/graph-typeahead-result.dto';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { GraphApiService } from '../../service/graph-api.service';
 import { GraphUtilService } from '../../service/graph-util.service';

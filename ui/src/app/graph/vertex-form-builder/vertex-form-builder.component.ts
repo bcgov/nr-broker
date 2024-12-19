@@ -18,17 +18,17 @@ import {
 } from '@angular/forms';
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
-import { CollectionFieldConfigMap } from '../../service/dto/collection-config.dto';
+import { CollectionFieldConfigMap } from '../../service/persistence/dto/collection-config.dto';
 import { VertexFormFieldComponent } from '../vertex-form-field/vertex-form-field.component';
 import { uniqueNameValidator } from './unique-name.directive';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionDtoUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
-    selector: 'app-vertex-form-builder',
-    templateUrl: './vertex-form-builder.component.html',
-    styleUrls: ['./vertex-form-builder.component.scss'],
-    imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent]
+  selector: 'app-vertex-form-builder',
+  templateUrl: './vertex-form-builder.component.html',
+  styleUrls: ['./vertex-form-builder.component.scss'],
+  imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();

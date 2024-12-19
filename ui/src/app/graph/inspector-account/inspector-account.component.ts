@@ -23,8 +23,8 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 
 import { AccountGenerateDialogComponent } from '../account-generate-dialog/account-generate-dialog.component';
 import { SystemApiService } from '../../service/system-api.service';
-import { BrokerAccountDto } from '../../service/dto/broker-account.dto';
-import { JwtRegistryDto } from '../../service/dto/jwt-registry.dto';
+import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
+import { JwtRegistryDto } from '../../service/persistence/dto/jwt-registry.dto';
 import { HealthStatusService } from '../../service/health-status.service';
 
 @Component({

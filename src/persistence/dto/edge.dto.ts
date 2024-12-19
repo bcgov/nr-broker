@@ -5,9 +5,9 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { EdgePropDto } from './edge-prop.dto';
 import { TimestampDto } from './timestamp.dto';
-import { Type } from 'class-transformer';
 // Shared DTO: Copy in back-end and front-end should be identical
 
 export class EdgeInsertDto {

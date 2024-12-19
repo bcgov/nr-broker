@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { SystemApiService } from '../../service/system-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { HealthStatusService } from '../../service/health-status.service';
-import { UserSelfDto } from '../../service/dto/user.dto';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-user-alias',

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TimestampDto } from '../../service/dto/timestamp.dto';
+import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
 import { MatListModule } from '@angular/material/list';
 
 @Component({

@@ -30,7 +30,16 @@ export const CollectionDtoUnionObject = {
   team: TeamDto,
   user: UserDto,
 };
-export type CollectionDtoUnion = typeof CollectionDtoUnionObject;
+export type CollectionDtoUnion = {
+  brokerAccount: BrokerAccountDto;
+  environment: EnvironmentDto;
+  project: ProjectDto;
+  server: ServerDto;
+  serviceInstance: ServiceInstanceDto;
+  service: ServiceDto;
+  team: TeamDto;
+  user: UserDto;
+};
 
 export const CollectionBaseSubTypes = Object.entries(
   CollectionBaseDtoUnionObject,

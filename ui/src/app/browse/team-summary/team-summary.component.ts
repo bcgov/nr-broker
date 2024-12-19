@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { GraphDirectedCombo } from '../../service/dto/collection-combo.dto';
+import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 

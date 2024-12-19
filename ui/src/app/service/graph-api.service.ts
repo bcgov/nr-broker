@@ -4,23 +4,23 @@ import { Observable, filter, from, map } from 'rxjs';
 import {
   CollectionDtoUnion,
   CollectionNames,
-} from './dto/collection-dto-union.type';
+} from './persistence/dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
-import { GraphDataResponseDto } from './dto/graph-data.dto';
+import { GraphDataResponseDto } from './persistence/dto/graph-data.dto';
 import {
   CollectionConfigInstanceDto,
   CollectionConfigDto,
-} from './dto/collection-config.dto';
-import { EdgeInsertDto, EdgeDto } from './dto/edge.dto';
-import { VertexInsertDto, VertexDto } from './dto/vertex.dto';
+} from './persistence/dto/collection-config.dto';
+import { EdgeInsertDto, EdgeDto } from './persistence/dto/edge.dto';
+import { VertexInsertDto, VertexDto } from './persistence/dto/vertex.dto';
 import { GraphUtilService } from './graph-util.service';
-import { GraphTypeaheadResult } from './dto/graph-typeahead-result.dto';
-import { GraphEventDto } from './dto/graph-event.dto';
-import { UserPermissionDto } from './dto/user-permission.dto';
+import { GraphTypeaheadResult } from './graph/dto/graph-typeahead-result.dto';
+import { GraphEventDto } from './persistence/dto/graph-event.dto';
+import { UserPermissionDto } from './persistence/dto/user-permission.dto';
 import { CONFIG_ARR } from '../app-initialize.factory';
 import { SseClient } from 'ngx-sse-client';
-import { GraphUpDownDto } from './dto/graph-updown.dto';
-import { VertexPointerDto } from './dto/vertex-pointer.dto';
+import { GraphUpDownDto } from './persistence/dto/graph-updown.dto';
+import { VertexPointerDto } from './persistence/dto/vertex-pointer.dto';
 
 @Injectable({
   providedIn: 'root',

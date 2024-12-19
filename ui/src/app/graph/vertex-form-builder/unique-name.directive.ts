@@ -5,7 +5,7 @@ import {
 } from '@angular/forms';
 import { Observable, catchError, map, of } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionDtoUnion } from '../../service/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 
 /** A unique field can't reuse a value */
 export function uniqueNameValidator(

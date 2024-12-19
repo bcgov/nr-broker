@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildDto } from '../../service/dto/package-build.dto';
+import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
 import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';

@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject, Input, OnChanges, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
-import { VertexPointerDto } from '../../service/dto/vertex-pointer.dto';
+import { VertexPointerDto } from '../../service/persistence/dto/vertex-pointer.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionConfigMap } from '../../service/graph.types';
 
 @Component({

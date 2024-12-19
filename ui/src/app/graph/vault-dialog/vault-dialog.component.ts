@@ -8,26 +8,26 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { ServiceDto } from '../../service/dto/service.dto';
-import { VaultConfigDto } from '../../service/dto/vault-config.dto';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { ServiceDto } from '../../service/persistence/dto/service.dto';
+import { VaultConfigDto } from '../../service/persistence/dto/vault-config.dto';
 
 @Component({
-    selector: 'app-vault-dialog',
-    imports: [
-        FormsModule,
-        MatButtonModule,
-        MatCheckboxModule,
-        MatDialogModule,
-        MatDividerModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-    ],
-    templateUrl: './vault-dialog.component.html',
-    styleUrl: './vault-dialog.component.scss'
+  selector: 'app-vault-dialog',
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
+  templateUrl: './vault-dialog.component.html',
+  styleUrl: './vault-dialog.component.scss',
 })
 export class VaultDialogComponent implements OnInit {
   public config: {

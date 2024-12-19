@@ -33,8 +33,8 @@ import { PermissionService } from '../../service/permission.service';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
 
-import { CollectionNames } from '../../service/dto/collection-dto-union.type';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
@@ -49,10 +49,10 @@ import { TeamServicesComponent } from '../team-services/team-services.component'
 import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
-import { CollectionCombo } from '../../service/dto/collection-search-result.dto';
+import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
-import { VertexDto } from '../../service/dto/vertex.dto';
-import { EdgeDto } from '../../service/dto/edge.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';

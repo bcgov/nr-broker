@@ -5,11 +5,11 @@ import { RouterModule } from '@angular/router';
 import {
   CollectionDtoUnion,
   CollectionNames,
-} from '../../service/dto/collection-dto-union.type';
+} from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 import { CollectionConfigMap } from '../../service/graph.types';
-import { GraphUpDownDto } from '../../service/dto/graph-updown.dto';
+import { GraphUpDownDto } from '../../service/persistence/dto/graph-updown.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({

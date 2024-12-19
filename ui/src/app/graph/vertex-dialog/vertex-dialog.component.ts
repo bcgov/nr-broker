@@ -20,28 +20,28 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
-import { CollectionConfigDto } from '../../service/dto/collection-config.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
-import { VertexDto } from '../../service/dto/vertex.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CONFIG_MAP } from '../../app-initialize.factory';
 
 @Component({
-    selector: 'app-vertex-dialog',
-    templateUrl: './vertex-dialog.component.html',
-    styleUrls: ['./vertex-dialog.component.scss'],
-    imports: [
-        FormsModule,
-        MatButtonModule,
-        MatDialogModule,
-        MatDividerModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatOptionModule,
-        ReactiveFormsModule,
-        PropertyEditorComponent,
-        VertexFormBuilderComponent,
-    ]
+  selector: 'app-vertex-dialog',
+  templateUrl: './vertex-dialog.component.html',
+  styleUrls: ['./vertex-dialog.component.scss'],
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatOptionModule,
+    ReactiveFormsModule,
+    PropertyEditorComponent,
+    VertexFormBuilderComponent,
+  ],
 })
 export class VertexDialogComponent implements OnInit {
   collectionControl = new FormControl<string | CollectionConfigDto>('');

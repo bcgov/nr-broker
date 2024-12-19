@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import {
   CollectionDtoUnion,
   CollectionNames,
-} from './dto/collection-dto-union.type';
-import { VertexDto } from './dto/vertex.dto';
+} from './persistence/dto/collection-dto-union.type';
+import { VertexDto } from './persistence/dto/vertex.dto';
 import { CollectionApiService } from './collection-api.service';
 
 @Injectable({

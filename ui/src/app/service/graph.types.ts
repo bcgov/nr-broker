@@ -2,15 +2,15 @@ import {
   CollectionConfigDto,
   CollectionEdgeConfig,
   CollectionFieldConfig,
-} from './dto/collection-config.dto';
-import { CollectionNames } from './dto/collection-dto-union.type';
+} from './persistence/dto/collection-config.dto';
+import { CollectionNames } from './persistence/dto/collection-dto-union.type';
 import {
   GraphDataResponseEdgeEntity,
   GraphDataResponseDto,
   GraphDataResponseVertexEntity,
-} from './dto/graph-data.dto';
-import { UserPermissionDto } from './dto/user-permission.dto';
-import { VertexDto } from './dto/vertex.dto';
+} from './persistence/dto/graph-data.dto';
+import { UserPermissionDto } from './persistence/dto/user-permission.dto';
+import { VertexDto } from './persistence/dto/vertex.dto';
 
 export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;

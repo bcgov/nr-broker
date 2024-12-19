@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, startWith, switchMap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { HealthCheckDto } from './dto/health-check.dto';
+import { HealthCheckDto } from './health/health-check.dto';
 
 @Injectable({
   providedIn: 'root',
