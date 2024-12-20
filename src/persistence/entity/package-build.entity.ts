@@ -32,6 +32,8 @@ export class PackageBuildApprovalEntity {
 }
 
 @Entity({ tableName: 'packageBuild' })
+@Index({ options: { 'timestamps.createdAt': 1 } })
+@Index({ options: { 'timestamps.updatedAt': 1 } })
 export class PackageBuildEntity {
   @PrimaryKey()
   @Property()

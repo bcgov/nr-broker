@@ -5,6 +5,7 @@ import {
   SerializedPrimaryKey,
   Index,
   Embedded,
+  BaseEntity,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
@@ -16,7 +17,9 @@ import { TimestampEmbeddable } from './timestamp.embeddable';
 import { CollectionEntityUnion } from './collection-entity-union.type';
 
 @Entity({ tableName: 'vertex' })
-export class VertexEntity {
+@Index({ options: { 'timestamps.createdAt': 1 } })
+@Index({ options: { 'timestamps.updatedAt': 1 } })
+export class VertexEntity extends BaseEntity {
   @ApiHideProperty()
   @PrimaryKey()
   @Property()

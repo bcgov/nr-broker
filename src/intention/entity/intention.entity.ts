@@ -5,6 +5,7 @@ import {
   SerializedPrimaryKey,
   Index,
   Embedded,
+  BaseEntity,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 
@@ -26,8 +27,7 @@ import { UrlEmbeddable } from './url.embeddable';
 import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
 
 @Entity({ tableName: 'intention' })
-// @Index(['actions.transaction.hash'])
-export class IntentionEntity {
+export class IntentionEntity extends BaseEntity {
   constructor(
     actions: (
       | BackupActionEmbeddable
@@ -47,6 +47,7 @@ export class IntentionEntity {
     expiry: number,
     account: BrokerAccountEntity,
   ) {
+    super();
     this.actions = actions;
     this.event = event;
     this.jwt = jwt;

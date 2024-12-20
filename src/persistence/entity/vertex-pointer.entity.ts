@@ -1,8 +1,8 @@
-import { Property, Index } from '@mikro-orm/core';
+import { Property, Index, BaseEntity } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { ApiProperty } from '@nestjs/swagger';
 
-export abstract class VertexPointerEntity {
+export abstract class VertexPointerEntity extends BaseEntity {
   @Property()
   @ApiProperty({ type: () => String })
   @Index()

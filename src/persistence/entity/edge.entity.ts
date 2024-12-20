@@ -1,5 +1,6 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
+  BaseEntity,
   Embedded,
   Entity,
   Index,
@@ -13,7 +14,9 @@ import { TimestampEmbeddable } from './timestamp.embeddable';
 import { EdgePropEmbeddable } from './edge-prop.embeddable';
 
 @Entity({ tableName: 'edge' })
-export class EdgeEntity {
+@Index({ options: { 'timestamps.createdAt': 1 } })
+@Index({ options: { 'timestamps.updatedAt': 1 } })
+export class EdgeEntity extends BaseEntity {
   @ApiHideProperty()
   @PrimaryKey()
   @Property()

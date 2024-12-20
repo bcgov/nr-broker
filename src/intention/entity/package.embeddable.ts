@@ -1,9 +1,8 @@
 import { ObjectId } from 'mongodb';
 import { ApiProperty } from '@nestjs/swagger';
-import { Embeddable, Entity, Property } from '@mikro-orm/core';
+import { Embeddable, Property } from '@mikro-orm/core';
 import { PackageDto } from '../dto/package.dto';
 
-@Entity()
 @Embeddable()
 export class PackageEmbeddable {
   static merge(...theArgs: Array<PackageDto | PackageEmbeddable>) {
