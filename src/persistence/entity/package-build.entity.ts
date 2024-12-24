@@ -1,4 +1,5 @@
 import {
+  BaseEntity,
   Embeddable,
   Embedded,
   Entity,
@@ -34,7 +35,7 @@ export class PackageBuildApprovalEntity {
 @Entity({ tableName: 'packageBuild' })
 @Index({ options: { 'timestamps.createdAt': 1 } })
 @Index({ options: { 'timestamps.updatedAt': 1 } })
-export class PackageBuildEntity {
+export class PackageBuildEntity extends BaseEntity {
   @PrimaryKey()
   @Property()
   _id: ObjectId;
@@ -50,6 +51,7 @@ export class PackageBuildEntity {
     semvar: string,
     packageEm: PackageEmbeddable,
   ) {
+    super();
     this.service = service;
     this.name = name;
     this.source = new IntentionActionPointerEmbeddable(action, intention);
@@ -75,15 +77,15 @@ export class PackageBuildEntity {
   })
   source: IntentionActionPointerEmbeddable;
 
-  @Index()
   @Property()
+  @Index()
   service: ObjectId;
 
   @Property()
   name: string;
 
-  @Index()
   @Property()
+  @Index()
   semvar: string;
 
   @Embedded({ entity: () => PackageEmbeddable, object: true })

@@ -1,5 +1,5 @@
-import { ApiHideProperty } from '@nestjs/swagger';
 import {
+  BaseEntity,
   Entity,
   PrimaryKey,
   Property,
@@ -8,8 +8,7 @@ import {
 import { ObjectId } from 'mongodb';
 
 @Entity({ tableName: 'connectionConfig' })
-export class ConnectionConfigEntity {
-  @ApiHideProperty()
+export class ConnectionConfigEntity extends BaseEntity {
   @PrimaryKey()
   @Property()
   _id: ObjectId;

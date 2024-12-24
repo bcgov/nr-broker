@@ -7,6 +7,8 @@ import {
 } from './collection/dto/collection-search-result.dto';
 import { CollectionDtoUnion } from './persistence/dto/collection-dto-union.type';
 import { GraphUtilService } from './graph-util.service';
+import { ServiceInstanceDetailsResponseDto } from './persistence/dto/service-instance.dto';
+import { ServiceDetailsResponseDto } from './persistence/dto/service.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -114,7 +116,7 @@ export class CollectionApiService {
   }
 
   public getServiceDetails(serviceId: string) {
-    return this.http.get(
+    return this.http.get<ServiceDetailsResponseDto>(
       `${environment.apiUrl}/v1/collection/service/${serviceId}/details`,
       {
         responseType: 'json',
@@ -123,7 +125,7 @@ export class CollectionApiService {
   }
 
   public getServiceInstanceDetails(serviceInstanceId: string) {
-    return this.http.get(
+    return this.http.get<ServiceInstanceDetailsResponseDto>(
       `${environment.apiUrl}/v1/collection/service-instance/${serviceInstanceId}/details`,
       {
         responseType: 'json',

@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, filter, from, map } from 'rxjs';
+import { SseClient } from 'ngx-sse-client';
+
+import { CONFIG_ARR } from '../app-initialize.factory';
 import {
   CollectionDtoUnion,
   CollectionNames,
@@ -17,8 +20,6 @@ import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './graph/dto/graph-typeahead-result.dto';
 import { GraphEventDto } from './persistence/dto/graph-event.dto';
 import { UserPermissionDto } from './persistence/dto/user-permission.dto';
-import { CONFIG_ARR } from '../app-initialize.factory';
-import { SseClient } from 'ngx-sse-client';
 import { GraphUpDownDto } from './persistence/dto/graph-updown.dto';
 import { VertexPointerDto } from './persistence/dto/vertex-pointer.dto';
 

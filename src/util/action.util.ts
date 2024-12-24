@@ -5,15 +5,11 @@ import {
   INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS,
   INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
   VAULT_ENVIRONMENTS,
-  VAULT_PROVISIONED_ACTION_SET,
 } from '../constants';
-import {
-  ACTION_NAMES,
-  ActionDto,
-  ActionName,
-} from '../intention/dto/action.dto';
+import { ACTION_NAMES, ActionDto } from '../intention/dto/action.dto';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { VAULT_PROVISIONED_ACTION_SET } from '../intention/dto/constants.dto';
 
 export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
@@ -61,8 +57,12 @@ export class ActionUtil {
       const actionArr = action.split('#');
       if (actionArr.length === 2) {
         if (actionArr[0] !== '') {
-          if (ACTION_NAMES.includes(actionArr[0] as any)) {
-            actionOptions.action = actionArr[0] as ActionName;
+          if (
+            Object.values(ACTION_NAMES as Record<string, string>).includes(
+              actionArr[0],
+            )
+          ) {
+            actionOptions.action = actionArr[0] as ACTION_NAMES;
           } else {
             throw new BadRequestException({
               statusCode: 400,
@@ -74,9 +74,11 @@ export class ActionUtil {
         actionOptions.id = actionArr[1];
       } else if (
         actionArr.length === 1 &&
-        ACTION_NAMES.includes(actionArr[0] as any)
+        Object.values(ACTION_NAMES as Record<string, string>).includes(
+          actionArr[0],
+        )
       ) {
-        actionOptions.action = actionArr[0] as ActionName;
+        actionOptions.action = actionArr[0] as ACTION_NAMES;
       } else {
         throw new BadRequestException({
           statusCode: 400,

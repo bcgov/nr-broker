@@ -2,6 +2,7 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import {
   Embedded,
   Entity,
+  Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
@@ -9,6 +10,7 @@ import {
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 import { IntentionActionPointerEmbeddable } from './intention-action-pointer.embeddable';
+import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Entity({ tableName: 'serviceInstance' })
 export class ServiceInstanceEntity extends VertexPointerEntity {
@@ -21,6 +23,7 @@ export class ServiceInstanceEntity extends VertexPointerEntity {
   id!: string; // won't be saved in the database
 
   @Property()
+  @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
   name: string;
 
   @Property({ nullable: true })

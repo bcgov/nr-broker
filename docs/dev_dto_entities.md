@@ -6,6 +6,8 @@ Data Transfer Objects (DTOs) encapsulate data exchanged with the back-end APIs. 
 
 The path `./ui/service` contains a copy of the back-end project, stripped of all files except the DTOs.
 
+There is a script `./scripts/copy-dto.sh` that can be used to copy the dto files from the the back-end to the front-end.
+
 ## References
 
 DTOs may only import from the following:

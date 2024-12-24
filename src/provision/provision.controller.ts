@@ -1,16 +1,15 @@
 import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
-import {
-  ACTION_PROVISION_APPROLE_SECRET_ID,
-  ACTION_PROVISION_TOKEN_SELF,
-  HEADER_BROKER_TOKEN,
-  HEADER_VAULT_ROLE_ID,
-} from '../constants';
+import { ApiHeader } from '@nestjs/swagger';
+import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
 import { ProvisionService } from './provision.service';
 import { VaultRoleGuard } from './vault-role.guard';
 import { ProvisionGuard } from './provision.guard';
 import { ActionGuard } from '../intention/action.guard';
 import { ActionGuardRequest } from '../intention/action-guard-request.interface';
-import { ApiHeader } from '@nestjs/swagger';
+import {
+  ACTION_PROVISION_APPROLE_SECRET_ID,
+  ACTION_PROVISION_TOKEN_SELF,
+} from '../intention/dto/constants.dto';
 
 @Controller({
   path: 'provision',

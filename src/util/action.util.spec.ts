@@ -1,9 +1,9 @@
+import { ActionUtil } from './action.util';
+import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import {
   ACTION_PROVISION_APPROLE_SECRET_ID,
   ACTION_PROVISION_TOKEN_SELF,
-} from '../constants';
-import { ActionUtil } from './action.util';
-import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+} from '../intention/dto/constants.dto';
 
 describe('ActionUtil', () => {
   let util: ActionUtil;
