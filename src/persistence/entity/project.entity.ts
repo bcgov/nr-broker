@@ -1,5 +1,6 @@
 import {
   Entity,
+  Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
@@ -7,6 +8,7 @@ import {
 import { ObjectId } from 'mongodb';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { VertexPointerEntity } from './vertex-pointer.entity';
+import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Entity({ tableName: 'project' })
 export class ProjectEntity extends VertexPointerEntity {
@@ -25,6 +27,7 @@ export class ProjectEntity extends VertexPointerEntity {
   email?: string;
 
   @Property()
+  @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
   name: string;
 
   @Property({ nullable: true })

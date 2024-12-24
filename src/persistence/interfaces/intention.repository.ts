@@ -5,7 +5,7 @@ import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
 
 export abstract class IntentionRepository {
-  public abstract addIntention(intention: IntentionEntity): Promise<any>;
+  public abstract addIntention(intention: IntentionEntity): Promise<void>;
 
   public abstract getIntention(
     id: string | ObjectId,

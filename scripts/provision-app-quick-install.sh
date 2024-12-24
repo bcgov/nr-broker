@@ -34,6 +34,7 @@ echo "===> Install"
 echo "===> ..."
 echo "===> Install - Success!"
 
+echo "===> Patch 1"
 # Add install to action
 ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
 curl -s -X POST $BROKER_URL/v1/intention/action/patch \
@@ -41,13 +42,15 @@ curl -s -X POST $BROKER_URL/v1/intention/action/patch \
         -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
         -d '{"cloud":{"target":{"propStrategy":"replace","prop":{"port": "5000", "something": "else"}}}}'
 
-
+echo ""
+echo "===> Patch 2"
 ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
 curl -s -X POST $BROKER_URL/v1/intention/action/patch \
         -H 'Content-Type: application/json' \
         -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"'' \
         -d '{"cloud":{"target":{"propStrategy":"replace","prop":{"java_version": "8"}}}}'
 
+echo ""
 echo "===> Intention close"
 
 # Use saved intention token to close intention

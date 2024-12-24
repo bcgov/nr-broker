@@ -42,12 +42,6 @@ export const ACTION_VALIDATE_TEAM_ADMIN =
   process.env.ACTION_VALIDATE_TEAM_ADMIN ?? '';
 export const ACTION_VALIDATE_TEAM_DBA =
   process.env.ACTION_VALIDATE_TEAM_DBA ?? '';
-export const ACTION_PROVISION_TOKEN_SELF = 'token/self';
-export const ACTION_PROVISION_APPROLE_SECRET_ID = 'approle/secret-id';
-export const VAULT_PROVISIONED_ACTION_SET = new Set([
-  ACTION_PROVISION_TOKEN_SELF,
-  ACTION_PROVISION_APPROLE_SECRET_ID,
-]);
 
 export const IS_PRIMARY_NODE = process.env.HOSTNAME?.endsWith('-0') ?? false;
 
@@ -83,7 +77,6 @@ export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
 
 export const MILLISECONDS_IN_SECOND = 1000;
 export const DAYS_10_IN_SECONDS = 60 * 60 * 24 * 10;
-export const DAYS_365_IN_SECONDS = 60 * 60 * 24 * 365;
 
 export const OAUTH2_CLIENT_MAP_DOMAIN =
   process.env.OAUTH2_CLIENT_MAP_DOMAIN ?? '';

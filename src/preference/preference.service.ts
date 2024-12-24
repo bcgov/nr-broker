@@ -7,14 +7,14 @@ import { PreferenceEntity } from '../persistence/entity/preference.entity';
 export class PreferenceService {
   constructor(private readonly systemRepository: SystemRepository) {}
 
-  async getPreferences(guid: string): Promise<PreferenceDto> {
+  async getPreferences(guid: string): Promise<PreferenceEntity> {
     const pref = await this.systemRepository.getPreferences(guid);
-    return pref
-      ? pref.toRestDto()
-      : Promise.resolve(new PreferenceEntity().toRestDto());
+    return pref ?? new PreferenceEntity(guid);
   }
 
-  async setPreferences(guid: string, preference: PreferenceDto) {
-    return this.systemRepository.setPreferences(guid, preference);
+  async setPreferences(guid: string, dto: PreferenceDto) {
+    const preference = await this.getPreferences(guid);
+    preference.setFromDto(dto);
+    return this.systemRepository.setPreferences(preference);
   }
 }

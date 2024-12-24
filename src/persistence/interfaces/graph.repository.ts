@@ -1,5 +1,4 @@
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
-import { CollectionConfigInstanceDto } from '../entity/collection-config.entity';
 import { EdgeInsertDto } from '../dto/edge.dto';
 import { EdgeEntity } from '../entity/edge.entity';
 import {
@@ -19,6 +18,7 @@ import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexEntity } from '../entity/vertex.entity';
 import { GraphVertexConnections } from '../../persistence/dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
+import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 
 export abstract class GraphRepository {
   // Data for graph

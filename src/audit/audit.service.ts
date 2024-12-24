@@ -9,13 +9,13 @@ import { EdgeEntity } from '../persistence/entity/edge.entity';
 import { EdgeInsertDto } from '../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
-import { UserRolesDto } from '../collection/dto/user-roles.dto';
 import { ActionError } from '../intention/action.error';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
 import { UserEmbeddable } from '../intention/entity/user.embeddable';
 import { APP_ENVIRONMENT } from '../constants';
+import { UserUtil } from '../util/user.util';
 
 const hostInfo = {
   host: {
@@ -41,7 +41,10 @@ export class AuditService {
    * Constructs the audit service
    * @param stream The service used to persist audit logs
    */
-  constructor(private readonly stream: AuditStreamerService) {
+  constructor(
+    private readonly stream: AuditStreamerService,
+    private readonly userUtil: UserUtil,
+  ) {
     if (process.env.BROKER_AUDIT_INDEX_BROKER_AUDIT) {
       this.metadataActivity['@metadata'] = {
         index: process.env.BROKER_AUDIT_INDEX_BROKER_AUDIT,
@@ -868,7 +871,10 @@ export class AuditService {
     }
 
     return (ecsObj: any) => {
-      const loggedInUser = new UserRolesDto('', (req.user as any).userinfo);
+      const loggedInUser = this.userUtil.mapUserToUserRolesDto(
+        '',
+        (req.user as any).userinfo,
+      );
       return merge(ecsObj, {
         user: this.removeUndefined({
           domain: loggedInUser.domain,

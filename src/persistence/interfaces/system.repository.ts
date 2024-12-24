@@ -1,7 +1,6 @@
 import { ConnectionConfigEntity } from '../entity/connection-config.entity';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
 import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
-import { PreferenceDto } from '../dto/preference.dto';
 import { PreferenceEntity } from '../entity/preference.entity';
 import { JwtDto } from '../dto/jwt.dto';
 
@@ -28,10 +27,7 @@ export abstract class SystemRepository {
   >;
   public abstract blockJwtByJti(jti: string): Promise<boolean>;
   public abstract getPreferences(guid: string): Promise<PreferenceEntity>;
-  public abstract setPreferences(
-    guid: string,
-    preference: PreferenceDto,
-  ): Promise<boolean>;
+  public abstract setPreferences(preference: PreferenceEntity): Promise<void>;
 
   public abstract getConnectionConfigs(): Promise<ConnectionConfigEntity[]>;
   public abstract generateUserAliasRequestState(

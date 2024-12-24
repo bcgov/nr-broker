@@ -24,7 +24,7 @@ import { ActionError } from './action.error';
 import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
-import { ActionDto } from './dto/action.dto';
+import { ACTION_NAMES, ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
@@ -201,7 +201,7 @@ export class IntentionService {
           ENVIRONMENT_NAMES[this.computeVaultEnvironment(action, envMap)];
 
         switch (action.action) {
-          case 'backup':
+          case ACTION_NAMES.BACKUP:
             return new BackupActionEmbeddable(
               action,
               actionUser,
@@ -209,7 +209,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'database-access':
+          case ACTION_NAMES.DATABASE_ACCESS:
             return new DatabaseAccessActionEmbeddable(
               action,
               actionUser,
@@ -217,7 +217,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'package-build':
+          case ACTION_NAMES.PACKAGE_BUILD:
             return new PackageBuildActionEmbeddable(
               action,
               actionUser,
@@ -225,7 +225,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'package-configure':
+          case ACTION_NAMES.PACKAGE_CONFIGURE:
             return new PackageConfigureActionEmbeddable(
               action,
               actionUser,
@@ -233,7 +233,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'package-installation': {
+          case ACTION_NAMES.PACKAGE_INSTALLATION: {
             const packageSource = await this.sourcePackageFromBuild(
               action,
               serviceEmbed,
@@ -248,7 +248,7 @@ export class IntentionService {
               packageSource ? packageSource.source : undefined,
             );
           }
-          case 'package-provision':
+          case ACTION_NAMES.PACKAGE_PROVISION:
             return new PackageProvisionActionEmbeddable(
               action,
               actionUser,
@@ -256,7 +256,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'process-end':
+          case ACTION_NAMES.PROCESS_END:
             return new ProcessEndActionEmbeddable(
               action,
               actionUser,
@@ -264,7 +264,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'process-start':
+          case ACTION_NAMES.PROCESS_START:
             return new ProcessStartActionEmbeddable(
               action,
               actionUser,
@@ -272,7 +272,7 @@ export class IntentionService {
               vaultEnvironment,
               trace,
             );
-          case 'server-access':
+          case ACTION_NAMES.SERVER_ACCESS:
             return new ServerAccessActionEmbeddable(
               action,
               actionUser,

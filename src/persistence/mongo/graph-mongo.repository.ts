@@ -9,10 +9,8 @@ import { ObjectId } from 'mongodb';
 import { EdgeEntity } from '../entity/edge.entity';
 import { VertexEntity } from '../entity/vertex.entity';
 import { GraphRepository } from '../interfaces/graph.repository';
-import {
-  CollectionConfigEntity,
-  CollectionConfigInstanceDto,
-} from '../entity/collection-config.entity';
+import { CollectionConfigEntity } from '../entity/collection-config.entity';
+import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import { arrayIdFixer, getRepositoryFromCollectionName } from './mongo.util';
 import {
   BrokerAccountProjectMapDto,
@@ -33,7 +31,7 @@ import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import {
   CollectionEntityUnion,
-  CollectionNames,
+  CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { GraphVertexConnections } from '../../persistence/dto/collection-combo.dto';
@@ -157,7 +155,7 @@ export class GraphMongoRepository implements GraphRepository {
     collection: string,
   ): Promise<CollectionConfigEntity | null> {
     return this.collectionConfigRepository.findOne({
-      collection: collection as CollectionNames,
+      collection: collection as CollectionNameStringEnum,
     });
   }
 

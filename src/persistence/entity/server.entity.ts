@@ -1,12 +1,14 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import {
   Entity,
+  Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from '../entity/vertex-pointer.entity';
+import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Entity({ tableName: 'server' })
 export class ServerEntity extends VertexPointerEntity {
@@ -31,6 +33,7 @@ export class ServerEntity extends VertexPointerEntity {
   hostName: string;
 
   @Property()
+  @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
   name: string;
 
   @Property({ nullable: true })

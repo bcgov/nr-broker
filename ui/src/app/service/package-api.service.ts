@@ -31,7 +31,7 @@ export class PackageApiService {
   }
 
   approveBuild(id: string) {
-    return this.http.post<any>(
+    return this.http.post<boolean>(
       `${environment.apiUrl}/v1/package/${id}/approve`,
       {
         responseType: 'json',

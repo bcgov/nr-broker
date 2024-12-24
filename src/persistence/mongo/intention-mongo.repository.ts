@@ -20,7 +20,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     private readonly intentionRepository: MongoEntityRepository<IntentionEntity>,
   ) {}
 
-  public async addIntention(intention: IntentionEntity): Promise<any> {
+  public async addIntention(intention: IntentionEntity): Promise<void> {
     await this.em.persist(intention).flush();
   }
 

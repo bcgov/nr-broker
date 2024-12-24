@@ -64,6 +64,8 @@ import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component'
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { UserAliasComponent } from '../user-alias/user-alias.component';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
+import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
+import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -114,8 +116,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   public loading = true;
   public config!: CollectionConfigDto;
   public comboData!: CollectionCombo<any>;
-  public serviceDetails: any = null;
-  public serviceInstanceDetails: any = null;
+  public serviceDetails: ServiceDetailsResponseDto | null = null;
+  public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
+    null;
 
   // Permissions
   hasAdmin = false;
@@ -262,13 +265,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       if (this.collection === 'service') {
         this.collectionApi
           .getServiceDetails(this.comboData.collection.id)
-          .subscribe((data: any) => {
+          .subscribe((data) => {
             this.serviceDetails = data;
           });
       } else if (this.collection === 'serviceInstance') {
         this.collectionApi
           .getServiceInstanceDetails(this.comboData.collection.id)
-          .subscribe((data: any) => {
+          .subscribe((data) => {
             this.serviceInstanceDetails = data;
           });
       }

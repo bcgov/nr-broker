@@ -1,5 +1,7 @@
-import { ApiHideProperty } from '@nestjs/swagger';
 import {
+  BaseEntity,
+  Embeddable,
+  Embedded,
   Entity,
   Index,
   PrimaryKey,
@@ -7,15 +9,21 @@ import {
   SerializedPrimaryKey,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
-import { UserPermissionDto } from '../dto/user-permission.dto';
-import { Transform, Type } from 'class-transformer';
+
+@Embeddable()
+export class UserPermissionEmbeddable {
+  @Property()
+  name: string;
+
+  @Property()
+  index: number;
+
+  @Property()
+  permissions: string[];
+}
 
 @Entity({ tableName: 'graphPermission' })
-export class GraphPermissionEntity {
-  @ApiHideProperty()
-  @Transform((value) =>
-    value.obj.id ? new ObjectId(value.obj.id.toString()) : null,
-  )
+export class GraphPermissionEntity extends BaseEntity {
   @PrimaryKey()
   @Property()
   _id: ObjectId;
@@ -27,7 +35,6 @@ export class GraphPermissionEntity {
   @Index()
   name: string;
 
-  @Property()
-  @Type(() => UserPermissionDto)
-  data: UserPermissionDto[];
+  @Embedded({ entity: () => UserPermissionEmbeddable, array: true })
+  data: UserPermissionEmbeddable[];
 }

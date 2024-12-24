@@ -84,6 +84,11 @@ export class CollectionConfigPermissions {
   delete!: boolean;
 }
 
+export class CollectionFieldDefaultSort {
+  field!: string;
+  dir!: 1 | -1;
+}
+
 export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
@@ -93,6 +98,7 @@ export class CollectionConfigDto {
   color!: string;
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
+  fieldDefaultSort!: CollectionFieldDefaultSort;
   hint!: string;
   index!: number;
   name!: string;

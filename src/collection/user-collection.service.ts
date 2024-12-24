@@ -10,6 +10,7 @@ import { UserRolesDto } from './dto/user-roles.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
+import { UserUtil } from '../util/user.util';
 
 /**
  * Assists with user collection activities
@@ -21,6 +22,7 @@ export class UserCollectionService {
     private readonly authService: AuthService,
     private readonly githubService: GithubService,
     private readonly graphService: GraphService,
+    private readonly userUtil: UserUtil,
   ) {}
 
   async lookupUserByGuid(guid: string): Promise<UserEntity> {
@@ -45,16 +47,19 @@ export class UserCollectionService {
   }
 
   async extractUserFromRequest(req: Request): Promise<UserRolesDto> {
-    const loggedInUser = new UserRolesDto('', (req.user as any).userinfo);
+    const loggedInUser = this.userUtil.mapUserToUserRolesDto(
+      '',
+      (req.user as any).userinfo,
+    );
     const vertex = await this.upsertUser(req, loggedInUser.toUserImportDto());
     const collection = await this.collectionRepository.getCollectionByVertexId(
       'user',
       vertex.toString(),
     );
-    return new UserRolesDto(
+    return this.userUtil.mapUserToUserRolesDto(
       vertex.toString(),
       (req.user as any).userinfo,
-      collection,
+      collection?.alias,
     );
   }
 

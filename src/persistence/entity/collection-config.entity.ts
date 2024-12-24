@@ -1,25 +1,101 @@
-import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import {
   Entity,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
   Index,
+  BaseEntity,
+  Embeddable,
+  Embedded,
+  Enum,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import {
   CollectionEdgeConfig,
-  CollectionEdgeInstanceConfig,
   CollectionFieldConfigMap,
-  CollectionMap,
-  CollectionSyncConfig,
 } from '../dto/collection-config.dto';
-import { EdgeEntity } from './edge.entity';
-import { CollectionEntityUnion } from './collection-entity-union.type';
+import { CollectionNameStringEnum } from './collection-entity-union.type';
+
+@Embeddable()
+export class CollectionConfigPermissionsEmbeddable {
+  @Property()
+  browse: boolean;
+
+  @Property()
+  create: boolean;
+
+  @Property()
+  filter: boolean;
+
+  @Property()
+  update: boolean;
+
+  @Property()
+  delete: boolean;
+}
+
+@Embeddable()
+export class CollectionConfigParentEmbeddable {
+  @Property()
+  edgeName: string;
+}
+
+@Embeddable()
+export class CollectionFieldConfigMapEmbeddable {
+  @Property()
+  getPath: string;
+
+  @Property()
+  setPath: string;
+}
+
+@Embeddable()
+export class CollectionFieldDefaultSortEmbeddable {
+  @Property()
+  field: string;
+
+  @Property()
+  dir: 1 | -1;
+}
+
+@Embeddable()
+export class CollectionSyncConfigEmbeddable {
+  @Property()
+  index!: string;
+
+  @Property()
+  unique!: string;
+
+  // Type json because of no defined keys of map
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  map!: {
+    [key: string]:
+      | {
+          type: 'first';
+          dest: string;
+        }
+      | {
+          type: 'pick';
+          endsWith: string[];
+          dest: string;
+        };
+  };
+}
+
+@Embeddable()
+export class CollectionMapEmbeddable {
+  @Property()
+  getPath!: string;
+
+  @Property()
+  setPath!: string;
+}
 
 @Entity({ tableName: 'collectionConfig' })
-export class CollectionConfigEntity {
-  @ApiHideProperty()
+export class CollectionConfigEntity extends BaseEntity {
   @PrimaryKey()
   @Property()
   _id: ObjectId;
@@ -30,13 +106,15 @@ export class CollectionConfigEntity {
   @Property()
   browseFields: string[];
 
-  @Property()
+  @Enum(() => CollectionNameStringEnum)
   @Index()
-  @ApiProperty({ type: () => String })
-  collection: keyof CollectionEntityUnion;
+  collection: CollectionNameStringEnum;
 
-  @Property()
-  collectionMapper: CollectionMap[];
+  @Embedded({
+    entity: () => CollectionMapEmbeddable,
+    array: true,
+  })
+  collectionMapper: CollectionMapEmbeddable[];
 
   @Property()
   collectionVertexName: string;
@@ -44,17 +122,21 @@ export class CollectionConfigEntity {
   @Property()
   color: string;
 
-  @Property()
+  @Property({
+    type: 'json',
+  })
   edges: CollectionEdgeConfig[];
 
-  @Property()
+  @Property({
+    type: 'json',
+  })
   fields: CollectionFieldConfigMap;
 
-  @Property()
-  fieldDefaultSort: {
-    field: string;
-    dir: 1 | -1;
-  };
+  @Embedded({
+    entity: () => CollectionFieldDefaultSortEmbeddable,
+    object: true,
+  })
+  fieldDefaultSort: CollectionFieldDefaultSortEmbeddable;
 
   @Property()
   hint: string;
@@ -65,34 +147,25 @@ export class CollectionConfigEntity {
   @Property()
   name: string;
 
-  @Property({ nullable: true })
-  ownableCollections?: string[];
+  @Embedded({
+    entity: () => CollectionConfigParentEmbeddable,
+    object: true,
+  })
+  parent: CollectionConfigParentEmbeddable;
 
-  @Property()
-  parent: {
-    edgeName: string;
-  };
-
-  @Property()
-  permissions: {
-    browse: boolean;
-    create: boolean;
-    filter: boolean;
-    update: boolean;
-    delete: boolean;
-  };
+  @Embedded({
+    entity: () => CollectionConfigPermissionsEmbeddable,
+    object: true,
+  })
+  permissions: CollectionConfigPermissionsEmbeddable;
 
   @Property()
   show: boolean;
 
-  @Property({ nullable: true })
-  sync?: CollectionSyncConfig;
+  @Embedded({
+    entity: () => CollectionSyncConfigEmbeddable,
+    object: true,
+    nullable: true,
+  })
+  sync?: CollectionSyncConfigEmbeddable;
 }
-
-export type CollectionConfigInstanceDto = Omit<
-  CollectionConfigEntity,
-  'edges'
-> & {
-  edge: CollectionEdgeInstanceConfig;
-  instance: EdgeEntity;
-};

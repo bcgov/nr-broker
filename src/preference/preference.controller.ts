@@ -48,6 +48,7 @@ export class PreferenceController {
     if (!guid) {
       throw new BadRequestException();
     }
-    return await this.service.setPreferences(guid, preference);
+    await this.service.setPreferences(guid, preference);
+    return true;
   }
 }

@@ -19,6 +19,7 @@ import { UserEntity } from '../entity/user.entity';
 import {
   CollectionEntityUnion,
   CollectionNames,
+  CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 
@@ -73,7 +74,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     collection: string,
   ): Promise<CollectionConfigEntity> {
     return this.collectionConfigRepository.findOneOrFail({
-      collection: collection as CollectionNames,
+      collection: collection as CollectionNameStringEnum,
     });
   }
 

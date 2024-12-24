@@ -21,10 +21,8 @@ import { VertexSearchDto } from '../dto/vertex.dto';
 import { VertexEntity } from '../entity/vertex.entity';
 import { GraphMongoRepository } from '../mongo/graph-mongo.repository';
 import { CollectionMongoRepository } from '../mongo/collection-mongo.repository';
-import {
-  CollectionConfigEntity,
-  CollectionConfigInstanceDto,
-} from '../entity/collection-config.entity';
+import { CollectionConfigEntity } from '../entity/collection-config.entity';
+import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import {
   PERSISTENCE_CACHE_KEY_CONFIG,
   PERSISTENCE_CACHE_KEY_GRAPH,
@@ -42,6 +40,7 @@ import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import {
   CollectionEntityUnion,
   CollectionNames,
+  CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
@@ -282,7 +281,7 @@ export class GraphRedisRepository implements GraphRepository {
       data: data.documents.map((doc) => {
         return {
           id: doc.value.id as string,
-          collection: doc.value.collection as string,
+          collection: doc.value.collection as CollectionNames,
           name: doc.value.name as string,
           ...(doc.value.parentName
             ? { parentName: doc.value.parentName as string }
@@ -354,7 +353,7 @@ export class GraphRedisRepository implements GraphRepository {
     collection: string,
   ): Promise<CollectionConfigEntity | null> {
     return this.collectionConfigRepository.findOne({
-      collection: collection as CollectionNames,
+      collection: collection as CollectionNameStringEnum,
     });
   }
 

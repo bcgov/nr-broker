@@ -1,4 +1,3 @@
-import { ApiHideProperty } from '@nestjs/swagger';
 import { Embeddable, Embedded, Enum, Property } from '@mikro-orm/core';
 
 import { UserEmbeddable } from './user.embeddable';
@@ -87,7 +86,6 @@ export abstract class ActionEmbeddable {
   })
   source?: ActionSourceEmbeddable;
 
-  @ApiHideProperty()
   @Embedded({ entity: () => TransactionEmbeddable })
   trace: TransactionEmbeddable;
 

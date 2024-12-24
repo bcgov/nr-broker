@@ -3,12 +3,14 @@ import {
   Embeddable,
   Embedded,
   Entity,
+  Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
+import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Embeddable()
 export class UserAliasEmbeddable {
@@ -48,6 +50,7 @@ export class UserEntity extends VertexPointerEntity {
   guid: string;
 
   @Property()
+  @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
   name: string;
 
   @Property()

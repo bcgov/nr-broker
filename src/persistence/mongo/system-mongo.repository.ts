@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityManager } from '@mikro-orm/core';
 import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -8,7 +9,6 @@ import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { JwtDto } from '../dto/jwt.dto';
 import { SystemRepository } from '../interfaces/system.repository';
 import { PreferenceEntity } from '../entity/preference.entity';
-import { PreferenceDto } from '../dto/preference.dto';
 import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto';
 import { UserAliasRequestEntity } from '../entity/user-alias-request.entity';
 import { JwtBlockEntity } from '../entity/jwt-block.entity';
@@ -16,6 +16,7 @@ import { JwtAllowEntity } from '../entity/jwt-allow.entity';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
+    private readonly em: EntityManager,
     @InjectRepository(ConnectionConfigEntity)
     private readonly connectionConfigRepository: MongoEntityRepository<ConnectionConfigEntity>,
     @InjectRepository(JwtAllowEntity)
@@ -168,21 +169,8 @@ export class SystemMongoRepository implements SystemRepository {
     });
   }
 
-  public async setPreferences(
-    guid: string,
-    preference: PreferenceDto,
-  ): Promise<boolean> {
-    const result = await this.preferenceRepository.getCollection().updateOne(
-      { guid },
-      {
-        $set: preference,
-        $setOnInsert: {
-          guid,
-        },
-      },
-      { upsert: true },
-    );
-    return result.matchedCount === 1 || result.upsertedCount === 1;
+  public async setPreferences(preference: PreferenceEntity): Promise<void> {
+    this.em.persist(preference).flush();
   }
 
   public getConnectionConfigs(): Promise<ConnectionConfigEntity[]> {

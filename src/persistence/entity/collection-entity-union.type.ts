@@ -32,3 +32,14 @@ export const CollectionNameEnum: {
   team: 6,
   server: 7,
 } as const;
+
+export enum CollectionNameStringEnum {
+  environment = 'environment',
+  project = 'project',
+  service = 'service',
+  serviceInstance = 'serviceInstance',
+  user = 'user',
+  brokerAccount = 'brokerAccount',
+  team = 'team',
+  server = 'server',
+}

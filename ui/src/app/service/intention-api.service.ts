@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { IntentionSearchResult } from './intention/dto/intention-search-result.dto';
+import { IntentionDto } from './intention/dto/intention.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -20,8 +21,11 @@ export class IntentionApiService {
   }
 
   getIntention(id: string) {
-    return this.http.get<any>(`${environment.apiUrl}/v1/intention/${id}`, {
-      responseType: 'json',
-    });
+    return this.http.get<IntentionDto>(
+      `${environment.apiUrl}/v1/intention/${id}`,
+      {
+        responseType: 'json',
+      },
+    );
   }
 }
