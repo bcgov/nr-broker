@@ -197,9 +197,7 @@ export class IntentionService {
           serviceEmbed.id = service._id;
         }
         const trace = TransactionEmbeddable.create();
-        const vaultEnvironment =
-          ENVIRONMENT_NAMES[this.computeVaultEnvironment(action, envMap)];
-
+        const vaultEnvironment = this.computeVaultEnvironment(action, envMap);
         switch (action.action) {
           case ACTION_NAMES.BACKUP:
             return new BackupActionEmbeddable(
@@ -898,7 +896,7 @@ export class IntentionService {
   private computeVaultEnvironment(
     action: ActionEmbeddable | ActionDto,
     envMap: EnvironmentEntityMap,
-  ) {
+  ): ENVIRONMENT_NAMES {
     const env = this.actionUtil.environmentName(action);
     const envDto = envMap[env];
     if (

@@ -31,6 +31,12 @@ export class IntentionUtilService {
       return UserEmbeddable.fromUserEntity(userEntity, accountEntity);
     }
 
+    if (accountEntity.skipUserValidation) {
+      const embeddable = new UserEmbeddable();
+      embeddable.name = user.name;
+      return embeddable;
+    }
+
     throw new Error('User not found.');
   }
 }
