@@ -3,7 +3,9 @@ import { AuditService } from './audit/audit.service';
 
 describe('AccessLogsMiddleware', () => {
   it('should be defined', () => {
-    expect(new AccessLogsMiddleware(new AuditService(undefined))).toBeDefined();
+    expect(
+      new AccessLogsMiddleware(new AuditService(undefined, undefined)),
+    ).toBeDefined();
   });
 
   it('should call recordHttpAccess upon use', () => {
