@@ -104,10 +104,10 @@ export class ActionService {
         data: {
           action: action.action,
           action_id: action.id,
-          key: action.service.target.environment
+          key: action.service.target?.environment
             ? 'action.service.target.environment'
             : 'action.service.environment',
-          value: action.service.target.environment
+          value: action.service.target?.environment
             ? action.service.target.environment
             : action.service.environment,
         },

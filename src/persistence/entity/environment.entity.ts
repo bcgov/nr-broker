@@ -9,6 +9,7 @@ import { ObjectId } from 'mongodb';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 import { COLLECTION_COLLATION_LOCALE } from '../../constants';
+import { ENVIRONMENT_NAMES } from '../../intention/dto/constants.dto';
 
 @Entity({ tableName: 'environment' })
 export class EnvironmentEntity extends VertexPointerEntity {
@@ -22,7 +23,7 @@ export class EnvironmentEntity extends VertexPointerEntity {
 
   @Property()
   @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
-  name: string;
+  name: ENVIRONMENT_NAMES;
 
   @Property()
   short: string;
