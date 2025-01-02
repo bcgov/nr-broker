@@ -11,7 +11,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 
 import { HEADER_BROKER_TOKEN } from '../constants';
@@ -28,6 +28,10 @@ import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 import { IntentionDto } from './dto/intention.dto';
+import {
+  ACTION_END_STATUSES,
+  INTENTION_CLOSE_STATUSES,
+} from './dto/constants.dto';
 
 @Controller({
   path: 'intention',
@@ -74,16 +78,25 @@ export class IntentionController {
 
   @Post('close')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @ApiQuery({
+    name: 'outcome',
+    required: false,
+    enum: INTENTION_CLOSE_STATUSES,
+  })
+  @ApiQuery({
+    name: 'reason',
+    required: false,
+  })
   async closeIntention(
     @Req() request: Request,
-    @Query('outcome') outcome: string | undefined,
+    @Query('outcome') outcome: INTENTION_CLOSE_STATUSES | undefined,
     @Query('reason') reason: string | undefined,
   ): Promise<IntentionCloseDto> {
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
     if (outcome === undefined) {
-      outcome = 'success';
+      outcome = INTENTION_CLOSE_STATUSES.SUCCESS;
     }
     if (
       outcome !== 'failure' &&
@@ -112,13 +125,30 @@ export class IntentionController {
 
   @Post('action/end')
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  @ApiQuery({
+    name: 'outcome',
+    required: false,
+    enum: ACTION_END_STATUSES,
+  })
   @UseGuards(ActionGuard)
   async actionEnd(
     @Req() request: ActionGuardRequest,
-    @Query('outcome') outcome: string | undefined,
+    @Query('outcome') outcome: ACTION_END_STATUSES | undefined,
   ) {
     if (outcome === undefined) {
-      outcome = 'success';
+      outcome = ACTION_END_STATUSES.SUCCESS;
+    }
+    if (
+      outcome !== 'failure' &&
+      outcome !== 'success' &&
+      outcome !== 'unknown'
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Illegal outcome',
+        error:
+          'The outcome parameter must be undefined or be one of failure, success or unknown.',
+      });
     }
     await this.intentionService.actionLifecycle(
       request,

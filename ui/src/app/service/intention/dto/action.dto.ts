@@ -18,19 +18,6 @@ import { UserDto } from './user.dto';
 import { TransactionDto } from './transaction.dto';
 import { ENVIRONMENT_NAMES } from './constants.dto';
 
-// export const ACTION_NAMES = [
-//   'backup',
-//   'database-access',
-//   'server-access',
-//   'package-build',
-//   'package-configure',
-//   'package-installation',
-//   'package-provision',
-//   'process-end',
-//   'process-start',
-// ] as const;
-// export type ActionName = (typeof ACTION_NAMES)[number];
-
 export enum ACTION_NAMES {
   BACKUP = 'backup',
   DATABASE_ACCESS = 'database-access',
