@@ -22,7 +22,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@aws-sdk/client-kinesis": "^3.716.0",
+    "@aws-sdk/client-kinesis": "^3.721.0",
     "@mikro-orm/core": "^6.4.2",
     "@mikro-orm/mongodb": "^6.4.2",
     "@mikro-orm/nestjs": "^6.0.2",
@@ -79,14 +79,14 @@
     "@types/lodash.get": "^4.4.9",
     "@types/lodash.merge": "^4.6.9",
     "@types/lodash.set": "^4.3.9",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.10.5",
     "@types/passport": "^1.0.17",
     "@types/passport-http": "^0.3.11",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.1",
-    "@typescript-eslint/parser": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -99,7 +99,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.19.0"
   },
   "jest": {
     "moduleFileExtensions": [

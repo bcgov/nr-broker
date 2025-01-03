@@ -30,6 +30,16 @@ export const CollectionDtoUnionObject = {
   team: TeamDto,
   user: UserDto,
 };
+export type CollectionBaseDtoUnion = {
+  brokerAccount: BrokerAccountBaseDto;
+  environment: EnvironmentBaseDto;
+  project: ProjectBaseDto;
+  server: ServerBaseDto;
+  serviceInstance: ServiceInstanceBaseDto;
+  service: ServiceBaseDto;
+  team: TeamBaseDto;
+  user: UserBaseDto;
+};
 export type CollectionDtoUnion = {
   brokerAccount: BrokerAccountDto;
   environment: EnvironmentDto;

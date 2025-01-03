@@ -7,7 +7,9 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
+  CollectionBaseDtoUnion,
   CollectionBaseDtoUnionObject,
+  CollectionDtoUnion,
   CollectionNames,
 } from './collection-dto-union.type';
 import { PointGeomDto } from './point-geom.dto';
@@ -68,7 +70,12 @@ export class VertexDto {
   timestamps?: TimestampDto;
 }
 
-export class VertexInsertDto {
+export class VertexInsertDto<T extends keyof CollectionDtoUnion = any> {
+  constructor(collection: T, data: CollectionBaseDtoUnion[T]) {
+    this.collection = collection;
+    this.data = data;
+  }
+
   @IsString()
   @IsDefined()
   collection!: CollectionNames;
@@ -80,7 +87,7 @@ export class VertexInsertDto {
       opts?.object['collection'] as CollectionNames
     ];
   })
-  data: any;
+  data: CollectionBaseDtoUnion[T];
 
   @ValidateNested()
   @IsOptional()
