@@ -36,7 +36,6 @@ import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { AccountService } from './account.service';
 import { Roles } from '../roles.decorator';
 import { AllowOwner } from '../allow-owner.decorator';
-import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { AccountPermission } from '../account-permission.decorator';
 import { CollectionSearchQuery } from './dto/collection-search-query.dto';
@@ -48,6 +47,7 @@ import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constan
 import { ExpiryQuery } from './dto/expiry-query.dto';
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
+import { UserBaseDto } from '../persistence/dto/user.dto';
 
 @Controller({
   path: 'collection',
@@ -111,7 +111,7 @@ export class CollectionController {
   )
   async userImport(
     @Request() req: ExpressRequest,
-    @Body() userDto: UserImportDto,
+    @Body() userDto: UserBaseDto,
   ): Promise<void> {
     await this.userCollectionService.upsertUser(req, userDto);
   }

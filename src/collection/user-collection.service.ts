@@ -5,12 +5,12 @@ import { USER_ALIAS_DOMAIN_GITHUB } from '../constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphService } from '../graph/graph.service';
 import { UserEntity } from '../persistence/entity/user.entity';
-import { UserImportDto } from './dto/user-import.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
 import { UserUtil } from '../util/user.util';
+import { UserBaseDto } from '../persistence/dto/user.dto';
 
 /**
  * Assists with user collection activities
@@ -51,7 +51,7 @@ export class UserCollectionService {
       '',
       (req.user as any).userinfo,
     );
-    const vertex = await this.upsertUser(req, loggedInUser.toUserImportDto());
+    const vertex = await this.upsertUser(req, loggedInUser);
     const collection = await this.collectionRepository.getCollectionByVertexId(
       'user',
       vertex.toString(),
@@ -63,17 +63,14 @@ export class UserCollectionService {
     );
   }
 
-  async upsertUser(req: Request, userInfo: UserImportDto) {
+  async upsertUser(req: Request, userInfo: UserBaseDto) {
     const existingUser =
       await this.collectionRepository.getCollectionByKeyValue(
         'user',
         'guid',
         userInfo.guid,
       );
-    const vertex: VertexInsertDto = {
-      collection: 'user',
-      data: userInfo,
-    };
+    const vertex = new VertexInsertDto('user', userInfo);
     if (
       existingUser &&
       (existingUser.domain !== userInfo.domain ||
@@ -105,26 +102,23 @@ export class UserCollectionService {
     ) {
       throw new BadRequestException('Request state does not match');
     }
+    delete existingUser.id;
+    delete existingUser.vertex;
 
     const token = await this.githubService.getUserAccessToken(code);
     const userData = await this.githubService.getUserInfo(token);
 
-    const vertex: VertexInsertDto = {
-      collection: 'user',
-      data: {
-        ...existingUser,
-        alias: [
-          {
-            domain: USER_ALIAS_DOMAIN_GITHUB,
-            guid: userData.id,
-            name: userData.name,
-            username: userData.login,
-          },
-        ],
-      },
-    };
-    delete vertex.data.id;
-    delete vertex.data.vertex;
+    const vertex = new VertexInsertDto('user', {
+      ...existingUser,
+      alias: [
+        {
+          domain: USER_ALIAS_DOMAIN_GITHUB,
+          guid: userData.id,
+          name: userData.name,
+          username: userData.login,
+        },
+      ],
+    });
 
     await this.graphService.editVertex(
       req,

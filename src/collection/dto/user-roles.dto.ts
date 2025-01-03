@@ -1,21 +1,17 @@
-import { UserImportDto } from './user-import.dto';
+import { IsDefined, IsString } from 'class-validator';
+import { UserBaseDto } from '../../persistence/dto/user.dto';
 
-export class UserRolesDto extends UserImportDto {
-  alias?: any;
+export class UserRolesDto extends UserBaseDto {
+  @IsDefined()
+  @IsString()
+  vertex!: string;
+
+  @IsDefined()
+  @IsString({ each: true })
   roles!: string[];
 
-  constructor(public readonly vertex: string) {
+  constructor(vertex: string) {
     super();
-  }
-
-  toUserImportDto(): UserImportDto {
-    const dto: UserImportDto = {
-      domain: this.domain,
-      email: this.email,
-      guid: this.guid,
-      name: this.name,
-      username: this.username,
-    };
-    return dto;
+    this.vertex = vertex;
   }
 }
