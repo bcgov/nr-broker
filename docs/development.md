@@ -68,7 +68,7 @@ $ podman run \
   --name broker-mongo \
   -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
 	-e MONGO_INITDB_ROOT_PASSWORD=secret \
-  -d mongo:7 \
+  -d mongo:8 \
   --wiredTigerCacheSizeGB 0.25
 ```
 
