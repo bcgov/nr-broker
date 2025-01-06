@@ -8,7 +8,12 @@ import {
   Inject,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { ECharts, EChartsOption } from 'echarts';
+import { ECharts, EChartsCoreOption } from 'echarts/core';
+import * as echarts from 'echarts/core';
+// import necessary echarts components
+import { GraphChart } from 'echarts/charts';
+import { LegendComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import {
   BehaviorSubject,
@@ -25,12 +30,14 @@ import { PreferencesService } from '../../preferences.service';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 
+echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
+
 @Component({
   selector: 'app-echarts',
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
   imports: [NgxEchartsDirective, AsyncPipe],
-  providers: [provideEchartsCore({ echarts: () => import('echarts') })],
+  providers: [provideEchartsCore({ echarts })],
 })
 export class EchartsComponent implements OnInit {
   @Input() dataConfig!: Observable<GraphDataConfig>;
@@ -39,8 +46,8 @@ export class EchartsComponent implements OnInit {
     name: string;
     selected: boolean;
   }>();
-  options!: EChartsOption;
-  updateOptions!: Observable<EChartsOption>;
+  options!: EChartsCoreOption;
+  updateOptions!: Observable<EChartsCoreOption>;
   loading!: boolean;
   echartsInstance: ECharts | undefined;
   private triggerRefresh = new BehaviorSubject(true);
@@ -126,7 +133,7 @@ export class EchartsComponent implements OnInit {
           zoom: 2,
         },
       ],
-    } as EChartsOption;
+    } as EChartsCoreOption;
     this.updateOptions = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
       switchMap(() => this.dataConfig),
@@ -188,7 +195,7 @@ export class EchartsComponent implements OnInit {
                 }),
             },
           ],
-        } as EChartsOption;
+        } as EChartsCoreOption;
       }),
       // tap((v) => {
       //   console.log(v);

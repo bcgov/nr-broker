@@ -1,25 +1,37 @@
 import { Component, ElementRef, Input, OnInit } from '@angular/core';
 
-import { NgxEchartsModule, NGX_ECHARTS_CONFIG } from 'ngx-echarts';
-import { EChartsOption } from 'echarts';
+import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts/core';
+// import necessary echarts components
+import { BarChart } from 'echarts/charts';
+import {
+  GridComponent,
+  TooltipComponent,
+  TitleComponent,
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+import { EChartsCoreOption } from 'echarts/core';
 import prettyMilliseconds from 'pretty-ms';
+
+echarts.use([
+  BarChart,
+  GridComponent,
+  TitleComponent,
+  TooltipComponent,
+  CanvasRenderer,
+]);
 
 @Component({
   selector: 'app-gantt-graph',
   imports: [NgxEchartsModule],
-  providers: [
-    {
-      provide: NGX_ECHARTS_CONFIG,
-      useFactory: () => ({ echarts: () => import('echarts') }),
-    },
-  ],
+  providers: [provideEchartsCore({ echarts })],
   templateUrl: './gantt-graph.component.html',
   styleUrl: './gantt-graph.component.scss',
 })
 export class GanttGraphComponent implements OnInit {
   @Input() intention: any;
   @Input() action?: any;
-  options!: EChartsOption;
+  options!: EChartsCoreOption;
 
   constructor(private readonly elRef: ElementRef) {}
 
@@ -45,10 +57,6 @@ export class GanttGraphComponent implements OnInit {
           }<br/>Duration : ${prettyMilliseconds(tar.value)}`;
         },
       },
-      legend: {
-        data: ['Action'],
-        show: false,
-      },
       grid: {
         left: '3%',
         right: '4%',
@@ -65,7 +73,7 @@ export class GanttGraphComponent implements OnInit {
       xAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (value) => {
+          formatter: (value: number | bigint) => {
             return prettyMilliseconds(value);
           },
         },
