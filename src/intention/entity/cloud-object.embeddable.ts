@@ -60,16 +60,16 @@ export class CloudObjectEmbeddable {
     for (const arg of theArgs) {
       if (arg.account || rval.account) {
         rval.account = rval.account ?? new CloudObjectAccountEmbeddable();
-        rval.account.id = arg.account.id ?? rval.account.id;
-        rval.account.name = arg.account.name ?? rval.account.name;
+        rval.account.id = arg.account?.id ?? rval.account.id;
+        rval.account.name = arg.account?.name ?? rval.account.name;
       }
 
       rval.availability_zone = arg.availability_zone ?? rval.availability_zone;
 
       if (arg.instance || rval.instance) {
         rval.instance = rval.instance ?? new CloudObjectInstanceEmbeddable();
-        rval.account.id = arg.account.id ?? rval.account.id;
-        rval.account.name = arg.account.name ?? rval.account.name;
+        rval.instance.id = arg.instance?.id ?? rval.instance.id;
+        rval.instance.name = arg.instance?.name ?? rval.instance.name;
       }
 
       if (arg.machine) {
@@ -78,8 +78,8 @@ export class CloudObjectEmbeddable {
 
       if (arg.project || rval.project) {
         rval.project = rval.project ?? new CloudObjectInstanceEmbeddable();
-        rval.project.id = arg.project.id ?? rval.project.id;
-        rval.project.name = arg.project.name ?? rval.project.name;
+        rval.project.id = arg.project?.id ?? rval.project.id;
+        rval.project.name = arg.project?.name ?? rval.project.name;
       }
       if (arg.prop) {
         rval.prop = rval.prop ?? new EdgePropEmbeddable();
