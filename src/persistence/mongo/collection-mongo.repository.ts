@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-// eslint-disable-next-line prettier/prettier
-import { MongoEntityManager, MongoEntityRepository, ObjectId } from '@mikro-orm/mongodb';
+import {
+  MongoEntityManager,
+  MongoEntityRepository,
+  ObjectId,
+} from '@mikro-orm/mongodb';
 import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
@@ -36,8 +39,54 @@ export class CollectionMongoRepository implements CollectionRepository {
     data: any,
   ): CollectionEntityUnion[typeof collection] {
     const entity = this.constructCollection(collection);
-    wrap(entity).assign(data, { em: this.dataSource });
+    wrap(entity).assign(this.upgradeDtoToEntityAssignable(collection, data), {
+      em: this.dataSource,
+    });
     return entity;
+  }
+
+  /**
+   * Modify the data to be assignable to an entity. This means converting strings to ObjectIds.
+   * @param collection The collection name
+   * @param data The entity data as a DTO
+   * @returns The modified data
+   */
+  private upgradeDtoToEntityAssignable(
+    collection: CollectionNames,
+    data: CollectionDtoUnion[typeof collection],
+  ): any {
+    switch (collection) {
+      case 'brokerAccount':
+      case 'environment':
+      case 'project':
+      case 'server':
+      case 'service':
+      case 'team':
+      case 'user':
+        return data;
+      case 'serviceInstance': {
+        const siDto = data as any;
+        if (siDto?.action && typeof siDto?.action.intention === 'string') {
+          siDto.action.intention = new ObjectId(
+            siDto.action.intention as string,
+          );
+        }
+
+        if (siDto?.actionHistory && Array.isArray(siDto?.actionHistory)) {
+          for (const action of siDto.actionHistory) {
+            if (typeof action.intention === 'string') {
+              action.intention = new ObjectId(action.intention as string);
+            }
+          }
+        }
+        return data;
+      }
+      default:
+        // If this is an error then not all collection types are above
+        // eslint-disable-next-line no-case-declarations
+        const _exhaustiveCheck: never = collection;
+        return _exhaustiveCheck;
+    }
   }
 
   private constructCollection(collection: CollectionNames) {
