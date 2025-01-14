@@ -264,11 +264,39 @@ result = db.collectionConfig.insertOne({
         update: true,
       },
     },
+    lifecycle: {
+      name: 'Lifecycle',
+      required: false,
+      type: 'select',
+      options: [
+        { value: 'experimental', label: 'Experimental' },
+        { value: 'production', label: 'Production' },
+        { value: 'deprecated', label: 'Deprecated' },
+      ],
+      hint: 'The lifecycle stage of the service',
+      mask: {
+        update: true,
+      },
+    },
     scmUrl: {
       name: 'SCM URL',
       required: false,
       type: 'url',
       hint: 'Repository URL with slug and no trailing slash',
+      mask: {
+        update: true,
+      },
+    },
+    type: {
+      name: 'Type',
+      required: false,
+      type: 'select',
+      options: [
+        { value: 'service', label: 'Service' },
+        { value: 'website', label: 'Website' },
+        { value: 'library', label: 'Library' },
+      ],
+      hint: 'The type of service',
       mask: {
         update: true,
       },

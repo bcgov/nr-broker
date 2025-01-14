@@ -26,6 +26,14 @@ export class ServiceBaseDto extends CollectionBaseDto {
 
   @IsString()
   @IsOptional()
+  lifecycle?: string;
+
+  @IsString()
+  @IsOptional()
+  type?: string;
+
+  @IsString()
+  @IsOptional()
   scmUrl?: string;
 
   @ValidateNested()

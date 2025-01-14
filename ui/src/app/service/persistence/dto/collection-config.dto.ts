@@ -36,6 +36,11 @@ export type CollectionEdgeInstanceConfig = Omit<
   prototype: CollectionEdgePrototype;
 };
 
+export class CollectionFieldSelectOption {
+  value!: string;
+  label!: string;
+}
+
 export class CollectionFieldConfig {
   hint!: string;
   init?: 'uuid' | 'now';
@@ -54,13 +59,14 @@ export class CollectionFieldConfig {
     | 'embeddedDocArray'
     | 'json'
     | 'number'
+    | 'select'
     | 'string'
     | 'stringArray'
     | 'url';
   unique?: boolean;
   uniqueParent?: boolean;
   value?: string | boolean;
-  valuePath?: string;
+  options?: CollectionFieldSelectOption[];
 }
 
 export class CollectionFieldConfigMap {

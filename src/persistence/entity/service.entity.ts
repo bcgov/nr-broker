@@ -33,6 +33,12 @@ export class ServiceEntity extends VertexPointerEntity {
   title?: string;
 
   @Property({ nullable: true })
+  lifecycle?: string;
+
+  @Property({ nullable: true })
+  type?: string;
+
+  @Property({ nullable: true })
   scmUrl?: string;
 
   @Embedded({ entity: () => VaultConfigDto, nullable: true, object: true })

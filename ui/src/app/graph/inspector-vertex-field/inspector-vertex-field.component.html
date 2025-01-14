@@ -19,6 +19,9 @@
       @case ('number') {
         {{value}}
       }
+      @case ('select') {
+        {{ selectValueToLabel(value) }}
+      }
       @case ('string') {
         {{value}}
       }

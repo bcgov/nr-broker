@@ -86,6 +86,21 @@
         }
       </mat-form-field>
     }
+    @case ('select') {
+      <mat-form-field appearance="fill">
+        @if (field.name) {
+          <mat-label>{{field.name}}</mat-label>
+        }
+          <mat-select [formControlName]="field.key">
+            @for (option of field.options; track option) {
+              <mat-option value="{{option.value}}">{{option.label}}</mat-option>
+            }
+          </mat-select>
+        @if (field.hint) {
+          <mat-hint>{{field.hint}}</mat-hint>
+        }
+      </mat-form-field>
+    }
     @case ('date') {
       <mat-form-field appearance="fill">
         @if (field.name) {
