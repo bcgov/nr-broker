@@ -344,7 +344,7 @@ export class CollectionService {
     const vertices = await this.graphRepository.getUpstreamVertex<ProjectDto>(
       service.vertex.toString(),
       CollectionIndex.Project,
-      null,
+      ['component'],
     );
     if (vertices.length !== 1) {
       throw new NotFoundException({

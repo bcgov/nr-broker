@@ -280,8 +280,12 @@ export class AccountService {
         await this.graphRepository.getUpstreamVertex<ProjectDto>(
           service.collection.vertex.toString(),
           CollectionNameEnum.project,
-          null,
+          ['component'],
         );
+      if (projectDtoArr.length !== 1) {
+        // Could not uniquely identify the project -- skip
+        continue;
+      }
       const projectName = projectDtoArr[0].collection.name;
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
@@ -362,6 +366,16 @@ export class AccountService {
             CollectionNameEnum.project,
             ['component'],
           );
+        if (projectDtoArr.length !== 1) {
+          this.auditService.recordToolsSync(
+            'info',
+            'unknown',
+            `Skip sync: ${service.collection.scmUrl}`,
+            'Unknown',
+            serviceName,
+          );
+          continue;
+        }
         const projectName = projectDtoArr[0].collection.name;
 
         // Determine if this is a valid service to sync for
