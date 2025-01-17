@@ -1334,6 +1334,10 @@ export class GraphMongoRepository implements GraphRepository {
       .then((servProjArr: any[]) => {
         const acc: BrokerAccountProjectMapDto = {};
         for (const servProj of servProjArr) {
+          if (!servProj.project[0]) {
+            // Can't map what doesn't exist
+            continue;
+          }
           if (!acc[servProj.project[0].name]) {
             acc[servProj.project[0].name] = {
               name: servProj.project[0].name,

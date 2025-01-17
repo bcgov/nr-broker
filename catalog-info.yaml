@@ -3,10 +3,12 @@ kind: Component
 metadata:
   name: nr-broker-app
   description: NR Broker handles the business logic of authenticating and validating requests for automated processes to access secrets.
+  title: NR Broker
   annotations:
     github.com/project-slug: "bcgov-nr/nr-broker"
     backstage.io/techdocs-ref: dir:.
 spec:
+  system: nr-broker
   type: website
   lifecycle: production
-  owner: oneteam
+  owner: Oscar
