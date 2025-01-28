@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { createMock } from '@golevelup/ts-jest';
 import { TeamCollectionService } from './team-collection.service';
 
 describe('TeamCollectionService', () => {
@@ -7,7 +8,9 @@ describe('TeamCollectionService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [TeamCollectionService],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     service = module.get<TeamCollectionService>(TeamCollectionService);
   });
