@@ -7,7 +7,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
@@ -25,6 +25,7 @@ import {
   VAULT_KV_APPS_MOUNT,
   REDIS_PUBSUB,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
+  REDIS_QUEUES,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
@@ -57,6 +58,7 @@ export class AccountService {
     private readonly dateUtil: DateUtil,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
@@ -146,6 +148,7 @@ export class AccountService {
     id: string,
     expirationInSeconds: number,
     patchVault: boolean,
+    sync: boolean,
     creatorGuid: string,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
@@ -201,7 +204,7 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
-    if (this.githubSyncService.isEnabled()) {
+    if (sync && this.githubSyncService.isEnabled()) {
       try {
         await this.refresh(account.id.toString());
       } catch (error) {
@@ -261,6 +264,7 @@ export class AccountService {
       request,
       registryJwt.accountId.toString(),
       ttl,
+      false,
       false,
       creatorId,
       autoRenew,
@@ -325,11 +329,76 @@ export class AccountService {
     );
   }
 
-  async refresh(id: string): Promise<void> {
+  /**
+   * Return the broker account entity by ID
+   * @param id The account ID
+   * @returns The broker account entity
+   */
+  private async getBrokerAccount(id: string) {
     const account = await this.collectionRepository.getCollectionById(
       'brokerAccount',
       id,
     );
+    return account;
+  }
+
+  /**
+   * Test if the account is not null and if GitHub is enabled. Will throw error and log audit messages if not.
+   * @param id The account id (for logging purposes)
+   * @param account The account entity
+   */
+  private async doSyncPreflight(id: string, account: BrokerAccountEntity) {
+    if (!account) {
+      const message = `Account with ID ${id} not found`;
+      this.auditService.recordToolsSync('info', 'failure', message);
+      throw new NotFoundException(message);
+    }
+
+    if (!this.githubSyncService.isEnabled()) {
+      this.auditService.recordToolsSync(
+        'info',
+        'failure',
+        'GitHub is not setup',
+      );
+      throw new ServiceUnavailableException();
+    }
+  }
+
+  async refresh(id: string): Promise<void> {
+    // Do pre-checks to ensure the account exists
+    const account = await this.getBrokerAccount(id);
+    this.doSyncPreflight(id, account);
+
+    // Queue the sync
+    this.redisService.queue(REDIS_QUEUES.VAULT_TOOLS_GITHUB_SYNC, id);
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS, {
+    name: REDIS_QUEUES.VAULT_TOOLS_GITHUB_SYNC,
+  })
+  @CreateRequestContext()
+  async pollRefreshCron(): Promise<void> {
+    const job = this.schedulerRegistry.getCronJob(
+      REDIS_QUEUES.VAULT_TOOLS_GITHUB_SYNC,
+    );
+    job.stop(); // pausing the cron job
+    try {
+      const id = await this.redisService.dequeue(
+        REDIS_QUEUES.VAULT_TOOLS_GITHUB_SYNC,
+      );
+      if (id) {
+        await this.runRefresh(id);
+      }
+    } catch (error) {
+      // Continue - this.runRefresh() audits failures
+    } finally {
+      job.start(); // resuming the cron job
+    }
+  }
+
+  async runRefresh(id: string): Promise<void> {
+    const account = await this.getBrokerAccount(id);
+    this.doSyncPreflight(id, account);
 
     this.auditService.recordToolsSync(
       'info',
@@ -337,32 +406,19 @@ export class AccountService {
       `Sync broker account (${account.clientId})`,
     );
 
-    if (!account) {
-      const message = `Account with ID ${id} not found`;
-      this.auditService.recordToolsSync('info', 'failure', message);
-      throw new NotFoundException(`Account with ID ${id} not found`);
-    }
-    if (!this.githubSyncService.isEnabled()) {
-      this.auditService.recordToolsSync(
-        'info',
-        'failure',
-        'Github is not setup',
-      );
-      throw new ServiceUnavailableException();
-    }
     const downstreamServices =
       await this.graphRepository.getDownstreamVertex<ServiceDto>(
         account.vertex.toString(),
         CollectionNameEnum.service,
-        1,
+        4,
       );
     if (downstreamServices) {
       const errors = [];
-      for (const service of downstreamServices) {
-        const serviceName = service.collection.name;
+      for (const serviceUpDown of downstreamServices) {
+        const service = serviceUpDown.collection;
         const projectDtoArr =
           await this.graphRepository.getUpstreamVertex<ProjectDto>(
-            service.collection.vertex.toString(),
+            service.vertex.toString(),
             CollectionNameEnum.project,
             ['component'],
           );
@@ -370,50 +426,30 @@ export class AccountService {
           this.auditService.recordToolsSync(
             'info',
             'unknown',
-            `Skip sync: ${service.collection.scmUrl}`,
+            `Skip sync: ${service.name}`,
             'Unknown',
-            serviceName,
+            service.name,
           );
           continue;
         }
-        const projectName = projectDtoArr[0].collection.name;
-
-        // Determine if this is a valid service to sync for
-        if (
-          !this.githubSyncService.isBrokerManagedScmUrl(
-            service.collection.scmUrl,
-          )
-        ) {
-          this.auditService.recordToolsSync(
-            'info',
-            'unknown',
-            `Skip sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-          );
-          continue;
-        }
+        const project = projectDtoArr[0].collection;
 
         this.auditService.recordToolsSync(
           'start',
           'unknown',
-          `Start sync: ${service.collection.scmUrl}`,
-          projectName,
-          serviceName,
+          `Start sync: ${service.name}`,
+          project.name,
+          service.name,
         );
 
         try {
-          await this.githubSyncService.refresh(
-            projectName,
-            serviceName,
-            service.collection.scmUrl,
-          );
+          await this.githubSyncService.refresh(project, service);
           this.auditService.recordToolsSync(
             'end',
             'success',
-            `End sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
+            `End sync: ${service.name}`,
+            project.name,
+            service.name,
           );
         } catch (error) {
           let httpErr = error;
@@ -425,9 +461,9 @@ export class AccountService {
           this.auditService.recordToolsSync(
             'end',
             'failure',
-            `End sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
+            `End sync: ${service.name}`,
+            project.name,
+            service.name,
             httpErr,
           );
           errors.push(httpErr);

@@ -41,6 +41,7 @@ import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspe
 export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   collection!: CollectionNames;
   serviceId!: string;
+  vertex!: string;
   buildId!: string;
   name!: string;
   isApprover!: boolean;
@@ -96,6 +97,7 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
       this.packageApi.getBuild(this.buildId),
     ]).subscribe(([service, data]) => {
       this.name = service.name;
+      this.vertex = service.vertex;
       this.data = data;
       this.loading = false;
     });
@@ -105,8 +107,8 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
-  async openPackageBuildVersion(id: string, version: string) {
-    return this.packageUtil.openPackageBuildVersion(id, version);
+  async openPackageBuildVersion(vertexId: string, version: string) {
+    return this.packageUtil.openPackageBuildVersion(vertexId, version);
   }
 
   openHistoryById(id: string) {

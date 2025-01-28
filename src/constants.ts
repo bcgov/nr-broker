@@ -92,6 +92,10 @@ export const OAUTH2_CLIENT_MAP_ROLES =
 export const OAUTH2_CLIENT_MAP_USERNAME =
   process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
 
+export const REDIS_QUEUES = {
+  VAULT_TOOLS_GITHUB_SYNC: 'vault-tools-github-sync',
+} as const;
+
 export const REDIS_PUBSUB = {
   GRAPH: 'graph',
   BROKER_ACCOUNT_TOKEN: 'broker-account-token',

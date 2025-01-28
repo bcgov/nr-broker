@@ -47,9 +47,10 @@ export class SystemApiService {
     accountId: string,
     expirationInSeconds: number,
     patchVaultTools: boolean,
+    sync: boolean,
   ) {
     return this.http.post<TokenCreateDto>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}&patch=${patchVaultTools}`,
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}&patch=${patchVaultTools}&sync=${sync}`,
       {
         responseType: 'json',
       },

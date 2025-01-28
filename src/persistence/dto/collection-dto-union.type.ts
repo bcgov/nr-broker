@@ -1,6 +1,7 @@
 import { BrokerAccountBaseDto, BrokerAccountDto } from './broker-account.dto';
 import { EnvironmentBaseDto, EnvironmentDto } from './environment.dto';
 import { ProjectBaseDto, ProjectDto } from './project.dto';
+import { RepositoryBaseDto, RepositoryDto } from './repository.dto';
 import { ServerBaseDto, ServerDto } from './server.dto';
 import {
   ServiceInstanceBaseDto,
@@ -14,6 +15,7 @@ export const CollectionBaseDtoUnionObject = {
   brokerAccount: BrokerAccountBaseDto,
   environment: EnvironmentBaseDto,
   project: ProjectBaseDto,
+  repository: RepositoryBaseDto,
   server: ServerBaseDto,
   serviceInstance: ServiceInstanceBaseDto,
   service: ServiceBaseDto,
@@ -24,6 +26,7 @@ export const CollectionDtoUnionObject = {
   brokerAccount: BrokerAccountDto,
   environment: EnvironmentDto,
   project: ProjectDto,
+  repository: RepositoryDto,
   server: ServerDto,
   serviceInstance: ServiceInstanceDto,
   service: ServiceDto,
@@ -34,6 +37,7 @@ export type CollectionBaseDtoUnion = {
   brokerAccount: BrokerAccountBaseDto;
   environment: EnvironmentBaseDto;
   project: ProjectBaseDto;
+  repository: RepositoryBaseDto;
   server: ServerBaseDto;
   serviceInstance: ServiceInstanceBaseDto;
   service: ServiceBaseDto;
@@ -44,6 +48,7 @@ export type CollectionDtoUnion = {
   brokerAccount: BrokerAccountDto;
   environment: EnvironmentDto;
   project: ProjectDto;
+  repository: RepositoryDto;
   server: ServerDto;
   serviceInstance: ServiceInstanceDto;
   service: ServiceDto;
@@ -72,4 +77,5 @@ export const CollectionNameEnum: {
   brokerAccount: 5,
   team: 6,
   server: 7,
+  repository: 8,
 } as const;

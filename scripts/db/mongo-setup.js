@@ -17,6 +17,7 @@ db.user.drop();
 db.collectionConfig.drop();
 db.intention.drop();
 db.connectionConfig.drop();
+db.repository.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -233,6 +234,13 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      id: 'b1a02ac8',
+      collection: 'repository',
+      name: 'source',
+      relation: 'oneToMany',
+      show: true,
+    },
   ],
   fieldDefaultSort: {
     field: 'name',
@@ -278,15 +286,6 @@ result = db.collectionConfig.insertOne({
         update: true,
       },
     },
-    scmUrl: {
-      name: 'SCM URL',
-      required: false,
-      type: 'url',
-      hint: 'Repository URL with slug and no trailing slash',
-      mask: {
-        update: true,
-      },
-    },
     type: {
       name: 'Type',
       required: false,
@@ -309,7 +308,7 @@ result = db.collectionConfig.insertOne({
       },
     },
   },
-  browseFields: ['name', 'title', 'scmUrl'],
+  browseFields: ['name', 'title', 'type'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
   color: '5ab1ef',
@@ -785,6 +784,83 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+});
+
+result = db.collectionConfig.insertOne({
+  collection: 'repository',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  index: 8,
+  edges: [],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'A descriptive name for the repository',
+      mask: {
+        update: true,
+      },
+    },
+    description: {
+      name: 'Description',
+      required: true,
+      type: 'description',
+      hint: 'A description of the contents',
+      mask: {
+        update: true,
+      },
+    },
+    type: {
+      name: 'Type',
+      required: false,
+      type: 'string',
+      hint: 'The type of repository (git, svn, ...)',
+      mask: {
+        update: true,
+      },
+    },
+    scmUrl: {
+      name: 'SCM URL',
+      required: true,
+      type: 'url',
+      hint: 'Repository URL with slug and no trailing slash',
+      mask: {
+        update: true,
+      },
+    },
+    enableSyncSecrets: {
+      name: 'Enable secret sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of secrets to repository (if supported)',
+      value: false,
+    },
+    enableSyncUsers: {
+      name: 'Enable user sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of users to repository (if supported)',
+      value: false,
+    },
+  },
+  browseFields: ['name', 'type', 'scmUrl'],
+  name: 'Repository',
+  hint: 'A source control repository tracks, manages, and versions project files and code.',
+  color: 'eeceda',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
 });
 
 // ==> Graph Permission Setup

@@ -217,6 +217,19 @@
     </div>
   </mat-tab>
 
+  @if (collection === 'brokerAccount' || collection === 'project') {
+    <mat-tab label="Repositories">
+      <div class="inspector-tab-margin">
+
+        <mat-card class="inspector-card-gap">
+          <mat-card-content class="card-content-container">
+            Repositories
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  }
+
   @if (collection === 'serviceInstance') {
     <mat-tab label="Details">
       <div class="inspector-tab-margin">

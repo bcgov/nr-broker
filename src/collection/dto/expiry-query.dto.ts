@@ -13,4 +13,9 @@ export class ExpiryQuery {
   @IsOptional()
   @Transform(({ value }) => value === 'true')
   patch?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  sync?: boolean;
 }

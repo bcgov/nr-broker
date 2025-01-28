@@ -14,6 +14,7 @@ import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
+import { RepositoryEntity } from '../entity/repository.entity';
 import { ServerEntity } from '../entity/server.entity';
 import { ServiceInstanceEntity } from '../entity/service-instance.entity';
 import { ServiceEntity } from '../entity/service.entity';
@@ -59,6 +60,7 @@ export class CollectionMongoRepository implements CollectionRepository {
       case 'brokerAccount':
       case 'environment':
       case 'project':
+      case 'repository':
       case 'server':
       case 'service':
       case 'team':
@@ -97,6 +99,8 @@ export class CollectionMongoRepository implements CollectionRepository {
         return new EnvironmentEntity();
       case 'project':
         return new ProjectEntity();
+      case 'repository':
+        return new RepositoryEntity();
       case 'server':
         return new ServerEntity();
       case 'serviceInstance':

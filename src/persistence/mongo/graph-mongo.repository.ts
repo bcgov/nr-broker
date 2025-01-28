@@ -1263,12 +1263,12 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
-          stream.collection.id = stream.collection._id;
+          stream.collection.id = stream.collection._id.toString();
           delete stream.collection._id;
 
-          stream.edge.id = stream.edge._id;
+          stream.edge.id = stream.edge._id.toString();
           delete stream.edge._id;
-          stream.vertex.id = stream.vertex._id;
+          stream.vertex.id = stream.vertex._id.toString();
           delete stream.vertex._id;
           return {
             collection: stream.collection,

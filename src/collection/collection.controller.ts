@@ -48,6 +48,7 @@ import { ExpiryQuery } from './dto/expiry-query.dto';
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
+import { TeamCollectionService } from './team-collection.service';
 
 @Controller({
   path: 'collection',
@@ -59,6 +60,7 @@ export class CollectionController {
     private readonly service: CollectionService,
     private readonly redis: RedisService,
     private readonly userCollectionService: UserCollectionService,
+    private readonly teamCollectionService: TeamCollectionService,
   ) {}
 
   /**
@@ -81,7 +83,7 @@ export class CollectionController {
   }
 
   /**
-   * Github account link return endpoint
+   * GitHub account link return endpoint
    */
   @Get('/user/link-github')
   @UseGuards(BrokerOidcAuthGuard)
@@ -146,6 +148,19 @@ export class CollectionController {
     return await this.accountService.refresh(id);
   }
 
+  @Post('team/:id/refresh')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async refreshGitHub(@Param('id') id: string): Promise<void> {
+    return await this.teamCollectionService.refresh(id);
+  }
+
   @Post('broker-account/:id/token')
   @Roles('admin')
   @AllowOwner({
@@ -171,6 +186,7 @@ export class CollectionController {
       id,
       expiryQuery.expiration,
       expiryQuery.patch ?? false,
+      expiryQuery.sync ?? false,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
       false,
     );
@@ -439,6 +455,7 @@ export class CollectionController {
       case 'project':
       case 'server':
       case 'service':
+      case 'repository':
       case 'team':
       case 'user':
         return collection;

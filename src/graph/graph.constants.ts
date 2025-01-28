@@ -6,4 +6,6 @@ export enum CollectionIndex {
   User,
   BrokerAccount,
   Team,
+  Server,
+  Repository,
 }
