@@ -186,7 +186,6 @@ export class CollectionController {
     @Param('id') id: string,
     @Query() syncQuery: SyncRepositoryQuery,
   ): Promise<void> {
-    console.log(syncQuery);
     return await this.repositoryCollectionService.refresh(
       id,
       syncQuery.syncSecrets,
