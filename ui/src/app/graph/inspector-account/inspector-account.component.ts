@@ -113,7 +113,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
     if (this.account && this.userIndex) {
       this.systemApi.brokerAccountRefresh(this.account.id).subscribe({
         next: () => {
-          this.openSnackBar('Tools secrets synced successfully');
+          this.openSnackBar('Sync of secrets queued');
         },
         error: (err: any) => {
           this.openSnackBar(
