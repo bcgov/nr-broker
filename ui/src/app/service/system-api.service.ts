@@ -50,9 +50,15 @@ export class SystemApiService {
     sync: boolean,
   ) {
     return this.http.post<TokenCreateDto>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token?expiration=${expirationInSeconds}&patch=${patchVaultTools}&sync=${sync}`,
+      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`,
+      {},
       {
         responseType: 'json',
+        params: {
+          expiration: expirationInSeconds,
+          patch: patchVaultTools,
+          syncSecrets: sync,
+        },
       },
     );
   }
@@ -99,12 +105,30 @@ export class SystemApiService {
     );
   }
 
-  refresh(accountId: string) {
+  brokerAccountRefresh(accountId: string) {
     return this.http.post(
       `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
       {},
       {
         responseType: 'json',
+      },
+    );
+  }
+
+  repositoryRefresh(
+    repositoryId: string,
+    syncSecrets: boolean,
+    syncUsers: boolean,
+  ) {
+    return this.http.post(
+      `${environment.apiUrl}/v1/collection/repository/${repositoryId}/refresh`,
+      {},
+      {
+        responseType: 'json',
+        params: {
+          syncSecrets,
+          syncUsers,
+        },
       },
     );
   }

@@ -66,6 +66,7 @@ import { UserAliasComponent } from '../user-alias/user-alias.component';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
+import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -90,6 +91,7 @@ import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
     InspectorConnectionsComponent,
+    InspectorRepositorySyncComponent,
     InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,

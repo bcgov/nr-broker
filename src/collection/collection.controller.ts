@@ -44,11 +44,13 @@ import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
-import { ExpiryQuery } from './dto/expiry-query.dto';
+import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
+import { SyncRepositoryQuery } from './dto/sync-repository-query.dto';
+import { RepositoryCollectionService } from './repository-collection.service';
 
 @Controller({
   path: 'collection',
@@ -59,8 +61,9 @@ export class CollectionController {
     private readonly accountService: AccountService,
     private readonly service: CollectionService,
     private readonly redis: RedisService,
-    private readonly userCollectionService: UserCollectionService,
+    private readonly repositoryCollectionService: RepositoryCollectionService,
     private readonly teamCollectionService: TeamCollectionService,
+    private readonly userCollectionService: UserCollectionService,
   ) {}
 
   /**
@@ -152,13 +155,43 @@ export class CollectionController {
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'collection',
-    graphObjectCollection: 'brokerAccount',
+    graphObjectCollection: 'team',
     graphIdFromParamKey: 'id',
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
-  async refreshGitHub(@Param('id') id: string): Promise<void> {
-    return await this.teamCollectionService.refresh(id);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async teamRefresh(
+    @Param('id') id: string,
+    @Query() syncQuery: SyncRepositoryQuery,
+  ): Promise<void> {
+    return await this.teamCollectionService.refresh(
+      id,
+      syncQuery.syncSecrets,
+      syncQuery.syncUsers,
+    );
+  }
+
+  @Post('repository/:id/refresh')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'repository',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async repositoryRefresh(
+    @Param('id') id: string,
+    @Query() syncQuery: SyncRepositoryQuery,
+  ): Promise<void> {
+    console.log(syncQuery);
+    return await this.repositoryCollectionService.refresh(
+      id,
+      syncQuery.syncSecrets,
+      syncQuery.syncUsers,
+    );
   }
 
   @Post('broker-account/:id/token')
@@ -178,15 +211,15 @@ export class CollectionController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async generateAccountToken(
     @Param('id') id: string,
-    @Query() expiryQuery: ExpiryQuery,
+    @Query() genQuery: BrokerAccountTokenGenerateQuery,
     @Request() req: ExpressRequest,
   ) {
     return this.accountService.generateAccountToken(
       req,
       id,
-      expiryQuery.expiration,
-      expiryQuery.patch ?? false,
-      expiryQuery.sync ?? false,
+      genQuery.expiration,
+      genQuery.patch ?? false,
+      genQuery.syncSecrets ?? false,
       get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
       false,
     );

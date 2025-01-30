@@ -92,8 +92,12 @@ export const OAUTH2_CLIENT_MAP_ROLES =
 export const OAUTH2_CLIENT_MAP_USERNAME =
   process.env.OAUTH2_CLIENT_MAP_USERNAME ?? 'idir_username';
 
+export const CRON_JOB_SYNC_SECRETS = 'cron-job-sync-secrets';
+export const CRON_JOB_SYNC_USERS = 'cron-job-sync-users';
+
 export const REDIS_QUEUES = {
-  VAULT_TOOLS_GITHUB_SYNC: 'vault-tools-github-sync',
+  GITHUB_SYNC_SECRETS: 'github-sync-secrets',
+  GITHUB_SYNC_USERS: 'github-sync-users',
 } as const;
 
 export const REDIS_PUBSUB = {

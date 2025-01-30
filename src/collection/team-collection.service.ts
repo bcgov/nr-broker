@@ -1,25 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
-import { BrokerAccountDto } from '../persistence/dto/broker-account.dto';
-import { AccountService } from './account.service';
+import { RepositoryDto } from '../persistence/dto/repository.dto';
+import { GithubSyncService } from '../github/github-sync.service';
 
 @Injectable()
 export class TeamCollectionService {
   constructor(
-    private readonly accountService: AccountService,
+    private readonly githubSyncService: GithubSyncService,
     private readonly graphRepository: GraphRepository,
   ) {}
 
-  async refresh(id: string) {
-    const accounts =
-      await this.graphRepository.getDownstreamVertex<BrokerAccountDto>(
+  async refresh(id: string, syncSecrets: boolean, syncUsers: boolean) {
+    const repositories =
+      await this.graphRepository.getDownstreamVertex<RepositoryDto>(
         id,
-        CollectionIndex.BrokerAccount,
-        1,
+        CollectionIndex.Repository,
+        8,
       );
-    for (const account of accounts) {
-      await this.accountService.refresh(account.collection.id);
+    for (const repository of repositories) {
+      await this.githubSyncService.refresh(
+        repository.collection,
+        syncSecrets,
+        syncUsers,
+      );
     }
   }
 }

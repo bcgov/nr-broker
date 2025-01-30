@@ -16,7 +16,12 @@
           <mat-icon>add_circle</mat-icon>Generate
         </button>
         @if(healthStatus.health$ | async; as health) {
-        <button mat-menu-item (click)="sync()" [disabled]="!hasSudo || !health.details['github']['sync']">
+        <button mat-menu-item
+          (click)="sync()"
+          [disabled]="!hasSudo || !health.details['github']['sync']"
+          matTooltip="Connected service's secrets stored in the Vault under the tools path will be copied to GitHub as action secrets."
+          matTooltipShowDelay="500"
+          matTooltipPosition="left">
           <mat-icon>sync</mat-icon>Sync secrets
         </button>
         }

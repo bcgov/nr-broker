@@ -1,0 +1,35 @@
+<div class="edge-container">
+  <div class="fields-wrapper">
+    @if (header === 'small') {
+      <h3 class="heading">Sync</h3>
+    } @else {
+      <h2 class="heading">Sync</h2>
+    }
+  </div>
+</div>
+@if(healthStatus.health$ | async; as health) {
+  @if(health.details['github']['sync']) {
+    @if (!repository.enableSyncSecrets || !repository.enableSyncUsers) {
+      <p class="edge-container">Click the button to queue a sync. If a button is disabled,
+        it must first be enabled for this repository before you can sync.</p>
+    }
+    <div class="edge-container details-container">
+
+
+      <button
+        mat-button
+        color="primary"
+        (click)="syncSecrets()"
+        [disabled]="!repository.enableSyncSecrets">Secrets</button>
+
+      <button
+        mat-button
+        color="primary"
+        (click)="syncUsers()"
+        [disabled]="!repository.enableSyncUsers">Users</button>
+
+    </div>
+  } @else {
+    <p class="edge-container">Sync services are currently not available.</p>
+  }
+}
