@@ -802,7 +802,7 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'string',
       unique: true,
-      hint: 'A descriptive name for the repository',
+      hint: 'A name for the repository',
       mask: {
         update: true,
       },
@@ -811,7 +811,7 @@ result = db.collectionConfig.insertOne({
       name: 'Description',
       required: true,
       type: 'description',
-      hint: 'A description of the contents',
+      hint: 'A brief description of the contents',
       mask: {
         update: true,
       },
@@ -821,18 +821,12 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'string',
       hint: 'The type of repository (git, svn, ...)',
-      mask: {
-        update: true,
-      },
     },
     scmUrl: {
       name: 'SCM URL',
       required: true,
       type: 'url',
       hint: 'Repository URL with slug and no trailing slash',
-      mask: {
-        update: true,
-      },
     },
     enableSyncSecrets: {
       name: 'Enable secret sync',
@@ -897,6 +891,27 @@ result = db.graphPermission.insertOne({
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 1, permissions: [] },
     { name: 'component', index: 2, permissions: ['approve'] },
+  ],
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 1, permissions: [] },
+    { name: 'component', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['update'] },
+  ],
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['update'] },
   ],
 });
 
