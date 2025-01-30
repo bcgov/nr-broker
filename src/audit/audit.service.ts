@@ -458,10 +458,13 @@ export class AuditService {
   }
 
   /**
-   * Records authorization events in the audit activity log
-   * @param req The initiating http request
-   * @param type Indicates if this is the start or end
-   * @param outcome The outcome of the authorization
+   * Records tool sync events in the audit activity log
+   * @param type
+   * @param outcome
+   * @param message
+   * @param project
+   * @param service
+   * @param failure
    */
   public recordToolsSync(
     type: 'start' | 'end' | 'info',

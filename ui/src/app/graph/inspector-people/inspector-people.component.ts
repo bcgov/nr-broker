@@ -39,6 +39,7 @@ export class InspectorPeopleComponent implements OnChanges {
 
   private getUpstreamUsers(vertexId: string) {
     const mapCollectionToEdgeName: { [key: string]: string[] } = {
+      repository: ['developer', 'lead-developer', 'owner', 'tester'],
       service: ['developer', 'lead-developer', 'owner', 'tester'],
       project: ['developer', 'lead-developer', 'owner', 'tester'],
       brokerAccount: ['administrator', 'lead-developer'],

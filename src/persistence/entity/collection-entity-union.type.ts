@@ -1,6 +1,7 @@
 import { BrokerAccountEntity } from './broker-account.entity';
 import { EnvironmentEntity } from './environment.entity';
 import { ProjectEntity } from './project.entity';
+import { RepositoryEntity } from './repository.entity';
 import { ServerEntity } from './server.entity';
 import { ServiceInstanceEntity } from './service-instance.entity';
 import { ServiceEntity } from './service.entity';
@@ -11,6 +12,7 @@ export type CollectionEntityUnion = {
   brokerAccount: BrokerAccountEntity;
   environment: EnvironmentEntity;
   project: ProjectEntity;
+  repository: RepositoryEntity;
   server: ServerEntity;
   serviceInstance: ServiceInstanceEntity;
   service: ServiceEntity;
@@ -31,6 +33,7 @@ export const CollectionNameEnum: {
   brokerAccount: 5,
   team: 6,
   server: 7,
+  repository: 8,
 } as const;
 
 export enum CollectionNameStringEnum {
@@ -42,4 +45,5 @@ export enum CollectionNameStringEnum {
   brokerAccount = 'brokerAccount',
   team = 'team',
   server = 'server',
+  repository = 'repository',
 }

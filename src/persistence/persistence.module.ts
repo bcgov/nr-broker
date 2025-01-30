@@ -38,6 +38,7 @@ import { UserEntity } from './entity/user.entity';
 import { VertexEntity } from './entity/vertex.entity';
 import { GraphPermissionEntity } from './entity/graph-permission.entity';
 import { UserAliasRequestEntity } from './entity/user-alias-request.entity';
+import { RepositoryEntity } from './entity/repository.entity';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',
@@ -89,6 +90,7 @@ const redisFactory = {
       PackageBuildEntity,
       PreferenceEntity,
       ProjectEntity,
+      RepositoryEntity,
       ServerEntity,
       TeamEntity,
       UserAliasRequestEntity,

@@ -32,10 +32,6 @@ export class ServiceBaseDto extends CollectionBaseDto {
   @IsOptional()
   type?: string;
 
-  @IsString()
-  @IsOptional()
-  scmUrl?: string;
-
   @ValidateNested()
   @IsOptional()
   @Type(() => VaultConfigDto)

@@ -11,6 +11,7 @@ import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
 import { UserUtil } from '../util/user.util';
 import { UserBaseDto } from '../persistence/dto/user.dto';
+import { plainToInstance } from 'class-transformer';
 
 /**
  * Assists with user collection activities
@@ -95,30 +96,32 @@ export class UserCollectionService {
   public async linkGithub(req: Request, state: string, code: string) {
     const existingUser = await this.authService.getUser(req);
     if (
-      !(await this.githubService.isRequestStateMatching(
-        existingUser.id.toString(),
-        state,
-      ))
+      !(await this.githubService.isRequestStateMatching(existingUser.id, state))
     ) {
       throw new BadRequestException('Request state does not match');
     }
-    delete existingUser.id;
-    delete existingUser.vertex;
+    const existingUserObj = existingUser.toPOJO();
+    delete existingUserObj.id;
+    delete existingUserObj._id;
+    delete existingUserObj.vertex;
 
     const token = await this.githubService.getUserAccessToken(code);
     const userData = await this.githubService.getUserInfo(token);
 
-    const vertex = new VertexInsertDto('user', {
-      ...existingUser,
-      alias: [
-        {
-          domain: USER_ALIAS_DOMAIN_GITHUB,
-          guid: userData.id,
-          name: userData.name,
-          username: userData.login,
-        },
-      ],
-    });
+    const vertex = new VertexInsertDto(
+      'user',
+      plainToInstance(UserBaseDto, {
+        ...existingUserObj,
+        alias: [
+          {
+            domain: USER_ALIAS_DOMAIN_GITHUB,
+            guid: userData.id.toString(),
+            name: userData.name,
+            username: userData.login,
+          },
+        ],
+      }),
+    );
 
     await this.graphService.editVertex(
       req,

@@ -12,6 +12,7 @@ import {
   ObjectId,
 } from '@mikro-orm/mongodb';
 import { CollectionEntityUnion } from '../entity/collection-entity-union.type';
+import { RepositoryEntity } from '../entity/repository.entity';
 
 export function getMongoDbConnectionUrl() {
   return process.env.MONGODB_URL.replace(
@@ -38,6 +39,10 @@ export function getRepositoryFromCollectionName<
     case 'project':
       return dataSource.getRepository(
         ProjectEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
+    case 'repository':
+      return dataSource.getRepository(
+        RepositoryEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'server':
       return dataSource.getRepository(

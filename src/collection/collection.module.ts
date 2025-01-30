@@ -14,6 +14,8 @@ import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 import { RedisModule } from '../redis/redis.module';
 import { VaultModule } from '../vault/vault.module';
+import { TeamCollectionService } from './team-collection.service';
+import { RepositoryCollectionService } from './repository-collection.service';
 
 /**
  * The collection module enables the viewing and manipulation of the objects
@@ -34,7 +36,13 @@ import { VaultModule } from '../vault/vault.module';
     VaultModule,
   ],
   controllers: [CollectionController],
-  providers: [AccountService, CollectionService, UserCollectionService],
+  providers: [
+    AccountService,
+    CollectionService,
+    RepositoryCollectionService,
+    TeamCollectionService,
+    UserCollectionService,
+  ],
   exports: [CollectionService, UserCollectionService],
 })
 export class CollectionModule {}

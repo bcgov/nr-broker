@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { SystemApiService } from '../../service/system-api.service';
 
@@ -28,6 +29,7 @@ interface ExpiryDay {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    MatTooltipModule,
   ],
   templateUrl: './account-generate-dialog.component.html',
   styleUrls: ['./account-generate-dialog.component.scss'],
@@ -41,6 +43,7 @@ export class AccountGenerateDialogComponent {
     { value: 31536000, viewValue: '1 year' },
   ];
   patchVaultTools = true;
+  syncGithub = true;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -57,6 +60,7 @@ export class AccountGenerateDialogComponent {
         this.data.accountId,
         this.selectedPeriod,
         this.patchVaultTools,
+        this.syncGithub && this.patchVaultTools,
       )
       .subscribe((data) => {
         this.token = data.token;

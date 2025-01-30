@@ -4,10 +4,9 @@ import {
   BadRequestException,
   NotFoundException,
   ServiceUnavailableException,
-  HttpException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
@@ -57,6 +56,7 @@ export class AccountService {
     private readonly dateUtil: DateUtil,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
@@ -146,6 +146,7 @@ export class AccountService {
     id: string,
     expirationInSeconds: number,
     patchVault: boolean,
+    syncSecrets: boolean,
     creatorGuid: string,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
@@ -201,7 +202,7 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
-    if (this.githubSyncService.isEnabled()) {
+    if (syncSecrets && this.githubSyncService.isEnabled()) {
       try {
         await this.refresh(account.id.toString());
       } catch (error) {
@@ -261,6 +262,7 @@ export class AccountService {
       request,
       registryJwt.accountId.toString(),
       ttl,
+      false,
       false,
       creatorId,
       autoRenew,
@@ -325,125 +327,48 @@ export class AccountService {
     );
   }
 
-  async refresh(id: string): Promise<void> {
+  /**
+   * Return the broker account entity by ID
+   * @param id The account ID
+   * @returns The broker account entity
+   */
+  private async getBrokerAccount(id: string) {
     const account = await this.collectionRepository.getCollectionById(
       'brokerAccount',
       id,
     );
+    return account;
+  }
 
-    this.auditService.recordToolsSync(
-      'info',
-      'unknown',
-      `Sync broker account (${account.clientId})`,
-    );
-
+  /**
+   * Test if the account is not null and if GitHub is enabled. Will throw error and log audit messages if not.
+   * @param id The account id (for logging purposes)
+   * @param account The account entity
+   */
+  private async doSyncPreflight(id: string, account: BrokerAccountEntity) {
     if (!account) {
       const message = `Account with ID ${id} not found`;
       this.auditService.recordToolsSync('info', 'failure', message);
-      throw new NotFoundException(`Account with ID ${id} not found`);
+      throw new NotFoundException(message);
     }
+
     if (!this.githubSyncService.isEnabled()) {
       this.auditService.recordToolsSync(
         'info',
         'failure',
-        'Github is not setup',
+        'GitHub is not setup',
       );
       throw new ServiceUnavailableException();
     }
-    const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceDto>(
-        account.vertex.toString(),
-        CollectionNameEnum.service,
-        1,
-      );
-    if (downstreamServices) {
-      const errors = [];
-      for (const service of downstreamServices) {
-        const serviceName = service.collection.name;
-        const projectDtoArr =
-          await this.graphRepository.getUpstreamVertex<ProjectDto>(
-            service.collection.vertex.toString(),
-            CollectionNameEnum.project,
-            ['component'],
-          );
-        if (projectDtoArr.length !== 1) {
-          this.auditService.recordToolsSync(
-            'info',
-            'unknown',
-            `Skip sync: ${service.collection.scmUrl}`,
-            'Unknown',
-            serviceName,
-          );
-          continue;
-        }
-        const projectName = projectDtoArr[0].collection.name;
+  }
 
-        // Determine if this is a valid service to sync for
-        if (
-          !this.githubSyncService.isBrokerManagedScmUrl(
-            service.collection.scmUrl,
-          )
-        ) {
-          this.auditService.recordToolsSync(
-            'info',
-            'unknown',
-            `Skip sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-          );
-          continue;
-        }
+  async refresh(id: string): Promise<void> {
+    // Do pre-checks to ensure the account exists
+    const account = await this.getBrokerAccount(id);
+    this.doSyncPreflight(id, account);
 
-        this.auditService.recordToolsSync(
-          'start',
-          'unknown',
-          `Start sync: ${service.collection.scmUrl}`,
-          projectName,
-          serviceName,
-        );
-
-        try {
-          await this.githubSyncService.refresh(
-            projectName,
-            serviceName,
-            service.collection.scmUrl,
-          );
-          this.auditService.recordToolsSync(
-            'end',
-            'success',
-            `End sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-          );
-        } catch (error) {
-          let httpErr = error;
-          if (!(httpErr instanceof HttpException)) {
-            httpErr = new BadRequestException({
-              message: error.message,
-            });
-          }
-          this.auditService.recordToolsSync(
-            'end',
-            'failure',
-            `End sync: ${service.collection.scmUrl}`,
-            projectName,
-            serviceName,
-            httpErr,
-          );
-          errors.push(httpErr);
-        }
-      }
-
-      if (errors.length > 0) {
-        throw errors[0];
-      }
-    } else {
-      this.auditService.recordToolsSync(
-        'info',
-        'unknown',
-        `No services associated with this broker account (${account.clientId})`,
-      );
-    }
+    // Queue the sync
+    this.githubSyncService.refreshByAccount(account);
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

@@ -22,7 +22,7 @@
     @if (data.package.buildVersion) {
     <button mat-stroked-button
       class="collection-btn"
-      (click)="openPackageBuildVersion(serviceId, data.package.buildVersion)"
+      (click)="openPackageBuildVersion(vertex, data.package.buildVersion)"
       matTooltip="{{data.package.buildVersion}}"
       matTooltipShowDelay="500"
       >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></button>

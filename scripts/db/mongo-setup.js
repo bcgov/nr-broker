@@ -17,6 +17,7 @@ db.user.drop();
 db.collectionConfig.drop();
 db.intention.drop();
 db.connectionConfig.drop();
+db.repository.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -233,6 +234,13 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      id: 'b1a02ac8',
+      collection: 'repository',
+      name: 'source',
+      relation: 'oneToMany',
+      show: true,
+    },
   ],
   fieldDefaultSort: {
     field: 'name',
@@ -278,15 +286,6 @@ result = db.collectionConfig.insertOne({
         update: true,
       },
     },
-    scmUrl: {
-      name: 'SCM URL',
-      required: false,
-      type: 'url',
-      hint: 'Repository URL with slug and no trailing slash',
-      mask: {
-        update: true,
-      },
-    },
     type: {
       name: 'Type',
       required: false,
@@ -309,7 +308,7 @@ result = db.collectionConfig.insertOne({
       },
     },
   },
-  browseFields: ['name', 'title', 'scmUrl'],
+  browseFields: ['name', 'title', 'type'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
   color: '5ab1ef',
@@ -787,10 +786,84 @@ result = db.collectionConfig.insertOne({
   show: true,
 });
 
+result = db.collectionConfig.insertOne({
+  collection: 'repository',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  index: 8,
+  edges: [],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'A name for the repository',
+      mask: {
+        update: true,
+      },
+    },
+    description: {
+      name: 'Description',
+      required: true,
+      type: 'description',
+      hint: 'A brief description of the contents',
+      mask: {
+        update: true,
+      },
+    },
+    type: {
+      name: 'Type',
+      required: false,
+      type: 'string',
+      hint: 'The type of repository (git, svn, ...)',
+    },
+    scmUrl: {
+      name: 'SCM URL',
+      required: true,
+      type: 'url',
+      hint: 'Repository URL with slug and no trailing slash',
+    },
+    enableSyncSecrets: {
+      name: 'Enable secret sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of secrets to repository (if supported)',
+      value: false,
+    },
+    enableSyncUsers: {
+      name: 'Enable user sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of users to repository (if supported)',
+      value: false,
+    },
+  },
+  browseFields: ['name', 'type', 'scmUrl'],
+  name: 'Repository',
+  hint: 'A source control repository tracks, manages, and versions project files and code.',
+  color: 'eeceda',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
+});
+
 // ==> Graph Permission Setup
 result = db.graphPermission.insertOne({
   name: 'user',
-  data: [{ name: 'owner', index: 6, permissions: ['update', 'delete'] }],
+  data: [
+    { name: 'owner', index: 6, permissions: ['sudo', 'update', 'delete'] },
+  ],
+  key: 'owner-team',
 });
 
 result = db.graphPermission.insertOne({
@@ -802,6 +875,7 @@ result = db.graphPermission.insertOne({
     { name: 'component', index: 2, permissions: ['sudo', 'update'] },
     { name: 'instance', index: 3, permissions: ['update'] },
   ],
+  key: 'leaddev-project-service-instance',
 });
 
 result = db.graphPermission.insertOne({
@@ -812,6 +886,7 @@ result = db.graphPermission.insertOne({
     { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
     { name: 'instance', index: 3, permissions: ['update'] },
   ],
+  key: 'leaddev-service-instance',
 });
 
 result = db.graphPermission.insertOne({
@@ -822,6 +897,30 @@ result = db.graphPermission.insertOne({
     { name: 'authorized', index: 1, permissions: [] },
     { name: 'component', index: 2, permissions: ['approve'] },
   ],
+  key: 'tester-component-approve',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 1, permissions: [] },
+    { name: 'component', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
+  ],
+  key: 'leaddev-project-service-source-additions',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
+  ],
+  key: 'leaddev-service-source-additions',
 });
 
 // ==> User setup

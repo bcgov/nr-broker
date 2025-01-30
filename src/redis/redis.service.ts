@@ -1,9 +1,10 @@
 import { Inject, Injectable, MessageEvent } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 import { Observable, Subject } from 'rxjs';
-import { REDIS_PUBSUB } from '../constants';
+import { REDIS_PUBSUB, REDIS_QUEUES } from '../constants';
 
 type EventSourceKeys = keyof typeof REDIS_PUBSUB;
+type QueueSourceKeys = keyof typeof REDIS_QUEUES;
 
 type EventSourceMap = {
   [key in EventSourceKeys]: Subject<MessageEvent>;
@@ -23,7 +24,6 @@ export class RedisService {
   constructor(
     @Inject('REDIS_CLIENT') private readonly client: RedisClientType,
   ) {
-    // console.log(this.eventSourceMap);
     const subscriber = this.client.duplicate();
     subscriber.on('error', (err) => console.error(err));
     subscriber.connect().then(() => {
@@ -37,6 +37,20 @@ export class RedisService {
 
   public getEventSource(source: string): Observable<MessageEvent> {
     return this.eventSourceMap[source];
+  }
+
+  public async queue(
+    name: (typeof REDIS_QUEUES)[QueueSourceKeys],
+    value: string,
+    unique = true,
+  ) {
+    if (!unique || (await this.client.lPos(name, value)) === null) {
+      this.client.lPush(name, value);
+    }
+  }
+
+  public dequeue(name: (typeof REDIS_QUEUES)[QueueSourceKeys]) {
+    return this.client.rPop(name);
   }
 
   public publish(

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
@@ -8,15 +8,41 @@ import {
   GITHUB_SYNC_PRIVATE_KEY,
   GITHUB_MANAGED_URL_REGEX,
   VAULT_KV_APPS_MOUNT,
+  REDIS_QUEUES,
+  CRON_JOB_SYNC_USERS,
+  CRON_JOB_SYNC_SECRETS,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
+import { ProjectDto } from '../persistence/dto/project.dto';
+import { ServiceDto } from '../persistence/dto/service.dto';
+import { GraphRepository } from '../persistence/interfaces/graph.repository';
+import { UserDto } from '../persistence/dto/user.dto';
+import { RepositoryDto } from '../persistence/dto/repository.dto';
+import { CollectionIndex } from '../graph/graph.constants';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { RedisService } from '../redis/redis.service';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
+import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
+import { RepositoryEntity } from '../persistence/entity/repository.entity';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class GithubSyncService {
   private readonly axiosInstance: AxiosInstance;
   private brokerManagedRegex = new RegExp(GITHUB_MANAGED_URL_REGEX);
 
-  constructor(private readonly vaultService: VaultService) {
+  constructor(
+    private readonly auditService: AuditService,
+    private readonly vaultService: VaultService,
+    private readonly graphRepository: GraphRepository,
+    private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly redisService: RedisService,
+    private readonly collectionRepository: CollectionRepository,
+    // used by: @CreateRequestContext()
+    private readonly orm: MikroORM,
+  ) {
     this.axiosInstance = axios.create({
       baseURL: 'https://api.github.com',
       headers: {
@@ -36,35 +62,238 @@ export class GithubSyncService {
     return this.brokerManagedRegex.test(scmUrl);
   }
 
-  public async refresh(project: string, service: string, scmUrl: string) {
-    if (!this.isEnabled()) {
-      throw new Error('Not enabled');
-    }
-    if (!this.isBrokerManagedScmUrl(scmUrl)) {
-      throw new Error('Service does not have Github repo URL to update');
-    }
-    const path = `tools/${project}/${service}`;
-    const kvData = await lastValueFrom(
-      this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
-    );
-    if (kvData) {
-      for (const [secretName, secretValue] of Object.entries(kvData)) {
-        await this.updateSecret(scmUrl, secretName, secretValue.toString());
+  public async refreshByAccount(account: BrokerAccountEntity) {
+    const downstreamServices =
+      await this.graphRepository.getDownstreamVertex<ServiceDto>(
+        account.vertex.toString(),
+        CollectionNameEnum.service,
+        4,
+      );
+    if (downstreamServices) {
+      for (const serviceUpDown of downstreamServices) {
+        const service = serviceUpDown.collection;
+        this.refreshByService(service, true, false);
       }
     }
   }
 
-  public async updateSecret(
-    repoUrl: string,
+  public async refreshByService(
+    service: ServiceDto,
+    syncSecrets: boolean,
+    syncUsers: boolean,
+  ) {
+    // console.log(`Syncing ${service.name} : ${service.vertex.toString()}`);
+
+    const repositories =
+      await this.graphRepository.getDownstreamVertex<RepositoryDto>(
+        service.vertex.toString(),
+        CollectionIndex.Repository,
+        1,
+      );
+    for (const repositoryUpDown of repositories) {
+      const repository = repositoryUpDown.collection;
+      await this.refresh(repository, syncSecrets, syncUsers);
+    }
+  }
+
+  async refresh(
+    repository: RepositoryDto,
+    syncSecrets: boolean,
+    syncUsers: boolean,
+  ): Promise<void> {
+    if (!this.isEnabled()) {
+      this.auditService.recordToolsSync(
+        'info',
+        'failure',
+        'Github is not setup',
+      );
+      throw new ServiceUnavailableException();
+    }
+    // this.doSyncPreflight(id, account);
+
+    // Queue the sync
+    if (syncSecrets) {
+      // console.log(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
+      this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
+    }
+    if (syncUsers) {
+      // console.log(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
+      this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_30_SECONDS, {
+    name: CRON_JOB_SYNC_SECRETS,
+  })
+  @CreateRequestContext()
+  async pollRefreshCronSecrets(): Promise<void> {
+    await this.refreshJobWrap(
+      CRON_JOB_SYNC_SECRETS,
+      REDIS_QUEUES.GITHUB_SYNC_SECRETS,
+      (id: string) => {
+        return this.runRefresh(id, true, false);
+      },
+    );
+  }
+
+  @Cron(CronExpression.EVERY_30_SECONDS, {
+    name: CRON_JOB_SYNC_USERS,
+  })
+  @CreateRequestContext()
+  async pollRefreshCronUsers(): Promise<void> {
+    await this.refreshJobWrap(
+      CRON_JOB_SYNC_USERS,
+      REDIS_QUEUES.GITHUB_SYNC_USERS,
+      (id: string) => {
+        return this.runRefresh(id, false, true);
+      },
+    );
+  }
+
+  private async refreshJobWrap(
+    jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
+    queueName: (typeof REDIS_QUEUES)[keyof typeof REDIS_QUEUES],
+    func: (id: string) => Promise<void>,
+  ) {
+    const job = this.schedulerRegistry.getCronJob(jobName);
+    job.stop(); // pausing the cron job
+    try {
+      const id = await this.redisService.dequeue(queueName);
+      if (id) {
+        await func(id);
+      }
+    } catch (error) {
+      // console.log(error);
+      // Continue - this.runRefresh() audits failures
+    } finally {
+      job.start(); // resuming the cron job
+    }
+  }
+
+  async runRefresh(
+    repositoryId: string,
+    syncSecrets: boolean,
+    syncUsers: boolean,
+  ): Promise<void> {
+    const repository = await this.collectionRepository.getCollectionById(
+      'repository',
+      repositoryId,
+    );
+
+    if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
+      this.auditService.recordToolsSync(
+        'info',
+        'unknown',
+        `Skip sync of unmanaged url (${repository.id})`,
+      );
+      return;
+    }
+
+    this.auditService.recordToolsSync(
+      'info',
+      'unknown',
+      `Sync repository (${repository.id})`,
+    );
+
+    if (syncUsers && repository.enableSyncUsers) {
+      await this.syncUsers(repository);
+    }
+
+    if (syncSecrets && repository.enableSyncSecrets) {
+      const serviceDtoArr =
+        await this.graphRepository.getUpstreamVertex<ServiceDto>(
+          repository.vertex.toString(),
+          CollectionNameEnum.service,
+          ['source'],
+        );
+
+      for (const serviceUpDown of serviceDtoArr) {
+        const service = serviceUpDown.collection;
+        const projectDtoArr =
+          await this.graphRepository.getUpstreamVertex<ProjectDto>(
+            service.vertex.toString(),
+            CollectionNameEnum.project,
+            ['component'],
+          );
+        if (projectDtoArr.length !== 1) {
+          this.auditService.recordToolsSync(
+            'info',
+            'unknown',
+            `Skip sync: ${service.name}`,
+            'Unknown',
+            service.name,
+          );
+          continue;
+        }
+        const project = projectDtoArr[0].collection;
+
+        await this.syncSecrets(project, service, repository);
+      }
+    }
+  }
+
+  public async syncSecrets(
+    project: ProjectDto,
+    service: ServiceDto,
+    repository: RepositoryEntity,
+  ) {
+    if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
+      throw new Error('Service does not have Github repo URL to update');
+    }
+    if (!repository.enableSyncSecrets) {
+      throw new Error('Service does not have sync enabled');
+    }
+    this.auditService.recordToolsSync(
+      'start',
+      'unknown',
+      `Start secret sync: ${repository.scmUrl}`,
+      project.name,
+      service.name,
+    );
+    const path = `tools/${project.name}/${service.name}`;
+    try {
+      const kvData = await lastValueFrom(
+        this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
+      );
+      if (kvData) {
+        for (const [secretName, secretValue] of Object.entries(kvData)) {
+          await this.updateSecret(
+            repository.scmUrl,
+            secretName,
+            secretValue.toString(),
+          );
+        }
+      }
+    } catch (error) {
+      this.auditService.recordToolsSync(
+        'end',
+        'failure',
+        `End secret sync: ${repository.scmUrl}`,
+        project.name,
+        service.name,
+      );
+      return;
+    }
+    this.auditService.recordToolsSync(
+      'end',
+      'success',
+      `End secret sync: ${repository.scmUrl}`,
+      project.name,
+      service.name,
+    );
+  }
+
+  private async updateSecret(
+    scmUrl: string,
     secretName: string,
     secretValue: string,
   ): Promise<void> {
-    const { owner, repo } = this.getOwnerAndRepoFromUrl(repoUrl);
+    const { owner, repo } = this.getOwnerAndRepoFromUrl(scmUrl);
     const token = await this.getInstallationAccessToken(owner, repo);
     const filteredSecretName = secretName.replace(/[^a-zA-Z0-9_]/g, '_');
 
     if (!token) {
-      throw new Error('Github access token is null!');
+      throw new Error('GitHub access token is null!');
     }
     const { key: base64PublicKey, key_id: keyId } = await this.getPublicKey(
       owner,
@@ -88,6 +317,90 @@ export class GithubSyncService {
           Authorization: `token ${token}`,
         },
       },
+    );
+  }
+
+  public async syncUsers(repository: RepositoryEntity) {
+    if (!this.isEnabled()) {
+      throw new Error('Not enabled');
+    }
+    if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
+      throw new Error('Service does not have GitHub repo URL to update');
+    }
+    if (!repository.enableSyncUsers) {
+      throw new Error('Service does not have user sync enabled');
+    }
+
+    this.auditService.recordToolsSync(
+      'start',
+      'unknown',
+      `Start user sync: ${repository.scmUrl}`,
+    );
+
+    const { owner, repo } = this.getOwnerAndRepoFromUrl(repository.scmUrl);
+    const token = await this.getInstallationAccessToken(owner, repo);
+
+    if (!token) {
+      throw new Error('GitHub access token is null!');
+    }
+
+    const edgeToRoles = [
+      { edge: 'owner', role: 'admin' },
+      { edge: 'lead-developer', role: 'maintain' },
+      { edge: 'developer', role: 'write' },
+      { edge: 'tester', role: 'triage' },
+    ];
+
+    // Get collaborators
+    const collaborators = await this.listRepoCollaborators(owner, repo, token);
+    const touchedCollaborators = new Set<string>();
+
+    for (const edgeRole of edgeToRoles) {
+      const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+        repository.vertex.toString(),
+        CollectionIndex.User,
+        [edgeRole.edge],
+      );
+      for (const user of users) {
+        if (!user.collection?.alias || user.collection.alias.length !== 1) {
+          continue;
+        }
+        const username = user.collection.alias[0].username;
+        // Skip users in higher roles
+        // console.log(`Checking ${username} for ${edgeRole.role}`);
+        if (touchedCollaborators.has(username)) {
+          // console.log(`Skipping touched ${username}`);
+          continue;
+        }
+        touchedCollaborators.add(username);
+
+        const collaborator = collaborators.find(
+          (collaborator: any) => collaborator.login === username,
+        );
+        if (collaborator && collaborator.role_name === edgeRole.role) {
+          // console.log(`Skipping ${username} (already in role)`);
+          continue;
+        }
+        // console.log(`Adding ${username} as ${edgeRole.role}`);
+
+        await this.addRepoCollaborator(
+          owner,
+          repo,
+          user.collection.alias[0].username,
+          edgeRole.role,
+          token,
+        );
+      }
+    }
+
+    for (const user of []) {
+      await this.removeRepoCollaborator(owner, repo, user, token);
+    }
+
+    this.auditService.recordToolsSync(
+      'end',
+      'success',
+      `End user sync: ${repository.scmUrl}`,
     );
   }
 
@@ -179,6 +492,12 @@ export class GithubSyncService {
     return response.data;
   }
 
+  /**
+   * Encrypt a secret using the public key
+   * @param publicKey The base64 encoded public key
+   * @param secretValue The secret value to encrypt
+   * @returns The base64 encoded encrypted secret
+   */
   private async encryptSecret(
     publicKey: string,
     secretValue: string,
@@ -210,5 +529,87 @@ export class GithubSyncService {
       console.error('Error encrypting the secret:', error);
       //throw new Error('Failed to encrypt the secret.');
     }
+  }
+
+  /**
+   * List collaborators of a repository
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param token The installation access token
+   * @returns The list of collaborators (See GitHub API documentation)
+   */
+  private async listRepoCollaborators(
+    owner: string,
+    repo: string,
+    token: string,
+  ) {
+    // list collaborators
+    return (
+      await this.axiosInstance.get(
+        `/repos/${owner}/${repo}/collaborators?affiliation=direct`,
+        {
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+        },
+      )
+    ).data;
+  }
+
+  /**
+   * Add a collaborator to a repository
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param username The GitHub username to add as a collaborator
+   * @param permission The permission level to grant the collaborator
+   * @param token The installation access token
+   */
+  private async addRepoCollaborator(
+    owner: string,
+    repo: string,
+    username: string,
+    permission: string,
+    token: string,
+  ) {
+    await this.axiosInstance.put(
+      `/repos/${owner}/${repo}/collaborators/${username}`,
+      {
+        permission,
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Remove a collaborator from a repository
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param username The GitHub username to remove as a collaborator
+   * @param token The installation access token
+   */
+  private async removeRepoCollaborator(
+    owner: string,
+    repo: string,
+    username: string,
+    token: string,
+  ) {
+    await this.axiosInstance.delete(
+      `/repos/${owner}/${repo}/collaborators/${username}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
   }
 }

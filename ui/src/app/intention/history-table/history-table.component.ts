@@ -193,7 +193,9 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   }
 
   async openPackageBuildVersion(id: string, version: string) {
-    return this.packageUtil.openPackageBuildVersion(id, version);
+    this.collectionApi.getCollectionById('service', id).subscribe((service) => {
+      return this.packageUtil.openPackageBuildVersion(service.vertex, version);
+    });
   }
 
   viewPackage(action: any) {

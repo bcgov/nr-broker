@@ -4,14 +4,20 @@
   <p>Please choose length and click generate to create a new token. The current
     token (if any) will be blocked after 1 hour.</p>
 
-  <p>If you check "save value in Vault" then each connected service will receive
-    a copy of the token in the tools path.</p>
-
   <div class="generate-panel">
-    <mat-checkbox [(ngModel)]="patchVaultTools">Save value in Vault</mat-checkbox>
+    <mat-checkbox
+      matTooltip="Each service connected to this account will receive a copy of the token in Vault under the service's tools path."
+      [(ngModel)]="patchVaultTools">Distribute token to connected services</mat-checkbox>
   </div>
 
   <div class="generate-panel">
+    <mat-checkbox
+      [disabled]="!patchVaultTools"
+      matTooltip="Connected service's secrets stored in the Vault under the tools path will be copied to GitHub as action secrets."
+      [(ngModel)]="syncGithub">Sync service secrets to connected GitHub repositories</mat-checkbox>
+  </div>
+
+  <div class="generate-panel generate-panel-select">
     <mat-form-field>
       <mat-label>Length</mat-label>
       <mat-select
@@ -29,7 +35,6 @@
       [disabled]="!!token"
       (click)="generate()">Generate</button>
   </div>
-
 
   <div class="generate-panel">
     <mat-form-field>
@@ -51,7 +56,7 @@
     </mat-form-field>
   </div>
 
-  <p>The token will be displayed only once in this dialog. It should be treated as a secret.</p>
+  <p>The token will be displayed in Broker only once in this dialog. It should be treated as a secret.</p>
 
 </mat-dialog-content>
 
