@@ -37,4 +37,7 @@ export class GraphPermissionEntity extends BaseEntity {
 
   @Embedded({ entity: () => UserPermissionEmbeddable, array: true })
   data: UserPermissionEmbeddable[];
+
+  @Property()
+  key: string;
 }

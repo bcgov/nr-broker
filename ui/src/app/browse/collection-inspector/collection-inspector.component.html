@@ -160,7 +160,7 @@
       </mat-card>
 
       <div>
-        @if (collection === 'repository' && comboData.vertex.collection === collection) {
+        @if (hasSudo && collection === 'repository' && comboData.vertex.collection === collection) {
           <mat-card class="inspector-card-gap">
             <mat-card-content>
               <app-inspector-repository-sync

@@ -860,7 +860,10 @@ result = db.collectionConfig.insertOne({
 // ==> Graph Permission Setup
 result = db.graphPermission.insertOne({
   name: 'user',
-  data: [{ name: 'owner', index: 6, permissions: ['update', 'delete'] }],
+  data: [
+    { name: 'owner', index: 6, permissions: ['sudo', 'update', 'delete'] },
+  ],
+  key: 'owner-team',
 });
 
 result = db.graphPermission.insertOne({
@@ -872,6 +875,7 @@ result = db.graphPermission.insertOne({
     { name: 'component', index: 2, permissions: ['sudo', 'update'] },
     { name: 'instance', index: 3, permissions: ['update'] },
   ],
+  key: 'leaddev-project-service-instance',
 });
 
 result = db.graphPermission.insertOne({
@@ -882,6 +886,7 @@ result = db.graphPermission.insertOne({
     { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
     { name: 'instance', index: 3, permissions: ['update'] },
   ],
+  key: 'leaddev-service-instance',
 });
 
 result = db.graphPermission.insertOne({
@@ -892,6 +897,7 @@ result = db.graphPermission.insertOne({
     { name: 'authorized', index: 1, permissions: [] },
     { name: 'component', index: 2, permissions: ['approve'] },
   ],
+  key: 'tester-component-approve',
 });
 
 result = db.graphPermission.insertOne({
@@ -901,8 +907,9 @@ result = db.graphPermission.insertOne({
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 1, permissions: [] },
     { name: 'component', index: 2, permissions: [] },
-    { name: 'source', index: 8, permissions: ['update'] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
   ],
+  key: 'leaddev-project-service-source-additions',
 });
 
 result = db.graphPermission.insertOne({
@@ -911,8 +918,9 @@ result = db.graphPermission.insertOne({
     { name: 'lead-developer', index: 6, permissions: [] },
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 2, permissions: [] },
-    { name: 'source', index: 8, permissions: ['update'] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
   ],
+  key: 'leaddev-service-source-additions',
 });
 
 // ==> User setup

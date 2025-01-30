@@ -113,11 +113,11 @@ export class GithubSyncService {
 
     // Queue the sync
     if (syncSecrets) {
-      console.log(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
+      // console.log(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
     }
     if (syncUsers) {
-      console.log(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
+      // console.log(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
     }
   }
@@ -163,6 +163,7 @@ export class GithubSyncService {
         await func(id);
       }
     } catch (error) {
+      // console.log(error);
       // Continue - this.runRefresh() audits failures
     } finally {
       job.start(); // resuming the cron job
@@ -250,17 +251,28 @@ export class GithubSyncService {
       service.name,
     );
     const path = `tools/${project.name}/${service.name}`;
-    const kvData = await lastValueFrom(
-      this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
-    );
-    if (kvData) {
-      for (const [secretName, secretValue] of Object.entries(kvData)) {
-        await this.updateSecret(
-          repository.scmUrl,
-          secretName,
-          secretValue.toString(),
-        );
+    try {
+      const kvData = await lastValueFrom(
+        this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
+      );
+      if (kvData) {
+        for (const [secretName, secretValue] of Object.entries(kvData)) {
+          await this.updateSecret(
+            repository.scmUrl,
+            secretName,
+            secretValue.toString(),
+          );
+        }
       }
+    } catch (error) {
+      this.auditService.recordToolsSync(
+        'end',
+        'failure',
+        `End secret sync: ${repository.scmUrl}`,
+        project.name,
+        service.name,
+      );
+      return;
     }
     this.auditService.recordToolsSync(
       'end',
