@@ -21,6 +21,7 @@ export type CollectionEntityUnion = {
 };
 
 export type CollectionNames = keyof CollectionEntityUnion;
+export type CollectionValues = CollectionEntityUnion[CollectionNames];
 
 export const CollectionNameEnum: {
   [Property in CollectionNames]: number;

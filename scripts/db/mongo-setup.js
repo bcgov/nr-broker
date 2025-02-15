@@ -842,6 +842,20 @@ result = db.collectionConfig.insertOne({
       hint: 'Enable sync of users to repository (if supported)',
       value: false,
     },
+    syncSecretsStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
+    syncUsersStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
   },
   browseFields: ['name', 'type', 'scmUrl'],
   name: 'Repository',

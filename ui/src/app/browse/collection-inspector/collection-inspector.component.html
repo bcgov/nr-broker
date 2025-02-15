@@ -336,7 +336,9 @@
 
   @if (collection === 'team') {
     <mat-tab label="Team">
-      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
+      <div
+        class="inspector-card-layout inspector-tab-full-margin"
+        [class]="screenSize">
         <mat-card>
           <mat-card-content>
             <div class="card-title-container">
@@ -361,14 +363,18 @@
       </div>
     </mat-tab>
     <mat-tab label="Services">
-      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
+      <div
+        class="inspector-card-layout inspector-tab-full-margin"
+        [class]="screenSize">
         <app-team-services
-        class="full-width order-end"
-        [teamVertex]="comboData.collection.vertex"></app-team-services>
+          class="full-width order-end"
+          [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
     <mat-tab label="Accounts">
-      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
+      <div
+        class="inspector-card-layout inspector-tab-full-margin"
+        [class]="screenSize">
         <app-team-accounts
           class="full-width order-end"
           [teamVertex]="comboData.collection.vertex"

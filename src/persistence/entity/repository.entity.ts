@@ -1,5 +1,6 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import {
+  Embedded,
   Entity,
   Index,
   PrimaryKey,
@@ -9,6 +10,7 @@ import {
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 import { COLLECTION_COLLATION_LOCALE } from '../../constants';
+import { SyncStatusEmbeddable } from './sync-status.embeddable';
 
 @Entity({ tableName: 'repository' })
 export class RepositoryEntity extends VertexPointerEntity {
@@ -38,4 +40,18 @@ export class RepositoryEntity extends VertexPointerEntity {
 
   @Property()
   enableSyncUsers: boolean;
+
+  @Embedded({
+    entity: () => SyncStatusEmbeddable,
+    nullable: true,
+    object: true,
+  })
+  syncSecretsStatus?: SyncStatusEmbeddable;
+
+  @Embedded({
+    entity: () => SyncStatusEmbeddable,
+    nullable: true,
+    object: true,
+  })
+  syncUsersStatus?: SyncStatusEmbeddable;
 }

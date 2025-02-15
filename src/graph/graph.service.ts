@@ -36,8 +36,12 @@ import { UserPermissionNames } from '../persistence/dto/user-permission.dto';
 import { AuthService } from '../auth/auth.service';
 import { ServiceInstanceDto } from '../persistence/dto/service-instance.dto';
 import { EnvironmentDto } from '../persistence/dto/environment.dto';
-import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
+import {
+  CollectionEntityUnion,
+  CollectionValues,
+} from '../persistence/entity/collection-entity-union.type';
 import { ValidatorUtil } from '../util/validator.util';
+import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddable';
 
 @Injectable()
 export class GraphService {
@@ -361,6 +365,45 @@ export class GraphService {
         error: '',
       });
     }
+  }
+
+  public async updateSyncStatus<T extends CollectionValues>(
+    entity: T,
+    prop: {
+      [K in keyof T]: T[K] extends SyncStatusEmbeddable ? K : never;
+    }[keyof T],
+    event: 'queuedAt' | 'syncAt',
+  ) {
+    const vertex = await this.graphRepository.getVertex(
+      entity.vertex.toString(),
+    );
+    const config = await this.collectionRepository.getCollectionConfigByName(
+      vertex.collection,
+    );
+
+    const syncStatus: SyncStatusEmbeddable =
+      entity[prop] ?? new SyncStatusEmbeddable();
+
+    if (event === 'queuedAt') {
+      syncStatus.queuedAt = new Date();
+    }
+    if (event === 'syncAt') {
+      syncStatus.syncAt = new Date();
+    }
+    entity[prop] = syncStatus as any;
+
+    this.graphRepository.editVertex(vertex.id, vertex, entity);
+
+    this.publishGraphEvent({
+      data: {
+        event: 'vertex-edit',
+        vertex: {
+          category: CollectionNameEnum[vertex.collection],
+          index: config.index,
+          ...wrap(vertex).toJSON(),
+        },
+      },
+    });
   }
 
   private async validateVertex(
