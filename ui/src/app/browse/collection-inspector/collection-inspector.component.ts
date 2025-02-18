@@ -179,6 +179,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.routeSub) {
       this.routeSub = this.activatedRoute.params.subscribe(() => {
+        this.loading = true;
         this.initComponent();
         this.updateCollection();
       });

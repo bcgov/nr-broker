@@ -1,5 +1,13 @@
-import { IsString, IsDefined, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsDefined,
+  IsOptional,
+  IsBoolean,
+  IsObject,
+} from 'class-validator';
 import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
+import { SyncStatusDto } from './sync-status.dto';
+import { Type } from 'class-transformer';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export class RepositoryBaseDto extends CollectionBaseDto {
@@ -24,6 +32,16 @@ export class RepositoryBaseDto extends CollectionBaseDto {
 
   @IsBoolean()
   enableSyncUsers!: boolean;
+
+  @IsOptional()
+  @IsObject()
+  @Type(() => SyncStatusDto)
+  syncSecretsStatus?: SyncStatusDto;
+
+  @IsOptional()
+  @IsObject()
+  @Type(() => SyncStatusDto)
+  syncUsersStatus?: SyncStatusDto;
 }
 
 export class RepositoryDto

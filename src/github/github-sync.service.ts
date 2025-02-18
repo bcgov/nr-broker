@@ -3,6 +3,8 @@ import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
 import * as jwt from 'jsonwebtoken';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
 import {
   GITHUB_SYNC_CLIENT_ID,
   GITHUB_SYNC_PRIVATE_KEY,
@@ -12,21 +14,20 @@ import {
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
 } from '../constants';
+import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
+import { CollectionIndex } from '../graph/graph.constants';
+import { RedisService } from '../redis/redis.service';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { UserDto } from '../persistence/dto/user.dto';
 import { RepositoryDto } from '../persistence/dto/repository.dto';
-import { CollectionIndex } from '../graph/graph.constants';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
-import { RedisService } from '../redis/redis.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
-import { AuditService } from '../audit/audit.service';
+import { GraphService } from '../graph/graph.service';
 
 @Injectable()
 export class GithubSyncService {
@@ -36,10 +37,11 @@ export class GithubSyncService {
   constructor(
     private readonly auditService: AuditService,
     private readonly vaultService: VaultService,
-    private readonly graphRepository: GraphRepository,
-    private readonly schedulerRegistry: SchedulerRegistry,
     private readonly redisService: RedisService,
+    private readonly graphService: GraphService,
+    private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
+    private readonly schedulerRegistry: SchedulerRegistry,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {
@@ -109,18 +111,53 @@ export class GithubSyncService {
       );
       throw new ServiceUnavailableException();
     }
-    // this.doSyncPreflight(id, account);
+    const entity = await this.collectionRepository.getCollectionById(
+      'repository',
+      repository.id,
+    );
 
     // Queue the sync
     if (syncSecrets) {
       // console.log(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
+
+      await this.graphService.updateSyncStatus(
+        entity,
+        'syncSecretsStatus',
+        'queuedAt',
+      );
     }
     if (syncUsers) {
       // console.log(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
+
+      await this.graphService.updateSyncStatus(
+        entity,
+        'syncUsersStatus',
+        'queuedAt',
+      );
     }
   }
+
+  // @Cron(CronExpression.EVERY_HOUR)
+  // @CreateRequestContext()
+  // async scheduleSyncForChanges(): Promise<void> {
+  //   if (!this.isEnabled() || !IS_PRIMARY_NODE) {
+  //     return;
+  //   }
+
+  //   const repositories =
+  //     await this.collectionRepository.exportCollection('repository');
+  //   for (const repository of repositories) {
+  //     // For now, skip secret sync
+  //     // if (repository.enableSyncSecrets) {
+  //     //   this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
+  //     // }
+  //     if (repository.enableSyncUsers) {
+  //       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
+  //     }
+  //   }
+  // }
 
   @Cron(CronExpression.EVERY_30_SECONDS, {
     name: CRON_JOB_SYNC_SECRETS,
@@ -274,6 +311,13 @@ export class GithubSyncService {
       );
       return;
     }
+
+    await this.graphService.updateSyncStatus(
+      repository,
+      'syncSecretsStatus',
+      'syncAt',
+    );
+
     this.auditService.recordToolsSync(
       'end',
       'success',
@@ -353,6 +397,10 @@ export class GithubSyncService {
 
     // Get collaborators
     const collaborators = await this.listRepoCollaborators(owner, repo, token);
+    const currCollabRoleMap = new Map<string, string>();
+    for (const collaborator of collaborators) {
+      currCollabRoleMap.set(collaborator.login, collaborator.role_name);
+    }
     const touchedCollaborators = new Set<string>();
 
     for (const edgeRole of edgeToRoles) {
@@ -373,11 +421,10 @@ export class GithubSyncService {
           continue;
         }
         touchedCollaborators.add(username);
-
-        const collaborator = collaborators.find(
-          (collaborator: any) => collaborator.login === username,
-        );
-        if (collaborator && collaborator.role_name === edgeRole.role) {
+        if (
+          currCollabRoleMap.has(username) &&
+          currCollabRoleMap.get(username) === edgeRole.role
+        ) {
           // console.log(`Skipping ${username} (already in role)`);
           continue;
         }
@@ -386,16 +433,26 @@ export class GithubSyncService {
         await this.addRepoCollaborator(
           owner,
           repo,
-          user.collection.alias[0].username,
+          username,
           edgeRole.role,
           token,
         );
       }
     }
 
-    for (const user of []) {
+    const removeCollaborators = [...currCollabRoleMap.keys()].filter(
+      (x) => !touchedCollaborators.has(x),
+    );
+
+    for (const user of removeCollaborators) {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
+
+    await this.graphService.updateSyncStatus(
+      repository,
+      'syncUsersStatus',
+      'syncAt',
+    );
 
     this.auditService.recordToolsSync(
       'end',
@@ -536,26 +593,44 @@ export class GithubSyncService {
    * @param owner The owning organization or user
    * @param repo The repository name
    * @param token The installation access token
-   * @returns The list of collaborators (See GitHub API documentation)
+   * @returns An array of collaborators (See GitHub API documentation)
    */
   private async listRepoCollaborators(
     owner: string,
     repo: string,
     token: string,
-  ) {
-    // list collaborators
-    return (
-      await this.axiosInstance.get(
-        `/repos/${owner}/${repo}/collaborators?affiliation=direct`,
+  ): Promise<any[]> {
+    let collaborators: any[] = [];
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const response = await this.axiosInstance.get(
+        `/repos/${owner}/${repo}/collaborators`,
         {
+          params: {
+            per_page: 100,
+            page,
+            affiliation: 'direct',
+          },
           headers: {
             Authorization: `token ${token}`,
             Accept: 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28',
           },
         },
-      )
-    ).data;
+      );
+
+      collaborators = collaborators.concat(response.data);
+
+      // Check if there is a "next" page in the Link header
+      const linkHeader = response.headers.link;
+      hasNextPage = linkHeader?.includes('rel="next"') ?? false;
+
+      page++;
+    }
+
+    return collaborators;
   }
 
   /**

@@ -1,15 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionSearchResult } from '../../service/collection/dto/collection-search-result.dto';
 import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
-import { CommonModule } from '@angular/common';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { InspectorVertexComponent } from '../../graph/inspector-vertex/inspector-vertex.component';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { TeamDto } from '../../service/persistence/dto/team.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { MatButtonModule } from '@angular/material/button';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-team-accounts',
@@ -38,6 +38,7 @@ export class TeamAccountsComponent implements OnInit {
 
   constructor(
     private readonly collectionApi: CollectionApiService,
+    private readonly collectionUtil: CollectionUtilService,
     private readonly graphUtil: GraphUtilService,
   ) {}
 
@@ -53,7 +54,18 @@ export class TeamAccountsComponent implements OnInit {
       });
   }
 
-  openInGraph(elem: TeamDto) {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['teamVertex']) {
+      this.ngOnInit();
+      console.log('Value changed:', changes['value'].currentValue);
+    }
+  }
+
+  openInBrowser(elem: BrokerAccountDto) {
+    this.collectionUtil.openInBrowser('brokerAccount', elem.id);
+  }
+
+  openInGraph(elem: BrokerAccountDto) {
     this.graphUtil.openInGraph(elem.vertex, 'vertex');
   }
 }

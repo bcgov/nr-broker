@@ -1,34 +1,72 @@
 <div class="edge-container">
   <div class="fields-wrapper">
     @if (header === 'small') {
-      <h3 class="heading">Sync</h3>
+      <h3 class="heading">Sync Status</h3>
     } @else {
-      <h2 class="heading">Sync</h2>
+      <h2 class="heading">Sync Status</h2>
     }
   </div>
 </div>
 @if(healthStatus.health$ | async; as health) {
   @if(health.details['github']['sync']) {
-    @if (!repository.enableSyncSecrets || !repository.enableSyncUsers) {
-      <p class="edge-container">Click the button to queue a sync. If a button is disabled,
-        it must first be enabled for this repository before you can sync.</p>
-    }
-    <div class="edge-container details-container">
+    <div class="edge-body">
 
+      <div>
+
+      <div class="details-section">Secrets</div>
+
+      @if(showSecretsQueued()) {
+        <div class="details-item">
+          <div class="details-header">Queued</div>
+          <div class="details-line">{{repository.syncSecretsStatus?.queuedAt | date: 'medium'}}</div>
+        </div>
+      } @else {
+        <div class="details-item">
+          <div class="details-header">Last sync</div>
+          <div class="details-line">@if(repository.syncSecretsStatus?.syncAt) {
+            {{repository.syncSecretsStatus?.syncAt | date: 'medium'}}
+          } @else {
+            Never
+          }</div>
+        </div>
+      }
 
       <button
-        mat-button
+        mat-stroked-button
         color="primary"
         (click)="syncSecrets()"
-        [disabled]="!repository.enableSyncSecrets">Secrets</button>
+        [disabled]="!repository.enableSyncSecrets">Sync</button>
+    </div>
+
+    <div>
+      <div class="details-section">User Access</div>
+
+      @if(showUsersQueued()) {
+        <div class="details-item">
+          <div class="details-header">Queued</div>
+          <div class="details-line">{{repository.syncUsersStatus?.queuedAt | date: 'medium'}}</div>
+        </div>
+      } @else {
+        <div class="details-item">
+          <div class="details-header">Last sync</div>
+          <div class="details-line">@if(repository.syncUsersStatus?.syncAt) {
+            {{repository.syncUsersStatus?.syncAt | date: 'medium'}}
+          } @else {
+            Never
+          }</div>
+        </div>
+      }
 
       <button
-        mat-button
+        mat-stroked-button
         color="primary"
         (click)="syncUsers()"
-        [disabled]="!repository.enableSyncUsers">Users</button>
+        [disabled]="!repository.enableSyncUsers">Sync</button>
 
     </div>
+
+  </div>
+
   } @else {
     <p class="edge-container">Sync services are currently not available.</p>
   }
