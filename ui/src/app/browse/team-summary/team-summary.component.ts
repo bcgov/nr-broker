@@ -31,7 +31,11 @@ export class TeamSummaryComponent implements OnInit, OnChanges {
     }
     this.userData = {
       Owners: this.countComboEdges(['owner']),
-      Developers: this.countComboEdges(['developer', 'lead-developer']),
+      Developers: this.countComboEdges([
+        'developer',
+        'lead-developer',
+        'full-access',
+      ]),
       Testers: this.countComboEdges(['tester']),
     };
   }

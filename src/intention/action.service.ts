@@ -191,13 +191,13 @@ export class ActionService {
       }
       if (
         (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer'],
+          ['developer', 'lead-developer', 'full-access'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_ADMIN,
           false,
         )) ||
         (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer'],
+          ['developer', 'lead-developer', 'full-access'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_DBA,
           false,
@@ -387,7 +387,7 @@ export class ActionService {
       if (
         (account && account.skipUserValidation) ||
         (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer'],
+          ['developer', 'lead-developer', 'full-access'],
           user.vertex.toString(),
           ACTION_VALIDATE_TEAM_ADMIN,
           false,
@@ -445,7 +445,7 @@ export class ActionService {
 
     if (
       await this.persistenceUtil.testAccess(
-        ['developer', 'lead-developer'],
+        ['developer', 'lead-developer', 'full-access'],
         user.vertex.toString(),
         service.vertex.toString(),
         true,

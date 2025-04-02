@@ -398,6 +398,12 @@ result = db.collectionConfig.insertOne({
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
   index: 4,
+  edgeToRoles: [
+    { edge: ['full-access'], role: 'admin' },
+    { edge: ['lead-developer'], role: 'maintain' },
+    { edge: ['developer'], role: 'write' },
+    { edge: ['owner', 'tester'], role: 'triage' },
+  ],
   edges: [
     {
       id: 'f69ac0c8',
@@ -418,6 +424,20 @@ result = db.collectionConfig.insertOne({
       id: 'bbba80bc',
       collection: 'team',
       name: 'owner',
+      relation: 'oneToMany',
+      show: true,
+    },
+    {
+      id: 'db6cb092',
+      collection: 'project',
+      name: 'full-access',
+      relation: 'oneToMany',
+      show: true,
+    },
+    {
+      id: 'df74a9fc',
+      collection: 'team',
+      name: 'full-access',
       relation: 'oneToMany',
       show: true,
     },
@@ -906,6 +926,29 @@ result = db.graphPermission.insertOne({
 result = db.graphPermission.insertOne({
   name: 'user',
   data: [
+    { name: 'full-access', index: 6, permissions: ['update'] },
+    { name: 'owns', index: 5, permissions: ['sudo'] },
+    { name: 'authorized', index: 1, permissions: ['update'] },
+    { name: 'component', index: 2, permissions: ['sudo', 'update'] },
+    { name: 'instance', index: 3, permissions: ['update'] },
+  ],
+  key: 'fullacc-project-service-instance',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'full-access', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: ['sudo', 'update'] },
+    { name: 'instance', index: 3, permissions: ['update'] },
+  ],
+  key: 'fullacc-service-instance',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
     { name: 'tester', index: 6, permissions: [] },
     { name: 'owns', index: 5, permissions: [] },
     { name: 'authorized', index: 1, permissions: [] },
@@ -935,6 +978,29 @@ result = db.graphPermission.insertOne({
     { name: 'source', index: 8, permissions: ['sudo', 'update'] },
   ],
   key: 'leaddev-service-source-additions',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'full-access', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 1, permissions: [] },
+    { name: 'component', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
+  ],
+  key: 'fullacc-project-service-source-additions',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'full-access', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: [] },
+    { name: 'source', index: 8, permissions: ['sudo', 'update'] },
+  ],
+  key: 'fullacc-service-source-additions',
 });
 
 // ==> User setup

@@ -23,6 +23,7 @@ If you are assigned the owner role, membership management has been delegated to 
 | Role | Description |
 |--- | ---|
 | Owner | Can manage role members for this team |
+| Full-access | Access to sensitive and destructive operations in addition to lead-developer access |
 | Lead-developer | Extended access to this team's entities, including the ability to generate Broker account tokens |
 | Developer | Base read/write access to this team's entities |
 | Tester | Limited access with ability to approve builds |

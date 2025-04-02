@@ -388,12 +388,9 @@ export class GithubSyncService {
       throw new Error('GitHub access token is null!');
     }
 
-    const edgeToRoles = [
-      { edge: 'owner', role: 'admin' },
-      { edge: 'lead-developer', role: 'maintain' },
-      { edge: 'developer', role: 'write' },
-      { edge: 'tester', role: 'triage' },
-    ];
+    const userConfig =
+      await this.collectionRepository.getCollectionConfigByName('user');
+    const edgeToRoles = userConfig.edgeToRoles;
 
     // Get collaborators
     const collaborators = await this.listRepoCollaborators(owner, repo, token);
@@ -407,7 +404,7 @@ export class GithubSyncService {
       const users = await this.graphRepository.getUpstreamVertex<UserDto>(
         repository.vertex.toString(),
         CollectionIndex.User,
-        [edgeRole.edge],
+        edgeRole.edge,
       );
       for (const user of users) {
         if (!user.collection?.alias || user.collection.alias.length !== 1) {

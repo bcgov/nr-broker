@@ -8,7 +8,7 @@
   </div>
 </div>
 @if(healthStatus.health$ | async; as health) {
-  @if(health.details['github']['sync']) {
+  @if(!health.details['github']['sync']) {
     <div class="edge-body">
 
       <div>
@@ -31,11 +31,18 @@
         </div>
       }
 
-      <button
-        mat-stroked-button
-        color="primary"
-        (click)="syncSecrets()"
-        [disabled]="!repository.enableSyncSecrets">Sync</button>
+      <div class="details-buttons">
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="syncSecrets()"
+          [disabled]="!repository.enableSyncSecrets">Sync</button>
+
+        <button
+          mat-button
+          color="primary"
+          (click)="showGitHubSecrets()">Help</button>
+      </div>
     </div>
 
     <div>
@@ -57,12 +64,18 @@
         </div>
       }
 
-      <button
-        mat-stroked-button
-        color="primary"
-        (click)="syncUsers()"
-        [disabled]="!repository.enableSyncUsers">Sync</button>
+      <div class="details-buttons">
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="syncUsers()"
+          [disabled]="!repository.enableSyncUsers">Sync</button>
 
+        <button
+          mat-button
+          color="primary"
+          (click)="showGitHubRoleMappings()">Help</button>
+      </div>
     </div>
 
   </div>

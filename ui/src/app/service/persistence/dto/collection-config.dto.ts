@@ -95,6 +95,11 @@ export class CollectionFieldDefaultSort {
   dir!: 1 | -1;
 }
 
+export class GitHubEdgeToRoles {
+  edge!: string[];
+  role!: string;
+}
+
 export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
@@ -102,6 +107,7 @@ export class CollectionConfigDto {
   collectionMapper!: CollectionMap[];
   collectionVertexName!: string;
   color!: string;
+  edgeToRoles?: GitHubEdgeToRoles[];
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
   fieldDefaultSort!: CollectionFieldDefaultSort;
