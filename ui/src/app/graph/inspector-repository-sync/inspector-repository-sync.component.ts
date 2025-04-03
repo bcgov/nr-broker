@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { RepositoryDto } from '../../service/persistence/dto/repository.dto';
 import { SystemApiService } from '../../service/system-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
+import { GithubRoleMappingDialogComponent } from '../github-role-mapping-dialog/github-role-mapping-dialog.component';
+import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-secrets-dialog.component';
 
 @Component({
   selector: 'app-inspector-repository-sync',
@@ -20,6 +23,7 @@ export class InspectorRepositorySyncComponent {
 
   constructor(
     private readonly snackBar: MatSnackBar,
+    private readonly dialog: MatDialog,
     private readonly systemApi: SystemApiService,
     public readonly healthStatus: HealthStatusService,
   ) {}
@@ -70,6 +74,28 @@ export class InspectorRepositorySyncComponent {
         this.repository.syncUsersStatus?.queuedAt >
           this.repository.syncUsersStatus?.syncAt)
     );
+  }
+
+  showGitHubRoleMappings() {
+    this.dialog
+      .open(GithubRoleMappingDialogComponent, {
+        width: '600px',
+        data: {},
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
+  }
+
+  showGitHubSecrets() {
+    this.dialog
+      .open(GithubSecretsDialogComponent, {
+        width: '600px',
+        data: {},
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   private openSnackBar(message: string) {

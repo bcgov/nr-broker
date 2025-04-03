@@ -62,12 +62,10 @@
   line-height: 20px;
 }
 
-.queue-flex {
+.details-buttons {
+  display: flex;
+  flex-wrap: wrap;
   flex: 0 0 auto;
   justify-content: flex-start;
   gap: 8px;
-}
-
-.queue-flex > * {
-  width: 50%;
 }

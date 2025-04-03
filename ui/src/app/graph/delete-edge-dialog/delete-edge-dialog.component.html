@@ -7,14 +7,14 @@
         <mat-list-option [value]="item">
           @if (item.vertex.parentName) {
             {{ item.vertex.parentName}} &gt;
-            } {{ item.vertex.name }}
-          </mat-list-option>
-        }
+          } {{ item.vertex.name }}
+        </mat-list-option>
       }
-    </mat-selection-list>
-  </mat-dialog-content>
+    }
+  </mat-selection-list>
+</mat-dialog-content>
 
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-button color="primary" (click)="deleteEdge()">Delete</button>
-  </mat-dialog-actions>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button color="primary" (click)="deleteEdge()">Delete</button>
+</mat-dialog-actions>

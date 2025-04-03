@@ -94,6 +94,15 @@ export class CollectionMapEmbeddable {
   setPath!: string;
 }
 
+@Embeddable()
+export class GitHubEdgeToRolesEmbeddable {
+  @Property()
+  edge: string[];
+
+  @Property()
+  role!: string;
+}
+
 @Entity({ tableName: 'collectionConfig' })
 export class CollectionConfigEntity extends BaseEntity {
   @PrimaryKey()
@@ -121,6 +130,13 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property()
   color: string;
+
+  @Embedded({
+    entity: () => GitHubEdgeToRolesEmbeddable,
+    array: true,
+    nullable: true,
+  })
+  edgeToRoles?: GitHubEdgeToRolesEmbeddable[];
 
   @Property({
     type: 'json',
