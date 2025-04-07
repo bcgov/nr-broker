@@ -8,7 +8,7 @@
   </div>
 </div>
 @if(healthStatus.health$ | async; as health) {
-  @if(!health.details['github']['sync']) {
+  @if(health.details['github']['sync']) {
     <div class="edge-body">
 
       <div>
