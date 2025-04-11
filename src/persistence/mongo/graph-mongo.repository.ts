@@ -570,6 +570,9 @@ export class GraphMongoRepository implements GraphRepository {
     const edge = EdgeEntity.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
+    if (edgeConfig.restrict) {
+      edge.restrict = true;
+    }
     edge.timestamps = TimestampEmbeddable.create();
 
     // No duplicate edges
@@ -1161,6 +1164,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'source',
             connectToField: 'target',
+            restrictSearchWithMatch: { restrict: { $ne: true } },
             as: 'edge',
           },
         },

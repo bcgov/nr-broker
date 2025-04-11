@@ -653,6 +653,7 @@ result = db.collectionConfig.insertOne({
       name: 'uses',
       inboundName: 'used by',
       relation: 'oneToMany',
+      restrict: true,
       show: false,
     },
   ],

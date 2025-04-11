@@ -49,6 +49,11 @@ export class EdgeEntity extends BaseEntity {
   @Index()
   target: ObjectId;
 
+  @Property({
+    nullable: true,
+  })
+  restrict?: boolean;
+
   @Embedded({ entity: () => TimestampEmbeddable, nullable: true, object: true })
   timestamps?: TimestampEmbeddable;
 
