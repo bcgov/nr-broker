@@ -1383,9 +1383,16 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         {
+          $replaceRoot: {
+            newRoot: {
+              vertex: '$$ROOT',
+            },
+          },
+        },
+        {
           $lookup: {
             from: 'edge',
-            localField: '_id',
+            localField: 'vertex._id',
             foreignField: 'source',
             pipeline: [{ $match: { name: 'provision-token' } }],
             as: 'edge',
@@ -1401,15 +1408,6 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         { $unwind: '$collection' },
-        {
-          $lookup: {
-            from: 'vertex',
-            localField: 'edge.source',
-            foreignField: '_id',
-            as: 'vertex',
-          },
-        },
-        { $unwind: '$vertex' },
       ])
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
