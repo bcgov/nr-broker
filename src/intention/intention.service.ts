@@ -41,7 +41,6 @@ import {
 } from './dto/artifact-search-result.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionUtil, FindArtifactActionOptions } from '../util/action.util';
-import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 import { CreateRequestContext } from '@mikro-orm/core';
@@ -64,7 +63,6 @@ import { ProcessEndActionEmbeddable } from './entity/process-end-action.embeddab
 import { ProcessStartActionEmbeddable } from './entity/process-start-action.embeddable';
 import { ServerAccessActionEmbeddable } from './entity/server-access-action.embeddable';
 import { PackageEmbeddable } from './entity/package.embeddable';
-import { ServiceDto } from '../persistence/dto/service.dto';
 import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
 import { CloudEmbeddable } from './entity/cloud.embeddable';
 import { ValidatorUtil } from '../util/validator.util';
@@ -916,7 +914,7 @@ export class IntentionService {
     intentionDto: IntentionEntity,
     account: BrokerAccountEntity | null,
   ): Promise<ActionError[]> {
-    let targetServices = [];
+    let targetServices: string[] = [];
     const validationResult: ActionError[] = [];
 
     const accountBoundProjects = account
@@ -935,13 +933,9 @@ export class IntentionService {
 
       if (service) {
         if (action.service.target) {
-          const targetSearch =
-            await this.graphRepository.getDownstreamVertex<ServiceDto>(
-              service.vertex.toString(),
-              CollectionNameEnum.service,
-              1,
-            );
-
+          const targetSearch = await this.graphRepository.getTargetServices(
+            service.vertex.toString(),
+          );
           targetServices = targetSearch.map((t) => t.collection.name);
         }
       }

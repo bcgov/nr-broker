@@ -232,6 +232,7 @@ result = db.collectionConfig.insertOne({
       name: 'provision-token',
       onDelete: 'cascade',
       relation: 'oneToMany',
+      restrict: true,
       show: true,
     },
     {

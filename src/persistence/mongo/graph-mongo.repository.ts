@@ -22,7 +22,7 @@ import { EdgeInsertDto } from '../dto/edge.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
-import { ServiceDetailsResponseDto } from '../dto/service.dto';
+import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
 import { GraphPermissionEntity } from '../entity/graph-permission.entity';
 import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
@@ -1364,6 +1364,63 @@ export class GraphMongoRepository implements GraphRepository {
           }
         }
         return acc;
+      });
+  }
+
+  public async getTargetServices(
+    id: string,
+  ): Promise<GraphUpDownDto<ServiceDto>[]> {
+    const serviceConfig = await this.getCollectionConfig('service');
+    if (serviceConfig === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(id) } },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: '_id',
+            foreignField: 'source',
+            pipeline: [{ $match: { name: 'provision-token' } }],
+            as: 'edge',
+          },
+        },
+        { $unwind: '$edge' },
+        {
+          $lookup: {
+            from: serviceConfig.collection,
+            localField: 'edge.target',
+            foreignField: 'vertex',
+            as: 'collection',
+          },
+        },
+        { $unwind: '$collection' },
+        {
+          $lookup: {
+            from: 'vertex',
+            localField: 'edge.source',
+            foreignField: '_id',
+            as: 'vertex',
+          },
+        },
+        { $unwind: '$vertex' },
+      ])
+      .then((streamArr: any[]) => {
+        return streamArr.map((stream) => {
+          stream.collection.id = stream.collection._id.toString();
+          delete stream.collection._id;
+
+          stream.edge.id = stream.edge._id.toString();
+          delete stream.edge._id;
+          stream.vertex.id = stream.vertex._id.toString();
+          delete stream.vertex._id;
+          return {
+            collection: stream.collection,
+            edge: stream.edge,
+            vertex: stream.vertex,
+          };
+        });
       });
   }
 

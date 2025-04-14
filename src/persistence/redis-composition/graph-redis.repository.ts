@@ -31,7 +31,7 @@ import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
-import { ServiceDetailsResponseDto } from '../dto/service.dto';
+import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
@@ -252,6 +252,10 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
   ): Promise<BrokerAccountProjectMapDto> {
     return this.repo.getBrokerAccountServices(id);
+  }
+
+  public getTargetServices(id: string): Promise<GraphUpDownDto<ServiceDto>[]> {
+    return this.repo.getTargetServices(id);
   }
 
   public async vertexTypeahead<T extends keyof CollectionEntityUnion>(
