@@ -6,6 +6,7 @@ export interface GraphDataResponseEdgeEntity {
   name: string;
   source: string;
   target: string;
+  restrict?: boolean;
 }
 
 export interface GraphDataResponseVertexEntity {

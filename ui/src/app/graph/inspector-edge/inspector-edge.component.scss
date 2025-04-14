@@ -11,7 +11,6 @@
   flex-wrap: wrap;
 }
 
-
 .fields-wrapper {
   display: inline-flex;
   flex-wrap: wrap;
@@ -23,4 +22,17 @@
 
 .vertex-edge-container, .vertex-edge-type-container {
   margin-left: 16px;
+}
+
+.wrapper-graphlookups {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.wrapper-graphlookups div {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

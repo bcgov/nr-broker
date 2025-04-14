@@ -179,6 +179,12 @@ export class EchartsComponent implements OnInit {
               }),
               edges: graph.edges
                 .map((e) => {
+                  if (e.restrict) {
+                    e.lineStyle = {
+                      type: 'dashed',
+                      color: 'source',
+                    };
+                  }
                   return e;
                 })
                 .filter((e) => {

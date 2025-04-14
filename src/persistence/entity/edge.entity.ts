@@ -75,6 +75,7 @@ export class EdgeEntity extends BaseEntity {
       is: this.is,
       it: this.it,
       name: this.name,
+      ...(this.restrict ? { restrict: this.restrict } : {}),
       ...(includeOptional ? { prop: this.prop } : {}),
       source: this.source.toString(),
       target: this.target.toString(),

@@ -64,7 +64,16 @@ export interface GraphDataConfig {
   permissions: UserPermissionDto;
 }
 
+export interface GraphDataResponseEdgeEntityWithConfig
+  extends GraphDataResponseEdgeEntity {
+  lineStyle?: {
+    type?: 'solid' | 'dotted' | 'dashed' | number | number[];
+    color?: string;
+  };
+}
+
 export interface GraphData extends GraphDataResponseDto {
+  edges: GraphDataResponseEdgeEntityWithConfig[];
   idToEdge: {
     [key: string]: GraphDataResponseEdgeEntity;
   };
