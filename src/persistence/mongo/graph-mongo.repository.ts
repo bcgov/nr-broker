@@ -193,6 +193,7 @@ export class GraphMongoRepository implements GraphRepository {
                   startWith: '$vertex',
                   connectFromField: 'target',
                   connectToField: 'source',
+                  restrictSearchWithMatch: { restrict: { $ne: true } },
                   as: 'path',
                   maxDepth: 2,
                 },
@@ -441,6 +442,9 @@ export class GraphMongoRepository implements GraphRepository {
             connectToField: 'source',
             as: 'paths',
             depthField: 'depth',
+            restrictSearchWithMatch: {
+              restrict: { $ne: true },
+            },
             maxDepth,
           },
         },
@@ -1102,6 +1106,7 @@ export class GraphMongoRepository implements GraphRepository {
             as: 'edge',
             restrictSearchWithMatch: {
               it: { $in: canFilterConnected },
+              restrict: { $ne: true },
             },
           },
         },
@@ -1110,9 +1115,13 @@ export class GraphMongoRepository implements GraphRepository {
         if (connectedResult.length === 0) {
           return [];
         }
-        const connectedVertex = connectedResult[0].edge.map((edge) =>
-          edge.target.toString(),
-        );
+        const connectedVertex = [];
+        connectedVertex.push(connectedResult.length);
+        for (const connected of connectedResult) {
+          connectedVertex.push(
+            ...connected.edge.map((edge) => edge.target.toString()),
+          );
+        }
         connectedVertex.push(id);
         return connectedVertex;
       });
@@ -1236,6 +1245,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'target',
             connectToField: 'source',
+            restrictSearchWithMatch: { restrict: { $ne: true } },
             as: 'edge',
             maxDepth,
           },
@@ -1304,6 +1314,7 @@ export class GraphMongoRepository implements GraphRepository {
             maxDepth: 2,
             restrictSearchWithMatch: {
               it: { $in: [serviceConfig.index, projectConfig.index] },
+              restrict: { $ne: true },
             },
           },
         },

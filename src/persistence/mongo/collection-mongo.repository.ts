@@ -228,6 +228,7 @@ export class CollectionMongoRepository implements CollectionRepository {
               startWith: '$collection.vertex',
               connectFromField: 'source',
               connectToField: 'target',
+              restrictSearchWithMatch: { restrict: { $ne: true } },
               as: 'upstream_path',
               maxDepth: 3,
             },
