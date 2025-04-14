@@ -1376,7 +1376,12 @@ export class GraphMongoRepository implements GraphRepository {
     }
     return this.vertexRepository
       .aggregate([
-        { $match: { _id: new ObjectId(id) } },
+        {
+          $match: {
+            _id: new ObjectId(id),
+            collection: serviceConfig.collection,
+          },
+        },
         {
           $lookup: {
             from: 'edge',
