@@ -4,7 +4,7 @@ NR Broker is a customizable software deployment business intelligence tool. It a
 
 Users can search, browse objects, view a graph representation and review activities using a web application. Developers integrate NR Broker into workflows by sending their intentions, requesting access and recording activity using http requests. As such, NR broker works on private on-premise clouds, AWS, OpenShift Clouds and more.
 
-Documentation home: https://bcgov-nr.github.io/nr-broker/#/
+Documentation home: https://bcgov.github.io/nr-broker/#/
 
 ## Built with NestJS
 
