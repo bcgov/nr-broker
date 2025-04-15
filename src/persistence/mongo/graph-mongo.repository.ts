@@ -193,7 +193,8 @@ export class GraphMongoRepository implements GraphRepository {
                   startWith: '$vertex',
                   connectFromField: 'target',
                   connectToField: 'source',
-                  restrictSearchWithMatch: { restrict: { $ne: true } },
+                  // Allow to search for edges that are not restricted
+                  // restrictSearchWithMatch: { restrict: { $ne: true } },
                   as: 'path',
                   maxDepth: 2,
                 },
