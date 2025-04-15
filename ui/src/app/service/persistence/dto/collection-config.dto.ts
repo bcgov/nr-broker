@@ -22,6 +22,7 @@ export class CollectionEdgeConfig {
   collection!: CollectionNames;
   name!: string;
   onDelete?: 'cascade';
+  restrict?: boolean;
   relation!: 'oneToMany' | 'oneToOne';
   show!: boolean;
   inboundName?: string;

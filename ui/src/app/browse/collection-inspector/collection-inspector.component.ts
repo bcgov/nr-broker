@@ -315,12 +315,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         })
         .subscribe((result) => {
           if (result && result.meta.total > 0) {
-            this.router.navigate(
-              ['/browse', target.collection, result.data[0].collection.id],
-              {
-                replaceUrl: true,
-              },
-            );
+            this.router.navigate([
+              '/browse',
+              target.collection,
+              result.data[0].collection.id,
+            ]);
           }
         });
     } else {

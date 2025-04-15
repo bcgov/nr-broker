@@ -22,7 +22,7 @@ import { EdgeInsertDto } from '../dto/edge.dto';
 import { COLLECTION_MAX_EMBEDDED } from '../../constants';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
-import { ServiceDetailsResponseDto } from '../dto/service.dto';
+import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
 import { GraphPermissionEntity } from '../entity/graph-permission.entity';
 import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
@@ -193,6 +193,7 @@ export class GraphMongoRepository implements GraphRepository {
                   startWith: '$vertex',
                   connectFromField: 'target',
                   connectToField: 'source',
+                  restrictSearchWithMatch: { restrict: { $ne: true } },
                   as: 'path',
                   maxDepth: 2,
                 },
@@ -441,6 +442,9 @@ export class GraphMongoRepository implements GraphRepository {
             connectToField: 'source',
             as: 'paths',
             depthField: 'depth',
+            restrictSearchWithMatch: {
+              restrict: { $ne: true },
+            },
             maxDepth,
           },
         },
@@ -570,6 +574,9 @@ export class GraphMongoRepository implements GraphRepository {
     const edge = EdgeEntity.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
+    if (edgeConfig.restrict) {
+      edge.restrict = true;
+    }
     edge.timestamps = TimestampEmbeddable.create();
 
     // No duplicate edges
@@ -1099,6 +1106,7 @@ export class GraphMongoRepository implements GraphRepository {
             as: 'edge',
             restrictSearchWithMatch: {
               it: { $in: canFilterConnected },
+              restrict: { $ne: true },
             },
           },
         },
@@ -1107,9 +1115,13 @@ export class GraphMongoRepository implements GraphRepository {
         if (connectedResult.length === 0) {
           return [];
         }
-        const connectedVertex = connectedResult[0].edge.map((edge) =>
-          edge.target.toString(),
-        );
+        const connectedVertex = [];
+        connectedVertex.push(connectedResult.length);
+        for (const connected of connectedResult) {
+          connectedVertex.push(
+            ...connected.edge.map((edge) => edge.target.toString()),
+          );
+        }
         connectedVertex.push(id);
         return connectedVertex;
       });
@@ -1161,6 +1173,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'source',
             connectToField: 'target',
+            restrictSearchWithMatch: { restrict: { $ne: true } },
             as: 'edge',
           },
         },
@@ -1232,6 +1245,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'target',
             connectToField: 'source',
+            restrictSearchWithMatch: { restrict: { $ne: true } },
             as: 'edge',
             maxDepth,
           },
@@ -1300,6 +1314,7 @@ export class GraphMongoRepository implements GraphRepository {
             maxDepth: 2,
             restrictSearchWithMatch: {
               it: { $in: [serviceConfig.index, projectConfig.index] },
+              restrict: { $ne: true },
             },
           },
         },
@@ -1349,6 +1364,66 @@ export class GraphMongoRepository implements GraphRepository {
           }
         }
         return acc;
+      });
+  }
+
+  public async getTargetServices(
+    id: string,
+  ): Promise<GraphUpDownDto<ServiceDto>[]> {
+    const serviceConfig = await this.getCollectionConfig('service');
+    if (serviceConfig === null) {
+      throw new Error();
+    }
+    return this.vertexRepository
+      .aggregate([
+        {
+          $match: {
+            _id: new ObjectId(id),
+            collection: serviceConfig.collection,
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              vertex: '$$ROOT',
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'edge',
+            localField: 'vertex._id',
+            foreignField: 'source',
+            pipeline: [{ $match: { name: 'provision-token' } }],
+            as: 'edge',
+          },
+        },
+        { $unwind: '$edge' },
+        {
+          $lookup: {
+            from: serviceConfig.collection,
+            localField: 'edge.target',
+            foreignField: 'vertex',
+            as: 'collection',
+          },
+        },
+        { $unwind: '$collection' },
+      ])
+      .then((streamArr: any[]) => {
+        return streamArr.map((stream) => {
+          stream.collection.id = stream.collection._id.toString();
+          delete stream.collection._id;
+
+          stream.edge.id = stream.edge._id.toString();
+          delete stream.edge._id;
+          stream.vertex.id = stream.vertex._id.toString();
+          delete stream.vertex._id;
+          return {
+            collection: stream.collection,
+            edge: stream.edge,
+            vertex: stream.vertex,
+          };
+        });
       });
   }
 

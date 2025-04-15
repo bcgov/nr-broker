@@ -10,7 +10,7 @@ import { VertexInfoDto } from '../dto/vertex-info.dto';
 import { VertexSearchDto } from '../dto/vertex.dto';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
-import { ServiceDetailsResponseDto } from '../dto/service.dto';
+import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import { CollectionEntityUnion } from '../entity/collection-entity-union.type';
@@ -109,6 +109,9 @@ export abstract class GraphRepository {
   public abstract getBrokerAccountServices(
     id: string,
   ): Promise<BrokerAccountProjectMapDto>;
+  public abstract getTargetServices(
+    id: string,
+  ): Promise<GraphUpDownDto<ServiceDto>[]>;
 
   public abstract vertexTypeahead<T extends keyof CollectionEntityUnion>(
     text: string,

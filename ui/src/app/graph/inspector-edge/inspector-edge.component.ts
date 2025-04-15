@@ -4,6 +4,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CollectionConfigMap } from '../../service/graph.types';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
@@ -18,6 +19,7 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
+    MatTooltipModule,
     VertexNameComponent,
   ],
   templateUrl: './inspector-edge.component.html',

@@ -125,7 +125,7 @@ export class InspectorPeopleComponent implements OnChanges {
         'owner',
         'tester',
       ],
-      brokerAccount: ['administrator', 'lead-developer', 'full-access'],
+      brokerAccount: ['lead-developer', 'full-access'],
     };
     if (!Object.keys(mapCollectionToEdgeName).includes(this.collection)) {
       return of([]);

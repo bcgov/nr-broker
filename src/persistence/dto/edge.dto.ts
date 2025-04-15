@@ -34,5 +34,6 @@ export class EdgeDto extends EdgeInsertDto {
   id!: string;
   is!: number;
   it!: number;
+  restrict?: boolean;
   timestamps?: TimestampDto;
 }

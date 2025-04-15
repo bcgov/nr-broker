@@ -41,4 +41,14 @@
       }
     </div>
   </div>
+
+  @if (edge.restrict) {
+    <div
+      class="wrapper-graphlookups vertex-edge-type-container"
+      matTooltip="Not followed in graph lookups"
+      matTooltipShowDelay="500">
+      <mat-icon>link_off</mat-icon>
+      <div>Restricted graph traversal</div>
+    </div>
+  }
 </div>
