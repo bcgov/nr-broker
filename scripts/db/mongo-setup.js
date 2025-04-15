@@ -334,6 +334,7 @@ result = db.collectionConfig.insertOne({
       name: 'deploy-type',
       inboundName: 'Instance',
       relation: 'oneToOne',
+      restrict: true,
       show: true,
     },
     {
@@ -342,6 +343,7 @@ result = db.collectionConfig.insertOne({
       name: 'requires',
       inboundName: 'Required By',
       relation: 'oneToMany',
+      restrict: true,
       show: false,
     },
     {
@@ -350,6 +352,7 @@ result = db.collectionConfig.insertOne({
       name: 'installation',
       inboundName: 'Installs',
       relation: 'oneToMany',
+      restrict: true,
       show: true,
     },
   ],
@@ -407,31 +410,9 @@ result = db.collectionConfig.insertOne({
   ],
   edges: [
     {
-      id: 'f69ac0c8',
-      collection: 'brokerAccount',
-      name: 'administrator',
-      inboundName: 'administrators',
-      relation: 'oneToMany',
-      show: true,
-    },
-    {
-      id: '79ceccbd',
-      collection: 'project',
-      name: 'owner',
-      relation: 'oneToMany',
-      show: true,
-    },
-    {
       id: 'bbba80bc',
       collection: 'team',
       name: 'owner',
-      relation: 'oneToMany',
-      show: true,
-    },
-    {
-      id: 'db6cb092',
-      collection: 'project',
-      name: 'full-access',
       relation: 'oneToMany',
       show: true,
     },
@@ -443,23 +424,9 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
-      id: 'db00aada',
-      collection: 'project',
-      name: 'lead-developer',
-      relation: 'oneToMany',
-      show: true,
-    },
-    {
       id: 'aa573095',
       collection: 'team',
       name: 'lead-developer',
-      relation: 'oneToMany',
-      show: true,
-    },
-    {
-      id: 'ad24909b',
-      collection: 'project',
-      name: 'developer',
       relation: 'oneToMany',
       show: true,
     },
@@ -956,7 +923,17 @@ result = db.graphPermission.insertOne({
     { name: 'authorized', index: 1, permissions: [] },
     { name: 'component', index: 2, permissions: ['approve'] },
   ],
-  key: 'tester-component-approve',
+  key: 'tester-project-service-approve',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'tester', index: 6, permissions: [] },
+    { name: 'owns', index: 5, permissions: [] },
+    { name: 'authorized', index: 2, permissions: ['approve'] },
+  ],
+  key: 'tester-service-approve',
 });
 
 result = db.graphPermission.insertOne({
