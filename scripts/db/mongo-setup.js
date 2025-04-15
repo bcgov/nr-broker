@@ -25,7 +25,7 @@ db.connectionConfig.insertOne({
   collection: 'documentation',
   description:
     'Read the developer documentation to discover how teams can take advantage of it.',
-  href: 'https://bcgov-nr.github.io/nr-broker/#/',
+  href: 'https://bcgov.github.io/nr-broker/#/',
   name: 'Developer Documentation',
   order: 10,
 });
