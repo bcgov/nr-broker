@@ -7,11 +7,7 @@ import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
-import {
-  ACTION_VALIDATE_TEAM_ADMIN,
-  ACTION_VALIDATE_TEAM_DBA,
-  INTENTION_SERVICE_INSTANCE_SEARCH_PATHS,
-} from '../constants';
+import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { PersistenceUtilService } from '../persistence/persistence-util.service';
 import { ActionEmbeddable } from './entity/action.embeddable';
@@ -20,6 +16,7 @@ import { DatabaseAccessActionEmbeddable } from './entity/database-access-action.
 import { PackageBuildActionEmbeddable } from './entity/package-build-action.embeddable';
 import { PackageEmbeddable } from './entity/package.embeddable';
 import { UserEntity } from '../persistence/entity/user.entity';
+import { ENVIRONMENT_NAMES } from './dto/constants.dto';
 
 /**
  * Assists with the validation of intention actions
@@ -189,22 +186,7 @@ export class ActionService {
       if (userValidation) {
         return userValidation;
       }
-      if (
-        (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer', 'full-access'],
-          user.vertex.toString(),
-          ACTION_VALIDATE_TEAM_ADMIN,
-          false,
-        )) ||
-        (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer', 'full-access'],
-          user.vertex.toString(),
-          ACTION_VALIDATE_TEAM_DBA,
-          false,
-        ))
-      ) {
-        return null;
-      }
+
       return this.validateAssistedDelivery(user, intention, action);
     }
     return null;
@@ -368,7 +350,7 @@ export class ActionService {
 
       if (
         !maskSemverFailures &&
-        env.name === 'production' &&
+        env.name === ENVIRONMENT_NAMES.PRODUCTION &&
         parsedVersion.prerelease
       ) {
         return {
@@ -383,16 +365,7 @@ export class ActionService {
         };
       }
 
-      // Test if user is admin and skip delivery validation if they are
-      if (
-        (account && account.skipUserValidation) ||
-        (await this.persistenceUtil.testAccess(
-          ['developer', 'lead-developer', 'full-access'],
-          user.vertex.toString(),
-          ACTION_VALIDATE_TEAM_ADMIN,
-          false,
-        ))
-      ) {
+      if (account && account.skipUserValidation) {
         return null;
       }
 
@@ -438,45 +411,49 @@ export class ActionService {
       'name',
       action.service.name,
     );
+    const environment = await this.collectionRepository.getCollectionByKeyValue(
+      'environment',
+      'name',
+      action.service.environment,
+    );
 
+    // Check if project and service exist -- not possible as they are required to open
     if (!project || !service) {
       return null;
+    }
+    const vertex = await this.graphRepository.getEdgeByNameAndVertices(
+      'component',
+      project.vertex.toString(),
+      service.vertex.toString(),
+    );
+
+    if (!vertex) {
+      return {
+        message: 'Cannot find component edge',
+        data: {
+          action: action.action,
+          action_id: action.id,
+          key: 'action.service.name',
+          value: action.service.name,
+        },
+      };
     }
 
     if (
       await this.persistenceUtil.testAccess(
-        ['developer', 'lead-developer', 'full-access'],
+        vertex.getPropAsArray(
+          `changeroles-${action.service.environment}`,
+          environment.changeRoles,
+        ),
         user.vertex.toString(),
         service.vertex.toString(),
         true,
       )
     ) {
-      const vertex = await this.graphRepository.getEdgeByNameAndVertices(
-        'component',
-        project.vertex.toString(),
-        service.vertex.toString(),
-      );
-
-      if (
-        vertex &&
-        vertex.prop &&
-        vertex.prop[`ad-${action.service.environment}`] === 'true'
-      ) {
-        return {
-          message: 'User is not authorized to access this environment',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'user.id',
-            value: intention.user.id,
-          },
-        };
-      } else {
-        return null;
-      }
+      return null;
     } else {
       return {
-        message: 'User is not authorized to do this action',
+        message: 'User is not authorized to access this environment',
         data: {
           action: action.action,
           action_id: action.id,

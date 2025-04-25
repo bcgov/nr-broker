@@ -11,6 +11,10 @@ A suggested deployment strategy is to use [envconsul](https://github.com/hashico
 | APP_ENVIRONMENT |  |  | The name of the environment this instance is running in. A local environment should be blank. Required to push audit to AWS. |
 | BROKER_URL |  |  | The external URL that this instance is running on. Used to create redirect urls. |
 | HOSTNAME |  |  | The hostname of the server this instance is running on. Used in logs. The instance with a hostname ending in '-0' is the primary node. It will cause issues if there is no primary node or there are multiple primary nodes'. |
+| ACTION_VALIDATE_AD_PRODUCTION | true |  | In production, only users with the full-access role can do actions like install or database changes. |
+| ACTION_VALIDATE_AD_TEST | false |  | In test, only users with the full-access, developer or lead-developer role can do actions like install or database changes. |
+| ACTION_VALIDATE_AD_DEVELOPMENT | true |  | In development, only users with the full-access, developer or lead-developer role can do actions like install or database changes. |
+
 
 ## Audit file logging
 
@@ -147,10 +151,3 @@ The Redis environment variables used to setup the connection.
 | --- | --- | --- | --- |
 | GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
 | GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
-
-## Temporary
-
-| Env Var | Default | Secret | Description |
-| --- | --- | --- | --- |
-| ACTION_VALIDATE_TEAM_ADMIN |  |  | Users that are members of this team can skip all intention validations.  |
-| ACTION_VALIDATE_TEAM_DBA |  |  | Users that are members of this team can skip database intention validations. |

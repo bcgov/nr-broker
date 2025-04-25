@@ -5,7 +5,9 @@
       <th mat-header-cell
         *matHeaderCellDef> Key </th>
       <td mat-cell
-        *matCellDef="let element"> {{collectionConfig.fields[element.key].name}} </td>
+        *matCellDef="let element"><span [matTooltip]="collectionConfig.fields[element.key].hint"
+        matTooltipShowDelay="500"
+        matTooltipPosition="right">{{collectionConfig.fields[element.key].name}}</span> </td>
     </ng-container>
     <!-- Value Column -->
     <ng-container matColumnDef="value">

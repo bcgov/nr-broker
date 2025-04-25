@@ -93,4 +93,21 @@ export class EdgeEntity extends BaseEntity {
         : {}),
     };
   }
+
+  public getProp(key: string, defaultValue?: string): string | undefined {
+    if (this.prop && this.prop[key] !== undefined) {
+      return this.prop[key];
+    }
+    return defaultValue;
+  }
+
+  public getPropAsArray(
+    key: string,
+    defaultValue?: string[],
+  ): string[] | undefined {
+    if (this.prop && this.prop[key] !== undefined) {
+      return this.prop[key].split(',');
+    }
+    return defaultValue;
+  }
 }

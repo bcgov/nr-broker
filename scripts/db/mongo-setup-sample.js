@@ -109,7 +109,7 @@ db.user.insertMany([
 db.edge.insertMany([
   {
     _id: ObjectId('64ecde26cf9ec5f71c640e64'),
-    name: 'developer',
+    name: 'full-access',
     source: ObjectId('64ecc156cf9ec5f71c640e48'),
     target: ObjectId('64ecc18acf9ec5f71c640e4a'),
     is: 4,

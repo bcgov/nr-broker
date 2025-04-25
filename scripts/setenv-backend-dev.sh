@@ -38,9 +38,6 @@ fi
 
 export JWT_SECRET=secret
 
-export ACTION_VALIDATE_TEAM_ADMIN=64ecc18acf9ec5f71c640e4a
-export ACTION_VALIDATE_TEAM_DBA=64fa194693b3afd6ee63aa99
-
 export HOSTNAME=nr-broker-app-0
 
 export NESTJS_UI_ROOT_PATH=ui/dist/ui/browser

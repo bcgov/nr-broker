@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
+// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unused-vars
 const { name } = require('ejs');
 
 /* eslint-disable no-undef */
@@ -45,6 +45,7 @@ db.environment.insertOne({
   name: 'production',
   short: 'prod',
   aliases: [],
+  changeRoles: ['full-access', 'prod-approver'],
   title: 'Production',
   position: 0,
   vertex: result.insertedId,
@@ -54,6 +55,7 @@ db.environment.insertOne({
   name: 'test',
   short: 'test',
   aliases: [],
+  changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Test',
   position: 10,
   vertex: result.insertedId,
@@ -66,6 +68,7 @@ db.environment.insertOne({
   name: 'development',
   short: 'dev',
   aliases: [],
+  changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Development',
   position: 20,
   vertex: result.insertedId,
@@ -75,6 +78,7 @@ db.environment.insertOne({
   name: 'tools',
   short: 'tools',
   aliases: [],
+  changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Tools',
   position: 30,
   vertex: result.insertedId,
@@ -111,6 +115,12 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'stringArray',
       hint: 'Set of service instance names to map to this environment',
+    },
+    changeRoles: {
+      name: 'Change Roles',
+      required: true,
+      type: 'stringArray',
+      hint: 'Set of user roles allowed to alter services in this environment',
     },
     title: {
       name: 'Title',
@@ -441,6 +451,13 @@ result = db.collectionConfig.insertOne({
       id: 'w8zfccq',
       collection: 'team',
       name: 'tester',
+      relation: 'oneToMany',
+      show: true,
+    },
+    {
+      id: 'cb02f9b',
+      collection: 'team',
+      name: 'prod-approver',
       relation: 'oneToMany',
       show: true,
     },

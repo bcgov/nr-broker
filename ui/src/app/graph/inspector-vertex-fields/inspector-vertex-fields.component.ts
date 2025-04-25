@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import {
@@ -10,17 +11,21 @@ import {
 import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspector-vertex-field.component';
 
 @Component({
-    selector: 'app-inspector-vertex-fields',
-    imports: [InspectorVertexFieldComponent, KeyValuePipe, MatTableModule],
-    templateUrl: './inspector-vertex-fields.component.html',
-    styleUrl: './inspector-vertex-fields.component.scss'
+  selector: 'app-inspector-vertex-fields',
+  imports: [
+    InspectorVertexFieldComponent,
+    KeyValuePipe,
+    MatTableModule,
+    MatTooltipModule,
+  ],
+  templateUrl: './inspector-vertex-fields.component.html',
+  styleUrl: './inspector-vertex-fields.component.scss',
 })
 export class InspectorVertexFieldsComponent implements OnChanges {
   @Input() collection!: CollectionNames;
   @Input() collectionConfig!: CollectionConfigDto;
-  @Input() collectionData:
-    | CollectionDtoUnion[keyof CollectionDtoUnion]
-    | null = null;
+  @Input() collectionData: CollectionDtoUnion[keyof CollectionDtoUnion] | null =
+    null;
   @Input() filter!: 'yes' | 'no';
 
   filteredCollectionData: any = null;
