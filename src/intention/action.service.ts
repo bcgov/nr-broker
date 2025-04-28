@@ -264,20 +264,15 @@ export class ActionService {
 
       if (
         existingBuild &&
-        (this.checkValueChanged(
+        this.checkValueChanged(
           action.package,
           existingBuild.package,
           'buildVersion',
-        ) ||
-          this.checkValueChanged(
-            action.package,
-            existingBuild.package,
-            'checksum',
-          ) ||
-          this.checkValueChanged(action.package, existingBuild.package, 'size'))
+        )
       ) {
         return {
-          message: 'Release version may not be altered.',
+          message:
+            'Release package build version (git commit hash) may not be altered.',
           data: {
             action: action.action,
             action_id: action.id,
