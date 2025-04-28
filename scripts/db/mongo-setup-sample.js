@@ -3,15 +3,15 @@
 db.team.insertMany([
   {
     _id: ObjectId('64ecc18acf9ec5f71c640e4b'),
-    name: 'AdminTeam',
-    email: 'admin@team.com',
+    name: 'SuperApp Team',
+    email: 'superapp@team.com',
     vertex: ObjectId('64ecc18acf9ec5f71c640e4a'),
     website: 'http://google.com',
   },
   {
     _id: ObjectId('64fa194693b3afd6ee63aa9a'),
-    name: 'DBA',
-    email: 'dba@team.com',
+    name: 'App Users',
+    email: 'users@team.com',
     vertex: ObjectId('64fa194693b3afd6ee63aa99'),
   },
 ]);
@@ -21,12 +21,12 @@ db.vertex.insertMany([
   {
     _id: ObjectId('64ecc18acf9ec5f71c640e4a'),
     collection: 'team',
-    name: 'AdminTeam',
+    name: 'SuperApp Team',
   },
   {
     _id: ObjectId('64fa194693b3afd6ee63aa99'),
     collection: 'team',
-    name: 'DBA',
+    name: 'App Users',
   },
   {
     _id: ObjectId('64ecc156cf9ec5f71c640e48'),
@@ -109,7 +109,7 @@ db.user.insertMany([
 db.edge.insertMany([
   {
     _id: ObjectId('64ecde26cf9ec5f71c640e64'),
-    name: 'developer',
+    name: 'full-access',
     source: ObjectId('64ecc156cf9ec5f71c640e48'),
     target: ObjectId('64ecc18acf9ec5f71c640e4a'),
     is: 4,
@@ -218,6 +218,12 @@ db.vertex.insertMany([
     collection: 'brokerAccount',
     name: 'localhost',
   },
+  {
+    _id: ObjectId('680fccb6274a4f4b480fbe4a'),
+    collection: 'repository',
+    name: 'superapp',
+    timestamps: { createdAt: ISODate('2025-04-28T18:45:10.445Z') },
+  },
 ]);
 
 const prodEnvironment = db.environment.findOne({ name: 'production' });
@@ -233,6 +239,7 @@ db.edge.insertMany([
     it: 2,
     source: ObjectId('644c4d302e2f63acef6bb72e'),
     target: ObjectId('644c4d302e2f63acef6bb72c'),
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('644c4d322e2f63acef6bb807'),
@@ -241,6 +248,7 @@ db.edge.insertMany([
     it: 2,
     source: ObjectId('644c4d302e2f63acef6bb72e'),
     target: ObjectId('644c4d322e2f63acef6bb805'),
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('644c4d322e2f63acef6bb80a'),
@@ -249,14 +257,17 @@ db.edge.insertMany([
     it: 3,
     source: ObjectId('644c4d322e2f63acef6bb805'),
     target: ObjectId('644c4d322e2f63acef6bb808'),
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
-    id: ObjectId('644c4d322e2f63acef6bb80b'),
+    _id: ObjectId('644c4d322e2f63acef6bb80b'),
     name: 'deploy-type',
     is: 3,
     it: 0,
     source: ObjectId('644c4d322e2f63acef6bb808'),
     target: prodEnvironment.vertex,
+    restrict: true,
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb735'),
@@ -265,6 +276,7 @@ db.edge.insertMany([
     it: 3,
     source: ObjectId('644c4d302e2f63acef6bb72c'),
     target: ObjectId('644c4d312e2f63acef6bb733'),
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb736'),
@@ -273,6 +285,8 @@ db.edge.insertMany([
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb733'),
     target: prodEnvironment.vertex,
+    restrict: true,
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('644c4d312e2f63acef6bb748'),
@@ -281,6 +295,8 @@ db.edge.insertMany([
     it: 0,
     source: ObjectId('644c4d312e2f63acef6bb745'),
     target: prodEnvironment.vertex,
+    restrict: true,
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('65b93631cd33470efb73fb2c'),
@@ -290,14 +306,28 @@ db.edge.insertMany([
     target: ObjectId('644c4d302e2f63acef6bb72c'),
     is: 6,
     it: 2,
+    restrict: true,
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
   {
     _id: ObjectId('669af2d61065137fb10ea956'),
     name: 'authorized',
+    prop: {},
     source: ObjectId('669af2ba1065137fb10ea954'),
     target: ObjectId('644c4d302e2f63acef6bb72e'),
     is: 5,
     it: 1,
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
+  },
+  {
+    _id: ObjectId('680fa908274a4f4b480fbe2b'),
+    is: 6,
+    it: 5,
+    name: 'owns',
+    prop: {},
+    source: ObjectId('64ecc18acf9ec5f71c640e4a'),
+    target: ObjectId('669af2ba1065137fb10ea954'),
+    timestamps: { createdAt: ISODate('2025-04-28T16:12:56.792Z') },
   },
 ]);
 
@@ -318,6 +348,7 @@ db.serviceInstance.insertMany([
     _id: ObjectId('644c4d322e2f63acef6bb809'),
     name: 'production',
     vertex: ObjectId('644c4d322e2f63acef6bb808'),
+    url: 'http://localhost:8000',
   },
 ]);
 
@@ -382,6 +413,18 @@ db.brokerAccount.insertMany([
     requireServiceExists: false,
     skipUserValidation: false,
     maskSemverFailures: false,
+  },
+]);
+
+db.repository.insertMany([
+  {
+    _id: ObjectId('680fccb6274a4f4b480fbe4b'),
+    vertex: ObjectId('680fccb6274a4f4b480fbe4a'),
+    name: 'superapp',
+    type: 'git',
+    scmUrl: 'https://github.com/org-15ef/sample-app-fio3',
+    enableSyncSecrets: false,
+    enableSyncUsers: false,
   },
 ]);
 

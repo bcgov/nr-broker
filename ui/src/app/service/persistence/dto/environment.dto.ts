@@ -18,6 +18,11 @@ export class EnvironmentBaseDto extends CollectionBaseDto {
   @Type(() => String)
   aliases!: string[];
 
+  @IsArray()
+  @IsDefined()
+  @Type(() => String)
+  changeRoles!: string[];
+
   @IsString()
   @IsDefined()
   title!: string;

@@ -32,6 +32,9 @@ export class EnvironmentEntity extends VertexPointerEntity {
   aliases: string[];
 
   @Property()
+  changeRoles: string[];
+
+  @Property()
   title: string;
 
   @Property()

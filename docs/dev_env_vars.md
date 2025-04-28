@@ -147,10 +147,3 @@ The Redis environment variables used to setup the connection.
 | --- | --- | --- | --- |
 | GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
 | GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
-
-## Temporary
-
-| Env Var | Default | Secret | Description |
-| --- | --- | --- | --- |
-| ACTION_VALIDATE_TEAM_ADMIN |  |  | Users that are members of this team can skip all intention validations.  |
-| ACTION_VALIDATE_TEAM_DBA |  |  | Users that are members of this team can skip database intention validations. |

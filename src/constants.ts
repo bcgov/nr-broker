@@ -38,11 +38,6 @@ export const SHORT_ENV_CONVERSION = {
   development: 'dev',
 } as const;
 
-export const ACTION_VALIDATE_TEAM_ADMIN =
-  process.env.ACTION_VALIDATE_TEAM_ADMIN ?? '';
-export const ACTION_VALIDATE_TEAM_DBA =
-  process.env.ACTION_VALIDATE_TEAM_DBA ?? '';
-
 export const IS_PRIMARY_NODE = process.env.HOSTNAME?.endsWith('-0') ?? false;
 
 export const AUDIT_LOGSTREAM_DIR = process.env.AUDIT_LOGSTREAM_DIR ?? '/tmp';
