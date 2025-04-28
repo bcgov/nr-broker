@@ -45,7 +45,7 @@ db.environment.insertOne({
   name: 'production',
   short: 'prod',
   aliases: [],
-  changeRoles: ['full-access', 'prod-approver'],
+  changeRoles: ['full-access', 'prod-operator'],
   title: 'Production',
   position: 0,
   vertex: result.insertedId,
@@ -457,7 +457,7 @@ result = db.collectionConfig.insertOne({
     {
       id: 'cb02f9b',
       collection: 'team',
-      name: 'prod-approver',
+      name: 'prod-operator',
       relation: 'oneToMany',
       show: true,
     },
