@@ -21,6 +21,15 @@ export class PackageApiService {
     );
   }
 
+  getServiceBuildByVersion(service: string, name: string, semver: string) {
+    return this.http.post<PackageBuildDto>(
+      `${environment.apiUrl}/v1/package/service-build?service=${service}&name=${name}&semver=${semver}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   searchBuilds(id: string, offset = 0, limit = 5) {
     return this.http.post<PackageBuildSearchResult>(
       `${environment.apiUrl}/v1/package/search?serviceId=${id}&offset=${offset}&limit=${limit}`,

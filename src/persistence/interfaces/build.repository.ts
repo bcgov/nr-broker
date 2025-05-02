@@ -12,16 +12,16 @@ export abstract class BuildRepository {
     action: string,
     serviceId: string,
     name: string,
-    semvar: SemverVersion,
+    semver: SemverVersion,
     buildPackage: PackageEmbeddable,
   ): Promise<PackageBuildEntity>;
 
   public abstract getBuild(id: string): Promise<PackageBuildEntity>;
 
-  public abstract getBuildByPackageDetail(
+  public abstract getServiceBuildByVersion(
     serviceId: string,
     name: string,
-    semvar: SemverVersion,
+    semver: SemverVersion,
   ): Promise<PackageBuildEntity>;
 
   public abstract addInstallActionToBuild(
@@ -31,6 +31,7 @@ export abstract class BuildRepository {
 
   public abstract searchBuild(
     serviceId: string,
+    hideReplaced: boolean,
     offset: number,
     limit: number,
   ): Promise<PackageBuildSearchResult>;
@@ -40,4 +41,8 @@ export abstract class BuildRepository {
     user: UserEntity,
     environment: EnvironmentEntity,
   ): Promise<PackageBuildEntity>;
+
+  public abstract markBuildAsReplaced(
+    packageBuild: PackageBuildEntity,
+  ): Promise<void>;
 }

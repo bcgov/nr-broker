@@ -20,8 +20,9 @@ export class PackageBuildDto {
   approval!: PackageBuildApprovalDto[];
   installed!: IntentionActionPointerDto[];
   source!: IntentionActionPointerDto;
-  service!: string;
-  semvar!: string;
   package!: PackageDto;
+  replaced!: boolean;
+  service!: string;
+  semver!: string;
   timestamps?: TimestampDto;
 }

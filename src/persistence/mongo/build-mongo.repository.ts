@@ -26,7 +26,7 @@ export class BuildMongoRepository implements BuildRepository {
     action: string,
     serviceId: string,
     name: string,
-    semvar: SemverVersion,
+    semver: SemverVersion,
     buildPackage: PackageEmbeddable,
   ) {
     const packageBuild = new PackageBuildEntity(
@@ -34,7 +34,7 @@ export class BuildMongoRepository implements BuildRepository {
       name,
       action,
       new ObjectId(intentionId),
-      `${semvar.major}.${semvar.minor}.${semvar.patch}`,
+      `${semver.major}.${semver.minor}.${semver.patch}`,
       buildPackage,
     );
 
@@ -49,16 +49,17 @@ export class BuildMongoRepository implements BuildRepository {
     });
   }
 
-  public async getBuildByPackageDetail(
+  public async getServiceBuildByVersion(
     serviceId: string,
     name: string,
-    semvar: SemverVersion,
+    semver: SemverVersion,
   ) {
     return this.packageBuildRepository
       .find({
         service: new ObjectId(serviceId),
         name,
-        semvar: `${semvar.major}.${semvar.minor}.${semvar.patch}`,
+        semver: `${semver.major}.${semver.minor}.${semver.patch}`,
+        replaced: false,
       })
       .then((value) => {
         return value.length === 1 ? value[0] : null;
@@ -92,13 +93,19 @@ export class BuildMongoRepository implements BuildRepository {
     return this.getBuild(buildId);
   }
 
-  public async searchBuild(serviceId: string, offset: number, limit: number) {
+  public async searchBuild(
+    serviceId: string,
+    hideReplaced: boolean,
+    offset: number,
+    limit: number,
+  ) {
     return this.packageBuildRepository
       .getCollection()
       .aggregate([
         {
           $match: {
             service: new ObjectId(serviceId),
+            ...(hideReplaced ? { replaced: false } : {}),
           },
         },
         {
@@ -159,5 +166,13 @@ export class BuildMongoRepository implements BuildRepository {
       throw new Error();
     }
     return this.getBuild(packageBuild.id.toString());
+  }
+
+  public async markBuildAsReplaced(
+    packageBuild: PackageBuildEntity,
+  ): Promise<void> {
+    packageBuild.replaced = true;
+    packageBuild.timestamps.updatedAt = new Date();
+    await this.em.persist(packageBuild).flush();
   }
 }

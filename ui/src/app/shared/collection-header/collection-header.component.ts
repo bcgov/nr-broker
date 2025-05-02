@@ -28,6 +28,7 @@ export class CollectionHeaderComponent implements OnChanges {
   @Input() name!: string;
   @Input() screenSize!: string;
   @Input() backSteps = 1;
+  @Input() navigateCommands: any = undefined;
   @Input() upstream: GraphDirectedCombo[] | undefined = undefined;
   parentName = '';
 
@@ -60,6 +61,9 @@ export class CollectionHeaderComponent implements OnChanges {
 
   back() {
     const command = [new Array(this.backSteps).fill('..').join('/')];
+    if (this.navigateCommands) {
+      command.push(this.navigateCommands);
+    }
     this.router.navigate(command, { relativeTo: this.activatedRoute });
   }
 

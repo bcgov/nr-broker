@@ -256,7 +256,7 @@ export class ActionService {
         }
       }
 
-      const existingBuild = await this.buildRepository.getBuildByPackageDetail(
+      const existingBuild = await this.buildRepository.getServiceBuildByVersion(
         service.id.toString(),
         action.package.name,
         parsedVersion,
