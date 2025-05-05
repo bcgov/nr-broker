@@ -57,7 +57,6 @@ export class TeamAccountsComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['teamVertex']) {
       this.ngOnInit();
-      console.log('Value changed:', changes['value'].currentValue);
     }
   }
 
