@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -42,9 +42,9 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrls: ['./inspector-installs.component.scss'],
 })
 export class InspectorInstallsComponent implements OnInit, OnChanges {
-  @Input() pointers!: IntentionActionPointerDto[] | undefined;
+  pointers = input.required<IntentionActionPointerDto[]>();
 
-  pointer$ = new Subject<IntentionActionPointerDto>();
+  pointer$ = new Subject<IntentionActionPointerDto | undefined>();
   current: IntentionActionPointerDto | undefined;
 
   constructor(
@@ -60,22 +60,26 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
         distinctUntilChanged(),
         switchMap((pointer) => {
           return combineLatest([
-            this.intention.getIntention(pointer.intention),
+            pointer ? this.intention.getIntention(pointer.intention) : of(null),
             of(pointer),
           ]);
         }),
       )
       .subscribe(([result, pointer]) => {
-        const actionId = pointer.action?.split('#').pop();
-        this.current = {
-          ...pointer,
-          source: {
-            intention: result,
-            action: result.actions.find(
-              (action: any) => action.id === actionId,
-            ),
-          },
-        };
+        if (result && pointer) {
+          const actionId = pointer.action?.split('#').pop();
+          this.current = {
+            ...pointer,
+            source: {
+              intention: result,
+              action: result.actions.find(
+                (action: any) => action.id === actionId,
+              ),
+            },
+          };
+        } else {
+          this.current = undefined;
+        }
       });
 
     this.navigateCurrent();
@@ -114,22 +118,23 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
   }
 
   navigateCurrent() {
-    const current = this.pointers
-      ? this.pointers[this.pointers.length - 1]
-      : undefined;
-    if (current) {
-      this.pointer$.next(current);
-    }
+    const pointerValue = this.pointers();
+    const current =
+      pointerValue && pointerValue.length > 0
+        ? pointerValue[pointerValue.length - 1]
+        : undefined;
+    this.pointer$.next(current);
   }
 
   navigate(move: number) {
-    if (!this.pointers || !this.current) {
+    const pointerValue = this.pointers();
+    if (!pointerValue || !this.current) {
       return;
     }
-    const index = this.pointers.findIndex(
+    const index = pointerValue.findIndex(
       (history) => history.intention === this.current?.intention,
     );
-    const history = this.pointers[index + move];
+    const history = pointerValue[index + move];
     if (!history) {
       return;
     }
@@ -138,21 +143,22 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
   }
 
   isFirst() {
-    if (!this.pointers || !this.current) {
+    const pointerValue = this.pointers();
+    if (!pointerValue || !this.current || pointerValue.length === 0) {
       return true;
     }
 
-    return this.current.intention === this.pointers[0].intention;
+    return this.current.intention === pointerValue[0].intention;
   }
 
   isLast() {
-    if (!this.pointers || !this.current) {
+    const pointerValue = this.pointers();
+    if (!pointerValue || !this.current || pointerValue.length === 0) {
       return true;
     }
 
     return (
-      this.current.intention ===
-      this.pointers[this.pointers.length - 1].intention
+      this.current.intention === pointerValue[pointerValue.length - 1].intention
     );
   }
 }

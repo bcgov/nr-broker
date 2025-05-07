@@ -48,14 +48,14 @@ export class PackageBuildEntity extends BaseEntity {
     name: string,
     action: string,
     intention: ObjectId,
-    semvar: string,
+    semver: string,
     packageEm: PackageEmbeddable,
   ) {
     super();
     this.service = service;
     this.name = name;
     this.source = new IntentionActionPointerEmbeddable(action, intention);
-    this.semvar = semvar;
+    this.semver = semver;
     this.package = packageEm;
     this.timestamps = TimestampEmbeddable.create();
   }
@@ -86,10 +86,14 @@ export class PackageBuildEntity extends BaseEntity {
 
   @Property()
   @Index()
-  semvar: string;
+  semver: string;
 
   @Embedded({ entity: () => PackageEmbeddable, object: true })
   package: PackageEmbeddable;
+
+  @Property()
+  @Index()
+  replaced: boolean = false;
 
   @Embedded({ entity: () => TimestampEmbeddable, object: true })
   timestamps: TimestampEmbeddable;

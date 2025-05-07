@@ -128,13 +128,17 @@ export class IntentionSyncService {
       return;
     }
 
-    let packageBuild = await this.buildRepository.getBuildByPackageDetail(
-      service.id.toString(),
-      action.package.name,
-      parsedVersion,
-    );
-    if (!packageBuild) {
-      packageBuild = await this.buildRepository.addBuild(
+    let currentPackageBuild =
+      await this.buildRepository.getServiceBuildByVersion(
+        service.id.toString(),
+        action.package.name,
+        parsedVersion,
+      );
+    if (action.action === 'package-build') {
+      if (currentPackageBuild) {
+        await this.buildRepository.markBuildAsReplaced(currentPackageBuild);
+      }
+      currentPackageBuild = await this.buildRepository.addBuild(
         intention.id.toString(),
         this.actionUtil.actionToIdString(action),
         service.id.toString(),
@@ -142,20 +146,26 @@ export class IntentionSyncService {
         parsedVersion,
         action.package,
       );
-
-      // Warning: Setting it here because close uses sideffects
-      action.package.id = packageBuild._id;
-
-      await this.intentionRepository.setActionPackageBuildRef(
-        intention.id,
-        action.id,
-        packageBuild._id,
-      );
     }
+
+    if (!currentPackageBuild) {
+      // No package build. Should not occur as build creates it and release install should
+      // not be impossible without a build.
+      return;
+    }
+
+    // Warning: Setting it here because close uses side-effects
+    action.package.id = currentPackageBuild._id;
+
+    await this.intentionRepository.setActionPackageBuildRef(
+      intention.id,
+      action.id,
+      currentPackageBuild._id,
+    );
 
     if (action.action === 'package-installation') {
       await this.buildRepository.addInstallActionToBuild(
-        packageBuild.id.toString(),
+        currentPackageBuild.id.toString(),
         plainToClass(IntentionActionPointerEmbeddable, {
           action: this.actionUtil.actionToIdString(action),
           intention: intention.id,

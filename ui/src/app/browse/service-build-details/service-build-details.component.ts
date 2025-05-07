@@ -19,6 +19,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-service-build-details',
@@ -67,6 +68,7 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly packageApi: PackageApiService,
     private readonly packageUtil: PackageUtilService,
+    private readonly collectionUtil: CollectionUtilService,
   ) {
     inject(BreakpointObserver)
       .observe([
@@ -87,19 +89,21 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const params = this.activatedRoute.snapshot.params;
-    this.serviceId = params['id'];
-    this.buildId = params['buildId'];
-    this.collection = params['collection'];
+    this.activatedRoute.params.subscribe((params) => {
+      this.serviceId = params['id'];
+      this.buildId = params['buildId'];
+      this.collection = params['collection'];
 
-    combineLatest([
-      this.collectionApi.getCollectionById('service', this.serviceId),
-      this.packageApi.getBuild(this.buildId),
-    ]).subscribe(([service, data]) => {
-      this.name = service.name;
-      this.vertex = service.vertex;
-      this.data = data;
-      this.loading = false;
+      combineLatest([
+        this.collectionApi.getCollectionById('service', this.serviceId),
+        this.packageApi.getBuild(this.buildId),
+      ]).subscribe(([service, data]) => {
+        this.name = service.name;
+        this.vertex = service.vertex;
+        this.data = data;
+        this.loading = false;
+        // console.log('Service build details', data);
+      });
     });
   }
 
@@ -113,6 +117,22 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
 
   openHistoryById(id: string) {
     this.packageUtil.openHistoryById(id);
+  }
+
+  openLatestPackageBuild() {
+    this.packageApi
+      .getServiceBuildByVersion(
+        this.name,
+        this.data?.package.name ?? '',
+        this.data?.package.version ?? '',
+      )
+      .subscribe((build) => {
+        if (build) {
+          this.collectionUtil.openServicePackage(this.serviceId, build.id);
+        } else {
+          //this.packageUtil.openSnackBar('No build found');
+        }
+      });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

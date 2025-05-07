@@ -6,6 +6,7 @@
     [name]="name"
     [screenSize]="screenSize"
     [backSteps]="2"
+    [navigateCommands]="{index: 3}"
   >
     <div
       class="spaced-btn" [class]="screenSize">
@@ -27,156 +28,169 @@
       matTooltipShowDelay="500"
       >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></button>
     }
-</app-collection-header>
+  </app-collection-header>
 
   <div class="details-container details-container-margin" [class]="screenSize">
 
-  <mat-card class="card-margin">
-    <mat-card-content>
-      <div class="card-title-container">
-        <mat-card-title>Package Information</mat-card-title>
-        <div>
-          <button mat-icon-button [matMenuTriggerFor]="detailsMenu" class="menu">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #detailsMenu="matMenu">
-            @if (data.source && data.source.intention) {
-              <button
-                mat-menu-item
-                (click)="openHistoryById(data.source.intention)">
-                <mat-icon>build</mat-icon>View Build
-              </button>
-            }
-            <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
-              <mat-icon>content_copy</mat-icon>Copy
-            </button>
-          </mat-menu>
+    @if (data.replaced) {
+      <mat-card appearance="outlined" class="full-width card-margin">
+        <mat-card-content  class="info-panel-container">
+            <div>
+              <div class="info-title">This package was rebuilt</div>
+              <div class="info-line">New installations will use replacement</div>
+            </div>
+            <button mat-stroked-button
+              class="collection-btn"
+              (click)="openLatestPackageBuild()"
+              >View</button>
+        </mat-card-content>
+      </mat-card>
+    }
 
-          <mat-menu #detailsCopyMenu="matMenu">
+    <mat-card class="card-margin">
+      <mat-card-content>
+        <div class="card-title-container">
+          <mat-card-title>Package Information</mat-card-title>
+          <div>
+            <button mat-icon-button [matMenuTriggerFor]="detailsMenu" class="menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #detailsMenu="matMenu">
+              @if (data.source && data.source.intention) {
+                <button
+                  mat-menu-item
+                  (click)="openHistoryById(data.source.intention)">
+                  <mat-icon>build</mat-icon>View Build
+                </button>
+              }
+              <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
+                <mat-icon>content_copy</mat-icon>Copy
+              </button>
+            </mat-menu>
+
+            <mat-menu #detailsCopyMenu="matMenu">
+              @if (data.package.buildVersion) {
+                <button
+                  mat-menu-item
+                  [cdkCopyToClipboard]="data.package.buildVersion"
+                  >Build Version</button>
+              }
+              @if (data.package.checksum) {
+                <button
+                  mat-menu-item
+                  [cdkCopyToClipboard]="data.package.checksum"
+                  >Checksum</button>
+              }
+            </mat-menu>
+          </div>
+        </div>
+
+        <div class="package-content">
+
+        <div class="details-item">
+          <div class="details-subtitle">Version</div>
+          <div class="details-title">{{ data.semver }}</div>
+        </div>
+
+        @if (data.package.description) {
+        <p>{{data.package.description}}</p>
+        }
+
+          <div>
+            @if (data.package.name) {
+            <div class="details-item">
+              <div class="details-header">Name</div>
+              <div class="details-line">{{data.package.name}}</div>
+            </div>
+            }
+            @if (data.package.architecture) {
+            <div class="details-item">
+              <div class="details-header">Architecture</div>
+              <div class="details-line">{{data.package.architecture}}</div>
+            </div>
+            }
+            @if (data.package.buildNumber) {
+            <div class="details-item">
+              <div class="details-header">Build Number</div>
+              <div class="details-line">{{data.package.buildNumber}}</div>
+            </div>
+            }
+            @if (data.package.buildGuid) {
+            <div class="details-item">
+              <div class="details-header">Build Guid</div>
+              <div class="details-line">{{data.package.buildGuid}}</div>
+            </div>
+            }
             @if (data.package.buildVersion) {
-              <button
-                mat-menu-item
-                [cdkCopyToClipboard]="data.package.buildVersion"
-                >Build Version</button>
+            <div class="details-item">
+              <div class="details-header">Build Version</div>
+              <div class="details-line">{{data.package.buildVersion}}</div>
+            </div>
             }
             @if (data.package.checksum) {
-              <button
-                mat-menu-item
-                [cdkCopyToClipboard]="data.package.checksum"
-                >Checksum</button>
-            }
-          </mat-menu>
-        </div>
-      </div>
-
-      <div class="package-content">
-
-
-      <div class="details-item">
-        <div class="details-subtitle">Version</div>
-        <div class="details-title">{{ data.semvar }}</div>
-      </div>
-
-      @if (data.package.description) {
-      <p>{{data.package.description}}</p>
-      }
-
-        <div>
-          @if (data.package.name) {
-          <div class="details-item">
-            <div class="details-header">Name</div>
-            <div class="details-line">{{data.package.name}}</div>
-          </div>
-          }
-          @if (data.package.architecture) {
-          <div class="details-item">
-            <div class="details-header">Architecture</div>
-            <div class="details-line">{{data.package.architecture}}</div>
-          </div>
-          }
-          @if (data.package.buildNumber) {
-          <div class="details-item">
-            <div class="details-header">Build Number</div>
-            <div class="details-line">{{data.package.buildNumber}}</div>
-          </div>
-          }
-          @if (data.package.buildGuid) {
-          <div class="details-item">
-            <div class="details-header">Build Guid</div>
-            <div class="details-line">{{data.package.buildGuid}}</div>
-          </div>
-          }
-          @if (data.package.buildVersion) {
-          <div class="details-item">
-            <div class="details-header">Build Version</div>
-            <div class="details-line">{{data.package.buildVersion}}</div>
-          </div>
-          }
-          @if (data.package.checksum) {
-          <div class="details-item">
-            <div class="details-header">Checksum</div>
-            <div class="details-line">{{data.package.checksum}}</div>
-          </div>
-          }
-          @if (data.package.installScope) {
-          <div class="details-item">
-            <div class="details-header">Install Scope</div>
-            <div class="details-line">{{data.package.installScope}}</div>
-          </div>
-          }
-          @if (data.package.license) {
-          <div class="details-item">
-            <div class="details-header">License</div>
-            <div class="details-line">{{data.package.license}}</div>
-          </div>
-          }
-          @if (data.package.path) {
-          <div class="details-item">
-            <div class="details-header">Path</div>
-            <div class="details-line">{{data.package.path}}</div>
-          </div>
-          }
-          @if (data.package.reference) {
-          <div class="details-item">
-            <div class="details-header">Reference</div>
-            <div class="details-line">{{data.package.reference}}</div>
-          </div>
-          }
-          @if (data.package.size) {
-          <div class="details-item">
-              <div class="details-header">Size</div>
-              <div class="details-line">{{data.package.size | filesize}}</div>
-          </div>
-          }
-          @if (data.package.type) {
             <div class="details-item">
-            <div class="details-header">Type</div>
-            <div class="details-line">{{data.package.type}}</div>
+              <div class="details-header">Checksum</div>
+              <div class="details-line">{{data.package.checksum}}</div>
+            </div>
+            }
+            @if (data.package.installScope) {
+            <div class="details-item">
+              <div class="details-header">Install Scope</div>
+              <div class="details-line">{{data.package.installScope}}</div>
+            </div>
+            }
+            @if (data.package.license) {
+            <div class="details-item">
+              <div class="details-header">License</div>
+              <div class="details-line">{{data.package.license}}</div>
+            </div>
+            }
+            @if (data.package.path) {
+            <div class="details-item">
+              <div class="details-header">Path</div>
+              <div class="details-line">{{data.package.path}}</div>
+            </div>
+            }
+            @if (data.package.reference) {
+            <div class="details-item">
+              <div class="details-header">Reference</div>
+              <div class="details-line">{{data.package.reference}}</div>
+            </div>
+            }
+            @if (data.package.size) {
+            <div class="details-item">
+                <div class="details-header">Size</div>
+                <div class="details-line">{{data.package.size | filesize}}</div>
+            </div>
+            }
+            @if (data.package.type) {
+              <div class="details-item">
+              <div class="details-header">Type</div>
+              <div class="details-line">{{data.package.type}}</div>
+            </div>
+            }
+
+            <h3>Information</h3>
+
+            @if (data.timestamps?.createdAt) {
+            <div class="details-item">
+              <div class="details-header">Created</div>
+              <div class="details-line">{{data.timestamps!.createdAt | date: 'long'}}</div>
+            </div>
+            }
+
+            @if (data.timestamps?.updatedAt) {
+            <div class="details-item">
+              <div class="details-header">Modified</div>
+              <div class="details-line">{{data.timestamps!.updatedAt | date: 'long'}}</div>
+            </div>
+            }
+
           </div>
-          }
-
-          <h3>Information</h3>
-
-          @if (data.timestamps?.createdAt) {
-          <div class="details-item">
-            <div class="details-header">Created</div>
-            <div class="details-line">{{data.timestamps!.createdAt | date: 'long'}}</div>
-          </div>
-          }
-
-          @if (data.timestamps?.updatedAt) {
-          <div class="details-item">
-            <div class="details-header">Modified</div>
-            <div class="details-line">{{data.timestamps!.updatedAt | date: 'long'}}</div>
-          </div>
-          }
-
         </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
 
-  <div>
     <mat-card class="card-margin">
       <mat-card-content>
         <div class="card-title-container">
@@ -187,17 +201,7 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- <mat-card class="card-margin">
-      <mat-card-header>
-        <mat-card-title>Approval</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        Something
-      </mat-card-content>
-    </mat-card> -->
   </div>
-
-</div>
 }
 
 
