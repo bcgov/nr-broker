@@ -92,11 +92,11 @@ export class HistoryComponent {
   ];
 
   index = input('0');
-  indexNumber = computed(() => Number(this.index()));
+  indexNumber = computed(() => (this.index() ? Number(this.index()) : 0));
   currentIndex = this.indexNumber();
 
   size = input('10');
-  sizeNumber = computed(() => Number(this.size()));
+  sizeNumber = computed(() => (this.size() ? Number(this.size()) : 10));
   currentSize = this.sizeNumber();
 
   rangeStart = input();
@@ -119,10 +119,14 @@ export class HistoryComponent {
     // console.log(`Index changed: ${typeof this.index()}`);
 
     effect(() => {
-      this.currentField = this.field();
+      this.currentField = this.field() ?? '';
       this.currentValue = this.value();
-      this.currentLifespan = this.lifespan();
-      this.currentStatus = this.status();
+      if (this.lifespan()) {
+        this.currentLifespan = this.lifespan();
+      }
+      if (this.status()) {
+        this.currentStatus = this.status();
+      }
       this.currentIndex = this.indexNumber();
       this.currentSize = this.sizeNumber();
       this.range.setValue({
@@ -258,7 +262,7 @@ export class HistoryComponent {
         {
           index: this.currentIndex,
           size: this.currentSize,
-          field: this.currentField ?? 'id',
+          field: this.currentField ?? '',
           value: this.currentValue ?? '',
           lifespan: this.currentLifespan ?? 'permanent',
           status: this.currentStatus ?? 'all',
