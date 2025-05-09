@@ -3,7 +3,11 @@ import {
   inject,
   provideAppInitializer,
 } from '@angular/core';
-import { provideRouter, TitleStrategy } from '@angular/router';
+import {
+  provideRouter,
+  TitleStrategy,
+  withComponentInputBinding,
+} from '@angular/router';
 import {
   HttpClient,
   HTTP_INTERCEPTORS,
@@ -24,7 +28,7 @@ import { AuthInterceptor } from './auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideAppInitializer(() => {
       const http = inject(HttpClient);
       return appInitializePrefFactory(http);

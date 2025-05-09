@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, effect, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   FormsModule,
   FormGroup,
@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { Subject, catchError, of, switchMap } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
@@ -60,15 +60,10 @@ import { HistoryTableComponent } from '../history-table/history-table.component'
   ],
   styleUrls: ['./history.component.scss'],
 })
-export class HistoryComponent implements OnInit, OnDestroy {
-  intentionData: any[] = [];
-  intentionTotal = 0;
-  pageIndex = 0;
-  pageSize = 10;
-  loading = true;
-  selectedField: string = '';
-  fieldValue!: string;
-  fields = [
+export class HistoryComponent {
+  field = input('');
+  currentField = this.field();
+  fieldOptions = [
     { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
     { value: 'project', viewValue: 'Project' },
@@ -76,117 +71,155 @@ export class HistoryComponent implements OnInit, OnDestroy {
     { value: 'action', viewValue: 'Action' },
     { value: 'username', viewValue: 'Username' },
   ];
-  selectedLifespan: string = 'permanent';
-  lifespan = [
+
+  value = input('');
+  currentValue = this.value();
+
+  readonly lifespan = input<string>('permanent');
+  currentLifespan = this.lifespan();
+  lifespanOptions = [
     { value: 'all', viewValue: 'All' },
     { value: 'permanent', viewValue: 'Permanent' },
     { value: 'transient', viewValue: 'Transient' },
   ];
-  selectedStatus: string = 'all';
-  status = [
+
+  readonly status = input<string>('all');
+  currentStatus = this.status();
+  statusOptions = [
     { value: 'all', viewValue: 'All' },
     { value: 'success', viewValue: 'Success' },
     { value: 'failure', viewValue: 'Failure' },
   ];
+
+  index = input('0');
+  indexNumber = computed(() => Number(this.index()));
+  currentIndex = this.indexNumber();
+
+  size = input('10');
+  sizeNumber = computed(() => Number(this.size()));
+  currentSize = this.sizeNumber();
+
+  rangeStart = input();
+  rangeEnd = input();
+
   range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
-  private triggerRefresh = new Subject<void>();
+
+  intentionData: any[] = [];
+  intentionTotal = 0;
+
+  loading = true;
 
   constructor(
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly intentionApi: IntentionApiService,
-  ) {}
+  ) {
+    // console.log(`Index changed: ${typeof this.index()}`);
 
-  ngOnInit(): void {
-    this.triggerRefresh
+    effect(() => {
+      this.currentField = this.field();
+      this.currentValue = this.value();
+      this.currentLifespan = this.lifespan();
+      this.currentStatus = this.status();
+      this.currentIndex = this.indexNumber();
+      this.currentSize = this.sizeNumber();
+      this.range.setValue({
+        start: this.rangeStart()
+          ? new Date(Number.parseInt(this.rangeStart() as string))
+          : null,
+        end: this.rangeEnd()
+          ? new Date(Number.parseInt(this.rangeEnd() as string))
+          : null,
+      });
+      this.loadData();
+    });
+  }
+
+  loadData() {
+    this.loading = true;
+    let whereClause: any = {
+      ...(this.currentStatus !== 'all'
+        ? {
+            'transaction.outcome': this.currentStatus,
+          }
+        : {}),
+    };
+    if (this.currentField) {
+      if (this.currentField === 'id') {
+        whereClause = {
+          ...whereClause,
+          ...(this.currentValue ? { _id: this.currentValue.trim() } : {}),
+        };
+      } else if (this.currentField === 'service') {
+        whereClause = {
+          ...whereClause,
+          ...(this.currentValue
+            ? { 'actions.service.name': this.currentValue.trim() }
+            : {}),
+        };
+      } else if (this.currentField === 'project') {
+        whereClause = {
+          ...whereClause,
+          ...(this.currentValue
+            ? { 'actions.service.project': this.currentValue.trim() }
+            : {}),
+        };
+      } else if (this.currentField === 'action') {
+        whereClause = {
+          ...whereClause,
+          ...(this.currentValue
+            ? { 'actions.action': this.currentValue.trim() }
+            : {}),
+        };
+      } else if (this.currentField === 'username') {
+        whereClause = {
+          ...whereClause,
+          ...(this.currentValue
+            ? { 'actions.user.name': this.currentValue.trim() }
+            : {}),
+        };
+      }
+    }
+    if (this.range.value.start && this.range.value.end) {
+      // Add 1 day to end date to be inclusive of the day
+      const endData = new Date(this.range.value.end.getTime());
+      endData.setDate(endData.getDate() + 1);
+      whereClause = {
+        ...whereClause,
+        'transaction.start': {
+          $gte: this.range.value.start,
+          $lt: endData,
+        },
+      };
+    }
+    // console.log(this.lifespan());
+    if (this.lifespan() === 'permanent') {
+      whereClause = {
+        ...whereClause,
+        'event.transient': null,
+      };
+    }
+    if (this.lifespan() === 'transient') {
+      whereClause = {
+        ...whereClause,
+        'event.transient': true,
+      };
+    }
+    return this.intentionApi
+      .searchIntentions(
+        JSON.stringify(whereClause),
+        this.indexNumber() * this.sizeNumber(),
+        this.sizeNumber(),
+      )
       .pipe(
-        switchMap(() => {
-          let whereClause: any = {
-            ...(this.selectedStatus !== 'all'
-              ? {
-                  'transaction.outcome': this.selectedStatus,
-                }
-              : {}),
-          };
-          this.loading = true;
-          if (this.selectedField) {
-            if (this.selectedField === 'id') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue ? { _id: this.fieldValue.trim() } : {}),
-              };
-            } else if (this.selectedField === 'service') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue
-                  ? { 'actions.service.name': this.fieldValue.trim() }
-                  : {}),
-              };
-            } else if (this.selectedField === 'project') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue
-                  ? { 'actions.service.project': this.fieldValue.trim() }
-                  : {}),
-              };
-            } else if (this.selectedField === 'action') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue
-                  ? { 'actions.action': this.fieldValue.trim() }
-                  : {}),
-              };
-            } else if (this.selectedField === 'username') {
-              whereClause = {
-                ...whereClause,
-                ...(this.fieldValue
-                  ? { 'actions.user.name': this.fieldValue.trim() }
-                  : {}),
-              };
-            }
-          }
-          if (this.range.value.start && this.range.value.end) {
-            // Add 1 day to end date to be inclusive of the day
-            const endData = new Date(this.range.value.end.getTime());
-            endData.setDate(endData.getDate() + 1);
-            whereClause = {
-              ...whereClause,
-              'transaction.start': {
-                $gte: this.range.value.start,
-                $lt: endData,
-              },
-            };
-          }
-          if (this.selectedLifespan === 'permanent') {
-            whereClause = {
-              ...whereClause,
-              'event.transient': null,
-            };
-          }
-          if (this.selectedLifespan === 'transient') {
-            whereClause = {
-              ...whereClause,
-              'event.transient': true,
-            };
-          }
-          return this.intentionApi
-            .searchIntentions(
-              JSON.stringify(whereClause),
-              this.pageIndex * this.pageSize,
-              this.pageSize,
-            )
-            .pipe(
-              catchError(() => {
-                // Ignore errors for now
-                return of({
-                  data: [],
-                  meta: { total: 0 },
-                });
-              }),
-            );
+        catchError(() => {
+          // Ignore errors for now
+          return of({
+            data: [],
+            meta: { total: 0 },
+          });
         }),
       )
       .subscribe((data) => {
@@ -194,78 +227,61 @@ export class HistoryComponent implements OnInit, OnDestroy {
         this.intentionTotal = data.meta.total;
         this.loading = false;
       });
-    const params = this.route.snapshot.params;
-    if (params['index']) {
-      this.pageIndex = params['index'];
-    }
-    if (params['size']) {
-      this.pageSize = params['size'];
-    }
-    if (params['field']) {
-      this.selectedField = params['field'];
-    }
-    if (params['value']) {
-      this.fieldValue = params['value'];
-    }
-    if (params['lifespan']) {
-      this.selectedLifespan = params['lifespan'];
-    }
-    if (params['status']) {
-      this.selectedStatus = params['status'];
-    }
-    this.refresh();
-  }
-
-  ngOnDestroy() {
-    this.triggerRefresh.complete();
   }
 
   handlePageEvent(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.currentIndex = event.pageIndex;
+    this.currentSize = event.pageSize;
     this.refresh();
   }
 
   clear() {
-    this.pageIndex = 0;
-    this.selectedField = '';
-    this.fieldValue = '';
-    this.selectedStatus = 'all';
+    this.currentIndex = 0;
+    this.currentField = '';
+    this.currentValue = '';
+    this.currentStatus = 'all';
+    this.currentLifespan = 'permanent';
     this.range.reset();
     this.refresh();
   }
 
   filter() {
-    this.pageIndex = 0;
+    this.currentIndex = 0;
     this.refresh();
   }
 
   refresh() {
+    // console.log('refresh navigation');
     this.router.navigate(
       [
         '/intention/history',
         {
-          index: this.pageIndex,
-          size: this.pageSize,
-          field: this.selectedField ?? 'id',
-          value: this.fieldValue ?? '',
-          lifespan: this.selectedLifespan ?? 'permanent',
-          status: this.selectedStatus ?? 'all',
+          index: this.currentIndex,
+          size: this.currentSize,
+          field: this.currentField ?? 'id',
+          value: this.currentValue ?? '',
+          lifespan: this.currentLifespan ?? 'permanent',
+          status: this.currentStatus ?? 'all',
+          ...(this.range.value.start
+            ? { rangeStart: this.range.value.start.valueOf() }
+            : {}),
+          ...(this.range.value.end
+            ? { rangeEnd: this.range.value.end.valueOf() }
+            : {}),
         },
       ],
       {
         replaceUrl: true,
       },
     );
-    this.triggerRefresh.next();
   }
 
   viewIntention(id: string) {
-    this.pageIndex = 0;
-    this.selectedField = 'id';
-    this.fieldValue = id;
-    this.selectedLifespan = 'permanent';
-    this.selectedStatus = 'all';
+    this.currentIndex = 0;
+    this.currentField = 'id';
+    this.currentValue = id;
+    this.currentLifespan = 'permanent';
+    this.currentStatus = 'all';
     this.range.reset();
     this.filter();
   }
