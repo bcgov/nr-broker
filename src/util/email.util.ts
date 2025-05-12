@@ -23,7 +23,6 @@ export class EmailService {
       to,
       subject,
       text: body,
-      html: `<p>${body.replace(/\n/g, '<br>')}</p>`,
     };
 
     await this.transporter.sendMail(mailOptions, (error, info) => {
