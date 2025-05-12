@@ -37,6 +37,7 @@ import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { EmailService } from '../util/email.util';
 
 export class TokenCreateDTO {
   token: string;
@@ -57,6 +58,7 @@ export class AccountService {
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
     private schedulerRegistry: SchedulerRegistry,
+    private readonly emailService: EmailService,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
@@ -445,6 +447,49 @@ export class AccountService {
         expiredJwt.accountId.toString(),
       );
 
+      const timeUntilExpiration = expiredJwt.claims.exp - CURRENT_TIME_S;
+      const daysUntilExpiration = Math.floor(
+        timeUntilExpiration / (60 * 60 * 24),
+      );
+      if ([7, 5, 3, 2, 1].includes(daysUntilExpiration)) {
+        const emailSubject = `Token Expiration Warning for ${account.name}`;
+        const emailBody = `
+          Hello Broker Account ${account.name} Owner,
+  
+          This is a notification that your token associated with client ID ${
+            expiredJwt.claims.client_id
+          } will expire in ${daysUntilExpiration} day(s).
+  
+          Please take necessary actions to renew the token.
+  
+          Thank you,
+          OSCAR Team
+        `;
+        try {
+          await this.emailService.sendEmail(
+            account.email,
+            emailSubject,
+            emailBody,
+          );
+          this.auditService.recordAccountTokenLifecycle(
+            null,
+            expiredJwt.claims,
+            `Expiration email sent to ${account.email} for token (${expiredJwt.claims.client_id})`,
+            'info',
+            'success',
+            ['token', 'email', 'notification'],
+          );
+        } catch (error) {
+          this.auditService.recordAccountTokenLifecycle(
+            null,
+            expiredJwt.claims,
+            `Failed to send expiration email to ${account.email} for token (${expiredJwt.claims.client_id})`,
+            'info',
+            'failure',
+            ['token', 'email', 'notification'],
+          );
+        }
+      }
       this.auditService.recordAccountTokenLifecycle(
         null,
         expiredJwt.claims,
