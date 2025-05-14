@@ -3,7 +3,6 @@ import { ValidatorUtil } from './validator.util';
 import { DateUtil } from './date.util';
 import { ActionUtil } from './action.util';
 import { UserUtil } from './user.util';
-import { EmailService } from './email.util';
 
 /**
  * The util module provides utility services to other modules.
@@ -11,7 +10,7 @@ import { EmailService } from './email.util';
 @Module({
   imports: [],
   controllers: [],
-  providers: [ActionUtil, DateUtil, UserUtil, ValidatorUtil, EmailService],
-  exports: [ActionUtil, DateUtil, UserUtil, ValidatorUtil, EmailService],
+  providers: [ActionUtil, DateUtil, UserUtil, ValidatorUtil],
+  exports: [ActionUtil, DateUtil, UserUtil, ValidatorUtil],
 })
 export class UtilModule {}

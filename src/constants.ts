@@ -115,10 +115,10 @@ export const GITHUB_MANAGED_URL_REGEX =
 export const USER_ALIAS_DOMAIN_GITHUB = 'GitHub';
 
 export const NOTIFICATION_EMAIL_FROM =
-  process.env.NOTIFICATION_EMAIL_FROM ?? 'NRIDS.TeamOSCAR@gov.bc.ca';
+  process.env.NOTIFICATION_EMAIL_FROM ?? '';
 export const NOTIFICATION_EMAIL_HOST =
-  process.env.NOTIFICATION_EMAIL_HOST ?? 'apps.smtp.gov.bc.ca';
+  process.env.NOTIFICATION_EMAIL_HOST ?? '';
 export const NOTIFICATION_EMAIL_PORT =
-  process.env.NOTIFICATION_EMAIL_PORT ?? '25';
+  process.env.NOTIFICATION_EMAIL_PORT ?? '';
 export const NOTIFICATION_EMAIL_SECURE =
-  process.env.NOTIFICATION_EMAIL_SECURE ?? 'false';
+  process.env.NOTIFICATION_EMAIL_SECURE ?? true;
