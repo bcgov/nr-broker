@@ -45,7 +45,7 @@ const redisFactory = {
   useFactory: async () => {
     const host = process.env.REDIS_HOST ? process.env.REDIS_HOST : 'localhost';
     const replics = process.env.REDIS_REPLICAS;
-    const port = process.env.REDIS_PORT ? process.env.REDIS_PORT : '6380';
+    const port = process.env.REDIS_PORT ? process.env.REDIS_PORT : '6379';
     const username = process.env.REDIS_USER ? process.env.REDIS_USER : '';
     const password = process.env.REDIS_PASSWORD
       ? `:${process.env.REDIS_PASSWORD}`
