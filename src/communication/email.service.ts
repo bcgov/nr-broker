@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import nodemailer from 'nodemailer';
 import {
   NOTIFICATION_EMAIL_FROM,
   NOTIFICATION_EMAIL_HOST,
   NOTIFICATION_EMAIL_SECURE,
   NOTIFICATION_EMAIL_PORT,
 } from '../constants';
-import hbs from 'nodemailer-express-handlebars';
 import { join } from 'path';
+import hbs from 'nodemailer-express-handlebars';
+import nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
