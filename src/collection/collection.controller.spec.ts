@@ -3,6 +3,7 @@ import { DeepMocked, createMock } from '@golevelup/ts-jest';
 import { CollectionController } from './collection.controller';
 import { CollectionService } from './collection.service';
 
+jest.mock('nodemailer-express-handlebars', () => jest.fn());
 describe('CollectionController', () => {
   let controller: CollectionController;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

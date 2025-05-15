@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { createMock } from '@golevelup/ts-jest';
 import { AccountService } from './account.service';
 
+jest.mock('nodemailer-express-handlebars', () => jest.fn());
+
 describe('AccountService', () => {
   let service: AccountService;
 
