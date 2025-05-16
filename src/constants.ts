@@ -113,3 +113,12 @@ export const GITHUB_MANAGED_URL_REGEX =
   '^https://github.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)$';
 
 export const USER_ALIAS_DOMAIN_GITHUB = 'GitHub';
+
+export const NOTIFICATION_EMAIL_FROM =
+  process.env.NOTIFICATION_EMAIL_FROM ?? '';
+export const NOTIFICATION_EMAIL_HOST =
+  process.env.NOTIFICATION_EMAIL_HOST ?? '';
+export const NOTIFICATION_EMAIL_PORT =
+  process.env.NOTIFICATION_EMAIL_PORT ?? '';
+export const NOTIFICATION_EMAIL_SECURE =
+  process.env.NOTIFICATION_EMAIL_SECURE ?? true;
