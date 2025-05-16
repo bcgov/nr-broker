@@ -8,13 +8,14 @@ import {
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { VertexFormBuilderComponent } from '../../graph/vertex-form-builder/vertex-form-builder.component';
 import { lastValueFrom } from 'rxjs';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-add-team-dialog',
@@ -36,7 +37,7 @@ export class AddTeamDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      configMap: CollectionConfigMap;
+      configMap: CollectionConfigNameRecord;
       collection?: string;
       vertexId?: string;
       data?: any;
@@ -44,13 +45,12 @@ export class AddTeamDialogComponent {
     public readonly dialogRef: MatDialogRef<AddTeamDialogComponent>,
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
+    private readonly collectionUtil: CollectionUtilService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
   ngOnInit(): void {
-    this.graphApi.getConfig().subscribe((data) => {
-      this.config = data.find((config) => config.collection === 'team');
-    });
+    this.config = this.collectionUtil.getCollectionConfigByName('team');
   }
 
   closeDialog() {

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { RedisClientType, SchemaFieldTypes } from 'redis';
+import { RedisClientType, SCHEMA_FIELD_TYPE } from 'redis';
 
 import { GraphRepository } from '../interfaces/graph.repository';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
@@ -267,12 +267,12 @@ export class GraphRedisRepository implements GraphRepository {
     const collectionClause = !!collections
       ? `(@collection:{${collections
           .map((collection) => this.util.escapeRedisStr(collection))
-          .join('|')}) `
+          .join('|')}}) `
       : '';
 
     const data = await this.client.ft.search(
       'idx:collection_json',
-      `${collectionClause}(@text: (*${this.util.escapeRedisStr(text)}*))`,
+      `${collectionClause}(@text:(*${this.util.escapeRedisStr(text)}*))`,
       {
         LIMIT: { from: offset ? offset : 0, size: limit ? limit : 10 },
       },
@@ -319,20 +319,20 @@ export class GraphRedisRepository implements GraphRepository {
       'idx:collection_json',
       {
         '$.text': {
-          type: SchemaFieldTypes.TEXT,
+          type: SCHEMA_FIELD_TYPE.TEXT,
           AS: 'text',
           WITHSUFFIXTRIE: true,
         },
         '$.id': {
-          type: SchemaFieldTypes.TAG,
+          type: SCHEMA_FIELD_TYPE.TAG,
           AS: 'id',
         },
         '$.collection': {
-          type: SchemaFieldTypes.TAG,
+          type: SCHEMA_FIELD_TYPE.TAG,
           AS: 'collection',
         },
         '$.name': {
-          type: SchemaFieldTypes.TAG,
+          type: SCHEMA_FIELD_TYPE.TAG,
           AS: 'name',
           SORTABLE: true,
         },

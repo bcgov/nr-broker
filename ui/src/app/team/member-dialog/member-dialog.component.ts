@@ -27,8 +27,8 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexSearchDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
@@ -75,7 +75,8 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA)
     public readonly data: { vertex: string; name: string },
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit() {
@@ -143,8 +144,8 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       }),
     );
 
-    if (this.configMap['user']) {
-      this.edges = this.configMap['user'].edges.filter(
+    if (this.configRecord['user']) {
+      this.edges = this.configRecord['user'].edges.filter(
         (edge) => edge.collection === 'team',
       );
       this.triggerRefresh.next();

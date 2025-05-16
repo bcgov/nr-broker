@@ -1,26 +1,33 @@
 import {
-  AfterViewInit,
-  ChangeDetectorRef,
   Component,
+  effect,
   inject,
   Inject,
+  numberAttribute,
+  input,
+  output,
+  computed,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectChange, MatSelectModule } from '@angular/material/select';
+import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import {
+  MatSort,
+  MatSortModule,
+  SortDirection,
+  Sort,
+} from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -35,21 +42,23 @@ import {
   switchMap,
   takeUntil,
 } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CONFIG_MAP, CURRENT_USER } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import {
+  CONFIG_ARR,
+  CONFIG_RECORD,
+  CURRENT_USER,
+} from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { GraphApiService } from '../../service/graph-api.service';
 import { GraphTypeaheadData } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import {
   CollectionConfigDto,
   CollectionFieldConfigMap,
 } from '../../service/persistence/dto/collection-config.dto';
-import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
-import { TeamDto } from '../../service/persistence/dto/team.dto';
-import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
 import { PreferencesService } from '../../preferences.service';
@@ -57,7 +66,7 @@ import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-fiel
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
-type ShowFilter = 'connected' | 'all';
+export type ShowFilter = 'connected' | 'all';
 
 interface filterOptions<T> {
   value: T;
@@ -70,13 +79,16 @@ interface TablePageQuery {
   size: number;
 }
 
-interface TableQuery {
+export interface TableQuery {
   collection: CollectionNames;
   text: string;
   showFilter: ShowFilter;
   tags: Array<string>;
-  sort: Sort;
-  page: TablePageQuery;
+  sortActive: string;
+  sortDirection: string;
+  index: number;
+  size: number;
+  refresh: number;
 }
 
 @Component({
@@ -102,17 +114,35 @@ interface TableQuery {
   templateUrl: './collection-table.component.html',
   styleUrl: './collection-table.component.scss',
 })
-export class CollectionTableComponent
-  implements AfterViewInit, OnInit, OnDestroy
-{
+export class CollectionTableComponent implements OnInit, OnDestroy {
+  collection = input.required<CollectionNames>();
+  text = input('');
+  computedText = computed(() =>
+    (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
+  );
+  showFilter = input<ShowFilter>(
+    this.preferences.get('browseConnectionFilter') ?? 'connected',
+  );
+  tags = input('');
+  computedTags = computed(() =>
+    this.tags() && this.tags().length > 1 ? this.tags().split(',') : [],
+  );
+  sortActive = input('');
+  sortDirection = input<SortDirection>('');
+
+  index = input(0, { transform: (v) => numberAttribute(v, 0) });
+  currentIndex = 0;
+
+  size = input(10, { transform: (v) => numberAttribute(v, 10) });
+  currentSize = 10;
+
+  settingsUpdated = output<TableQuery>();
+
   data: CollectionCombo<any>[] = [];
   total = 0;
-  pageIndex = 0;
-  pageSize = 10;
   loading = true;
-  disableAdd = true;
-  screenSize: string = '';
 
+  screenSize: string = '';
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
     [Breakpoints.XSmall, 'narrow'],
@@ -122,19 +152,12 @@ export class CollectionTableComponent
     [Breakpoints.XLarge, 'wide'],
   ]);
 
-  collection$ = new Subject<CollectionNames>();
-  collectionSnapshot: CollectionNames = 'project';
-  textControl = new FormControl<string>('');
-  showControl = new FormControl<string>('');
-  tagsControl = new FormControl<string[]>([]);
   sort$ = new Subject<Sort>();
-  sortSnapshot: Sort = { active: '', direction: '' };
   page$ = new Subject<TablePageQuery>();
+
   @ViewChild(MatSort) sort!: MatSort;
 
   canFilterConnected: string[] = [];
-  showFilter: ShowFilter =
-    this.preferences.get('browseConnectionFilter') ?? 'connected';
   showFilterOptions = [
     { value: 'connected', viewValue: 'Connected' },
     { value: 'all', viewValue: 'All' },
@@ -151,17 +174,51 @@ export class CollectionTableComponent
 
   constructor(
     public readonly permission: PermissionService,
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly dialog: MatDialog,
-    private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     public readonly graphUtil: GraphUtilService,
-    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
-    private changeDetectorRef: ChangeDetectorRef,
+    @Inject(CONFIG_RECORD)
+    private readonly configRecord: CollectionConfigNameRecord,
+    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
   ) {
+    effect(() => {
+      this.sort$.next({
+        active: this.sortActive(),
+        direction: this.sortDirection(),
+      });
+    });
+
+    effect(() => {
+      this.currentIndex = this.index();
+      this.currentSize = this.size();
+      this.page$.next({
+        index: this.currentIndex,
+        size: this.currentSize,
+      });
+    });
+
+    effect(() => {
+      this.collectionApi
+        .getCollectionTags(this.collection() as CollectionNames)
+        .subscribe((tags) => {
+          this.tagList = tags;
+        });
+
+      this.fields = configRecord[this.collection()].fields;
+      this.propDisplayedColumns = [
+        ...(configRecord[this.collection()].browseFields ??
+          Object.keys(this.fields)),
+        'action',
+      ];
+      this.canFilterConnected = this.configArr
+        .filter((config) => config.permissions.filter)
+        .map((config) => config.collection);
+
+      this.refresh();
+    });
+
     inject(BreakpointObserver)
       .observe([
         Breakpoints.XSmall,
@@ -178,25 +235,12 @@ export class CollectionTableComponent
           }
         }
       });
-  }
 
-  ngAfterViewInit() {
-    // console.log('ngAfterViewInit');
-    this.sort.sortChange.asObservable().subscribe({
-      next: (v) => {
-        this.pageIndexReset();
-        this.sort$.next(v);
-      },
-    });
-  }
-
-  ngOnInit(): void {
-    // console.log('ngOnInit');
     combineLatest([
-      this.collection$.asObservable(),
-      this.textControl.valueChanges.pipe(startWith('')),
-      this.tagsControl.valueChanges.pipe(startWith([])),
-      this.showControl.valueChanges.pipe(startWith('all')),
+      toObservable(this.collection),
+      toObservable(this.computedText),
+      toObservable(this.computedTags),
+      toObservable(this.showFilter),
       this.sort$.asObservable().pipe(startWith({ active: '', direction: '' })),
       this.page$.asObservable(),
       this.triggerRefresh,
@@ -205,14 +249,15 @@ export class CollectionTableComponent
         debounceTime(0),
         switchMap(
           ([collection, text, tags, showFilter, sort, page, refresh]) => {
-            const actualSearchTerm = (text ? text.length : 0) < 3 ? '' : text;
             return of({
-              collection,
-              text: actualSearchTerm,
+              collection: collection,
+              text,
               showFilter,
               tags,
-              sort,
-              page,
+              sortActive: sort.active,
+              sortDirection: sort.direction,
+              index: page.index,
+              size: page.size,
               refresh,
             });
           },
@@ -232,19 +277,17 @@ export class CollectionTableComponent
             prev.tags.every((val: any, i: any) => {
               return curr.tags && curr.tags[i] === val;
             }) &&
-            prev.sort &&
-            curr.sort &&
-            prev.sort.active === curr.sort.active &&
-            prev.sort.direction === curr.sort.direction &&
-            prev.page.index === curr.page.index &&
-            prev.page.size === curr.page.size
+            prev.sortActive === curr.sortActive &&
+            prev.sortDirection === curr.sort.direction &&
+            prev.index === curr.index &&
+            prev.size === curr.size
           );
         }),
         switchMap((settings) => {
           this.loading = true;
-          const sortActive = settings.sort?.active;
-          const sortDirection = settings.sort?.direction ?? 'asc';
-          this.updateRoute(settings);
+          const sortActive = settings.sortActive;
+          const sortDirection = settings.sortDirection ?? 'asc';
+          // this.settingsUpdated.emit(settings);
           return this.collectionApi
             .searchCollection(settings.collection, {
               ...(settings.text.length >= 3 ? { q: settings.text } : {}),
@@ -255,8 +298,8 @@ export class CollectionTableComponent
                 : {}),
               sortActive,
               sortDirection,
-              offset: settings.page.index * settings.page.size,
-              limit: settings.page.size,
+              offset: settings.index * settings.size,
+              limit: settings.size,
             })
             .pipe(
               catchError(() => {
@@ -274,105 +317,38 @@ export class CollectionTableComponent
         this.total = data.meta.total;
         this.loading = false;
       });
+  }
 
-    this.graphApi.getConfig().subscribe((config) => {
-      this.config = config.filter((config) => config.permissions.browse);
-      this.canFilterConnected = config
-        .filter((config) => config.permissions.filter)
-        .map((config) => config.collection);
-      this.collectionFilterOptions = this.config.map((config) => {
-        return {
-          value: config.collection,
-          viewValue: config.name,
-          tooltip: config.hint,
-        };
-      });
+  onSortChange(sort: Sort) {
+    this.updateSettings({
+      sortActive: sort.active,
+      sortDirection: sort.direction,
     });
+  }
 
-    this.collection$.subscribe((collection) => {
-      this.collectionSnapshot = collection;
-      this.collectionApi
-        .getCollectionTags(this.collectionSnapshot)
-        .subscribe((tags) => {
-          this.tagList = tags;
-        });
-      if (!this.config) {
-        return;
-      }
-      const config = this.config.find(
-        (config) => config.collection === this.collectionSnapshot,
-      );
-
-      if (!config) {
-        return;
-      }
-      this.fields = config.fields;
-      this.propDisplayedColumns = [
-        ...(config.browseFields ?? Object.keys(this.fields)),
-        'action',
-      ];
-      this.disableAdd = !config.permissions.create;
+  updateSettings(settings: Partial<TableQuery>) {
+    this.settingsUpdated.emit({
+      collection: this.collection(),
+      text: this.text(),
+      showFilter: this.showFilter(),
+      tags: this.computedTags(),
+      sortActive: this.sortActive(),
+      sortDirection: this.sortDirection(),
+      index: this.index(),
+      size: this.size(),
+      refresh: 0,
+      ...settings,
     });
-    this.collection$.next(this.route.snapshot.params['collection']);
+  }
 
-    this.sort$.subscribe((sort) => {
-      this.sortSnapshot.active = sort.active;
-      this.sortSnapshot.direction = sort.direction;
-    });
-    this.showControl.valueChanges.subscribe(() => this.pageIndexReset());
-    this.tagsControl.valueChanges.subscribe(() => this.pageIndexReset());
-    this.textControl.valueChanges.subscribe(() => this.pageIndexReset());
-
-    const params = this.route.snapshot.params;
-    if (params['index'] && params['size']) {
-      this.pageIndex = params['index'];
-      this.pageSize = params['size'];
-    }
-    if (params['sortActive'] && params['sortDirection']) {
-      this.sort$.next({
-        active: params['sortActive'],
-        direction: params['sortDirection'],
-      });
-    }
-    this.page$.next({
-      index: this.pageIndex,
-      size: this.pageSize,
-    });
-    if (params['tags']) {
-      const tags = params['tags'].split(',');
-      this.tagsControl.setValue(tags);
-    }
-    this.showControl.setValue(
-      params['showFilter'] === 'all' || params['showFilter'] === 'connected'
-        ? params['showFilter']
-        : 'all',
-    );
-
-    this.refresh();
-    this.changeDetectorRef.detectChanges();
+  ngOnInit(): void {
+    this.canFilterConnected = this.configArr
+      .filter((config) => config.permissions.filter)
+      .map((config) => config.collection);
   }
 
   ngOnDestroy() {
     this.triggerRefresh.complete();
-  }
-
-  updateRoute(settings: TableQuery) {
-    this.router.navigate(
-      [
-        `/browse/${settings.collection}`,
-        {
-          index: settings.page.index,
-          size: settings.page.size,
-          sortActive: settings.sort.active,
-          sortDirection: settings.sort.direction,
-          showFilter: settings.showFilter,
-          tags: settings.tags.join(','),
-        },
-      ],
-      {
-        replaceUrl: true,
-      },
-    );
   }
 
   refresh() {
@@ -391,31 +367,16 @@ export class CollectionTableComponent
     ).length;
   }
 
-  // onFilterChange(change: MatSelectChange) {
-  //   this.pageIndexReset();
-  //   this.showFilter$.next(change.value);
-  //   this.preferences.set('browseConnectionFilter', change.value);
-  // }
-
-  onCollectionChange(change: MatSelectChange) {
-    this.collection$.next(change.value);
-
-    this.pageIndexReset();
-    this.preferences.set('browseCollectionDefault', this.collectionSnapshot);
-    this.sort$.next({ active: '', direction: '' });
-
-    this.clearAndRefresh();
-  }
-
-  pageIndexReset() {
-    this.pageIndex = 0;
-    this.page$.next({ index: this.pageIndex, size: this.pageSize });
+  currentIndexReset() {
+    this.currentIndex = 0;
+    this.page$.next({ index: this.currentIndex, size: this.currentSize });
   }
 
   handlePageEvent(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.page$.next({ index: event.pageIndex, size: event.pageSize });
+    this.updateSettings({
+      index: event.pageIndex,
+      size: event.pageSize,
+    });
   }
 
   displayFn(vertex: GraphTypeaheadData): string {
@@ -426,6 +387,28 @@ export class CollectionTableComponent
     }
   }
 
+  onTextInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.updateSettings({ text: input.value });
+  }
+
+  clearAndRefresh() {
+    this.currentIndexReset();
+    this.updateSettings({
+      text: '',
+      showFilter: 'all',
+      tags: [],
+    });
+    this.refresh();
+  }
+
+  getFieldConfig(key: string) {
+    if (!this.configRecord[this.collection() as CollectionNames]) {
+      return undefined;
+    }
+    return this.configRecord[this.collection() as CollectionNames].fields[key];
+  }
+
   openInGraph(event: Event, elem: CollectionComboDto<any>) {
     event.stopPropagation();
     this.graphUtil.openInGraph(elem.vertex.id, 'vertex');
@@ -434,81 +417,6 @@ export class CollectionTableComponent
   openInInspector(event: Event, id: string) {
     event.stopPropagation();
 
-    this.router.navigate([`/browse/${this.collectionSnapshot}/${id}`]);
-  }
-
-  clearAndRefresh() {
-    this.pageIndexReset();
-    this.textControl.setValue('');
-    this.tagsControl.setValue([]);
-    this.showControl.setValue('all');
-    this.refresh();
-  }
-
-  addVertex() {
-    const dialogClass: any =
-      this.collectionSnapshot === 'team'
-        ? AddTeamDialogComponent
-        : VertexDialogComponent;
-    this.dialog
-      .open(dialogClass, {
-        width: '500px',
-        data: {
-          configMap: {
-            [this.collectionSnapshot]: this.config?.find(
-              (config) => config.collection === this.collectionSnapshot,
-            ),
-          },
-          collection: this.collectionSnapshot,
-        },
-      })
-      .afterClosed()
-      .pipe(
-        switchMap((result) => {
-          if (result && result.id) {
-            return this.collectionApi.searchCollection(
-              this.collectionSnapshot,
-              {
-                vertexId: result.id,
-                offset: 0,
-                limit: 1,
-              },
-            );
-          }
-          return of(null);
-        }),
-      )
-      .subscribe((result) => {
-        if (result) {
-          this.router.navigate(
-            ['/browse', this.collectionSnapshot, result.data[0].collection.id],
-            {
-              replaceUrl: true,
-            },
-          );
-        }
-      });
-  }
-
-  openTeamDialog(event: Event, elem?: TeamDto) {
-    event.stopPropagation();
-    this.dialog
-      .open(AddTeamDialogComponent, {
-        width: '600px',
-        data: {
-          team: elem,
-        },
-      })
-      .afterClosed()
-      .subscribe(() => {
-        this.refresh();
-      });
-  }
-
-  getFieldConfig(key: string) {
-    if (!this.configMap[this.collectionSnapshot]) {
-      return undefined;
-    }
-    return this.configMap[this.collectionSnapshot].fields[key];
+    this.router.navigate([`/browse/${this.collection()}/${id}`]);
   }
 }

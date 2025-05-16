@@ -13,8 +13,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 
 @Component({
@@ -37,7 +37,8 @@ export class CollectionHeaderComponent implements OnChanges {
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    private readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {

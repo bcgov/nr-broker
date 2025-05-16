@@ -23,8 +23,8 @@ import {
   GraphDirectedComboMap,
 } from '../../service/persistence/dto/collection-combo.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
-import { CollectionConfigMap } from '../../service/graph.types';
-import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
 
 @Component({
@@ -57,7 +57,8 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
     private readonly preferences: PreferencesService,
     private readonly dialog: MatDialog,
     private readonly colorUtil: ColorUtilService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnChanges(): void {

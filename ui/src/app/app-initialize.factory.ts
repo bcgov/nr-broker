@@ -3,19 +3,20 @@ import { InjectionToken } from '@angular/core';
 import { Observable, catchError, tap } from 'rxjs';
 import { environment } from '../environments/environment';
 import {
-  CollectionConfigMap,
-  CollectionEdgeConfigMap,
+  CollectionConfigNameRecord,
+  CollectionConfigStringRecord,
 } from './service/graph.types';
 import { CollectionConfigDto } from './service/persistence/dto/collection-config.dto';
-import { GraphUtilService } from './service/graph-util.service';
 import { UserSelfDto } from './service/persistence/dto/user.dto';
 import { PreferenceDto } from './service/persistence/dto/preference.dto';
+import { CollectionUtilService } from './service/collection-util.service';
+import { GraphUtilService } from './service/graph-util.service';
 
 let userInfo: UserSelfDto;
 let preferencesInit: PreferenceDto;
 let configArr: CollectionConfigDto[];
-let configMap: CollectionConfigMap;
-let configSrcTarMap: CollectionEdgeConfigMap;
+let configRecord: CollectionConfigNameRecord;
+let configSrcTarRecord: CollectionConfigStringRecord;
 
 export const CURRENT_USER = new InjectionToken<UserSelfDto>('CURRENT_USER', {
   providedIn: 'root',
@@ -38,18 +39,18 @@ export const CONFIG_ARR = new InjectionToken<CollectionConfigDto[]>(
   },
 );
 
-export const CONFIG_MAP = new InjectionToken<CollectionConfigMap>(
-  'CONFIG_MAP',
+export const CONFIG_RECORD = new InjectionToken<CollectionConfigNameRecord>(
+  'CONFIG_RECORD',
   {
     providedIn: 'root',
-    factory: () => configMap,
+    factory: () => configRecord,
   },
 );
 
 export const CONFIG_EDGE_CONFIG_MAP =
-  new InjectionToken<CollectionEdgeConfigMap>('CONFIG_EDGE_CONFIG_MAP', {
+  new InjectionToken<CollectionConfigStringRecord>('CONFIG_EDGE_CONFIG_MAP', {
     providedIn: 'root',
-    factory: () => configSrcTarMap,
+    factory: () => configSrcTarRecord,
   });
 
 export function appInitializeUserFactory(http: HttpClient): Observable<any> {
@@ -92,10 +93,10 @@ export function appInitializeConfigFactory(http: HttpClient): Observable<any> {
     .pipe(
       tap((configArrInner) => {
         configArr = configArrInner;
-        configMap = GraphUtilService.configArrToMap(configArrInner);
-        configSrcTarMap = GraphUtilService.configArrToSrcTarMap(
+        configRecord = CollectionUtilService.configArrToMap(configArrInner);
+        configSrcTarRecord = GraphUtilService.configArrToSrcTarRecord(
           configArr,
-          configMap,
+          configRecord,
         );
       }),
       catchError((e) => {

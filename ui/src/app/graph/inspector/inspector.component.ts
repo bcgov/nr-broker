@@ -28,7 +28,7 @@ import {
   Connection,
   VertexNavigation,
   GraphDataVertex,
-  CollectionConfigMap,
+  CollectionConfigNameRecord,
   InspectorTarget,
   InspectorTargetEdge,
   InspectorTargetVertex,
@@ -37,7 +37,7 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import {
   CONFIG_ARR,
-  CONFIG_MAP,
+  CONFIG_RECORD,
   CURRENT_USER,
 } from '../../app-initialize.factory';
 import { PreferencesService } from '../../preferences.service';
@@ -108,7 +108,8 @@ export class InspectorComponent implements OnChanges, OnInit {
     private readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {

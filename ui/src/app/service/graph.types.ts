@@ -16,13 +16,12 @@ export interface CollectionFieldConfigNameMapped extends CollectionFieldConfig {
   key: string;
 }
 
-export type CollectionConfigMap = {
-  [key: string]: CollectionConfigDto;
-};
+export type CollectionConfigNameRecord = Record<
+  CollectionNames,
+  CollectionConfigDto
+>;
 
-export type CollectionEdgeConfigMap = {
-  [key: string]: CollectionEdgeConfig;
-};
+export type CollectionConfigStringRecord = Record<string, CollectionEdgeConfig>;
 
 export type ChartClickTarget = ChartClickTargetVertex | ChartClickTargetEdge;
 
@@ -59,8 +58,8 @@ export interface GraphDataVertex extends GraphDataResponseVertexEntity {
 
 export interface GraphDataConfig {
   data: GraphData;
-  config: CollectionConfigMap;
-  configSrcTarMap: CollectionEdgeConfigMap;
+  config: CollectionConfigNameRecord;
+  configSrcTarMap: CollectionConfigStringRecord;
   permissions: UserPermissionDto;
 }
 

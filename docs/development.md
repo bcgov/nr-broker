@@ -57,6 +57,8 @@ The development setup assumes you are using podman to run the Redis Stack.
  $ podman run -p 6379:6379 -p 8001:8001 --name broker-redis -d redis/redis-stack
  ```
 
+The Redis UI is at the url: http://localhost:8001
+
 ### Setup MongoDB
 
 The development setup assumes you are using podman to run MongoDB.

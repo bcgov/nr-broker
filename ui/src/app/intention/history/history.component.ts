@@ -1,4 +1,4 @@
-import { Component, computed, effect, input } from '@angular/core';
+import { Component, effect, input, numberAttribute } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -91,16 +91,14 @@ export class HistoryComponent {
     { value: 'failure', viewValue: 'Failure' },
   ];
 
-  index = input('0');
-  indexNumber = computed(() => (this.index() ? Number(this.index()) : 0));
-  currentIndex = this.indexNumber();
+  index = input(0, { transform: (v) => numberAttribute(v, 0) });
+  currentIndex = this.index();
 
-  size = input('10');
-  sizeNumber = computed(() => (this.size() ? Number(this.size()) : 10));
-  currentSize = this.sizeNumber();
+  size = input(10, { transform: (v) => numberAttribute(v, 10) });
+  currentSize = this.size();
 
-  rangeStart = input();
-  rangeEnd = input();
+  rangeStart = input(0, { transform: numberAttribute });
+  rangeEnd = input(0, { transform: numberAttribute });
 
   range = new FormGroup({
     start: new FormControl<Date | null>(null),
@@ -116,8 +114,6 @@ export class HistoryComponent {
     private readonly router: Router,
     private readonly intentionApi: IntentionApiService,
   ) {
-    // console.log(`Index changed: ${typeof this.index()}`);
-
     effect(() => {
       this.currentField = this.field() ?? '';
       this.currentValue = this.value();
@@ -127,15 +123,13 @@ export class HistoryComponent {
       if (this.status()) {
         this.currentStatus = this.status();
       }
-      this.currentIndex = this.indexNumber();
-      this.currentSize = this.sizeNumber();
+      this.currentIndex = this.index();
+      this.currentSize = this.size();
+      const start = this.rangeStart();
+      const end = this.rangeEnd();
       this.range.setValue({
-        start: this.rangeStart()
-          ? new Date(Number.parseInt(this.rangeStart() as string))
-          : null,
-        end: this.rangeEnd()
-          ? new Date(Number.parseInt(this.rangeEnd() as string))
-          : null,
+        start: start ? new Date(start) : null,
+        end: end ? new Date(end) : null,
       });
       this.loadData();
     });
@@ -214,8 +208,8 @@ export class HistoryComponent {
     return this.intentionApi
       .searchIntentions(
         JSON.stringify(whereClause),
-        this.indexNumber() * this.sizeNumber(),
-        this.sizeNumber(),
+        this.index() * this.size(),
+        this.size(),
       )
       .pipe(
         catchError(() => {

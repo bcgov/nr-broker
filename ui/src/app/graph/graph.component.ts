@@ -20,7 +20,7 @@ import {
 } from 'rxjs';
 import {
   ChartClickTarget,
-  CollectionConfigMap,
+  CollectionConfigNameRecord,
   GraphData,
   GraphDataConfig,
   InspectorTarget,
@@ -30,7 +30,7 @@ import { VertexDialogComponent } from './vertex-dialog/vertex-dialog.component';
 import { EchartsComponent } from './echarts/echarts.component';
 import {
   CONFIG_ARR,
-  CONFIG_MAP,
+  CONFIG_RECORD,
   CURRENT_USER,
 } from '../app-initialize.factory';
 import { GraphDataResponseDto } from '../service/persistence/dto/graph-data.dto';
@@ -46,6 +46,7 @@ import { UserPermissionDto } from '../service/persistence/dto/user-permission.dt
 import { PermissionService } from '../service/permission.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserSelfDto } from '../service/persistence/dto/user.dto';
+import { CollectionNames } from '../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-graph',
@@ -82,7 +83,8 @@ export class GraphComponent implements OnInit, OnDestroy {
     public readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
     private readonly dialog: MatDialog,
     private readonly route: ActivatedRoute,
     private readonly graphApi: GraphApiService,
@@ -182,9 +184,9 @@ export class GraphComponent implements OnInit, OnDestroy {
               (edge) => connected.indexOf(edge.target) !== -1,
             );
           }
-          const configSrcTarMap = GraphUtilService.configArrToSrcTarMap(
+          const configSrcTarMap = GraphUtilService.configArrToSrcTarRecord(
             this.configArr,
-            this.configMap,
+            this.configRecord,
           );
           const graphData: GraphData = {
             ...data,
@@ -205,7 +207,7 @@ export class GraphComponent implements OnInit, OnDestroy {
             const targetVertex = graphData.idToVertex[edge.target];
             if (targetVertex) {
               const parentEdgeName =
-                this.configMap[targetVertex.collection]?.parent?.edgeName;
+                this.configRecord[targetVertex.collection]?.parent?.edgeName;
               if (parentEdgeName && edge.name === parentEdgeName) {
                 const sourceVertex = graphData.idToVertex[edge.source];
                 targetVertex.parentName = sourceVertex.name;
@@ -219,7 +221,7 @@ export class GraphComponent implements OnInit, OnDestroy {
           return {
             data: graphData,
             es,
-            config: this.configMap,
+            config: this.configRecord,
             configSrcTarMap,
             permissions,
           };
@@ -359,8 +361,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   onLegendChanged(event: any): void {
-    if (this.configMap) {
-      const collection = Object.values(this.configMap).find(
+    if (this.configRecord) {
+      const collection = Object.values(this.configRecord).find(
         (config) => event.name === config.name,
       );
       if (collection) {
@@ -401,18 +403,18 @@ export class GraphComponent implements OnInit, OnDestroy {
     ]);
   }
 
-  isCollectionVisible(collection: string): boolean {
-    if (!this.configMap) {
+  isCollectionVisible(collection: CollectionNames): boolean {
+    if (!this.configRecord) {
       return false;
     }
     const vertexVisibility = this.preferences.get('graphVertexVisibility');
     return vertexVisibility && vertexVisibility[collection] !== undefined
       ? vertexVisibility[collection]
-      : this.configMap[collection].show;
+      : this.configRecord[collection].show;
   }
 
-  toggleVertex(collection: string) {
-    if (!this.configMap) {
+  toggleVertex(collection: CollectionNames) {
+    if (!this.configRecord) {
       return;
     }
     this.preferences.set('graphVertexVisibility', {
@@ -424,13 +426,13 @@ export class GraphComponent implements OnInit, OnDestroy {
     colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ): boolean {
-    if (!this.configMap) {
+    if (!this.configRecord) {
       return false;
     }
     const edgeVisibility = this.preferences.get('graphEdgeSrcTarVisibility');
     const mapString = this.graphUtil.edgeToMapString({
       is: colllectionConfig.index,
-      it: this.configMap[edge.collection].index,
+      it: this.configRecord[edge.collection].index,
       name: edge.name,
     });
 
@@ -443,12 +445,12 @@ export class GraphComponent implements OnInit, OnDestroy {
     colllectionConfig: CollectionConfigDto,
     edge: CollectionEdgeConfig,
   ) {
-    if (!this.configMap) {
+    if (!this.configRecord) {
       return;
     }
     const mapString = this.graphUtil.edgeToMapString({
       is: colllectionConfig.index,
-      it: this.configMap[edge.collection].index,
+      it: this.configRecord[edge.collection].index,
       name: edge.name,
     });
     this.preferences.set('graphEdgeSrcTarVisibility', {

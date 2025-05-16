@@ -1,8 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
-import { CollectionConfigMap, CollectionEdgeConfigMap } from './graph.types';
 import { EdgeDto } from './persistence/dto/edge.dto';
+import {
+  CollectionConfigNameRecord,
+  CollectionConfigStringRecord,
+} from './graph.types';
 
 @Injectable({
   providedIn: 'root',
@@ -10,39 +14,22 @@ import { EdgeDto } from './persistence/dto/edge.dto';
 export class GraphUtilService {
   constructor(private readonly router: Router) {}
 
-  static configArrToMap(configArr: CollectionConfigDto[]): CollectionConfigMap {
-    return configArr.reduce((previousValue, currentValue) => {
-      previousValue[currentValue.collection] = currentValue;
-      return previousValue;
-    }, {} as CollectionConfigMap);
-  }
-
-  static configArrToSrcTarMap(
+  static configArrToSrcTarRecord(
     configArr: CollectionConfigDto[],
-    configMap: CollectionConfigMap,
-  ): CollectionEdgeConfigMap {
+    configRecord: CollectionConfigNameRecord,
+  ): CollectionConfigStringRecord {
     return configArr.reduce((previousValue, currentValue) => {
       for (const edge of currentValue.edges) {
         previousValue[
-          `${currentValue.index}>${configMap[edge.collection].index}:${edge.name}`
+          `${currentValue.index}>${configRecord[edge.collection].index}:${edge.name}`
         ] = edge;
       }
       return previousValue;
-    }, {} as CollectionEdgeConfigMap);
+    }, {} as CollectionConfigStringRecord);
   }
 
   edgeToMapString(e: Pick<EdgeDto, 'is' | 'it' | 'name'>) {
     return `${e.is}>${e.it}:${e.name}`;
-  }
-
-  snakecase(str: string) {
-    if (!str) {
-      return str;
-    }
-    return str.replace(
-      /[A-Z]/g,
-      (letter: string) => `-${letter.toLowerCase()}`,
-    );
   }
 
   isGraphOpen() {

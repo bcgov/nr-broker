@@ -11,8 +11,8 @@ import {
   CollectionNames,
 } from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphUpDownDto } from '../../service/persistence/dto/graph-updown.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
@@ -55,7 +55,8 @@ export class InspectorPeopleComponent implements OnChanges {
   constructor(
     private readonly graphApi: GraphApiService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnChanges() {
@@ -65,7 +66,7 @@ export class InspectorPeopleComponent implements OnChanges {
 
     if (this.configMap['user']) {
       this.edges = this.configMap['user'].edges.filter(
-        (edge) => edge.collection === 'team',
+        (edge: { collection: string }) => edge.collection === 'team',
       );
     }
 
