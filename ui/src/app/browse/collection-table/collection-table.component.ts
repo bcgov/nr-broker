@@ -278,7 +278,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
               return curr.tags && curr.tags[i] === val;
             }) &&
             prev.sortActive === curr.sortActive &&
-            prev.sortDirection === curr.sort.direction &&
+            prev.sortDirection === curr.sortDirection &&
             prev.index === curr.index &&
             prev.size === curr.size
           );
