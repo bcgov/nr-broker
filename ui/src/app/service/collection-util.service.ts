@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   CollectionDtoUnion,
@@ -6,6 +6,9 @@ import {
 } from './persistence/dto/collection-dto-union.type';
 import { VertexDto } from './persistence/dto/vertex.dto';
 import { CollectionApiService } from './collection-api.service';
+import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
+import { CONFIG_RECORD } from '../app-initialize.factory';
+import { CollectionConfigNameRecord } from './graph.types';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +17,22 @@ export class CollectionUtilService {
   constructor(
     private readonly router: Router,
     private readonly collectionApi: CollectionApiService,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
+
+  static configArrToMap(
+    configArr: CollectionConfigDto[],
+  ): CollectionConfigNameRecord {
+    return configArr.reduce((previousValue, currentValue) => {
+      previousValue[currentValue.collection] = currentValue;
+      return previousValue;
+    }, {} as CollectionConfigNameRecord);
+  }
+
+  getCollectionConfigByName(collection: CollectionNames) {
+    return this.configRecord[collection];
+  }
 
   openInBrowser(collection: CollectionNames, id: string) {
     this.router.navigate([`/browse/${collection}/${id}`]);
@@ -82,7 +100,7 @@ export class CollectionUtilService {
   narrowCollectionType<T extends keyof CollectionDtoUnion>(
     name: T,
     vertex: VertexDto,
-    collection: CollectionDtoUnion[keyof CollectionDtoUnion],
+    collection: CollectionDtoUnion[T],
   ) {
     if (vertex.collection === name && collection.vertex === vertex.id) {
       return collection as CollectionDtoUnion[T];

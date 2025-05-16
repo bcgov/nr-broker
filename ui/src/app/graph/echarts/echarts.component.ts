@@ -29,6 +29,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -151,11 +152,11 @@ export class EchartsComponent implements OnInit {
             {
               selected: Object.keys(dataConfig.config).reduce(
                 (pv, key) => {
-                  pv[dataConfig.config[key].name] =
+                  pv[dataConfig.config[key as CollectionNames].name] =
                     graphVertexVisibility &&
                     graphVertexVisibility[key] !== undefined
                       ? graphVertexVisibility[key]
-                      : dataConfig.config[key].show;
+                      : dataConfig.config[key as CollectionNames].show;
                   return pv;
                 },
                 {} as { [key: string]: boolean },

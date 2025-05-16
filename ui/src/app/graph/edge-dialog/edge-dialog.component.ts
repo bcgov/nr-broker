@@ -23,7 +23,7 @@ import {
   switchMap,
 } from 'rxjs';
 import {
-  CollectionConfigMap,
+  CollectionConfigNameRecord,
   GraphDataVertex,
 } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
@@ -32,8 +32,9 @@ import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
-import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-edge-dialog',
@@ -67,13 +68,14 @@ export class EdgeDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA)
     public readonly data: {
-      collection: string;
+      collection: CollectionNames;
       source: VertexDto;
       edge?: EdgeDto;
     },
     public readonly dialogRef: MatDialogRef<EdgeDialogComponent>,
     private readonly graphApi: GraphApiService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {

@@ -17,14 +17,15 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
-import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-vertex-dialog',
@@ -64,15 +65,16 @@ export class VertexDialogComponent implements OnInit {
     private readonly graphApi: GraphApiService,
     private readonly graphUtil: GraphUtilService,
     private readonly changeDetectorRef: ChangeDetectorRef,
-    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    private readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit() {
-    this.configs = Object.values(this.configMap)
+    this.configs = Object.values(this.configRecord)
       .filter((config) => config.permissions.create)
       .sort((a, b) => a.name.localeCompare(b.name));
     if (this.data.collection) {
-      const config = this.configMap[this.data.collection];
+      const config = this.configRecord[this.data.collection as CollectionNames];
       if (config) {
         this.collectionControl.setValue(config);
       }

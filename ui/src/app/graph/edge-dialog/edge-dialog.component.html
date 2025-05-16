@@ -17,8 +17,8 @@
             name="edgeConfig"
             (selectionChange)="configChanged()">
             <mat-option value="" selected></mat-option>
-            @for (edgeConfig of configMap[data.collection].edges; track edgeConfig) {
-              <mat-option [value]="edgeConfig">{{configMap[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
+            @for (edgeConfig of configRecord[data.collection].edges; track edgeConfig) {
+              <mat-option [value]="edgeConfig">{{configRecord[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
             }
           </mat-select>
         </mat-form-field>

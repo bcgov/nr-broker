@@ -5,54 +5,54 @@ import {
   CollectionCombo,
   CollectionSearchResult,
 } from './collection/dto/collection-search-result.dto';
-import { CollectionDtoUnion } from './persistence/dto/collection-dto-union.type';
-import { GraphUtilService } from './graph-util.service';
+import {
+  CollectionDtoUnion,
+  CollectionNames,
+} from './persistence/dto/collection-dto-union.type';
 import { ServiceInstanceDetailsResponseDto } from './persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from './persistence/dto/service.dto';
+import { StringUtilService } from '../util/string-util.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CollectionApiService {
   constructor(
-    private readonly util: GraphUtilService,
     private readonly http: HttpClient,
+    private readonly stringUtil: StringUtilService,
   ) {}
 
-  public getCollectionTags<T extends keyof CollectionDtoUnion>(name: T) {
+  public getCollectionTags(name: CollectionNames) {
     return this.http.get<string[]>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/tags`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/tags`,
       {
         responseType: 'json',
       },
     );
   }
 
-  public getCollectionById<T extends keyof CollectionDtoUnion>(
-    name: T,
-    id: string,
-  ) {
+  public getCollectionById<T extends CollectionNames>(name: T, id: string) {
     return this.http.get<CollectionDtoUnion[T]>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}`,
       {
         responseType: 'json',
       },
     );
   }
 
-  public getCollectionComboById<T extends keyof CollectionDtoUnion>(
+  public getCollectionComboById<T extends CollectionNames>(
     name: T,
     id: string,
   ) {
     return this.http.get<CollectionCombo<CollectionDtoUnion[T]>>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/${id}/combo`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/combo`,
       {
         responseType: 'json',
       },
     );
   }
 
-  public searchCollection<T extends keyof CollectionDtoUnion>(
+  public searchCollection<T extends CollectionNames>(
     name: T,
     options: {
       q?: string;
@@ -68,7 +68,7 @@ export class CollectionApiService {
     },
   ) {
     return this.http.post<CollectionSearchResult<CollectionDtoUnion[T]>>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
         name,
       )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
         options.tags
@@ -97,9 +97,9 @@ export class CollectionApiService {
     );
   }
 
-  public exportCollection<T extends keyof CollectionDtoUnion>(name: T) {
+  public exportCollection<T extends CollectionNames>(name: T) {
     return this.http.post<CollectionDtoUnion[T][]>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(name)}/export`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/export`,
       {
         responseType: 'json',
       },
@@ -139,7 +139,7 @@ export class CollectionApiService {
     value: string,
   ) {
     return this.http.post<string[]>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
         name,
       )}/unique/${key}/${value}`,
       {
@@ -154,7 +154,7 @@ export class CollectionApiService {
     tags: string[],
   ) {
     return this.http.put<string[]>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
         name,
       )}/${id}/tags`,
       tags,

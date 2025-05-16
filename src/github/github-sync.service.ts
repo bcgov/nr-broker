@@ -196,7 +196,7 @@ export class GithubSyncService {
     job.stop(); // pausing the cron job
     try {
       const id = await this.redisService.dequeue(queueName);
-      if (id) {
+      if (typeof id == 'string') {
         await func(id);
       }
     } catch (error) {
