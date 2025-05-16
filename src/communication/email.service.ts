@@ -6,8 +6,9 @@ import {
   NOTIFICATION_EMAIL_PORT,
 } from '../constants';
 import { join } from 'path';
-import hbs from 'nodemailer-express-handlebars';
 import nodemailer from 'nodemailer';
+import ejs from 'ejs';
+import { promises as fs } from 'fs';
 
 @Injectable()
 export class EmailService {
@@ -19,19 +20,6 @@ export class EmailService {
       port: NOTIFICATION_EMAIL_PORT,
       secure: NOTIFICATION_EMAIL_SECURE === 'true', // Use TLS if true
     });
-    this.transporter.use(
-      'compile',
-      hbs({
-        viewEngine: {
-          extname: '.hbs',
-          partialsDir: join(__dirname, 'templates'),
-          defaultLayout: false,
-          layoutsDir: 'communication/templates',
-        },
-        viewPath: join(__dirname, 'templates'),
-        extName: '.hbs',
-      }),
-    );
   }
 
   async sendAlertEmail(
@@ -44,15 +32,21 @@ export class EmailService {
       daysUntilExpiration: number;
     },
   ): Promise<void> {
-    const mailOptions = {
-      from: NOTIFICATION_EMAIL_FROM,
-      to,
-      subject,
-      template: 'token-expiration-alert',
-      context,
-    };
-
+    const templatePath = join(
+      __dirname,
+      'templates',
+      'token-expiration-alert.ejs',
+    );
     try {
+      const template = await fs.readFile(templatePath, 'utf-8');
+      const html = ejs.render(template, context);
+
+      const mailOptions = {
+        from: NOTIFICATION_EMAIL_FROM,
+        to,
+        subject,
+        html,
+      };
       await this.transporter.sendMail(mailOptions);
       //console.info('Message sent: %s', info.messageId);
     } catch (error) {
