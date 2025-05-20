@@ -28,7 +28,7 @@ import {
   Connection,
   VertexNavigation,
   GraphDataVertex,
-  CollectionConfigMap,
+  CollectionConfigNameRecord,
   InspectorTarget,
   InspectorTargetEdge,
   InspectorTargetVertex,
@@ -37,7 +37,7 @@ import { GraphApiService } from '../../service/graph-api.service';
 import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import {
   CONFIG_ARR,
-  CONFIG_MAP,
+  CONFIG_RECORD,
   CURRENT_USER,
 } from '../../app-initialize.factory';
 import { PreferencesService } from '../../preferences.service';
@@ -84,6 +84,9 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() target!: InspectorTarget | undefined;
   targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
 
@@ -108,7 +111,8 @@ export class InspectorComponent implements OnChanges, OnInit {
     private readonly graphUtil: GraphUtilService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {

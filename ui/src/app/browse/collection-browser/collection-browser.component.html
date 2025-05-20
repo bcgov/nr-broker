@@ -1,0 +1,48 @@
+<div class="collection-flex-container">
+  <h1>Browse</h1>
+
+  <form>
+    <mat-form-field>
+      <mat-label>Collection</mat-label>
+      <mat-select
+        [(ngModel)]="currentCollection"
+        (selectionChange)="onCollectionChange()"
+        name="collection">
+        @for (opt of collectionFilterOptions; track opt) {
+          <mat-option
+            [value]="opt.value"
+            [matTooltip]="opt.tooltip"
+            matTooltipShowDelay="500"
+            matTooltipPosition="right">
+            {{opt.viewValue}}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <span class="spacer"></span>
+
+  <button
+    mat-stroked-button
+    aria-label="Add Vertex"
+    (click)="addVertex()"
+    [disabled]="!((currentCollection == 'team' || permission.hasAdmin()) && !disableAdd)">
+    <mat-icon>add</mat-icon>
+    Add
+  </button>
+</div>
+
+@if (collection()) {
+  <app-collection-table
+    [collection]="collection()"
+    [text]="text()"
+    [showFilter]="showFilter()"
+    [tags]="tags()"
+    [index]="index()"
+    [size]="size()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    (settingsUpdated)="updateRoute($event)"
+    ></app-collection-table>
+}

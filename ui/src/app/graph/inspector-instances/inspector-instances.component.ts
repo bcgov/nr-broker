@@ -2,10 +2,10 @@ import {
   Component,
   EventEmitter,
   Inject,
-  Input,
   OnChanges,
   Output,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -58,10 +58,10 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './inspector-instances.component.scss',
 })
 export class InspectorInstancesComponent implements OnChanges {
-  @Input() vertex!: VertexDto;
-  @Input() vertices!: GraphDirectedCombo[];
-  @Input() service!: ServiceDto;
-  @Input() details!: any;
+  readonly vertex = input.required<VertexDto>();
+  readonly vertices = input.required<GraphDirectedCombo[]>();
+  readonly service = input.required<ServiceDto>();
+  readonly details = input.required<any>();
   data: any;
   tableData: any[] = [];
   environments: any[] = [];
@@ -96,8 +96,9 @@ export class InspectorInstancesComponent implements OnChanges {
   }
 
   private loadServiceDetails() {
-    if (this.details) {
-      const data = this.details;
+    const details = this.details();
+    if (details) {
+      const data = details;
       this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
         const env = cv.environment.name;
         if (pv[env]) {
@@ -125,14 +126,15 @@ export class InspectorInstancesComponent implements OnChanges {
   }
 
   openInstanceDialog() {
-    if (!this.vertices) {
+    const vertices = this.vertices();
+    if (!vertices) {
       return;
     }
     this.dialog
       .open(InspectorInstanceDialogComponent, {
         width: '500px',
         data: {
-          vertices: this.vertices,
+          vertices: vertices,
         },
       })
       .afterClosed()
@@ -156,7 +158,7 @@ export class InspectorInstancesComponent implements OnChanges {
             await lastValueFrom(
               this.graphApi.addEdge({
                 name: 'instance',
-                source: this.vertex.id as string,
+                source: this.vertex().id as string,
                 target: vertex.id,
               }),
             );

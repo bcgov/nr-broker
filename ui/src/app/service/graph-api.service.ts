@@ -1,37 +1,29 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, filter, from, map } from 'rxjs';
+import { Observable, filter, map } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
 
-import { CONFIG_ARR } from '../app-initialize.factory';
-import {
-  CollectionDtoUnion,
-  CollectionNames,
-} from './persistence/dto/collection-dto-union.type';
+import { CollectionDtoUnion } from './persistence/dto/collection-dto-union.type';
 import { environment } from '../../environments/environment';
 import { GraphDataResponseDto } from './persistence/dto/graph-data.dto';
-import {
-  CollectionConfigInstanceDto,
-  CollectionConfigDto,
-} from './persistence/dto/collection-config.dto';
+import { CollectionConfigInstanceDto } from './persistence/dto/collection-config.dto';
 import { EdgeInsertDto, EdgeDto } from './persistence/dto/edge.dto';
 import { VertexInsertDto, VertexDto } from './persistence/dto/vertex.dto';
-import { GraphUtilService } from './graph-util.service';
 import { GraphTypeaheadResult } from './graph/dto/graph-typeahead-result.dto';
 import { GraphEventDto } from './persistence/dto/graph-event.dto';
 import { UserPermissionDto } from './persistence/dto/user-permission.dto';
 import { GraphUpDownDto } from './persistence/dto/graph-updown.dto';
 import { VertexPointerDto } from './persistence/dto/vertex-pointer.dto';
+import { StringUtilService } from '../util/string-util.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GraphApiService {
   constructor(
-    private readonly util: GraphUtilService,
+    private readonly stringUtil: StringUtilService,
     private readonly http: HttpClient,
-    private sseClient: SseClient,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
+    private readonly sseClient: SseClient,
   ) {}
 
   createEventSource(): Observable<GraphEventDto> {
@@ -85,24 +77,12 @@ export class GraphApiService {
     );
   }
 
-  getConfig() {
-    return from([this.configArr]);
-  }
-
-  getCollectionConfig(collection: CollectionNames) {
-    const config = this.configArr.find(
-      (config) => config.collection === collection,
-    );
-
-    return config ? from([config]) : from([]);
-  }
-
   getCollectionData<T extends keyof CollectionDtoUnion>(
     collection: T,
     vertexId: string,
   ) {
     return this.http.get<T>(
-      `${environment.apiUrl}/v1/collection/${this.util.snakecase(
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
         collection,
       )}?vertex=${encodeURIComponent(vertexId)}`,
       {

@@ -2,8 +2,8 @@ import { Component, Inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
 
 @Component({
@@ -18,12 +18,13 @@ export class GithubRoleMappingDialogComponent {
   dataSource: GitHubEdgeToRoles[] = [];
 
   constructor(
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit() {
-    if (this.configMap['user'].edgeToRoles) {
-      this.dataSource = this.configMap['user'].edgeToRoles;
+    if (this.configRecord['user'].edgeToRoles) {
+      this.dataSource = this.configRecord['user'].edgeToRoles;
     }
   }
 }

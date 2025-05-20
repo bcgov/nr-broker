@@ -59,7 +59,7 @@
         <button
           mat-stroked-button
           (click)="approvePackageBuild($event, element)"
-          [disabled]="!isApprover || disableApprove[element.id]">Approve</button>
+          [disabled]="!isApprover() || disableApprove[element.id]">Approve</button>
       }
     </td>
   </ng-container>

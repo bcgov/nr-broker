@@ -10,5 +10,8 @@ import { MatListModule } from '@angular/material/list';
   styleUrl: './inspector-timestamps.component.scss',
 })
 export class InspectorTimestampsComponent {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() timestamps?: TimestampDto;
 }

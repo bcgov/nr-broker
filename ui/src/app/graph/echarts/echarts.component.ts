@@ -1,11 +1,11 @@
 import {
   Component,
   ElementRef,
-  Input,
   Output,
   OnInit,
   EventEmitter,
   Inject,
+  input,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsCoreOption } from 'echarts/core';
@@ -29,6 +29,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -40,7 +41,7 @@ echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
   providers: [provideEchartsCore({ echarts })],
 })
 export class EchartsComponent implements OnInit {
-  @Input() dataConfig!: Observable<GraphDataConfig>;
+  readonly dataConfig = input.required<Observable<GraphDataConfig>>();
   @Output() selected = new EventEmitter<ChartClickTarget>();
   @Output() legendChanged = new EventEmitter<{
     name: string;
@@ -136,7 +137,7 @@ export class EchartsComponent implements OnInit {
     } as EChartsCoreOption;
     this.updateOptions = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
-      switchMap(() => this.dataConfig),
+      switchMap(() => this.dataConfig()),
       map((dataConfig) => {
         const graph = dataConfig.data;
         this.loading = false;
@@ -151,11 +152,11 @@ export class EchartsComponent implements OnInit {
             {
               selected: Object.keys(dataConfig.config).reduce(
                 (pv, key) => {
-                  pv[dataConfig.config[key].name] =
+                  pv[dataConfig.config[key as CollectionNames].name] =
                     graphVertexVisibility &&
                     graphVertexVisibility[key] !== undefined
                       ? graphVertexVisibility[key]
-                      : dataConfig.config[key].show;
+                      : dataConfig.config[key as CollectionNames].show;
                   return pv;
                 },
                 {} as { [key: string]: boolean },

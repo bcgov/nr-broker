@@ -3,12 +3,12 @@
     <div class="fields-wrapper">
       <h3 class="vertex-heading">Inbound</h3>
     </div>
-    @if (config.edges.length > 0) {
+    @if (config().edges.length > 0) {
       <div class="fields-wrapper" >
         <button
           mat-button
           (click)="openDeleteEdgeDialog(inboundConnections)"
-          [disabled]="!hasAdmin ||
+          [disabled]="!hasAdmin() ||
         (inboundConnections | keyvalue)?.length == 0">Delete</button>
       </div>
     }
@@ -16,16 +16,16 @@
   @if ((inboundConnections | keyvalue)?.length == 0) {
     <p class="vertex-edge-type-container">None</p>
   }
-  @for (group of $any(inboundConnections | keyvalue); track group.key) {
+  @for (group of (inboundConnections | keyvalue); track group.key) {
     <div class="vertex-edge-type-container">
       <h5>{{group.key | titlecase}}</h5>
       <mat-chip-listbox [selectable]="false">
         @for (item of group.value; track item.vertex.id) {
           <mat-chip-option
-            [ngStyle]="{'background-color': '#' + configMap[item.vertex.collection].color}"
+            [ngStyle]="{'background-color': '#' + configRecord[item.vertex.collection].color}"
             (click)="navigateConnection($event, item)">
-            <span [ngStyle]="{color: this.getVisibleTextColor(configMap[item.vertex.collection].color)}">@if (item.vertex.parentName) {
-            {{ item.vertex.parentName}} &gt;
+            <span [ngStyle]="{color: this.getVisibleTextColor(configRecord[item.vertex.collection].color)}">@if ($any(item.vertex).parentName) {
+            {{ $any(item.vertex).parentName}} &gt;
           }{{item.vertex.name}}</span></mat-chip-option>
         }
       </mat-chip-listbox>
@@ -36,16 +36,16 @@
     <div class="fields-wrapper">
       <h3 class="vertex-heading">Outbound</h3>
     </div>
-    @if (config.edges.length > 0) {
+    @if (config().edges.length > 0) {
       <div class="fields-wrapper" >
         <button
           mat-button
           (click)="addEdgeToVertex()"
-          [disabled]="!hasAdmin">Add</button>
+          [disabled]="!hasAdmin()">Add</button>
         <button
           mat-button
           (click)="openDeleteEdgeDialog(outboundConnections)"
-          [disabled]="!hasAdmin ||
+          [disabled]="!hasAdmin() ||
         (outboundConnections | keyvalue)?.length == 0">Delete</button>
       </div>
     }
@@ -53,15 +53,15 @@
   @if ((outboundConnections | keyvalue)?.length == 0) {
     <p class="vertex-edge-type-container">None</p>
   }
-  @for (group of $any(outboundConnections | keyvalue); track group.key) {
+  @for (group of (outboundConnections | keyvalue); track group.key) {
     <div class="vertex-edge-type-container">
       <h5>{{group.key | titlecase}}</h5>
       <mat-chip-listbox [selectable]="false">
         @for (item of group.value; track item.vertex.id) {
           <mat-chip-option
-            [ngStyle]="{'background-color': '#' + configMap[item.vertex.collection].color}"
-            (click)="navigateConnection($event, item)">@if (item.vertex.parentName) {
-            {{ item.vertex.parentName}} &gt;
+            [ngStyle]="{'background-color': '#' + configRecord[item.vertex.collection].color}"
+            (click)="navigateConnection($event, item)">@if ($any(item.vertex).parentName) {
+            {{ $any(item.vertex).parentName}} &gt;
           } {{item.vertex.name}}</mat-chip-option>
         }
       </mat-chip-listbox>

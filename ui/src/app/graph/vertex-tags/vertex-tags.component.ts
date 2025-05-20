@@ -1,11 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Input, OnChanges, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  Input,
+  OnChanges,
+  OnInit,
+  input,
+} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
 import { VertexPointerDto } from '../../service/persistence/dto/vertex-pointer.dto';
-import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-vertex-tags',
@@ -14,8 +22,10 @@ import { CollectionConfigMap } from '../../service/graph.types';
   styleUrl: './vertex-tags.component.scss',
 })
 export class VertexTagsComponent implements OnInit, OnChanges {
-  @Input()
-  collection!: string;
+  readonly collection = input.required<CollectionNames>();
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input()
   collectionData!: VertexPointerDto;
 
@@ -23,11 +33,12 @@ export class VertexTagsComponent implements OnInit, OnChanges {
 
   constructor(
     private readonly router: Router,
-    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    private readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {
-    this.config = this.configMap[this.collection];
+    this.config = this.configRecord[this.collection()];
   }
 
   ngOnChanges(): void {
@@ -35,6 +46,6 @@ export class VertexTagsComponent implements OnInit, OnChanges {
   }
 
   browseTag(tag: string) {
-    this.router.navigate([`/browse/${this.collection}`, { tags: [tag] }]);
+    this.router.navigate([`/browse/${this.collection()}`, { tags: [tag] }]);
   }
 }

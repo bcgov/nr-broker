@@ -1,8 +1,8 @@
 <div class="container">
-  @if (showHeader) {
+  @if (showHeader()) {
     <h3 class="property-heading">Properties</h3>
   }
-  <table mat-table [dataSource]="prop | keyvalue">
+  <table mat-table [dataSource]="prop() | keyvalue">
     <!-- Key Column -->
     <ng-container matColumnDef="key">
       <th mat-header-cell *matHeaderCellDef> Key </th>

@@ -1,4 +1,10 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  input,
+} from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,28 +28,36 @@ import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspect
   styleUrl: './inspector-vertex-fields.component.scss',
 })
 export class InspectorVertexFieldsComponent implements OnChanges {
-  @Input() collection!: CollectionNames;
+  readonly collection = input.required<CollectionNames>();
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() collectionConfig!: CollectionConfigDto;
-  @Input() collectionData: CollectionDtoUnion[keyof CollectionDtoUnion] | null =
-    null;
-  @Input() filter!: 'yes' | 'no';
+  readonly collectionData = input<
+    CollectionDtoUnion[keyof CollectionDtoUnion] | null
+  >(null);
+  readonly filter = input.required<'yes' | 'no'>();
 
   filteredCollectionData: any = null;
   public filteredCollectionCount = 0;
   propDisplayedColumns: string[] = ['key', 'value'];
 
   ngOnChanges(changes: SimpleChanges) {
+    const collectionData = this.collectionData();
     if (
       (changes['collectionConfig'] || changes['collectionData']) &&
       this.collectionConfig &&
-      this.collectionData
+      collectionData
     ) {
       const filteredCollectionData: any = {
-        ...this.collectionData,
+        ...collectionData,
       };
 
       for (const [key, value] of Object.entries(this.collectionConfig.fields)) {
-        if (this.filter === 'no' && filteredCollectionData[key] === undefined) {
+        if (
+          this.filter() === 'no' &&
+          filteredCollectionData[key] === undefined
+        ) {
           filteredCollectionData[key] = '';
         }
         if (value.type === 'embeddedDoc' || value.type === 'embeddedDocArray') {

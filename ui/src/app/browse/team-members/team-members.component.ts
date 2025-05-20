@@ -1,10 +1,10 @@
 import {
   Component,
   Inject,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
@@ -13,8 +13,8 @@ import { MatListModule } from '@angular/material/list';
 import { Subject, switchMap } from 'rxjs';
 
 import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
@@ -26,8 +26,8 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrl: './team-members.component.scss',
 })
 export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedCombo[];
+  readonly collectionData = input<any>();
+  readonly upstream = input.required<GraphDirectedCombo[]>();
   edges: CollectionEdgeConfig[] | undefined;
 
   private triggerRefresh = new Subject<void>();
@@ -38,7 +38,8 @@ export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     private readonly collectionApi: CollectionApiService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit() {
@@ -47,7 +48,7 @@ export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
         switchMap(() => {
           this.loading = true;
           return this.collectionApi.searchCollection('team', {
-            id: this.collectionData.id,
+            id: this.collectionData().id,
             offset: 0,
             limit: 1,
           });
@@ -102,8 +103,8 @@ export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private updateUserData() {
-    if (this.configMap['user']) {
-      this.edges = this.configMap['user'].edges.filter(
+    if (this.configRecord['user']) {
+      this.edges = this.configRecord['user'].edges.filter(
         (edge) => edge.collection === 'team',
       );
       this.triggerRefresh.next();

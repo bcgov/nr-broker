@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,19 +7,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
-    selector: 'app-property-editor',
-    imports: [
-        MatButtonModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        ReactiveFormsModule,
-    ],
-    templateUrl: './property-editor.component.html',
-    styleUrls: ['./property-editor.component.scss']
+  selector: 'app-property-editor',
+  imports: [
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './property-editor.component.html',
+  styleUrls: ['./property-editor.component.scss'],
 })
 export class PropertyEditorComponent implements OnInit {
-  @Input() graphProperties: any;
+  readonly graphProperties = input<any>();
 
   properties: {
     key: FormControl<string | null>;
@@ -27,9 +27,10 @@ export class PropertyEditorComponent implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
-    if (this.graphProperties) {
-      for (const key of Object.keys(this.graphProperties)) {
-        this.addProperty(key, this.graphProperties[key]);
+    const graphProperties = this.graphProperties();
+    if (graphProperties) {
+      for (const key of Object.keys(graphProperties)) {
+        this.addProperty(key, graphProperties[key]);
       }
     }
   }

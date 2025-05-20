@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -28,8 +28,11 @@ import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/grap
   styleUrl: './service-instance-details.component.scss',
 })
 export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() instance!: any | undefined;
-  @Input() showName!: boolean;
+  readonly showName = input.required<boolean>();
   serverSelection: any | undefined;
 
   current: IntentionActionPointerDto | undefined;

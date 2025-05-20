@@ -1,38 +1,38 @@
 <span class="ellipsis">
-  @switch (config?.type) {
+  @switch (config()?.type) {
       @case ('boolean') {
-        @if (value) {
+        @if (value()) {
           Yes
         } @else {
           No
         }
       }
       @case ('date') {
-        {{value | date:'shortDate':'UTC'}}
+        {{value() | date:'shortDate':'UTC'}}
       }
       @case ('email') {
-        {{value}}
+        {{value()}}
       }
       @case ('json') {
-        {{value}}
+        {{value()}}
       }
       @case ('number') {
-        {{value}}
+        {{value()}}
       }
       @case ('select') {
-        {{ selectValueToLabel(value) }}
+        {{ selectValueToLabel(value()) }}
       }
       @case ('string') {
-        {{value}}
+        {{value()}}
       }
       @case ('stringArray') {
-        {{value.join(', ')}}
+        {{value().join(', ')}}
       }
       @case ('url') {
-        <a href="{{value}}" target="_blank">{{value}}</a>
+        <a href="{{value()}}" target="_blank">{{value()}}</a>
       }
       @case ('embeddedDoc') {
-        @if (value) {
+        @if (value()) {
           Yes
         } @else {
           No

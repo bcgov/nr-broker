@@ -41,7 +41,7 @@
         (click)="resetGraphVisibility()"><mat-icon>undo</mat-icon>Reset</button>
     </mat-menu>
     <mat-menu #vertex="matMenu">
-      @for (item of configMap | keyvalue; track item.value.id) {
+      @for (item of configRecord | keyvalue; track item.value.id) {
         <button
           mat-menu-item
           (click)="toggleVertex(item.value.collection)">@if (isCollectionVisible(item.value.collection)) {
@@ -53,8 +53,8 @@
       </mat-menu>
 
       <mat-menu #edge="matMenu">
-        @if (configMap) {
-          @for (item of configMap | keyvalue; track item.value.id) {
+        @if (configRecord) {
+          @for (item of configRecord | keyvalue; track item.value.id) {
             @if (item.value.edges && item.value.edges.length > 0) {
               <button
                 mat-menu-item
@@ -68,7 +68,7 @@
                   <mat-icon>check_box</mat-icon>
                 } @else {
                   <mat-icon>check_box_outline_blank</mat-icon>
-                  }<span>{{configMap[edge.collection].name}} - {{edge.name}}</span></button>
+                  }<span>{{configRecord[edge.collection].name}} - {{edge.name}}</span></button>
                 }
               </mat-menu>
             }

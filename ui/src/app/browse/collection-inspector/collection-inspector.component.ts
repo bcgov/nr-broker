@@ -30,8 +30,8 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PermissionService } from '../../service/permission.service';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
@@ -156,7 +156,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly permission: PermissionService,
     public readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_MAP) private readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    private readonly configRecord: CollectionConfigNameRecord,
   ) {
     inject(BreakpointObserver)
       .observe([
@@ -238,11 +239,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         }),
       ),
     ]).subscribe(([permissions, comboData]) => {
-      if (!this.configMap[this.collection]) {
+      if (!this.configRecord[this.collection]) {
         return;
       }
 
-      this.config = this.configMap[this.collection];
+      this.config = this.configRecord[this.collection];
       this.comboData = comboData;
       this.hasAdmin = this.permission.hasAdmin();
       this.hasSudo = this.permission.hasSudo(

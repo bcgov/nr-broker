@@ -1,9 +1,9 @@
 import {
   Component,
   Inject,
-  Input,
   OnChanges,
   SimpleChanges,
+  input,
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -19,20 +19,20 @@ import { MatChipsModule } from '@angular/material/chips';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
-    selector: 'app-inspector-service-secure',
-    imports: [
-        ClipboardModule,
-        FormsModule,
-        MatChipsModule,
-        MatIconModule,
-        MatTooltipModule,
-    ],
-    templateUrl: './inspector-service-secure.component.html',
-    styleUrl: './inspector-service-secure.component.scss'
+  selector: 'app-inspector-service-secure',
+  imports: [
+    ClipboardModule,
+    FormsModule,
+    MatChipsModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
+  templateUrl: './inspector-service-secure.component.html',
+  styleUrl: './inspector-service-secure.component.scss',
 })
 export class InspectorServiceSecureComponent implements OnChanges {
-  @Input() service!: ServiceDto;
-  @Input() userIndex!: number | undefined;
+  readonly service = input.required<ServiceDto>();
+  readonly userIndex = input<number | undefined>();
   data: any;
   reveal = false;
 
@@ -59,8 +59,9 @@ export class InspectorServiceSecureComponent implements OnChanges {
   }
 
   private loadServiceSecure() {
-    if (this.service) {
-      this.collectionApi.getServiceSecure(this.service.id).subscribe((data) => {
+    const service = this.service();
+    if (service) {
+      this.collectionApi.getServiceSecure(service.id).subscribe((data) => {
         this.data = data;
       });
     }

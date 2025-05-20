@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, OnChanges, OnInit, input } from '@angular/core';
 import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -10,8 +10,8 @@ import { MatTableModule } from '@angular/material/table';
   styleUrl: './team-summary.component.scss',
 })
 export class TeamSummaryComponent implements OnInit, OnChanges {
-  @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedCombo[];
+  readonly collectionData = input<any>();
+  readonly upstream = input.required<GraphDirectedCombo[]>();
   propDisplayedColumns: string[] = ['key', 'value'];
 
   public userData: { [key: string]: number } = {};
@@ -41,7 +41,7 @@ export class TeamSummaryComponent implements OnInit, OnChanges {
   }
 
   private countComboEdges(names: string[]) {
-    return this.upstream.filter(
+    return this.upstream().filter(
       (combo) => names.indexOf(combo.edge.name) !== -1,
     ).length;
   }

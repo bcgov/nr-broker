@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, input } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -29,14 +29,17 @@ import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
   ],
 })
 export class VertexFormFieldComponent {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() field!: CollectionFieldConfigNameMapped;
-  @Input() form!: FormGroup;
+  readonly form = input.required<FormGroup>();
   @Output() onSubmit = new EventEmitter();
 
   get isValid() {
-    return this.form.controls[this.field.name].valid;
+    return this.form().controls[this.field.name].valid;
   }
   get isDirty() {
-    return this.form.controls[this.field.name].dirty;
+    return this.form().controls[this.field.name].dirty;
   }
 }

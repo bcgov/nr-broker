@@ -1,4 +1,4 @@
-import { Component, Inject, Input, OnChanges } from '@angular/core';
+import { Component, Inject, OnChanges, input } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,8 +11,8 @@ import {
   CollectionNames,
 } from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CONFIG_MAP } from '../../app-initialize.factory';
-import { CollectionConfigMap } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphUpDownDto } from '../../service/persistence/dto/graph-updown.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
@@ -40,36 +40,37 @@ interface UserData {
   styleUrl: './inspector-people.component.scss',
 })
 export class InspectorPeopleComponent implements OnChanges {
-  @Input() collection!: CollectionNames;
-  @Input() vertex!: string;
-  @Input() showLinked: boolean = false;
+  readonly collection = input.required<CollectionNames>();
+  readonly vertex = input.required<string>();
+  readonly showLinked = input<boolean>(false);
 
   edges: CollectionEdgeConfig[] | undefined;
   collectionPeople: GraphUpDownDto<any>[] | null = null;
   users: UserData[] | null = null;
 
-  propPeopleDisplayedColumns: string[] = this.showLinked
+  propPeopleDisplayedColumns: string[] = this.showLinked()
     ? ['name', 'role', 'linked']
     : ['name', 'role'];
 
   constructor(
     private readonly graphApi: GraphApiService,
     private readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnChanges() {
-    this.propPeopleDisplayedColumns = this.showLinked
+    this.propPeopleDisplayedColumns = this.showLinked()
       ? ['name', 'role', 'linked']
       : ['name', 'role'];
 
     if (this.configMap['user']) {
       this.edges = this.configMap['user'].edges.filter(
-        (edge) => edge.collection === 'team',
+        (edge: { collection: string }) => edge.collection === 'team',
       );
     }
 
-    this.getUpstreamUsers(this.vertex).subscribe((data) => {
+    this.getUpstreamUsers(this.vertex()).subscribe((data) => {
       const userMap: Map<string, UserData> = new Map();
 
       for (const upstream of data) {
@@ -129,14 +130,15 @@ export class InspectorPeopleComponent implements OnChanges {
       ],
       brokerAccount: ['lead-developer', 'full-access'],
     };
-    if (!Object.keys(mapCollectionToEdgeName).includes(this.collection)) {
+    const collection = this.collection();
+    if (!Object.keys(mapCollectionToEdgeName).includes(collection)) {
       return of([]);
     }
 
     return this.graphApi.getUpstream<UserDto>(
       vertexId,
       this.configMap['user'].index,
-      mapCollectionToEdgeName[this.collection],
+      mapCollectionToEdgeName[collection],
     );
   }
 

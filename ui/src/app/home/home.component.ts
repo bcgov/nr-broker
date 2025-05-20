@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,6 +6,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+
 import { SystemApiService } from '../service/system-api.service';
 import { ConnectionConfigDto } from '../service/persistence/dto/connection-config.dto';
 import { PreferencesService } from '../preferences.service';

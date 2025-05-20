@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,7 +26,7 @@ import { TeamServiceRequestComponent } from '../../team/team-service-request/tea
   styleUrl: './team-services.component.scss',
 })
 export class TeamServicesComponent {
-  @Input() teamVertex!: string;
+  readonly teamVertex = input.required<string>();
 
   propDisplayedColumns: string[] = ['key', 'value'];
 
@@ -38,7 +38,7 @@ export class TeamServicesComponent {
 
   ngOnInit() {
     this.graphApi
-      .getEdgeConfigByVertex(this.teamVertex, 'service', 'uses')
+      .getEdgeConfigByVertex(this.teamVertex(), 'service', 'uses')
       .subscribe((search) => {
         this.activeServices = search.filter((cci) => cci.instance);
         this.requestServices = search.filter((cci) => !cci.instance);

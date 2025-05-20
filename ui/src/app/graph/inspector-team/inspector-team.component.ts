@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,29 +6,31 @@ import { MatIconModule } from '@angular/material/icon';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
 
 @Component({
-    selector: 'app-inspector-team',
-    imports: [MatButtonModule, MatIconModule],
-    templateUrl: './inspector-team.component.html',
-    styleUrls: ['./inspector-team.component.scss']
+  selector: 'app-inspector-team',
+  imports: [MatButtonModule, MatIconModule],
+  templateUrl: './inspector-team.component.html',
+  styleUrls: ['./inspector-team.component.scss'],
 })
 export class InspectorTeamComponent {
-  @Input() vertex!: any | undefined;
-  @Input() name!: any | undefined;
-  @Input() screenSize!: string;
+  readonly vertex = input.required<any | undefined>();
+  readonly name = input.required<any | undefined>();
+  readonly screenSize = input.required<string>();
   @Output() graphChanged = new EventEmitter<boolean>();
 
   constructor(private readonly dialog: MatDialog) {}
 
   openMemberDialog() {
-    if (!this.vertex && !this.name) {
+    const vertex = this.vertex();
+    const name = this.name();
+    if (!vertex && !name) {
       return;
     }
     this.dialog
       .open(MemberDialogComponent, {
         width: '600px',
         data: {
-          vertex: this.vertex,
-          name: this.name,
+          vertex: vertex,
+          name: name,
         },
       })
       .afterClosed()

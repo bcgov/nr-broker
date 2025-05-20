@@ -2,10 +2,10 @@ import {
   Component,
   EventEmitter,
   Inject,
-  Input,
   OnChanges,
   OnInit,
   Output,
+  input,
 } from '@angular/core';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -23,8 +23,8 @@ import {
   GraphDirectedComboMap,
 } from '../../service/persistence/dto/collection-combo.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
-import { CollectionConfigMap } from '../../service/graph.types';
-import { CONFIG_MAP } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
 
 @Component({
@@ -40,13 +40,13 @@ import { ColorUtilService } from '../../util/color-util.service';
   styleUrl: './inspector-connections.component.scss',
 })
 export class InspectorConnectionsComponent implements OnInit, OnChanges {
-  @Input() collection!: CollectionNames;
-  @Input() config!: CollectionConfigDto;
-  @Input() vertex!: string;
-  @Input() source!: VertexDto;
-  @Input() upstream!: GraphDirectedCombo[];
-  @Input() downstream!: GraphDirectedCombo[];
-  @Input() hasAdmin!: boolean;
+  readonly collection = input.required<CollectionNames>();
+  readonly config = input.required<CollectionConfigDto>();
+  readonly vertex = input.required<string>();
+  readonly source = input.required<VertexDto>();
+  readonly upstream = input.required<GraphDirectedCombo[]>();
+  readonly downstream = input.required<GraphDirectedCombo[]>();
+  readonly hasAdmin = input.required<boolean>();
 
   @Output() selected = new EventEmitter<EdgeDto | VertexDto>();
 
@@ -57,17 +57,18 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
     private readonly preferences: PreferencesService,
     private readonly dialog: MatDialog,
     private readonly colorUtil: ColorUtilService,
-    @Inject(CONFIG_MAP) public readonly configMap: CollectionConfigMap,
+    @Inject(CONFIG_RECORD)
+    public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
   ngOnChanges(): void {
-    this.outboundConnections = this.groupEdges(this.downstream);
-    this.inboundConnections = this.groupEdges(this.upstream);
+    this.outboundConnections = this.groupEdges(this.downstream());
+    this.inboundConnections = this.groupEdges(this.upstream());
   }
 
   ngOnInit(): void {
-    this.outboundConnections = this.groupEdges(this.downstream);
-    this.inboundConnections = this.groupEdges(this.upstream);
+    this.outboundConnections = this.groupEdges(this.downstream());
+    this.inboundConnections = this.groupEdges(this.upstream());
   }
 
   private groupEdges(comboArr: GraphDirectedCombo[]): GraphDirectedComboMap {
@@ -86,10 +87,10 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
       .open(EdgeDialogComponent, {
         width: '500px',
         data: {
-          collection: this.collection,
-          source: this.source,
+          collection: this.collection(),
+          source: this.source(),
           vertex: {
-            id: this.vertex,
+            id: this.vertex(),
           },
         },
       })

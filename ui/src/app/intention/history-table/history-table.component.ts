@@ -1,10 +1,10 @@
 import {
   Component,
   EventEmitter,
-  Input,
   OnChanges,
   OnInit,
   Output,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -75,11 +75,11 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrl: './history-table.component.scss',
 })
 export class HistoryTableComponent implements OnInit, OnChanges {
-  @Input() intentionData: any[] = [];
-  @Input() layout: 'narrow' | 'normal' = 'normal';
-  @Input() showHeader = true;
-  @Input() openFirst = false;
-  @Input() actionServiceFilter = '';
+  readonly intentionData = input<any[]>([]);
+  readonly layout = input<'narrow' | 'normal'>('normal');
+  readonly showHeader = input(true);
+  readonly openFirst = input(false);
+  readonly actionServiceFilter = input('');
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
   propDisplayedColumns: string[] = [
@@ -109,16 +109,17 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnChanges(): void {
+    const intentionData = this.intentionData();
     if (
-      this.intentionData.length === 1 ||
-      (this.openFirst && this.intentionData.length > 0)
+      intentionData.length === 1 ||
+      (this.openFirst() && intentionData.length > 0)
     ) {
-      this.expandedElement = this.intentionData[0];
+      this.expandedElement = intentionData[0];
     }
   }
 
   ngOnInit(): void {
-    if (this.layout === 'narrow') {
+    if (this.layout() === 'narrow') {
       this.propDisplayedColumns = ['start-narrow', 'environment'];
       this.propDisplayedColumnsWithExpand = [
         ...this.propDisplayedColumns,

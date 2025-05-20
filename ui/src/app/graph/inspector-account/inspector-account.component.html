@@ -1,7 +1,7 @@
-@if (account) {
+@if (account()) {
   <div class="edge-container">
     <div class="fields-wrapper">
-      @if (header === 'small') {
+      @if (header() === 'small') {
         <h3 class="heading">Token</h3>
       } @else {
         <h2 class="heading">Token</h2>
@@ -12,13 +12,13 @@
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo">
+        <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo()">
           <mat-icon>add_circle</mat-icon>Generate
         </button>
         @if(healthStatus.health$ | async; as health) {
         <button mat-menu-item
           (click)="sync()"
-          [disabled]="!hasSudo || !health.details['github']['sync']"
+          [disabled]="!hasSudo() || !health.details['github']['sync']"
           matTooltip="Connected service's secrets stored in the Vault under the tools path will be copied to GitHub as action secrets."
           matTooltipShowDelay="500"
           matTooltipPosition="left">

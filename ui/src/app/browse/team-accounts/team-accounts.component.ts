@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, OnInit, SimpleChanges, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,10 +24,10 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrl: './team-accounts.component.scss',
 })
 export class TeamAccountsComponent implements OnInit {
-  @Input() teamVertex!: string;
-  @Input() hasSudo!: boolean;
-  @Input() hasUpdate!: boolean;
-  @Input() config!: CollectionConfigDto;
+  readonly teamVertex = input.required<string>();
+  readonly hasSudo = input.required<boolean>();
+  readonly hasUpdate = input.required<boolean>();
+  readonly config = input.required<CollectionConfigDto>();
 
   accountSearch: CollectionSearchResult<BrokerAccountDto> = {
     data: [],
@@ -45,7 +45,7 @@ export class TeamAccountsComponent implements OnInit {
   ngOnInit() {
     this.collectionApi
       .searchCollection('brokerAccount', {
-        upstreamVertex: this.teamVertex,
+        upstreamVertex: this.teamVertex(),
         offset: 0,
         limit: 20,
       })
