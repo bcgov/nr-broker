@@ -1,11 +1,11 @@
 import {
   Component,
   ElementRef,
-  Input,
   Output,
   OnInit,
   EventEmitter,
   Inject,
+  input,
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsCoreOption } from 'echarts/core';
@@ -41,7 +41,7 @@ echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
   providers: [provideEchartsCore({ echarts })],
 })
 export class EchartsComponent implements OnInit {
-  @Input() dataConfig!: Observable<GraphDataConfig>;
+  readonly dataConfig = input.required<Observable<GraphDataConfig>>();
   @Output() selected = new EventEmitter<ChartClickTarget>();
   @Output() legendChanged = new EventEmitter<{
     name: string;
@@ -137,7 +137,7 @@ export class EchartsComponent implements OnInit {
     } as EChartsCoreOption;
     this.updateOptions = this.triggerRefresh.pipe(
       takeUntil(this.ngUnsubscribe),
-      switchMap(() => this.dataConfig),
+      switchMap(() => this.dataConfig()),
       map((dataConfig) => {
         const graph = dataConfig.data;
         this.loading = false;

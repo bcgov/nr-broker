@@ -1,4 +1,4 @@
-<div class="form-group row" [formGroup]="form">
+<div class="form-group row" [formGroup]="form()">
   @switch (field.type) {
     @case ('string') {
       <mat-form-field appearance="fill">

@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Input, OnChanges, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  Input,
+  OnChanges,
+  OnInit,
+  input,
+} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
 import { VertexPointerDto } from '../../service/persistence/dto/vertex-pointer.dto';
@@ -15,8 +22,10 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
   styleUrl: './vertex-tags.component.scss',
 })
 export class VertexTagsComponent implements OnInit, OnChanges {
-  @Input()
-  collection!: CollectionNames;
+  readonly collection = input.required<CollectionNames>();
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input()
   collectionData!: VertexPointerDto;
 
@@ -29,7 +38,7 @@ export class VertexTagsComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.config = this.configRecord[this.collection];
+    this.config = this.configRecord[this.collection()];
   }
 
   ngOnChanges(): void {
@@ -37,6 +46,6 @@ export class VertexTagsComponent implements OnInit, OnChanges {
   }
 
   browseTag(tag: string) {
-    this.router.navigate([`/browse/${this.collection}`, { tags: [tag] }]);
+    this.router.navigate([`/browse/${this.collection()}`, { tags: [tag] }]);
   }
 }

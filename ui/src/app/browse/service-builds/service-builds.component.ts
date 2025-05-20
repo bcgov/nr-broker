@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
-  Input,
   OnDestroy,
   OnInit,
+  input,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -53,8 +53,8 @@ interface TablePageQuery {
 export class ServiceBuildsComponent
   implements AfterViewInit, OnInit, OnDestroy
 {
-  @Input() serviceId!: string;
-  @Input() isApprover!: boolean;
+  readonly serviceId = input.required<string>();
+  readonly isApprover = input.required<boolean>();
 
   data: any[] = [];
   total = 0;
@@ -132,7 +132,7 @@ export class ServiceBuildsComponent
           // this.updateRoute(settings);
           return this.packageApi
             .searchBuilds(
-              this.serviceId,
+              this.serviceId(),
               // sortActive,
               // sortDirection,
               settings.page.index * settings.page.size,

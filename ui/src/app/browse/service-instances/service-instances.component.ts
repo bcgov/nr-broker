@@ -6,6 +6,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -51,9 +52,12 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './service-instances.component.scss',
 })
 export class ServiceInstancesComponent implements OnChanges {
-  @Input() vertex!: VertexDto;
-  @Input() vertices!: GraphDirectedCombo[];
-  @Input() service!: ServiceDto;
+  readonly vertex = input.required<VertexDto>();
+  readonly vertices = input.required<GraphDirectedCombo[]>();
+  readonly service = input.required<ServiceDto>();
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() details!: any;
   @Output() refreshData = new EventEmitter();
 
@@ -90,14 +94,15 @@ export class ServiceInstancesComponent implements OnChanges {
   }
 
   openInstanceDialog() {
-    if (!this.vertices) {
+    const vertices = this.vertices();
+    if (!vertices) {
       return;
     }
     this.dialog
       .open(InspectorInstanceDialogComponent, {
         width: '500px',
         data: {
-          vertices: this.vertices,
+          vertices: vertices,
         },
       })
       .afterClosed()
@@ -121,7 +126,7 @@ export class ServiceInstancesComponent implements OnChanges {
             await lastValueFrom(
               this.graphApi.addEdge({
                 name: 'instance',
-                source: this.vertex.id as string,
+                source: this.vertex().id as string,
                 target: vertex.id,
               }),
             );

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,12 +21,12 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
   styleUrls: ['./inspector-intentions.component.scss'],
 })
 export class InspectorIntentionsComponent implements OnChanges {
-  @Input() id!: string;
-  @Input() name!: string;
-  @Input() layout: 'narrow' | 'normal' = 'narrow';
-  @Input() showMore: boolean = true;
-  @Input() showHeader: boolean = false;
-  @Input() openFirst: boolean = true;
+  readonly id = input.required<string>();
+  readonly name = input.required<string>();
+  readonly layout = input<'narrow' | 'normal'>('narrow');
+  readonly showMore = input<boolean>(true);
+  readonly showHeader = input<boolean>(false);
+  readonly openFirst = input<boolean>(true);
   intentions: any[] = [];
   total = 0;
 
@@ -46,7 +46,7 @@ export class InspectorIntentionsComponent implements OnChanges {
       '/intention/history',
       {
         field: 'service',
-        value: this.name,
+        value: this.name(),
       },
     ]);
   }
@@ -63,7 +63,11 @@ export class InspectorIntentionsComponent implements OnChanges {
 
   private loadIntentions() {
     this.intentionApi
-      .searchIntentions(JSON.stringify({ 'actions.service.id': this.id }), 0, 5)
+      .searchIntentions(
+        JSON.stringify({ 'actions.service.id': this.id() }),
+        0,
+        5,
+      )
       .subscribe((data) => {
         if (data) {
           this.intentions = data.data;

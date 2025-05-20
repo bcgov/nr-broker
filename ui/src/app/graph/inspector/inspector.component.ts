@@ -84,6 +84,9 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() target!: InspectorTarget | undefined;
   targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
 

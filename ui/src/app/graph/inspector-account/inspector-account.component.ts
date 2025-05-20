@@ -1,10 +1,10 @@
 import {
   Component,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -43,10 +43,10 @@ import { HealthStatusService } from '../../service/health-status.service';
   styleUrls: ['./inspector-account.component.scss'],
 })
 export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
-  @Input() account!: BrokerAccountDto;
-  @Input() userIndex!: number | undefined;
-  @Input() hasSudo = false;
-  @Input() header: 'small' | 'large' = 'small';
+  readonly account = input.required<BrokerAccountDto>();
+  readonly userIndex = input.required<number | undefined>();
+  readonly hasSudo = input(false);
+  readonly header = input<'small' | 'large'>('small');
 
   jwtTokens: JwtRegistryDto[] | undefined;
   lastJwtTokenData: any;
@@ -74,7 +74,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
       .createAccountTokenEventSource()
       .subscribe({
         next: (data: any) => {
-          if (data.clientId === this.account.clientId) {
+          if (data.clientId === this.account().clientId) {
             this.updateAccount();
           }
         },
@@ -102,7 +102,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
       .open(AccountGenerateDialogComponent, {
         width: '600px',
         data: {
-          accountId: this.account.id,
+          accountId: this.account().id,
         },
       })
       .afterClosed()
@@ -110,8 +110,9 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   sync(): void {
-    if (this.account && this.userIndex) {
-      this.systemApi.brokerAccountRefresh(this.account.id).subscribe({
+    const account = this.account();
+    if (account && this.userIndex()) {
+      this.systemApi.brokerAccountRefresh(account.id).subscribe({
         next: () => {
           this.openSnackBar('Sync of secrets queued');
         },
@@ -127,10 +128,11 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   private updateAccount(): void {
-    if (this.account && this.userIndex) {
+    const account = this.account();
+    if (account && this.userIndex()) {
       this.jwtTokens = undefined;
       this.lastJwtTokenData = undefined;
-      this.systemApi.getAccountTokens(this.account.id).subscribe({
+      this.systemApi.getAccountTokens(account.id).subscribe({
         next: (data: JwtRegistryDto[]) => {
           this.jwtTokens = data;
           const lastJwtToken = this.jwtTokens.pop();
@@ -156,9 +158,9 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
         },
       });
 
-      if (this.hasSudo) {
+      if (this.hasSudo()) {
         this.hourlyUsage = undefined;
-        this.systemApi.getAccountUsage(this.account.id).subscribe({
+        this.systemApi.getAccountUsage(account.id).subscribe({
           next: (
             data:
               | { success: number; unknown: number; failure: number }

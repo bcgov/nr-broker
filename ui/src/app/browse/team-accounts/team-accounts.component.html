@@ -17,10 +17,10 @@
 
         <app-inspector-vertex
           [collection]="'brokerAccount'"
-          [collectionConfig]="config"
+          [collectionConfig]="config()"
           [comboData]="account"
-          [hasSudo]="hasSudo"
-          [hasUpdate]="hasUpdate"
+          [hasSudo]="hasSudo()"
+          [hasUpdate]="hasUpdate()"
         ></app-inspector-vertex>
       </mat-card-content>
     </mat-card>

@@ -3,12 +3,12 @@
     <div class="fields-wrapper">
       <h3 class="vertex-heading">Inbound</h3>
     </div>
-    @if (config.edges.length > 0) {
+    @if (config().edges.length > 0) {
       <div class="fields-wrapper" >
         <button
           mat-button
           (click)="openDeleteEdgeDialog(inboundConnections)"
-          [disabled]="!hasAdmin ||
+          [disabled]="!hasAdmin() ||
         (inboundConnections | keyvalue)?.length == 0">Delete</button>
       </div>
     }
@@ -36,16 +36,16 @@
     <div class="fields-wrapper">
       <h3 class="vertex-heading">Outbound</h3>
     </div>
-    @if (config.edges.length > 0) {
+    @if (config().edges.length > 0) {
       <div class="fields-wrapper" >
         <button
           mat-button
           (click)="addEdgeToVertex()"
-          [disabled]="!hasAdmin">Add</button>
+          [disabled]="!hasAdmin()">Add</button>
         <button
           mat-button
           (click)="openDeleteEdgeDialog(outboundConnections)"
-          [disabled]="!hasAdmin ||
+          [disabled]="!hasAdmin() ||
         (outboundConnections | keyvalue)?.length == 0">Delete</button>
       </div>
     }

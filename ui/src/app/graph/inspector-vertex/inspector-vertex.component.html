@@ -10,7 +10,7 @@
   <app-inspector-vertex-fields
     #vertexFields
     [collection]="collection"
-    [collectionConfig]="collectionConfig"
+    [collectionConfig]="collectionConfig()"
     [collectionData]="comboData.collection"
     [filter]="'yes'"
     ></app-inspector-vertex-fields>
@@ -23,7 +23,7 @@
     <app-inspector-account
       [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
       [userIndex]="4"
-      [hasSudo]="hasSudo"></app-inspector-account>
+      [hasSudo]="hasSudo()"></app-inspector-account>
   }
   @if (collection === 'service') {
     @if (comboData) {
@@ -36,8 +36,8 @@
     <mat-divider></mat-divider>
     <app-inspector-vault
       [service]="comboData.collection"
-      [isAdministrator]="hasSudo"></app-inspector-vault>
-    @if (hasSudo) {
+      [isAdministrator]="hasSudo()"></app-inspector-vault>
+    @if (hasSudo()) {
       <mat-divider></mat-divider>
       <app-inspector-service-secure
         [service]="comboData.collection"

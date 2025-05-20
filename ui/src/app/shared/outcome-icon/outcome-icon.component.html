@@ -1,6 +1,6 @@
-@if (outcome === 'success') {
+@if (outcome() === 'success') {
   <mat-icon class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
-} @else if (outcome === 'failure') {
+} @else if (outcome() === 'failure') {
   <mat-icon class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
 } @else {
   <mat-icon class="mat-icon-status" inline="true" color="accent">hourglass_empty</mat-icon>

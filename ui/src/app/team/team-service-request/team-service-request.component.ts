@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   FormControl,
@@ -24,8 +24,7 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrl: './team-service-request.component.scss',
 })
 export class TeamServiceRequestComponent {
-  @Input()
-  serviceSearch!: CollectionConfigInstanceDto[];
+  readonly serviceSearch = input.required<CollectionConfigInstanceDto[]>();
 
   serviceControl = new FormControl<CollectionConfigInstanceDto | null>(
     null,

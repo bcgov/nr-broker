@@ -2,15 +2,15 @@
   <div class="edge-container intention-none">None</div>
 } @else {
   <app-history-table
-    [actionServiceFilter]="name"
+    [actionServiceFilter]="name()"
     [intentionData]="intentions"
-    [layout]="layout"
-    [showHeader]="showHeader"
-    [openFirst]="openFirst"
+    [layout]="layout()"
+    [showHeader]="showHeader()"
+    [openFirst]="openFirst()"
     (viewIntentionEvent)="this.viewIntention($event)"
     ></app-history-table>
 }
-@if (showMore && total > 0) {
+@if (showMore() && total > 0) {
   <div class="more-panel">
     <div>{{total}} Total</div>
     <button mat-stroked-button (click)="navigateHistoryByService()">More</button>

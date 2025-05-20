@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -17,9 +17,12 @@ import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-se
   styleUrl: './inspector-repository-sync.component.scss',
 })
 export class InspectorRepositorySyncComponent {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() repository!: RepositoryDto;
-  @Input() hasSudo = false;
-  @Input() header: 'small' | 'large' = 'small';
+  readonly hasSudo = input(false);
+  readonly header = input<'small' | 'large'>('small');
 
   constructor(
     private readonly snackBar: MatSnackBar,

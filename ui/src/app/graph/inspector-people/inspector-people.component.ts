@@ -1,4 +1,4 @@
-import { Component, Inject, Input, OnChanges } from '@angular/core';
+import { Component, Inject, OnChanges, input } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -40,15 +40,15 @@ interface UserData {
   styleUrl: './inspector-people.component.scss',
 })
 export class InspectorPeopleComponent implements OnChanges {
-  @Input() collection!: CollectionNames;
-  @Input() vertex!: string;
-  @Input() showLinked: boolean = false;
+  readonly collection = input.required<CollectionNames>();
+  readonly vertex = input.required<string>();
+  readonly showLinked = input<boolean>(false);
 
   edges: CollectionEdgeConfig[] | undefined;
   collectionPeople: GraphUpDownDto<any>[] | null = null;
   users: UserData[] | null = null;
 
-  propPeopleDisplayedColumns: string[] = this.showLinked
+  propPeopleDisplayedColumns: string[] = this.showLinked()
     ? ['name', 'role', 'linked']
     : ['name', 'role'];
 
@@ -60,7 +60,7 @@ export class InspectorPeopleComponent implements OnChanges {
   ) {}
 
   ngOnChanges() {
-    this.propPeopleDisplayedColumns = this.showLinked
+    this.propPeopleDisplayedColumns = this.showLinked()
       ? ['name', 'role', 'linked']
       : ['name', 'role'];
 
@@ -70,7 +70,7 @@ export class InspectorPeopleComponent implements OnChanges {
       );
     }
 
-    this.getUpstreamUsers(this.vertex).subscribe((data) => {
+    this.getUpstreamUsers(this.vertex()).subscribe((data) => {
       const userMap: Map<string, UserData> = new Map();
 
       for (const upstream of data) {
@@ -130,14 +130,15 @@ export class InspectorPeopleComponent implements OnChanges {
       ],
       brokerAccount: ['lead-developer', 'full-access'],
     };
-    if (!Object.keys(mapCollectionToEdgeName).includes(this.collection)) {
+    const collection = this.collection();
+    if (!Object.keys(mapCollectionToEdgeName).includes(collection)) {
       return of([]);
     }
 
     return this.graphApi.getUpstream<UserDto>(
       vertexId,
       this.configMap['user'].index,
-      mapCollectionToEdgeName[this.collection],
+      mapCollectionToEdgeName[collection],
     );
   }
 

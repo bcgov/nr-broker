@@ -6,6 +6,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import {
   FormControl,
@@ -32,8 +33,12 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   @Output() onSubmit = new EventEmitter();
-  @Input() collection!: string;
-  @Input() fieldMap!: CollectionFieldConfigMap;
+  readonly collection = input.required<string>();
+  readonly fieldMap = input.required<CollectionFieldConfigMap>();
+  // TODO: Skipped for migration because:
+  //  Your application code writes to the input. This prevents migration.
+  // TODO: Skipped for migration because:
+  //  Your application code writes to the input. This prevents migration.
   @Input() data!: any;
   form!: FormGroup;
   fieldConfigs!: CollectionFieldConfigNameMapped[];
@@ -48,10 +53,10 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     }
     const data = JSON.parse(JSON.stringify(this.data));
 
-    for (const key of Object.keys(this.fieldMap)) {
+    for (const key of Object.keys(this.fieldMap())) {
       fieldConfigs.push({
         key,
-        ...this.fieldMap[key],
+        ...this.fieldMap()[key],
       });
     }
 
@@ -96,7 +101,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         if (f.unique) {
           const uniqueValidator = uniqueNameValidator(
             this.collectionService,
-            this.collection as keyof CollectionDtoUnion,
+            this.collection() as keyof CollectionDtoUnion,
             f.key,
             data && data.id ? data.id : null,
           );

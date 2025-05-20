@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,8 +26,11 @@ import { PermissionService } from '../../service/permission.service';
   styleUrl: './inspector-vault.component.scss',
 })
 export class InspectorVaultComponent {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() service!: ServiceDto;
-  @Input() isAdministrator!: boolean;
+  readonly isAdministrator = input.required<boolean>();
 
   @Output() refreshData = new EventEmitter();
 

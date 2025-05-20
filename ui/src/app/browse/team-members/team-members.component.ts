@@ -1,10 +1,10 @@
 import {
   Component,
   Inject,
-  Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
@@ -26,8 +26,8 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   styleUrl: './team-members.component.scss',
 })
 export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() collectionData: any;
-  @Input() upstream!: GraphDirectedCombo[];
+  readonly collectionData = input<any>();
+  readonly upstream = input.required<GraphDirectedCombo[]>();
   edges: CollectionEdgeConfig[] | undefined;
 
   private triggerRefresh = new Subject<void>();
@@ -48,7 +48,7 @@ export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
         switchMap(() => {
           this.loading = true;
           return this.collectionApi.searchCollection('team', {
-            id: this.collectionData.id,
+            id: this.collectionData().id,
             offset: 0,
             limit: 1,
           });

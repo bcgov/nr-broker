@@ -1,6 +1,6 @@
 <table
   mat-table
-  [dataSource]="intentionData"
+  [dataSource]="intentionData()"
   multiTemplateDataRows>
 
   <!-- Project Column -->
@@ -8,7 +8,7 @@
     <th mat-header-cell *matHeaderCellDef> Project </th>
     <td mat-cell *matCellDef="let element">
       <app-action-content
-        [actionServiceFilter]="actionServiceFilter"
+        [actionServiceFilter]="actionServiceFilter()"
         [intention]="element"
         key="service.project"></app-action-content>
     </td>
@@ -19,7 +19,7 @@
     <th mat-header-cell *matHeaderCellDef> Service </th>
     <td mat-cell *matCellDef="let element">
       <app-action-content
-        [actionServiceFilter]="actionServiceFilter"
+        [actionServiceFilter]="actionServiceFilter()"
         [intention]="element"
         key="service.name"></app-action-content>
     </td>
@@ -30,7 +30,7 @@
     <th mat-header-cell *matHeaderCellDef> Action </th>
     <td mat-cell *matCellDef="let element">
       <app-action-content
-        [actionServiceFilter]="actionServiceFilter"
+        [actionServiceFilter]="actionServiceFilter()"
         [intention]="element"
         key="action"></app-action-content>
     </td>
@@ -98,7 +98,7 @@
   <ng-container matColumnDef="environment">
     <th mat-header-cell *matHeaderCellDef> Environment </th>
     <td mat-cell *matCellDef="let element"><app-action-content
-      [actionServiceFilter]="actionServiceFilter"
+      [actionServiceFilter]="actionServiceFilter()"
       [intention]="element"
       key="service.environment"></app-action-content></td>
   </ng-container>
@@ -132,7 +132,7 @@
     <td mat-cell *matCellDef="let element" [attr.colspan]="propDisplayedColumnsWithExpand.length">
       <div class="element-detail"
         [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-        @if (layout === 'normal') {
+        @if (layout() === 'normal') {
         <div class="expanded-header-actions">
           <h3>Actions</h3>
           @if (element.transaction.duration) {
@@ -303,7 +303,7 @@
     </td>
   </ng-container>
 
-  @if (showHeader) {
+  @if (showHeader()) {
     <tr mat-header-row *matHeaderRowDef="propDisplayedColumnsWithExpand"></tr>
   }
   <tr mat-row *matRowDef="let element; columns: propDisplayedColumnsWithExpand;"

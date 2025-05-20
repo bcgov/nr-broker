@@ -1,9 +1,9 @@
 import {
   Component,
   Inject,
-  Input,
   OnChanges,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,12 +24,12 @@ import { GraphDirectedCombo } from '../../service/persistence/dto/collection-com
   styleUrl: './collection-header.component.scss',
 })
 export class CollectionHeaderComponent implements OnChanges {
-  @Input() collection!: CollectionNames;
-  @Input() name!: string;
-  @Input() screenSize!: string;
-  @Input() backSteps = 1;
-  @Input() navigateCommands: any = undefined;
-  @Input() upstream: GraphDirectedCombo[] | undefined = undefined;
+  readonly collection = input.required<CollectionNames>();
+  readonly name = input.required<string>();
+  readonly screenSize = input.required<string>();
+  readonly backSteps = input(1);
+  readonly navigateCommands = input<any>();
+  readonly upstream = input<GraphDirectedCombo[]>();
   parentName = '';
 
   config: CollectionConfigDto | undefined;
@@ -43,9 +43,10 @@ export class CollectionHeaderComponent implements OnChanges {
 
   ngOnInit(): void {
     this.parentName = '';
-    this.config = this.configMap[this.collection];
-    if (this.config?.parent?.edgeName && this.upstream) {
-      for (const upstream of this.upstream) {
+    this.config = this.configMap[this.collection()];
+    const upstreamValue = this.upstream();
+    if (this.config?.parent?.edgeName && upstreamValue) {
+      for (const upstream of upstreamValue) {
         if (upstream.edge.name === this.config.parent.edgeName) {
           this.parentName = upstream.vertex.name;
           break;
@@ -61,9 +62,10 @@ export class CollectionHeaderComponent implements OnChanges {
   }
 
   back() {
-    const command = [new Array(this.backSteps).fill('..').join('/')];
-    if (this.navigateCommands) {
-      command.push(this.navigateCommands);
+    const command = [new Array(this.backSteps()).fill('..').join('/')];
+    const navigateCommands = this.navigateCommands();
+    if (navigateCommands) {
+      command.push(navigateCommands);
     }
     this.router.navigate(command, { relativeTo: this.activatedRoute });
   }

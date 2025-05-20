@@ -4,6 +4,7 @@ import {
   Input,
   OnChanges,
   SimpleChanges,
+  input,
 } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -40,14 +41,20 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './inspector-vertex.component.scss',
 })
 export class InspectorVertexComponent implements OnChanges {
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() collection!: CollectionNames;
-  @Input() collectionConfig!: CollectionConfigDto;
-  @Input() collectionId!: string | null;
+  readonly collectionConfig = input.required<CollectionConfigDto>();
+  readonly collectionId = input<string | null>();
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() comboData!: CollectionCombo<any>;
 
   // Permissions
-  @Input() hasSudo = false;
-  @Input() hasUpdate = false;
+  readonly hasSudo = input(false);
+  readonly hasUpdate = input(false);
   serviceDetails: any = null;
 
   constructor(
