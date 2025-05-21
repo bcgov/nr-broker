@@ -24,6 +24,7 @@ import { SystemModule } from './system/system.module';
 import { PackageModule } from './package/package.module';
 import { VaultModule } from './vault/vault.module';
 import { GithubModule } from './github/github.module';
+import { CommunicationModule } from './communication/communication.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { GithubModule } from './github/github.module';
     PackageModule,
     VaultModule,
     GithubModule,
+    CommunicationModule,
   ],
   controllers: [],
   providers: [],

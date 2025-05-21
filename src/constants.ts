@@ -89,10 +89,12 @@ export const OAUTH2_CLIENT_MAP_USERNAME =
 
 export const CRON_JOB_SYNC_SECRETS = 'cron-job-sync-secrets';
 export const CRON_JOB_SYNC_USERS = 'cron-job-sync-users';
+export const CRON_JOB_SEND_EMAILS = 'cron-job-send-emails';
 
 export const REDIS_QUEUES = {
   GITHUB_SYNC_SECRETS: 'github-sync-secrets',
   GITHUB_SYNC_USERS: 'github-sync-users',
+  NOTIFIFICATION_EMAILS: 'notification-emails',
 } as const;
 
 export const REDIS_PUBSUB = {
@@ -113,3 +115,12 @@ export const GITHUB_MANAGED_URL_REGEX =
   '^https://github.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)$';
 
 export const USER_ALIAS_DOMAIN_GITHUB = 'GitHub';
+
+export const NOTIFICATION_EMAIL_FROM =
+  process.env.NOTIFICATION_EMAIL_FROM ?? '';
+export const NOTIFICATION_EMAIL_HOST =
+  process.env.NOTIFICATION_EMAIL_HOST ?? '';
+export const NOTIFICATION_EMAIL_PORT =
+  process.env.NOTIFICATION_EMAIL_PORT ?? '';
+export const NOTIFICATION_EMAIL_SECURE =
+  process.env.NOTIFICATION_EMAIL_SECURE ?? true;
