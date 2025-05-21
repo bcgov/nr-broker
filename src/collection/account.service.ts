@@ -17,12 +17,14 @@ import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
+  BROKER_URL,
   OPENSEARCH_INDEX_BROKER_AUDIT,
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
   VAULT_KV_APPS_MOUNT,
   REDIS_PUBSUB,
+  REDIS_QUEUES,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
@@ -542,18 +544,22 @@ export class AccountService {
             teamName: teamName,
             accountName: account.name,
             client_id: expiredJwt.claims.client_id,
+            broker_url: BROKER_URL,
             daysUntilExpiration: daysUntilExpiration,
           };
           try {
-            await this.emailService.sendAlertEmail(
-              notificationEmail,
-              emailSubject,
-              emailBody,
+            await this.redisService.queue(
+              REDIS_QUEUES.NOTIFIFICATION_EMAILS,
+              JSON.stringify({
+                to: notificationEmail,
+                subject: emailSubject,
+                context: emailBody,
+              }),
             );
             this.auditService.recordAccountTokenLifecycle(
               null,
               expiredJwt.claims,
-              `Expiration email sent to ${notificationEmail} for token (${expiredJwt.claims.client_id})`,
+              `Expiration email(s) sent to ${notificationEmail} for token (${expiredJwt.claims.client_id}) is queued`,
               'info',
               'success',
               ['token', 'email', 'notification'],
@@ -562,7 +568,7 @@ export class AccountService {
             this.auditService.recordAccountTokenLifecycle(
               null,
               expiredJwt.claims,
-              `Failed to send expiration email to ${notificationEmail} for token (${expiredJwt.claims.client_id})`,
+              `Failed to queued expiration email(s) to ${notificationEmail} for token (${expiredJwt.claims.client_id})`,
               'info',
               'failure',
               ['token', 'email', 'notification'],
