@@ -25,7 +25,10 @@ export class EmailQueueService {
       this.schedulerRegistry,
       CRON_JOB_SEND_EMAILS,
       REDIS_QUEUES.NOTIFIFICATION_EMAILS,
-      () => this.redisService.dequeue(REDIS_QUEUES.NOTIFIFICATION_EMAILS),
+      () =>
+        this.redisService.dequeue(
+          REDIS_QUEUES.NOTIFIFICATION_EMAILS,
+        ) as Promise<string | null>,
       async (jobString: string) => {
         const { to, subject, context } = JSON.parse(jobString);
         try {
