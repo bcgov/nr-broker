@@ -1,0 +1,10 @@
+<p>These are the roles available in NR Broker.</p>
+
+
+@for (edge of edges; track edge.id) {
+  <mat-divider></mat-divider>
+<h3>{{ edge | edgetitle }}</h3>
+
+<p>{{ edge.help }}</p>
+
+}

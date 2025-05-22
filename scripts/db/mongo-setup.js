@@ -1,5 +1,4 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unused-vars
-const { name } = require('ejs');
 
 /* eslint-disable no-undef */
 db.service.drop();
@@ -343,7 +342,7 @@ result = db.collectionConfig.insertOne({
       id: '48fb4f9f',
       collection: 'environment',
       name: 'deploy-type',
-      inboundName: 'Instance',
+      titleInbound: 'Instance',
       relation: 'oneToOne',
       restrict: true,
       show: true,
@@ -352,7 +351,7 @@ result = db.collectionConfig.insertOne({
       id: 'a511d8fe',
       collection: 'serviceInstance',
       name: 'requires',
-      inboundName: 'Required By',
+      titleInbound: 'Required By',
       relation: 'oneToMany',
       restrict: true,
       show: false,
@@ -361,7 +360,7 @@ result = db.collectionConfig.insertOne({
       id: 'a4056650',
       collection: 'server',
       name: 'installation',
-      inboundName: 'Installs',
+      titleInbound: 'Installs',
       relation: 'oneToMany',
       restrict: true,
       show: true,
@@ -426,6 +425,8 @@ result = db.collectionConfig.insertOne({
       name: 'owner',
       relation: 'oneToMany',
       show: true,
+      title: 'Owner',
+      help: 'A non-technical role responsible for managing team membership, and assigning roles',
     },
     {
       id: 'df74a9fc',
@@ -433,6 +434,8 @@ result = db.collectionConfig.insertOne({
       name: 'full-access',
       relation: 'oneToMany',
       show: true,
+      title: 'Full Access',
+      help: 'A senior technical role with unrestricted permissions, including access to destructive operations and production deployments.',
     },
     {
       id: 'aa573095',
@@ -440,6 +443,8 @@ result = db.collectionConfig.insertOne({
       name: 'lead-developer',
       relation: 'oneToMany',
       show: true,
+      title: 'Lead Developer',
+      help: 'A senior code contributor with elevated privileges to manage codebases, secrets, and deployments to non-production environments.',
     },
     {
       id: 'ad796493',
@@ -447,6 +452,8 @@ result = db.collectionConfig.insertOne({
       name: 'developer',
       relation: 'oneToMany',
       show: true,
+      title: 'Developer',
+      help: 'A core code contributor responsible for writing, testing, and deploying code to non-production environments.',
     },
     {
       id: 'w8zfccq',
@@ -454,6 +461,8 @@ result = db.collectionConfig.insertOne({
       name: 'tester',
       relation: 'oneToMany',
       show: true,
+      title: 'Tester',
+      help: 'A non-developer role focused on managing issues, participating in discussions, and reviewing deployment outcomes to ensure quality.',
     },
     {
       id: 'cb02f9b',
@@ -461,6 +470,8 @@ result = db.collectionConfig.insertOne({
       name: 'prod-operator',
       relation: 'oneToMany',
       show: true,
+      title: 'Production Operator',
+      help: 'A technical role with the authority to initiate and manage production deployments.',
     },
   ],
   fieldDefaultSort: {
@@ -629,7 +640,7 @@ result = db.collectionConfig.insertOne({
       id: '802831d3',
       collection: 'brokerAccount',
       name: 'owns',
-      inboundName: 'owned by',
+      titleInbound: 'owned by',
       relation: 'oneToMany',
       show: true,
     },
@@ -637,7 +648,7 @@ result = db.collectionConfig.insertOne({
       id: '19d21999',
       collection: 'service',
       name: 'uses',
-      inboundName: 'used by',
+      titleInbound: 'used by',
       relation: 'oneToMany',
       restrict: true,
       show: false,

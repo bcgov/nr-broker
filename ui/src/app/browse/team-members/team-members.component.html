@@ -1,21 +1,34 @@
 @if (!loading) {
-  @if(userCount == 0) {
+  @if (userCount() == 0) {
     <h4>None</h4>
-  }
-  @for (edge of edges; track edge.id) {
-    @if (users[edge.name].length > 0) {
-      <div class="member-header">
-        <h2>{{ edge.name | titlecase }}</h2>
-      </div>
-      <mat-divider></mat-divider>
-      <mat-action-list role="list">
-        @for (member of users[edge.name]; track member.id) {
-          <mat-list-item role="listitem" (click)="navigateUser(member.vertex)">
-            {{ member.name }}
-          </mat-list-item>
-        }
-      </mat-action-list>
+  } @else {
+
+    <mat-accordion>
+    @for (edge of edges; track edge.id) {
+      @if (users()[edge.name].length > 0) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
+            <mat-panel-description>
+              <mat-chip-set aria-label="Users" class="disable-mouse">
+                <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users()[edge.name].length}}</mat-chip>
+              </mat-chip-set>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+              <!-- @if (edge.help) {
+                <div class="user-role-help">{{ edge.help }}</div>
+              } -->
+          <mat-action-list role="list">
+            @for (member of users()[edge.name]; track member.id) {
+              <mat-list-item role="listitem" (click)="navigateUser(member.vertex)">
+                {{ member.name }}
+              </mat-list-item>
+            }
+          </mat-action-list>
+        </mat-expansion-panel>
+      }
     }
+    </mat-accordion>
   }
 } @else {
 

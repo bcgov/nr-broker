@@ -1,5 +1,12 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  Inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
@@ -57,7 +64,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
-import { TeamSummaryComponent } from '../team-summary/team-summary.component';
+import { TeamRolesComponent } from '../team-roles/team-roles.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
@@ -67,6 +74,7 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
+import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -101,7 +109,7 @@ import { InspectorRepositorySyncComponent } from '../../graph/inspector-reposito
     TeamAccountsComponent,
     TeamMembersComponent,
     TeamServicesComponent,
-    TeamSummaryComponent,
+    TeamRolesComponent,
     UserAliasComponent,
     VertexTagsComponent,
   ],
@@ -129,6 +137,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasUpdate = false;
   hasApprove = false;
 
+  refresh = signal(0);
   selectedTabIndex = 0;
   selectedBuild: string | undefined;
   screenSize: string = '';
@@ -280,6 +289,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           });
       }
       this.loading = false;
+      this.refresh.set(this.refresh() + 1);
     });
   }
 
@@ -400,6 +410,22 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
             });
         }
       });
+  }
+
+  openMemberDialog() {
+    if (!this.comboData) {
+      return;
+    }
+    this.dialog
+      .open(MemberDialogComponent, {
+        width: '600px',
+        data: {
+          vertex: this.comboData.vertex.id,
+          name: this.comboData.collection.name,
+        },
+      })
+      .afterClosed()
+      .subscribe();
   }
 
   private openSnackBar(message: string) {
