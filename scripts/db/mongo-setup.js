@@ -426,7 +426,7 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
       title: 'Owner',
-      help: 'A non-technical role responsible for managing team membership, and assigning roles',
+      help: 'A non-technical role responsible for managing team membership, and assigning roles.',
     },
     {
       id: 'df74a9fc',
