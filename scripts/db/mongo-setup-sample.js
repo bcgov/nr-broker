@@ -438,7 +438,7 @@ db.collectionConfig.updateOne(
           id: '8AR5oZt8dy',
           collection: 'brokerAccount',
           name: 'owns',
-          inboundName: 'owned by',
+          titleInbound: 'owned by',
           relation: 'oneToMany',
           show: true,
         },
@@ -446,7 +446,7 @@ db.collectionConfig.updateOne(
           id: 'FxYMeTm4D',
           collection: 'service',
           name: 'uses',
-          inboundName: 'used by',
+          titleInbound: 'used by',
           relation: 'oneToMany',
           show: false,
           prototypes: [

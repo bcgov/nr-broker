@@ -1,39 +1,109 @@
-import {
-  Component,
-  Inject,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  input,
-} from '@angular/core';
+import { Component, Inject, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
+import {
+  MatExpansionModule,
+  MatExpansionPanel,
+} from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { MatListModule } from '@angular/material/list';
-import { Subject, switchMap } from 'rxjs';
+import { combineLatest, firstValueFrom, switchMap, tap } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
-import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
+import { EdgetitlePipe } from '../../util/edgetitle.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-team-members',
-  imports: [CommonModule, MatDividerModule, MatListModule, MatTableModule],
+  imports: [
+    CommonModule,
+    MatDividerModule,
+    MatExpansionModule,
+    MatChipsModule,
+    MatIconModule,
+    MatListModule,
+    MatTableModule,
+    EdgetitlePipe,
+  ],
   templateUrl: './team-members.component.html',
   styleUrl: './team-members.component.scss',
+  viewProviders: [MatExpansionPanel],
 })
-export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
-  readonly collectionData = input<any>();
-  readonly upstream = input.required<GraphDirectedCombo[]>();
-  edges: CollectionEdgeConfig[] | undefined;
+export class TeamMembersComponent {
+  readonly teamId = input.required<string>();
+  readonly refresh = input.required<number>();
+  readonly collectionSearchResult = toSignal(
+    combineLatest([toObservable(this.teamId), toObservable(this.refresh)]).pipe(
+      switchMap(([id]) => {
+        this.loading = true;
+        return firstValueFrom(
+          this.collectionApi
+            .searchCollection('team', {
+              id,
+              offset: 0,
+              limit: 1,
+            })
+            .pipe(
+              tap(() => {
+                this.loading = false;
+              }),
+            ),
+        );
+      }),
+    ),
+  );
+  readonly userCount = computed(() => {
+    const data = this.collectionSearchResult();
+    if (!data) {
+      return 0;
+    }
+    return data.data[0].upstream.length;
+  });
+  readonly users = computed(() => {
+    const data = this.collectionSearchResult();
+    const edges = this.edges;
+    const userMap: any = {};
+    const users: any = {};
 
-  private triggerRefresh = new Subject<void>();
-  users: any = {};
+    if (!edges || !data) {
+      return;
+    }
+    for (const edge of edges) {
+      users[edge.name] = [];
+    }
+    for (const { vertex } of data.data[0].upstream) {
+      userMap[vertex.id] = {
+        id: vertex.id,
+        name: vertex.name,
+      };
+    }
+    for (const { edge } of data.data[0].upstream) {
+      users[edge.name].push({
+        id: edge.id,
+        name: userMap[edge.source].name,
+        vertex: edge.source,
+      });
+    }
+    for (const edge of this.edges) {
+      users[edge.name] = users[edge.name].sort((a: any, b: any) =>
+        a.name.localeCompare(b.name),
+      );
+    }
+
+    return users;
+  });
+
+  edges: CollectionEdgeConfig[] = this.configRecord['user'].edges.filter(
+    (edge) => edge.collection === 'team',
+  );
+
   loading = true;
-  userCount = 0;
 
   constructor(
     private readonly collectionApi: CollectionApiService,
@@ -42,72 +112,7 @@ export class TeamMembersComponent implements OnInit, OnDestroy, OnChanges {
     public readonly configRecord: CollectionConfigNameRecord,
   ) {}
 
-  ngOnInit() {
-    this.triggerRefresh
-      .pipe(
-        switchMap(() => {
-          this.loading = true;
-          return this.collectionApi.searchCollection('team', {
-            id: this.collectionData().id,
-            offset: 0,
-            limit: 1,
-          });
-        }),
-      )
-      .subscribe((data) => {
-        const userMap: any = {};
-        const users: any = {};
-        if (!this.edges) {
-          return;
-        }
-        this.userCount = 0;
-        for (const edge of this.edges) {
-          users[edge.name] = [];
-        }
-        for (const { vertex } of data.data[0].upstream) {
-          userMap[vertex.id] = {
-            id: vertex.id,
-            name: vertex.name,
-          };
-        }
-        for (const { edge } of data.data[0].upstream) {
-          this.userCount++;
-          users[edge.name].push({
-            id: edge.id,
-            name: userMap[edge.source].name,
-            vertex: edge.source,
-          });
-        }
-        for (const edge of this.edges) {
-          users[edge.name] = users[edge.name].sort((a: any, b: any) =>
-            a.name.localeCompare(b.name),
-          );
-        }
-
-        this.users = users;
-        this.loading = false;
-      });
-    this.updateUserData();
-  }
-
-  ngOnDestroy() {
-    this.triggerRefresh.complete();
-  }
-
-  ngOnChanges(): void {
-    this.updateUserData();
-  }
-
   navigateUser(vertexId: string) {
     this.collectionUtil.openInBrowserByVertexId('user', vertexId);
-  }
-
-  private updateUserData() {
-    if (this.configRecord['user']) {
-      this.edges = this.configRecord['user'].edges.filter(
-        (edge) => edge.collection === 'team',
-      );
-      this.triggerRefresh.next();
-    }
   }
 }

@@ -116,6 +116,8 @@ export interface TableQuery {
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
   collection = input.required<CollectionNames>();
+  collectionOptions = input<CollectionNames[]>([]);
+  upstreamId = input<string>();
   text = input('');
   computedText = computed(() =>
     (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
@@ -167,7 +169,19 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   fields: CollectionFieldConfigMap = {};
   propDisplayedColumns: string[] = [];
   tagList: string[] = [];
-  collectionFilterOptions: filterOptions<CollectionNames>[] = [];
+  collectionFilterOptions = computed(() => {
+    return this.configArr
+      .filter(
+        (config) => this.collectionOptions().indexOf(config.collection) !== -1,
+      )
+      .map((config) => {
+        return {
+          value: config.collection,
+          viewValue: config.name,
+          tooltip: config.hint,
+        };
+      });
+  });
 
   private triggerRefresh = new Subject<number>();
   private ngUnsubscribe: Subject<any> = new Subject();
@@ -295,6 +309,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
               ...(this.canFilterConnected.includes(settings.collection) &&
               settings.showFilter === 'connected'
                 ? { upstreamVertex: this.user.vertex }
+                : {}),
+              ...(this.upstreamId()
+                ? { upstreamVertex: this.upstreamId() }
                 : {}),
               sortActive,
               sortDirection,

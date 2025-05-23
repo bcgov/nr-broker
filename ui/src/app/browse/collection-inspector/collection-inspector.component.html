@@ -113,7 +113,7 @@
           <div class="card-title-container">
             <mat-card-title>Details</mat-card-title>
             <div>
-              <button mat-icon-button [matMenuTriggerFor]="detailsMenu" class="menu">
+              <button mat-icon-button [matMenuTriggerFor]="detailsMenu">
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #detailsMenu="matMenu">
@@ -344,21 +344,34 @@
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Members</mat-card-title>
+              <div>
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="openMemberDialog()"
+                  class="card-team-member-button">
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+              </div>
             </div>
-            <app-team-members
-              [collectionData]="comboData.collection"
-              [upstream]="comboData.upstream"></app-team-members>
+            <div class="card-team-members-margin">
+              <app-team-members
+                [teamId]="comboData.collection.id"
+                [refresh]="refresh()"></app-team-members>
+            </div>
           </mat-card-content>
         </mat-card>
 
         <mat-card>
           <mat-card-content>
             <div class="card-title-container">
-              <mat-card-title>Summary</mat-card-title>
+              <mat-card-title>Roles</mat-card-title>
             </div>
-            <app-team-summary
-              [collectionData]="comboData.collection"
-              [upstream]="comboData.upstream"></app-team-summary>
+
+            <div class="card-team-members-margin">
+              <app-team-roles></app-team-roles>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -372,17 +385,29 @@
           [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
-    <mat-tab label="Accounts">
-      <div
-        class="inspector-card-layout inspector-tab-full-margin"
-        [class]="screenSize">
-        <app-team-accounts
-          class="full-width order-end"
-          [teamVertex]="comboData.collection.vertex"
-          [config]="config"
-          [hasSudo]="hasSudo"
-          [hasUpdate]="hasUpdate"></app-team-accounts>
-      </div>
+    <mat-tab label="Resources">
+      <ng-template matTabContent>
+        <div
+          class="inspector-card-layout"
+          [class]="screenSize">
+
+          <app-collection-table
+            class="full-width order-end"
+            [collection]="tableCollection()"
+            [collectionOptions]="collectionOptions"
+            [upstreamId]="comboData.collection.vertex"
+            [text]="text()"
+            [showFilter]="showFilter()"
+            [tags]="tags()"
+            [index]="index()"
+            [size]="size()"
+            [sortActive]="sortActive()"
+            [sortDirection]="sortDirection()"
+            (settingsUpdated)="updateTableRoute($event)"
+            ></app-collection-table>
+
+        </div>
+      </ng-template>
     </mat-tab>
   }
   </mat-tab-group>

@@ -20,14 +20,16 @@ export class CollectionEdgePrototype {
 export class CollectionEdgeConfig {
   id!: string;
   collection!: CollectionNames;
+  help?: string;
   name!: string;
+  namePath?: string;
   onDelete?: 'cascade';
+  prototypes?: CollectionEdgePrototype[];
   restrict?: boolean;
   relation!: 'oneToMany' | 'oneToOne';
   show!: boolean;
-  inboundName?: string;
-  namePath?: string;
-  prototypes?: CollectionEdgePrototype[];
+  title?: string;
+  titleInbound?: string;
 }
 
 export type CollectionEdgeInstanceConfig = Omit<

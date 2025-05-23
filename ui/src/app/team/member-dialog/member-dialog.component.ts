@@ -1,4 +1,11 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
@@ -7,7 +14,6 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -18,6 +24,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   Observable,
   Subject,
+  catchError,
   debounceTime,
   distinctUntilChanged,
   of,
@@ -33,6 +40,11 @@ import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-c
 import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { EdgetitlePipe } from '../../util/edgetitle.pipe';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-member-dialog',
@@ -41,14 +53,17 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     FormsModule,
     MatAutocompleteModule,
     MatButtonModule,
+    MatChipsModule,
     MatDialogModule,
-    MatDividerModule,
+    MatExpansionModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatListModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     ReactiveFormsModule,
+    EdgetitlePipe,
   ],
   templateUrl: './member-dialog.component.html',
   styleUrls: ['./member-dialog.component.scss'],
@@ -57,7 +72,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   edges: CollectionEdgeConfig[] | undefined;
   users: any = {};
 
-  userTypeSelected = 'developer';
+  userRoleSelected = signal('');
   userControl = new FormControl<{ id: string } | string | undefined>(undefined);
   filteredOptions!: Observable<GraphTypeaheadResult>;
 
@@ -67,17 +82,27 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   isOwner = false;
   modified = false;
 
+  accordion = viewChild.required(MatAccordion);
+
   constructor(
     public readonly permission: PermissionService,
-    private readonly graphApi: GraphApiService,
-    private readonly collectionApi: CollectionApiService,
     public readonly dialogRef: MatDialogRef<MemberDialogComponent>,
     @Inject(MAT_DIALOG_DATA)
     public readonly data: { vertex: string; name: string },
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     @Inject(CONFIG_RECORD)
     public readonly configRecord: CollectionConfigNameRecord,
+    private readonly graphApi: GraphApiService,
+    private readonly collectionApi: CollectionApiService,
+    private readonly snackBar: MatSnackBar,
   ) {}
+
+  onUserRoleChange(name: string) {
+    if (this.userRoleSelected() === name) {
+      return;
+    }
+    this.userRoleSelected.set(name);
+  }
 
   ngOnInit() {
     this.triggerRefresh
@@ -161,7 +186,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   }
 
   addUser() {
-    // console.log(this.userTypeSelected);
+    // console.log(this.userRoleSelected);
     // console.log(this.userControl.value);
     if (
       this.userControl.value &&
@@ -170,16 +195,34 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     ) {
       this.graphApi
         .addEdge({
-          name: this.userTypeSelected,
+          name: this.userRoleSelected(),
           source: this.userControl.value.id,
           target: this.data.vertex,
         })
+        .pipe(
+          catchError((val) => {
+            if (
+              val.status === 400 &&
+              val.error.error === 'No duplicate edges'
+            ) {
+              this.openSnackBar('This user already has this role');
+            }
+            throw val;
+          }),
+        )
         .subscribe(() => {
           this.userControl.setValue(undefined);
           this.modified = true;
           this.triggerRefresh.next();
         });
     }
+  }
+
+  private openSnackBar(message: string) {
+    const config = new MatSnackBarConfig();
+    config.duration = 5000;
+    config.verticalPosition = 'bottom';
+    this.snackBar.open(message, 'Dismiss', config);
   }
 
   removeUsers(data: any) {
