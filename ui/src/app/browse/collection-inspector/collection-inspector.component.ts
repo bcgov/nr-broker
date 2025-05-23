@@ -53,7 +53,6 @@ import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fie
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
 import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
-import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
@@ -75,6 +74,11 @@ import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto
 import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
+import {
+  CollectionTableComponent,
+  ShowFilter,
+} from '../collection-table/collection-table.component';
+import { SortDirection } from '@angular/material/sort';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -91,6 +95,7 @@ import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.co
     MatSnackBarModule,
     MatTabsModule,
     CollectionHeaderComponent,
+    CollectionTableComponent,
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorIntentionsComponent,
@@ -106,7 +111,6 @@ import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.co
     ServiceBuildsComponent,
     ServiceInstanceDetailsComponent,
     ServiceInstancesComponent,
-    TeamAccountsComponent,
     TeamMembersComponent,
     TeamServicesComponent,
     TeamRolesComponent,
@@ -141,6 +145,21 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   selectedTabIndex = 0;
   selectedBuild: string | undefined;
   screenSize: string = '';
+
+  tableCollection = signal<CollectionNames>('project');
+  collectionOptions: CollectionNames[] = [
+    'project',
+    'service',
+    'brokerAccount',
+    'repository',
+  ];
+  text = signal('');
+  tags = signal('');
+  showFilter = signal<ShowFilter>('all');
+  index = signal(0);
+  size = signal(10);
+  sortActive = signal('');
+  sortDirection = signal<SortDirection>('');
 
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
@@ -426,6 +445,26 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe();
+  }
+
+  updateTableRoute($event: any) {
+    if (this.tableCollection() === $event.collection) {
+      this.text.set($event.text);
+      this.tags.set($event.tags.join(','));
+      this.index.set($event.index);
+      this.size.set($event.size);
+      this.sortActive.set($event.sortActive);
+      this.sortDirection.set($event.sortDirection);
+    } else {
+      this.tableCollection.set($event.collection);
+      this.text.set('');
+      this.tags.set('');
+      this.index.set(0);
+      this.size.set($event.size);
+      this.sortActive.set('');
+      this.sortDirection.set('');
+    }
+    // console.log($event);
   }
 
   private openSnackBar(message: string) {

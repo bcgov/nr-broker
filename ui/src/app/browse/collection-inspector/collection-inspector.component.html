@@ -385,17 +385,29 @@
           [teamVertex]="comboData.collection.vertex"></app-team-services>
       </div>
     </mat-tab>
-    <mat-tab label="Accounts">
-      <div
-        class="inspector-card-layout inspector-tab-full-margin"
-        [class]="screenSize">
-        <app-team-accounts
-          class="full-width order-end"
-          [teamVertex]="comboData.collection.vertex"
-          [config]="config"
-          [hasSudo]="hasSudo"
-          [hasUpdate]="hasUpdate"></app-team-accounts>
-      </div>
+    <mat-tab label="Resources">
+      <ng-template matTabContent>
+        <div
+          class="inspector-card-layout"
+          [class]="screenSize">
+
+          <app-collection-table
+            class="full-width order-end"
+            [collection]="tableCollection()"
+            [collectionOptions]="collectionOptions"
+            [upstreamId]="comboData.collection.vertex"
+            [text]="text()"
+            [showFilter]="showFilter()"
+            [tags]="tags()"
+            [index]="index()"
+            [size]="size()"
+            [sortActive]="sortActive()"
+            [sortDirection]="sortDirection()"
+            (settingsUpdated)="updateTableRoute($event)"
+            ></app-collection-table>
+
+        </div>
+      </ng-template>
     </mat-tab>
   }
   </mat-tab-group>

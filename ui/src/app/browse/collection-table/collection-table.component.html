@@ -1,6 +1,18 @@
 
 <div class="collection-flex-container">
   <form>
+    @if (collectionFilterOptions().length > 0) {
+      <mat-form-field>
+        <mat-label>Collection</mat-label>
+        <mat-select
+          (selectionChange)="updateSettings({collection: $event.value})"
+          [value]="collection()">
+          @for (collection of collectionFilterOptions(); track collection.value) {
+            <mat-option [value]="collection.value">{{collection.viewValue}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
     <mat-form-field class="field-typeahead-filter">
       <mat-label>Filter</mat-label>
       <input
@@ -26,7 +38,7 @@
         </mat-select>
       </mat-form-field>
     }
-    @if (canFilterConnected.includes(collection())) {
+    @if (canFilterConnected.includes(collection()) && !upstreamId()) {
       <mat-form-field class="field-show-filter">
         <mat-label>Show</mat-label>
         <mat-select
