@@ -76,7 +76,11 @@ export class GraphUtilService {
         }
       }
       if (config.fields[fieldKey].type === 'stringArray') {
-        vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
+        if (val.trim() === '') {
+          vertexData[fieldKey] = [];
+        } else {
+          vertexData[fieldKey] = val.split(',').map((s: string) => s.trim());
+        }
       }
       if (config.fields[fieldKey].type === 'number') {
         vertexData[fieldKey] = Number.parseInt(val);
