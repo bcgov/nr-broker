@@ -77,7 +77,8 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         }
       }
 
-      if (f.required) {
+      // stringArray always exists even if empty so required is not needed
+      if (f.required && f.type !== 'stringArray') {
         validators.push(Validators.required);
       }
       if (f.type === 'boolean') {

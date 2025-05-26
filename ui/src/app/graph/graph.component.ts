@@ -207,7 +207,8 @@ export class GraphComponent implements OnInit, OnDestroy {
             const targetVertex = graphData.idToVertex[edge.target];
             if (targetVertex) {
               const parentEdgeName =
-                this.configRecord[targetVertex.collection]?.parent?.edgeName;
+                this.configRecord[targetVertex.collection as CollectionNames]
+                  ?.parent?.edgeName;
               if (parentEdgeName && edge.name === parentEdgeName) {
                 const sourceVertex = graphData.idToVertex[edge.source];
                 targetVertex.parentName = sourceVertex.name;

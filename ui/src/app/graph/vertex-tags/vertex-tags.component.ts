@@ -1,18 +1,9 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  Inject,
-  Input,
-  OnChanges,
-  OnInit,
-  input,
-} from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
 import { VertexPointerDto } from '../../service/persistence/dto/vertex-pointer.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
@@ -21,29 +12,19 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
   templateUrl: './vertex-tags.component.html',
   styleUrl: './vertex-tags.component.scss',
 })
-export class VertexTagsComponent implements OnInit, OnChanges {
+export class VertexTagsComponent {
+  private readonly configRecord = inject(CONFIG_RECORD);
+  private readonly router = inject(Router);
+
   readonly collection = input.required<CollectionNames>();
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input()
-  collectionData!: VertexPointerDto;
-
-  public config!: CollectionConfigDto;
-
-  constructor(
-    private readonly router: Router,
-    @Inject(CONFIG_RECORD)
-    private readonly configRecord: CollectionConfigNameRecord,
-  ) {}
-
-  ngOnInit(): void {
-    this.config = this.configRecord[this.collection()];
-  }
-
-  ngOnChanges(): void {
-    this.ngOnInit();
-  }
+  readonly collectionData = input.required<VertexPointerDto>();
+  readonly collectionTags = computed(() => {
+    const data = this.collectionData();
+    return data.tags ? data.tags : [];
+  });
+  readonly config = computed(() => {
+    return this.configRecord[this.collection()];
+  });
 
   browseTag(tag: string) {
     this.router.navigate([`/browse/${this.collection()}`, { tags: [tag] }]);

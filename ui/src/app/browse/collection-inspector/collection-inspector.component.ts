@@ -1,5 +1,12 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, inject, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  Inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,7 +53,6 @@ import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fie
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
 import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
-import { TeamAccountsComponent } from '../team-accounts/team-accounts.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
@@ -57,7 +63,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
 import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
-import { TeamSummaryComponent } from '../team-summary/team-summary.component';
+import { TeamRolesComponent } from '../team-roles/team-roles.component';
 import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
@@ -67,6 +73,12 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
+import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
+import {
+  CollectionTableComponent,
+  ShowFilter,
+} from '../collection-table/collection-table.component';
+import { SortDirection } from '@angular/material/sort';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -83,6 +95,7 @@ import { InspectorRepositorySyncComponent } from '../../graph/inspector-reposito
     MatSnackBarModule,
     MatTabsModule,
     CollectionHeaderComponent,
+    CollectionTableComponent,
     InspectorAccountComponent,
     InspectorInstallsComponent,
     InspectorIntentionsComponent,
@@ -98,10 +111,9 @@ import { InspectorRepositorySyncComponent } from '../../graph/inspector-reposito
     ServiceBuildsComponent,
     ServiceInstanceDetailsComponent,
     ServiceInstancesComponent,
-    TeamAccountsComponent,
     TeamMembersComponent,
     TeamServicesComponent,
-    TeamSummaryComponent,
+    TeamRolesComponent,
     UserAliasComponent,
     VertexTagsComponent,
   ],
@@ -129,9 +141,25 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasUpdate = false;
   hasApprove = false;
 
+  refresh = signal(0);
   selectedTabIndex = 0;
   selectedBuild: string | undefined;
   screenSize: string = '';
+
+  tableCollection = signal<CollectionNames>('project');
+  collectionOptions: CollectionNames[] = [
+    'project',
+    'service',
+    'brokerAccount',
+    'repository',
+  ];
+  text = signal('');
+  tags = signal('');
+  showFilter = signal<ShowFilter>('all');
+  index = signal(0);
+  size = signal(10);
+  sortActive = signal('');
+  sortDirection = signal<SortDirection>('');
 
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
@@ -280,6 +308,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           });
       }
       this.loading = false;
+      this.refresh.set(this.refresh() + 1);
     });
   }
 
@@ -400,6 +429,42 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
             });
         }
       });
+  }
+
+  openMemberDialog() {
+    if (!this.comboData) {
+      return;
+    }
+    this.dialog
+      .open(MemberDialogComponent, {
+        width: '600px',
+        data: {
+          vertex: this.comboData.vertex.id,
+          name: this.comboData.collection.name,
+        },
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  updateTableRoute($event: any) {
+    if (this.tableCollection() === $event.collection) {
+      this.text.set($event.text);
+      this.tags.set($event.tags.join(','));
+      this.index.set($event.index);
+      this.size.set($event.size);
+      this.sortActive.set($event.sortActive);
+      this.sortDirection.set($event.sortDirection);
+    } else {
+      this.tableCollection.set($event.collection);
+      this.text.set('');
+      this.tags.set('');
+      this.index.set(0);
+      this.size.set($event.size);
+      this.sortActive.set('');
+      this.sortDirection.set('');
+    }
+    // console.log($event);
   }
 
   private openSnackBar(message: string) {
