@@ -462,7 +462,7 @@ export class AccountService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @CreateRequestContext()
   async sendJwtExpirationNotification() {
     const CURRENT_TIME_MS = Date.now();
