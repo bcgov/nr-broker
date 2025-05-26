@@ -28,6 +28,7 @@ import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphService } from '../graph/graph.service';
+import { JobQueueUtil } from '../util/job-queue.util';
 
 @Injectable()
 export class GithubSyncService {
@@ -42,6 +43,7 @@ export class GithubSyncService {
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly jobQueueUtil: JobQueueUtil,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {
@@ -164,10 +166,15 @@ export class GithubSyncService {
   })
   @CreateRequestContext()
   async pollRefreshCronSecrets(): Promise<void> {
-    await this.refreshJobWrap(
+    await this.jobQueueUtil.refreshJobWrap(
+      this.schedulerRegistry,
       CRON_JOB_SYNC_SECRETS,
       REDIS_QUEUES.GITHUB_SYNC_SECRETS,
-      (id: string) => {
+      () =>
+        this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_SECRETS) as Promise<
+          string | null
+        >,
+      async (id: string) => {
         return this.runRefresh(id, true, false);
       },
     );
@@ -178,15 +185,20 @@ export class GithubSyncService {
   })
   @CreateRequestContext()
   async pollRefreshCronUsers(): Promise<void> {
-    await this.refreshJobWrap(
+    await this.jobQueueUtil.refreshJobWrap(
+      this.schedulerRegistry,
       CRON_JOB_SYNC_USERS,
       REDIS_QUEUES.GITHUB_SYNC_USERS,
-      (id: string) => {
+      () =>
+        this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_USERS) as Promise<
+          string | null
+        >,
+      async (id: string) => {
         return this.runRefresh(id, false, true);
       },
     );
   }
-
+  /*
   private async refreshJobWrap(
     jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
     queueName: (typeof REDIS_QUEUES)[keyof typeof REDIS_QUEUES],
@@ -206,7 +218,7 @@ export class GithubSyncService {
       job.start(); // resuming the cron job
     }
   }
-
+  */
   async runRefresh(
     repositoryId: string,
     syncSecrets: boolean,

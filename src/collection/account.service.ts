@@ -41,7 +41,7 @@ import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { EmailService } from '../communication/email.service';
 import { TeamDto } from '../persistence/dto/team.dto';
-import { UserDto } from 'src/persistence/dto/user.dto';
+import { UserDto } from '../persistence/dto/user.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -462,7 +462,7 @@ export class AccountService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   @CreateRequestContext()
   async sendJwtExpirationNotification() {
     const CURRENT_TIME_MS = Date.now();
@@ -538,7 +538,7 @@ export class AccountService {
           continue;
         }
 
-        if ([7, 2, 1].includes(daysUntilExpiration)) {
+        if ([7, 3, 2, 1].includes(daysUntilExpiration)) {
           const emailSubject = `Transitory: Token Expiration Warning for ${account.name}`;
           const emailBody = {
             teamName: teamName,

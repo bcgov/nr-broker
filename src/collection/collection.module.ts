@@ -16,7 +16,7 @@ import { RedisModule } from '../redis/redis.module';
 import { VaultModule } from '../vault/vault.module';
 import { TeamCollectionService } from './team-collection.service';
 import { RepositoryCollectionService } from './repository-collection.service';
-import { CommunicationModule } from 'src/communication/communication.module';
+import { CommunicationModule } from '../communication/communication.module';
 
 /**
  * The collection module enables the viewing and manipulation of the objects

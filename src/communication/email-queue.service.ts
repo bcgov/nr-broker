@@ -18,7 +18,7 @@ export class EmailQueueService {
     private readonly orm: MikroORM,
   ) {}
 
-  @Cron(CronExpression.EVERY_HOUR, { name: CRON_JOB_SEND_EMAILS })
+  @Cron(CronExpression.EVERY_30_SECONDS, { name: CRON_JOB_SEND_EMAILS })
   @CreateRequestContext()
   async pollEmailQueue(): Promise<void> {
     await this.jobQueueUtil.refreshJobWrap(

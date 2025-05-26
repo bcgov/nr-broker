@@ -8,6 +8,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { RedisModule } from '../redis/redis.module';
 import { GraphModule } from '../graph/graph.module';
 import { VaultModule } from '../vault/vault.module';
+import { UtilModule } from '../util/util.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { VaultModule } from '../vault/vault.module';
     RedisModule,
     TerminusModule,
     VaultModule,
+    UtilModule,
   ],
   providers: [GithubService, GithubSyncService, GithubHealthIndicator],
   exports: [GithubService, GithubSyncService, GithubHealthIndicator],
