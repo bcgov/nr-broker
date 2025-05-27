@@ -17,12 +17,14 @@ import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
+  BROKER_URL,
   OPENSEARCH_INDEX_BROKER_AUDIT,
   IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
   VAULT_KV_APPS_MOUNT,
   REDIS_PUBSUB,
+  REDIS_QUEUES,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
 import { ActionError } from '../intention/action.error';
@@ -37,6 +39,9 @@ import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { EmailService } from '../communication/email.service';
+import { TeamDto } from '../persistence/dto/team.dto';
+import { UserDto } from '../persistence/dto/user.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -57,6 +62,7 @@ export class AccountService {
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
     private schedulerRegistry: SchedulerRegistry,
+    private readonly emailService: EmailService,
   ) {}
 
   async getRegisteryJwts(accountId: string): Promise<JwtRegistryEntity[]> {
@@ -453,6 +459,123 @@ export class AccountService {
         'success',
         ['token', 'warning', 'expiry'],
       );
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @CreateRequestContext()
+  async sendJwtExpirationNotification() {
+    const CURRENT_TIME_MS = Date.now();
+    const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
+
+    if (!IS_PRIMARY_NODE) {
+      // Nodes that are not the primary one should not run lifecycle
+      return;
+    }
+
+    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
+      CURRENT_TIME_S + 60 * 60 * 24 * 7,
+    );
+
+    for (const expiredJwt of expiredJwtArr) {
+      if (expiredJwt.blocked) {
+        continue;
+      }
+      const timeUntilExpiration = expiredJwt.claims.exp - CURRENT_TIME_S;
+      const daysUntilExpiration = Math.floor(
+        timeUntilExpiration / (60 * 60 * 24),
+      );
+      const account = await this.collectionRepository.getCollectionById(
+        'brokerAccount',
+        expiredJwt.accountId.toString(),
+      );
+      if (!account) {
+        continue;
+      }
+      const teamDtoArr = await this.graphRepository.getUpstreamVertex<TeamDto>(
+        account.vertex.toString(),
+        CollectionNameEnum.team,
+        ['owns'],
+      );
+      if (!teamDtoArr) {
+        continue;
+      }
+
+      for (const team of teamDtoArr) {
+        const teamName = team.collection.name;
+
+        let users = await this.graphRepository.getUpstreamVertex<UserDto>(
+          team.collection.vertex.toString(),
+          CollectionNameEnum.user,
+          ['lead-developer'],
+        );
+        if (!users || users.length === 0) {
+          users = await this.graphRepository.getUpstreamVertex<UserDto>(
+            team.collection.vertex.toString(),
+            CollectionNameEnum.user,
+            ['owner'],
+          );
+          if (!users || users.length === 0) {
+            continue;
+          }
+        }
+        //get first valid user's email
+        let notificationEmail = '';
+        for (const user of users) {
+          if (user.collection.email) {
+            notificationEmail = notificationEmail + user.collection.email + ';';
+          } else continue;
+        }
+        if (!notificationEmail) {
+          this.auditService.recordAccountTokenLifecycle(
+            null,
+            expiredJwt.claims,
+            `Failed to send expiration email token (${expiredJwt.claims.client_id})`,
+            'info',
+            'failure',
+            ['token', 'email', 'notification'],
+          );
+          continue;
+        }
+
+        if ([7, 3, 2, 1].includes(daysUntilExpiration)) {
+          const emailSubject = `Transitory: Token Expiration Warning for ${account.name}`;
+          const emailBody = {
+            teamName: teamName,
+            accountName: account.name,
+            client_id: expiredJwt.claims.client_id,
+            broker_url: BROKER_URL,
+            daysUntilExpiration: daysUntilExpiration,
+          };
+          try {
+            await this.redisService.queue(
+              REDIS_QUEUES.NOTIFIFICATION_EMAILS,
+              JSON.stringify({
+                to: notificationEmail,
+                subject: emailSubject,
+                context: emailBody,
+              }),
+            );
+            this.auditService.recordAccountTokenLifecycle(
+              null,
+              expiredJwt.claims,
+              `Expiration email(s) sent to ${notificationEmail} for token (${expiredJwt.claims.client_id}) is queued`,
+              'info',
+              'success',
+              ['token', 'email', 'notification'],
+            );
+          } catch (error) {
+            this.auditService.recordAccountTokenLifecycle(
+              null,
+              expiredJwt.claims,
+              `Failed to queued expiration email(s) to ${notificationEmail} for token (${expiredJwt.claims.client_id})`,
+              'info',
+              'failure',
+              ['token', 'email', 'notification'],
+            );
+          }
+        }
+      }
     }
   }
 }
