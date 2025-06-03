@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { createMock } from '@golevelup/ts-jest';
-import { EmailService } from './email.service';
+import { CommunicationEmailService } from './communication-email.service';
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import ejs from 'ejs';
@@ -18,7 +18,7 @@ jest.mock('ejs', () => ({
 (fs.promises.readFile as unknown as jest.Mock) = jest.fn();
 
 describe('EmailService', () => {
-  let service: EmailService;
+  let service: CommunicationEmailService;
   let sendMailMock: jest.Mock;
   let useMock: jest.Mock;
   let readFileMock: jest.Mock;
@@ -36,12 +36,22 @@ describe('EmailService', () => {
     });
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EmailService],
+      providers: [
+        {
+          provide: 'COMMUNICATION_EMAIL_TRANSPORT',
+          useValue: {
+            host: 'smtp.example.com',
+            port: 587,
+            secure: false, // true for 465, false for other ports
+          },
+        },
+        CommunicationEmailService,
+      ],
     })
       .useMocker(createMock)
       .compile();
 
-    service = module.get<EmailService>(EmailService);
+    service = module.get<CommunicationEmailService>(CommunicationEmailService);
   });
 
   it('should be defined', () => {
@@ -49,7 +59,7 @@ describe('EmailService', () => {
   });
 
   it('should call sendMail with correct parameters', async () => {
-    const emailBody = {
+    const context = {
       teamName: 'test-team',
       accountName: 'myaccount',
       client_id: 'client_id',
@@ -58,15 +68,27 @@ describe('EmailService', () => {
 
     readFileMock.mockResolvedValue('<ejs template>');
     ejsRenderMock.mockReturnValue('<html>Rendered Email</html>');
-
-    await service.sendAlertEmail('test@example.com', 'Test Subject', emailBody);
+    const userObj = {
+      email: 'test@example.com',
+      id: 'something',
+      vertex: '123',
+      domain: 'bob',
+      guid: '456',
+      name: 'Bob',
+      username: 'babob',
+    };
+    await service.send(userObj, 'test', context);
 
     expect(readFileMock).toHaveBeenCalled();
-    expect(ejsRenderMock).toHaveBeenCalledWith('<ejs template>', emailBody);
+    expect(ejsRenderMock).toHaveBeenCalledWith('<ejs template>', {
+      brokerUrl: '',
+      user: userObj,
+      ...context,
+    });
     expect(sendMailMock).toHaveBeenCalledWith({
       from: expect.any(String),
       to: 'test@example.com',
-      subject: 'Test Subject',
+      subject: '<html>Rendered Email</html>',
       html: '<html>Rendered Email</html>',
     });
   });
@@ -79,16 +101,29 @@ describe('EmailService', () => {
 
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    await service.sendAlertEmail('test@example.com', 'Test Subject', {
-      teamName: 'test-team',
-      accountName: 'myaccount',
-      client_id: 'client_id',
-      daysUntilExpiration: 1,
-    });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error occurred: ' + error.message,
-    );
+    try {
+      await service.send(
+        {
+          email: 'test@example.com',
+          id: 'something',
+          vertex: '123',
+          domain: 'bob',
+          guid: '456',
+          name: 'Bob',
+          username: 'babob',
+        },
+        'test',
+        {
+          teamName: 'test-team',
+          accountName: 'myaccount',
+          client_id: 'client_id',
+          daysUntilExpiration: 1,
+        },
+      );
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error);
+      expect(e.message).toBe('Failed to send email');
+    }
 
     consoleErrorSpy.mockRestore();
   });

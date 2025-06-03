@@ -518,6 +518,41 @@ export class AuditService {
       });
   }
 
+  public recordCommunications(
+    id: string,
+    message: string,
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    tags: string[],
+  ) {
+    from([
+      {
+        message,
+        event: {
+          id,
+          action: 'communications',
+          category: 'process',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+          outcome,
+        },
+        tags,
+      },
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addTimestampFunc()),
+      )
+      .subscribe((ecsObj) => {
+        this.stream.putRecord(ecsObj);
+      });
+  }
+
   /**
    * Records http access to the generic access log
    * @param req The initiating http request
