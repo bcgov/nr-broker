@@ -502,8 +502,7 @@ export class AccountService {
         'token-expiration-alert',
         account.vertex.toString(),
         [
-          { ref: 'upstream', value: 'lead-developer' },
-          { ref: 'upstream', value: 'full-access' },
+          { ref: 'upstream', value: ['lead-developer', 'full-access'] },
           { ref: 'upstream', value: 'owner', optional: true },
         ],
         'token-expiration-alert',

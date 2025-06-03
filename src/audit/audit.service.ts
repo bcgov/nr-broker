@@ -530,7 +530,7 @@ export class AuditService {
         message,
         event: {
           id,
-          action: 'sync-tools',
+          action: 'communications',
           category: 'process',
           dataset: 'broker.audit',
           kind: 'event',

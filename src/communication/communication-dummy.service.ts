@@ -17,7 +17,7 @@ export class CommunicationDummyService extends CommunicationTaskService {
   ): Promise<void> {
     const subject = await this.render('subject', template, to, context);
     this.logger.log(
-      `to: "${to.email}" template: "${template}" subject: "${subject}" context: ${JSON.stringify(context)} user: ${JSON.stringify(to)}`,
+      `to: "${to.username}@${to.domain}" template: "${template}" subject: "${subject}" context: ${JSON.stringify(context)} user: ${JSON.stringify(to)}`,
     );
   }
 }

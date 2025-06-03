@@ -15,7 +15,7 @@ import { COMMUNICATION_TASKS } from './communication.constants';
 
 interface CommunicationUserRef {
   ref: 'upstream';
-  value: string;
+  value: string | string[] | null;
   optional?: boolean;
 }
 
@@ -154,7 +154,7 @@ export class CommunicationQueueService {
         const users = await this.graphRepository.getUpstreamVertex<UserDto>(
           job.vertexId,
           CollectionNameEnum.user,
-          [jobUser.value],
+          Array.isArray(jobUser.value) ? jobUser.value : [jobUser.value],
         );
 
         userArr.push(...users.map((user) => user.collection));
