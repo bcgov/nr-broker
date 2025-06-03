@@ -224,7 +224,7 @@ export class CollectionService {
       vertexIds = typeaheadData.data.map((data) => data.id);
     }
 
-    return this.collectionRepository.searchCollection(
+    return this.collectionRepository.filterCollection(
       type,
       tags,
       upstreamVertex,

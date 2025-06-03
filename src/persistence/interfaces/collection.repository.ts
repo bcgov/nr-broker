@@ -51,7 +51,7 @@ export abstract class CollectionRepository {
     type: T,
   ): Promise<CollectionEntityUnion[T][]>;
 
-  public abstract searchCollection<T extends keyof CollectionEntityUnion>(
+  public abstract filterCollection<T extends keyof CollectionEntityUnion>(
     type: T,
     tags: string[] | undefined,
     upstreamVertex: string | undefined,

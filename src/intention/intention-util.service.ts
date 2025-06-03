@@ -25,6 +25,13 @@ export class IntentionUtilService {
         user.name,
         user.domain,
       );
+
+      if (!userEntity) {
+        userEntity = await this.userCollectionService.lookupUserByAlias(
+          user.name,
+          user.domain,
+        );
+      }
     }
 
     if (userEntity) {
