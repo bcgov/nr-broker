@@ -4,6 +4,7 @@ import { AuditModule } from '../audit/audit.module';
 import { GithubModule } from '../github/github.module';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
+import { CommunicationModule } from '../communication/communication.module';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { TokenModule } from '../token/token.module';
 
@@ -13,6 +14,7 @@ import { TokenModule } from '../token/token.module';
 @Module({
   imports: [
     AuditModule,
+    CommunicationModule,
     GithubModule,
     PersistenceModule,
     TerminusModule,

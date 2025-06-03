@@ -8,6 +8,7 @@ import {
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { HealthService } from './health.service';
 import { GithubHealthIndicator } from '../github/github.health';
+import { CommunicationHealthIndicator } from '../communication/communication.health';
 
 @Controller({
   path: 'health',
@@ -15,6 +16,7 @@ import { GithubHealthIndicator } from '../github/github.health';
 })
 export class HealthController {
   constructor(
+    private readonly communication: CommunicationHealthIndicator,
     private readonly health: HealthCheckService,
     private readonly http: HttpHealthIndicator,
     private readonly github: GithubHealthIndicator,
@@ -35,6 +37,7 @@ export class HealthController {
         ),
       () => this.db.pingCheck('database'),
       () => this.github.isHealthy('github'),
+      () => this.communication.isHealthy('communication'),
     ]);
   }
 
