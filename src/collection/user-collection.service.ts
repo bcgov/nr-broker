@@ -34,6 +34,18 @@ export class UserCollectionService {
     );
   }
 
+  async lookupUserByAlias(guid: string, domain?: string): Promise<UserEntity> {
+    if (!domain) {
+      [guid, domain] = guid.split('@');
+    }
+    return this.collectionRepository.getCollection('user', {
+      alias: {
+        guid,
+        domain,
+      },
+    });
+  }
+
   async lookupUserByName(
     username: string,
     domain?: string,

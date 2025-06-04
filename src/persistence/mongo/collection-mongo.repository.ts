@@ -193,7 +193,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     );
   }
 
-  public async searchCollection<T extends keyof CollectionDtoUnion>(
+  public async filterCollection<T extends keyof CollectionDtoUnion>(
     type: T,
     tags: string[] | undefined,
     upstreamVertex: string | undefined,
