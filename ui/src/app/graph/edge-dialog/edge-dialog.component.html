@@ -16,34 +16,56 @@
             [formControl]="edgeControl"
             name="edgeConfig"
             (selectionChange)="configChanged()">
-            <mat-option value="" selected></mat-option>
+            @if (configRecord[data.collection].edges.length > 1) {
+              <mat-option value="" selected></mat-option>
+            }
             @for (edgeConfig of configRecord[data.collection].edges; track edgeConfig) {
               <mat-option [value]="edgeConfig">{{configRecord[edgeConfig.collection].name}} ({{edgeConfig.name}})</mat-option>
             }
           </mat-select>
+          <mat-hint>Pick the target collection and the edge type</mat-hint>
         </mat-form-field>
 
         <mat-form-field class="edge-editor-full-width" appearance="fill">
-          <mat-label>Target</mat-label>
+          <mat-label>Target Vertex</mat-label>
           <input
             type="text"
             name="targetVertex"
-            placeholder="Search and pick one"
+            placeholder="Choose target vertex"
             aria-label="Name"
             spellcheck="false"
             matInput
             [formControl]="vertexControl"
-            [matAutocomplete]="auto">
+            [matAutocomplete]="auto"
+            (keydown)="onVertexInputKeyDown($event)">
           <mat-autocomplete
             autoActiveFirstOption
             #auto="matAutocomplete"
-            [displayWith]="displayFn">
-            @for (option of (filteredOptions | async)?.data; track option) {
-              <mat-option [value]="option">
-                <app-vertex-name [vertex]="option"></app-vertex-name>
+            [displayWith]="vertexDropdownDisplayFn">
+            @if (edgeControl.value && typeof edgeControl.value !== 'string' && configRecord[edgeControl.value.collection].permissions.create) {
+              <mat-option [value]="NEW_VERTEX">
+                Add Vertex
               </mat-option>
+              <mat-divider></mat-divider>
+            }
+            @if (typeof vertexControl.value === 'string' || vertexControl.value === null) {
+              @for (option of vertexSearchSignal().data; track option) {
+                <mat-option [value]="option">
+                  <app-vertex-name [vertex]="option"></app-vertex-name>
+                </mat-option>
+              }
+              @if (vertexSearchSignal().data.length === 0) {
+                <mat-option [value]="''" disabled="true">
+                  @if (vertexSearchSignal().meta.keepTyping) {
+                  Please enter at least 2 characters to search
+                  } @else {
+                  No matching vertices found
+                  }
+                </mat-option>
+              }
             }
           </mat-autocomplete>
+          <mat-hint>Pick the target vertex</mat-hint>
         </mat-form-field>
       }
       <app-property-editor
@@ -65,7 +87,11 @@
     @if (data.edge) {
       Edit
     } @else {
-      Add
+      @if (vertexControl.value === NEW_VERTEX) {
+        Next
+      } @else {
+        Add
+      }
     }
   </button>
 </mat-dialog-actions>
