@@ -13,5 +13,6 @@ export class GraphTypeaheadResult {
   data!: GraphTypeaheadData[];
   meta!: {
     total: number;
+    keepTyping?: boolean;
   };
 }
