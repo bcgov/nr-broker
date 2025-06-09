@@ -20,13 +20,7 @@ If you are assigned the owner role, membership management has been delegated to 
 
 ## What do the roles mean?
 
-| Role | Description |
-|--- | ---|
-| Owner | Can manage role members for this team |
-| Full-access | Access to sensitive and destructive operations in addition to lead-developer access |
-| Lead-developer | Extended access to this team's entities, including the ability to generate Broker account tokens |
-| Developer | Base read/write access to this team's entities |
-| Tester | Limited access with ability to approve builds |
+The roles are defined on the Team tab in the browser section. The roles may be used by external products that read NR Broker's database to grant permissions. For further information, please read your own documention that should be linked from your Broker deployment's homepage.
 
 ## How to reassign ownership
 
