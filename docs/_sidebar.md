@@ -26,6 +26,7 @@
 
 * Maintenance
 ** [Adding Internal Users](/operations_internal_user.md)
+** [Communication Setup](/operations_communication.md)
 ** [Customize Homepage](/dev_customize_connections.md)
 ** [Tools Secret Syncronization](/operations_secret_sync.md)
 

@@ -4,7 +4,7 @@ The communication module in the NR Broker backend updates users about events tha
 
 ## How it works
 
-Users are connected to various collection objects in the graph. Any collection object can act as a source of a communication event that is then sent out to upstream users with (optionally) the relevant roles.
+Users are connected to collection objects in NR Broker's graph. Any collection object can act as a source of a communication event that is then sent out to upstream users with (optionally) the relevant roles on their team.
 
 As an example, a deployment might trigger an event on that service that moves up through the graph to find tester role users so that they can begin testing.
 
