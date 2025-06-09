@@ -130,6 +130,17 @@ The Redis environment variables used to setup the connection.
 | REDIS_USER | '' | Yes | The Redis user |
 | REDIS_PASSWORD | '' | Yes | The Redis password |
 
+## Communication Services
+
+### Email (SMTP)
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| NOTIFICATION_EMAIL_HOST |  |  | The SMTP server host  |
+| NOTIFICATION_EMAIL_PORT |  |  | The SMTP server port |
+| NOTIFICATION_EMAIL_FROM |  |  | The email address communication emails should come from |
+| NOTIFICATION_EMAIL_SECURE |  |  | 'true' if the connection to SMTP should be secure |
+
 ## User Alias Services
 
 ### GitHub
