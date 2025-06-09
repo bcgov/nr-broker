@@ -54,7 +54,7 @@
       <p>Review member roles</p>
       <mat-accordion>
       @for (edge of edges; track edge.id) {
-        @if (users[edge.name].length > 0) {
+        @if (users[edge.name].length > 0 || userRoleSelected() === edge.name) {
           <mat-expansion-panel
             [expanded]="userRoleSelected() === edge.name"
             (opened)="onUserRoleChange(edge.name)">
