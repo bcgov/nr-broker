@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import get from 'lodash.get';
-import set from 'lodash.set';
+import delve from 'dlv';
+import { dset } from 'dset';
 import deepEqual from 'deep-equal';
 import { plainToClass } from 'class-transformer';
 
@@ -284,15 +284,15 @@ export class IntentionSyncService {
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
   ) {
-    let data = {};
+    const data = {};
     for (const config of configs) {
       if (config.path) {
-        const val = get(context, config.path);
+        const val = delve(context, config.path);
         if (val) {
-          data = set(data, config.key, get(context, config.path, val));
+          dset(data, config.key, delve(context, config.path, val));
         }
       } else {
-        data = set(data, config.key, config.value);
+        dset(data, config.key, config.value);
       }
     }
 

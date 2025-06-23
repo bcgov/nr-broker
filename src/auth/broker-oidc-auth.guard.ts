@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import get from 'lodash.get';
+import delve from 'dlv';
 import {
   ALLOW_OWNER_METADATA_KEY,
   AllowOwnerArgs,
@@ -63,7 +63,7 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     if (
       allowBodyValues &&
       allowBodyValues.some(
-        (test) => get(request.body, test.path) === test.value,
+        (test) => delve(request.body, test.path) === test.value,
       )
     ) {
       return true;
@@ -99,8 +99,11 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     }
     const graphId = userUpstreamData.graphIdFromParamKey
       ? request.params[userUpstreamData.graphIdFromParamKey]
-      : get(request.body, userUpstreamData.graphIdFromBodyPath);
-    const userGuid: string = get(request.user.userinfo, OAUTH2_CLIENT_MAP_GUID);
+      : delve(request.body, userUpstreamData.graphIdFromBodyPath);
+    const userGuid: string = delve(
+      request.user.userinfo,
+      OAUTH2_CLIENT_MAP_GUID,
+    );
     const permission: string = userUpstreamData.permission;
     // Mask data alterations as owner to prevent priviledged changes
     // console.log(userUpstreamData.permission);

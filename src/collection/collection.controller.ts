@@ -23,7 +23,7 @@ import {
 } from 'express';
 import { ApiBearerAuth, ApiOAuth2, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
-import get from 'lodash.get';
+import delve from 'dlv';
 import {
   OAUTH2_CLIENT_MAP_GUID,
   REDIS_PUBSUB,
@@ -97,8 +97,19 @@ export class CollectionController {
     @Request() req: ExpressRequest,
     @Response() res: ExpressResponse,
   ) {
-    const user = await this.userCollectionService.linkGithub(req, state, code);
-    res.redirect(`/browse/user/${user.id}`);
+    try {
+      const user = await this.userCollectionService.linkGithub(
+        req,
+        state,
+        code,
+      );
+      res.redirect(`/browse/user/${user.id}`);
+    } catch (e) {
+      const message = 'Problem linking GitHub account';
+      res.redirect(
+        `/error?code=400&message=${encodeURIComponent(message)}&error=${encodeURIComponent(e.message)}`,
+      );
+    }
   }
 
   /**
@@ -219,7 +230,7 @@ export class CollectionController {
       genQuery.expiration,
       genQuery.patch ?? false,
       genQuery.syncSecrets ?? false,
-      get((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
+      delve((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
       false,
     );
   }

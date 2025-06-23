@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import get from 'lodash.get';
+import delve from 'dlv';
 import {
   OAUTH2_CLIENT_MAP_DOMAIN,
   OAUTH2_CLIENT_MAP_EMAIL,
@@ -22,13 +22,13 @@ export class UserUtil {
     const userRoles = new UserRolesDto(vertex);
 
     userRoles.domain = OAUTH2_CLIENT_MAP_DOMAIN
-      ? get(userInfo, OAUTH2_CLIENT_MAP_DOMAIN)
+      ? delve(userInfo, OAUTH2_CLIENT_MAP_DOMAIN)
       : OAUTH2_CLIENT_DOMAIN;
-    userRoles.email = get(userInfo, OAUTH2_CLIENT_MAP_EMAIL);
-    userRoles.guid = get(userInfo, OAUTH2_CLIENT_MAP_GUID);
-    userRoles.name = get(userInfo, OAUTH2_CLIENT_MAP_NAME);
-    userRoles.roles = get(userInfo, OAUTH2_CLIENT_MAP_ROLES, []);
-    userRoles.username = get(
+    userRoles.email = delve(userInfo, OAUTH2_CLIENT_MAP_EMAIL);
+    userRoles.guid = delve(userInfo, OAUTH2_CLIENT_MAP_GUID);
+    userRoles.name = delve(userInfo, OAUTH2_CLIENT_MAP_NAME);
+    userRoles.roles = delve(userInfo, OAUTH2_CLIENT_MAP_ROLES, []);
+    userRoles.username = delve(
       userInfo,
       OAUTH2_CLIENT_MAP_USERNAME,
       '',

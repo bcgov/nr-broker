@@ -68,11 +68,11 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 export type ShowFilter = 'connected' | 'all';
 
-interface filterOptions<T> {
-  value: T;
-  viewValue: string;
-  tooltip: string;
-}
+// interface filterOptions<T> {
+//   value: T;
+//   viewValue: string;
+//   tooltip: string;
+// }
 
 interface TablePageQuery {
   index: number;

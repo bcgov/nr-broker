@@ -1,0 +1,20 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-subtitle>{{ code() }}</mat-card-subtitle>
+    <mat-card-title>{{ message() }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p>It seems something went wrong.</p>
+
+    @if (error()) {
+    <mat-card>
+      <mat-card-content>
+        {{ error() }}
+      </mat-card-content>
+    </mat-card>
+    }
+
+    <a mat-flat-button color="accent" routerLink="/">Go to home</a>
+  </mat-card-content>
+</mat-card>

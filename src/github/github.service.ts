@@ -6,17 +6,29 @@ import {
   GITHUB_OAUTH_CLIENT_SECRET,
   USER_ALIAS_DOMAIN_GITHUB,
 } from '../constants';
+import { AuditService } from '../audit/audit.service';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
+import { UserEntity } from '../persistence/entity/user.entity';
 
 @Injectable()
 export class GithubService {
-  constructor(private readonly systemRepository: SystemRepository) {}
+  constructor(
+    private readonly auditService: AuditService,
+    private readonly systemRepository: SystemRepository,
+  ) {}
 
   public isUserAliasEnabled() {
     return GITHUB_OAUTH_CLIENT_ID !== '' && GITHUB_OAUTH_CLIENT_SECRET !== '';
   }
 
-  public async generateAuthorizeUrl(accountId: string) {
+  public async generateAuthorizeUrl(user: UserEntity) {
+    const accountId = user.id.toString();
+    this.auditService.recordAliasLink(
+      user,
+      'start',
+      'unknown',
+      'GitHub Oauth state generated for account link',
+    );
     const state = await this.systemRepository.generateUserAliasRequestState(
       accountId,
       USER_ALIAS_DOMAIN_GITHUB,

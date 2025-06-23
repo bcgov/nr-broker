@@ -7,6 +7,7 @@ import snakecaseKeys from 'snakecase-keys';
 import { AuditStreamerService } from './audit-streamer.service';
 import { EdgeEntity } from '../persistence/entity/edge.entity';
 import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { UserEntity } from '../persistence/entity/user.entity';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { ActionError } from '../intention/action.error';
@@ -99,7 +100,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
-        map(this.addUserFunc(intention.user)),
+        map(this.addIntentionUserFunc(intention.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -156,7 +157,7 @@ export class AuditService {
           map(this.addServiceFunc),
           map(this.addSourceFunc(req)),
           map(this.addTimestampFunc(now)),
-          map(this.addUserFunc(intention.user)),
+          map(this.addIntentionUserFunc(intention.user)),
         )
         .subscribe((ecsObj) => {
           this.stream.putRecord(ecsObj);
@@ -206,7 +207,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
-        map(this.addUserFunc(intention.user)),
+        map(this.addIntentionUserFunc(intention.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -252,7 +253,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
-        map(this.addUserFunc(action.user)),
+        map(this.addIntentionUserFunc(action.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -295,7 +296,7 @@ export class AuditService {
         map(this.addServiceFunc),
         map(this.addSourceFunc(req)),
         map(this.addTimestampFunc(now)),
-        map(this.addUserFunc(action.user)),
+        map(this.addIntentionUserFunc(action.user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -512,6 +513,39 @@ export class AuditService {
         map(this.addMetadataActivityFunc()),
         map(this.addServiceFunc),
         map(this.addTimestampFunc()),
+      )
+      .subscribe((ecsObj) => {
+        this.stream.putRecord(ecsObj);
+      });
+  }
+
+  public recordAliasLink(
+    user: UserEntity,
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+  ) {
+    from([
+      {
+        message,
+        event: {
+          action: 'alias-link',
+          category: 'process',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+          outcome,
+        },
+      },
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addMetadataActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addTimestampFunc()),
+        map(this.addUserFunc(user)),
       )
       .subscribe((ecsObj) => {
         this.stream.putRecord(ecsObj);
@@ -997,7 +1031,30 @@ export class AuditService {
    * @param user The user
    * @returns Function to manipulate the ECS document
    */
-  private addUserFunc(user: UserEmbeddable | null) {
+  private addUserFunc(user: UserEntity | null) {
+    if (!user) {
+      return (ecsObj: any) => ecsObj;
+    }
+
+    return (ecsObj: any) => {
+      return merge(ecsObj, {
+        user: this.removeUndefined({
+          domain: user.domain,
+          email: user.email,
+          full_name: user.name,
+          id: user.id,
+          name: user.name,
+        }),
+      });
+    };
+  }
+
+  /**
+   * Map function generator for adding user to ECS document
+   * @param user The user
+   * @returns Function to manipulate the ECS document
+   */
+  private addIntentionUserFunc(user: UserEmbeddable | null) {
     if (!user) {
       return (ecsObj: any) => ecsObj;
     }

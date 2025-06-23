@@ -136,10 +136,10 @@ The Redis environment variables used to setup the connection.
 
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
-| NOTIFICATION_EMAIL_HOST |  |  | The SMTP server host  |
-| NOTIFICATION_EMAIL_PORT |  |  | The SMTP server port |
-| NOTIFICATION_EMAIL_FROM |  |  | The email address communication emails should come from |
-| NOTIFICATION_EMAIL_SECURE |  |  | 'true' if the connection to SMTP should be secure |
+| NOTIFICATION_EMAIL_HOST | '' |  | The SMTP server host  |
+| NOTIFICATION_EMAIL_PORT | '' |  | The SMTP server port |
+| NOTIFICATION_EMAIL_FROM | '' |  | The email address communication emails should come from |
+| NOTIFICATION_EMAIL_SECURE | '' |  | 'true' if the connection to SMTP should be secure |
 
 ## User Alias Services
 

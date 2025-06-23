@@ -7,8 +7,9 @@ import { GraphService } from '../graph/graph.service';
 import { UserEntity } from '../persistence/entity/user.entity';
 import { UserRolesDto } from './dto/user-roles.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
-import { GithubService } from '../github/github.service';
+import { AuditService } from '../audit/audit.service';
 import { AuthService } from '../auth/auth.service';
+import { GithubService } from '../github/github.service';
 import { UserUtil } from '../util/user.util';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { plainToInstance } from 'class-transformer';
@@ -20,6 +21,7 @@ import { plainToInstance } from 'class-transformer';
 export class UserCollectionService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
+    private readonly auditService: AuditService,
     private readonly authService: AuthService,
     private readonly githubService: GithubService,
     private readonly graphService: GraphService,
@@ -107,9 +109,24 @@ export class UserCollectionService {
 
   public async linkGithub(req: Request, state: string, code: string) {
     const existingUser = await this.authService.getUser(req);
+    if (!existingUser) {
+      throw new BadRequestException('User not found');
+    }
+    this.auditService.recordAliasLink(
+      existingUser,
+      'info',
+      'unknown',
+      'GitHub Oauth callback initiated for account link',
+    );
     if (
       !(await this.githubService.isRequestStateMatching(existingUser.id, state))
     ) {
+      this.auditService.recordAliasLink(
+        existingUser,
+        'end',
+        'failure',
+        'GitHub Oauth state does not match for account link',
+      );
       throw new BadRequestException('Request state does not match');
     }
     const existingUserObj = existingUser.toPOJO();
@@ -140,6 +157,13 @@ export class UserCollectionService {
       existingUser.vertex.toString(),
       vertex,
       true,
+    );
+
+    this.auditService.recordAliasLink(
+      existingUser,
+      'end',
+      'success',
+      'GitHub Oauth completed for account link',
     );
     return this.authService.getUser(req);
   }
