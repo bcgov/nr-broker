@@ -17,7 +17,8 @@ mat-card-header {
 }
 
 .mat-mdc-card-content {
-  height: calc(100vh - 150px);
+  margin-top: 16px;
+  height: calc(100vh - 166px);
   overflow-y: scroll;
 }
 
@@ -42,6 +43,7 @@ mat-card-header {
 }
 
 .menu-btn {
+  margin-top: 8px;
   margin-right: 8px;
 }
 
