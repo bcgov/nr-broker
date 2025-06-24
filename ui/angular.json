@@ -33,6 +33,7 @@
             "outputPath": "dist/ui",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "allowedCommonJsDependencies": ["dlv"],
             "polyfills": [
               "zone.js"
             ],
