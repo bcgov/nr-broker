@@ -24,14 +24,14 @@ describe('AccessLogsMiddleware', () => {
     expect(service).toBeDefined();
 
     service.use(mockReq, mockRes, mockNext);
-    expect(mockRes.on).toBeCalled();
-    expect(mockRes.on).toBeCalledWith('finish', expect.any(Function));
-    expect(mockNext).toBeCalled();
+    expect(mockRes.on).toHaveBeenCalled();
+    expect(mockRes.on).toHaveBeenCalledWith('finish', expect.any(Function));
+    expect(mockNext).toHaveBeenCalled();
 
     resFinishCb();
 
-    expect(mockAuditService.recordHttpAccess).toBeCalled();
-    expect(mockAuditService.recordHttpAccess).toBeCalledWith(
+    expect(mockAuditService.recordHttpAccess).toHaveBeenCalled();
+    expect(mockAuditService.recordHttpAccess).toHaveBeenCalledWith(
       mockReq,
       mockRes,
       expect.any(Date),
