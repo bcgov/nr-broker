@@ -1,7 +1,5 @@
 @use '@angular/material' as mat;
 
-$my-palette: mat.m2-define-palette(mat.$m2-indigo-palette);
-
 .app-container {
   display: flex;
   flex-direction: column;
@@ -22,16 +20,21 @@ $my-palette: mat.m2-define-palette(mat.$m2-indigo-palette);
     padding-left: 12px;
     cursor: pointer;
   }
-
   mat-list-item:hover {
-    background-color: mat.m2-get-color-from-palette($my-palette, 500);
+    background-color: var(--mat-sys-on-primary-container);
   }
 
   mat-list-item:hover * {
-    color: mat.m2-get-color-from-palette($my-palette, '500-contrast');
+    color: var(--mat-sys-primary-container);
   }
 }
 
 .app-sidenav-list mat-icon {
   margin-right: 20px;
+}
+
+:host {
+  @include mat.sidenav-overrides((
+    container-shape: square,
+  ));
 }
