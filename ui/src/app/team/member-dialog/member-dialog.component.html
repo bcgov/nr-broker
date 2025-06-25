@@ -52,6 +52,7 @@
       <h2 class="no-members">No members</h2>
     } @else {
       <p>Review member roles</p>
+      <div class="member-role-accordian">
       <mat-accordion>
       @for (edge of edges; track edge.id) {
         @if (users[edge.name].length > 0 || userRoleSelected() === edge.name) {
@@ -106,6 +107,7 @@
         }
       }
       </mat-accordion>
+      </div>
     }
   }
 </mat-dialog-content>
