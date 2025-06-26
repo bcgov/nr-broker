@@ -10,11 +10,11 @@
 }
 
 .offline {
-  color: rgb(255,0,0);
+  color: var(--mat-sys-error-container);
 }
 
 .online {
-  color: rgb(0,255,0);
+  color: var(--mat-sys-secondary-container);
 }
 
 .status-text {

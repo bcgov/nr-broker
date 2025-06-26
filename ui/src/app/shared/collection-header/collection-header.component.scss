@@ -13,8 +13,8 @@
 }
 
 .collection-subtitle {
+  color: var(--mat-sys-on-surface-variant);
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.54);
   font-weight: 500;
   height: 22px;
   letter-spacing: 0.1px;
@@ -22,7 +22,6 @@
 }
 
 .collection-title {
-  color: rgba(0, 0, 0, 0.87);
   font-size: 20px;
   font-weight: 500;
   height: 32px;

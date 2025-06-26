@@ -14,7 +14,7 @@ p {
 }
 
 mat-card mat-card {
-  background-color: mat.m2-get-color-from-palette($my-palette, '500-contrast');
+  background-color: var(--mat-sys-surface-container-lowest);
   margin: auto;
   width: 100%;
   margin-bottom: 16px;

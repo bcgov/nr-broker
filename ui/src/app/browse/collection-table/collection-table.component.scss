@@ -38,7 +38,7 @@ mat-card.warning-panel {
 }
 
 tr.element-row:not(.expanded-row):hover {
-  background: whitesmoke;
+  background: var(--mat-sys-surface-container-high);
   cursor: pointer;
 }
 

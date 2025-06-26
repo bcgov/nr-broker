@@ -30,7 +30,7 @@
 .details-section {
   display: block;
   border-bottom-style: solid;
-  border-bottom-color: rgba(0, 0, 0, 0.12);
+  border-bottom-color: var(--mat-sys-outline);
   border-bottom-width: 1px;
   font-size: 14px;
   line-height: 40px;
@@ -45,14 +45,13 @@
 }
 
 .details-header {
-  color: rgba(0, 0, 0, 0.87);
   min-width: 100px;
   font-size: 16px;
   font-weight: 400;
 }
 
 .details-line {
-  color: var(--mat-card-subtitle-text-color);
+  color: var(--mat-sys-on-surface-variant);
   font-size: 14px;
   font-weight: 400;
   text-overflow: ellipsis;

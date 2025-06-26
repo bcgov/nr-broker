@@ -1,6 +1,5 @@
 .details-subtitle {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.54);
   font-weight: 500;
   height: 20px;
   letter-spacing: 0.1px;
@@ -8,7 +7,6 @@
 }
 
 .details-title {
-  color: rgba(0, 0, 0, 0.87);
   font-size: 18px;
   font-weight: 500;
   height: 22px;
@@ -24,7 +22,6 @@
 }
 
 .info-panel-container .info-title {
-  color: rgba(0, 0, 0, 0.87);
   font-size: 18px;
   font-weight: 500;
   height: 22px;
@@ -34,7 +31,7 @@
 }
 
 .info-panel-container .info-line {
-  color: var(--mat-card-subtitle-text-color);
+  color: var(--mat-sys-on-surface-variant);
   min-width: 100px;
   font-weight: 300;
 }
@@ -70,7 +67,7 @@
 }
 
 .details-item-clickable:hover {
-  background: whitesmoke;
+  background: var(--mat-sys-surface-container-high);
   cursor: pointer;
   border-radius: 8px;
 }
@@ -78,11 +75,10 @@
 .details-header {
   min-width: 100px;
   font-weight: 500;
-  color: #333;
 }
 
 .details-line {
-  color: var(--mat-card-subtitle-text-color);
+  color: var(--mat-sys-on-surface-variant);
   min-width: 100px;
   font-weight: 300;
   text-overflow: ellipsis;

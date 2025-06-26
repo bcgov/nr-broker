@@ -3,11 +3,10 @@
     <h3>GitHub</h3>
 
     @if(healthStatus.health$ | async; as health) {
-      @if(isSelf && health.details['github']['alias']) {
+      @if(isSelf && health?.details?.['github']?.['alias']) {
       <button
         mat-button
         (click)="linkGitHubAccount()"
-        color="primary"
         aria-label="Link Account">
         Link
       </button>

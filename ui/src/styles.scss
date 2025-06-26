@@ -2,6 +2,17 @@
 
 @use '@angular/material' as mat;
 
+$theme: mat.define-theme(
+  (
+    color: (
+      primary: mat.$violet-palette,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
+
 html, body { height: 100%; }
 html {
   @include mat.theme((
@@ -13,11 +24,37 @@ html {
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 :root {
+  --br-density-mini: 4px;
+  --br-density-half: 8px;
+  --br-density-full: 16px;
+  --br-density-oneandhalf: 24px;
+  --br-density-double: 32px;
+
   @include mat.table-overrides((
-    background-color: rgba(255,255,255,1),
+    background-color: var(--mat-sys-surface-container-low)
   ));
 
   @include mat.paginator-overrides((
-    container-background-color: rgba(255,255,255,1),
+    container-background-color: var(--mat-sys-surface-container-low),
   ));
+
+  [color=primary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'primary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'primary');
+  }
+
+  [color=secondary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'secondary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'secondary');
+  }
+
+  [color=tertiary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'tertiary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'tertiary');
+  }
+
+  [color=warn] {
+    @include mat.button-color($theme: $theme, $color-variant: 'error');
+    @include mat.icon-color($theme: $theme, $color-variant: 'error');
+  }
 }

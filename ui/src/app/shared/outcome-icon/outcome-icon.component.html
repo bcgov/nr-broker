@@ -1,7 +1,16 @@
 @if (outcome() === 'success') {
-  <mat-icon class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
+  <mat-icon
+    class="mat-icon-status"
+    inline="true"
+    color="primary">check_circle_outline</mat-icon>
 } @else if (outcome() === 'failure') {
-  <mat-icon class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
+  <mat-icon
+    class="mat-icon-status"
+    inline="true"
+    color="warn">dangerous</mat-icon>
 } @else {
-  <mat-icon class="mat-icon-status" inline="true" color="accent">hourglass_empty</mat-icon>
+  <mat-icon
+    class="mat-icon-status"
+    inline="true"
+    color="secondary">hourglass_empty</mat-icon>
 }

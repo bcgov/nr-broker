@@ -34,13 +34,11 @@
       <div class="details-buttons">
         <button
           mat-stroked-button
-          color="primary"
           (click)="syncSecrets()"
           [disabled]="!repository.enableSyncSecrets">Sync</button>
 
         <button
           mat-button
-          color="primary"
           (click)="showGitHubSecrets()">Help</button>
       </div>
     </div>
@@ -67,13 +65,11 @@
       <div class="details-buttons">
         <button
           mat-stroked-button
-          color="primary"
           (click)="syncUsers()"
           [disabled]="!repository.enableSyncUsers">Sync</button>
 
         <button
           mat-button
-          color="primary"
           (click)="showGitHubRoleMappings()">Help</button>
       </div>
     </div>

@@ -163,4 +163,17 @@ export class CollectionApiService {
       },
     );
   }
+
+  public teamRefreshUsers(id: string) {
+    return this.http.post<string[]>(
+      `${environment.apiUrl}/v1/collection/team/${id}/refresh`,
+      null,
+      {
+        responseType: 'json',
+        params: {
+          syncUsers: 'true',
+        },
+      },
+    );
+  }
 }

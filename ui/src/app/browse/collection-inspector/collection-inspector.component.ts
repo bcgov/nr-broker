@@ -147,12 +147,17 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   screenSize: string = '';
 
   tableCollection = signal<CollectionNames>('project');
-  collectionOptions: CollectionNames[] = [
-    'project',
-    'service',
-    'brokerAccount',
-    'repository',
-  ];
+  collectionOptions: Record<CollectionNames, CollectionNames[]> = {
+    brokerAccount: ['project', 'service', 'repository'],
+    environment: [],
+    project: ['service', 'repository'],
+    repository: [],
+    server: [],
+    serviceInstance: [],
+    service: ['repository', 'serviceInstance'],
+    team: ['project', 'service', 'brokerAccount', 'repository'],
+    user: ['team', 'project', 'service', 'brokerAccount', 'repository'],
+  };
   text = signal('');
   tags = signal('');
   showFilter = signal<ShowFilter>('all');

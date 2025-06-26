@@ -31,11 +31,11 @@ tr.group-row {
 }
 
 tr.element-row:not(.expanded-row):hover {
-  background: whitesmoke;
+  background: var(--mat-sys-surface-container-high);
 }
 
 tr.element-row:not(.expanded-row):active {
-  background: #efefef;
+  background: var(--mat-sys-surface-container-highest);
 }
 
 .element-row td {
@@ -56,7 +56,7 @@ tr.element-row:not(.expanded-row):active {
 }
 
 .version {
-  color: var(--mat-card-subtitle-text-color);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .intention-none {
