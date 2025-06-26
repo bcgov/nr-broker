@@ -122,9 +122,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   computedText = computed(() =>
     (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
   );
-  showFilter = input<ShowFilter>(
-    this.preferences.get('browseConnectionFilter') ?? 'connected',
-  );
+  showFilter = input<ShowFilter>('connected');
   tags = input('');
   computedTags = computed(() =>
     this.tags() && this.tags().length > 1 ? this.tags().split(',') : [],
