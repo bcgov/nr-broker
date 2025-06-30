@@ -147,6 +147,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   screenSize: string = '';
 
   tableCollection = signal<CollectionNames>('project');
+  tableCollectionOptions = signal<CollectionNames[]>([]);
   collectionOptions: Record<CollectionNames, CollectionNames[]> = {
     brokerAccount: ['project', 'service', 'repository'],
     environment: [],
@@ -319,7 +320,18 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   initComponent() {
     const params = this.activatedRoute.snapshot.params;
-    this.collection = params['collection'];
+    const collection = params['collection'] as CollectionNames;
+    this.collection = collection;
+    if (
+      this.collectionOptions[collection] &&
+      this.collectionOptions[collection][0]
+    ) {
+      this.tableCollection.set(this.collectionOptions[collection][0]);
+      this.tableCollectionOptions.set(this.collectionOptions[collection]);
+    } else {
+      this.tableCollection.set('project');
+      this.tableCollectionOptions.set([]);
+    }
     this.collectionId = params['id'];
     this.selectedTabIndex = params['index']
       ? Number.parseInt(params['index'])
