@@ -7,8 +7,8 @@ import {
 import { Request } from 'express';
 import ejs from 'ejs';
 import { ValidationError, wrap } from '@mikro-orm/core';
-import get from 'lodash.get';
-import set from 'lodash.set';
+import delve from 'dlv';
+import { dset } from 'dset';
 import { validate } from 'class-validator';
 
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
@@ -490,13 +490,15 @@ export class GraphService {
       }
       const mask = field.mask[maskType];
       if (field.type === 'embeddedDoc' && Array.isArray(mask)) {
-        let maskedValues = JSON.parse(JSON.stringify(oldCollection[key] ?? {}));
+        const maskedValues = JSON.parse(
+          JSON.stringify(oldCollection[key] ?? {}),
+        );
         // console.log(maskedValues);
         for (const path of mask) {
-          const val = get(newCollection[key], path);
+          const val = delve(newCollection[key], path);
           // console.log(`${path}: ${val}`);
           if (val !== undefined) {
-            maskedValues = set(maskedValues, path, val);
+            dset(maskedValues, path, val);
           }
         }
         // console.log(maskedValues);
@@ -513,7 +515,7 @@ export class GraphService {
     collection: CollectionEntityUnion[typeof vertex.collection],
   ) {
     for (const map of config.collectionMapper) {
-      vertex = set(vertex, map.setPath, get(collection, map.getPath));
+      dset(vertex, map.setPath, delve(collection, map.getPath));
     }
     return vertex;
   }
@@ -636,7 +638,7 @@ export class GraphService {
       target,
     );
     if (map !== '') {
-      return results.map((edge) => get(edge, map).toString());
+      return results.map((edge) => delve(edge, map).toString());
     }
     return results;
   }

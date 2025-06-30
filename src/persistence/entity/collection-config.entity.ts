@@ -103,6 +103,15 @@ export class GitHubEdgeToRolesEmbeddable {
   role!: string;
 }
 
+@Embeddable()
+export class ConnectedTableConfigEmbeddable {
+  @Enum(() => CollectionNameStringEnum)
+  collection: CollectionNameStringEnum;
+
+  @Property()
+  direction!: string;
+}
+
 @Entity({ tableName: 'collectionConfig' })
 export class CollectionConfigEntity extends BaseEntity {
   @PrimaryKey()
@@ -130,6 +139,13 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property()
   color: string;
+
+  @Embedded({
+    entity: () => ConnectedTableConfigEmbeddable,
+    array: true,
+    nullable: true,
+  })
+  connectedTable?: ConnectedTableConfigEmbeddable[];
 
   @Embedded({
     entity: () => GitHubEdgeToRolesEmbeddable,

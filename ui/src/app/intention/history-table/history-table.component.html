@@ -41,7 +41,10 @@
     <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let element">
       @if (element.event.transient === true) {
-        <mat-icon class="mat-icon-status" inline="true" color="primary">event_repeat</mat-icon>
+        <mat-icon
+          class="mat-icon-status"
+          inline="true"
+          color="primary">event_repeat</mat-icon>
       }
     </td>
   </ng-container>
@@ -183,7 +186,7 @@
             </div>
             <div class="artifact-container">
               @for (artifact of action.artifacts; track artifact.id) {
-                <mat-card class="artifact-card">
+                <mat-card class="artifact-card" appearance="outlined">
                   <mat-card-header>
                     <mat-card-title>@if (artifact.name) {
                       {{artifact.name}}
@@ -231,7 +234,7 @@
               }
             </div>
             <div class="artifact-container">
-              <mat-card class="artifact-card">
+              <mat-card class="artifact-card" appearance="outlined">
                 <mat-card-header>
                   <mat-card-title>{{action.package.name}}</mat-card-title>
                 </mat-card-header>

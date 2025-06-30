@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import get from 'lodash.get';
+import delve from 'dlv';
 import ejs from 'ejs';
 import {
   INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS,
@@ -114,7 +114,7 @@ export class ActionUtil {
   public environmentName(action: ActionEmbeddable | ActionDto) {
     return INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
-        return get({ action }, path, pv);
+        return delve({ action }, path, pv);
       },
       undefined,
     );
@@ -123,7 +123,7 @@ export class ActionUtil {
   public instanceName(action: ActionEmbeddable) {
     return INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.reduce<string>(
       (pv, path) => {
-        return get({ action }, path, pv);
+        return delve({ action }, path, pv);
       },
       undefined,
     );

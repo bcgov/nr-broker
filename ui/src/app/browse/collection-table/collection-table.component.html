@@ -76,7 +76,7 @@
     <mat-spinner></mat-spinner>
   }
   @if (data && data.length === 0 && !loading) {
-    <mat-card class="warning-panel">
+    <mat-card class="warning-panel" appearance="outlined">
       <mat-card-header>
         <mat-card-title>No results found</mat-card-title>
       </mat-card-header>
@@ -86,7 +86,7 @@
     </mat-card>
   }
   <div [hidden]="!data || (data && data.length === 0 && !loading)">
-    <mat-card class="team-table">
+    <mat-card class="team-table" appearance="outlined">
       <mat-card-content>
         <table
           mat-table
@@ -114,14 +114,13 @@
           }
 
           <!-- Action Column -->
-          <ng-container matColumnDef="action">
+          <ng-container matColumnDef="action-caa4f8db8b42">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
               @if (screenSize == 'wide') {
                 <button
                   mat-stroked-button
                   extended
-                  color="primary"
                   class="collection-btn"
                   (click)="openInGraph($event, element)">
                   View on Graph
@@ -129,7 +128,6 @@
               } @else {
                 <button
                   mat-icon-button
-                  color="primary"
                   class="collection-btn"
                   (click)="openInGraph($event, element)">
                   <mat-icon>account_tree</mat-icon>

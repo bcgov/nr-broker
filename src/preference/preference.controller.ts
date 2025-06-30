@@ -13,7 +13,7 @@ import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
 import { PreferenceService } from './preference.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { PreferenceDto } from '../persistence/dto/preference.dto';
-import get from 'lodash.get';
+import delve from 'dlv';
 
 @Controller({
   path: 'preference',
@@ -25,7 +25,7 @@ export class PreferenceController {
   @Get('self')
   @UseGuards(BrokerOidcAuthGuard)
   async getSelf(@Request() req: ExpressRequest): Promise<PreferenceDto> {
-    const guid: string = get(
+    const guid: string = delve(
       (req.user as any).userinfo,
       OAUTH2_CLIENT_MAP_GUID,
     );
@@ -41,7 +41,7 @@ export class PreferenceController {
     @Request() req: ExpressRequest,
     @Body() preference: PreferenceDto,
   ): Promise<boolean> {
-    const guid: string = get(
+    const guid: string = delve(
       (req.user as any).userinfo,
       OAUTH2_CLIENT_MAP_GUID,
     );

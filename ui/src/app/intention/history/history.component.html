@@ -67,15 +67,14 @@
     </mat-form-field>
 
     <button
-      mat-raised-button
-      color="primary"
+      mat-stroked-button
       aria-label="Filter"
       (click)="filter()">
       Filter
     </button>
 
     <button
-    mat-stroked-button
+    mat-button
     aria-label="Clear"
     (click)="clear()">
       Clear
@@ -94,7 +93,7 @@
     <mat-icon>refresh</mat-icon>
   </button>
 </div>
-<mat-card class="history-table">
+<mat-card class="history-table" appearance="outlined">
   <mat-card-content>
     <app-history-table
       [intentionData]="intentionData"

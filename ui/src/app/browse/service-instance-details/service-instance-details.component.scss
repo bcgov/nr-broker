@@ -24,7 +24,7 @@
 }
 
 .details-item-clickable:hover {
-  background: whitesmoke;
+  background: var(--mat-sys-surface-container-high);
   cursor: pointer;
   border-radius: 8px;
 }
@@ -32,11 +32,10 @@
 .details-header {
   min-width: 100px;
   font-weight: 500;
-  color: #333;
 }
 
 .details-line {
-  color: var(--mat-card-subtitle-text-color);
+  color: var(--mat-sys-on-surface-variant);
   min-width: 100px;
   font-weight: 300;
 }

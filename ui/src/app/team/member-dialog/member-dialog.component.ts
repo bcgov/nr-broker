@@ -19,8 +19,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 import {
   Observable,
   Subject,
@@ -30,7 +33,9 @@ import {
   of,
   startWith,
   switchMap,
+  take,
 } from 'rxjs';
+
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexSearchDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -40,11 +45,8 @@ import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-c
 import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
-import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
+import { HealthStatusService } from '../../service/health-status.service';
 
 @Component({
   selector: 'app-member-dialog',
@@ -95,6 +97,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     private readonly graphApi: GraphApiService,
     private readonly collectionApi: CollectionApiService,
     private readonly snackBar: MatSnackBar,
+    private readonly healthStatus: HealthStatusService,
   ) {}
 
   onUserRoleChange(name: string) {
@@ -178,6 +181,15 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.modified && (this.permission.hasAdmin() || this.isOwner)) {
+      this.healthStatus.health$.pipe(take(1)).subscribe((health) => {
+        if (health?.details?.['github']?.['alias']) {
+          this.collectionApi.teamRefreshUsers(this.data.vertex).subscribe();
+        } else {
+          // Skip user refresh
+        }
+      });
+    }
     this.triggerRefresh.complete();
   }
 

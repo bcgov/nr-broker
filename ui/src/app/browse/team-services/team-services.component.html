@@ -8,7 +8,7 @@
 @for (service of activeServices; track service.id) {
   @if (service.instance) {
 
-    <mat-card class="service-card">
+    <mat-card class="service-card" appearance="outlined">
       <mat-card-header>
         <mat-card-subtitle>{{service.edge.prototype.targetName}}</mat-card-subtitle>
         <mat-card-title>{{service.edge.prototype.name}}</mat-card-title>

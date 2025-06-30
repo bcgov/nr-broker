@@ -80,8 +80,7 @@
     mat-button
     mat-dialog-close>Cancel</button>
   <button
-    mat-button
-    color="primary"
+    mat-stroked-button
     [disabled]="!data.edge && (!edgeControl.value || !vertexControl.value)"
     (click)="addEditEdge()">
     @if (data.edge) {

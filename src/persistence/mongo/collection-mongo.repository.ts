@@ -246,9 +246,23 @@ export class CollectionMongoRepository implements CollectionRepository {
     const downstreamQuery = downstreamVertex
       ? [
           {
-            $match: {
-              'downstream.source': new ObjectId(downstreamVertex),
+            $graphLookup: {
+              from: 'edge',
+              startWith: '$collection.vertex',
+              connectFromField: 'target',
+              connectToField: 'source',
+              restrictSearchWithMatch: { restrict: { $ne: true } },
+              as: 'downstream_path',
+              maxDepth: 3,
             },
+          },
+          {
+            $match: {
+              'downstream_path.target': new ObjectId(downstreamVertex),
+            },
+          },
+          {
+            $unset: ['downstream_path'],
           },
         ]
       : [];

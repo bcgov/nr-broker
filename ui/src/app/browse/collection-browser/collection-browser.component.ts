@@ -58,8 +58,12 @@ export class CollectionBrowserComponent {
 
   text = input('', { transform: (v: string | undefined) => v ?? '' });
   tags = input('');
-  showFilter = input<ShowFilter>(
+  showFilter = input(
     this.preferences.get('browseConnectionFilter') ?? 'connected',
+    {
+      transform: (v: ShowFilter | undefined) =>
+        v ?? this.preferences.get('browseConnectionFilter') ?? 'connected',
+    },
   );
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
@@ -123,6 +127,9 @@ export class CollectionBrowserComponent {
   }
 
   updateRoute(settings: TableQuery) {
+    if (settings.showFilter) {
+      this.preferences.set('browseConnectionFilter', settings.showFilter);
+    }
     this.router.navigate(
       [
         `/browse/${settings.collection}`,
@@ -130,9 +137,11 @@ export class CollectionBrowserComponent {
           text: settings.text,
           index: settings.index,
           size: settings.size,
-          sortActive: settings.sortActive,
-          sortDirection: settings.sortDirection,
-          showFilter: settings.showFilter,
+          ...(settings.sortActive ? { sortActive: settings.sortActive } : {}),
+          ...(settings.sortDirection
+            ? { sortDirection: settings.sortDirection }
+            : {}),
+          ...(settings.showFilter ? { showFilter: settings.showFilter } : {}),
           tags: settings.tags,
         },
       ],

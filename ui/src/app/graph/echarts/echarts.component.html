@@ -1,8 +1,11 @@
+@let updateOptionsVal = updateOptions | async;
+@if (updateOptionsVal) {
 <div echarts
   [options]="options"
-  [merge]="updateOptions | async"
+  [merge]="updateOptionsVal"
   [loading]="loading"
   (chartClick)="onChartClick($event)"
   (chartInit)="onChartInit($event)"
   (chartLegendSelectChanged)="onChartLegendSelectChanged($event)"
   class="chart"></div>
+}

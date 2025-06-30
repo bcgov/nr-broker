@@ -68,11 +68,11 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 export type ShowFilter = 'connected' | 'all';
 
-interface filterOptions<T> {
-  value: T;
-  viewValue: string;
-  tooltip: string;
-}
+// interface filterOptions<T> {
+//   value: T;
+//   viewValue: string;
+//   tooltip: string;
+// }
 
 interface TablePageQuery {
   index: number;
@@ -118,13 +118,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collection = input.required<CollectionNames>();
   collectionOptions = input<CollectionNames[]>([]);
   upstreamId = input<string>();
+  downstreamId = input<string>();
   text = input('');
   computedText = computed(() =>
     (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
   );
-  showFilter = input<ShowFilter>(
-    this.preferences.get('browseConnectionFilter') ?? 'connected',
-  );
+  showFilter = input<ShowFilter>('connected');
   tags = input('');
   computedTags = computed(() =>
     this.tags() && this.tags().length > 1 ? this.tags().split(',') : [],
@@ -224,7 +223,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.propDisplayedColumns = [
         ...(configRecord[this.collection()].browseFields ??
           Object.keys(this.fields)),
-        'action',
+        'action-caa4f8db8b42',
       ];
       this.canFilterConnected = this.configArr
         .filter((config) => config.permissions.filter)
@@ -312,6 +311,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                 : {}),
               ...(this.upstreamId()
                 ? { upstreamVertex: this.upstreamId() }
+                : {}),
+              ...(this.downstreamId()
+                ? { downstreamVertex: this.downstreamId() }
                 : {}),
               sortActive,
               sortDirection,

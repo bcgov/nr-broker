@@ -1,0 +1,21 @@
+@use '@angular/material' as mat;
+
+
+$my-palette: mat.m2-define-palette(mat.$m2-indigo-palette);
+
+mat-card {
+  width: 600px;
+  margin: auto;
+  margin-top: 50px;
+}
+
+p {
+  margin: 1.5em 0 1em;
+}
+
+mat-card mat-card {
+  background-color: var(--mat-sys-surface-container-lowest);
+  margin: auto;
+  width: 100%;
+  margin-bottom: 16px;
+}

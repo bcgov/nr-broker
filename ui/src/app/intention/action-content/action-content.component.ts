@@ -1,7 +1,7 @@
 import { Component, OnInit, input } from '@angular/core';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
-import get from 'lodash.get';
+import delve from 'dlv';
 
 @Component({
   selector: 'app-action-content',
@@ -27,7 +27,7 @@ export class ActionContentComponent implements OnInit {
           );
         })
         .map((action: any) => {
-          return get(action, this.key());
+          return delve(action, this.key());
         }),
     );
     this.values = [...valueSet];

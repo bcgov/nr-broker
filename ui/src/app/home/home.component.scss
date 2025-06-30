@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 body {
   overflow-x: hidden;
 }
@@ -64,7 +66,7 @@ mat-card-content {
   margin-top: 16px;
   margin-bottom: 8px;
   text-align: center;
-  color: #555;
+  color: var(--mat-sys-on-primary-container);
 }
 
 @media only screen and (min-width: 600px) {
@@ -91,4 +93,18 @@ a {
 .tab-content {
   margin-top: 8px;
   max-width: 600px;
+}
+
+.tab-content-btn {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+:host {
+  @include mat.fab-overrides((
+    container-color: var(--mat-sys-on-primary-container),
+    foreground-color: var(--mat-sys-primary-container),
+    container-shape: 400px,
+  ));
 }

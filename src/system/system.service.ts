@@ -23,7 +23,7 @@ export class SystemService {
     const user = await this.authService.getUser(request);
 
     return {
-      url: await this.github.generateAuthorizeUrl(user.id.toString()),
+      url: await this.github.generateAuthorizeUrl(user),
     };
   }
 }

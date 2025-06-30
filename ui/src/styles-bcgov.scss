@@ -1,107 +1,145 @@
 /* You can add global styles to this file, and also import other style files */
 
 @use '@angular/material' as mat;
+@use './_theme-colors' as theme;
 
-@include mat.elevation-classes();
-@include mat.app-background();
-
-$off-black: #000001;
-$off-white: #fefeff;
-
-$dark-primary-text: rgba($off-black, 0.87);
-$dark-secondary-text: rgba($off-black, 0.54);
-$dark-disabled-text: rgba($off-black, 0.38);
-$dark-dividers: rgba($off-black, 0.12);
-$dark-focused: rgba($off-black, 0.12);
-$light-primary-text: white;
-$light-secondary-text: rgba($off-white, 0.7);
-$light-disabled-text: rgba($off-white, 0.5);
-$light-dividers: rgba($off-white, 0.12);
-$light-focused: rgba($off-white, 0.12);
-
-$bc-primary-palette: (
-  50: #e5e9ef,
-  100: #bcc7d9,
-  200: #91a3bf,
-  300: #6780a6,
-  400: #456595,
-  500: #1d4d86,
-  600: #15457d,
-  700: #083c72,
-  800: #003366,
-  900: #00234f,
-  A100: #bebee0,
-  A200: #9495cb,
-  A400: #4c4ea9,
-  A700: #1e1f85,
-  contrast: (
-    50: $dark-primary-text,
-    100: $dark-primary-text,
-    200: $dark-primary-text,
-    300: $light-primary-text,
-    400: $light-primary-text,
-    500: $light-primary-text,
-    600: $light-primary-text,
-    700: $light-primary-text,
-    800: $light-primary-text,
-    900: $light-primary-text,
-    A100: $dark-primary-text,
-    A200: $light-primary-text,
-    A400: $light-primary-text,
-    A700: $light-primary-text,
+$typography-family: ('BCSans', 'Noto Sans', Verdana, Arial, sans-serif);
+$theme: mat.define-theme(
+  (
+    color: (
+      primary: theme.$primary-palette,
+      tertiary: theme.$tertiary-palette,
+    ),
+    density: (
+      scale: 0,
+    ),
   )
 );
-
-$bc-accent-palette: (
-  50: #fffce6,
-  100: #fff8c1,
-  200: #fff397,
-  300: #ffee6d,
-  400: #fde94a,
-  500: #fbe421,
-  600: #fdd421,
-  700: #fcbc19,
-  800: #fba310,
-  900: #f87801,
-  A100: #fdd421,
-  A200: #fcbc19,
-  A400: #fba310,
-  A700: #f87801,
-  contrast: (
-    50: $dark-primary-text,
-    100: $dark-primary-text,
-    200: $dark-primary-text,
-    300: $light-primary-text,
-    400: $light-primary-text,
-    500: $light-primary-text,
-    600: $light-primary-text,
-    700: $light-primary-text,
-    800: $light-primary-text,
-    900: $light-primary-text,
-    A100: $dark-primary-text,
-    A200: $light-primary-text,
-    A400: $light-primary-text,
-    A700: $light-primary-text,
-  )
-);
-
-
-$primary: mat.m2-define-palette($bc-primary-palette);
-$accent: mat.m2-define-palette($bc-accent-palette, A200, A100, A400);
-
-$theme: mat.m2-define-light-theme((
- color: (
-   primary: $primary,
-   accent: $accent,
- ),
- typography: mat.m2-define-typography-config(
-  $font-family: "'BCSans', 'Noto Sans', Verdana, Arial, sans-serif"
- ),
- density: 0,
-));
-
-@include mat.all-component-themes($theme);
-@include mat.typography-hierarchy($theme);
 
 html, body { height: 100%; }
-body { margin: 0; font-family: 'BCSans', 'Noto Sans', Verdana, Arial, sans-serif; }
+html {
+  @include mat.theme((
+    color: (
+      primary: theme.$primary-palette,
+      secondary: theme.$secondary-palette,
+      tertiary: theme.$tertiary-palette,
+    ),
+    typography: $typography-family,
+    density: 0,
+  ),
+  (
+    on-surface-variant: light-dark(#43474f, #dfe2ec),
+  ));
+}
+body { margin: 0; font-family: $typography-family; }
+
+:root {
+  --br-density-mini: 4px;
+  --br-density-half: 8px;
+  --br-density-full: 16px;
+  --br-density-oneandhalf: 24px;
+  --br-density-double: 32px;
+
+  @include mat.sidenav-overrides((
+    content-background-color: var(--mat-sys-surface-container-low),
+  ));
+
+  [color=primary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'primary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'primary');
+  }
+
+  [color=secondary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'secondary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'secondary');
+  }
+
+  [color=tertiary] {
+    @include mat.button-color($theme: $theme, $color-variant: 'tertiary');
+    @include mat.icon-color($theme: $theme, $color-variant: 'tertiary');
+  }
+
+  [color=warn] {
+    @include mat.button-color($theme: $theme, $color-variant: 'error');
+    @include mat.icon-color($theme: $theme, $color-variant: 'error');
+  }
+}
+
+// Included this here because mat.theme doesn't add it
+.mat-h1, .mat-headline-5, .mat-typography .mat-h1, .mat-typography .mat-headline-5, .mat-typography h1 {
+    font: 400 24px/32px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: normal;
+    margin:0 0 16px
+}
+
+.mat-h2, .mat-headline-6, .mat-typography .mat-h2, .mat-typography .mat-headline-6, .mat-typography h2 {
+    font: 500 20px/32px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: .0125em;
+    margin:0 0 16px
+}
+
+.mat-h3, .mat-subtitle-1, .mat-typography .mat-h3, .mat-typography .mat-subtitle-1, .mat-typography h3 {
+    font: 400 16px/28px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: .009375em;
+    margin:0 0 16px
+}
+
+.mat-h4, .mat-body-1, .mat-typography .mat-h4, .mat-typography .mat-body-1, .mat-typography h4 {
+    font: 400 16px/24px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: .03125em;
+    margin:0 0 16px
+}
+
+.mat-h5, .mat-typography .mat-h5, .mat-typography h5 {
+    font: 400 11.62px/20px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    margin:0 0 12px
+}
+
+.mat-h6, .mat-typography .mat-h6, .mat-typography h6 {
+    font: 400 9.38px/20px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    margin:0 0 12px
+}
+
+.mat-body-strong, .mat-subtitle-2, .mat-typography .mat-body-strong, .mat-typography .mat-subtitle-2 {
+    font: 500 14px/22px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing:.0071428571em
+}
+
+.mat-body, .mat-body-2, .mat-typography .mat-body, .mat-typography .mat-body-2, .mat-typography {
+    font: 400 14px/20px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing:.0178571429em
+}
+
+.mat-body p, .mat-body-2 p, .mat-typography .mat-body p, .mat-typography .mat-body-2 p, .mat-typography p {
+    margin:0 0 12px
+}
+
+.mat-small, .mat-caption, .mat-typography .mat-small, .mat-typography .mat-caption {
+    font: 400 12px/20px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing:.0333333333em
+}
+
+.mat-headline-1, .mat-typography .mat-headline-1 {
+    font: 300 96px/96px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: -.015625em;
+    margin:0 0 56px
+}
+
+.mat-headline-2, .mat-typography .mat-headline-2 {
+    font: 300 60px/60px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: -.0083333333em;
+    margin:0 0 64px
+}
+
+.mat-headline-3, .mat-typography .mat-headline-3 {
+    font: 400 48px/50px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: normal;
+    margin:0 0 64px
+}
+
+.mat-headline-4, .mat-typography .mat-headline-4 {
+    font: 400 34px/40px BCSans, Noto Sans, Verdana, Arial, sans-serif;
+    letter-spacing: .0073529412em;
+    margin:0 0 64px
+}
+

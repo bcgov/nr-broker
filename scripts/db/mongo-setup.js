@@ -152,6 +152,10 @@ result = db.collectionConfig.insertOne({
   collection: 'project',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'service', direction: 'downstream' },
+    { collection: 'repository', direction: 'downstream' },
+  ],
   index: 1,
   edges: [
     {
@@ -226,6 +230,10 @@ result = db.collectionConfig.insertOne({
   collection: 'service',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'repository', direction: 'downstream' },
+    { collection: 'serviceInstance', direction: 'downstream' },
+  ],
   index: 2,
   edges: [
     {
@@ -411,6 +419,13 @@ result = db.collectionConfig.insertOne({
   collection: 'user',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'team', direction: 'downstream' },
+    { collection: 'project', direction: 'downstream' },
+    { collection: 'service', direction: 'downstream' },
+    { collection: 'brokerAccount', direction: 'downstream' },
+    { collection: 'repository', direction: 'downstream' },
+  ],
   index: 4,
   edgeToRoles: [
     { edge: ['full-access'], role: 'admin' },
@@ -526,6 +541,11 @@ result = db.collectionConfig.insertOne({
   collection: 'brokerAccount',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'project', direction: 'downstream' },
+    { collection: 'service', direction: 'downstream' },
+    { collection: 'repository', direction: 'downstream' },
+  ],
   index: 5,
   edges: [
     {
@@ -634,6 +654,13 @@ result = db.collectionConfig.insertOne({
   collection: 'team',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'project', direction: 'downstream' },
+    { collection: 'service', direction: 'downstream' },
+    { collection: 'brokerAccount', direction: 'downstream' },
+    { collection: 'repository', direction: 'downstream' },
+    { collection: 'user', direction: 'upstream' },
+  ],
   index: 6,
   edges: [
     {

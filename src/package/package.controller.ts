@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import get from 'lodash.get';
+import delve from 'dlv';
 
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { OAUTH2_CLIENT_MAP_GUID } from '../constants';
@@ -105,7 +105,7 @@ export class PackageController {
     @Req() req: ExpressRequest,
     @Param('id') id: string,
   ): Promise<boolean> {
-    const userGuid: string = get(
+    const userGuid: string = delve(
       (req.user as any).userinfo,
       OAUTH2_CLIENT_MAP_GUID,
     );

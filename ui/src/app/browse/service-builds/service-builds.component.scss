@@ -22,6 +22,6 @@
 }
 
 tr.element-row:hover {
-  background: whitesmoke;
+  background: var(--mat-sys-surface-container-high);
   cursor: pointer;
 }

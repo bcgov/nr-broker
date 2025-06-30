@@ -103,6 +103,11 @@ export class GitHubEdgeToRoles {
   role!: string;
 }
 
+export class ConnectedTableConfig {
+  collection!: CollectionNames;
+  direction!: 'upstream' | 'downstream';
+}
+
 export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
@@ -110,6 +115,7 @@ export class CollectionConfigDto {
   collectionMapper!: CollectionMap[];
   collectionVertexName!: string;
   color!: string;
+  connectedTable?: ConnectedTableConfig[];
   edgeToRoles?: GitHubEdgeToRoles[];
   edges!: CollectionEdgeConfig[];
   fields!: CollectionFieldConfigMap;
