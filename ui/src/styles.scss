@@ -30,12 +30,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   --br-density-oneandhalf: 24px;
   --br-density-double: 32px;
 
-  @include mat.table-overrides((
-    background-color: var(--mat-sys-surface-container-low)
-  ));
-
-  @include mat.paginator-overrides((
-    container-background-color: var(--mat-sys-surface-container-low),
+  @include mat.sidenav-overrides((
+    content-background-color: var(--mat-sys-surface-container-low),
   ));
 
   [color=primary] {

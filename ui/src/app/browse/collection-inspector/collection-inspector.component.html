@@ -102,7 +102,7 @@
         [collection]="collection"
         [collectionData]="comboData.collection"></app-vertex-tags>
 
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-content>
           <div class="card-title-container">
             <mat-card-title>Details</mat-card-title>
@@ -155,7 +155,7 @@
 
       <div>
         @if (hasSudo && collection === 'repository' && comboData.vertex.collection === collection) {
-          <mat-card class="inspector-card-gap">
+          <mat-card class="inspector-card-gap" appearance="outlined">
             <mat-card-content>
               <app-inspector-repository-sync
                 [repository]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
@@ -165,7 +165,7 @@
           </mat-card>
         }
         @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
-          <mat-card class="inspector-card-gap">
+          <mat-card class="inspector-card-gap" appearance="outlined">
             <mat-card-content>
               <app-inspector-account
                 [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
@@ -175,7 +175,7 @@
             </mat-card-content>
           </mat-card>
         }
-        <mat-card>
+        <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Connections</mat-card-title>
@@ -195,7 +195,7 @@
     </div>
 
     @if (collection === 'user') {
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-content>
           <div class="card-title-container">
             <mat-card-title>Alias</mat-card-title>
@@ -207,7 +207,7 @@
     }
 
     @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount' || collection === 'repository') {
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-content>
           <div class="card-title-container">
             <mat-card-title>Connected Users</mat-card-title>
@@ -225,7 +225,7 @@
   @if (collection === 'serviceInstance') {
     <mat-tab label="Details">
       <div class="inspector-tab-margin">
-        <mat-card class="inspector-card-gap">
+        <mat-card class="inspector-card-gap" appearance="outlined">
           <mat-card-content class="card-content-container">
             <app-service-instance-details
               [instance]="serviceInstanceDetails"
@@ -233,7 +233,7 @@
           </mat-card-content>
         </mat-card>
         @if (comboData.collection.actionHistory && comboData.collection.actionHistory.length > 0) {
-          <mat-card>
+          <mat-card appearance="outlined">
             <mat-card-content>
               <div class="card-title-container">
                 <mat-card-title>History</mat-card-title>
@@ -260,7 +260,7 @@
     <mat-tab label="Secrets">
       <ng-template matTabContent>
       <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
-        <mat-card>
+        <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Secrets</mat-card-title>
@@ -281,7 +281,7 @@
     <mat-tab label="Builds">
       <ng-template matTabContent>
       <div class="inspector-tab-full-margin">
-        <mat-card>
+        <mat-card appearance="outlined">
           <mat-card-content>
             @if (serviceDetails) {
             <app-service-builds
@@ -299,7 +299,7 @@
       <div
         class="inspector-card-layout inspector-tab-full-margin"
         [class]="screenSize">
-        <mat-card class="full-width order-end">
+        <mat-card class="full-width order-end" appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Intentions</mat-card-title>
@@ -321,7 +321,7 @@
       <div
         class="inspector-card-layout inspector-tab-full-margin"
         [class]="screenSize">
-        <mat-card>
+        <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Members</mat-card-title>
@@ -343,7 +343,7 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card>
+        <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Roles</mat-card-title>

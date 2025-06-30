@@ -28,7 +28,7 @@ html {
     density: 0,
   ),
   (
-    on-surface-variant: #43474f,
+    on-surface-variant: light-dark(#43474f, #dfe2ec),
   ));
 }
 body { margin: 0; font-family: $typography-family; }
@@ -40,12 +40,8 @@ body { margin: 0; font-family: $typography-family; }
   --br-density-oneandhalf: 24px;
   --br-density-double: 32px;
 
-  @include mat.table-overrides((
-    background-color: var(--mat-sys-surface-container-low)
-  ));
-
-  @include mat.paginator-overrides((
-    container-background-color: var(--mat-sys-surface-container-low),
+  @include mat.sidenav-overrides((
+    content-background-color: var(--mat-sys-surface-container-low),
   ));
 
   [color=primary] {
@@ -69,7 +65,7 @@ body { margin: 0; font-family: $typography-family; }
   }
 }
 
-// Included this here because mat.theme isn't includeing this for some reason
+// Included this here because mat.theme doesn't add it
 .mat-h1, .mat-headline-5, .mat-typography .mat-h1, .mat-typography .mat-headline-5, .mat-typography h1 {
     font: 400 24px/32px BCSans, Noto Sans, Verdana, Arial, sans-serif;
     letter-spacing: normal;

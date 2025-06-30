@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card appearance="outlined">
   <mat-card-header>
     <mat-card-subtitle>{{ code() }}</mat-card-subtitle>
     <mat-card-title>{{ message() }}</mat-card-title>
@@ -8,7 +8,7 @@
     <p>It seems something went wrong.</p>
 
     @if (error()) {
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-content>
         {{ error() }}
       </mat-card-content>
