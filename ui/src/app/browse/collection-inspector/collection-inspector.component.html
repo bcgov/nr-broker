@@ -2,7 +2,7 @@
   <mat-spinner></mat-spinner>
 } @else {
   <app-collection-header
-    [collection]="collection"
+    [collection]="collection()"
     [name]="comboData.collection.name"
     [screenSize]="screenSize"
     [upstream]="comboData.upstream"
@@ -14,7 +14,7 @@
         mat-stroked-button
         extended
         color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
+        [disabled]="!hasDelete || !config().permissions.delete"
         (click)="delete()">
         Delete
       </button>
@@ -22,7 +22,7 @@
       <button
         mat-icon-button
         color="warn"
-        [disabled]="!hasDelete || !config.permissions.delete"
+        [disabled]="!hasDelete || !config().permissions.delete"
         (click)="delete()">
         <mat-icon>delete</mat-icon>
       </button>
@@ -45,7 +45,7 @@
       (click)="editTags()">
       Tags
     </button>
-    @if (collection == 'team') {
+    @if (collection() == 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"
@@ -56,7 +56,7 @@
       mat-stroked-button
       extended
       class="collection-btn"
-      [disabled]="!hasUpdate || !config.permissions.update"
+      [disabled]="!hasUpdate || !config().permissions.update"
       (click)="edit()">
       Edit
     </button>
@@ -74,7 +74,7 @@
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
-    @if (collection == 'team') {
+    @if (collection() == 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"
@@ -84,7 +84,7 @@
     <button
       mat-icon-button
       class="collection-btn"
-      [disabled]="!hasUpdate || !config.permissions.update"
+      [disabled]="!hasUpdate || !config().permissions.update"
       (click)="edit()">
       <mat-icon>edit</mat-icon>
     </button>
@@ -93,13 +93,13 @@
 </app-collection-header>
   <mat-tab-group
     [animationDuration]="0"
-    [selectedIndex]="selectedTabIndex"
+    [selectedIndex]="selectedTabIndex()"
     (selectedTabChange)="selectedTabChange($event)">
   <mat-tab label="Collection">
     <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
       <app-vertex-tags
         class="full-width"
-        [collection]="collection"
+        [collection]="collection()"
         [collectionData]="comboData.collection"></app-vertex-tags>
 
       <mat-card appearance="outlined">
@@ -126,7 +126,7 @@
                   [cdkCopyToClipboard]="comboData.collection.id"
                   >Collection Id</button>
                 <mat-divider></mat-divider>
-                @for (item of (config.fields | keyvalue); track item.key) {
+                @for (item of (config().fields | keyvalue); track item.key) {
                   @if (comboData.collection[item.key] && (item.value.type === 'string' || item.value.type === 'email' || item.value.type === 'url')) {
                     <button
                       mat-menu-item
@@ -139,8 +139,8 @@
           </div>
 
           <app-inspector-vertex-fields
-            [collection]="collection"
-            [collectionConfig]="config"
+            [collection]="collection()"
+            [collectionConfig]="config()"
             [collectionData]="comboData.collection"
             [filter]="'no'"
             ></app-inspector-vertex-fields>
@@ -153,22 +153,23 @@
         </mat-card-content>
       </mat-card>
 
+      @let localCollection = collection();
       <div>
-        @if (hasSudo && collection === 'repository' && comboData.vertex.collection === collection) {
+        @if (hasSudo && localCollection === 'repository' && comboData.vertex.collection === localCollection) {
           <mat-card class="inspector-card-gap" appearance="outlined">
             <mat-card-content>
               <app-inspector-repository-sync
-                [repository]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
+                [repository]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
                 [hasSudo]="hasSudo"
                 [header]="'large'"></app-inspector-repository-sync>
             </mat-card-content>
           </mat-card>
         }
-        @if (collection === 'brokerAccount' && comboData.vertex.collection === collection) {
+        @if (localCollection === 'brokerAccount' && comboData.vertex.collection === localCollection) {
           <mat-card class="inspector-card-gap" appearance="outlined">
             <mat-card-content>
               <app-inspector-account
-                [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
+                [account]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
                 [userIndex]="4"
                 [hasSudo]="hasSudo"
                 [header]="'large'"></app-inspector-account>
@@ -178,11 +179,11 @@
         <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
-              <mat-card-title>Connections</mat-card-title>
+              <mat-card-title>Direct Connections</mat-card-title>
             </div>
             <app-inspector-connections
-              [collection]="collection"
-              [config]="config"
+              [collection]="collection()"
+              [config]="config()"
               [vertex]="comboData.collection.vertex"
               [source]="comboData.vertex"
               [upstream]="comboData.upstream"
@@ -194,7 +195,7 @@
       </mat-card>
     </div>
 
-    @if (collection === 'user') {
+    @if (collection() === 'user') {
       <mat-card appearance="outlined">
         <mat-card-content>
           <div class="card-title-container">
@@ -206,7 +207,7 @@
       </mat-card>
     }
 
-    @if (collection === 'service' || collection === 'project' || collection === 'brokerAccount' || collection === 'repository') {
+    @if (collection() === 'service' || collection() === 'project' || collection() === 'brokerAccount' || collection() === 'repository') {
       <mat-card appearance="outlined">
         <mat-card-content>
           <div class="card-title-container">
@@ -215,14 +216,14 @@
           <app-inspector-people
             [collection]="comboData.vertex.collection"
             [vertex]="comboData.collection.vertex"
-            [showLinked]="collection === 'repository'"></app-inspector-people>
+            [showLinked]="collection() === 'repository'"></app-inspector-people>
         </mat-card-content>
       </mat-card>
     }
     </div>
   </mat-tab>
 
-  @if (collection === 'serviceInstance') {
+  @if (collection() === 'serviceInstance') {
     <mat-tab label="Details">
       <div class="inspector-tab-margin">
         <mat-card class="inspector-card-gap" appearance="outlined">
@@ -247,7 +248,7 @@
     </mat-tab>
   }
 
-  @if (collection === 'service') {
+  @if (collection() === 'service') {
     <mat-tab label="Instances">
       <div class="inspector-tab-margin">
             <app-service-instances
@@ -316,7 +317,7 @@
     </mat-tab>
   }
 
-  @if (collection === 'team') {
+  @if (collection() === 'team') {
     <mat-tab label="Team">
       <div
         class="inspector-card-layout inspector-tab-full-margin"
@@ -366,8 +367,8 @@
       </div>
     </mat-tab>
   }
-  @if (collectionOptions[collection] && collectionOptions[collection].length > 0) {
-    <mat-tab label="Resources">
+  @if (connectedTableCollectionOptions() && connectedTableCollectionOptions().length > 0) {
+    <mat-tab label="Connected">
       <ng-template matTabContent>
         <div
           class="inspector-card-layout"
@@ -375,9 +376,10 @@
 
           <app-collection-table
             class="full-width order-end"
-            [collection]="tableCollection()"
-            [collectionOptions]="tableCollectionOptions()"
-            [upstreamId]="comboData.collection.vertex"
+            [collection]="connectedTableCollection()"
+            [collectionOptions]="connectedTableCollectionOptions()"
+            [upstreamId]="!isUpstreamConnectedCollection(connectedTableCollection()) ? comboData.collection.vertex : null"
+            [downstreamId]="isUpstreamConnectedCollection(connectedTableCollection()) ? comboData.collection.vertex : null"
             [text]="text()"
             [showFilter]="showFilter()"
             [tags]="tags()"

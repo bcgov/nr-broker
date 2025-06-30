@@ -1,8 +1,11 @@
 import { CommonModule, Location } from '@angular/common';
 import {
   Component,
+  computed,
   inject,
   Inject,
+  input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   signal,
@@ -41,7 +44,6 @@ import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
@@ -122,13 +124,19 @@ import { SortDirection } from '@angular/material/sort';
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {
   // Url params
-  public collection: CollectionNames = 'project';
-  public collectionId!: string;
+  public collection = input<CollectionNames>('project');
+  public collectionId = input('', { alias: 'id' });
+  public selectedTabIndex = input(0, {
+    transform: (v) => numberAttribute(v, 0),
+    alias: 'index',
+  });
   routeSub: Subscription | null = null;
 
   // Loaded data
   public loading = true;
-  public config!: CollectionConfigDto;
+  readonly config = computed(() => {
+    return this.configRecord[this.collection()];
+  });
   public comboData!: CollectionCombo<any>;
   public serviceDetails: ServiceDetailsResponseDto | null = null;
   public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
@@ -142,23 +150,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   refresh = signal(0);
-  selectedTabIndex = 0;
-  selectedBuild: string | undefined;
   screenSize: string = '';
 
-  tableCollection = signal<CollectionNames>('project');
-  tableCollectionOptions = signal<CollectionNames[]>([]);
-  collectionOptions: Record<CollectionNames, CollectionNames[]> = {
-    brokerAccount: ['project', 'service', 'repository'],
-    environment: [],
-    project: ['service', 'repository'],
-    repository: [],
-    server: [],
-    serviceInstance: [],
-    service: ['repository', 'serviceInstance'],
-    team: ['project', 'service', 'brokerAccount', 'repository'],
-    user: ['team', 'project', 'service', 'brokerAccount', 'repository'],
-  };
+  connectedTableCollection = signal<CollectionNames>('project');
+  connectedTableCollectionOptions = signal<CollectionNames[]>([]);
   text = signal('');
   tags = signal('');
   showFilter = signal<ShowFilter>('all');
@@ -267,17 +262,16 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe),
         switchMap(() => {
           return this.collectionApi.getCollectionComboById(
-            this.collection,
-            this.collectionId,
+            this.collection(),
+            this.collectionId(),
           );
         }),
       ),
     ]).subscribe(([permissions, comboData]) => {
-      if (!this.configRecord[this.collection]) {
+      if (!this.config()) {
         return;
       }
 
-      this.config = this.configRecord[this.collection];
       this.comboData = comboData;
       this.hasAdmin = this.permission.hasAdmin();
       this.hasSudo = this.permission.hasSudo(
@@ -300,13 +294,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.serviceDetails = null;
       this.serviceInstanceDetails = null;
 
-      if (this.collection === 'service') {
+      if (this.collection() === 'service') {
         this.collectionApi
           .getServiceDetails(this.comboData.collection.id)
           .subscribe((data) => {
             this.serviceDetails = data;
           });
-      } else if (this.collection === 'serviceInstance') {
+      } else if (this.collection() === 'serviceInstance') {
         this.collectionApi
           .getServiceInstanceDetails(this.comboData.collection.id)
           .subscribe((data) => {
@@ -319,24 +313,16 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   initComponent() {
-    const params = this.activatedRoute.snapshot.params;
-    const collection = params['collection'] as CollectionNames;
-    this.collection = collection;
-    if (
-      this.collectionOptions[collection] &&
-      this.collectionOptions[collection][0]
-    ) {
-      this.tableCollection.set(this.collectionOptions[collection][0]);
-      this.tableCollectionOptions.set(this.collectionOptions[collection]);
+    const collectionOptions = this.config()?.connectedTable;
+    if (collectionOptions && collectionOptions[0]) {
+      this.connectedTableCollection.set(collectionOptions[0].collection);
+      this.connectedTableCollectionOptions.set(
+        collectionOptions.map((c) => c.collection),
+      );
     } else {
-      this.tableCollection.set('project');
-      this.tableCollectionOptions.set([]);
+      this.connectedTableCollection.set('project');
+      this.connectedTableCollectionOptions.set([]);
     }
-    this.collectionId = params['id'];
-    this.selectedTabIndex = params['index']
-      ? Number.parseInt(params['index'])
-      : 0;
-    this.selectedBuild = params['build'];
   }
 
   ngOnDestroy() {
@@ -346,6 +332,14 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
+  }
+
+  isUpstreamConnectedCollection(collection: CollectionNames) {
+    return (
+      this.config()?.connectedTable?.find(
+        (c) => c.collection === collection && c.direction === 'upstream',
+      ) !== undefined
+    );
   }
 
   updateCollection() {
@@ -379,14 +373,12 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   selectedTabChange(event: MatTabChangeEvent) {
-    this.selectedTabIndex = event.index;
-    this.selectedBuild = undefined;
-    this.updateRoute();
+    this.updateRoute(event.index);
   }
 
-  updateRoute() {
+  updateRoute(selectedTabIndex: number) {
     this.location.replaceState(
-      `/browse/${this.collection}/${this.collectionId};index=${this.selectedTabIndex}`,
+      `/browse/${this.collection()}/${this.collectionId()};index=${selectedTabIndex}`,
     );
   }
 
@@ -401,7 +393,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .open(VertexDialogComponent, {
         width: '500px',
         data: {
-          collection: this.collection,
+          collection: this.collection(),
           vertex: this.comboData.vertex,
           data: this.comboData.collection,
         },
@@ -419,7 +411,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .open(TagDialogComponent, {
         width: '500px',
         data: {
-          collection: this.collection,
+          collection: this.collection(),
           collectionData: this.comboData.collection,
         },
       })
@@ -465,7 +457,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   updateTableRoute($event: any) {
-    if (this.tableCollection() === $event.collection) {
+    if (this.connectedTableCollection() === $event.collection) {
       this.text.set($event.text);
       this.tags.set($event.tags.join(','));
       this.index.set($event.index);
@@ -473,7 +465,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.sortActive.set($event.sortActive);
       this.sortDirection.set($event.sortDirection);
     } else {
-      this.tableCollection.set($event.collection);
+      this.connectedTableCollection.set($event.collection);
       this.text.set('');
       this.tags.set('');
       this.index.set(0);

@@ -118,6 +118,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   collection = input.required<CollectionNames>();
   collectionOptions = input<CollectionNames[]>([]);
   upstreamId = input<string>();
+  downstreamId = input<string>();
   text = input('');
   computedText = computed(() =>
     (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
@@ -222,7 +223,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.propDisplayedColumns = [
         ...(configRecord[this.collection()].browseFields ??
           Object.keys(this.fields)),
-        'action',
+        'action-caa4f8db8b42',
       ];
       this.canFilterConnected = this.configArr
         .filter((config) => config.permissions.filter)
@@ -310,6 +311,9 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
                 : {}),
               ...(this.upstreamId()
                 ? { upstreamVertex: this.upstreamId() }
+                : {}),
+              ...(this.downstreamId()
+                ? { downstreamVertex: this.downstreamId() }
                 : {}),
               sortActive,
               sortDirection,
