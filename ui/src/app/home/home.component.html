@@ -15,13 +15,20 @@
       <div class="tab-flex">
         <div class="tab-content">
 
-          <p>NR Broker is a customizable software deployment business intelligence tool. It automates access to secrets stored in HashiCorp Vault by software (applications, GitHub Actions, etc.), audits activities (builds, installations, provisioning secrets, etc.) and enables access automation.</p>
+          <p>NR Broker is a customizable software deployment and business intelligence tool.  It automates access to secrets stored in HashiCorp Vault for software such as applications, GitHub Actions, and more. It also audits activities like builds, installations, and secret provisioning, while enabling automated access management.</p>
 
-          <p>Broker stores details of collection objects (projects, services, accounts, users, and more) in a database. It uses connections (edges) to connect these objects (vertices) together into a graph.</p>
+          <p>Broker stores information about collection objects—such as projects, services, accounts, and users—in a database. These objects (vertices) are linked using connections (edges), forming a graph.</p>
 
-          <p>New users may wish to review their <a href="#" [routerLink]="['/browse/team', {showFilter: 'connected'}]">team membership</a> in Broker. You can filter objects in the browse and graph sections based on if you are connected to them. External services will use your team's connections to determine your access.</p>
+          <p>New users may wish to review their <a href="#" [routerLink]="['/browse/team', {showFilter: 'connected'}]">team membership</a> in Broker. In the Browse and Graph sections, you can filter objects based on your connections. External services will use the connection in the graph to determine access.</p>
 
-          <button mat-stroked-button (click)="setSelectedTabIndex(1)" >
+          <p>Click the button below to continue and view details about each section in NR Broker.</p>
+
+          <button
+            matButton="filled"
+            class="tab-content-btn"
+            matRipple
+            #ripple="matRipple"
+            (click)="setSelectedTabIndex(1)">
             <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
             Sections
           </button>

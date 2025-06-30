@@ -95,6 +95,12 @@ a {
   max-width: 600px;
 }
 
+.tab-content-btn {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
 :host {
   @include mat.fab-overrides((
     container-color: var(--mat-sys-on-primary-container),
