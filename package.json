@@ -52,7 +52,7 @@
     "libsodium-wrappers": "^0.7.15",
     "lodash.merge": "^4.6.2",
     "mongodb": "^6.17.0",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^7.0.4",
     "openid-client": "^5.7.1",
     "passport": "^0.7.0",
     "passport-http": "^0.3.0",
