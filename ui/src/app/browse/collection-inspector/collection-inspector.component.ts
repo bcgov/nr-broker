@@ -5,6 +5,7 @@ import {
   inject,
   Inject,
   input,
+  effect,
   numberAttribute,
   OnDestroy,
   OnInit,
@@ -27,15 +28,7 @@ import {
   MatSnackBarModule,
 } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
-import {
-  BehaviorSubject,
-  Subject,
-  Subscription,
-  combineLatest,
-  startWith,
-  switchMap,
-  takeUntil,
-} from 'rxjs';
+import { Subject, combineLatest, filter, startWith, takeUntil } from 'rxjs';
 
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -81,6 +74,8 @@ import {
   ShowFilter,
 } from '../collection-table/collection-table.component';
 import { SortDirection } from '@angular/material/sort';
+import { httpResource } from '@angular/common/http';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -130,14 +125,23 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     transform: (v) => numberAttribute(v, 0),
     alias: 'index',
   });
-  routeSub: Subscription | null = null;
 
   // Loaded data
-  public loading = true;
+  hideLoading = signal(false);
   readonly config = computed(() => {
     return this.configRecord[this.collection()];
   });
   public comboData!: CollectionCombo<any>;
+  public comboDataResource = httpResource(() => {
+    return this.collectionApi.getCollectionComboByIdArgs(
+      this.collection(),
+      this.collectionId(),
+    );
+  });
+  public comboDataResource$ = toObservable(
+    this.comboDataResource.asReadonly().value,
+  ).pipe(filter((data) => !!data));
+
   public serviceDetails: ServiceDetailsResponseDto | null = null;
   public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
     null;
@@ -153,7 +157,15 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   screenSize: string = '';
 
   connectedTableCollection = signal<CollectionNames>('project');
-  connectedTableCollectionOptions = signal<CollectionNames[]>([]);
+  connectedTableCollectionOptions = computed(() => {
+    const collectionOptions = this.config()?.connectedTable;
+    if (collectionOptions && collectionOptions[0]) {
+      return collectionOptions.map((c) => c.collection);
+    } else {
+      return [];
+    }
+  });
+
   text = signal('');
   tags = signal('');
   showFilter = signal<ShowFilter>('all');
@@ -171,7 +183,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     [Breakpoints.XLarge, 'wide'],
   ]);
 
-  private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe: Subject<any> = new Subject();
 
   constructor(
@@ -188,6 +199,15 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     @Inject(CONFIG_RECORD)
     private readonly configRecord: CollectionConfigNameRecord,
   ) {
+    effect(() => {
+      const collectionOptions = this.config()?.connectedTable;
+      if (collectionOptions && collectionOptions[0]) {
+        this.connectedTableCollection.set(collectionOptions[0].collection);
+      } else {
+        this.connectedTableCollection.set('project');
+      }
+    });
+
     inject(BreakpointObserver)
       .observe([
         Breakpoints.XSmall,
@@ -207,14 +227,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (!this.routeSub) {
-      this.routeSub = this.activatedRoute.params.subscribe(() => {
-        this.loading = true;
-        this.initComponent();
-        this.updateCollection();
-      });
-    }
-
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
@@ -258,21 +270,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
     combineLatest([
       this.graphApi.getUserPermissions(),
-      this.triggerRefresh.pipe(
-        takeUntil(this.ngUnsubscribe),
-        switchMap(() => {
-          return this.collectionApi.getCollectionComboById(
-            this.collection(),
-            this.collectionId(),
-          );
-        }),
-      ),
+      this.comboDataResource$,
     ]).subscribe(([permissions, comboData]) => {
       if (!this.config()) {
         return;
       }
 
-      this.comboData = comboData;
+      this.comboData = comboData as any;
       this.hasAdmin = this.permission.hasAdmin();
       this.hasSudo = this.permission.hasSudo(
         permissions,
@@ -307,31 +311,14 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
             this.serviceInstanceDetails = data;
           });
       }
-      this.loading = false;
+      this.hideLoading.set(false);
       this.refresh.set(this.refresh() + 1);
     });
-  }
-
-  initComponent() {
-    const collectionOptions = this.config()?.connectedTable;
-    if (collectionOptions && collectionOptions[0]) {
-      this.connectedTableCollection.set(collectionOptions[0].collection);
-      this.connectedTableCollectionOptions.set(
-        collectionOptions.map((c) => c.collection),
-      );
-    } else {
-      this.connectedTableCollection.set('project');
-      this.connectedTableCollectionOptions.set([]);
-    }
   }
 
   ngOnDestroy() {
     this.ngUnsubscribe.next(true);
     this.ngUnsubscribe.complete();
-
-    if (this.routeSub) {
-      this.routeSub.unsubscribe();
-    }
   }
 
   isUpstreamConnectedCollection(collection: CollectionNames) {
@@ -343,7 +330,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   updateCollection() {
-    this.triggerRefresh.next(true);
+    this.hideLoading.set(true);
+    this.comboDataResource.reload();
   }
 
   navigate(target: EdgeDto | VertexDto) {
@@ -399,11 +387,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         },
       })
       .afterClosed()
-      .subscribe((result) => {
-        if (result && result.refresh) {
-          // this.refreshData();
-        }
-      });
+      .subscribe();
   }
 
   editTags() {
@@ -416,11 +400,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         },
       })
       .afterClosed()
-      .subscribe((result) => {
-        if (result && result.refresh) {
-          // this.refreshData();
-        }
-      });
+      .subscribe();
   }
 
   delete() {
@@ -433,9 +413,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         if (result && result.confirm) {
           this.graphApi
             .deleteVertex(this.comboData.collection.vertex)
-            .subscribe(() => {
-              // this.refreshData();
-            });
+            .subscribe();
         }
       });
   }

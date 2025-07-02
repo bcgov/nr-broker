@@ -40,16 +40,23 @@ export class CollectionApiService {
     );
   }
 
+  public getCollectionComboByIdArgs<T extends CollectionNames>(
+    name: T,
+    id: string,
+  ): { method: string; url: string; options: { responseType: 'json' } } {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/combo`,
+      options: { responseType: 'json' },
+    };
+  }
+
   public getCollectionComboById<T extends CollectionNames>(
     name: T,
     id: string,
   ) {
-    return this.http.get<CollectionCombo<CollectionDtoUnion[T]>>(
-      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/combo`,
-      {
-        responseType: 'json',
-      },
-    );
+    const { url, options } = this.getCollectionComboByIdArgs(name, id);
+    return this.http.get<CollectionCombo<CollectionDtoUnion[T]>>(url, options);
   }
 
   public searchCollection<T extends CollectionNames>(
