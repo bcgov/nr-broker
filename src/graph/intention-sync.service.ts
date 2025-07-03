@@ -201,11 +201,11 @@ export class IntentionSyncService {
           value: this.actionUtil.actionToIdString(action),
         },
         {
-          key: 'actionHistory[0].intention',
+          key: 'actionHistory.0.intention',
           value: intention.id,
         },
         {
-          key: 'actionHistory[0].action',
+          key: 'actionHistory.0.action',
           value: this.actionUtil.actionToIdString(action),
         },
       ],
