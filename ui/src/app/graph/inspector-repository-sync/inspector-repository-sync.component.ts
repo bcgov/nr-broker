@@ -39,7 +39,7 @@ export class InspectorRepositorySyncComponent {
 
   syncSecrets() {
     this.systemApi
-      .repositoryRefresh(this.repository.id, true, false)
+      .repositoryRefresh(this.repository.id, true, false, false)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of secrets queued');
@@ -54,7 +54,7 @@ export class InspectorRepositorySyncComponent {
 
   syncUsers() {
     this.systemApi
-      .repositoryRefresh(this.repository.id, false, true)
+      .repositoryRefresh(this.repository.id, false, true, false)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of users queued');
@@ -62,6 +62,21 @@ export class InspectorRepositorySyncComponent {
         error: (err: any) => {
           this.openSnackBar(
             'Syncing users failed: ' + (err?.statusText ?? 'unknown'),
+          );
+        },
+      });
+  }
+
+  syncEnvironments() {
+    this.systemApi
+      .repositoryRefresh(this.repository.id, false, false, true)
+      .subscribe({
+        next: () => {
+          this.openSnackBar('Sync of environments queued');
+        },
+        error: (err: any) => {
+          this.openSnackBar(
+            'Syncing environments failed: ' + (err?.statusText ?? 'unknown'),
           );
         },
       });
@@ -82,6 +97,15 @@ export class InspectorRepositorySyncComponent {
       (!this.repository.syncUsersStatus?.syncAt ||
         this.repository.syncUsersStatus?.queuedAt >
           this.repository.syncUsersStatus?.syncAt)
+    );
+  }
+
+  showEnvironmentsQueued() {
+    return !!(
+      this.repository.syncEnvironmentsStatus?.queuedAt &&
+      (!this.repository.syncEnvironmentsStatus?.syncAt ||
+        this.repository.syncEnvironmentsStatus?.queuedAt >
+          this.repository.syncEnvironmentsStatus?.syncAt)
     );
   }
 

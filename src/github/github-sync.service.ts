@@ -13,6 +13,7 @@ import {
   REDIS_QUEUES,
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
+  CRON_JOB_SYNC_ENVIRONMENTS,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
@@ -532,7 +533,7 @@ export class GithubSyncService {
 
     const environments = await this.listRepoEnvironments(owner, repo, token);
 
-    if (true) {
+    if (!environments.some((e) => e.name === 'development')) {
       //development does not exist
       await this.updateRepoEnvironment(owner, repo, 'development', [], token);
     } else {
@@ -540,13 +541,16 @@ export class GithubSyncService {
       console.log("GitHub 'development' environment exists.");
     }
 
-    if (true) {
+    if (!environments.some((e) => e.name === 'test')) {
       //test does not exist
       const users = await this.graphRepository.getUpstreamVertex<UserDto>(
         repository.vertex.toString(),
         CollectionIndex.User,
-        'lead-developers',
+        ['lead-developers'],
       );
+
+      //TODO
+      const reviewerIds = [1,2,3];
 
       await this.updateRepoEnvironment(owner, repo, 'test', reviewerIds, token);
     } else {
@@ -554,13 +558,16 @@ export class GithubSyncService {
       //todo: verify reviewers
     }
 
-    if (true) {
+    if (!environments.some((e) => e.name === 'production')) {
       //production does not exist
       const users = await this.graphRepository.getUpstreamVertex<UserDto>(
         repository.vertex.toString(),
         CollectionIndex.User,
-        'prod-operator',
+        ['prod-operator'],
       );
+
+      //TODO
+      const reviewerIds = [1,2,3];
 
       await this.updateRepoEnvironment(
         owner,
@@ -865,7 +872,7 @@ export class GithubSyncService {
         },
       );
 
-      environments = environments.concat(response.data);
+      environments = environments.concat(...response.data.environments);
 
       // Check if there is a "next" page in the Link header
       const linkHeader = response.headers.link;
@@ -895,7 +902,7 @@ export class GithubSyncService {
     await this.axiosInstance.put(
       `/repos/${owner}/${repo}/environments/${environment}`,
       {
-        reviewers: reviewers
+        reviewers: reviewerIds
           ? reviewerIds.map((userId: number) => {
               return { type: 'User', id: userId };
             })
@@ -962,7 +969,7 @@ export class GithubSyncService {
     owner: string,
     repo: string,
     environment: string,
-    branchPolicyId: int,
+    branchPolicyId: number,
     branchPattern: string,
     token: string,
   ) {

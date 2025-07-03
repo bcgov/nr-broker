@@ -119,6 +119,7 @@ export class SystemApiService {
     repositoryId: string,
     syncSecrets: boolean,
     syncUsers: boolean,
+    syncEnvironments: boolean,
   ) {
     return this.http.post(
       `${environment.apiUrl}/v1/collection/repository/${repositoryId}/refresh`,
@@ -128,6 +129,7 @@ export class SystemApiService {
         params: {
           syncSecrets,
           syncUsers,
+          syncEnvironments
         },
       },
     );

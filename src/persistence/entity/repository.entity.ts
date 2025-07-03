@@ -41,6 +41,9 @@ export class RepositoryEntity extends VertexPointerEntity {
   @Property()
   enableSyncUsers: boolean;
 
+  @Property()
+  enableSyncEnvironments: boolean;
+
   @Embedded({
     entity: () => SyncStatusEmbeddable,
     nullable: true,
@@ -54,4 +57,11 @@ export class RepositoryEntity extends VertexPointerEntity {
     object: true,
   })
   syncUsersStatus?: SyncStatusEmbeddable;
+
+  @Embedded({
+    entity: () => SyncStatusEmbeddable,
+    nullable: true,
+    object: true,
+  })
+  syncEnvironmentsStatus?: SyncStatusEmbeddable;
 }
