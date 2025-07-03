@@ -139,14 +139,16 @@ export class GithubSyncService {
         'queuedAt',
       );
 
-      this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS, repository.id);
+      this.redisService.queue(
+        REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
+        repository.id,
+      );
 
       await this.graphService.updateSyncStatus(
         entity,
         'syncEnvironmentsStatus',
         'queuedAt',
       );
-
     }
   }
 
@@ -218,9 +220,9 @@ export class GithubSyncService {
       CRON_JOB_SYNC_ENVIRONMENTS,
       REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
       () =>
-        this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS) as Promise<
-          string | null
-        >,
+        this.redisService.dequeue(
+          REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
+        ) as Promise<string | null>,
       async (id: string) => {
         return this.runRefresh(id, false, false, true);
       },
@@ -528,54 +530,80 @@ export class GithubSyncService {
       throw new Error('GitHub access token is null!');
     }
 
-    const userConfig =
-      await this.collectionRepository.getCollectionConfigByName('user');
-    const edgeToRoles = userConfig.edgeToRoles;
+    const environments = await this.listRepoEnvironments(owner, repo, token);
 
-    // Get collaborators
-    const collaborators = await this.listRepoCollaborators(owner, repo, token);
-    const currCollabRoleMap = new Map<string, string>();
-    for (const collaborator of collaborators) {
-      currCollabRoleMap.set(collaborator.login, collaborator.role_name);
+    if (true) {
+      //development does not exist
+      await this.updateRepoEnvironment(owner, repo, 'development', [], token);
+    } else {
+      // just needs to exist? verify if vanilla?
+      console.log("GitHub 'development' environment exists.");
     }
-    const touchedCollaborators = new Set<string>();
 
-    for (const edgeRole of edgeToRoles) {
+    if (true) {
+      //test does not exist
       const users = await this.graphRepository.getUpstreamVertex<UserDto>(
         repository.vertex.toString(),
         CollectionIndex.User,
-        edgeRole.edge,
+        'lead-developers',
       );
-      for (const user of users) {
-        if (!user.collection?.alias || user.collection.alias.length !== 1) {
-          continue;
-        }
-        const username = user.collection.alias[0].username;
-        // Skip users in higher roles
-        // console.log(`Checking ${username} for ${edgeRole.role}`);
-        if (touchedCollaborators.has(username)) {
-          // console.log(`Skipping touched ${username}`);
-          continue;
-        }
-        touchedCollaborators.add(username);
-        if (
-          currCollabRoleMap.has(username) &&
-          currCollabRoleMap.get(username) === edgeRole.role
-        ) {
-          // console.log(`Skipping ${username} (already in role)`);
-          continue;
-        }
-        // console.log(`Adding ${username} as ${edgeRole.role}`);
 
-        await this.addRepoCollaborator(
-          owner,
-          repo,
-          username,
-          edgeRole.role,
-          token,
-        );
-      }
+      await this.updateRepoEnvironment(owner, repo, 'test', reviewerIds, token);
+    } else {
+      console.log("GitHub 'test' environment exists.");
+      //todo: verify reviewers
     }
+
+    if (true) {
+      //production does not exist
+      const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+        repository.vertex.toString(),
+        CollectionIndex.User,
+        'prod-operator',
+      );
+
+      await this.updateRepoEnvironment(
+        owner,
+        repo,
+        'production',
+        reviewerIds,
+        token,
+      );
+
+      await this.addRepoEnvironmentBranchPolicy(
+        owner,
+        repo,
+        'production',
+        'main',
+        'branch',
+        token,
+      );
+      await this.addRepoEnvironmentBranchPolicy(
+        owner,
+        repo,
+        'production',
+        'v*',
+        'tag',
+        token,
+      );
+    } else {
+      console.log("GitHub 'production' environment exists.");
+      //todo: verify reviewers
+      //todo: verify branch protection policies for `main` (branc) and `v*` (tags)
+    }
+
+    await this.graphService.updateSyncStatus(
+      repository,
+      'syncEnvironmentsStatus',
+      'syncAt',
+    );
+
+    this.auditService.recordToolsSync(
+      'end',
+      'success',
+      `End environment sync: ${repository.scmUrl}`,
+    );
+  }
 
   // Generate JWT
   private generateJWT(): string {
@@ -804,27 +832,78 @@ export class GithubSyncService {
     );
   }
 
+  /**
+   * Add or update a repo environment
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to add/update
+   * @param reviewerIds Array of user ids who will approve deployments to this environment
+   * @param token The installation access token
+   */
+  private async listRepoEnvironments(
+    owner: string,
+    repo: string,
+    token: string,
+  ): Promise<any[]> {
+    let environments = [];
+    let page = 1;
+    let hasNextPage = true;
 
+    while (hasNextPage) {
+      const response = await this.axiosInstance.get(
+        `/repos/${owner}/${repo}/environments`,
+        {
+          params: {
+            per_page: 5,
+            page,
+          },
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+        },
+      );
+
+      environments = environments.concat(response.data);
+
+      // Check if there is a "next" page in the Link header
+      const linkHeader = response.headers.link;
+      hasNextPage = linkHeader?.includes('rel="next"') ?? false;
+
+      page++;
+    }
+
+    return environments;
+  }
 
   /**
    * Add or update a repo environment
    * @param owner The owning organization or user
    * @param repo The repository name
    * @param environment The GitHub environment to add/update
-   * @param reviewers Array of objects who will approve deployments to this environment 
+   * @param reviewerIds Array of user ids who will approve deployments to this environment
    * @param token The installation access token
    */
   private async updateRepoEnvironment(
     owner: string,
     repo: string,
     environment: string,
-    reviewers: string[],
+    reviewerIds: number[],
     token: string,
   ) {
     await this.axiosInstance.put(
       `/repos/${owner}/${repo}/environments/${environment}`,
       {
-        reviewers: reviewers,
+        reviewers: reviewers
+          ? reviewerIds.map((userId: number) => {
+              return { type: 'User', id: userId };
+            })
+          : '',
+        deployment_branch_policy: {
+          protected_branches: false,
+          custom_branch_policies: true,
+        },
       },
       {
         headers: {
@@ -844,6 +923,7 @@ export class GithubSyncService {
    * @param branchPattern The name pattern that branches must match to deploy to this environment
    * @param patternType Whether this rule targets a branch or tag. Can be one of: branch, tag.
    * @param token The installation access token
+   * @returns Id for the created branch policy
    */
   private async addRepoEnvironmentBranchPolicy(
     owner: string,
@@ -868,7 +948,6 @@ export class GithubSyncService {
       },
     );
   }
-
 
   /**
    * Update a repo environment branch policy
@@ -901,6 +980,4 @@ export class GithubSyncService {
       },
     );
   }
-
-
 }
