@@ -93,13 +93,11 @@ export const OAUTH2_CLIENT_MAP_USERNAME =
 
 export const CRON_JOB_SYNC_SECRETS = 'cron-job-sync-secrets';
 export const CRON_JOB_SYNC_USERS = 'cron-job-sync-users';
-export const CRON_JOB_SYNC_ENVIRONMENTS = 'cron-job-sync-environments';
 export const CRON_JOB_SEND_COMS = 'cron-job-send-coms';
 
 export const REDIS_QUEUES = {
   GITHUB_SYNC_SECRETS: 'github-sync-secrets',
   GITHUB_SYNC_USERS: 'github-sync-users',
-  GITHUB_SYNC_ENVIRONMENTS: 'github-sync-environments',
   NOTIFICATION_COMS: 'notification-coms',
 } as const;
 

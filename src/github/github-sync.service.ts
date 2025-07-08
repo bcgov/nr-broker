@@ -13,7 +13,6 @@ import {
   REDIS_QUEUES,
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
-  CRON_JOB_SYNC_ENVIRONMENTS,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
@@ -139,17 +138,6 @@ export class GithubSyncService {
         'syncUsersStatus',
         'queuedAt',
       );
-
-      this.redisService.queue(
-        REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
-        repository.id,
-      );
-
-      await this.graphService.updateSyncStatus(
-        entity,
-        'syncEnvironmentsStatus',
-        'queuedAt',
-      );
     }
   }
 
@@ -187,7 +175,7 @@ export class GithubSyncService {
           string | null
         >,
       async (id: string) => {
-        return this.runRefresh(id, true, false, false);
+        return this.runRefresh(id, true, false);
       },
     );
   }
@@ -206,30 +194,11 @@ export class GithubSyncService {
           string | null
         >,
       async (id: string) => {
-        return this.runRefresh(id, false, true, false);
+        return this.runRefresh(id, false, true);
       },
     );
   }
-
-  @Cron(CronExpression.EVERY_30_SECONDS, {
-    name: CRON_JOB_SYNC_ENVIRONMENTS,
-  })
-  @CreateRequestContext()
-  async pollRefreshCronEnvironments(): Promise<void> {
-    await this.jobQueueUtil.refreshJobWrap(
-      this.schedulerRegistry,
-      CRON_JOB_SYNC_ENVIRONMENTS,
-      REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
-      () =>
-        this.redisService.dequeue(
-          REDIS_QUEUES.GITHUB_SYNC_ENVIRONMENTS,
-        ) as Promise<string | null>,
-      async (id: string) => {
-        return this.runRefresh(id, false, false, true);
-      },
-    );
-  }
-
+  
   /*
   private async refreshJobWrap(
     jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
@@ -255,7 +224,6 @@ export class GithubSyncService {
     repositoryId: string,
     syncSecrets: boolean,
     syncUsers: boolean,
-    syncEnvironments: boolean,
   ): Promise<void> {
     const repository = await this.collectionRepository.getCollectionById(
       'repository',
@@ -279,10 +247,6 @@ export class GithubSyncService {
 
     if (syncUsers && repository.enableSyncUsers) {
       await this.syncUsers(repository);
-    }
-
-    if (syncEnvironments && repository.enableSyncEnvironments) {
-      await this.syncEnvironments(repository);
     }
 
     if (syncSecrets && repository.enableSyncSecrets) {
@@ -494,6 +458,21 @@ export class GithubSyncService {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
 
+    console.log('wwawwawawaaawaaw\n\nwawwawaw');
+
+    // sync environments
+    const environments = await this.listRepoEnvironments(owner, repo, token);
+
+    const environment = await this.collectionRepository.getCollectionByKeyValue(
+      'environment',
+      'name',
+      'development', //action.service.environment,
+    );
+
+    console.log(environments);
+
+
+
     await this.graphService.updateSyncStatus(
       repository,
       'syncUsersStatus',
@@ -508,31 +487,12 @@ export class GithubSyncService {
   }
 
   public async syncEnvironments(repository: RepositoryEntity) {
-    if (!this.isEnabled()) {
-      throw new Error('Not enabled');
-    }
-    if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
-      throw new Error('Service does not have GitHub repo URL to update');
-    }
-    if (!repository.enableSyncEnvironments) {
-      throw new Error('Service does not have environment sync enabled');
-    }
 
-    this.auditService.recordToolsSync(
-      'start',
-      'unknown',
-      `Start environment sync: ${repository.scmUrl}`,
-    );
-
-    const { owner, repo } = this.getOwnerAndRepoFromUrl(repository.scmUrl);
-    const token = await this.getInstallationAccessToken(owner, repo);
-
-    if (!token) {
-      throw new Error('GitHub access token is null!');
-    }
-
-    const environments = await this.listRepoEnvironments(owner, repo, token);
-
+    const owner = '';
+    const repo = '';
+    const token = '';
+    const environments = [];
+    
     if (!environments.some((e) => e.name === 'development')) {
       //development does not exist
       await this.updateRepoEnvironment(owner, repo, 'development', [], token);
@@ -548,6 +508,12 @@ export class GithubSyncService {
         CollectionIndex.User,
         ['lead-developers'],
       );
+
+// 409   │     const environment = await this.collectionRepository.getCollectionByKeyValue(
+// 410   │       'environment',
+// 411   │       'name',
+// 412   │       action.service.environment,
+// 413   │     );
 
       //TODO
       const reviewerIds = [1,2,3];
@@ -598,18 +564,6 @@ export class GithubSyncService {
       //todo: verify reviewers
       //todo: verify branch protection policies for `main` (branc) and `v*` (tags)
     }
-
-    await this.graphService.updateSyncStatus(
-      repository,
-      'syncEnvironmentsStatus',
-      'syncAt',
-    );
-
-    this.auditService.recordToolsSync(
-      'end',
-      'success',
-      `End environment sync: ${repository.scmUrl}`,
-    );
   }
 
   // Generate JWT
@@ -843,9 +797,8 @@ export class GithubSyncService {
    * Add or update a repo environment
    * @param owner The owning organization or user
    * @param repo The repository name
-   * @param environment The GitHub environment to add/update
-   * @param reviewerIds Array of user ids who will approve deployments to this environment
    * @param token The installation access token
+   * @returns An array of environments (See GitHub API documentation)
    */
   private async listRepoEnvironments(
     owner: string,

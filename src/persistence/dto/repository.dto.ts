@@ -33,9 +33,6 @@ export class RepositoryBaseDto extends CollectionBaseDto {
   @IsBoolean()
   enableSyncUsers!: boolean;
 
-  @IsBoolean()
-  enableSyncEnvironments!: boolean;
-
   @IsOptional()
   @IsObject()
   @Type(() => SyncStatusDto)
@@ -45,11 +42,6 @@ export class RepositoryBaseDto extends CollectionBaseDto {
   @IsObject()
   @Type(() => SyncStatusDto)
   syncUsersStatus?: SyncStatusDto;
-
-  @IsOptional()
-  @IsObject()
-  @Type(() => SyncStatusDto)
-  syncEnvironmentsStatus?: SyncStatusDto;
 }
 
 export class RepositoryDto
