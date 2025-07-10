@@ -10,14 +10,52 @@ import { IntentionDto } from './intention/dto/intention.dto';
 export class IntentionApiService {
   constructor(private readonly http: HttpClient) {}
 
-  searchIntentions(where: string, offset = 0, limit = 5) {
-    const whereQuery = encodeURIComponent(where);
-    return this.http.post<IntentionSearchResult>(
-      `${environment.apiUrl}/v1/intention/search?where=${whereQuery}&offset=${offset}&limit=${limit}`,
-      {
+  searchIntentionsArgs(
+    where: string,
+    offset = 0,
+    limit = 5,
+  ): {
+    method: string;
+    url: string;
+    headers: {
+      responseType: 'json';
+    };
+    params: { where: string; offset: number; limit: number };
+  } {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/intention/search`,
+      headers: {
         responseType: 'json',
       },
+      params: {
+        where,
+        offset,
+        limit,
+      },
+    };
+  }
+
+  searchIntentions(where: string, offset = 0, limit = 5) {
+    const { url, headers, params } = this.searchIntentionsArgs(
+      where,
+      offset,
+      limit,
     );
+    return this.http.post<IntentionSearchResult>(url, null, {
+      responseType: headers.responseType,
+      params,
+    });
+  }
+
+  getIntentionArgs(id: string) {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/intention/${id}`,
+      headers: {
+        responseType: 'json',
+      },
+    };
   }
 
   getIntention(id: string) {

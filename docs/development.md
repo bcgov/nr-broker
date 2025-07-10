@@ -154,6 +154,8 @@ $ cd scripts
 $ source ./setenv-curl-local.sh
 # Health check
 $ ./health.sh
+# Change directory
+$ cd samples
 # Demo installation and provision of secret id for application
 $ ./provision-app-backend-demo.sh
 # Demo direct access of secrets for an activity like liquibase or flyway sync

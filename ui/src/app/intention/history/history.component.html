@@ -23,7 +23,9 @@
           spellcheck="false"
           placeholder="Value"
           name="value"
-          [(ngModel)]="currentValue">
+          [(ngModel)]="currentValue"
+          (keydown.enter)="$event.preventDefault()"
+          (ngModelChange)="updateFieldValue()">
       </mat-form-field>
     }
 
@@ -46,7 +48,10 @@
 
     <mat-form-field class="field-lifespan">
       <mat-label>Lifespan</mat-label>
-      <mat-select [(ngModel)]="currentLifespan" name="lifespan">
+      <mat-select
+        [value]="lifespan()"
+        (selectionChange)="updateRoute({lifespan: $event.value, index: 0})"
+        name="lifespan">
         @for (stat of lifespanOptions; track stat.value) {
           <mat-option [value]="stat.value">
             {{stat.viewValue}}
@@ -57,7 +62,10 @@
 
     <mat-form-field class="field-outcome">
       <mat-label>Outcome</mat-label>
-      <mat-select [(ngModel)]="currentStatus" name="status">
+      <mat-select
+        [value]="status()"
+        (selectionChange)="updateRoute({status: $event.value, index: 0})"
+        name="status">
         @for (stat of statusOptions; track stat.value) {
           <mat-option [value]="stat.value">
             {{stat.viewValue}}
@@ -68,20 +76,13 @@
 
     <button
       mat-stroked-button
-      aria-label="Filter"
-      (click)="filter()">
-      Filter
-    </button>
-
-    <button
-    mat-button
-    aria-label="Clear"
-    (click)="clear()">
+      aria-label="Clear"
+      (click)="clear()">
       Clear
     </button>
   </form>
   <div class="history-loader">
-    @if (loading) {
+    @if (intentionResource.isLoading()) {
       <mat-spinner diameter="20"></mat-spinner>
     }
   </div>
@@ -89,24 +90,26 @@
   mat-icon-button
   class="refresh"
   aria-label="Refresh Data"
-  (click)="loadData();">
+  (click)="intentionResource.reload();">
     <mat-icon>refresh</mat-icon>
   </button>
 </div>
 <mat-card class="history-table" appearance="outlined">
   <mat-card-content>
-    <app-history-table
-      [intentionData]="intentionData"
-      (viewIntentionEvent)="this.viewIntention($event)">
-    </app-history-table>
+    @if (intentionResource.hasValue()) {
+      <app-history-table
+        [intentionData]="intentionResource.value().data"
+        (viewIntentionEvent)="this.viewIntention($event)">
+      </app-history-table>
 
     <mat-paginator
-      [length]="intentionTotal"
-      [pageIndex]="currentIndex"
-      [pageSize]="currentSize"
+      [length]="intentionResource.value().meta.total"
+      [pageIndex]="index()"
+      [pageSize]="size()"
       [pageSizeOptions]="[5, 10, 25, 100]"
       (page)="handlePageEvent($event)"
       aria-label="Select page">
     </mat-paginator>
+  }
   </mat-card-content>
 </mat-card>

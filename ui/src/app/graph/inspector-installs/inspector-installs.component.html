@@ -69,19 +69,12 @@
           }
       </div>
 
-      <div class="details-item">
-        <div class="details-header">Installed</div>
-        <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
-      </div>
+      <app-details-item title="Installed">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
 
+      <app-details-item
+        (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
+        title="User" clickable="true">{{current.source.intention.user.name}}</app-details-item>
 
-      <div
-        class="details-item details-item-clickable"
-        matRipple
-        (click)="openUserInBrowserByGuid(current.source.intention.user.id)">
-        <div class="details-header">User</div>
-        <div class="details-line">{{current.source.intention.user.name}}</div>
-      </div>
     </div>
   }
 }

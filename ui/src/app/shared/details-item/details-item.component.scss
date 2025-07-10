@@ -1,0 +1,17 @@
+.details-item {
+  margin-left: -4px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.details-item-clickable:hover {
+  background: var(--mat-sys-surface-container-high);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.details-line {
+  color: var(--mat-sys-on-surface-variant);
+  min-width: 100px;
+  font-weight: 300;
+}

@@ -52,13 +52,7 @@ export class InspectorIntentionsComponent implements OnChanges {
   }
 
   viewIntention(event: any) {
-    this.router.navigate([
-      '/intention/history',
-      {
-        field: 'id',
-        value: event,
-      },
-    ]);
+    this.router.navigate([`/intention/${event}`]);
   }
 
   private loadIntentions() {

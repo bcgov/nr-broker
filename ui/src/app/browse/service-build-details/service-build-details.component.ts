@@ -20,6 +20,7 @@ import { CollectionApiService } from '../../service/collection-api.service';
 import { PackageUtilService } from '../../service/package-util.service';
 import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
 import { CollectionUtilService } from '../../service/collection-util.service';
+import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 
 @Component({
   selector: 'app-service-build-details',
@@ -28,6 +29,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
     ClipboardModule,
     CollectionHeaderComponent,
     InspectorInstallsComponent,
+    DetailsItemComponent,
     FilesizePipe,
     MatButtonModule,
     MatCardModule,

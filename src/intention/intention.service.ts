@@ -145,13 +145,16 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
+        error: [],
       });
     }
     // Map JWT to Broker Account
     const account = await this.getAccountFromRegistry(registryJwt);
     if (!account) {
-      actionFailures.push({
+      throw new BadRequestException({
+        statusCode: 400,
         message: 'Token must be bound to a broker account',
+        error: [],
         data: {
           action: '',
           action_id: '',
@@ -312,6 +315,25 @@ export class IntentionService {
         outcome: validationResult === null ? 'success' : 'failure',
       };
     }
+    this.auditOpenAndThrowUnsuccessful(req, intention, dryRun, actionFailures);
+    if (!dryRun) {
+      await this.intentionRepository.addIntention(intention);
+    }
+    return {
+      actions: actionResults,
+      id: intention.id,
+      token: intention.transaction.token,
+      transaction_id: intention.transaction.hash,
+      expiry: new Date(intention.expiry).toUTCString(),
+    };
+  }
+
+  private auditOpenAndThrowUnsuccessful(
+    req: Request,
+    intention: IntentionEntity,
+    dryRun: boolean,
+    actionFailures: ActionError[],
+  ) {
     const isSuccessfulOpen = actionFailures.length === 0;
     const exception = !isSuccessfulOpen
       ? new BadRequestException({
@@ -337,16 +359,6 @@ export class IntentionService {
     if (!isSuccessfulOpen) {
       throw exception;
     }
-    if (!dryRun) {
-      await this.intentionRepository.addIntention(intention);
-    }
-    return {
-      actions: actionResults,
-      id: intention.id,
-      token: intention.transaction.token,
-      transaction_id: intention.transaction.hash,
-      expiry: new Date(intention.expiry).toUTCString(),
-    };
   }
 
   /**

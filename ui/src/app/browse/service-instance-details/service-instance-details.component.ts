@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRippleModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
@@ -13,6 +12,7 @@ import { IntentionActionPointerDto } from '../../service/persistence/dto/intenti
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/graph-prop-viewer-dialog.component';
+import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 
 @Component({
   selector: 'app-service-instance-details',
@@ -21,8 +21,8 @@ import { GraphPropViewerDialogComponent } from '../graph-prop-viewer-dialog/grap
     FormsModule,
     MatButtonModule,
     MatIconModule,
-    MatRippleModule,
     MatSelectModule,
+    DetailsItemComponent,
   ],
   templateUrl: './service-instance-details.component.html',
   styleUrl: './service-instance-details.component.scss',

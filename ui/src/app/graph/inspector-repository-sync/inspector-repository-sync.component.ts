@@ -9,10 +9,16 @@ import { SystemApiService } from '../../service/system-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
 import { GithubRoleMappingDialogComponent } from '../github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-secrets-dialog.component';
+import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 
 @Component({
   selector: 'app-inspector-repository-sync',
-  imports: [CommonModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatTooltipModule,
+    DetailsItemComponent,
+  ],
   templateUrl: './inspector-repository-sync.component.html',
   styleUrl: './inspector-repository-sync.component.scss',
 })

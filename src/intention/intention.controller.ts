@@ -32,6 +32,7 @@ import {
   ACTION_END_STATUSES,
   INTENTION_CLOSE_STATUSES,
 } from './dto/constants.dto';
+import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 
 @Controller({
   path: 'intention',
@@ -246,7 +247,7 @@ export class IntentionController {
   @Get(':id')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getIntention(@Param('id') id: string) {
+  getIntention(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.intentionService.getIntention(
       id,
     ) as unknown as Promise<IntentionDto>;
