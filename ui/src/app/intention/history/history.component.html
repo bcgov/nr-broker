@@ -25,7 +25,7 @@
           name="value"
           [(ngModel)]="currentValue"
           (keydown.enter)="$event.preventDefault()"
-          (ngModelChange)="updateFieldValue()">
+          (ngModelChange)="debouncedValueModelChange$.next($event)">
       </mat-form-field>
     }
 

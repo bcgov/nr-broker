@@ -26,6 +26,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
+import { debounceTime, Subject } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
@@ -89,6 +90,7 @@ export class HistoryComponent {
 
   value = input('');
   currentValue = '';
+  debouncedValueModelChange$ = new Subject<any>();
 
   readonly lifespan = input('permanent', {
     transform: (v: string | undefined) => v ?? 'permanent',
@@ -241,6 +243,9 @@ export class HistoryComponent {
           index: 0,
         });
       }
+    });
+    this.debouncedValueModelChange$.pipe(debounceTime(1000)).subscribe(() => {
+      this.updateFieldValue();
     });
   }
 

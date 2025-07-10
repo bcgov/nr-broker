@@ -13,6 +13,7 @@ import {
   HTTP_INTERCEPTORS,
   provideHttpClient,
   withInterceptorsFromDi,
+  withFetch,
 } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -47,7 +48,7 @@ export const appConfig: ApplicationConfig = {
       useClass: RouteTitleStrategy,
     },
     provideAnimations(),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideNativeDateAdapter(),
   ],
 };
