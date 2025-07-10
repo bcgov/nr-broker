@@ -19,7 +19,11 @@ import {
 } from '../dto/graph-data.dto';
 import { VertexSearchDto } from '../dto/vertex.dto';
 import { EdgeInsertDto } from '../dto/edge.dto';
-import { COLLECTION_MAX_EMBEDDED } from '../../constants';
+import {
+  COLLECTION_MAX_EMBEDDED,
+  GRAPH_MAX_BROKER_SERVICE_LOOKUP_DEPTH,
+  GRAPH_MAX_PROJECT_SERVICE_LOOKUP_DEPTH,
+} from '../../constants';
 import { GraphProjectServicesResponseDto } from '../dto/graph-project-services.dto';
 import { GraphServerInstallsResponseDto } from '../dto/graph-server-installs.dto';
 import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
@@ -196,7 +200,7 @@ export class GraphMongoRepository implements GraphRepository {
                   // Allow to search for edges that are not restricted
                   // restrictSearchWithMatch: { restrict: { $ne: true } },
                   as: 'path',
-                  maxDepth: 2,
+                  maxDepth: GRAPH_MAX_PROJECT_SERVICE_LOOKUP_DEPTH,
                 },
               },
               {
@@ -1312,7 +1316,7 @@ export class GraphMongoRepository implements GraphRepository {
             connectFromField: 'target',
             connectToField: 'source',
             as: 'path',
-            maxDepth: 2,
+            maxDepth: GRAPH_MAX_BROKER_SERVICE_LOOKUP_DEPTH,
             restrictSearchWithMatch: {
               it: { $in: [serviceConfig.index, projectConfig.index] },
               restrict: { $ne: true },

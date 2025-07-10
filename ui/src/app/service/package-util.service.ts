@@ -66,13 +66,7 @@ export class PackageUtilService {
   }
 
   async openHistoryById(id: string) {
-    this.router.navigate([
-      '/intention/history',
-      {
-        field: 'id',
-        value: id,
-      },
-    ]);
+    this.router.navigate([`/intention/${id}`]);
   }
 
   private openSnackBar(message: string) {

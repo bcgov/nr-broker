@@ -87,10 +87,7 @@
 
         <div class="package-content">
 
-        <div class="details-item">
-          <div class="details-subtitle">Version</div>
-          <div class="details-title">{{ data.semver }}</div>
-        </div>
+        <app-details-item title="Version"><div class="details-title">{{ data.semver }}</div></app-details-item>
 
         @if (data.package.description) {
         <p>{{data.package.description}}</p>
@@ -98,92 +95,50 @@
 
           <div>
             @if (data.package.name) {
-            <div class="details-item">
-              <div class="details-header">Name</div>
-              <div class="details-line">{{data.package.name}}</div>
-            </div>
+              <app-details-item title="Name">{{data.package.name}}</app-details-item>
             }
             @if (data.package.architecture) {
-            <div class="details-item">
-              <div class="details-header">Architecture</div>
-              <div class="details-line">{{data.package.architecture}}</div>
-            </div>
+              <app-details-item title="Architecture">{{data.package.architecture}}</app-details-item>
             }
             @if (data.package.buildNumber) {
-            <div class="details-item">
-              <div class="details-header">Build Number</div>
-              <div class="details-line">{{data.package.buildNumber}}</div>
-            </div>
+              <app-details-item title="Build Number">{{data.package.buildNumber}}</app-details-item>
             }
             @if (data.package.buildGuid) {
-            <div class="details-item">
-              <div class="details-header">Build Guid</div>
-              <div class="details-line">{{data.package.buildGuid}}</div>
-            </div>
+              <app-details-item title="Build Guid">{{data.package.buildGuid}}</app-details-item>
             }
             @if (data.package.buildVersion) {
-            <div class="details-item">
-              <div class="details-header">Build Version</div>
-              <div class="details-line">{{data.package.buildVersion}}</div>
-            </div>
+              <app-details-item title="Build Version">{{data.package.buildVersion}}</app-details-item>
             }
             @if (data.package.checksum) {
-            <div class="details-item">
-              <div class="details-header">Checksum</div>
-              <div class="details-line">{{data.package.checksum}}</div>
-            </div>
+              <app-details-item title="Checksum">{{data.package.checksum}}</app-details-item>
             }
             @if (data.package.installScope) {
-            <div class="details-item">
-              <div class="details-header">Install Scope</div>
-              <div class="details-line">{{data.package.installScope}}</div>
-            </div>
+              <app-details-item title="Install Scope">{{data.package.installScope}}</app-details-item>
             }
             @if (data.package.license) {
-            <div class="details-item">
-              <div class="details-header">License</div>
-              <div class="details-line">{{data.package.license}}</div>
-            </div>
+              <app-details-item title="License">{{data.package.license}}</app-details-item>
             }
             @if (data.package.path) {
-            <div class="details-item">
-              <div class="details-header">Path</div>
-              <div class="details-line">{{data.package.path}}</div>
-            </div>
+              <app-details-item title="Path">{{data.package.path}}</app-details-item>
             }
             @if (data.package.reference) {
-            <div class="details-item">
-              <div class="details-header">Reference</div>
-              <div class="details-line">{{data.package.reference}}</div>
-            </div>
+              <app-details-item title="Reference">{{data.package.reference}}</app-details-item>
             }
             @if (data.package.size) {
-            <div class="details-item">
-                <div class="details-header">Size</div>
-                <div class="details-line">{{data.package.size | filesize}}</div>
-            </div>
+              <app-details-item title="Size">{{data.package.size | filesize}}</app-details-item>
             }
             @if (data.package.type) {
-              <div class="details-item">
-              <div class="details-header">Type</div>
-              <div class="details-line">{{data.package.type}}</div>
-            </div>
+              <app-details-item title="Type">{{data.package.type}}</app-details-item>
             }
 
             <h3>Information</h3>
 
             @if (data.timestamps?.createdAt) {
-            <div class="details-item">
-              <div class="details-header">Created</div>
-              <div class="details-line">{{data.timestamps!.createdAt | date: 'long'}}</div>
-            </div>
+              <app-details-item title="Created">{{data.timestamps!.createdAt | date: 'long'}}</app-details-item>
             }
 
             @if (data.timestamps?.updatedAt) {
-            <div class="details-item">
-              <div class="details-header">Modified</div>
-              <div class="details-line">{{data.timestamps!.updatedAt | date: 'long'}}</div>
-            </div>
+              <app-details-item title="Modified">{{data.timestamps!.updatedAt | date: 'long'}}</app-details-item>
             }
 
           </div>

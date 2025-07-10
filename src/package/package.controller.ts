@@ -24,6 +24,7 @@ import {
   PackageBuildDto,
   PackageBuildSearchResult,
 } from '../persistence/dto/package-build.dto';
+import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 
 @Controller({
   path: 'package',
@@ -95,7 +96,9 @@ export class PackageController {
 
   @Get(':id')
   @UseGuards(BrokerCombinedAuthGuard)
-  async get(@Param('id') id: string): Promise<PackageBuildDto> {
+  async get(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ): Promise<PackageBuildDto> {
     return this.service.get(id) as unknown as Promise<PackageBuildDto>;
   }
 

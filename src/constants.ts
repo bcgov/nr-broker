@@ -14,6 +14,10 @@ export const TOKEN_RENEW_RATIO = 0.75;
 export const HEADER_VAULT_ROLE_ID = 'x-vault-role-id';
 export const HEADER_BROKER_TOKEN = 'x-broker-token';
 
+export const GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH = 4;
+export const GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH = 4;
+export const GRAPH_MAX_BROKER_SERVICE_LOOKUP_DEPTH = 2;
+export const GRAPH_MAX_PROJECT_SERVICE_LOOKUP_DEPTH = 2;
 export const COLLECTION_MAX_EMBEDDED = 40;
 export const COLLECTION_COLLATION_LOCALE = 'en';
 

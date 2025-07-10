@@ -1,0 +1,42 @@
+.intention-flex-container {
+  display: flex;
+  align-items: center;
+  margin: 16px;
+}
+
+.intention-flex-container button {
+  margin-right: 16px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.intention-subtitle {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  height: 22px;
+  letter-spacing: 0.1px;
+  line-height: 22px;
+}
+
+.intention-title {
+  font-size: 20px;
+  font-weight: 500;
+  height: 32px;
+  letter-spacing: 0.25px;
+  line-height: 32px;
+}
+
+
+.intention-flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px;
+}
+
+.intention-flex-container > .intention-panel {
+  width: 100%;
+}

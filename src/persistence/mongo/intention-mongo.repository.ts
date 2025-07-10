@@ -7,7 +7,6 @@ import { ObjectId } from 'mongodb';
 import { LIFECYCLE_NAMES } from '../../intention/dto/action.dto';
 import { IntentionEntity } from '../../intention/entity/intention.entity';
 import { IntentionRepository } from '../interfaces/intention.repository';
-import { extractId } from './mongo.util';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
@@ -127,11 +126,7 @@ export class IntentionMongoRepository implements IntentionRepository {
     } else {
       action.artifacts = [artifact];
     }
-
-    const id = extractId(intention);
-    await this.intentionRepository
-      .getCollection()
-      .replaceOne({ _id: id }, intention);
+    this.em.persist(intention).flush();
     return action;
   }
 

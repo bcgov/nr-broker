@@ -40,6 +40,7 @@ import { PersistenceCacheSuffix } from '../persistence/persistence-cache-suffix.
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
 import { REDIS_PUBSUB } from '../constants';
+import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 
 @Controller({
   path: 'graph',
@@ -202,7 +203,7 @@ export class GraphController {
   @UsePipes(new ValidationPipe({ transform: true }))
   editEdge(
     @Req() request: Request,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Body() edge: EdgeInsertDto,
   ) {
     return this.graph.editEdge(request, id, edge);
@@ -211,7 +212,7 @@ export class GraphController {
   @Get('edge/:id')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getEdge(@Param('id') id: string) {
+  getEdge(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.graph.getEdge(id);
   }
 
@@ -224,7 +225,10 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  deleteEdge(@Req() request: Request, @Param('id') id: string) {
+  deleteEdge(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
     return this.graph.deleteEdge(request, id);
   }
 
@@ -290,7 +294,7 @@ export class GraphController {
   )
   editVertex(
     @Req() request: Request,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Body() vertex: VertexInsertDto,
   ) {
     return this.graph.editVertex(request, id, vertex);
@@ -299,7 +303,7 @@ export class GraphController {
   @Get('vertex/:id')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  getVertex(@Param('id') id: string) {
+  getVertex(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.graph.getVertex(id);
   }
 
@@ -312,7 +316,10 @@ export class GraphController {
   })
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  deleteVertex(@Req() request: Request, @Param('id') id: string) {
+  deleteVertex(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
     return this.graph.deleteVertex(request, id);
   }
 
@@ -324,7 +331,7 @@ export class GraphController {
     required: false,
   })
   getUpstreamVertex(
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Param('index') index: string,
     @Query('matchEdgeNames') matchEdgeNames: string,
   ) {
@@ -347,7 +354,7 @@ export class GraphController {
     required: false,
   })
   getVertexEdgeConfig(
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Query('targetCollection') targetCollection: string,
     @Query('edgeName') edgeName: string,
   ) {

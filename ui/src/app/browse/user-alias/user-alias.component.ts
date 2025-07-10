@@ -5,10 +5,11 @@ import { SystemApiService } from '../../service/system-api.service';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import { HealthStatusService } from '../../service/health-status.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 
 @Component({
   selector: 'app-user-alias',
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, MatButtonModule, DetailsItemComponent],
   templateUrl: './user-alias.component.html',
   styleUrl: './user-alias.component.scss',
 })

@@ -1,4 +1,4 @@
-import { Component, effect, input, numberAttribute } from '@angular/core';
+import { Component, input, effect, numberAttribute } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -24,10 +24,26 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { catchError, of } from 'rxjs';
+import { SortDirection } from '@angular/material/sort';
+import { httpResource } from '@angular/common/http';
+import { debounceTime, Subject } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
+
+export interface HistoryQuery {
+  field: string;
+  value: string;
+  status: string;
+  lifespan: string;
+  rangeStart: number;
+  rangeEnd: number;
+  sortActive: string;
+  sortDirection: string;
+  index: number;
+  size: number;
+  refresh: number;
+}
 
 @Component({
   selector: 'app-history',
@@ -62,7 +78,7 @@ import { HistoryTableComponent } from '../history-table/history-table.component'
 })
 export class HistoryComponent {
   field = input('');
-  currentField = this.field();
+  currentField = '';
   fieldOptions = [
     { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
@@ -73,18 +89,21 @@ export class HistoryComponent {
   ];
 
   value = input('');
-  currentValue = this.value();
+  currentValue = '';
+  debouncedValueModelChange$ = new Subject<any>();
 
-  readonly lifespan = input<string>('permanent');
-  currentLifespan = this.lifespan();
+  readonly lifespan = input('permanent', {
+    transform: (v: string | undefined) => v ?? 'permanent',
+  });
   lifespanOptions = [
     { value: 'all', viewValue: 'All' },
     { value: 'permanent', viewValue: 'Permanent' },
     { value: 'transient', viewValue: 'Transient' },
   ];
 
-  readonly status = input<string>('all');
-  currentStatus = this.status();
+  readonly status = input('all', {
+    transform: (v: string | undefined) => v ?? 'all',
+  });
   statusOptions = [
     { value: 'all', viewValue: 'All' },
     { value: 'success', viewValue: 'Success' },
@@ -92,107 +111,75 @@ export class HistoryComponent {
   ];
 
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
-  currentIndex = this.index();
-
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
-  currentSize = this.size();
 
-  rangeStart = input(0, { transform: numberAttribute });
-  rangeEnd = input(0, { transform: numberAttribute });
+  rangeStart = input(0, { transform: (v) => numberAttribute(v, 0) });
+  rangeEnd = input(0, { transform: (v) => numberAttribute(v, 0) });
 
   range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
 
-  intentionData: any[] = [];
-  intentionTotal = 0;
+  sortActive = input('');
+  sortDirection = input<SortDirection>('');
 
-  loading = true;
-
-  constructor(
-    private readonly router: Router,
-    private readonly intentionApi: IntentionApiService,
-  ) {
-    effect(() => {
-      this.currentField = this.field() ?? '';
-      this.currentValue = this.value();
-      if (this.lifespan()) {
-        this.currentLifespan = this.lifespan();
-      }
-      if (this.status()) {
-        this.currentStatus = this.status();
-      }
-      this.currentIndex = this.index();
-      this.currentSize = this.size();
-      const start = this.rangeStart();
-      const end = this.rangeEnd();
-      this.range.setValue({
-        start: start ? new Date(start) : null,
-        end: end ? new Date(end) : null,
-      });
-      this.loadData();
-    });
-  }
-
-  loadData() {
-    this.loading = true;
+  intentionResource = httpResource<any>(() => {
     let whereClause: any = {
-      ...(this.currentStatus !== 'all'
+      ...(this.status() !== 'all'
         ? {
-            'transaction.outcome': this.currentStatus,
+            'transaction.outcome': this.status(),
           }
         : {}),
     };
-    if (this.currentField) {
-      if (this.currentField === 'id') {
+    if (this.field()) {
+      if (this.field() === 'id') {
         whereClause = {
           ...whereClause,
-          ...(this.currentValue ? { _id: this.currentValue.trim() } : {}),
+          ...(this.value() ? { _id: this.value().trim() } : {}),
         };
-      } else if (this.currentField === 'service') {
+      } else if (this.field() === 'service') {
         whereClause = {
           ...whereClause,
-          ...(this.currentValue
-            ? { 'actions.service.name': this.currentValue.trim() }
+          ...(this.value()
+            ? { 'actions.service.name': this.value().trim() }
             : {}),
         };
-      } else if (this.currentField === 'project') {
+      } else if (this.field() === 'project') {
         whereClause = {
           ...whereClause,
-          ...(this.currentValue
-            ? { 'actions.service.project': this.currentValue.trim() }
+          ...(this.value()
+            ? { 'actions.service.project': this.value().trim() }
             : {}),
         };
-      } else if (this.currentField === 'action') {
+      } else if (this.field() === 'action') {
         whereClause = {
           ...whereClause,
-          ...(this.currentValue
-            ? { 'actions.action': this.currentValue.trim() }
-            : {}),
+          ...(this.value() ? { 'actions.action': this.value().trim() } : {}),
         };
-      } else if (this.currentField === 'username') {
+      } else if (this.field() === 'username') {
         whereClause = {
           ...whereClause,
-          ...(this.currentValue
-            ? { 'actions.user.name': this.currentValue.trim() }
-            : {}),
+          ...(this.value() ? { 'actions.user.name': this.value().trim() } : {}),
         };
       }
     }
-    if (this.range.value.start && this.range.value.end) {
-      // Add 1 day to end date to be inclusive of the day
-      const endData = new Date(this.range.value.end.getTime());
-      endData.setDate(endData.getDate() + 1);
+
+    const rangeStart = this.rangeStart();
+    const rangeEnd = this.rangeEnd();
+
+    if (rangeStart && rangeEnd) {
+      const start = new Date(rangeStart);
+      const end = new Date(rangeEnd);
       whereClause = {
         ...whereClause,
         'transaction.start': {
-          $gte: this.range.value.start,
-          $lt: endData,
+          $gte: start,
+          $lt: end,
         },
       };
     }
-    // console.log(this.lifespan());
+
     if (this.lifespan() === 'permanent') {
       whereClause = {
         ...whereClause,
@@ -205,66 +192,122 @@ export class HistoryComponent {
         'event.transient': true,
       };
     }
-    return this.intentionApi
-      .searchIntentions(
-        JSON.stringify(whereClause),
-        this.index() * this.size(),
-        this.size(),
-      )
-      .pipe(
-        catchError(() => {
-          // Ignore errors for now
-          return of({
-            data: [],
-            meta: { total: 0 },
-          });
-        }),
-      )
-      .subscribe((data) => {
-        this.intentionData = data.data;
-        this.intentionTotal = data.meta.total;
-        this.loading = false;
-      });
+    // console.log(whereClause);
+
+    return this.intentionApi.searchIntentionsArgs(
+      JSON.stringify(whereClause),
+      this.index() * this.size(),
+      this.size(),
+    );
+  });
+
+  constructor(
+    private readonly router: Router,
+    private readonly intentionApi: IntentionApiService,
+  ) {
+    effect(() => {
+      this.currentField = this.field();
+      this.currentValue = this.value();
+    });
+    effect(() => {
+      const start = this.rangeStart();
+      const end = this.rangeEnd();
+      if (start !== 0 && end !== 0) {
+        const computedEnd = new Date(end);
+        computedEnd.setDate(computedEnd.getDate() - 1);
+        this.range.setValue(
+          {
+            start: new Date(start),
+            end: computedEnd,
+          },
+          { emitEvent: false },
+        );
+      } else {
+        this.range.setValue(
+          {
+            start: null,
+            end: null,
+          },
+          { emitEvent: false },
+        );
+      }
+    });
+    this.range.valueChanges.subscribe(() => {
+      const { start, end } = this.range.value;
+      if (start && end) {
+        // Add 1 day to end date to be inclusive of the day
+        end.setDate(end.getDate() + 1);
+        this.updateRoute({
+          rangeStart: start.valueOf(),
+          rangeEnd: end.valueOf(),
+          index: 0,
+        });
+      }
+    });
+    this.debouncedValueModelChange$.pipe(debounceTime(1000)).subscribe(() => {
+      this.updateFieldValue();
+    });
   }
 
   handlePageEvent(event: PageEvent) {
-    this.currentIndex = event.pageIndex;
-    this.currentSize = event.pageSize;
-    this.refresh();
+    this.updateRoute({
+      index: event.pageIndex,
+      size: event.pageSize,
+    });
   }
 
   clear() {
-    this.currentIndex = 0;
-    this.currentField = '';
-    this.currentValue = '';
-    this.currentStatus = 'all';
-    this.currentLifespan = 'permanent';
-    this.range.reset();
-    this.refresh();
+    this.updateRoute({
+      field: '',
+      value: '',
+      index: 0,
+      rangeStart: 0,
+      rangeEnd: 0,
+      lifespan: 'permanent',
+      status: 'all',
+    });
   }
 
-  filter() {
-    this.currentIndex = 0;
-    this.refresh();
+  updateFieldValue() {
+    this.updateRoute({
+      field: this.currentField,
+      value: this.currentValue,
+      index: 0,
+    });
   }
 
-  refresh() {
-    // console.log('refresh navigation');
+  updateRoute(settingDelta: Partial<HistoryQuery>) {
+    const settings: HistoryQuery = {
+      field: this.field(),
+      value: this.value(),
+      lifespan: this.lifespan(),
+      status: this.status(),
+      rangeStart: this.rangeStart(),
+      rangeEnd: this.rangeEnd(),
+      sortActive: this.sortActive(),
+      sortDirection: this.sortDirection(),
+      index: this.index(),
+      size: this.size(),
+      refresh: 0,
+      ...settingDelta,
+    };
+
     this.router.navigate(
       [
         '/intention/history',
         {
-          index: this.currentIndex,
-          size: this.currentSize,
-          field: this.currentField ?? '',
-          value: this.currentValue ?? '',
-          lifespan: this.currentLifespan ?? 'permanent',
-          status: this.currentStatus ?? 'all',
-          ...(this.range.value.start
-            ? { rangeStart: this.range.value.start.valueOf() }
+          ...(settings.field ? { field: settings.field } : {}),
+          ...(settings.value ? { value: settings.value } : {}),
+          ...(settings.lifespan ? { lifespan: settings.lifespan } : {}),
+          ...(settings.status ? { status: settings.status } : {}),
+          ...(settings.rangeStart !== 0 && settings.rangeEnd !== 0
+            ? { rangeStart: settings.rangeStart, rangeEnd: settings.rangeEnd }
             : {}),
-          ...(this.range.value.end
-            ? { rangeEnd: this.range.value.end.valueOf() }
+          index: settings.index,
+          size: settings.size,
+          ...(settings.sortActive ? { sortActive: settings.sortActive } : {}),
+          ...(settings.sortDirection
+            ? { sortDirection: settings.sortDirection }
             : {}),
         },
       ],
@@ -275,12 +318,8 @@ export class HistoryComponent {
   }
 
   viewIntention(id: string) {
-    this.currentIndex = 0;
-    this.currentField = 'id';
-    this.currentValue = id;
-    this.currentLifespan = 'permanent';
-    this.currentStatus = 'all';
-    this.range.reset();
-    this.filter();
+    this.router.navigate([`/intention/${id}`], {
+      replaceUrl: true,
+    });
   }
 }

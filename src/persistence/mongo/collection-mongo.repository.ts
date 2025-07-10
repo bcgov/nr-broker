@@ -10,7 +10,11 @@ import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { COLLECTION_COLLATION_LOCALE } from '../../constants';
+import {
+  COLLECTION_COLLATION_LOCALE,
+  GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
+  GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
+} from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
@@ -230,7 +234,7 @@ export class CollectionMongoRepository implements CollectionRepository {
               connectToField: 'target',
               restrictSearchWithMatch: { restrict: { $ne: true } },
               as: 'upstream_path',
-              maxDepth: 3,
+              maxDepth: GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
             },
           },
           {
@@ -253,7 +257,7 @@ export class CollectionMongoRepository implements CollectionRepository {
               connectToField: 'source',
               restrictSearchWithMatch: { restrict: { $ne: true } },
               as: 'downstream_path',
-              maxDepth: 3,
+              maxDepth: GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
             },
           },
           {

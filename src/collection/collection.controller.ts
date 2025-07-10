@@ -51,6 +51,7 @@ import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
 import { SyncRepositoryQuery } from './dto/sync-repository-query.dto';
 import { RepositoryCollectionService } from './repository-collection.service';
+import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 
 @Controller({
   path: 'collection',
@@ -158,7 +159,9 @@ export class CollectionController {
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
-  async refresh(@Param('id') id: string): Promise<void> {
+  async refresh(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ): Promise<void> {
     return await this.accountService.refresh(id);
   }
 
@@ -173,7 +176,7 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async teamRefresh(
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Query() syncQuery: SyncRepositoryQuery,
   ): Promise<void> {
     return await this.teamCollectionService.refresh(
@@ -194,7 +197,7 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   async repositoryRefresh(
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Query() syncQuery: SyncRepositoryQuery,
   ): Promise<void> {
     return await this.repositoryCollectionService.refresh(
@@ -220,7 +223,7 @@ export class CollectionController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async generateAccountToken(
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Query() genQuery: BrokerAccountTokenGenerateQuery,
     @Request() req: ExpressRequest,
   ) {
@@ -244,7 +247,7 @@ export class CollectionController {
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
-  async getTokenUsage(@Param('id') id: string) {
+  async getTokenUsage(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.accountService.getUsage(id, 1);
   }
 
@@ -270,7 +273,7 @@ export class CollectionController {
   @Get('service/:id/details')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  async getServiceDetails(@Param('id') id: string) {
+  async getServiceDetails(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.service.getServiceDetails(id);
   }
 
@@ -283,14 +286,16 @@ export class CollectionController {
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
-  async getServiceSecureInfo(@Param('id') id: string) {
+  async getServiceSecureInfo(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.service.getServiceSecureInfo(id);
   }
 
   @Get('service-instance/:id/details')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
-  async getServiceInstanceDetails(@Param('id') id: string) {
+  async getServiceInstanceDetails(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
     return this.service.getServiceInstanceDetails(id);
   }
 
@@ -310,7 +315,7 @@ export class CollectionController {
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionById(
     @Param('collection') collection: string,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
     return this.service.getCollectionById(
       this.parseCollectionApi(collection),
@@ -322,7 +327,7 @@ export class CollectionController {
   @UseGuards(BrokerCombinedAuthGuard)
   async getCollectionComboById(
     @Param('collection') collection: string,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
     return this.service.getCollectionComboById(
       this.parseCollectionApi(collection),
@@ -342,7 +347,7 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async addTagToCollection(
     @Param('collection') collection: string,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Param('tag') tag: string,
   ) {
     return this.service.addTagToCollectionById(
@@ -364,7 +369,7 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async setTagsOnCollection(
     @Param('collection') collection: string,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Body() tags: string[],
   ) {
     return this.service.setTagsOnCollection(
@@ -386,7 +391,7 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async deleteTagFromCollection(
     @Param('collection') collection: string,
-    @Param('id') id: string,
+    @Param('id', new ParseObjectIdPipe()) id: string,
     @Param('tag') tag: string,
   ) {
     return this.service.deleteTagFromCollectionById(

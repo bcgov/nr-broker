@@ -1,74 +1,49 @@
 @if (instance) {
   @if (showName()) {
   <div class="details-container details-container-margin">
-    <div class="details-item">
-      <div class="details-header">Name</div>
-      <div class="details-line">{{instance.name}}</div>
-    </div>
+    <app-details-item title="Name">{{instance.name}}</app-details-item>
 
     @if (instance.tags && this.instance.server.length === 1) {
-    <div class="details-item">
-      <div class="details-header">Tags</div>
-      <div class="details-line">{{instance.tags.join(', ')}}</div>
-    </div>
+      <app-details-item title="Tags">{{instance.tags.join(', ')}}</app-details-item>
     }
   </div>
   }
   <div class="details-container">
     <div>
-
-      <div class="details-item">
-        <div class="details-header">Status</div>
-        <div class="details-line">
-          @if (!current || !current.source?.intention) {
-            No recorded installation
-          } @else {
-            Installed
-          }
-        </div>
-      </div>
+      <app-details-item title="Status">
+        @if (!current || !current.source?.intention) {
+          No recorded installation
+        } @else {
+          Installed
+        }
+      </app-details-item>
 
       @if (instance.url) {
       <a href="{{instance.url}}" target="_blank">
-        <div class="details-item details-item-clickable" matRipple>
-          <div class="details-header">Url</div>
-          <div class="details-line">{{instance.url}}</div>
-        </div>
+        <app-details-item title="Url" clickable="true">{{instance.url}}</app-details-item>
       </a>
       }
 
       @if (current && current.source?.intention) {
 
       @if (current.source?.action?.package?.version && current.source.action.package.id) {
-        <div
-          class="details-item details-item-clickable"
-          matRipple
-          (click)="openServicePackage(current.source.action.package.id)">
-          <div class="details-header">Version</div>
-          <div class="details-line">{{current.source.action.package.version}}</div>
-        </div>
+        <app-details-item
+          (click)="openServicePackage(current.source.action.package.id)"
+          title="Version"
+          clickable="true">{{current.source.action.package.version}}</app-details-item>
       } @else {
-        <div class="details-item">
-          <div class="details-header">Version</div>
-          <div class="details-line">{{current.source.action.package.version}}</div>
-        </div>
+        <app-details-item title="Version">{{current.source.action.package.version}}</app-details-item>
       }
 
-      <div
-        class="details-item details-item-clickable"
-        matRipple
-        (click)="navigateHistoryById(current.source.intention.id)">
-        <div class="details-header">Installed</div>
-        <div class="details-line">{{current.source.intention.transaction.start | date:'short'}}</div>
-      </div>
+      <app-details-item
+        (click)="navigateHistoryById(current.source.intention.id)"
+        title="Installed"
+        clickable="true">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
 
-      <div
-        class="details-item details-item-clickable"
-        matRipple
-        (click)="openUserInBrowserByGuid(current.source.intention.user.id)">
-        <div class="details-header">User</div>
-        <div class="details-line">{{current.source.intention.user.name}}</div>
-      </div>
+      <app-details-item
+        (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
+        title="User"
+        clickable="true">{{current.source.intention.user.name}}</app-details-item>
       }
     </div>
 
@@ -85,29 +60,17 @@
           </mat-select>
         </mat-form-field>
       } @else {
-        <div
-          class="details-item details-item-clickable"
-          matRipple
-          (click)="openInBrowser('server', serverSelection.server.id)">
-          <div class="details-header">Server</div>
-          <div class="details-line">{{serverSelection.server.name}}</div>
-        </div>
+        <app-details-item
+          (click)="openInBrowser('server', serverSelection.server.id)"
+          title="Server"
+          clickable="true">{{serverSelection.server.name}}</app-details-item>
       }
 
-      <div class="details-item">
-        <div class="details-header">Status</div>
-        <div class="details-line">Unknown - Telemetery not available</div>
-      </div>
+      <app-details-item title="Status">Unknown - Telemetery not available</app-details-item>
 
-      <div class="details-item">
-        <div class="details-header">Platform</div>
-        <div class="details-line">{{serverSelection.server.osType}}</div>
-      </div>
+      <app-details-item title="Platform">{{serverSelection.server.osType}}</app-details-item>
 
-      <div class="details-item">
-        <div class="details-header">Platform Details</div>
-        <div class="details-line">{{serverSelection.server.osFull}}</div>
-      </div>
+      <app-details-item title="Platform Details">{{serverSelection.server.osFull}}</app-details-item>
 
       <div class="details-item">
         <div class="details-header">
