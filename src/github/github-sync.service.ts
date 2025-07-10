@@ -198,7 +198,7 @@ export class GithubSyncService {
       },
     );
   }
-  
+
   /*
   private async refreshJobWrap(
     jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
@@ -458,20 +458,119 @@ export class GithubSyncService {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
 
-    console.log('wwawwawawaaawaaw\n\nwawwawaw');
+    const syncableEnvironments = ['development', 'test', 'production'];
 
-    // sync environments
-    const environments = await this.listRepoEnvironments(owner, repo, token);
-
-    const environment = await this.collectionRepository.getCollectionByKeyValue(
-      'environment',
-      'name',
-      'development', //action.service.environment,
+    const gitHubEnvironments = await this.listRepoEnvironments(
+      owner,
+      repo,
+      token,
     );
 
-    console.log(environments);
+    const environmentCollection =
+      await this.collectionRepository.getCollections('environment');
+    const filteredEnvironmentCollection = environmentCollection.filter(
+      (env) => {
+        return syncableEnvironments.some(
+          (syncableEnvironment) => syncableEnvironment === env.name,
+        );
+      },
+    );
 
+    for (const index in filteredEnvironmentCollection) {
+      const currentEnvironment = gitHubEnvironments.find(
+        (env) => env.name === filteredEnvironmentCollection[index].name,
+      );
+      switch (filteredEnvironmentCollection[index].name) {
+        case 'development':
+          if (currentEnvironment) {
+            //todo: exists .. verify? delete/recreate?
+            console.log('development environment exists');
+          } else {
+            //not exists
+            await this.updateRepoEnvironment(
+              owner,
+              repo,
+              filteredEnvironmentCollection[index].name,
+              [],
+              token,
+            );
+          }
+          break;
 
+        case 'test':
+          if (currentEnvironment) {
+            //todo: exists .. verify/compare?
+            console.log('test environment exists');
+          } else {
+            const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+              repository.vertex.toString(),
+              CollectionIndex.User,
+              filteredEnvironmentCollection[index].changeRoles,
+            );
+
+            //todo: test what happens when >6 reviewers
+            await this.updateRepoEnvironment(
+              owner,
+              repo,
+              filteredEnvironmentCollection[index].name,
+              users
+                .filter((user) => {
+                  return user.collection.alias?.some(
+                    (alias) => alias.domain === 'GitHub',
+                  );
+                })
+                .map((user) => {
+                  return parseInt(
+                    user.collection.alias.find(
+                      (alias) => alias.domain === 'GitHub',
+                    ).guid,
+                  );
+                }),
+              token,
+            );
+          }
+          break;
+
+        case 'production':
+          if (currentEnvironment) {
+            //todo: exists .. verify/compare?
+            console.log('production environment exists');
+          } else {
+            //not exists
+            //todo: get reviewers .. see test
+            await this.updateRepoEnvironment(
+              owner,
+              repo,
+              filteredEnvironmentCollection[index].name,
+              [],
+              token,
+            );
+
+            await this.addRepoEnvironmentBranchPolicy(
+              owner,
+              repo,
+              filteredEnvironmentCollection[index].name,
+              'main',
+              'branch',
+              token,
+            );
+
+            await this.addRepoEnvironmentBranchPolicy(
+              owner,
+              repo,
+              filteredEnvironmentCollection[index].name,
+              'v*',
+              'tag',
+              token,
+            );
+          }
+          break;
+
+        default:
+          console.log('invalid environment');
+          break;
+      }
+    }
 
     await this.graphService.updateSyncStatus(
       repository,
@@ -487,12 +586,11 @@ export class GithubSyncService {
   }
 
   public async syncEnvironments(repository: RepositoryEntity) {
-
     const owner = '';
     const repo = '';
     const token = '';
     const environments = [];
-    
+
     if (!environments.some((e) => e.name === 'development')) {
       //development does not exist
       await this.updateRepoEnvironment(owner, repo, 'development', [], token);
@@ -509,14 +607,14 @@ export class GithubSyncService {
         ['lead-developers'],
       );
 
-// 409   │     const environment = await this.collectionRepository.getCollectionByKeyValue(
-// 410   │       'environment',
-// 411   │       'name',
-// 412   │       action.service.environment,
-// 413   │     );
+      // 409   │     const environment = await this.collectionRepository.getCollectionByKeyValue(
+      // 410   │       'environment',
+      // 411   │       'name',
+      // 412   │       action.service.environment,
+      // 413   │     );
 
       //TODO
-      const reviewerIds = [1,2,3];
+      const reviewerIds = [1, 2, 3];
 
       await this.updateRepoEnvironment(owner, repo, 'test', reviewerIds, token);
     } else {
@@ -533,7 +631,7 @@ export class GithubSyncService {
       );
 
       //TODO
-      const reviewerIds = [1,2,3];
+      const reviewerIds = [1, 2, 3];
 
       await this.updateRepoEnvironment(
         owner,
@@ -805,7 +903,7 @@ export class GithubSyncService {
     repo: string,
     token: string,
   ): Promise<any[]> {
-    let environments = [];
+    let environments: any[] = [];
     let page = 1;
     let hasNextPage = true;
 
@@ -814,7 +912,7 @@ export class GithubSyncService {
         `/repos/${owner}/${repo}/environments`,
         {
           params: {
-            per_page: 5,
+            per_page: 100,
             page,
           },
           headers: {
@@ -824,6 +922,8 @@ export class GithubSyncService {
           },
         },
       );
+
+      console.log(response);
 
       environments = environments.concat(...response.data.environments);
 
@@ -860,10 +960,14 @@ export class GithubSyncService {
               return { type: 'User', id: userId };
             })
           : '',
-        deployment_branch_policy: {
-          protected_branches: false,
-          custom_branch_policies: true,
-        },
+        deployment_branch_policy:
+          environment === 'production'
+            ? {
+                protected_branches: false,
+                custom_branch_policies: true,
+              }
+            : null,
+        can_admins_bypass: false,
       },
       {
         headers: {
