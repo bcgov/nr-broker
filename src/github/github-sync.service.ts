@@ -478,21 +478,17 @@ export class GithubSyncService {
     );
 
     for (const index in filteredEnvironmentCollection) {
+      const environmentName = filteredEnvironmentCollection[index].name;
       const currentEnvironment = gitHubEnvironments.find(
-        (env) => env.name === filteredEnvironmentCollection[index].name,
+        (env) => env.name === environmentName,
       );
 
       if (currentEnvironment) {
-        await this.removeRepoEnvironment(
-          owner,
-          repo,
-          filteredEnvironmentCollection[index].name,
-          token,
-        );
+        await this.removeRepoEnvironment(owner, repo, environmentName, token);
       }
 
       let reviewerIds = [];
-      if (filteredEnvironmentCollection[index].name !== 'development') {
+      if (environmentName !== 'development') {
         const users = await this.graphRepository.getUpstreamVertex<UserDto>(
           repository.vertex.toString(),
           CollectionIndex.User,
@@ -513,19 +509,29 @@ export class GithubSyncService {
           .slice(0, 5); //todo: handle >6 reviewers (github limit)
       }
 
+      const can_admins_bypass = false;
       await this.updateRepoEnvironment(
         owner,
         repo,
-        filteredEnvironmentCollection[index].name,
-        reviewerIds,
+        environmentName,
+        reviewerIds.map((userId: number) => {
+          return { type: 'User', id: userId };
+        }),
+        environmentName === 'production'
+          ? {
+              protected_branches: false,
+              custom_branch_policies: true,
+            }
+          : null,
+        can_admins_bypass,
         token,
       );
 
-      if (filteredEnvironmentCollection[index].name === 'production') {
+      if (environmentName === 'production') {
         await this.addRepoEnvironmentBranchPolicy(
           owner,
           repo,
-          filteredEnvironmentCollection[index].name,
+          environmentName,
           'main',
           'branch',
           token,
@@ -534,7 +540,7 @@ export class GithubSyncService {
         await this.addRepoEnvironmentBranchPolicy(
           owner,
           repo,
-          filteredEnvironmentCollection[index].name,
+          environmentName,
           'v*',
           'tag',
           token,
@@ -838,25 +844,20 @@ export class GithubSyncService {
     owner: string,
     repo: string,
     environment: string,
-    reviewerIds: number[],
+    reviewerIds: { type: 'User' | 'Team'; id: number }[],
+    deployment_branch_policy: {
+      protected_branches: boolean;
+      custom_branch_policies: boolean;
+    },
+    can_admins_bypass: boolean,
     token: string,
   ) {
     await this.axiosInstance.put(
       `/repos/${owner}/${repo}/environments/${environment}`,
       {
-        reviewers: reviewerIds
-          ? reviewerIds.map((userId: number) => {
-              return { type: 'User', id: userId };
-            })
-          : '',
-        deployment_branch_policy:
-          environment === 'production'
-            ? {
-                protected_branches: false,
-                custom_branch_policies: true,
-              }
-            : null,
-        can_admins_bypass: false,
+        reviewers: reviewerIds,
+        deployment_branch_policy: deployment_branch_policy,
+        can_admins_bypass: can_admins_bypass,
       },
       {
         headers: {
