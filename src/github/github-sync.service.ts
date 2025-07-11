@@ -458,6 +458,7 @@ export class GithubSyncService {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
 
+    //sync environments
     const syncableEnvironments = ['development', 'test', 'production'];
 
     const gitHubEnvironments = await this.listRepoEnvironments(
@@ -480,95 +481,64 @@ export class GithubSyncService {
       const currentEnvironment = gitHubEnvironments.find(
         (env) => env.name === filteredEnvironmentCollection[index].name,
       );
-      switch (filteredEnvironmentCollection[index].name) {
-        case 'development':
-          if (currentEnvironment) {
-            //todo: exists .. verify? delete/recreate?
-            console.log('development environment exists');
-          } else {
-            //not exists
-            await this.updateRepoEnvironment(
-              owner,
-              repo,
-              filteredEnvironmentCollection[index].name,
-              [],
-              token,
-            );
-          }
-          break;
 
-        case 'test':
-          if (currentEnvironment) {
-            //todo: exists .. verify/compare?
-            console.log('test environment exists');
-          } else {
-            const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-              repository.vertex.toString(),
-              CollectionIndex.User,
-              filteredEnvironmentCollection[index].changeRoles,
-            );
+      if (currentEnvironment) {
+        await this.removeRepoEnvironment(
+          owner,
+          repo,
+          filteredEnvironmentCollection[index].name,
+          token,
+        );
+      }
 
-            //todo: test what happens when >6 reviewers
-            await this.updateRepoEnvironment(
-              owner,
-              repo,
-              filteredEnvironmentCollection[index].name,
-              users
-                .filter((user) => {
-                  return user.collection.alias?.some(
-                    (alias) => alias.domain === 'GitHub',
-                  );
-                })
-                .map((user) => {
-                  return parseInt(
-                    user.collection.alias.find(
-                      (alias) => alias.domain === 'GitHub',
-                    ).guid,
-                  );
-                }),
-              token,
+      let reviewerIds = [];
+      if (filteredEnvironmentCollection[index].name !== 'development') {
+        const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+          repository.vertex.toString(),
+          CollectionIndex.User,
+          filteredEnvironmentCollection[index].changeRoles,
+        );
+        reviewerIds = users
+          .filter((user) => {
+            return user.collection.alias?.some(
+              (alias) => alias.domain === 'GitHub',
             );
-          }
-          break;
-
-        case 'production':
-          if (currentEnvironment) {
-            //todo: exists .. verify/compare?
-            console.log('production environment exists');
-          } else {
-            //not exists
-            //todo: get reviewers .. see test
-            await this.updateRepoEnvironment(
-              owner,
-              repo,
-              filteredEnvironmentCollection[index].name,
-              [],
-              token,
+          })
+          .map((user) => {
+            return parseInt(
+              user.collection.alias.find((alias) => alias.domain === 'GitHub')
+                .guid,
             );
+          })
+          .slice(0, 5); //todo: handle >6 reviewers (github limit)
+      }
 
-            await this.addRepoEnvironmentBranchPolicy(
-              owner,
-              repo,
-              filteredEnvironmentCollection[index].name,
-              'main',
-              'branch',
-              token,
-            );
+      await this.updateRepoEnvironment(
+        owner,
+        repo,
+        filteredEnvironmentCollection[index].name,
+        reviewerIds,
+        token,
+      );
 
-            await this.addRepoEnvironmentBranchPolicy(
-              owner,
-              repo,
-              filteredEnvironmentCollection[index].name,
-              'v*',
-              'tag',
-              token,
-            );
-          }
-          break;
+      if (filteredEnvironmentCollection[index].name === 'production') {
+        await this.addRepoEnvironmentBranchPolicy(
+          owner,
+          repo,
+          filteredEnvironmentCollection[index].name,
+          'main',
+          'branch',
+          token,
+        );
 
-        default:
-          console.log('invalid environment');
-          break;
+        await this.addRepoEnvironmentBranchPolicy(
+          owner,
+          repo,
+          filteredEnvironmentCollection[index].name,
+          'v*',
+          'tag',
+          token,
+        );
       }
     }
 
@@ -583,85 +553,6 @@ export class GithubSyncService {
       'success',
       `End user sync: ${repository.scmUrl}`,
     );
-  }
-
-  public async syncEnvironments(repository: RepositoryEntity) {
-    const owner = '';
-    const repo = '';
-    const token = '';
-    const environments = [];
-
-    if (!environments.some((e) => e.name === 'development')) {
-      //development does not exist
-      await this.updateRepoEnvironment(owner, repo, 'development', [], token);
-    } else {
-      // just needs to exist? verify if vanilla?
-      console.log("GitHub 'development' environment exists.");
-    }
-
-    if (!environments.some((e) => e.name === 'test')) {
-      //test does not exist
-      const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-        repository.vertex.toString(),
-        CollectionIndex.User,
-        ['lead-developers'],
-      );
-
-      // 409   │     const environment = await this.collectionRepository.getCollectionByKeyValue(
-      // 410   │       'environment',
-      // 411   │       'name',
-      // 412   │       action.service.environment,
-      // 413   │     );
-
-      //TODO
-      const reviewerIds = [1, 2, 3];
-
-      await this.updateRepoEnvironment(owner, repo, 'test', reviewerIds, token);
-    } else {
-      console.log("GitHub 'test' environment exists.");
-      //todo: verify reviewers
-    }
-
-    if (!environments.some((e) => e.name === 'production')) {
-      //production does not exist
-      const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-        repository.vertex.toString(),
-        CollectionIndex.User,
-        ['prod-operator'],
-      );
-
-      //TODO
-      const reviewerIds = [1, 2, 3];
-
-      await this.updateRepoEnvironment(
-        owner,
-        repo,
-        'production',
-        reviewerIds,
-        token,
-      );
-
-      await this.addRepoEnvironmentBranchPolicy(
-        owner,
-        repo,
-        'production',
-        'main',
-        'branch',
-        token,
-      );
-      await this.addRepoEnvironmentBranchPolicy(
-        owner,
-        repo,
-        'production',
-        'v*',
-        'tag',
-        token,
-      );
-    } else {
-      console.log("GitHub 'production' environment exists.");
-      //todo: verify reviewers
-      //todo: verify branch protection policies for `main` (branc) and `v*` (tags)
-    }
   }
 
   // Generate JWT
@@ -923,8 +814,6 @@ export class GithubSyncService {
         },
       );
 
-      console.log(response);
-
       environments = environments.concat(...response.data.environments);
 
       // Check if there is a "next" page in the Link header
@@ -1035,6 +924,31 @@ export class GithubSyncService {
       {
         name: branchPattern,
       },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Remove an environment from a repository
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to remove
+   * @param token The installation access token
+   */
+  private async removeRepoEnvironment(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ) {
+    await this.axiosInstance.delete(
+      `/repos/${owner}/${repo}/environments/${environment}`,
       {
         headers: {
           Authorization: `token ${token}`,
