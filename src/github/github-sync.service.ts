@@ -13,6 +13,7 @@ import {
   REDIS_QUEUES,
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
+  FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
@@ -459,94 +460,96 @@ export class GithubSyncService {
     }
 
     //sync environments
-    const syncableEnvironments = ['development', 'test', 'production'];
+    if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
+      const syncableEnvironments = ['development', 'test', 'production'];
 
-    const gitHubEnvironments = await this.listRepoEnvironments(
-      owner,
-      repo,
-      token,
-    );
-
-    const environmentCollection =
-      await this.collectionRepository.getCollections('environment');
-    const filteredEnvironmentCollection = environmentCollection.filter(
-      (env) => {
-        return syncableEnvironments.some(
-          (syncableEnvironment) => syncableEnvironment === env.name,
-        );
-      },
-    );
-
-    for (const index in filteredEnvironmentCollection) {
-      const environmentName = filteredEnvironmentCollection[index].name;
-      const currentEnvironment = gitHubEnvironments.find(
-        (env) => env.name === environmentName,
-      );
-
-      if (currentEnvironment) {
-        await this.removeRepoEnvironment(owner, repo, environmentName, token);
-      }
-
-      let reviewerIds = [];
-      if (environmentName !== 'development') {
-        const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-          repository.vertex.toString(),
-          CollectionIndex.User,
-          filteredEnvironmentCollection[index].changeRoles,
-        );
-        reviewerIds = users
-          .filter((user) => {
-            return user.collection.alias?.some(
-              (alias) => alias.domain === 'GitHub',
-            );
-          })
-          .map((user) => {
-            return parseInt(
-              user.collection.alias.find((alias) => alias.domain === 'GitHub')
-                .guid,
-            );
-          })
-          .slice(0, 5); //todo: handle >6 reviewers (github limit)
-      }
-
-      const can_admins_bypass = false;
-      await this.updateRepoEnvironment(
+      const gitHubEnvironments = await this.listRepoEnvironments(
         owner,
         repo,
-        environmentName,
-        reviewerIds.map((userId: number) => {
-          return { type: 'User', id: userId };
-        }),
-        environmentName === 'production'
-          ? {
-              protected_branches: false,
-              custom_branch_policies: true,
-            }
-          : null,
-        can_admins_bypass,
         token,
       );
 
-      if (environmentName === 'production') {
-        await this.addRepoEnvironmentBranchPolicy(
+      const environmentCollection =
+        await this.collectionRepository.getCollections('environment');
+      const filteredEnvironmentCollection = environmentCollection.filter(
+        (env) => {
+          return syncableEnvironments.some(
+            (syncableEnvironment) => syncableEnvironment === env.name,
+          );
+        },
+      );
+
+      for (const index in filteredEnvironmentCollection) {
+        const environmentName = filteredEnvironmentCollection[index].name;
+        const currentEnvironment = gitHubEnvironments.find(
+          (env) => env.name === environmentName,
+        );
+
+        if (currentEnvironment) {
+          await this.removeRepoEnvironment(owner, repo, environmentName, token);
+        }
+
+        let reviewerIds = [];
+        if (environmentName !== 'development') {
+          const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+            repository.vertex.toString(),
+            CollectionIndex.User,
+            filteredEnvironmentCollection[index].changeRoles,
+          );
+          reviewerIds = users
+            .filter((user) => {
+              return user.collection.alias?.some(
+                (alias) => alias.domain === 'GitHub',
+              );
+            })
+            .map((user) => {
+              return parseInt(
+                user.collection.alias.find((alias) => alias.domain === 'GitHub')
+                  .guid,
+              );
+            })
+            .slice(0, 5); //todo: handle >6 reviewers (github limit)
+        }
+
+        const can_admins_bypass = false;
+        await this.updateRepoEnvironment(
           owner,
           repo,
           environmentName,
-          'main',
-          'branch',
+          reviewerIds.map((userId: number) => {
+            return { type: 'User', id: userId };
+          }),
+          environmentName === 'production'
+            ? {
+                protected_branches: false,
+                custom_branch_policies: true,
+              }
+            : null,
+          can_admins_bypass,
           token,
         );
 
-        await this.addRepoEnvironmentBranchPolicy(
-          owner,
-          repo,
-          environmentName,
-          'v*',
-          'tag',
-          token,
-        );
+        if (environmentName === 'production') {
+          await this.addRepoEnvironmentBranchPolicy(
+            owner,
+            repo,
+            environmentName,
+            'main',
+            'branch',
+            token,
+          );
+
+          await this.addRepoEnvironmentBranchPolicy(
+            owner,
+            repo,
+            environmentName,
+            'v*',
+            'tag',
+            token,
+          );
+        }
       }
-    }
+    } //FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
 
     await this.graphService.updateSyncStatus(
       repository,

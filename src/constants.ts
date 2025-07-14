@@ -128,3 +128,5 @@ export const NOTIFICATION_EMAIL_PORT =
   process.env.NOTIFICATION_EMAIL_PORT ?? '';
 export const NOTIFICATION_EMAIL_SECURE =
   process.env.NOTIFICATION_EMAIL_SECURE === 'true';
+
+export const FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC = false;
