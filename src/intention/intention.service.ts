@@ -68,6 +68,8 @@ import { CloudObjectEmbeddable } from './entity/cloud-object.embeddable';
 import { CloudEmbeddable } from './entity/cloud.embeddable';
 import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
+import { UserDto } from './dto/user.dto';
+import { UserEmbeddable } from './entity/user.embeddable';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -164,7 +166,7 @@ export class IntentionService {
       });
     }
 
-    const intentionUser = await this.intentionUtilService.convertUserDtoToEmbed(
+    const intentionUser = await this.convertUserDtoToEmbed(
       intentionDto.user,
       account,
     );
@@ -183,10 +185,7 @@ export class IntentionService {
     )[] = await Promise.all(
       intentionDto.actions.map(async (action) => {
         const actionUser = action.user
-          ? await this.intentionUtilService.convertUserDtoToEmbed(
-              action.user,
-              account,
-            )
+          ? await this.convertUserDtoToEmbed(action.user, account)
           : intentionUser;
         const service = await this.collectionRepository.getCollectionByKeyValue(
           'service',
@@ -1010,5 +1009,25 @@ export class IntentionService {
       'brokerAccount',
       accountId,
     );
+  }
+
+  private async convertUserDtoToEmbed(
+    user: UserDto,
+    accountEntity: BrokerAccountEntity,
+  ): Promise<UserEmbeddable> {
+    try {
+      return await this.intentionUtilService.convertUserDtoToEmbed(
+        user,
+        accountEntity,
+      );
+    } catch (error) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'User not found',
+        error:
+          'Please check if user details in intention are correct. If an alias is used, ensure it exists in the system.',
+        data: user,
+      });
+    }
   }
 }
