@@ -20,7 +20,6 @@ import { PackageProvisionActionDto } from './package-provision-action.dto';
 import { ProcessEndActionDto } from './process-end-action.dto';
 import { ProcessStartActionDto } from './process-start-action.dto';
 import { ServerAccessActionDto } from './server-access-action.dto';
-import { UrlDto } from './url.dto';
 import { TransactionDto } from './transaction.dto';
 import { BrokerJwtDto } from '../../auth/broker-jwt.dto';
 
@@ -71,11 +70,6 @@ export class IntentionDto {
   @IsOptional()
   @Type(() => TransactionDto)
   transaction?: TransactionDto;
-
-  @ValidateNested()
-  @IsOptional()
-  @Type(() => UrlDto)
-  url?: UrlDto;
 
   @ValidateNested()
   @IsDefined()

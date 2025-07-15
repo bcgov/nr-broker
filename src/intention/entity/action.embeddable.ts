@@ -5,7 +5,6 @@ import { IntentionServiceEmbeddable } from './intention-service.embeddable';
 import { TransactionEmbeddable } from './transaction.embeddable';
 import { CloudEmbeddable } from './cloud.embeddable';
 import { PackageEmbeddable } from './package.embeddable';
-import { UrlEmbeddable } from './url.embeddable';
 import { ArtifactEmbeddable } from './artifact.embeddable';
 import { ActionSourceEmbeddable } from './action-source.embeddable';
 import { ActionDto } from '../dto/action.dto';
@@ -88,9 +87,6 @@ export abstract class ActionEmbeddable {
 
   @Embedded({ entity: () => TransactionEmbeddable })
   trace: TransactionEmbeddable;
-
-  @Embedded({ entity: () => UrlEmbeddable, nullable: true, object: true })
-  url?: UrlEmbeddable;
 
   @Embedded({ entity: () => UserEmbeddable, object: true })
   user: UserEmbeddable;

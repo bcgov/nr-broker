@@ -99,6 +99,7 @@
     @if (intentionResource.hasValue()) {
       <app-history-table
         [intentionData]="intentionResource.value().data"
+        [layout]="screenSize"
         (viewIntentionEvent)="this.viewIntention($event)">
       </app-history-table>
 
