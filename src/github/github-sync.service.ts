@@ -13,7 +13,10 @@ import {
   REDIS_QUEUES,
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
+  FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC,
+  USER_ALIAS_DOMAIN_GITHUB,
 } from '../constants';
+import { ENVIRONMENT_NAMES } from '../intention/dto/constants.dto';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -198,6 +201,7 @@ export class GithubSyncService {
       },
     );
   }
+
   /*
   private async refreshJobWrap(
     jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
@@ -457,6 +461,101 @@ export class GithubSyncService {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
 
+    //sync environments
+    if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
+      const syncableEnvironments = [
+        ENVIRONMENT_NAMES.DEVELOPMENT,
+        ENVIRONMENT_NAMES.TEST,
+        ENVIRONMENT_NAMES.PRODUCTION,
+      ];
+
+      const environmentCollection =
+        await this.collectionRepository.getCollections('environment');
+      const filteredEnvironmentCollection = environmentCollection.filter(
+        (env) => {
+          return syncableEnvironments.some(
+            (syncableEnvironment) => syncableEnvironment === env.name,
+          );
+        },
+      );
+
+      for (const index in filteredEnvironmentCollection) {
+        const environmentName = filteredEnvironmentCollection[index].name;
+
+        await this.removeRepoEnvironmentIfExists(
+          owner,
+          repo,
+          environmentName,
+          token,
+        );
+
+        let reviewerIds = [];
+        if (
+          [ENVIRONMENT_NAMES.TEST, ENVIRONMENT_NAMES.PRODUCTION].includes(
+            environmentName,
+          )
+        ) {
+          const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+            repository.vertex.toString(),
+            CollectionIndex.User,
+            filteredEnvironmentCollection[index].changeRoles,
+          );
+          reviewerIds = users
+            .filter((user) => {
+              return user.collection.alias?.some(
+                (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
+              );
+            })
+            .map((user) => {
+              return parseInt(
+                user.collection.alias.find(
+                  (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
+                ).guid,
+              );
+            })
+            .slice(0, 5); //todo: handle >6 reviewers (github limit)
+        }
+
+        const can_admins_bypass = false;
+        await this.updateRepoEnvironment(
+          owner,
+          repo,
+          environmentName,
+          reviewerIds.map((userId: number) => {
+            return { type: 'User', id: userId };
+          }),
+          environmentName === ENVIRONMENT_NAMES.PRODUCTION
+            ? {
+                protected_branches: false,
+                custom_branch_policies: true,
+              }
+            : null,
+          can_admins_bypass,
+          token,
+        );
+
+        if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
+          await this.addRepoEnvironmentBranchPolicy(
+            owner,
+            repo,
+            environmentName,
+            'main',
+            'branch',
+            token,
+          );
+
+          await this.addRepoEnvironmentBranchPolicy(
+            owner,
+            repo,
+            environmentName,
+            'v*',
+            'tag',
+            token,
+          );
+        }
+      }
+    } //FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
+
     await this.graphService.updateSyncStatus(
       repository,
       'syncUsersStatus',
@@ -687,6 +786,226 @@ export class GithubSyncService {
   ) {
     await this.axiosInstance.delete(
       `/repos/${owner}/${repo}/collaborators/${username}`,
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Add or update a repo environment
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param token The installation access token
+   * @returns An array of environments (See GitHub API documentation)
+   */
+  private async listRepoEnvironments(
+    owner: string,
+    repo: string,
+    token: string,
+  ): Promise<any[]> {
+    let environments: any[] = [];
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const response = await this.axiosInstance.get(
+        `/repos/${owner}/${repo}/environments`,
+        {
+          params: {
+            per_page: 100,
+            page,
+          },
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+        },
+      );
+
+      environments = environments.concat(...response.data.environments);
+
+      // Check if there is a "next" page in the Link header
+      const linkHeader = response.headers.link;
+      hasNextPage = linkHeader?.includes('rel="next"') ?? false;
+
+      page++;
+    }
+
+    return environments;
+  }
+
+  /**
+   * Get a repo environment
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The environment name
+   * @param token The installation access token
+   * @returns An environment (See GitHub API documentation)
+   */
+  private async getRepoEnvironment(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ): Promise<any> {
+    const response = await this.axiosInstance
+      .get(`/repos/${owner}/${repo}/environments/${environment}`, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      })
+      .catch((err) => {
+        if (err.response) {
+          return err.response.data;
+        }
+      });
+    return response.data;
+  }
+
+  /**
+   * Add or update a repo environment
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to add/update
+   * @param reviewerIds Array of user ids who will approve deployments to this environment
+   * @param token The installation access token
+   */
+  private async updateRepoEnvironment(
+    owner: string,
+    repo: string,
+    environment: string,
+    reviewerIds: { type: 'User' | 'Team'; id: number }[],
+    deployment_branch_policy: {
+      protected_branches: boolean;
+      custom_branch_policies: boolean;
+    },
+    can_admins_bypass: boolean,
+    token: string,
+  ) {
+    await this.axiosInstance.put(
+      `/repos/${owner}/${repo}/environments/${environment}`,
+      {
+        reviewers: reviewerIds,
+        deployment_branch_policy: deployment_branch_policy,
+        can_admins_bypass: can_admins_bypass,
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Update a repo environment branch policy
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to update
+   * @param branchPattern The name pattern that branches must match to deploy to this environment
+   * @param patternType Whether this rule targets a branch or tag. Can be one of: branch, tag.
+   * @param token The installation access token
+   * @returns Id for the created branch policy
+   */
+  private async addRepoEnvironmentBranchPolicy(
+    owner: string,
+    repo: string,
+    environment: string,
+    branchPattern: string,
+    patternType: string,
+    token: string,
+  ) {
+    await this.axiosInstance.post(
+      `/repos/${owner}/${repo}/environments/${environment}/deployment-branch-policies`,
+      {
+        name: branchPattern,
+        type: patternType,
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Update a repo environment branch policy
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to update
+   * @param branchPolicyId The GitHub branch policy id to update
+   * @param branchPattern The name pattern that branches must match to deploy to this environment
+   * @param token The installation access token
+   */
+  private async updateRepoEnvironmentBranchPolicy(
+    owner: string,
+    repo: string,
+    environment: string,
+    branchPolicyId: number,
+    branchPattern: string,
+    token: string,
+  ) {
+    await this.axiosInstance.put(
+      `/repos/${owner}/${repo}/environments/${environment}/deployment-branch-policies/${branchPolicyId}`,
+      {
+        name: branchPattern,
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+  }
+
+  /**
+   * Remove an environment from a repository if it exists
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to get
+   * @param token The installation access token
+   */
+  private async removeRepoEnvironmentIfExists(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ) {
+    if (await this.getRepoEnvironment(owner, repo, environment, token)) {
+      await this.removeRepoEnvironment(owner, repo, environment, token);
+    }
+  }
+
+  /**
+   * Remove an environment from a repository
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to remove
+   * @param token The installation access token
+   */
+  private async removeRepoEnvironment(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ) {
+    await this.axiosInstance.delete(
+      `/repos/${owner}/${repo}/environments/${environment}`,
       {
         headers: {
           Authorization: `token ${token}`,
