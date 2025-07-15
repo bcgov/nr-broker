@@ -14,7 +14,9 @@ import {
   CRON_JOB_SYNC_USERS,
   CRON_JOB_SYNC_SECRETS,
   FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC,
+  USER_ALIAS_DOMAIN_GITHUB,
 } from '../constants';
+import { ENVIRONMENT_NAMES } from '../intention/dto/constants.dto';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -461,13 +463,11 @@ export class GithubSyncService {
 
     //sync environments
     if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
-      const syncableEnvironments = ['development', 'test', 'production'];
-
-      const gitHubEnvironments = await this.listRepoEnvironments(
-        owner,
-        repo,
-        token,
-      );
+      const syncableEnvironments = [
+        ENVIRONMENT_NAMES.DEVELOPMENT,
+        ENVIRONMENT_NAMES.TEST,
+        ENVIRONMENT_NAMES.PRODUCTION,
+      ];
 
       const environmentCollection =
         await this.collectionRepository.getCollections('environment');
@@ -481,16 +481,20 @@ export class GithubSyncService {
 
       for (const index in filteredEnvironmentCollection) {
         const environmentName = filteredEnvironmentCollection[index].name;
-        const currentEnvironment = gitHubEnvironments.find(
-          (env) => env.name === environmentName,
+
+        await this.removeRepoEnvironmentIfExists(
+          owner,
+          repo,
+          environmentName,
+          token,
         );
 
-        if (currentEnvironment) {
-          await this.removeRepoEnvironment(owner, repo, environmentName, token);
-        }
-
         let reviewerIds = [];
-        if (environmentName !== 'development') {
+        if (
+          [ENVIRONMENT_NAMES.TEST, ENVIRONMENT_NAMES.PRODUCTION].includes(
+            environmentName,
+          )
+        ) {
           const users = await this.graphRepository.getUpstreamVertex<UserDto>(
             repository.vertex.toString(),
             CollectionIndex.User,
@@ -499,13 +503,14 @@ export class GithubSyncService {
           reviewerIds = users
             .filter((user) => {
               return user.collection.alias?.some(
-                (alias) => alias.domain === 'GitHub',
+                (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
               );
             })
             .map((user) => {
               return parseInt(
-                user.collection.alias.find((alias) => alias.domain === 'GitHub')
-                  .guid,
+                user.collection.alias.find(
+                  (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
+                ).guid,
               );
             })
             .slice(0, 5); //todo: handle >6 reviewers (github limit)
@@ -519,7 +524,7 @@ export class GithubSyncService {
           reviewerIds.map((userId: number) => {
             return { type: 'User', id: userId };
           }),
-          environmentName === 'production'
+          environmentName === ENVIRONMENT_NAMES.PRODUCTION
             ? {
                 protected_branches: false,
                 custom_branch_policies: true,
@@ -529,7 +534,7 @@ export class GithubSyncService {
           token,
         );
 
-        if (environmentName === 'production') {
+        if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
           await this.addRepoEnvironmentBranchPolicy(
             owner,
             repo,
@@ -836,6 +841,36 @@ export class GithubSyncService {
   }
 
   /**
+   * Get a repo environment
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The environment name
+   * @param token The installation access token
+   * @returns An environment (See GitHub API documentation)
+   */
+  private async getRepoEnvironment(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ): Promise<any> {
+    const response = await this.axiosInstance
+      .get(`/repos/${owner}/${repo}/environments/${environment}`, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      })
+      .catch((err) => {
+        if (err.response) {
+          return err.response.data;
+        }
+      });
+    return response.data;
+  }
+
+  /**
    * Add or update a repo environment
    * @param owner The owning organization or user
    * @param repo The repository name
@@ -936,6 +971,24 @@ export class GithubSyncService {
         },
       },
     );
+  }
+
+  /**
+   * Remove an environment from a repository if it exists
+   * @param owner The owning organization or user
+   * @param repo The repository name
+   * @param environment The GitHub environment to get
+   * @param token The installation access token
+   */
+  private async removeRepoEnvironmentIfExists(
+    owner: string,
+    repo: string,
+    environment: string,
+    token: string,
+  ) {
+    if (await this.getRepoEnvironment(owner, repo, environment, token)) {
+      await this.removeRepoEnvironment(owner, repo, environment, token);
+    }
   }
 
   /**
