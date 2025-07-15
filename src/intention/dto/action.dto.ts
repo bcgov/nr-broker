@@ -11,7 +11,6 @@ import {
 import { IntentionServiceDto } from './intention-service.dto';
 import { CloudDto } from './cloud.dto';
 import { PackageDto } from './package.dto';
-import { UrlDto } from './url.dto';
 import { ArtifactDto } from './artifact.dto';
 import { ActionSourceDto } from './action-source.dto';
 import { UserDto } from './user.dto';
@@ -82,11 +81,6 @@ export class ActionDto {
   @IsOptional()
   @Type(() => TransactionDto)
   trace?: TransactionDto;
-
-  @ValidateNested()
-  @IsOptional()
-  @Type(() => UrlDto)
-  url?: UrlDto;
 
   @ValidateNested()
   @IsOptional()

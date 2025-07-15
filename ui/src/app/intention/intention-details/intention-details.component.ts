@@ -2,11 +2,12 @@ import { Component, EventEmitter, input, Output } from '@angular/core';
 import prettyMilliseconds from 'pretty-ms';
 import { switchMap } from 'rxjs';
 import { Router } from '@angular/router';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
@@ -25,6 +26,7 @@ import { FilesizePipe } from '../../util/filesize.pipe';
     MatCardModule,
     MatIconModule,
     MatMenuModule,
+    MatTooltipModule,
     GanttGraphComponent,
     FilesizePipe,
   ],

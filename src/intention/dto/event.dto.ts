@@ -1,4 +1,6 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { EventTriggerDto } from './event-trigger.dto';
 
 export class EventDto {
   /**
@@ -24,6 +26,17 @@ export class EventDto {
    */
   @IsOptional()
   transient?: boolean;
+
+  /**
+   * This should be set if the event was triggered by another system. By setting this, the
+   * event can be linked to the originating system. For example, many CI/CD systems can
+   * trigger a job using a webhook, and this can be used to identify what called the webhook.
+   * The triggering system may also want to query using this information to track the event progress.
+   */
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => EventTriggerDto)
+  trigger?: EventTriggerDto;
 
   /**
    * This should be the url to the job run or action that started this usage.

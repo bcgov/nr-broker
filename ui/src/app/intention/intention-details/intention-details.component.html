@@ -8,10 +8,23 @@
     <button
       mat-stroked-button
       (click)="viewIntention(intention().id)">Link <mat-icon iconPositionEnd fontIcon="link"></mat-icon></button>
+
+    @if (intention().event.trigger?.url) {
+      <a
+        mat-stroked-button
+        matTooltip="Access to this content may be restricted"
+        matTooltipShowDelay="500"
+        href="{{intention().event.trigger?.url}}"
+        target="_blank">@if (intention().event.trigger?.name) {
+            {{ intention().event.trigger?.name }}
+          } @else {
+            View Trigger
+          } <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
     @if (intention().event.url) {
       <a
         mat-stroked-button
-        matTooltip="Access to event log may be restricted"
+        matTooltip="Access to this content may be restricted"
         matTooltipShowDelay="500"
         href="{{intention().event.url}}"
         target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
@@ -40,7 +53,7 @@
             >Copy SCM Version<mat-icon iconPositionEnd fontIcon="content_copy"></mat-icon></a>
           <a mat-stroked-button
             (click)="openPackageBuildVersion(action.service.id, action.package.buildVersion)"
-            matTooltip="Access to source may be restricted"
+            matTooltip="Access to this content may be restricted"
             matTooltipShowDelay="500"
             >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         }
@@ -89,7 +102,7 @@
             >Copy SCM Version<mat-icon iconPositionEnd fontIcon="content_copy"></mat-icon></a>
           <a mat-stroked-button
             (click)="openPackageBuildVersion(action.service.id, action.package.buildVersion)"
-            matTooltip="Access to source may be restricted"
+            matTooltip="Access to this content may be restricted"
             matTooltipShowDelay="500"
             >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         }
@@ -131,12 +144,26 @@
     <mat-menu #menu="matMenu">
       <button
         mat-menu-item
-        (click)="navigateHistoryById(intention().id)">View intention()
+        (click)="viewIntention(intention().id)">View Details
       </button>
+
+      @if (intention().event.trigger?.url) {
+        <a
+          mat-menu-item
+          matTooltip="Access to this content may be restricted"
+          matTooltipPosition="left"
+          matTooltipShowDelay="500"
+          href="{{intention().event.trigger?.url}}"
+          target="_blank">@if (intention().event.trigger?.name) {
+            {{ intention().event.trigger?.name }}
+          } @else {
+            View Trigger
+          }</a>
+      }
       @if (intention().event.url) {
         <a
           mat-menu-item
-          matTooltip="Access to event log may be restricted"
+          matTooltip="Access to this content may be restricted"
           matTooltipPosition="left"
           matTooltipShowDelay="500"
           href="{{intention().event.url}}"

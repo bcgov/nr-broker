@@ -1,5 +1,6 @@
-import { Embeddable, Property } from '@mikro-orm/core';
+import { Embeddable, Embedded, Property } from '@mikro-orm/core';
 import { EventDto } from '../dto/event.dto';
+import { EventTriggerEmbeddable } from './event-trigger.embeddable';
 
 @Embeddable()
 export class EventEmbeddable {
@@ -12,6 +13,11 @@ export class EventEmbeddable {
     const event = new EventEmbeddable(eventDto.provider, eventDto.reason);
     event.transient = eventDto.transient;
     event.url = eventDto.url;
+    if (eventDto.trigger) {
+      event.trigger = new EventTriggerEmbeddable(eventDto.trigger.id);
+      event.trigger.name = eventDto.trigger.name;
+      event.trigger.url = eventDto.trigger.url;
+    }
     return event;
   }
   /**
@@ -37,6 +43,13 @@ export class EventEmbeddable {
    */
   @Property({ nullable: true })
   transient?: boolean;
+
+  @Embedded({
+    entity: () => EventTriggerEmbeddable,
+    nullable: true,
+    object: true,
+  })
+  trigger?: EventTriggerEmbeddable;
 
   /**
    * This should be the url to the job run or action that started this usage.

@@ -2,7 +2,12 @@
   "event": {
     "provider": "github-action-demo",
     "reason": "Install",
-    "url": "JOB_URL"
+    "url": "JOB_URL",
+    "trigger": {
+      "id": "feef-ffwe-343432-42fefds-ffew",
+      "name": "Install Action",
+      "url": "http://localhost:3000/error?code=418&message=Hello&error=I%27m%20a%20teapot"
+    }
   },
   "actions": [
     {

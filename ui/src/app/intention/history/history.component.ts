@@ -1,4 +1,11 @@
-import { Component, input, effect, numberAttribute } from '@angular/core';
+import {
+  Component,
+  input,
+  effect,
+  numberAttribute,
+  inject,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -26,10 +33,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, Subject, takeUntil } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 export interface HistoryQuery {
   field: string;
@@ -76,7 +84,7 @@ export interface HistoryQuery {
   ],
   styleUrls: ['./history.component.scss'],
 })
-export class HistoryComponent {
+export class HistoryComponent implements OnDestroy {
   field = input('');
   currentField = '';
   fieldOptions = [
@@ -123,6 +131,17 @@ export class HistoryComponent {
 
   sortActive = input('');
   sortDirection = input<SortDirection>('');
+  destroyed = new Subject<void>();
+  screenSize: 'narrow' | 'normal' = 'normal';
+
+  // Create a map from breakpoints to css class
+  displayNameMap = new Map<string, 'narrow' | 'normal'>([
+    [Breakpoints.XSmall, 'narrow'],
+    [Breakpoints.Small, 'narrow'],
+    [Breakpoints.Medium, 'normal'],
+    [Breakpoints.Large, 'normal'],
+    [Breakpoints.XLarge, 'normal'],
+  ]);
 
   intentionResource = httpResource<any>(() => {
     let whereClause: any = {
@@ -205,6 +224,22 @@ export class HistoryComponent {
     private readonly router: Router,
     private readonly intentionApi: IntentionApiService,
   ) {
+    inject(BreakpointObserver)
+      .observe([
+        Breakpoints.XSmall,
+        Breakpoints.Small,
+        Breakpoints.Medium,
+        Breakpoints.Large,
+        Breakpoints.XLarge,
+      ])
+      .pipe(takeUntil(this.destroyed))
+      .subscribe((result) => {
+        for (const query of Object.keys(result.breakpoints)) {
+          if (result.breakpoints[query]) {
+            this.screenSize = this.displayNameMap.get(query) ?? 'normal';
+          }
+        }
+      });
     effect(() => {
       this.currentField = this.field();
       this.currentValue = this.value();
@@ -247,6 +282,11 @@ export class HistoryComponent {
     this.debouncedValueModelChange$.pipe(debounceTime(1000)).subscribe(() => {
       this.updateFieldValue();
     });
+  }
+
+  ngOnDestroy() {
+    this.destroyed.next();
+    this.destroyed.complete();
   }
 
   handlePageEvent(event: PageEvent) {

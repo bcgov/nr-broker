@@ -2,8 +2,8 @@ import {
   Component,
   EventEmitter,
   OnChanges,
-  OnInit,
   Output,
+  computed,
   input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -50,7 +50,7 @@ import { IntentionDetailsComponent } from '../intention-details/intention-detail
   ],
   styleUrl: './history-table.component.scss',
 })
-export class HistoryTableComponent implements OnInit, OnChanges {
+export class HistoryTableComponent implements OnChanges {
   readonly intentionData = input<any[]>([]);
   readonly layout = input<'narrow' | 'normal'>('normal');
   readonly showHeader = input(true);
@@ -58,21 +58,26 @@ export class HistoryTableComponent implements OnInit, OnChanges {
   readonly actionServiceFilter = input('');
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
-  propDisplayedColumns: string[] = [
-    'project',
-    'service',
-    'action',
-    'action-icon',
-    'start',
-    'outcome',
-    'reason',
-    'environment',
-    'user',
-  ];
-  propDisplayedColumnsWithExpand: string[] = [
-    ...this.propDisplayedColumns,
-    'expand',
-  ];
+  readonly propDisplayedColumns = computed(() => {
+    if (this.layout() === 'narrow') {
+      return ['service', 'start-narrow', 'environment'];
+    } else {
+      return [
+        'project',
+        'service',
+        'action',
+        'action-icon',
+        'start',
+        'outcome',
+        'reason',
+        'environment',
+        'user',
+      ];
+    }
+  });
+  readonly propDisplayedColumnsWithExpand = computed(() => {
+    return [...this.propDisplayedColumns(), 'expand'];
+  });
   expandedElement: any | null;
 
   constructor(private readonly router: Router) {}
@@ -87,24 +92,8 @@ export class HistoryTableComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnInit(): void {
-    if (this.layout() === 'narrow') {
-      this.propDisplayedColumns = ['start-narrow', 'environment'];
-      this.propDisplayedColumnsWithExpand = [
-        ...this.propDisplayedColumns,
-        'expand',
-      ];
-    }
-  }
-
   navigateHistoryById(id: string) {
-    this.router.navigate([
-      '/intention/history',
-      {
-        field: 'id',
-        value: id,
-      },
-    ]);
+    this.viewIntentionEvent.emit(id);
   }
 
   totalDuration(intention: any) {

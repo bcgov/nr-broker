@@ -23,7 +23,6 @@ import { PackageProvisionActionEmbeddable } from './package-provision-action.emb
 import { ProcessEndActionEmbeddable } from './process-end-action.embeddable';
 import { ProcessStartActionEmbeddable } from './process-start-action.embeddable';
 import { ServerAccessActionEmbeddable } from './server-access-action.embeddable';
-import { UrlEmbeddable } from './url.embeddable';
 import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
 
 @Entity({ tableName: 'intention' })
@@ -109,9 +108,6 @@ export class IntentionEntity extends BaseEntity {
 
   @Embedded({ entity: () => TransactionEmbeddable, object: true })
   transaction: TransactionEmbeddable;
-
-  @Embedded({ entity: () => UrlEmbeddable, nullable: true, object: true })
-  url?: UrlEmbeddable;
 
   @Embedded({ entity: () => UserEmbeddable, object: true })
   user: UserEmbeddable;
