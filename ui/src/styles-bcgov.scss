@@ -40,6 +40,15 @@ body { margin: 0; font-family: $typography-family; }
   --br-density-oneandhalf: 24px;
   --br-density-double: 32px;
 
+  .toolbar-autocomplete {
+    max-height: calc(100vh - 96px);
+  }
+  .toolbar-autocomplete-group > .mat-mdc-optgroup-label {
+    min-height: var(--br-density-double);
+    font-size: var(--mat-list-list-item-label-text-size, var(--mat-sys-body-large-size));
+    font-weight: var(--mat-list-list-item-label-text-weight, var(--mat-sys-body-large-weight));
+  }
+
   @include mat.sidenav-overrides((
     content-background-color: var(--mat-sys-surface-container-low),
   ));
