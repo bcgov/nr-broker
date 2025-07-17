@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import {
   Observable,
   debounceTime,
   distinctUntilChanged,
+  map,
   of,
   startWith,
   switchMap,
@@ -26,6 +27,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { VertexNameComponent } from '../../graph/vertex-name/vertex-name.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { Router } from '@angular/router';
+import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-search-input',
@@ -46,7 +50,7 @@ import { Router } from '@angular/router';
   styleUrl: './search-input.component.scss',
 })
 export class SearchInputComponent {
-  filteredOptions!: Observable<GraphTypeaheadResult>;
+  filteredOptions!: Observable<any>;
   searchControl = new FormControl<{ id: string } | string | undefined>(
     undefined,
   );
@@ -56,6 +60,8 @@ export class SearchInputComponent {
     private readonly graphApi: GraphApiService,
     private readonly router: Router,
     private readonly graphUtil: GraphUtilService,
+    @Inject(CONFIG_RECORD)
+    public readonly configMap: CollectionConfigNameRecord,
   ) {}
 
   ngOnInit(): void {
@@ -72,6 +78,26 @@ export class SearchInputComponent {
             total: 0,
           },
           data: [],
+        });
+      }),
+      map((result: GraphTypeaheadResult) => {
+        const groups = result.data.reduce(
+          (groups, item) => {
+            if (!groups[item.collection]) {
+              groups[item.collection] = [];
+            }
+            groups[item.collection].push(item);
+            return groups;
+          },
+          {} as Record<string, GraphTypeaheadData[]>,
+        );
+        const sortedKeys = Object.keys(groups).sort();
+
+        return sortedKeys.map((key) => {
+          return {
+            collection: this.configMap[key as CollectionNames].name,
+            data: groups[key].sort((a, b) => a.name.localeCompare(b.name)),
+          };
         });
       }),
     );

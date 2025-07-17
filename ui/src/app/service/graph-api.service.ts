@@ -71,6 +71,7 @@ export class GraphApiService {
   getVertexConnected() {
     return this.http.post<string[]>(
       `${environment.apiUrl}/v1/graph/vertex/connected`,
+      null,
       {
         responseType: 'json',
       },
@@ -84,9 +85,12 @@ export class GraphApiService {
     return this.http.get<T>(
       `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
         collection,
-      )}?vertex=${encodeURIComponent(vertexId)}`,
+      )}`,
       {
         responseType: 'json',
+        params: {
+          vertex: vertexId,
+        },
       },
     );
   }
@@ -127,13 +131,15 @@ export class GraphApiService {
 
   findEdge(name: string, source: string, target: string) {
     return this.http.post<any>(
-      `${environment.apiUrl}/v1/graph/edge/find?name=${encodeURIComponent(
-        name,
-      )}&source=${encodeURIComponent(source)}&target=${encodeURIComponent(
-        target,
-      )}`,
+      `${environment.apiUrl}/v1/graph/edge/find`,
+      null,
       {
         responseType: 'json',
+        params: {
+          name,
+          source,
+          target,
+        },
       },
     );
   }
@@ -151,6 +157,7 @@ export class GraphApiService {
         (source ? `&source=${encodeURIComponent(source)}` : '') +
         (target ? `&target=${encodeURIComponent(target)}` : '') +
         (map ? `&map=${encodeURIComponent(map)}` : ''),
+      null,
       {
         responseType: 'json',
       },
@@ -206,6 +213,7 @@ export class GraphApiService {
           ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
           : ''
       }`,
+      null,
       {
         responseType: 'json',
       },
@@ -222,13 +230,16 @@ export class GraphApiService {
   }
 
   doTypeaheadSearch(typeahead: string, collections?: string[]) {
-    const collectionClause = collections
-      ? `&${collections.map((collection) => `collections=${collection}`)}`
-      : '';
     return this.http.post<GraphTypeaheadResult>(
-      `${environment.apiUrl}/v1/graph/typeahead?q=${typeahead}${collectionClause}`,
+      `${environment.apiUrl}/v1/graph/typeahead`,
+      null,
       {
         responseType: 'json',
+        params: {
+          q: typeahead,
+          limit: 20,
+          ...(collections ? { collections } : {}),
+        },
       },
     );
   }
