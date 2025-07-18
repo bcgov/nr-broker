@@ -111,11 +111,10 @@ export class SearchInputComponent {
     }
   }
 
-  onTypeaheadOptionClick($event: MouseEvent, option: GraphTypeaheadData) {
+  onOptionSelected(option: GraphTypeaheadData) {
     if (
-      option.collection === 'serviceInstance' ||
-      this.graphUtil.isGraphOpen() ||
-      $event.altKey
+      !this.configMap[option.collection].permissions.browse ||
+      this.graphUtil.isGraphOpen()
     ) {
       this.graphUtil.openInGraph(option.id, 'vertex');
     } else {

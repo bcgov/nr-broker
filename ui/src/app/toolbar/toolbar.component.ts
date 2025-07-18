@@ -5,6 +5,8 @@ import {
   EventEmitter,
   Inject,
   Output,
+  computed,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -18,7 +20,7 @@ import { CURRENT_USER } from '../app-initialize.factory';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
-import { interval, Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { SearchInputComponent } from './search-input/search-input.component';
 import { CollectionUtilService } from '../service/collection-util.service';
@@ -43,7 +45,14 @@ import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
   ],
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
-  @Output() sidebarClick = new EventEmitter<boolean>();
+  @Output() readonly sidebarClick = new EventEmitter<boolean>();
+
+  readonly healthStatus = signal<boolean | undefined>(undefined);
+  readonly statusText = computed(() => {
+    return this.healthStatus() ? 'Online' : 'Offline';
+  });
+  private showLinkDialog = false;
+  private unsubscribe = new Subject<void>();
 
   constructor(
     private readonly dialog: MatDialog,
@@ -54,65 +63,35 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
   ) {}
 
-  healthStatus: boolean | undefined;
-  private unsubscribe = new Subject<void>();
-  isHovered: boolean | undefined;
-  statusText: string | undefined;
-  showLinkDialog = false;
-
   ngOnInit(): void {
-    try {
-      interval(60000)
-        .pipe(takeUntil(this.unsubscribe))
-        .subscribe(() => {
-          this.getHealthCheck();
-        });
-    } catch (error: any) {
-      this.healthStatus = false;
-    }
-
-    // Initial health check
-    this.getHealthCheck();
-
     if (!this.user.alias && !this.preferences.get('ignoreGitHubLink')) {
       this.showLinkDialog = true;
     }
-  }
 
-  ngOnDestroy(): void {
-    this.unsubscribe.next();
-    this.unsubscribe.complete();
-  }
-
-  getHealthCheck(): any {
-    try {
-      this.healthService.health$
-        .pipe(
-          catchError((error: any) => {
-            this.healthStatus = false;
-            throw error;
-          }),
-        )
-        .subscribe((data) => {
-          if (data === null) {
-            this.healthStatus = false;
-          } else {
-            this.healthStatus = data.status === 'ok';
-          }
+    this.healthService.health$
+      .pipe(
+        takeUntil(this.unsubscribe),
+        catchError(() => {
+          return of(null);
+        }),
+      )
+      .subscribe((data) => {
+        if (data === null) {
+          this.healthStatus.set(false);
+        } else {
+          this.healthStatus.set(data.status === 'ok');
           if (this.showLinkDialog && data?.details['github']['alias']) {
             const config = new MatSnackBarConfig();
             config.verticalPosition = 'bottom';
             this.snackBar.openFromComponent(LinkSnackbarComponent, config);
           }
-        });
-    } catch (error: any) {
-      this.healthStatus = false;
-    }
+        }
+      });
   }
 
-  showStatusText(isHovered: boolean) {
-    this.isHovered = isHovered;
-    this.statusText = this.healthStatus ? 'Online' : 'Offline';
+  ngOnDestroy(): void {
+    this.unsubscribe.next();
+    this.unsubscribe.complete();
   }
 
   showUser() {
@@ -121,7 +100,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   showRolesDialog() {
     this.dialog.open(RolesDialogComponent, {
-      width: '400px',
+      width: '500px',
     });
   }
 

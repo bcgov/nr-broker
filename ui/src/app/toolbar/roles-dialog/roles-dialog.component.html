@@ -1,12 +1,19 @@
 <h2 mat-dialog-title>Roles</h2>
 <mat-dialog-content>
-  <h4>Roles you are currently assigned.</h4>
+
+  <p>Roles grant certain global NR Broker permissions when you login.</p>
+
+  <mat-list role="list">
   @if (user.roles.length === 0) {
-    <div>None</div>
+    <mat-list-item role="listitem">None</mat-list-item>
   }
   @for (role of user.roles; track role) {
-    <div>{{role}}</div>
+    <mat-list-item role="listitem">{{role}}</mat-list-item>
   }
+  </mat-list>
+
+  <p class="access-text">Your access is primarily based on graph connections.</p>
+
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Close</button>

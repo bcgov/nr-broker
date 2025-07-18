@@ -10,24 +10,29 @@
 }
 
 .offline {
-  color: var(--mat-sys-error-container);
+  color: light-dark(#ff897d, #7e0007);
 }
 
 .online {
-  color: var(--mat-sys-secondary-container);
+  color: light-dark(#78ff5c, #085300);
 }
 
 .status-text {
   position: absolute;
-  bottom: 0;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 12px;
+  display: none;
 }
 
 :host {
+  .toolbar-health-button:hover .status-text {
+    display: block;
+  }
+
   @include mat.toolbar-overrides((
-    container-background-color:  var(--mat-sys-on-primary-container),
+    container-background-color: var(--mat-sys-on-primary-container),
     container-text-color: var(--mat-sys-primary-container),
   ));
 
