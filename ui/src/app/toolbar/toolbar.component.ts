@@ -100,7 +100,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   showRolesDialog() {
     this.dialog.open(RolesDialogComponent, {
-      width: '400px',
+      width: '500px',
     });
   }
 

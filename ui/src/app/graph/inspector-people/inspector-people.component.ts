@@ -1,4 +1,11 @@
-import { Component, Inject, OnChanges, input } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnChanges,
+  booleanAttribute,
+  computed,
+  input,
+} from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -42,15 +49,15 @@ interface UserData {
 export class InspectorPeopleComponent implements OnChanges {
   readonly collection = input.required<CollectionNames>();
   readonly vertex = input.required<string>();
-  readonly showLinked = input<boolean>(false);
+  readonly showLinked = input(false, { transform: booleanAttribute });
 
   edges: CollectionEdgeConfig[] | undefined;
   collectionPeople: GraphUpDownDto<any>[] | null = null;
   users: UserData[] | null = null;
 
-  propPeopleDisplayedColumns: string[] = this.showLinked()
-    ? ['name', 'role', 'linked']
-    : ['name', 'role'];
+  readonly propPeopleDisplayedColumns = computed(() => {
+    return this.showLinked() ? ['name', 'role', 'linked'] : ['name', 'role'];
+  });
 
   constructor(
     private readonly graphApi: GraphApiService,
@@ -60,10 +67,6 @@ export class InspectorPeopleComponent implements OnChanges {
   ) {}
 
   ngOnChanges() {
-    this.propPeopleDisplayedColumns = this.showLinked()
-      ? ['name', 'role', 'linked']
-      : ['name', 'role'];
-
     if (this.configMap['user']) {
       this.edges = this.configMap['user'].edges.filter(
         (edge: { collection: string }) => edge.collection === 'team',

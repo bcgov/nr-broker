@@ -1,5 +1,6 @@
 @if (collectionTags().length > 0) {
   <div class="tags-container">
+    <h5 class="tags-label">Tags</h5>
     <mat-chip-listbox
       [selectable]="false">
       @for (tag of collectionTags(); track tag) {

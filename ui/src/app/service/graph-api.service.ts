@@ -208,14 +208,15 @@ export class GraphApiService {
     matchEdgeNames: string[] | null = null,
   ) {
     return this.http.post<GraphUpDownDto<T>[]>(
-      `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}${
-        matchEdgeNames
-          ? `?matchEdgeNames=${encodeURIComponent(matchEdgeNames.join(','))}`
-          : ''
-      }`,
+      `${environment.apiUrl}/v1/graph/vertex/${id}/upstream/${index}`,
       null,
       {
         responseType: 'json',
+        params: {
+          ...(matchEdgeNames
+            ? { matchEdgeNames: matchEdgeNames.join(',') }
+            : ''),
+        },
       },
     );
   }

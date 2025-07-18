@@ -8,12 +8,14 @@
     [matAutocomplete]="auto">
   <mat-autocomplete
     #auto="matAutocomplete"
+    class="toolbar-autocomplete"
     [displayWith]="displayFn"
-    class="toolbar-autocomplete">
+    (optionSelected)="onOptionSelected($event.option.value)">
      @for (group of filteredOptions | async; track group) {
         <mat-optgroup class="toolbar-autocomplete-group" [label]="group.collection">
           @for (option of group.data; track option) {
-            <mat-option [value]="option" (click)="onTypeaheadOptionClick($event, option)"><app-vertex-name [vertex]="option"></app-vertex-name></mat-option>
+            <mat-option
+              [value]="option"><app-vertex-name [vertex]="option"></app-vertex-name></mat-option>
           }
         </mat-optgroup>
       }
