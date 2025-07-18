@@ -14,14 +14,16 @@
 
   <span class="app-spacer"></span>
 
-  <button mat-icon-button [ngClass]="healthStatus ? 'online' : 'offline'"
-    (mouseover)="showStatusText(true)" (mouseout)="showStatusText(false)"
+  @if (healthStatus() !== undefined) {
+  <button
+    mat-icon-button
+    class="toolbar-health-button"
+    [ngClass]="healthStatus() ? 'online' : 'offline'"
     aria-label="Server status" >
     <mat-icon>favorite</mat-icon>
-    @if (isHovered) {
-      <span class="status-text">{{ statusText }}</span>
-    }
+      <span class="status-text">{{ statusText() }}</span>
   </button>
+}
 
   <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Account menu button">
     <mat-icon>account_circle</mat-icon>
