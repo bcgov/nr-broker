@@ -66,7 +66,7 @@ export class ActionUtil {
           } else {
             throw new BadRequestException({
               statusCode: 400,
-              message: 'Illegal action arguement',
+              message: 'Illegal action argument',
               error: `Check parameters for errors`,
             });
           }
@@ -82,7 +82,7 @@ export class ActionUtil {
       } else {
         throw new BadRequestException({
           statusCode: 400,
-          message: 'Illegal action arguement',
+          message: 'Illegal action argument',
           error: `Check parameters for errors`,
         });
       }

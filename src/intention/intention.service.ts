@@ -434,7 +434,7 @@ export class IntentionService {
     } catch (e) {
       throw new BadRequestException({
         statusCode: 400,
-        message: 'Illegal search arguement',
+        message: 'Illegal search argument',
         error: `Check parameters for errors`,
       });
     }
@@ -496,7 +496,7 @@ export class IntentionService {
     } catch (e) {
       throw new BadRequestException({
         statusCode: 400,
-        message: 'Illegal search arguement',
+        message: 'Illegal search argument',
         error: `Check parameters for errors`,
       });
     }

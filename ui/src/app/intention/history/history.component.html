@@ -94,23 +94,42 @@
     <mat-icon>refresh</mat-icon>
   </button>
 </div>
-<mat-card class="history-table" appearance="outlined">
-  <mat-card-content>
-    @if (intentionResource.hasValue()) {
-      <app-history-table
-        [intentionData]="intentionResource.value().data"
-        [layout]="screenSize"
-        (viewIntentionEvent)="this.viewIntention($event)">
-      </app-history-table>
+@if (intentionResource.error()) {
+  <app-page-error
+    message="Bad search parameters"
+    subMessage="Please check inputs. All 'ID' fields must be correctly formatted. Alternatively, click 'clear' to remove all filters"
+    error=""
+    [hideCode]="true"
+    [hideBack]="true"
+    ></app-page-error>
+} @else {
+  @if (intentionResource.hasValue() && intentionResource.value().meta.total == 0) {
+    <mat-card class="warning-panel" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>No results found</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Click 'clear' to remove all filters</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card class="history-table" appearance="outlined">
+      <mat-card-content>
+        <app-history-table
+          [intentionData]="intentionResource.value().data"
+          [layout]="screenSize"
+          (viewIntentionEvent)="this.viewIntention($event)">
+        </app-history-table>
 
-    <mat-paginator
-      [length]="intentionResource.value().meta.total"
-      [pageIndex]="index()"
-      [pageSize]="size()"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="handlePageEvent($event)"
-      aria-label="Select page">
-    </mat-paginator>
+        <mat-paginator
+          [length]="intentionResource.value().meta.total"
+          [pageIndex]="index()"
+          [pageSize]="size()"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page">
+        </mat-paginator>
+      </mat-card-content>
+    </mat-card>
   }
-  </mat-card-content>
-</mat-card>
+}

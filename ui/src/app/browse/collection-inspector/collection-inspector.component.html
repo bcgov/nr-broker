@@ -294,8 +294,9 @@
       </div>
       </ng-template>
     </mat-tab>
-
-    <mat-tab label="Activity">
+  }
+  @if (collection() === 'service' || collection() === 'brokerAccount') {
+    <mat-tab label="History">
       <ng-template matTabContent>
       <div
         class="inspector-card-layout inspector-tab-full-margin"
@@ -308,6 +309,7 @@
             <app-inspector-intentions
               [id]="comboData.collection.id"
               [name]="comboData.collection.name"
+              [collection]="collection()"
               [showHeader]="true"
               layout="normal"></app-inspector-intentions>
           </mat-card-content>

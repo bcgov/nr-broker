@@ -1,11 +1,15 @@
 <mat-card appearance="outlined">
   <mat-card-header>
-    <mat-card-subtitle>{{ code() }}</mat-card-subtitle>
+    @if (!hideCode()) {
+      <mat-card-subtitle>{{ code() }}</mat-card-subtitle>
+    }
     <mat-card-title>{{ message() }}</mat-card-title>
   </mat-card-header>
 
   <mat-card-content>
-    <p>It seems something went wrong.</p>
+    @if (subMessage()) {
+    <p>{{ subMessage() }}</p>
+    }
 
     @if (error()) {
     <mat-card appearance="outlined">
@@ -15,6 +19,8 @@
     </mat-card>
     }
 
-    <a mat-stroked-button color="secondary" routerLink="/">Go to home</a>
+    @if (!hideBack()) {
+      <a mat-stroked-button color="secondary" routerLink="/">Go to home</a>
+    }
   </mat-card-content>
 </mat-card>

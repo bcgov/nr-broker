@@ -1,5 +1,5 @@
 ARG REPO_LOCATION=
-FROM ${REPO_LOCATION}node:22-alpine AS builder
+FROM ${REPO_LOCATION}node:24-alpine AS builder
 ARG NG_BUILD_CONFIG=
 
 RUN npm i -g @nestjs/cli
@@ -30,7 +30,7 @@ RUN npm run build -- --configuration production${NG_BUILD_CONFIG} && \
     mv dist/ui/browser dist-production
 
 # Deployment container
-FROM ${REPO_LOCATION}node:22-alpine
+FROM ${REPO_LOCATION}node:24-alpine
 ARG ENVCONSUL_VERSION=0.13.3
 
 LABEL org.opencontainers.image.description="NR Broker handles the business logic of authenticating and validating requests for automated processes to access secrets"

@@ -154,6 +154,9 @@ export class IntentionMongoRepository implements IntentionRepository {
     if (where['_id'] && typeof where['_id'] === 'string') {
       where['_id'] = new ObjectId(where['_id']);
     }
+    if (where['accountId'] && typeof where['accountId'] === 'string') {
+      where['accountId'] = new ObjectId(where['accountId']);
+    }
     if (
       where['actions.service.id'] &&
       typeof where['actions.service.id'] === 'string'

@@ -23,7 +23,7 @@ import prettyMilliseconds from 'pretty-ms';
 
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
-import { IntentionDetailsComponent } from '../intention-details/intention-details.component';
+import { IntentionSummaryComponent } from '../intention-summary/intention-summary.component';
 
 @Component({
   selector: 'app-history-table',
@@ -34,7 +34,7 @@ import { IntentionDetailsComponent } from '../intention-details/intention-detail
     MatProgressBarModule,
     MatTableModule,
     ActionContentComponent,
-    IntentionDetailsComponent,
+    IntentionSummaryComponent,
     OutcomeIconComponent,
   ],
   templateUrl: './history-table.component.html',

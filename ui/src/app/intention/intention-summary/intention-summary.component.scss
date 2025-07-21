@@ -3,6 +3,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 12px;
+  margin-bottom: 12px;
   align-items: center;
 }
 
@@ -64,20 +65,20 @@ h4.expanded-narrow-header {
   white-space: nowrap;
 }
 
-.mat-icon-status {
-  line-height: 1em;
-  vertical-align: -2px;
-}
-
 .narrow-heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-left: 16px;
 }
 
 .narrow-heading h3 {
   flex-grow: 1;
   margin: 0;
+}
+
+.narrow-heading button {
+  margin-right: 12px;
 }
 
 .narrow-heading :last-child {
@@ -88,28 +89,4 @@ h4.expanded-narrow-header {
   flex: 0 0 auto;
   margin-bottom: 16px;
   margin-left: 16px;
-}
-
-.narrow-header {
-
-  margin-top: 8px;
-  min-width: 100px;
-  font-weight: 800;
-}
-
-.narrow-line {
-  color: var(--mat-sys-on-surface-variant);
-  min-width: 100px;
-  font-weight: 400;
-}
-
-.details-container {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.details-container > * {
-  width: calc(50% - 16px);
 }

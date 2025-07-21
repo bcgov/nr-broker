@@ -15,15 +15,11 @@ import { PackageUtilService } from '../../service/package-util.service';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto-union.type';
 import { IntentionDto } from '../../service/intention/dto/intention.dto';
-import { GanttGraphComponent } from '../gantt-graph/gantt-graph.component';
 import { FilesizePipe } from '../../util/filesize.pipe';
-import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
-import { httpResource } from '@angular/common/http';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
-import { ActionContentComponent } from '../action-content/action-content.component';
 
 @Component({
-  selector: 'app-intention-details',
+  selector: 'app-intention-summary',
   imports: [
     ClipboardModule,
     MatButtonModule,
@@ -31,30 +27,15 @@ import { ActionContentComponent } from '../action-content/action-content.compone
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
-    GanttGraphComponent,
     FilesizePipe,
-    ActionContentComponent,
     DetailsItemComponent,
   ],
-  templateUrl: './intention-details.component.html',
-  styleUrl: './intention-details.component.scss',
+  templateUrl: './intention-summary.component.html',
+  styleUrl: './intention-summary.component.scss',
 })
-export class IntentionDetailsComponent {
+export class IntentionSummaryComponent {
   layout = input<'narrow' | 'normal'>('normal');
   intention = input.required<IntentionDto>();
-  hideActions = input(false);
-
-  brokerAccountResource = httpResource<BrokerAccountDto>(() => {
-    const accountId = this.intention().accountId;
-    if (accountId) {
-      return this.collectionApi.getCollectionByIdArgs(
-        'brokerAccount',
-        accountId,
-      );
-    } else {
-      return undefined;
-    }
-  });
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
   constructor(
@@ -127,19 +108,6 @@ export class IntentionDetailsComponent {
         }
       });
     return false;
-  }
-
-  navigateHistoryById(id: string | undefined) {
-    if (!id) {
-      return;
-    }
-    this.router.navigate([
-      '/intention/history',
-      {
-        field: 'id',
-        value: id,
-      },
-    ]);
   }
 
   private openSnackBar(message: string) {

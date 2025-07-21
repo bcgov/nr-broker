@@ -1,5 +1,5 @@
 <div
-  class="intention-flex-container">
+  class="intention-flex-header">
   <button
     mat-icon-button
     (click)="back()">
@@ -13,48 +13,49 @@
   </div>
   <span class="spacer"></span>
 
-  <ng-content></ng-content>
+  @if (intentionResource.hasValue()) {
+  <div class="spaced-btn">
 
+    @let intention = intentionResource.value();
+
+    @if (intention.event.trigger?.url) {
+      <a
+        mat-stroked-button
+        matTooltip="Access to this content may be restricted"
+        matTooltipShowDelay="500"
+        href="{{intention.event.trigger?.url}}"
+        target="_blank">@if (intention.event.trigger?.name) {
+            {{ intention.event.trigger?.name }}
+          } @else {
+            View Trigger
+          } <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
+    @if (intention.event.url) {
+      <a
+        mat-stroked-button
+        matTooltip="Access to this content may be restricted"
+        matTooltipShowDelay="500"
+        href="{{intention.event.url}}"
+        target="_blank">View Event <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+    }
+    <a
+      mat-stroked-button href="{{intention.auditUrl}}"
+      target="_blank">View Audit <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
+</div>
+  }
 </div>
 <mat-divider></mat-divider>
 
 <div class="intention-flex-container">
 @if (intentionResource.isLoading()) {
   <mat-spinner></mat-spinner>
-} @else if (intentionResource.error()) {
-  <mat-card class="warning-panel" appearance="outlined">
-    <mat-card-header>
-      <mat-card-title>Error loading intention</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>{{intentionResource.error()?.message}}</p>
-    </mat-card-content>
-  </mat-card>
 } @else if (intentionResource.hasValue()) {
   <mat-card class="intention-panel" appearance="outlined">
     <mat-card-content>
-      @let intention = intentionResource.value();
-
-      <app-details-item title="Project">
-        <app-action-content
-          [intention]="intention"
-          key="service.project"></app-action-content>
-      </app-details-item>
-
-      <app-details-item title="Services">
-        <app-action-content
-          [intention]="intention"
-          key="service.name"></app-action-content>
-      </app-details-item>
-
-      <app-details-item title="Reason">{{ intention.event.reason}}</app-details-item>
-      <app-details-item title="Duration">{{ totalDuration(intention) }}</app-details-item>
-
       <app-intention-details
         [intention]="intentionResource.value()"
         (viewIntentionEvent)="this.viewIntention($event)"
         ></app-intention-details>
-
     </mat-card-content>
   </mat-card>
 }
