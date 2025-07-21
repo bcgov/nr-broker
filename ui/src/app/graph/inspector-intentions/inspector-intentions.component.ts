@@ -23,6 +23,7 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
 export class InspectorIntentionsComponent implements OnChanges {
   readonly id = input.required<string>();
   readonly name = input.required<string>();
+  readonly collection = input.required<string>();
   readonly layout = input<'narrow' | 'normal'>('narrow');
   readonly showMore = input<boolean>(true);
   readonly showHeader = input<boolean>(false);
@@ -41,13 +42,18 @@ export class InspectorIntentionsComponent implements OnChanges {
     }
   }
 
-  navigateHistoryByService() {
+  navigateHistory() {
     this.router.navigate([
       '/intention/history',
-      {
-        field: 'service',
-        value: this.name(),
-      },
+      this.collection() === 'service'
+        ? {
+            field: 'service',
+            value: this.name(),
+          }
+        : {
+            field: 'account',
+            value: this.id(),
+          },
     ]);
   }
 
@@ -58,9 +64,13 @@ export class InspectorIntentionsComponent implements OnChanges {
   private loadIntentions() {
     this.intentionApi
       .searchIntentions(
-        JSON.stringify({ 'actions.service.id': this.id() }),
+        JSON.stringify(
+          this.collection() === 'service'
+            ? { 'actions.service.id': this.id() }
+            : { accountId: this.id() },
+        ),
         0,
-        5,
+        10,
       )
       .subscribe((data) => {
         if (data) {

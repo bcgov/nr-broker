@@ -11,8 +11,11 @@ import { RouterModule } from '@angular/router';
 })
 export class PageErrorComponent {
   code = input<string>('418');
+  subMessage = input<string>('It seems something went wrong.');
   message = input<string>('I am a teapot');
   error = input<string>(
     'An unexpected error occurred. Please try again later.',
   );
+  hideCode = input<boolean>(true);
+  hideBack = input<boolean>(true);
 }

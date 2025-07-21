@@ -1,15 +1,23 @@
-.intention-flex-container {
+.intention-flex-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   margin: 16px;
 }
 
-.intention-flex-container button {
+
+.intention-flex-header button {
   margin-right: 16px;
 }
 
 .spacer {
   flex: 1;
+}
+
+.spaced-btn {
+  display: flex;
+  column-gap: 12px;
+  margin-right: 12px;
 }
 
 .intention-subtitle {
@@ -29,12 +37,18 @@
   line-height: 32px;
 }
 
-
 .intention-flex-container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin: 16px;
+}
+
+.intention-flex-container button {
+  margin-right: 16px;
+}
+
+.intention-flex-container {
+  margin: 32px;
 }
 
 .intention-flex-container > .intention-panel {

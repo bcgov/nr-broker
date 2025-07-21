@@ -136,10 +136,10 @@
       <div class="element-detail"
         [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
         @if (element == expandedElement) {
-          <app-intention-details
+          <app-intention-summary
             [layout]="layout()"
             [intention]="element"
-            (viewIntentionEvent)="viewIntentionEvent.emit($event)"></app-intention-details>
+            (viewIntentionEvent)="viewIntentionEvent.emit($event)"></app-intention-summary>
         }
       </div>
     </td>

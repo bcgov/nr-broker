@@ -20,11 +20,11 @@
 }
 
 .field-field {
-  width: 9em;
+  width: 10em;
 }
 
 .field-value {
-  width: 10em;
+  width: 9em;
 }
 
 .field-date-range {
@@ -37,4 +37,13 @@
 
 .field-outcome {
   width: 8em;
+}
+
+.warning-panel {
+  width: 600px;
+  margin: auto;
+  margin-top: 50px;
+  p {
+    margin: 1.5em 0 3em;
+  }
 }

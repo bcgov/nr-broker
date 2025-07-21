@@ -38,6 +38,7 @@ import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { PageErrorComponent } from '../../page-error/page-error.component';
 
 export interface HistoryQuery {
   field: string;
@@ -70,6 +71,7 @@ export interface HistoryQuery {
     MatSelectModule,
     ReactiveFormsModule,
     HistoryTableComponent,
+    PageErrorComponent,
   ],
   templateUrl: './history.component.html',
   animations: [
@@ -90,6 +92,7 @@ export class HistoryComponent implements OnDestroy {
   fieldOptions = [
     { value: '', viewValue: '' },
     { value: 'id', viewValue: 'ID' },
+    { value: 'account', viewValue: 'Account ID' },
     { value: 'project', viewValue: 'Project' },
     { value: 'service', viewValue: 'Service' },
     { value: 'action', viewValue: 'Action' },
@@ -156,6 +159,11 @@ export class HistoryComponent implements OnDestroy {
         whereClause = {
           ...whereClause,
           ...(this.value() ? { _id: this.value().trim() } : {}),
+        };
+      } else if (this.field() === 'account') {
+        whereClause = {
+          ...whereClause,
+          ...(this.value() ? { accountId: this.value().trim() } : {}),
         };
       } else if (this.field() === 'service') {
         whereClause = {

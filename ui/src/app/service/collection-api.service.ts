@@ -31,13 +31,20 @@ export class CollectionApiService {
     );
   }
 
+  public getCollectionByIdArgs<T extends CollectionNames>(
+    name: T,
+    id: string,
+  ): { method: string; url: string; options: { responseType: 'json' } } {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}`,
+      options: { responseType: 'json' },
+    };
+  }
+
   public getCollectionById<T extends CollectionNames>(name: T, id: string) {
-    return this.http.get<CollectionDtoUnion[T]>(
-      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}`,
-      {
-        responseType: 'json',
-      },
-    );
+    const { url, options } = this.getCollectionByIdArgs(name, id);
+    return this.http.get<CollectionDtoUnion[T]>(url, options);
   }
 
   public getCollectionComboByIdArgs<T extends CollectionNames>(
