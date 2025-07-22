@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -15,6 +16,12 @@ export class ActionGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<ActionGuardRequest>();
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];
+    if (tokenHeader === undefined) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: `Missing header for action token: ${HEADER_BROKER_TOKEN}`,
+      });
+    }
     const token =
       typeof tokenHeader === 'string' ? tokenHeader : tokenHeader[0];
     const intObj =
