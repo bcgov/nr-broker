@@ -78,6 +78,8 @@ export class ToolbarComponent implements OnInit, OnDestroy {
       .subscribe((data) => {
         if (data === null) {
           this.healthStatus.set(false);
+        } else if (data === undefined) {
+          this.healthStatus.set(undefined);
         } else {
           this.healthStatus.set(data.status === 'ok');
           if (this.showLinkDialog && data?.details['github']['alias']) {

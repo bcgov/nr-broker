@@ -9,7 +9,9 @@ import { HealthCheckDto } from './health/health-check.dto';
   providedIn: 'root',
 })
 export class HealthStatusService {
-  private healthSubject = new BehaviorSubject<null | HealthCheckDto>(null);
+  private healthSubject = new BehaviorSubject<
+    HealthCheckDto | null | undefined
+  >(undefined);
   public health$ = this.healthSubject.asObservable();
 
   constructor(private readonly http: HttpClient) {
