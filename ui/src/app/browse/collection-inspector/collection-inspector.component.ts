@@ -365,9 +365,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   updateRoute(selectedTabIndex: number) {
-    this.location.replaceState(
-      `/browse/${this.collection()}/${this.collectionId()};index=${selectedTabIndex}`,
-    );
+    this.router.navigate([
+      `/browse/${this.collection()}/${this.collectionId()}`,
+      { index: selectedTabIndex },
+    ]);
   }
 
   openInGraph() {

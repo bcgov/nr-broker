@@ -6,13 +6,14 @@
     [intentionData]="intentions"
     [layout]="layout()"
     [showHeader]="showHeader()"
-    [openFirst]="openFirst()"
     (viewIntentionEvent)="this.viewIntention($event)"
     ></app-history-table>
 }
 @if (showMore() && total > 0) {
   <div class="more-panel">
-    <div>{{total}} Total</div>
-    <button mat-stroked-button (click)="navigateHistory()">More</button>
+    <button
+      mat-stroked-button
+      (click)="navigateHistory()">View in History</button>
+    <div>1 - {{ total > limit ? limit : total }} of {{ total }}</div>
   </div>
 }

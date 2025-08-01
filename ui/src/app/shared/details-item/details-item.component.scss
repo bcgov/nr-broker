@@ -15,4 +15,7 @@
   color: var(--mat-sys-on-surface-variant);
   min-width: 100px;
   font-weight: 300;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

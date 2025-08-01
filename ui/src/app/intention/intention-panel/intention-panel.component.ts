@@ -1,17 +1,19 @@
 import { Component, effect, input } from '@angular/core';
-import { IntentionApiService } from '../../service/intention-api.service';
+import { Location } from '@angular/common';
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { IntentionDetailsComponent } from '../intention-details/intention-details.component';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
-import { IntentionDto } from '../../service/intention/dto/intention.dto';
-import prettyMilliseconds from 'pretty-ms';
-import { ActionContentComponent } from '../action-content/action-content.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
+import prettyMilliseconds from 'pretty-ms';
+
+import { IntentionDto } from '../../service/intention/dto/intention.dto';
+import { IntentionApiService } from '../../service/intention-api.service';
+import { IntentionDetailsComponent } from '../intention-details/intention-details.component';
+import { ActionContentComponent } from '../action-content/action-content.component';
 
 @Component({
   selector: 'app-intention-panel',
@@ -37,6 +39,7 @@ export class IntentionPanelComponent {
 
   constructor(
     private readonly router: Router,
+    private readonly location: Location,
     private readonly intentionApi: IntentionApiService,
   ) {
     effect(() => {
@@ -61,7 +64,8 @@ export class IntentionPanelComponent {
   }
 
   back() {
-    this.router.navigate(['/intention/history']);
+    this.location.back();
+    // this.router.navigate(['/intention/history']);
   }
 
   viewIntention(id: string) {

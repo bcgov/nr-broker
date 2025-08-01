@@ -27,9 +27,9 @@ export class InspectorIntentionsComponent implements OnChanges {
   readonly layout = input<'narrow' | 'normal'>('narrow');
   readonly showMore = input<boolean>(true);
   readonly showHeader = input<boolean>(false);
-  readonly openFirst = input<boolean>(true);
   intentions: any[] = [];
   total = 0;
+  limit = 10;
 
   constructor(
     private readonly intentionApi: IntentionApiService,
@@ -45,15 +45,18 @@ export class InspectorIntentionsComponent implements OnChanges {
   navigateHistory() {
     this.router.navigate([
       '/intention/history',
-      this.collection() === 'service'
-        ? {
-            field: 'service',
-            value: this.name(),
-          }
-        : {
-            field: 'account',
-            value: this.id(),
-          },
+      {
+        lifespan: 'all',
+        ...(this.collection() === 'service'
+          ? {
+              field: 'service',
+              value: this.name(),
+            }
+          : {
+              field: 'account',
+              value: this.id(),
+            }),
+      },
     ]);
   }
 
@@ -70,7 +73,7 @@ export class InspectorIntentionsComponent implements OnChanges {
             : { accountId: this.id() },
         ),
         0,
-        10,
+        this.limit,
       )
       .subscribe((data) => {
         if (data) {

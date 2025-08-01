@@ -314,7 +314,12 @@ export class IntentionService {
         outcome: validationResult === null ? 'success' : 'failure',
       };
     }
-    this.auditOpenAndThrowUnsuccessful(req, intention, dryRun, actionFailures);
+    await this.auditOpenAndThrowUnsuccessful(
+      req,
+      intention,
+      dryRun,
+      actionFailures,
+    );
     if (!dryRun) {
       await this.intentionRepository.addIntention(intention);
     }
@@ -327,7 +332,7 @@ export class IntentionService {
     };
   }
 
-  private auditOpenAndThrowUnsuccessful(
+  private async auditOpenAndThrowUnsuccessful(
     req: Request,
     intention: IntentionEntity,
     dryRun: boolean,
@@ -356,6 +361,11 @@ export class IntentionService {
       );
     }
     if (!isSuccessfulOpen) {
+      // Mark failed intention as transient and finalize immediately
+      intention.event.transient = true;
+      intention.transaction.outcome = 'failure';
+      intention.closed = true;
+      await this.intentionRepository.addIntention(intention);
       throw exception;
     }
   }
