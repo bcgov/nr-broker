@@ -10,9 +10,9 @@ import { EdgeInsertDto } from '../persistence/dto/edge.dto';
 import { UserEntity } from '../persistence/entity/user.entity';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
-import { ActionError } from '../intention/action.error';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { ActionErrorDto } from '../intention/dto/action-error.dto';
 import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
 import { UserEmbeddable } from '../intention/entity/user.embeddable';
 import { APP_ENVIRONMENT } from '../constants';
@@ -115,7 +115,7 @@ export class AuditService {
   public recordActionAuthorization(
     req: any,
     intention: IntentionEntity,
-    actionFailures: ActionError[],
+    actionFailures: ActionErrorDto[],
   ) {
     const now = new Date();
     for (const action of intention.actions) {

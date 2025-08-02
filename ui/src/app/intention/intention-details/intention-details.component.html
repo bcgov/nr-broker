@@ -11,8 +11,18 @@
       key="service.name"></app-action-content>
   </app-details-item>
 
+  <app-details-item title="Outcome">@if (intention().transaction?.outcome) {
+        {{intention().transaction?.outcome}}
+      } @else {
+        <mat-progress-bar mode="determinate" [value]="intentionUtil.normalizedProgress(intention())"></mat-progress-bar>
+      }</app-details-item>
+
+
   <app-details-item title="Reason">{{ intention().event.reason}}</app-details-item>
-  <app-details-item title="Duration">{{ totalDuration(intention()) }}</app-details-item>
+  @let duration = intentionUtil.totalDuration(intention());
+  @if (duration) {
+    <app-details-item title="Duration">{{ duration }}</app-details-item>
+  }
 </div>
 @if (brokerAccountResource.hasValue()) {
 <div class="expanded-header-actions">
@@ -40,7 +50,7 @@
   <div class="expanded-header-actions">
     <h3>Actions</h3>
     @if (intention().transaction?.duration) {
-      <span>Duration: {{totalDuration(intention())}}</span>
+      <span>Duration: {{intentionUtil.totalDuration(intention())}}</span>
     }
   </div>
   @for (action of intention().actions; track action.id) {

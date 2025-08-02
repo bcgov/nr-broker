@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ActionError } from './action.error';
 import { ActionUtil } from '../util/action.util';
 import { IntentionEntity } from './entity/intention.entity';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
@@ -17,6 +16,7 @@ import { PackageBuildActionEmbeddable } from './entity/package-build-action.embe
 import { PackageEmbeddable } from './entity/package.embeddable';
 import { UserEntity } from '../persistence/entity/user.entity';
 import { ENVIRONMENT_NAMES } from './dto/constants.dto';
+import { ActionErrorDto } from './dto/action-error.dto';
 
 /**
  * Assists with the validation of intention actions
@@ -40,7 +40,7 @@ export class ActionService {
     targetServices: string[],
     requireProjectExists: boolean,
     requireServiceExists: boolean,
-  ): Promise<ActionError> | null {
+  ): Promise<ActionErrorDto> | null {
     const user = await this.userCollectionService.lookupUserByGuid(
       action.user.id,
     );
@@ -71,7 +71,7 @@ export class ActionService {
     account: BrokerAccountEntity | null,
     user: UserEntity,
     action: ActionEmbeddable,
-  ): ActionError | null {
+  ): ActionErrorDto | null {
     if (account && account.skipUserValidation) {
       return null;
     }
@@ -90,7 +90,7 @@ export class ActionService {
     return null;
   }
 
-  private validateVaultEnv(action: ActionEmbeddable): ActionError | null {
+  private validateVaultEnv(action: ActionEmbeddable): ActionErrorDto | null {
     if (
       this.actionUtil.isProvisioned(action) &&
       !this.actionUtil.isValidVaultEnvironment(action)
@@ -117,7 +117,7 @@ export class ActionService {
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     requireProjectExists: boolean,
     requireServiceExists: boolean,
-  ): ActionError | null {
+  ): ActionErrorDto | null {
     if (accountBoundProjects) {
       const service = action.service;
       const projectFound = !!accountBoundProjects[service.project];
@@ -154,7 +154,7 @@ export class ActionService {
   private validateTargetService(
     action: ActionEmbeddable,
     targetServices: string[],
-  ): ActionError | null {
+  ): ActionErrorDto | null {
     if (!action.service.target) {
       return null;
     }
@@ -179,7 +179,7 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionErrorDto | null> {
     if (action instanceof DatabaseAccessActionEmbeddable) {
       // Ensure user validation done. May have been skipped if option set.
       const userValidation = this.validateUserSet(null, user, action);
@@ -196,7 +196,7 @@ export class ActionService {
     account: BrokerAccountEntity | null,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionErrorDto | null> {
     if (action instanceof PackageBuildActionEmbeddable) {
       // TODO: check for existing build
       const validateSemverError = this.validateSemver(action);
@@ -307,7 +307,7 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionErrorDto | null> {
     if (action instanceof PackageInstallationActionEmbeddable) {
       const env = (await this.persistenceUtil.getEnvMap())[
         action.service.environment
@@ -373,7 +373,7 @@ export class ActionService {
     return this.actionUtil.parseVersion(action.package?.version ?? '');
   }
 
-  private validateSemver(action: ActionEmbeddable): ActionError | null {
+  private validateSemver(action: ActionEmbeddable): ActionErrorDto | null {
     const parsedVersion = this.parseActionVersion(action);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
       return {
@@ -395,7 +395,7 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionErrorDto | null> {
     const project = await this.collectionRepository.getCollectionByKeyValue(
       'project',
       'name',

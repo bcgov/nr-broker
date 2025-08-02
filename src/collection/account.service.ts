@@ -25,7 +25,6 @@ import {
   REDIS_PUBSUB,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
-import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
 import { OpensearchService } from '../aws/opensearch.service';
@@ -38,6 +37,7 @@ import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { ActionErrorDto } from '../intention/dto/action-error.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -235,7 +235,7 @@ export class AccountService {
     ttl: number,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
-    const actionFailures: ActionError[] = [];
+    const actionFailures: ActionErrorDto[] = [];
     const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
     const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
       brokerJwt.jti,

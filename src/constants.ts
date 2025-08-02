@@ -25,6 +25,7 @@ export const INTENTION_DEFAULT_TTL_SECONDS = 600;
 export const INTENTION_MIN_TTL_SECONDS = 30;
 export const INTENTION_MAX_TTL_SECONDS = 1800;
 export const INTENTION_TRANSIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const INTENTION_REJECTED_TTL_MS = 1 * 24 * 60 * 60 * 1000;
 
 // Search paths use last existing path as the value
 export const INTENTION_SERVICE_ENVIRONMENT_SEARCH_PATHS = [

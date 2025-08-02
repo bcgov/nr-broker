@@ -12,10 +12,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import prettyMilliseconds from 'pretty-ms';
 
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { IntentionUtilService } from '../../util/intention-util.service';
 
 @Component({
   selector: 'app-history-table',
@@ -40,6 +40,8 @@ export class HistoryTableComponent {
   readonly actionServiceFilter = input('');
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
+  constructor(public intentionUtil: IntentionUtilService) {}
+
   readonly propDisplayedColumns = computed(() => {
     if (this.layout() === 'narrow') {
       return ['service', 'start-narrow', 'environment'];
@@ -61,29 +63,5 @@ export class HistoryTableComponent {
 
   navigateHistoryById(id: string) {
     this.viewIntentionEvent.emit(id);
-  }
-
-  totalDuration(intention: any) {
-    return intention.transaction.duration
-      ? prettyMilliseconds(intention.transaction.duration)
-      : 0;
-  }
-
-  normalizedProgress(intention: any) {
-    let progressCnt = 0;
-    if (intention.actions) {
-      progressCnt = intention.actions.reduce(
-        (currentValue: number, action: any) => {
-          if (action.trace.outcome) {
-            return 2 + currentValue;
-          } else if (action.trace.start) {
-            return 1 + currentValue;
-          }
-          return currentValue;
-        },
-        0,
-      );
-    }
-    return Math.round((progressCnt / (intention.actions.length * 2)) * 100);
   }
 }

@@ -102,6 +102,7 @@ export class HistoryComponent implements OnDestroy {
     { value: 'all', viewValue: 'All' },
     { value: 'success', viewValue: 'Success' },
     { value: 'failure', viewValue: 'Failure' },
+    { value: 'rejected', viewValue: 'Rejected' },
     { value: 'unknown', viewValue: 'Unknown' },
   ];
 

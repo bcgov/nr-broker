@@ -1,5 +1,4 @@
 import { Component, EventEmitter, inject, input, Output } from '@angular/core';
-import prettyMilliseconds from 'pretty-ms';
 import { Subject, switchMap, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -11,6 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { httpResource } from '@angular/common/http';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { PackageUtilService } from '../../service/package-util.service';
@@ -22,6 +23,7 @@ import { FilesizePipe } from '../../util/filesize.pipe';
 import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 import { ActionContentComponent } from '../action-content/action-content.component';
+import { IntentionUtilService } from '../../util/intention-util.service';
 
 @Component({
   selector: 'app-intention-details',
@@ -31,6 +33,7 @@ import { ActionContentComponent } from '../action-content/action-content.compone
     MatCardModule,
     MatIconModule,
     MatMenuModule,
+    MatProgressBarModule,
     MatTooltipModule,
     GanttGraphComponent,
     FilesizePipe,
@@ -73,6 +76,7 @@ export class IntentionDetailsComponent {
     private readonly graphUtil: GraphUtilService,
     private readonly packageUtil: PackageUtilService,
     private readonly snackBar: MatSnackBar,
+    public readonly intentionUtil: IntentionUtilService,
   ) {
     inject(BreakpointObserver)
       .observe([
@@ -96,12 +100,6 @@ export class IntentionDetailsComponent {
   ngOnDestroy() {
     this.destroyed.next();
     this.destroyed.complete();
-  }
-
-  totalDuration(intention: any) {
-    return intention.transaction.duration
-      ? prettyMilliseconds(intention.transaction.duration)
-      : 0;
   }
 
   async openPackageBuildVersion(id: string | undefined, version: string) {

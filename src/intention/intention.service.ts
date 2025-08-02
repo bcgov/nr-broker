@@ -17,12 +17,12 @@ import {
   INTENTION_DEFAULT_TTL_SECONDS,
   INTENTION_MAX_TTL_SECONDS,
   INTENTION_MIN_TTL_SECONDS,
+  INTENTION_REJECTED_TTL_MS,
   INTENTION_TRANSIENT_TTL_MS,
   IS_PRIMARY_NODE,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
-import { ActionError } from './action.error';
 import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
@@ -70,6 +70,8 @@ import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
+import { ActionErrorEmbeddable } from './entity/action-error.embeddable';
+import { ActionErrorDto } from './dto/action-error.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -121,7 +123,7 @@ export class IntentionService {
     dryRun = false,
   ): Promise<IntentionOpenResponse> {
     const actionResults = {};
-    const actionFailures: ActionError[] = [];
+    const actionFailures: ActionErrorDto[] = [];
     const envMap = await this.persistenceUtilService.getEnvMap();
 
     // Only JWT "users" can make an open request
@@ -336,7 +338,7 @@ export class IntentionService {
     req: Request,
     intention: IntentionEntity,
     dryRun: boolean,
-    actionFailures: ActionError[],
+    actionFailures: ActionErrorDto[],
   ) {
     const isSuccessfulOpen = actionFailures.length === 0;
     const exception = !isSuccessfulOpen
@@ -361,10 +363,14 @@ export class IntentionService {
       );
     }
     if (!isSuccessfulOpen) {
-      // Mark failed intention as transient and finalize immediately
-      intention.event.transient = true;
-      intention.transaction.outcome = 'failure';
+      // Set action failures, set expiry to now and close immediately
+      intention.transaction.outcome = 'rejected';
+      intention.actionFailures = actionFailures.map((error) => {
+        return ActionErrorEmbeddable.create(error);
+      });
+      intention.expiry = Date.now();
       intention.closed = true;
+      // Add closed intention
       await this.intentionRepository.addIntention(intention);
       throw exception;
     }
@@ -934,9 +940,9 @@ export class IntentionService {
   private async validateActions(
     intentionDto: IntentionEntity,
     account: BrokerAccountEntity | null,
-  ): Promise<ActionError[]> {
+  ): Promise<ActionErrorDto[]> {
     let targetServices: string[] = [];
-    const validationResult: ActionError[] = [];
+    const validationResult: ActionErrorDto[] = [];
 
     const accountBoundProjects = account
       ? await this.graphRepository.getBrokerAccountServices(
@@ -999,6 +1005,16 @@ export class IntentionService {
       return;
     }
     await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  @CreateRequestContext()
+  async handleRejectedCleanup() {
+    if (!IS_PRIMARY_NODE) {
+      // Nodes that are not the primary one should not do cleanup
+      return;
+    }
+    await this.intentionRepository.cleanupRejected(INTENTION_REJECTED_TTL_MS);
   }
 
   private async getAccountFromRegistry(registryJwt: JwtRegistryEntity) {

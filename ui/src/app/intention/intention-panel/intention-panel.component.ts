@@ -8,7 +8,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import prettyMilliseconds from 'pretty-ms';
 
 import { IntentionDto } from '../../service/intention/dto/intention.dto';
 import { IntentionApiService } from '../../service/intention-api.service';
@@ -55,12 +54,6 @@ export class IntentionPanelComponent {
         ]);
       }
     });
-  }
-
-  totalDuration(intention: any) {
-    return intention.transaction.duration
-      ? prettyMilliseconds(intention.transaction.duration)
-      : 0;
   }
 
   back() {

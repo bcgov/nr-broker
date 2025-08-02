@@ -221,4 +221,12 @@ export class IntentionMongoRepository implements IntentionRepository {
       expiry: { $lt: Date.now() - transientTtl },
     });
   }
+
+  public async cleanupRejected(rejectedTtl: number): Promise<void> {
+    this.intentionRepository.getCollection().deleteMany({
+      'event.outcome': 'rejected',
+      closed: true,
+      expiry: { $lt: Date.now() - rejectedTtl },
+    });
+  }
 }
