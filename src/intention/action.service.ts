@@ -46,7 +46,7 @@ export class ActionService {
     );
 
     const ruleViolation =
-      this.validateUserSet(account, user, action) ??
+      this.validateUserSet(account, user) ??
       this.validateVaultEnv(action) ??
       this.validateAccountBoundProject(
         action,
@@ -74,7 +74,6 @@ export class ActionService {
   private validateUserSet(
     account: BrokerAccountEntity | null,
     user: UserEntity,
-    action: ActionEmbeddable,
   ): ActionRuleViolationEmbeddable | null {
     if (account && account.skipUserValidation) {
       return null;
@@ -159,7 +158,7 @@ export class ActionService {
   ): Promise<ActionRuleViolationEmbeddable | null> {
     if (action instanceof DatabaseAccessActionEmbeddable) {
       // Ensure user validation done. May have been skipped if option set.
-      const userValidation = this.validateUserSet(null, user, action);
+      const userValidation = this.validateUserSet(null, user);
       if (userValidation) {
         return userValidation;
       }
