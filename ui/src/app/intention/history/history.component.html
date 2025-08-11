@@ -115,6 +115,7 @@
   } @else {
     <mat-card class="history-table" appearance="outlined">
       <mat-card-content>
+        @if (intentionResource.hasValue()) {
         <app-history-table
           [intentionData]="intentionResource.value().data"
           [layout]="screenSize"
@@ -129,6 +130,7 @@
           (page)="handlePageEvent($event)"
           aria-label="Select page">
         </mat-paginator>
+        }
       </mat-card-content>
     </mat-card>
   }

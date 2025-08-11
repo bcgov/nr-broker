@@ -1,32 +1,57 @@
 <div class="details-container">
-  <app-details-item title="Project">
-    <app-action-content
-      [intention]="intention()"
-      key="service.project"></app-action-content>
-  </app-details-item>
+  <span [matMenuTriggerFor]="projectMenu">
+    <app-details-item
+      item="Project"
+      clickable="true"
+      (click)="openCollectionFromAction($event, 'project', 'name', 'service.project')">
+      <app-action-content
+        [intention]="intention()"
+        key="service.project"
+        showMultiple="true"></app-action-content>
+    </app-details-item>
+  </span>
+  <mat-menu #projectMenu="matMenu">
+    @for (value of intentionUtil.actionValueSet(intention(), 'service.project'); track value) {
+      <button mat-menu-item (click)="openCollection($event, 'project', 'name', value)">{{ value }}</button>
+    }
+  </mat-menu>
 
-  <app-details-item title="Services">
-    <app-action-content
-      [intention]="intention()"
-      key="service.name"></app-action-content>
-  </app-details-item>
+  <span [matMenuTriggerFor]="serviceMenu">
+    <app-details-item
+      item="Services"
+      clickable="true"
+      (click)="openCollectionFromAction($event, 'service', 'name', 'service.name')">
+      <app-action-content
+        [intention]="intention()"
+        key="service.name"
+        showMultiple="true"></app-action-content>
+    </app-details-item>
+  </span>
+  <mat-menu #serviceMenu="matMenu">
+    @for (value of intentionUtil.actionValueSet(intention(), 'service.name'); track value) {
+      <button mat-menu-item (click)="openCollection($event, 'service', 'name', value)">{{ value }}</button>
+    }
+  </mat-menu>
 
-  <app-details-item title="Outcome">@if (intention().transaction?.outcome) {
-        {{intention().transaction?.outcome}}
+  @let outcome = intention().transaction?.outcome;
+  <app-details-item item="Outcome">@if (outcome) {
+    <app-outcome-icon
+          [outcome]="outcome"></app-outcome-icon>
+        {{outcome | titlecase}}
       } @else {
         <mat-progress-bar mode="determinate" [value]="intentionUtil.normalizedProgress(intention())"></mat-progress-bar>
       }</app-details-item>
 
 
-  <app-details-item title="Reason">{{ intention().event.reason}}</app-details-item>
+  <app-details-item item="Reason">{{ intention().event.reason}}</app-details-item>
   @let duration = intentionUtil.totalDuration(intention());
   @if (duration) {
-    <app-details-item title="Duration">{{ duration }}</app-details-item>
+    <app-details-item item="Duration">{{ duration }}</app-details-item>
   }
 </div>
 @if (brokerAccountResource.hasValue()) {
 <div class="expanded-header-actions">
-  <h3>Broker Account</h3>
+  <h2>Broker Account</h2>
   <button
     mat-stroked-button
     (click)="openCollection($event, 'brokerAccount', 'id', brokerAccountResource.value().id )">View Account</button>
@@ -35,37 +60,53 @@
     (click)="openBrokerAccountHistory(brokerAccountResource.value().id)">View History</button>
 </div>
 
-    <div class="details-container">
-
-  <app-details-item title="Client Id" clickable="true" (click)="openCollection($event, 'brokerAccount', 'id', brokerAccountResource.value().id )">
+<div class="details-container">
+  <app-details-item item="Client Id" clickable="true" (click)="openCollection($event, 'brokerAccount', 'id', brokerAccountResource.value().id )">
     {{ brokerAccountResource.value().clientId }}
   </app-details-item>
 
-  <app-details-item title="Name">
+  <app-details-item item="Name">
     {{ brokerAccountResource.value().name }}
   </app-details-item>
 </div>
 }
 <div class="action-container">
   <div class="expanded-header-actions">
-    <h3>Actions</h3>
+    <h2>Actions</h2>
     @if (intention().transaction?.duration) {
       <span>Duration: {{intentionUtil.totalDuration(intention())}}</span>
     }
   </div>
   @for (action of intention().actions; track action.id) {
     <div class="expanded-header-container">
-      <h5><a (click)="openCollection($event, 'project', 'name', action.service.project)"
+      <h3>
+      <app-outcome-icon
+        [outcome]="action.trace?.outcome"></app-outcome-icon>
+      <a (click)="openCollection($event, 'project', 'name', action.service.project)"
         >{{action.service.project}}</a> / <a (click)="openCollection($event, 'service', 'name', action.service.name)"
         >{{action.service.name}}</a>
-        #{{action.id}} @if (action.package && action.package.buildNumber) {: build {{action.package.buildNumber}}}</h5>
+        #{{action.id}} @if (action.package && action.package.buildNumber) {: build {{action.package.buildNumber}}}</h3>
       <div>Environment: <b>{{action.service.environment}}</b></div>
     </div>
-    <app-gantt-graph [intention]="intention()" [action]="action"></app-gantt-graph>
+
+    @if (action.ruleViolation) {
+
+      <app-details-item item="Rule Violation">
+        {{ action.ruleViolation.message }}
+      </app-details-item>
+
+      <app-details-item item="Value">
+        {{ getActionValue(action, action.ruleViolation.key) }} ({{ action.ruleViolation.key }})
+      </app-details-item>
+   }
+
+    @if (action.trace?.duration) {
+      <app-gantt-graph [intention]="intention()" [action]="action"></app-gantt-graph>
+    }
 
     @if (action.artifacts) {
       <div class="expanded-header-actions">
-        <h3>Artifacts</h3>
+        <h2>Artifacts</h2>
         @if (action.package && action.package.buildVersion) {
           <a mat-button
             [cdkCopyToClipboard]="action.package.buildVersion"
@@ -93,13 +134,13 @@
             <mat-card-content>
               <div class="package-info">
               @if (artifact.size) {
-                <app-details-item title="Size">{{artifact.size | filesize}}</app-details-item>
+                <app-details-item item="Size">{{artifact.size | filesize}}</app-details-item>
               }
               @if (artifact.checksum) {
-                <app-details-item title="Hash">{{artifact.checksum}}</app-details-item>
+                <app-details-item item="Hash">{{artifact.checksum}}</app-details-item>
               }
               @if (action.package?.version) {
-                <app-details-item title="Version">{{action.package?.version}}</app-details-item>
+                <app-details-item item="Version">{{action.package?.version}}</app-details-item>
               }
             </div>
             </mat-card-content>
@@ -116,7 +157,7 @@
     }
     @if (action.action == "package-installation" && action.package) {
       <div class="expanded-header-actions">
-        <h3>Package</h3>
+        <h2>Package</h2>
         @if (action.package && action.package.buildVersion) {
           <a mat-button
             [cdkCopyToClipboard]="action.package.buildVersion"
@@ -137,13 +178,13 @@
           <mat-card-content>
             <div class="package-info">
             @if (action.package.size) {
-              <app-details-item title="Size">{{action.package.size | filesize}}</app-details-item>
+              <app-details-item item="Size">{{action.package.size | filesize}}</app-details-item>
             }
             @if (action.package.checksum) {
-              <app-details-item title="Hash">{{action.package.checksum}}</app-details-item>
+              <app-details-item item="Hash">{{action.package.checksum}}</app-details-item>
             }
             @if (action.package.version) {
-              <app-details-item title="Version">{{action.package.version}}</app-details-item>
+              <app-details-item item="Version">{{action.package.version}}</app-details-item>
             }
             </div>
           </mat-card-content>

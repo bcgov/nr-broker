@@ -1,7 +1,7 @@
-import { Component, OnInit, input } from '@angular/core';
-
+import { Component, OnInit, booleanAttribute, input } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import delve from 'dlv';
+
+import { IntentionUtilService } from '../../util/intention-util.service';
 
 @Component({
   selector: 'app-action-content',
@@ -13,22 +13,16 @@ export class ActionContentComponent implements OnInit {
   readonly intention = input<any>();
   readonly key = input.required<string>();
   readonly actionServiceFilter = input('');
+  readonly showMultiple = input(false, { transform: booleanAttribute });
   values: string[] = [];
 
+  constructor(private service: IntentionUtilService) {}
+
   ngOnInit(): void {
-    const actions = this.intention()?.actions ?? [];
-    const valueSet = new Set<string>(
-      actions
-        .filter((action: any) => {
-          const actionServiceFilter = this.actionServiceFilter();
-          return (
-            actionServiceFilter === '' ||
-            action.service.name === actionServiceFilter
-          );
-        })
-        .map((action: any) => {
-          return delve(action, this.key());
-        }),
+    const valueSet = this.service.actionValueSet(
+      this.intention(),
+      this.key(),
+      this.actionServiceFilter(),
     );
     this.values = [...valueSet];
   }

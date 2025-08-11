@@ -70,8 +70,6 @@ import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
-import { ActionErrorEmbeddable } from './entity/action-error.embeddable';
-import { ActionErrorDto } from './dto/action-error.dto';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -123,7 +121,6 @@ export class IntentionService {
     dryRun = false,
   ): Promise<IntentionOpenResponse> {
     const actionResults = {};
-    const actionFailures: ActionErrorDto[] = [];
     const envMap = await this.persistenceUtilService.getEnvMap();
 
     // Only JWT "users" can make an open request
@@ -299,31 +296,17 @@ export class IntentionService {
       account,
     );
 
-    const actionValidationErrors = await this.validateActions(
-      intention,
-      account,
-    );
+    // Validate actions against business rules
+    await this.validateActions(intention, account);
+    await this.auditIntentionOpenAndThrowUnsuccessful(req, intention, dryRun);
 
-    for (const [index, action] of intention.actions.entries()) {
-      const validationResult = actionValidationErrors[index];
-      action.valid = validationResult === null;
-      if (!action.valid) {
-        actionFailures.push(validationResult);
-      }
+    // Add actions to response
+    for (const action of intention.actions) {
       actionResults[action.id] = {
         token: action.trace.token,
         trace_id: action.trace.hash,
-        outcome: validationResult === null ? 'success' : 'failure',
+        outcome: !action.ruleViolation ? 'success' : 'failure',
       };
-    }
-    await this.auditOpenAndThrowUnsuccessful(
-      req,
-      intention,
-      dryRun,
-      actionFailures,
-    );
-    if (!dryRun) {
-      await this.intentionRepository.addIntention(intention);
     }
     return {
       actions: actionResults,
@@ -334,12 +317,14 @@ export class IntentionService {
     };
   }
 
-  private async auditOpenAndThrowUnsuccessful(
+  private async auditIntentionOpenAndThrowUnsuccessful(
     req: Request,
     intention: IntentionEntity,
     dryRun: boolean,
-    actionFailures: ActionErrorDto[],
   ) {
+    const actionFailures = intention.actions
+      .map((action) => this.actionUtil.buildActionErrorDto(action))
+      .filter((violation) => violation !== null);
     const isSuccessfulOpen = actionFailures.length === 0;
     const exception = !isSuccessfulOpen
       ? new BadRequestException({
@@ -365,13 +350,14 @@ export class IntentionService {
     if (!isSuccessfulOpen) {
       // Set action failures, set expiry to now and close immediately
       intention.transaction.outcome = 'rejected';
-      intention.actionFailures = actionFailures.map((error) => {
-        return ActionErrorEmbeddable.create(error);
-      });
       intention.expiry = Date.now();
       intention.closed = true;
-      // Add closed intention
+    }
+
+    if (!dryRun) {
       await this.intentionRepository.addIntention(intention);
+    }
+    if (exception) {
       throw exception;
     }
   }
@@ -621,7 +607,7 @@ export class IntentionService {
 
   private async finalizeIntention(
     intention: IntentionEntity,
-    outcome: 'failure' | 'success' | 'unknown',
+    outcome: 'failure' | 'success' | 'rejected' | 'unknown',
     reason: string | undefined,
     req: Request = undefined,
   ): Promise<boolean> {
@@ -862,14 +848,13 @@ export class IntentionService {
         )
       : null;
 
-    const actionValidationErrors = await this.validateActions(
-      intention,
-      account,
-    );
-    const actionFailures = actionValidationErrors.filter(
-      (validationError) => validationError !== null,
-    );
+    await this.validateActions(intention, account);
+    const actionFailures = intention.actions
+      .map((action) => this.actionUtil.buildActionErrorDto(action))
+      .filter((violation) => violation !== null);
     if (actionFailures.length > 0) {
+      // Finalize intention due to action failures
+      await this.finalizeIntention(intention, 'rejected', 'Patch failed', req);
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
@@ -940,9 +925,8 @@ export class IntentionService {
   private async validateActions(
     intentionDto: IntentionEntity,
     account: BrokerAccountEntity | null,
-  ): Promise<ActionErrorDto[]> {
+  ): Promise<void> {
     let targetServices: string[] = [];
-    const validationResult: ActionErrorDto[] = [];
 
     const accountBoundProjects = account
       ? await this.graphRepository.getBrokerAccountServices(
@@ -967,19 +951,16 @@ export class IntentionService {
         }
       }
 
-      validationResult.push(
-        await this.actionService.validate(
-          intentionDto,
-          action,
-          account,
-          accountBoundProjects,
-          targetServices,
-          account ? !!account?.requireProjectExists : true,
-          account ? !!account?.requireServiceExists : true,
-        ),
+      await this.actionService.validate(
+        intentionDto,
+        action,
+        account,
+        accountBoundProjects,
+        targetServices,
+        account ? !!account?.requireProjectExists : true,
+        account ? !!account?.requireServiceExists : true,
       );
     }
-    return validationResult;
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

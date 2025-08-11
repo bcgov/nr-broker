@@ -8,6 +8,7 @@ import { PackageEmbeddable } from './package.embeddable';
 import { ArtifactEmbeddable } from './artifact.embeddable';
 import { ActionSourceEmbeddable } from './action-source.embeddable';
 import { ActionDto } from '../dto/action.dto';
+import { ActionRuleViolationEmbeddable } from './action-rule-violation.embeddable';
 
 export enum ACTION_NAMES {
   BACKUP = 'backup',
@@ -99,4 +100,10 @@ export abstract class ActionEmbeddable {
 
   @Enum({ items: () => ENVIRONMENT_NAMES, nullable: true })
   vaultInstance?: ENVIRONMENT_NAMES | undefined;
+
+  @Embedded({
+    entity: () => ActionRuleViolationEmbeddable,
+    nullable: true,
+  })
+  ruleViolation?: ActionRuleViolationEmbeddable;
 }

@@ -24,7 +24,6 @@ import { ProcessEndActionEmbeddable } from './process-end-action.embeddable';
 import { ProcessStartActionEmbeddable } from './process-start-action.embeddable';
 import { ServerAccessActionEmbeddable } from './server-access-action.embeddable';
 import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
-import { ActionErrorEmbeddable } from './action-error.embeddable';
 
 @Entity({ tableName: 'intention' })
 export class IntentionEntity extends BaseEntity {
@@ -96,13 +95,6 @@ export class IntentionEntity extends BaseEntity {
     array: true,
   })
   actions: ActionEmbeddable[];
-
-  @Embedded({
-    entity: () => ActionErrorEmbeddable,
-    nullable: true,
-    array: true,
-  })
-  actionFailures?: ActionErrorEmbeddable[];
 
   // Not a column - decoration
   @Property({ persist: false, nullable: true })

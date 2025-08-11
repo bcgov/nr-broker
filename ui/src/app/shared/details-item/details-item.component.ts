@@ -8,7 +8,7 @@ import { MatRippleModule } from '@angular/material/core';
   styleUrl: './details-item.component.scss',
 })
 export class DetailsItemComponent {
-  readonly title = input.required<string>();
+  readonly item = input.required<string>();
   readonly value = input<string>();
   readonly clickable = input(false, { transform: booleanAttribute });
 }

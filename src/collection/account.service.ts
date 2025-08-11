@@ -37,7 +37,6 @@ import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
-import { ActionErrorDto } from '../intention/dto/action-error.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -235,7 +234,6 @@ export class AccountService {
     ttl: number,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
-    const actionFailures: ActionErrorDto[] = [];
     const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
     const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
       brokerJwt.jti,
@@ -245,7 +243,7 @@ export class AccountService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
-        error: actionFailures,
+        error: [],
       });
     }
     const user = await this.collectionRepository.getCollectionById(

@@ -22,7 +22,9 @@
 @if(collection?.alias) {
 <div class="edge-container edge-container-margin-left details-container">
   <a href="https://github.com/{{ collection.alias[0].username }}" target="_blank">
-    <app-details-item title="Username" clickable="true">{{ collection.alias[0].username }}</app-details-item>
+    <app-details-item
+      item="Username"
+      clickable="true">{{ collection.alias[0].username }}</app-details-item>
   </a>
 </div>
 }

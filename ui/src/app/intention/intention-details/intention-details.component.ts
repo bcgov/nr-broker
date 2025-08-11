@@ -24,11 +24,14 @@ import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.d
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { IntentionUtilService } from '../../util/intention-util.service';
+import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-intention-details',
   imports: [
     ClipboardModule,
+    CommonModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -39,6 +42,7 @@ import { IntentionUtilService } from '../../util/intention-util.service';
     FilesizePipe,
     ActionContentComponent,
     DetailsItemComponent,
+    OutcomeIconComponent,
   ],
   templateUrl: './intention-details.component.html',
   styleUrl: './intention-details.component.scss',
@@ -132,6 +136,30 @@ export class IntentionDetailsComponent {
     ]);
   }
 
+  openCollectionFromAction(
+    $event: MouseEvent,
+    collection: keyof CollectionDtoUnion,
+    key: string,
+    path: string,
+  ) {
+    const values = [
+      ...this.intentionUtil.actionValueSet(this.intention(), path),
+    ];
+
+    if (values.length === 0) {
+      this.openSnackBar(`No values found for ${path}`);
+      $event.stopPropagation();
+      return false;
+    }
+
+    if (values.length === 1) {
+      this.openCollection($event, collection, key, values[0]);
+      $event.stopPropagation();
+      return false;
+    }
+    return false;
+  }
+
   openCollection(
     $event: MouseEvent,
     collection: keyof CollectionDtoUnion,
@@ -170,6 +198,10 @@ export class IntentionDetailsComponent {
         value: id,
       },
     ]);
+  }
+
+  getActionValue(action: any, path: string): string {
+    return this.intentionUtil.actionValue(action, path) ?? 'undefined';
   }
 
   private openSnackBar(message: string) {

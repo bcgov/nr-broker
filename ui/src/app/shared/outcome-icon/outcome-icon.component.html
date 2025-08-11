@@ -8,9 +8,19 @@
     class="mat-icon-status"
     inline="true"
     color="warn">dangerous</mat-icon>
+} @else if (outcome() === 'rejected') {
+  <mat-icon
+    class="mat-icon-status"
+    inline="true"
+    color="warn">rule</mat-icon>
+} @else if (outcome() === 'unknown') {
+  <mat-icon
+    class="mat-icon-status"
+    inline="true"
+    color="warn">lock_clock</mat-icon>
 } @else {
   <mat-icon
     class="mat-icon-status"
     inline="true"
-    color="secondary">hourglass_empty</mat-icon>
+    color="secondary">question_mark</mat-icon>
 }
