@@ -18,6 +18,14 @@
 
     @let intention = intentionResource.value();
 
+    <button
+      mat-icon-button
+      class="refresh"
+      aria-label="Refresh Data"
+      (click)="intentionResource.reload();">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
     @if (intention.event.trigger?.url) {
       <a
         mat-stroked-button

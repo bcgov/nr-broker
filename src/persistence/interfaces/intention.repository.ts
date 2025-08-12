@@ -58,4 +58,6 @@ export abstract class IntentionRepository {
   ): Promise<void>;
 
   public abstract cleanupTransient(transientTtl: number): Promise<void>;
+
+  public abstract cleanupRejected(rejectedTtl: number): Promise<void>;
 }

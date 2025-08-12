@@ -1,16 +1,16 @@
 @if (instance) {
   @if (showName()) {
   <div class="details-container details-container-margin">
-    <app-details-item title="Name">{{instance.name}}</app-details-item>
+    <app-details-item item="Name">{{instance.name}}</app-details-item>
 
     @if (instance.tags && this.instance.server.length === 1) {
-      <app-details-item title="Tags">{{instance.tags.join(', ')}}</app-details-item>
+      <app-details-item item="Tags">{{instance.tags.join(', ')}}</app-details-item>
     }
   </div>
   }
   <div class="details-container">
     <div>
-      <app-details-item title="Status">
+      <app-details-item item="Status">
         @if (!current || !current.source?.intention) {
           No recorded installation
         } @else {
@@ -20,7 +20,7 @@
 
       @if (instance.url) {
       <a href="{{instance.url}}" target="_blank">
-        <app-details-item title="Url" clickable="true">{{instance.url}}</app-details-item>
+        <app-details-item item="Url" clickable="true">{{instance.url}}</app-details-item>
       </a>
       }
 
@@ -29,20 +29,20 @@
       @if (current.source?.action?.package?.version && current.source.action.package.id) {
         <app-details-item
           (click)="openServicePackage(current.source.action.package.id)"
-          title="Version"
+          item="Version"
           clickable="true">{{current.source.action.package.version}}</app-details-item>
       } @else {
-        <app-details-item title="Version">{{current.source.action.package.version}}</app-details-item>
+        <app-details-item item="Version">{{current.source.action.package.version}}</app-details-item>
       }
 
       <app-details-item
         (click)="navigateHistoryById(current.source.intention.id)"
-        title="Installed"
+        item="Installed"
         clickable="true">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
 
       <app-details-item
         (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
-        title="User"
+        item="User"
         clickable="true">{{current.source.intention.user.name}}</app-details-item>
       }
     </div>
@@ -62,15 +62,15 @@
       } @else {
         <app-details-item
           (click)="openInBrowser('server', serverSelection.server.id)"
-          title="Server"
+          item="Server"
           clickable="true">{{serverSelection.server.name}}</app-details-item>
       }
 
-      <app-details-item title="Status">Unknown - Telemetery not available</app-details-item>
+      <app-details-item item="Status">Unknown - Telemetery not available</app-details-item>
 
-      <app-details-item title="Platform">{{serverSelection.server.osType}}</app-details-item>
+      <app-details-item item="Platform">{{serverSelection.server.osType}}</app-details-item>
 
-      <app-details-item title="Platform Details">{{serverSelection.server.osFull}}</app-details-item>
+      <app-details-item item="Platform Details">{{serverSelection.server.osFull}}</app-details-item>
 
       <div class="details-item">
         <div class="details-header">

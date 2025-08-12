@@ -69,11 +69,12 @@
           }
       </div>
 
-      <app-details-item title="Installed">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
+      <app-details-item item="Installed">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
 
       <app-details-item
         (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
-        title="User" clickable="true">{{current.source.intention.user.name}}</app-details-item>
+        item="User"
+        clickable="true">{{current.source.intention.user.name}}</app-details-item>
 
     </div>
   }

@@ -2,22 +2,11 @@ table {
   width: 100%;
 }
 
-tr.history-detail-row {
-  height: 0;
-}
-
-tr.element-row:not(.expanded-row):hover {
+tr.element-row:hover {
   background: var(--mat-sys-surface-container-high);
+  cursor: pointer;
 }
 
-tr.element-row:not(.expanded-row):active {
+tr.element-row:active {
   background: var(--mat-sys-surface-container-highest);
-}
-
-.element-row td {
-  border-bottom-width: 0;
-}
-
-.element-detail {
-  overflow: hidden;
 }

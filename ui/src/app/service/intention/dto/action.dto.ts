@@ -16,6 +16,7 @@ import { ActionSourceDto } from './action-source.dto';
 import { UserDto } from './user.dto';
 import { TransactionDto } from './transaction.dto';
 import { ENVIRONMENT_NAMES } from './constants.dto';
+import { ActionRuleViolationDto } from './action-rule-violation.dto';
 
 export enum ACTION_NAMES {
   BACKUP = 'backup',
@@ -100,4 +101,9 @@ export class ActionDto {
   @IsString()
   @IsIn(Object.values(ENVIRONMENT_NAMES))
   vaultInstance?: ENVIRONMENT_NAMES;
+
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => ActionRuleViolationDto)
+  ruleViolation?: ActionRuleViolationDto;
 }

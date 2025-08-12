@@ -3,6 +3,6 @@
   [class.details-item-clickable]="clickable()"
   matRipple
   [matRippleDisabled]="!clickable()">
-  <div class="details-header">{{ title() }}</div>
+  <div class="details-header">{{ item() }}</div>
   <div class="details-line"><ng-content>{{ value() }}</ng-content></div>
 </div>

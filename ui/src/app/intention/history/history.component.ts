@@ -14,13 +14,6 @@ import {
   FormControl,
   ReactiveFormsModule,
 } from '@angular/forms';
-import {
-  trigger,
-  state,
-  style,
-  transition,
-  animate,
-} from '@angular/animations';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -74,16 +67,6 @@ export interface HistoryQuery {
     PageErrorComponent,
   ],
   templateUrl: './history.component.html',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
-      state('expanded', style({ height: '*' })),
-      transition(
-        'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-      ),
-    ]),
-  ],
   styleUrls: ['./history.component.scss'],
 })
 export class HistoryComponent implements OnDestroy {
@@ -119,6 +102,8 @@ export class HistoryComponent implements OnDestroy {
     { value: 'all', viewValue: 'All' },
     { value: 'success', viewValue: 'Success' },
     { value: 'failure', viewValue: 'Failure' },
+    { value: 'rejected', viewValue: 'Rejected' },
+    { value: 'unknown', viewValue: 'Unknown' },
   ];
 
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
@@ -366,8 +351,6 @@ export class HistoryComponent implements OnDestroy {
   }
 
   viewIntention(id: string) {
-    this.router.navigate([`/intention/${id}`], {
-      replaceUrl: true,
-    });
+    this.router.navigate([`/intention/${id}`]);
   }
 }

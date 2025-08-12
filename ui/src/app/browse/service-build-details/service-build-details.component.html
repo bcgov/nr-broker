@@ -87,7 +87,7 @@
 
         <div class="package-content">
 
-        <app-details-item title="Version"><div class="details-title">{{ data.semver }}</div></app-details-item>
+        <app-details-item item="Version"><div class="details-title">{{ data.semver }}</div></app-details-item>
 
         @if (data.package.description) {
         <p>{{data.package.description}}</p>
@@ -95,50 +95,50 @@
 
           <div>
             @if (data.package.name) {
-              <app-details-item title="Name">{{data.package.name}}</app-details-item>
+              <app-details-item item="Name">{{data.package.name}}</app-details-item>
             }
             @if (data.package.architecture) {
-              <app-details-item title="Architecture">{{data.package.architecture}}</app-details-item>
+              <app-details-item item="Architecture">{{data.package.architecture}}</app-details-item>
             }
             @if (data.package.buildNumber) {
-              <app-details-item title="Build Number">{{data.package.buildNumber}}</app-details-item>
+              <app-details-item item="Build Number">{{data.package.buildNumber}}</app-details-item>
             }
             @if (data.package.buildGuid) {
-              <app-details-item title="Build Guid">{{data.package.buildGuid}}</app-details-item>
+              <app-details-item item="Build Guid">{{data.package.buildGuid}}</app-details-item>
             }
             @if (data.package.buildVersion) {
-              <app-details-item title="Build Version">{{data.package.buildVersion}}</app-details-item>
+              <app-details-item item="Build Version">{{data.package.buildVersion}}</app-details-item>
             }
             @if (data.package.checksum) {
-              <app-details-item title="Checksum">{{data.package.checksum}}</app-details-item>
+              <app-details-item item="Checksum">{{data.package.checksum}}</app-details-item>
             }
             @if (data.package.installScope) {
-              <app-details-item title="Install Scope">{{data.package.installScope}}</app-details-item>
+              <app-details-item item="Install Scope">{{data.package.installScope}}</app-details-item>
             }
             @if (data.package.license) {
-              <app-details-item title="License">{{data.package.license}}</app-details-item>
+              <app-details-item item="License">{{data.package.license}}</app-details-item>
             }
             @if (data.package.path) {
-              <app-details-item title="Path">{{data.package.path}}</app-details-item>
+              <app-details-item item="Path">{{data.package.path}}</app-details-item>
             }
             @if (data.package.reference) {
-              <app-details-item title="Reference">{{data.package.reference}}</app-details-item>
+              <app-details-item item="Reference">{{data.package.reference}}</app-details-item>
             }
             @if (data.package.size) {
-              <app-details-item title="Size">{{data.package.size | filesize}}</app-details-item>
+              <app-details-item item="Size">{{data.package.size | filesize}}</app-details-item>
             }
             @if (data.package.type) {
-              <app-details-item title="Type">{{data.package.type}}</app-details-item>
+              <app-details-item item="Type">{{data.package.type}}</app-details-item>
             }
 
             <h3>Information</h3>
 
             @if (data.timestamps?.createdAt) {
-              <app-details-item title="Created">{{data.timestamps!.createdAt | date: 'long'}}</app-details-item>
+              <app-details-item item="Created">{{data.timestamps!.createdAt | date: 'long'}}</app-details-item>
             }
 
             @if (data.timestamps?.updatedAt) {
-              <app-details-item title="Modified">{{data.timestamps!.updatedAt | date: 'long'}}</app-details-item>
+              <app-details-item item="Modified">{{data.timestamps!.updatedAt | date: 'long'}}</app-details-item>
             }
 
           </div>

@@ -25,7 +25,6 @@ import {
   REDIS_PUBSUB,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
-import { ActionError } from '../intention/action.error';
 import { AuditService } from '../audit/audit.service';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
 import { OpensearchService } from '../aws/opensearch.service';
@@ -235,7 +234,6 @@ export class AccountService {
     ttl: number,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
-    const actionFailures: ActionError[] = [];
     const brokerJwt = plainToInstance(BrokerJwtDto, request.user);
     const registryJwt = await this.systemRepository.getRegisteryJwtByClaimJti(
       brokerJwt.jti,
@@ -245,7 +243,7 @@ export class AccountService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Authorization failed',
-        error: actionFailures,
+        error: [],
       });
     }
     const user = await this.collectionRepository.getCollectionById(

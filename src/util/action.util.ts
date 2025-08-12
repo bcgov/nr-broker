@@ -10,6 +10,7 @@ import { ACTION_NAMES, ActionDto } from '../intention/dto/action.dto';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import { VAULT_PROVISIONED_ACTION_SET } from '../intention/dto/constants.dto';
+import { ActionErrorDto } from '../intention/dto/action-error.dto';
 
 export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
@@ -158,5 +159,21 @@ export class ActionUtil {
       parsedVersion.minor !== undefined &&
       parsedVersion.patch !== undefined
     );
+  }
+
+  public buildActionErrorDto(action: ActionEmbeddable): ActionErrorDto | null {
+    if (!action.ruleViolation) {
+      return null;
+    }
+    const violation = action.ruleViolation;
+    return {
+      message: violation.message,
+      data: {
+        action: action.action,
+        action_id: action.id,
+        key: violation.key,
+        value: delve(action, violation.key),
+      },
+    };
   }
 }

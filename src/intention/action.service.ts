@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ActionError } from './action.error';
 import { ActionUtil } from '../util/action.util';
 import { IntentionEntity } from './entity/intention.entity';
 import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
@@ -17,6 +16,7 @@ import { PackageBuildActionEmbeddable } from './entity/package-build-action.embe
 import { PackageEmbeddable } from './entity/package.embeddable';
 import { UserEntity } from '../persistence/entity/user.entity';
 import { ENVIRONMENT_NAMES } from './dto/constants.dto';
+import { ActionRuleViolationEmbeddable } from './entity/action-rule-violation.embeddable';
 
 /**
  * Assists with the validation of intention actions
@@ -40,13 +40,13 @@ export class ActionService {
     targetServices: string[],
     requireProjectExists: boolean,
     requireServiceExists: boolean,
-  ): Promise<ActionError> | null {
+  ): Promise<void> | null {
     const user = await this.userCollectionService.lookupUserByGuid(
       action.user.id,
     );
 
-    return (
-      this.validateUserSet(account, user, action) ??
+    const ruleViolation =
+      this.validateUserSet(account, user) ??
       this.validateVaultEnv(action) ??
       this.validateAccountBoundProject(
         action,
@@ -63,52 +63,43 @@ export class ActionService {
         intention,
         action,
       )) ??
-      null
-    );
+      null;
+
+    if (ruleViolation) {
+      action.ruleViolation = ruleViolation;
+      action.trace.outcome = 'rejected';
+    }
   }
 
   private validateUserSet(
     account: BrokerAccountEntity | null,
     user: UserEntity,
-    action: ActionEmbeddable,
-  ): ActionError | null {
+  ): ActionRuleViolationEmbeddable | null {
     if (account && account.skipUserValidation) {
       return null;
     }
     if (!user) {
-      return {
-        message:
-          'Unknown user. All actions required to be mapped to user. Does user exist with provided id or name and domain?',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'action.user.id',
-          value: action.user.id,
-        },
-      };
+      return new ActionRuleViolationEmbeddable(
+        'Unknown user. All actions required to be mapped to user. Does user exist with provided id or name and domain?',
+        'user.id',
+      );
     }
     return null;
   }
 
-  private validateVaultEnv(action: ActionEmbeddable): ActionError | null {
+  private validateVaultEnv(
+    action: ActionEmbeddable,
+  ): ActionRuleViolationEmbeddable | null {
     if (
       this.actionUtil.isProvisioned(action) &&
       !this.actionUtil.isValidVaultEnvironment(action)
     ) {
-      return {
-        message:
-          'Explicitly set action.vaultEnvironment when service environment is not valid for Vault. Vault environment must be production, test or development.',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: action.service.target?.environment
-            ? 'action.service.target.environment'
-            : 'action.service.environment',
-          value: action.service.target?.environment
-            ? action.service.target.environment
-            : action.service.environment,
-        },
-      };
+      return new ActionRuleViolationEmbeddable(
+        'Explicitly set action.vaultEnvironment when service environment is not valid for Vault. Vault environment must be production, test or development.',
+        action.service.target?.environment
+          ? 'service.target.environment'
+          : 'service.environment',
+      );
     }
   }
 
@@ -117,7 +108,7 @@ export class ActionService {
     accountBoundProjects: BrokerAccountProjectMapDto | null,
     requireProjectExists: boolean,
     requireServiceExists: boolean,
-  ): ActionError | null {
+  ): ActionRuleViolationEmbeddable | null {
     if (accountBoundProjects) {
       const service = action.service;
       const projectFound = !!accountBoundProjects[service.project];
@@ -127,26 +118,16 @@ export class ActionService {
           -1;
 
       if (!projectFound && requireProjectExists) {
-        return {
-          message: 'Token not authorized for this project',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.service.project',
-            value: service.project,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Token not authorized for this project',
+          'service.project',
+        );
       }
       if (!serviceFound && requireServiceExists) {
-        return {
-          message: 'Token not authorized for this service',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.service.name',
-            value: service.name,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Token not authorized for this service',
+          'service.name',
+        );
       }
     }
   }
@@ -154,7 +135,7 @@ export class ActionService {
   private validateTargetService(
     action: ActionEmbeddable,
     targetServices: string[],
-  ): ActionError | null {
+  ): ActionRuleViolationEmbeddable | null {
     if (!action.service.target) {
       return null;
     }
@@ -163,15 +144,10 @@ export class ActionService {
     if (targetServiceFound) {
       return null;
     } else {
-      return {
-        message: 'Service not configured for target',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'action.service.target.name',
-          value: action.service.target.name,
-        },
-      };
+      return new ActionRuleViolationEmbeddable(
+        'Service not configured for target',
+        'service.target.name',
+      );
     }
   }
 
@@ -179,10 +155,10 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionRuleViolationEmbeddable | null> {
     if (action instanceof DatabaseAccessActionEmbeddable) {
       // Ensure user validation done. May have been skipped if option set.
-      const userValidation = this.validateUserSet(null, user, action);
+      const userValidation = this.validateUserSet(null, user);
       if (userValidation) {
         return userValidation;
       }
@@ -196,7 +172,7 @@ export class ActionService {
     account: BrokerAccountEntity | null,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionRuleViolationEmbeddable | null> {
     if (action instanceof PackageBuildActionEmbeddable) {
       // TODO: check for existing build
       const validateSemverError = this.validateSemver(action);
@@ -205,27 +181,17 @@ export class ActionService {
       }
 
       if (!action.package?.name) {
-        return {
-          message: 'Package actions must specify a name.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.name',
-            value: action.package?.name,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Package actions must specify a name.',
+          'package.name',
+        );
       }
 
       if (!action.package?.buildVersion) {
-        return {
-          message: 'Package actions must specify scm hash.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.buildVersion',
-            value: action.package?.buildVersion,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Package actions must specify scm hash.',
+          'package.buildVersion',
+        );
       }
 
       const parsedVersion = this.parseActionVersion(action);
@@ -242,15 +208,10 @@ export class ActionService {
 
       if (!service) {
         if (account?.requireServiceExists) {
-          return {
-            message: 'Package service not found.',
-            data: {
-              action: action.action,
-              action_id: action.id,
-              key: 'action.package.name',
-              value: action.package?.name,
-            },
-          };
+          return new ActionRuleViolationEmbeddable(
+            'Package service not found.',
+            'package.name',
+          );
         } else {
           return null;
         }
@@ -270,16 +231,10 @@ export class ActionService {
           'buildVersion',
         )
       ) {
-        return {
-          message:
-            'Release package build version (git commit hash) may not be altered.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.version',
-            value: action.package?.version,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Release package build version (git commit hash) may not be altered.',
+          'package.version',
+        );
       }
     }
     return null;
@@ -307,34 +262,24 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionRuleViolationEmbeddable | null> {
     if (action instanceof PackageInstallationActionEmbeddable) {
       const env = (await this.persistenceUtil.getEnvMap())[
         action.service.environment
       ];
       if (!env) {
-        return {
-          message: 'Package installation must specify a valid environment.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.service.environment',
-            value: action.service.environment,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Package installation must specify a valid environment.',
+          'service.environment',
+        );
       }
 
       const instanceName = this.actionUtil.instanceName(action);
       if (!instanceName) {
-        return {
-          message: 'Service instance name could not be extracted from action.',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.join(),
-            value: 'undefined',
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Service instance name could not be extracted from action.',
+          INTENTION_SERVICE_INSTANCE_SEARCH_PATHS.join(),
+        );
       }
       const parsedVersion = this.parseActionVersion(action);
       const validateSemverError = this.validateSemver(action);
@@ -348,16 +293,10 @@ export class ActionService {
         env.name === ENVIRONMENT_NAMES.PRODUCTION &&
         parsedVersion.prerelease
       ) {
-        return {
-          message:
-            'Only release versions may be installed in production. See: https://semver.org/#spec-item-9',
-          data: {
-            action: action.action,
-            action_id: action.id,
-            key: 'action.package.version',
-            value: action.package.version,
-          },
-        };
+        return new ActionRuleViolationEmbeddable(
+          'Only release versions may be installed in production. See: https://semver.org/#spec-item-9',
+          'package.version',
+        );
       }
 
       if (account && account.skipUserValidation) {
@@ -373,20 +312,17 @@ export class ActionService {
     return this.actionUtil.parseVersion(action.package?.version ?? '');
   }
 
-  private validateSemver(action: ActionEmbeddable): ActionError | null {
+  private validateSemver(
+    action: ActionEmbeddable,
+  ): ActionRuleViolationEmbeddable | null {
     const parsedVersion = this.parseActionVersion(action);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
-      return {
-        message: action.package?.version
+      return new ActionRuleViolationEmbeddable(
+        action.package?.version
           ? 'Package actions must specify a valid semver version. See: https://semver.org'
           : 'No package version set. If using source intention, check action.source values.',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'action.package.version',
-          value: action.package?.version,
-        },
-      };
+        'package.version',
+      );
     }
     return null;
   }
@@ -395,7 +331,7 @@ export class ActionService {
     user: UserEntity,
     intention: IntentionEntity,
     action: ActionEmbeddable,
-  ): Promise<ActionError | null> {
+  ): Promise<ActionRuleViolationEmbeddable | null> {
     const project = await this.collectionRepository.getCollectionByKeyValue(
       'project',
       'name',
@@ -423,15 +359,10 @@ export class ActionService {
     );
 
     if (!vertex) {
-      return {
-        message: 'Cannot find component edge',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'action.service.name',
-          value: action.service.name,
-        },
-      };
+      return new ActionRuleViolationEmbeddable(
+        'Cannot find component edge',
+        'service.name',
+      );
     }
 
     if (
@@ -447,15 +378,10 @@ export class ActionService {
     ) {
       return null;
     } else {
-      return {
-        message: 'User is not authorized to access this environment',
-        data: {
-          action: action.action,
-          action_id: action.id,
-          key: 'user.id',
-          value: intention.user.id,
-        },
-      };
+      return new ActionRuleViolationEmbeddable(
+        'User is not authorized to access this environment',
+        'user.id',
+      );
     }
   }
 }
