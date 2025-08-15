@@ -18,6 +18,7 @@ db.intention.drop();
 db.connectionConfig.drop();
 db.repository.drop();
 db.packageBuild.drop();
+db.graphPermission.drop();
 
 db.jwtAllow.insertOne({});
 

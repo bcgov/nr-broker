@@ -41,6 +41,7 @@ import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
 import { REDIS_PUBSUB } from '../constants';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
+import { GraphTeamUserPermissionDto } from './dto/graph-team-user-permision.dto';
 
 @Controller({
   path: 'graph',
@@ -96,8 +97,18 @@ export class GraphController {
   @Get('data/user-permissions')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  getDataOwned(@Req() request: Request) {
+  getUserPermissions(@Req() request: Request) {
     return this.graph.getUserPermissions(request);
+  }
+
+  @Post('data/team-user-permissions')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  getTeamUserPermissions(@Query() query: GraphTeamUserPermissionDto) {
+    return this.graph.getTeamUserPermissions(
+      query.teamVertexId,
+      query.roleName,
+    );
   }
 
   @Sse('events')

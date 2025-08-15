@@ -41,6 +41,10 @@ export abstract class GraphRepository {
     id: string,
   ): Promise<ServiceInstanceDetailsResponseDto>;
   public abstract getUserPermissions(id: string): Promise<UserPermissionDto>;
+  public abstract getTeamUserPermissions(
+    teamVertexId: string,
+    roleName: string,
+  ): Promise<UserPermissionDto>;
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeEntity>;
   public abstract editEdge(

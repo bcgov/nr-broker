@@ -94,6 +94,13 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getUserPermissions(id);
   }
 
+  public getTeamUserPermissions(
+    teamVertexId: string,
+    roleName: string,
+  ): Promise<UserPermissionDto> {
+    return this.repo.getTeamUserPermissions(teamVertexId, roleName);
+  }
+
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeEntity> {
     const returnVal = await this.repo.addEdge(edge);
     this.invalidateCache();

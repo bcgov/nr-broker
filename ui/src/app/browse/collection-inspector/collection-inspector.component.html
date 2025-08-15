@@ -351,6 +351,18 @@
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Roles</mat-card-title>
+              @if(healthStatus.health$ | async; as health) {
+                @if(health.details['github']['sync']) {
+                  <div>
+                    <button
+                      mat-stroked-button
+                      (click)="showGitHubRoleMappings()"
+                      class="card-team-member-button">
+                      GitHub Access Help
+                    </button>
+                  </div>
+                }
+              }
             </div>
 
             <div class="card-team-members-margin">
