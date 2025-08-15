@@ -26,6 +26,11 @@
         <mat-icon>refresh</mat-icon>
       </button>
 
+    <a mat-button
+      [cdkCopyToClipboard]="intention | json"
+      [cdkCopyToClipboardAttempts]="5"
+      >Copy Data<mat-icon iconPositionEnd fontIcon="content_copy"></mat-icon></a>
+
     @if (intention.event.trigger?.url) {
       <a
         mat-stroked-button

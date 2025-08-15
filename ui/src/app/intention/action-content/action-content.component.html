@@ -6,7 +6,7 @@
 }
 @if (values.length > 1) {
   @if (showMultiple()) {
-    values.join(', ')
+    {{ values.join(', ') }}
   } @else {
     <span matTooltip="{{ values.join(', ') }}">multiple</span>
   }

@@ -49,6 +49,17 @@
   margin-top: 16px;
 }
 
+.package-info-wrap {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.package-info-wrap > * {
+  width: calc(50% - 4px);
+}
+
 .mat-icon-status {
   line-height: 1em;
   vertical-align: -2px;

@@ -1,5 +1,5 @@
 import { Component, effect, input } from '@angular/core';
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 import { IntentionDto } from '../../service/intention/dto/intention.dto';
 import { IntentionApiService } from '../../service/intention-api.service';
@@ -17,12 +18,14 @@ import { ActionContentComponent } from '../action-content/action-content.compone
 @Component({
   selector: 'app-intention-panel',
   imports: [
+    CommonModule,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,
     MatIconModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    ClipboardModule,
     IntentionDetailsComponent,
     ActionContentComponent,
   ],

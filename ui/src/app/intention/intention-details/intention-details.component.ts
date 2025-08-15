@@ -95,7 +95,7 @@ export class IntentionDetailsComponent {
         for (const query of Object.keys(result.breakpoints)) {
           if (result.breakpoints[query]) {
             this.screenSize = this.displayNameMap.get(query) ?? 'normal';
-            console.log('Screen size changed to:', this.screenSize);
+            // console.log('Screen size changed to:', this.screenSize);
           }
         }
       });
