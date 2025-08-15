@@ -5,7 +5,15 @@ import { validateSync } from 'class-validator';
 
 @Embeddable()
 export class BrokerJwtEmbeddable {
-  constructor(exp: number, iat: number, nbf: number, jti: string, sub: string) {
+  constructor(
+    client_id: string,
+    exp: number,
+    iat: number,
+    nbf: number,
+    jti: string,
+    sub: string,
+  ) {
+    this.client_id = client_id;
     this.exp = exp;
     this.iat = iat;
     this.nbf = nbf;
@@ -22,6 +30,7 @@ export class BrokerJwtEmbeddable {
     }
 
     return new BrokerJwtEmbeddable(
+      userDto.client_id,
       userDto.exp,
       userDto.iat,
       userDto.nbf,
@@ -29,6 +38,9 @@ export class BrokerJwtEmbeddable {
       userDto.sub,
     );
   }
+
+  @Property()
+  client_id: string;
   @Property()
   exp: number;
   @Property()

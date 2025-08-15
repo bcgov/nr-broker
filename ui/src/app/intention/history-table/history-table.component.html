@@ -85,6 +85,8 @@
     <th mat-header-cell *matHeaderCellDef> Outcome </th>
     <td mat-cell *matCellDef="let element">
       @if (element.transaction.outcome) {
+        <app-outcome-icon
+          [outcome]="element.transaction.outcome"></app-outcome-icon>
         {{element.transaction.outcome}}
       } @else {
         <mat-progress-bar mode="determinate" [value]="intentionUtil.normalizedProgress(element)"></mat-progress-bar>

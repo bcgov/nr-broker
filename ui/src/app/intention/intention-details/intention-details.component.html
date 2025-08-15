@@ -33,6 +33,23 @@
     }
   </mat-menu>
 
+  @let intentionStart = intention().transaction?.start;
+  <app-details-item item="Start">
+    @if (intentionStart) {
+      {{ intentionStart | date:'medium' }}
+    } @else {
+      Unknown
+    }</app-details-item>
+
+  @let intentionEnd = intention().transaction?.end;
+  <app-details-item item="End">
+    @if (intentionEnd) {
+      {{intentionEnd | date:'medium' }}
+    } @else {
+      Unknown
+    }
+  </app-details-item>
+
   @let outcome = intention().transaction?.outcome;
   <app-details-item item="Outcome">@if (outcome) {
     <app-outcome-icon
@@ -42,8 +59,18 @@
         <mat-progress-bar mode="determinate" [value]="intentionUtil.normalizedProgress(intention())"></mat-progress-bar>
       }</app-details-item>
 
-
   <app-details-item item="Reason">{{ intention().event.reason}}</app-details-item>
+
+  <app-details-item item="Provider">{{ intention().event.provider}}</app-details-item>
+
+  @let userId = intention().user.id;
+  @if (userId) {
+  <app-details-item
+    (click)="openCollection($event, 'user', 'guid', userId)"
+    item="User"
+    clickable="true">{{ intention().user.name }}</app-details-item>
+  }
+
   @let duration = intentionUtil.totalDuration(intention());
   @if (duration) {
     <app-details-item item="Duration">{{ duration }}</app-details-item>
@@ -133,16 +160,21 @@
             </mat-card-header>
             <mat-card-content>
               <div class="package-info">
-              @if (artifact.size) {
-                <app-details-item item="Size">{{artifact.size | filesize}}</app-details-item>
-              }
-              @if (artifact.checksum) {
-                <app-details-item item="Hash">{{artifact.checksum}}</app-details-item>
-              }
-              @if (action.package?.version) {
-                <app-details-item item="Version">{{action.package?.version}}</app-details-item>
-              }
-            </div>
+                <div class="package-info-wrap">
+                @if (action.package?.version) {
+                  <app-details-item item="Version">{{action.package?.version}}</app-details-item>
+                }
+                @if (artifact.size) {
+                  <app-details-item item="Size">{{artifact.size | filesize}}</app-details-item>
+                }
+                @if (action.package?.type) {
+                  <app-details-item item="Type">{{action.package?.type}}</app-details-item>
+                }
+                </div>
+                @if (artifact.checksum) {
+                  <app-details-item item="Hash">{{artifact.checksum}}</app-details-item>
+                }
+              </div>
             </mat-card-content>
             @if (action.package?.id) {
             <mat-card-actions align="end">
