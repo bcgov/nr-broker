@@ -79,6 +79,10 @@ export class GraphService {
     return this.graphRepository.getUserPermissions(user.vertex.toString());
   }
 
+  public async getTeamUserPermissions(teamVertexId: string, roleName: string) {
+    return this.graphRepository.getTeamUserPermissions(teamVertexId, roleName);
+  }
+
   public async addEdge(req: Request, edge: EdgeInsertDto): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge);

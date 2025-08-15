@@ -35,6 +35,7 @@ import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import {
   CollectionEntityUnion,
+  CollectionNameEnum,
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
@@ -456,6 +457,67 @@ export class GraphMongoRepository implements GraphRepository {
       ])
       .then((upstreamArr: any[]) => {
         return this.collectPermissions(id, configs, upstreamArr[0].paths);
+      });
+  }
+
+  public async getTeamUserPermissions(
+    teamVertexId: string,
+    roleName: string,
+  ): Promise<UserPermissionDto> {
+    const permissions = await this.permissionRepository.find({ name: 'user' });
+    // console.log(roleName);
+    // console.log(permissions);
+    const configs = permissions
+      .map((permission) => permission.data)
+      .filter(
+        (config) =>
+          config[0].name === roleName &&
+          config[0].index === CollectionNameEnum['team'],
+      );
+    // console.log(configs);
+    const maxDepth =
+      configs
+        .map((config) => config.length)
+        .reduce((pv, cv) => (cv > pv ? cv : pv), 1) - 1;
+    return await this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(teamVertexId) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'paths',
+            depthField: 'depth',
+            restrictSearchWithMatch: {
+              restrict: { $ne: true },
+            },
+            maxDepth,
+          },
+        },
+      ])
+      .then((downstreamArr: any[]) => {
+        // console.log(downstreamArr[0].paths);
+        for (const path of downstreamArr[0].paths) {
+          path.depth++;
+        }
+        const paths = [
+          {
+            is: CollectionNameEnum['user'],
+            it: CollectionNameEnum['team'],
+            name: roleName,
+            prop: {},
+            source: teamVertexId,
+            target: teamVertexId,
+            timestamps: [Object],
+            depth: 0,
+          },
+          ...downstreamArr[0].paths,
+        ];
+        // console.log(paths);
+        // downstreamArr[0].paths.map((path => path.i)
+        return this.collectPermissions(teamVertexId, configs, paths);
       });
   }
 

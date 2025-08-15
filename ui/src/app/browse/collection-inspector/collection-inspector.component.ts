@@ -76,6 +76,8 @@ import {
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
+import { HealthStatusService } from '../../service/health-status.service';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -196,6 +198,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     private readonly collectionApi: CollectionApiService,
     private readonly permission: PermissionService,
     public readonly collectionUtil: CollectionUtilService,
+    public readonly healthStatus: HealthStatusService,
     @Inject(CONFIG_RECORD)
     private readonly configRecord: CollectionConfigNameRecord,
   ) {
@@ -433,6 +436,17 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe();
+  }
+
+  showGitHubRoleMappings() {
+    this.dialog
+      .open(GithubRoleMappingDialogComponent, {
+        width: '600px',
+        data: {},
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   updateTableRoute($event: any) {
