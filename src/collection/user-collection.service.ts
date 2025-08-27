@@ -107,44 +107,91 @@ export class UserCollectionService {
     return existingUser.vertex;
   }
 
+  /**
+   * Links a GitHub alias to an existing user via GitHub Oauth
+   * @param req The request object
+   * @param state GitHub Oauth state
+   * @param code Code from GitHub Oauth
+   * @returns Updated user with GitHub alias linked
+   * @throws BadRequestException if user not found or state does not match
+   */
   public async linkGithub(req: Request, state: string, code: string) {
-    const existingUser = await this.authService.getUser(req);
-    if (!existingUser) {
+    const currentUser = await this.authService.getUser(req);
+    if (!currentUser) {
       throw new BadRequestException('User not found');
     }
     this.auditService.recordAliasLink(
-      existingUser,
+      currentUser,
       'info',
       'unknown',
       'GitHub Oauth callback initiated for account link',
     );
     if (
-      !(await this.githubService.isRequestStateMatching(existingUser.id, state))
+      !(await this.githubService.isRequestStateMatching(currentUser.id, state))
     ) {
       this.auditService.recordAliasLink(
-        existingUser,
+        currentUser,
         'end',
         'failure',
         'GitHub Oauth state does not match for account link',
       );
       throw new BadRequestException('Request state does not match');
     }
-    const existingUserObj = existingUser.toPOJO();
-    delete existingUserObj.id;
-    delete existingUserObj._id;
-    delete existingUserObj.vertex;
+    const currentUserObj = currentUser.toPOJO();
+    delete currentUserObj.id;
+    delete currentUserObj._id;
+    delete currentUserObj.vertex;
 
     const token = await this.githubService.getUserAccessToken(code);
     const userData = await this.githubService.getUserInfo(token);
+    const guid = userData.id.toString();
+
+    const aliasUser = await this.collectionRepository.getCollection('user', {
+      alias: {
+        guid,
+        USER_ALIAS_DOMAIN_GITHUB,
+      },
+    });
+
+    if (aliasUser && aliasUser.guid !== currentUser.guid) {
+      const removeAliasVertex = new VertexInsertDto(
+        'user',
+        plainToInstance(UserBaseDto, {
+          ...aliasUser,
+          alias: aliasUser.alias.filter(
+            (a) => a.domain !== USER_ALIAS_DOMAIN_GITHUB,
+          ),
+        }),
+      );
+      await this.graphService.editVertex(
+        req,
+        aliasUser.vertex.toString(),
+        removeAliasVertex,
+        true,
+      );
+      this.auditService.recordAliasLink(
+        aliasUser,
+        'info',
+        'unknown',
+        `Removed GitHub alias (${guid}) from previous account`,
+      );
+    }
+
+    this.auditService.recordAliasLink(
+      currentUser,
+      'info',
+      'unknown',
+      `Linking GitHub alias (${guid}) to account`,
+    );
 
     const vertex = new VertexInsertDto(
       'user',
       plainToInstance(UserBaseDto, {
-        ...existingUserObj,
+        ...currentUserObj,
         alias: [
           {
             domain: USER_ALIAS_DOMAIN_GITHUB,
-            guid: userData.id.toString(),
+            guid,
             name: userData.name,
             username: userData.login,
           },
@@ -154,13 +201,13 @@ export class UserCollectionService {
 
     await this.graphService.editVertex(
       req,
-      existingUser.vertex.toString(),
+      currentUser.vertex.toString(),
       vertex,
       true,
     );
 
     this.auditService.recordAliasLink(
-      existingUser,
+      currentUser,
       'end',
       'success',
       'GitHub Oauth completed for account link',

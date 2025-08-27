@@ -144,26 +144,6 @@ export class GithubSyncService {
     }
   }
 
-  // @Cron(CronExpression.EVERY_HOUR)
-  // @CreateRequestContext()
-  // async scheduleSyncForChanges(): Promise<void> {
-  //   if (!this.isEnabled() || !IS_PRIMARY_NODE) {
-  //     return;
-  //   }
-
-  //   const repositories =
-  //     await this.collectionRepository.exportCollection('repository');
-  //   for (const repository of repositories) {
-  //     // For now, skip secret sync
-  //     // if (repository.enableSyncSecrets) {
-  //     //   this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
-  //     // }
-  //     if (repository.enableSyncUsers) {
-  //       this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
-  //     }
-  //   }
-  // }
-
   @Cron(CronExpression.EVERY_30_SECONDS, {
     name: CRON_JOB_SYNC_SECRETS,
   })
@@ -202,27 +182,6 @@ export class GithubSyncService {
     );
   }
 
-  /*
-  private async refreshJobWrap(
-    jobName: typeof CRON_JOB_SYNC_SECRETS | typeof CRON_JOB_SYNC_USERS,
-    queueName: (typeof REDIS_QUEUES)[keyof typeof REDIS_QUEUES],
-    func: (id: string) => Promise<void>,
-  ) {
-    const job = this.schedulerRegistry.getCronJob(jobName);
-    job.stop(); // pausing the cron job
-    try {
-      const id = await this.redisService.dequeue(queueName);
-      if (typeof id == 'string') {
-        await func(id);
-      }
-    } catch (error) {
-      // console.log(error);
-      // Continue - this.runRefresh() audits failures
-    } finally {
-      job.start(); // resuming the cron job
-    }
-  }
-  */
   async runRefresh(
     repositoryId: string,
     syncSecrets: boolean,
@@ -756,6 +715,18 @@ export class GithubSyncService {
     permission: string,
     token: string,
   ) {
+    try {
+      await this.axiosInstance.get(`/orgs/${owner}/memberships/${username}`, {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return;
+    }
     await this.axiosInstance.put(
       `/repos/${owner}/${repo}/collaborators/${username}`,
       {
