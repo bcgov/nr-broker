@@ -134,15 +134,18 @@ If Kinesis and AWS access is not setup then some APIs will return a 503 (service
 
 ### Local MongoDB Disconnects
 
-Note: The latest versions of Podman seems to have resolved this.
+The connection to MongoDB may time out if your machine goes to sleep. Simply restart the backend to recover.
 
-The connection to MongoDB may time out if your machine goes to sleep. The easiest way to recover is to stop the backend, restart the containers and rerun the vault setup. The provided restart script will do the container and setup steps for you.
+### Setting secrets
 
-```bash
-./scripts/restart.sh
-```
+The setup script will read the following fields from '[apps/prod/vault/vsync](http://localhost:8200/ui/vault/secrets/apps/kv/prod%2Fvault%2Fvsync/details)' to use as environment variables:
 
-You can then restart the backend.
+* GITHUB_OAUTH_CLIENT_ID
+* GITHUB_OAUTH_CLIENT_SECRET
+* GITHUB_SYNC_CLIENT_ID
+* GITHUB_SYNC_PRIVATE_KEY
+
+See: [Backend Environment Variables](./dev_env_vars.md)
 
 ## API demonstrations
 
