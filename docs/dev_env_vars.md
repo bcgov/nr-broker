@@ -150,6 +150,12 @@ The Redis environment variables used to setup the connection.
 | GITHUB_OAUTH_CLIENT_ID |  |  | The client id of the GitHub OAuth App |
 | GITHUB_OAUTH_CLIENT_SECRET |  |  |  The client secret of the GitHub OAuth App |
 
+#### Where to find/create
+
+These are values from a GitHub OAuth app. They should be treated as secrets. Your organization must create a GitHub OAuth app in your organization settings for each deployment with a unique url. The authorization callback url for localhost is 'http://localhost:8200/v1/collection/user/link-github'.
+
+All developers can share the localhost OAuth app. For an actual deployment, you would change 'http://localhost:8200' to be your vanity url.
+
 ## Sync Services
 
 ### GitHub
