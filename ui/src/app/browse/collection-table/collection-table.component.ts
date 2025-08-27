@@ -61,7 +61,6 @@ import {
 import { PermissionService } from '../../service/permission.service';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
-import { PreferencesService } from '../../preferences.service';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
@@ -189,7 +188,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     public readonly permission: PermissionService,
     private readonly router: Router,
     private readonly collectionApi: CollectionApiService,
-    private readonly preferences: PreferencesService,
     @Inject(CURRENT_USER) public readonly user: UserSelfDto,
     public readonly graphUtil: GraphUtilService,
     @Inject(CONFIG_RECORD)
@@ -278,6 +276,12 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
         distinctUntilChanged<any>((prev: any, curr: any) => {
           // console.log(prev);
           // console.log(curr);
+          if (prev.collection !== curr.collection) {
+            // Clear data if collection changes to prevent stale data displaying
+            // as fields in new collection's table. Otherwise, we keep the data
+            // so the UI doesn't flash the table in and out.
+            this.data = [];
+          }
           return (
             prev.refresh === curr.refresh &&
             prev.collection === curr.collection &&

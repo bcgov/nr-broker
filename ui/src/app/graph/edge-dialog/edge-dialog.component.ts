@@ -1,20 +1,6 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogModule,
-  MatDialog,
-} from '@angular/material/dialog';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatInputModule } from '@angular/material/input';
-import { CommonModule } from '@angular/common';
-import { MatOptionModule } from '@angular/material/core';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-
 import {
   catchError,
   debounceTime,
@@ -24,6 +10,23 @@ import {
   startWith,
   switchMap,
 } from 'rxjs';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+  MatDialogModule,
+  MatDialog,
+} from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { CommonModule } from '@angular/common';
+import { MatOptionModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+
 import {
   CollectionConfigNameRecord,
   GraphDataVertex,
@@ -36,11 +39,8 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { MatDividerModule } from '@angular/material/divider';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-edge-dialog',
