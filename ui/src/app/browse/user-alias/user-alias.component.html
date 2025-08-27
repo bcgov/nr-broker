@@ -15,11 +15,11 @@
   </div>
 </div>
 
-@if(!collection?.alias) {
+@if(!collection?.alias || collection?.alias.length == 0) {
   <div class="edge-container edge-container-margin-left">Account is not linked</div>
 }
 
-@if(collection?.alias) {
+@if(collection?.alias && collection?.alias.length > 0) {
 <div class="edge-container edge-container-margin-left details-container">
   <a href="https://github.com/{{ collection.alias[0].username }}" target="_blank">
     <app-details-item
