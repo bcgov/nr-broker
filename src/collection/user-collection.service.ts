@@ -149,16 +149,21 @@ export class UserCollectionService {
     const aliasUser = await this.collectionRepository.getCollection('user', {
       alias: {
         guid,
-        USER_ALIAS_DOMAIN_GITHUB,
+        domain: USER_ALIAS_DOMAIN_GITHUB,
       },
     });
 
     if (aliasUser && aliasUser.guid !== currentUser.guid) {
+      const aliasUserObj = aliasUser.toPOJO();
+      delete aliasUserObj.id;
+      delete aliasUserObj._id;
+      delete aliasUserObj.vertex;
+
       const removeAliasVertex = new VertexInsertDto(
         'user',
         plainToInstance(UserBaseDto, {
-          ...aliasUser,
-          alias: aliasUser.alias.filter(
+          ...aliasUserObj,
+          alias: aliasUserObj.alias.filter(
             (a) => a.domain !== USER_ALIAS_DOMAIN_GITHUB,
           ),
         }),
