@@ -5,6 +5,7 @@ import {
   numberAttribute,
   inject,
   OnDestroy,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -26,17 +27,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { PageErrorComponent } from '../../page-error/page-error.component';
+import { CollectionApiService } from '../../service/collection-api.service';
+import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
 
 export interface HistoryQuery {
   field: string;
   value: string;
   status: string;
+  environment: string;
   lifespan: string;
   rangeStart: number;
   rangeEnd: number;
@@ -106,6 +110,30 @@ export class HistoryComponent implements OnDestroy {
     { value: 'unknown', viewValue: 'Unknown' },
   ];
 
+  readonly environment = input('all', {
+    transform: (v: string | undefined) => v ?? 'all',
+  });
+  environmentResource = httpResource<EnvironmentDto[]>(() => {
+    return this.collectionApi.exportCollectionArgs('environment');
+  });
+  envOptions = computed(() => {
+    const envs = this.environmentResource.value() ?? [];
+    return [
+      { value: 'all', viewValue: 'All' },
+      ...envs.map((e) => ({ value: e.name, viewValue: e.title })),
+    ];
+  });
+  // envMap = computed(() => {
+  //   const envs = this.environmentResource.value() ?? [];
+  //   return envs.reduce(
+  //     (map, e) => {
+  //       map[e.name] = e.title;
+  //       return map;
+  //     },
+  //     {} as Record<string, string>,
+  //   );
+  // });
+
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
 
@@ -136,6 +164,11 @@ export class HistoryComponent implements OnDestroy {
       ...(this.status() !== 'all'
         ? {
             'transaction.outcome': this.status(),
+          }
+        : {}),
+      ...(this.environment() !== 'all'
+        ? {
+            'actions.service.environment': this.environment(),
           }
         : {}),
     };
@@ -215,6 +248,7 @@ export class HistoryComponent implements OnDestroy {
 
   constructor(
     private readonly router: Router,
+    private readonly collectionApi: CollectionApiService,
     private readonly intentionApi: IntentionApiService,
   ) {
     inject(BreakpointObserver)
@@ -298,6 +332,7 @@ export class HistoryComponent implements OnDestroy {
       rangeEnd: 0,
       lifespan: 'permanent',
       status: 'all',
+      environment: 'all',
     });
   }
 
@@ -315,6 +350,7 @@ export class HistoryComponent implements OnDestroy {
       value: this.value(),
       lifespan: this.lifespan(),
       status: this.status(),
+      environment: this.environment(),
       rangeStart: this.rangeStart(),
       rangeEnd: this.rangeEnd(),
       sortActive: this.sortActive(),
@@ -333,6 +369,9 @@ export class HistoryComponent implements OnDestroy {
           ...(settings.value ? { value: settings.value } : {}),
           ...(settings.lifespan ? { lifespan: settings.lifespan } : {}),
           ...(settings.status ? { status: settings.status } : {}),
+          ...(settings.environment
+            ? { environment: settings.environment }
+            : {}),
           ...(settings.rangeStart !== 0 && settings.rangeEnd !== 0
             ? { rangeStart: settings.rangeStart, rangeEnd: settings.rangeEnd }
             : {}),

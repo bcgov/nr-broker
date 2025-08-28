@@ -74,6 +74,20 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field class="field-outcome">
+      <mat-label>Environment</mat-label>
+      <mat-select
+        [value]="environment()"
+        (selectionChange)="updateRoute({environment: $event.value, index: 0})"
+        name="environment">
+        @for (env of envOptions(); track env.value) {
+          <mat-option [value]="env.value">
+            {{env.viewValue}}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
     <button
       mat-stroked-button
       aria-label="Clear"

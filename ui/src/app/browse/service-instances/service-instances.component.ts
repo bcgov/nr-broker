@@ -77,7 +77,6 @@ export class ServiceInstancesComponent implements OnChanges {
 
   ngOnInit(): void {
     this.collectionApi.exportCollection('environment').subscribe((envArr) => {
-      envArr.sort((a, b) => a.position - b.position);
       this.envs = envArr;
     });
     this.loadServiceDetails();

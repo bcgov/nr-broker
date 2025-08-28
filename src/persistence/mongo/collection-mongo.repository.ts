@@ -187,14 +187,11 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<CollectionEntityUnion[T][]> {
     const config = await this.getCollectionConfigByName(type);
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo.find(
-      {},
-      {
-        orderBy: {
-          [config.fieldDefaultSort.field]: config.fieldDefaultSort.dir,
-        } as any,
-      },
-    );
+    return repo.findAll({
+      orderBy: {
+        [config.fieldDefaultSort.field]: config.fieldDefaultSort.dir,
+      } as any,
+    });
   }
 
   public async filterCollection<T extends keyof CollectionDtoUnion>(
@@ -439,13 +436,6 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<string[]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.getCollection().distinct('tags', {});
-  }
-
-  public async exportCollection<T extends keyof CollectionEntityUnion>(
-    type: T,
-  ) {
-    const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    return repo.findAll();
   }
 
   public async doUniqueKeyCheck(
