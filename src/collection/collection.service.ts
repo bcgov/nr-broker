@@ -248,7 +248,7 @@ export class CollectionService {
     type: T,
     fields: string[],
   ) {
-    const data = await this.collectionRepository.exportCollection(type);
+    const data = await this.collectionRepository.getCollections(type);
     if (!fields) {
       return data;
     } else {

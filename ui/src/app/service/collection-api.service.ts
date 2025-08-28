@@ -111,13 +111,19 @@ export class CollectionApiService {
     );
   }
 
+  public exportCollectionArgs<T extends CollectionNames>(
+    name: T,
+  ): { method: string; url: string; options: { responseType: 'json' } } {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/export`,
+      options: { responseType: 'json' },
+    };
+  }
+
   public exportCollection<T extends CollectionNames>(name: T) {
-    return this.http.post<CollectionDtoUnion[T][]>(
-      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/export`,
-      {
-        responseType: 'json',
-      },
-    );
+    const { url, options } = this.exportCollectionArgs(name);
+    return this.http.post<CollectionDtoUnion[T][]>(url, options);
   }
 
   public getServiceSecure(serviceId: string) {
