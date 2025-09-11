@@ -715,18 +715,18 @@ export class GithubSyncService {
     permission: string,
     token: string,
   ) {
-    try {
-      await this.axiosInstance.get(`/orgs/${owner}/memberships/${username}`, {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      return;
-    }
+    // try {
+    //   await this.axiosInstance.get(`/orgs/${owner}/memberships/${username}`, {
+    //     headers: {
+    //       Authorization: `token ${token}`,
+    //       Accept: 'application/vnd.github+json',
+    //       'X-GitHub-Api-Version': '2022-11-28',
+    //     },
+    //   });
+    // } catch (error) {
+    //   console.log(error);
+    //   return;
+    // }
     await this.axiosInstance.put(
       `/repos/${owner}/${repo}/collaborators/${username}`,
       {
