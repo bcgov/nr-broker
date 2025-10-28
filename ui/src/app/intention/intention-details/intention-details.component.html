@@ -1,3 +1,10 @@
+@if (intention().event.transient) {
+  <div class="details-message">
+    <mat-icon class="info-icon">event_repeat</mat-icon>
+    <div class="info-text">This intention is transient and will not be stored permanently.</div>
+  </div>
+}
+
 <div class="details-container">
   <span [matMenuTriggerFor]="projectMenu">
     <app-details-item
