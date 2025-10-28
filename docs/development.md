@@ -25,6 +25,16 @@ Optional:
 brew install envconsul
 ```
 
+## Recommended Code Editor
+
+[Visual Studio Code](https://code.visualstudio.com)
+
+### Extensions
+
+* [Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template)
+* [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+* [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+
 ## Setup
 
 ### Setup setenv-common.sh
@@ -48,7 +58,7 @@ $ npm ci
 $ cd ui; npm ci
 ```
 
- ### Setup redis-stack
+ ### Setup Redis Stack
 
 The development setup assumes you are using podman to run the Redis Stack.
 
@@ -83,7 +93,7 @@ $ ./scripts/mongo-setup.sh
 
 See: [MongoDB Development](./dev_mongodb.md)
 
-### Setup Vault
+### Setup HashiCorp Vault
 
 ```bash
 # Start up local Vault
@@ -112,7 +122,7 @@ $ npm run watch
 
 The UI should be built before starting the backend server.
 
-### Running the backend server
+### Running the Backend Server
 
 ```bash
 # Run server in watch mode
@@ -136,7 +146,7 @@ If Kinesis and AWS access is not setup then some APIs will return a 503 (service
 
 The connection to MongoDB may time out if your machine goes to sleep. Simply restart the backend to recover.
 
-### Setting secrets
+### Setting Secrets
 
 The setup script will read the following fields from '[apps/prod/vault/vsync](http://localhost:8200/ui/vault/secrets/apps/kv/prod%2Fvault%2Fvsync/details)' to use as environment variables:
 
@@ -147,7 +157,7 @@ The setup script will read the following fields from '[apps/prod/vault/vsync](ht
 
 See: [Backend Environment Variables](./dev_env_vars.md)
 
-## API demonstrations
+## API Demonstrations
 
 There are a handful of demonstration curl commands in the scripts folder.
 
@@ -182,7 +192,7 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Building image
+## Building Image
 
 The dockerfile can be built locally by running the following.
 
@@ -209,7 +219,7 @@ See:
 
 To locally setup a GitHub App syncing, set the values GITHUB_SYNC_CLIENT_ID and GITHUB_SYNC_PRIVATE_KEY at the Vault path `apps/prod/vault/vsync`.
 
-## Setup User Alias services
+## Setup User Alias Services
 
 Broker can be setup to allow users to alias their identity in other identity providers to their account.
 
