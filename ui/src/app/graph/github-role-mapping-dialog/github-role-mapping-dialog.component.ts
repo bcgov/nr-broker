@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
@@ -12,15 +12,12 @@ import { GitHubEdgeToRoles } from '../../service/persistence/dto/collection-conf
   templateUrl: './github-role-mapping-dialog.component.html',
   styleUrl: './github-role-mapping-dialog.component.scss',
 })
-export class GithubRoleMappingDialogComponent {
+export class GithubRoleMappingDialogComponent implements OnInit {
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   displayedColumns: string[] = ['edge', 'role'];
 
   dataSource: GitHubEdgeToRoles[] = [];
-
-  constructor(
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
 
   ngOnInit() {
     if (this.configRecord['user'].edgeToRoles) {

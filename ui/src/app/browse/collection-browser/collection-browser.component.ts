@@ -1,10 +1,4 @@
-import {
-  Component,
-  effect,
-  Inject,
-  input,
-  numberAttribute,
-} from '@angular/core';
+import { Component, effect, input, numberAttribute, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,6 +47,14 @@ interface filterOptions<T> {
   styleUrl: './collection-browser.component.scss',
 })
 export class CollectionBrowserComponent {
+  readonly permission = inject(PermissionService);
+  readonly configArr = inject(CONFIG_ARR);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly preferences = inject(PreferencesService);
+
   collection = input<CollectionNames>('project');
   currentCollection!: CollectionNames;
 
@@ -75,16 +77,7 @@ export class CollectionBrowserComponent {
   config: CollectionConfigDto[] | undefined;
   collectionFilterOptions: filterOptions<CollectionNames>[] = [];
 
-  constructor(
-    public readonly permission: PermissionService,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-    private readonly router: Router,
-    private readonly dialog: MatDialog,
-    private readonly collectionApi: CollectionApiService,
-    private readonly preferences: PreferencesService,
-  ) {
+  constructor() {
     this.config = this.configArr.filter((config) => config.permissions.browse);
     this.collectionFilterOptions = this.config.map((config) => {
       return {

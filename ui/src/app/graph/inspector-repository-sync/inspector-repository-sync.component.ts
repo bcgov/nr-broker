@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, input } from '@angular/core';
+import { Component, Input, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -23,19 +23,17 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   styleUrl: './inspector-repository-sync.component.scss',
 })
 export class InspectorRepositorySyncComponent {
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
+  private readonly systemApi = inject(SystemApiService);
+  readonly healthStatus = inject(HealthStatusService);
+
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
   @Input() repository!: RepositoryDto;
   readonly hasSudo = input(false);
   readonly header = input<'small' | 'large'>('small');
-
-  constructor(
-    private readonly snackBar: MatSnackBar,
-    private readonly dialog: MatDialog,
-    private readonly systemApi: SystemApiService,
-    public readonly healthStatus: HealthStatusService,
-  ) {}
 
   syncSecrets() {
     this.systemApi

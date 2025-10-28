@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import {
   PackageBuildDto,
@@ -10,7 +10,8 @@ import {
   providedIn: 'root',
 })
 export class PackageApiService {
-  constructor(private readonly http: HttpClient) {}
+  private readonly http = inject(HttpClient);
+
 
   getBuild(id: string) {
     return this.http.get<PackageBuildDto>(

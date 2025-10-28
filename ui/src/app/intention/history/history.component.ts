@@ -74,6 +74,10 @@ export interface HistoryQuery {
   styleUrls: ['./history.component.scss'],
 })
 export class HistoryComponent implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly intentionApi = inject(IntentionApiService);
+
   field = input('');
   currentField = '';
   fieldOptions = [
@@ -246,11 +250,7 @@ export class HistoryComponent implements OnDestroy {
     );
   });
 
-  constructor(
-    private readonly router: Router,
-    private readonly collectionApi: CollectionApiService,
-    private readonly intentionApi: IntentionApiService,
-  ) {
+  constructor() {
     inject(BreakpointObserver)
       .observe([
         Breakpoints.XSmall,

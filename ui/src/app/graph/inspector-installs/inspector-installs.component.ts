@@ -1,4 +1,4 @@
-import { Component, input, OnChanges, OnInit } from '@angular/core';
+import { Component, input, OnChanges, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -42,17 +42,15 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   styleUrls: ['./inspector-installs.component.scss'],
 })
 export class InspectorInstallsComponent implements OnInit, OnChanges {
+  private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly intention = inject(IntentionApiService);
+
   pointers = input.required<IntentionActionPointerDto[]>();
 
   pointer$ = new Subject<IntentionActionPointerDto | undefined>();
   current: IntentionActionPointerDto | undefined;
-
-  constructor(
-    private readonly router: Router,
-    private readonly snackBar: MatSnackBar,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly intention: IntentionApiService,
-  ) {}
 
   ngOnInit(): void {
     this.pointer$
@@ -109,6 +107,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
   openUserInBrowserByGuid(guid: string) {
     try {
       this.collectionUtil.openUserInBrowserByGuid(guid);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       const config = new MatSnackBarConfig();
       config.duration = 5000;

@@ -48,7 +48,7 @@
   @if (loading) {
     <mat-spinner></mat-spinner>
   } @else {
-    @if (userCount == 0) {
+    @if (userCount === 0) {
       <h2 class="no-members">No members</h2>
     } @else {
       <p>Review member roles</p>
@@ -78,7 +78,7 @@
                 <mat-list-option
                   class="user-list-item"
                   [value]="member"
-                  [disabled]="user.vertex == member.vertex">
+                  [disabled]="user.vertex === member.vertex">
                   <span matListItemTitle>{{ member.name }}</span>
                 </mat-list-option>
               }
@@ -87,7 +87,7 @@
               <button
                 mat-stroked-button
                 color="warn"
-                [disabled]="userList.selectedOptions.selected.length == 0"
+                [disabled]="userList.selectedOptions.selected.length === 0"
                 (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
             </div>
           } @else {

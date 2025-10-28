@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  Output,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, input, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -32,7 +23,9 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
   imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
-  @Output() onSubmit = new EventEmitter();
+  private collectionService = inject(CollectionApiService);
+
+  @Output() formSubmitted = new EventEmitter();
   readonly collection = input.required<string>();
   readonly fieldMap = input.required<CollectionFieldConfigMap>();
   // TODO: Skipped for migration because:
@@ -43,10 +36,8 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
   form!: FormGroup;
   fieldConfigs!: CollectionFieldConfigNameMapped[];
 
-  constructor(private collectionService: CollectionApiService) {}
-
   ngOnInit() {
-    const fieldCtrls: { [key: string]: FormGroup | FormControl } = {};
+    const fieldCtrls: Record<string, FormGroup | FormControl> = {};
     const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
     if (!this.data) {
       this.data = {};
@@ -194,6 +185,6 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
   }
 
   submitForm() {
-    this.onSubmit.emit();
+    this.formSubmitted.emit();
   }
 }

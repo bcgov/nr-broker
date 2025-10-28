@@ -27,9 +27,10 @@ export interface GraphDataResponseDto {
   categories: GraphDataResponseCategoryDto[];
 }
 
-export interface BrokerAccountProjectMapDto {
-  [key: string]: BrokerAccountProjectDto;
-}
+export type BrokerAccountProjectMapDto = Record<
+  string,
+  BrokerAccountProjectDto
+>;
 
 export interface BrokerAccountProjectDto {
   name: string;

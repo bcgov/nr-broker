@@ -1,4 +1,4 @@
-import { EventEmitter, Inject, Injectable } from '@angular/core';
+import { EventEmitter, Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { INITIAL_PREFERENCES } from './app-initialize.factory';
@@ -8,16 +8,13 @@ import { PreferenceDto } from './service/persistence/dto/preference.dto';
   providedIn: 'root',
 })
 export class PreferencesService {
+  private readonly http = inject(HttpClient);
+  private readonly preferences = inject<PreferenceDto>(INITIAL_PREFERENCES);
+
   public _onSet = new EventEmitter<{
     key: keyof PreferenceDto;
     value?: PreferenceDto[keyof PreferenceDto];
   }>();
-
-  constructor(
-    private readonly http: HttpClient,
-    @Inject(INITIAL_PREFERENCES)
-    private readonly preferences: PreferenceDto,
-  ) {}
 
   get onSet() {
     return this._onSet.asObservable();

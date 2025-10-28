@@ -1,6 +1,8 @@
 import { IsNumber, IsString } from 'class-validator';
 
 export class BrokerJwtDto {
+  @IsString()
+  client_id!: string;
   @IsNumber()
   exp!: number;
   @IsNumber()

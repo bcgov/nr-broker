@@ -66,7 +66,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
 
       - name: npm ci
@@ -88,23 +88,23 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./coverage/lcov.info
 
-  # tests-frontend:
-  #   name: Frontend Tests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+  tests-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: Use Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #         cache: 'npm'
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
 
-  #     - name: npm ci
-  #       run: npm ci
-  #       working-directory: ./ui
+      - name: npm ci
+        run: npm ci
+        working-directory: ./ui
 
-  #     - name: unit test
-  #       run: npm run test
-  #       working-directory: ./ui
+      - name: lint
+        run: npm run lint
+        working-directory: ./ui

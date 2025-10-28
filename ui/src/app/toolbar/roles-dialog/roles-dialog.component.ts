@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
@@ -12,5 +12,5 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   imports: [MatDialogModule, MatButtonModule, MatListModule],
 })
 export class RolesDialogComponent {
-  constructor(@Inject(CURRENT_USER) public readonly user: UserSelfDto) {}
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
 }

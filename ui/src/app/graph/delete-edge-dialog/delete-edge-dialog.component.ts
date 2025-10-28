@@ -1,4 +1,4 @@
-import { Component, Inject, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -26,15 +26,13 @@ import { ConnectionMap } from '../../service/graph.types';
   ],
 })
 export class DeleteEdgeDialogComponent {
+  readonly data = inject<{
+    connections: ConnectionMap;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<DeleteEdgeDialogComponent>>(MatDialogRef);
+  private readonly graphApi = inject(GraphApiService);
+
   @ViewChild(MatSelectionList) private selectionComponent!: MatSelectionList;
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      connections: ConnectionMap;
-    },
-    public readonly dialogRef: MatDialogRef<DeleteEdgeDialogComponent>,
-    private readonly graphApi: GraphApiService,
-  ) {}
 
   deleteEdge() {
     const edges = this.selectionComponent.selectedOptions.selected;

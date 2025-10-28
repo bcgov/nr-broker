@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CURRENT_USER } from '../app-initialize.factory';
 import { UserPermissionDto } from './persistence/dto/user-permission.dto';
 import { UserSelfDto } from './persistence/dto/user.dto';
@@ -7,8 +7,12 @@ import { UserSelfDto } from './persistence/dto/user.dto';
   providedIn: 'root',
 })
 export class PermissionService {
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   private hasAdminPermission: boolean;
-  constructor(@Inject(CURRENT_USER) readonly user: UserSelfDto) {
+  constructor() {
+    const user = this.user;
+
     this.hasAdminPermission = !!user?.roles?.includes('admin');
   }
 

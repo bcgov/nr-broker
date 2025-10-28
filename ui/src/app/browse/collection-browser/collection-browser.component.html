@@ -27,7 +27,7 @@
     mat-stroked-button
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!((currentCollection == 'team' || permission.hasAdmin()) && !disableAdd)">
+    [disabled]="!((currentCollection === 'team' || permission.hasAdmin()) && !disableAdd)">
     <mat-icon>add</mat-icon>
     Add
   </button>

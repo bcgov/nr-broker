@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +30,12 @@ import { VaultConfigDto } from '../../service/persistence/dto/vault-config.dto';
   styleUrl: './vault-dialog.component.scss',
 })
 export class VaultDialogComponent implements OnInit {
+  readonly data = inject<{
+    service: ServiceDto;
+    showMasked: boolean;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
+
   public config: {
     actor: string;
     approle: {
@@ -61,15 +67,6 @@ export class VaultDialogComponent implements OnInit {
       tokenPeriod: 'daily',
     },
   };
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      service: ServiceDto;
-      showMasked: boolean;
-    },
-    public readonly dialogRef: MatDialogRef<VaultDialogComponent>,
-  ) {}
 
   ngOnInit() {
     this.config.enabled = this.data.service.vaultConfig?.enabled ?? false;

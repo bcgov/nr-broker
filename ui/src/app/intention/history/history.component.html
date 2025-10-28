@@ -117,7 +117,7 @@
     [hideBack]="true"
     ></app-page-error>
 } @else {
-  @if (intentionResource.hasValue() && intentionResource.value().meta.total == 0) {
+  @if (intentionResource.hasValue() && intentionResource.value().meta.total === 0) {
     <mat-card class="warning-panel" appearance="outlined">
       <mat-card-header>
         <mat-card-title>No results found</mat-card-title>

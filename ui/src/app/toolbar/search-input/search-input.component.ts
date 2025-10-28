@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   Observable,
   debounceTime,
@@ -49,20 +49,17 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
   templateUrl: './search-input.component.html',
   styleUrl: './search-input.component.scss',
 })
-export class SearchInputComponent {
+export class SearchInputComponent implements OnInit {
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly router = inject(Router);
+  private readonly graphUtil = inject(GraphUtilService);
+  readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   filteredOptions!: Observable<any>;
   searchControl = new FormControl<{ id: string } | string | undefined>(
     undefined,
   );
-
-  constructor(
-    private readonly collectionApi: CollectionApiService,
-    private readonly graphApi: GraphApiService,
-    private readonly router: Router,
-    private readonly graphUtil: GraphUtilService,
-    @Inject(CONFIG_RECORD)
-    public readonly configMap: CollectionConfigNameRecord,
-  ) {}
 
   ngOnInit(): void {
     this.filteredOptions = this.searchControl.valueChanges.pipe(

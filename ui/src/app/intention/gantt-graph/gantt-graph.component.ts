@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, inject } from '@angular/core';
 
 import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
@@ -29,11 +29,11 @@ echarts.use([
   styleUrl: './gantt-graph.component.scss',
 })
 export class GanttGraphComponent implements OnInit {
+  private readonly elRef = inject(ElementRef);
+
   @Input() intention: any;
   @Input() action?: any;
   options!: EChartsCoreOption;
-
-  constructor(private readonly elRef: ElementRef) {}
 
   ngOnInit(): void {
     this.options = {

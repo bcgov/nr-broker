@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -33,20 +33,17 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
   templateUrl: './tag-dialog.component.html',
   styleUrl: './tag-dialog.component.scss',
 })
-export class TagDialogComponent {
+export class TagDialogComponent implements OnInit {
+  readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly data = inject<{
+    collection: keyof CollectionDtoUnion;
+    collectionData: any;
+}>(MAT_DIALOG_DATA);
+
   addOnBlur = true;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
   public tags: string[] = [];
-
-  constructor(
-    public readonly dialogRef: MatDialogRef<VaultDialogComponent>,
-    private readonly collectionApi: CollectionApiService,
-    @Inject(MAT_DIALOG_DATA)
-    private readonly data: {
-      collection: keyof CollectionDtoUnion;
-      collectionData: any;
-    },
-  ) {}
 
   ngOnInit() {
     if (this.data.collectionData.tags) {

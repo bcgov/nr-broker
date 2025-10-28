@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -35,15 +35,13 @@ export interface InspectorInstanceDialogReturnDao {
   styleUrl: './inspector-instance-dialog.component.scss',
 })
 export class InspectorInstanceDialogComponent implements OnInit {
+  readonly data = inject<{
+    vertices: GraphDirectedCombo[];
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<InspectorInstanceDialogComponent>>(MatDialogRef);
+  private readonly collectionApi = inject(CollectionApiService);
+
   public envMap: InspectorInstanceDialogReturnDao[] = [];
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      vertices: GraphDirectedCombo[];
-    },
-    public readonly dialogRef: MatDialogRef<InspectorInstanceDialogComponent>,
-    private readonly collectionApi: CollectionApiService,
-  ) {}
 
   ngOnInit(): void {
     const instances = this.data.vertices.filter(

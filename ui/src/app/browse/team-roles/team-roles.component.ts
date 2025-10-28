@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
@@ -13,12 +13,9 @@ import { EdgetitlePipe } from '../../util/edgetitle.pipe';
   styleUrl: './team-roles.component.scss',
 })
 export class TeamRolesComponent {
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   edges: CollectionEdgeConfig[] = this.configRecord['user'].edges.filter(
     (edge) => edge.collection === 'team',
   );
-
-  constructor(
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
 }

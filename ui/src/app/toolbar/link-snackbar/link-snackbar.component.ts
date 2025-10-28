@@ -21,12 +21,10 @@ import { PreferencesService } from '../../preferences.service';
   styleUrl: './link-snackbar.component.scss',
 })
 export class LinkSnackbarComponent {
-  snackBarRef = inject(MatSnackBarRef);
+  private readonly systemApi = inject(SystemApiService);
+  private readonly preferences = inject(PreferencesService);
 
-  constructor(
-    private readonly systemApi: SystemApiService,
-    private readonly preferences: PreferencesService,
-  ) {}
+  snackBarRef = inject(MatSnackBarRef);
 
   public async dismiss() {
     this.snackBarRef.dismissWithAction();

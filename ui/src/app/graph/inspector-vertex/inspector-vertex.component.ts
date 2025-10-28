@@ -1,11 +1,4 @@
-import {
-  Component,
-  Inject,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, input, inject } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
@@ -41,6 +34,10 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './inspector-vertex.component.scss',
 })
 export class InspectorVertexComponent implements OnChanges {
+  private readonly collectionApi = inject(CollectionApiService);
+  readonly collectionUtil = inject(CollectionUtilService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
@@ -56,12 +53,6 @@ export class InspectorVertexComponent implements OnChanges {
   readonly hasSudo = input(false);
   readonly hasUpdate = input(false);
   serviceDetails: any = null;
-
-  constructor(
-    private readonly collectionApi: CollectionApiService,
-    public readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['collection']) {

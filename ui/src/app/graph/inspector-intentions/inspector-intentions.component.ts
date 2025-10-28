@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +21,9 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
   styleUrls: ['./inspector-intentions.component.scss'],
 })
 export class InspectorIntentionsComponent implements OnChanges {
+  private readonly intentionApi = inject(IntentionApiService);
+  private readonly router = inject(Router);
+
   readonly id = input.required<string>();
   readonly name = input.required<string>();
   readonly collection = input.required<string>();
@@ -30,11 +33,6 @@ export class InspectorIntentionsComponent implements OnChanges {
   intentions: any[] = [];
   total = 0;
   limit = 10;
-
-  constructor(
-    private readonly intentionApi: IntentionApiService,
-    private readonly router: Router,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['name']) {

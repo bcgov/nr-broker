@@ -1,10 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Output,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, EventEmitter, Output, computed, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,13 +28,13 @@ import { IntentionUtilService } from '../../util/intention-util.service';
   styleUrl: './history-table.component.scss',
 })
 export class HistoryTableComponent {
+  intentionUtil = inject(IntentionUtilService);
+
   readonly intentionData = input<any[]>([]);
   readonly layout = input<'narrow' | 'normal'>('normal');
   readonly showHeader = input(true);
   readonly actionServiceFilter = input('');
   @Output() viewIntentionEvent = new EventEmitter<string>();
-
-  constructor(public intentionUtil: IntentionUtilService) {}
 
   readonly propDisplayedColumns = computed(() => {
     if (this.layout() === 'narrow') {

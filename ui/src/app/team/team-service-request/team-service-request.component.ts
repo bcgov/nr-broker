@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   FormControl,
@@ -24,6 +24,8 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrl: './team-service-request.component.scss',
 })
 export class TeamServiceRequestComponent {
+  private readonly dialog = inject(MatDialog);
+
   readonly serviceSearch = input.required<CollectionConfigInstanceDto[]>();
 
   serviceControl = new FormControl<CollectionConfigInstanceDto | null>(
@@ -31,8 +33,6 @@ export class TeamServiceRequestComponent {
     Validators.required,
   );
   selectFormControl = new FormControl('', Validators.required);
-
-  constructor(private readonly dialog: MatDialog) {}
   requestService() {
     console.log('requestService');
     console.log(this.serviceControl.value?.edge.prototype);

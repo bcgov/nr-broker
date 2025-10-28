@@ -9,7 +9,7 @@
   >
   <div
     class="spaced-btn {{screenSize}} collection-btn">
-    @if (screenSize == 'wide') {
+    @if (screenSize === 'wide') {
       <button
         mat-stroked-button
         extended
@@ -29,7 +29,7 @@
     }
   </div>
 
-  @if (screenSize == 'wide') {
+  @if (screenSize === 'wide') {
     <button
       mat-stroked-button
       extended
@@ -45,7 +45,7 @@
       (click)="editTags()">
       Tags
     </button>
-    @if (collection() == 'team') {
+    @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"
@@ -74,7 +74,7 @@
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
-    @if (collection() == 'team') {
+    @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"

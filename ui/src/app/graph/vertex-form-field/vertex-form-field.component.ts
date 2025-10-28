@@ -34,7 +34,7 @@ export class VertexFormFieldComponent {
   //  and migrating would break narrowing currently.
   @Input() field!: CollectionFieldConfigNameMapped;
   readonly form = input.required<FormGroup>();
-  @Output() onSubmit = new EventEmitter();
+  @Output() formSubmitted = new EventEmitter();
 
   get isValid() {
     return this.form().controls[this.field.name].valid;

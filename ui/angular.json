@@ -33,7 +33,9 @@
             "outputPath": "dist/ui",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "allowedCommonJsDependencies": ["dlv"],
+            "allowedCommonJsDependencies": [
+              "dlv"
+            ],
             "polyfills": [
               "zone.js"
             ],
@@ -78,8 +80,8 @@
                 }
               ]
             },
-            "test": { },
-            "development": { },
+            "test": {},
+            "development": {},
             "bcgov": {
               "assets": [
                 "src/android-chrome-192x192.png",
@@ -153,12 +155,24 @@
             ],
             "scripts": []
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
         }
       }
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   },
   "schematics": {
     "@schematics/angular:component": {

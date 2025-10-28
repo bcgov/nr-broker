@@ -1,4 +1,4 @@
-import { Component, Inject, computed, input } from '@angular/core';
+import { Component, computed, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import {
@@ -36,6 +36,10 @@ import { MatChipsModule } from '@angular/material/chips';
   viewProviders: [MatExpansionPanel],
 })
 export class TeamMembersComponent {
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   readonly teamId = input.required<string>();
   readonly refresh = input.required<number>();
   readonly collectionSearchResult = toSignal(
@@ -104,13 +108,6 @@ export class TeamMembersComponent {
   );
 
   loading = true;
-
-  constructor(
-    private readonly collectionApi: CollectionApiService,
-    private readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
 
   navigateUser(vertexId: string) {
     this.collectionUtil.openInBrowserByVertexId('user', vertexId);

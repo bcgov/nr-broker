@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {
@@ -17,10 +17,9 @@ import { StringUtilService } from '../util/string-util.service';
   providedIn: 'root',
 })
 export class CollectionApiService {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly stringUtil: StringUtilService,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly stringUtil = inject(StringUtilService);
+
 
   public getCollectionTags(name: CollectionNames) {
     return this.http.get<string[]>(

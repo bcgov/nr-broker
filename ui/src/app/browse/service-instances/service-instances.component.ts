@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Inject,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, input, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -51,7 +42,14 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   templateUrl: './service-instances.component.html',
   styleUrl: './service-instances.component.scss',
 })
-export class ServiceInstancesComponent implements OnChanges {
+export class ServiceInstancesComponent implements OnChanges, OnInit {
+  readonly permission = inject(PermissionService);
+  private readonly dialog = inject(MatDialog);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   readonly vertex = input.required<VertexDto>();
   readonly vertices = input.required<GraphDirectedCombo[]>();
   readonly service = input.required<ServiceDto>();
@@ -65,15 +63,6 @@ export class ServiceInstancesComponent implements OnChanges {
   envDetailSelection: any;
   envs: EnvironmentDto[] = [];
   loading = true;
-
-  constructor(
-    public readonly permission: PermissionService,
-    private readonly dialog: MatDialog,
-    private readonly graphApi: GraphApiService,
-    private readonly collectionApi: CollectionApiService,
-    private readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-  ) {}
 
   ngOnInit(): void {
     this.collectionApi.exportCollection('environment').subscribe((envArr) => {

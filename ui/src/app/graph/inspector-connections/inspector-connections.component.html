@@ -9,11 +9,11 @@
           mat-button
           (click)="openDeleteEdgeDialog(inboundConnections)"
           [disabled]="!hasAdmin() ||
-        (inboundConnections | keyvalue)?.length == 0">Delete</button>
+        (inboundConnections | keyvalue)?.length === 0">Delete</button>
       </div>
     }
   </div>
-  @if ((inboundConnections | keyvalue)?.length == 0) {
+  @if ((inboundConnections | keyvalue)?.length === 0) {
     <p class="vertex-edge-type-container">None</p>
   }
   @for (group of (inboundConnections | keyvalue); track group.key) {
@@ -46,11 +46,11 @@
           mat-button
           (click)="openDeleteEdgeDialog(outboundConnections)"
           [disabled]="!hasAdmin() ||
-        (outboundConnections | keyvalue)?.length == 0">Delete</button>
+        (outboundConnections | keyvalue)?.length === 0">Delete</button>
       </div>
     }
   </div>
-  @if ((outboundConnections | keyvalue)?.length == 0) {
+  @if ((outboundConnections | keyvalue)?.length === 0) {
     <p class="vertex-edge-type-container">None</p>
   }
   @for (group of (outboundConnections | keyvalue); track group.key) {

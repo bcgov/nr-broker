@@ -5,8 +5,8 @@ export interface PreferenceDto {
   browseCollectionDefault: CollectionNames;
   browseConnectionFilter: 'connected' | 'all';
   graphFollows: 'edge' | 'vertex';
-  graphVertexVisibility?: { [key: string]: boolean };
-  graphEdgeSrcTarVisibility?: { [key: string]: boolean };
+  graphVertexVisibility?: Record<string, boolean>;
+  graphEdgeSrcTarVisibility?: Record<string, boolean>;
   homeSectionTab: number;
   ignoreGitHubLink: boolean;
 }

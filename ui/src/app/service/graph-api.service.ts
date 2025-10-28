@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, filter, map } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
@@ -20,11 +20,10 @@ import { StringUtilService } from '../util/string-util.service';
   providedIn: 'root',
 })
 export class GraphApiService {
-  constructor(
-    private readonly stringUtil: StringUtilService,
-    private readonly http: HttpClient,
-    private readonly sseClient: SseClient,
-  ) {}
+  private readonly stringUtil = inject(StringUtilService);
+  private readonly http = inject(HttpClient);
+  private readonly sseClient = inject(SseClient);
+
 
   createEventSource(): Observable<GraphEventDto> {
     return this.sseClient.stream(`${environment.apiUrl}/v1/graph/events`).pipe(
@@ -183,7 +182,7 @@ export class GraphApiService {
     );
   }
 
-  editVertex(id: string, vertex: VertexInsertDto, sudo: boolean = false) {
+  editVertex(id: string, vertex: VertexInsertDto, sudo = false) {
     return this.http.put<any>(
       `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}${sudo ? '?sudo=true' : ''}`,
       vertex,

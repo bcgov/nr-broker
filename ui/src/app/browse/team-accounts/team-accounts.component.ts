@@ -1,4 +1,4 @@
-import { Component, OnInit, SimpleChanges, input } from '@angular/core';
+import { Component, OnInit, SimpleChanges, input, inject, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,7 +23,11 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   templateUrl: './team-accounts.component.html',
   styleUrl: './team-accounts.component.scss',
 })
-export class TeamAccountsComponent implements OnInit {
+export class TeamAccountsComponent implements OnInit, OnChanges {
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly graphUtil = inject(GraphUtilService);
+
   readonly teamVertex = input.required<string>();
   readonly hasSudo = input.required<boolean>();
   readonly hasUpdate = input.required<boolean>();
@@ -35,12 +39,6 @@ export class TeamAccountsComponent implements OnInit {
       total: 0,
     },
   };
-
-  constructor(
-    private readonly collectionApi: CollectionApiService,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly graphUtil: GraphUtilService,
-  ) {}
 
   ngOnInit() {
     this.collectionApi

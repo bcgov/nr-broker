@@ -42,6 +42,12 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   styleUrl: './service-build-details.component.scss',
 })
 export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly packageApi = inject(PackageApiService);
+  private readonly packageUtil = inject(PackageUtilService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+
   collection!: CollectionNames;
   serviceId!: string;
   vertex!: string;
@@ -63,15 +69,9 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   loading = true;
   data: PackageBuildDto | undefined;
 
-  private ngUnsubscribe: Subject<any> = new Subject();
+  private ngUnsubscribe = new Subject<any>();
 
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly collectionApi: CollectionApiService,
-    private readonly packageApi: PackageApiService,
-    private readonly packageUtil: PackageUtilService,
-    private readonly collectionUtil: CollectionUtilService,
-  ) {
+  constructor() {
     inject(BreakpointObserver)
       .observe([
         Breakpoints.XSmall,

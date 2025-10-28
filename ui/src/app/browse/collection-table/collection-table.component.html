@@ -118,7 +118,7 @@
           <ng-container matColumnDef="action-caa4f8db8b42">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
-              @if (screenSize == 'wide') {
+              @if (screenSize === 'wide') {
                 <button
                   mat-stroked-button
                   extended
@@ -134,7 +134,7 @@
                   <mat-icon>account_tree</mat-icon>
                 </button>
               }
-              @if (collection() == 'team') {
+              @if (collection() === 'team') {
                 <app-inspector-team
                   class="collection-btn"
                   [vertex]="element.collection.vertex"

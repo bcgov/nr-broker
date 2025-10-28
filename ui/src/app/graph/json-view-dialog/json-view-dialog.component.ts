@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   MatDialogRef,
   MAT_DIALOG_DATA,
@@ -13,10 +13,11 @@ import { MatButtonModule } from '@angular/material/button';
     imports: [MatDialogModule, MatButtonModule]
 })
 export class JsonViewDialogComponent {
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public readonly data: { json: any },
-    public readonly dialogRef: MatDialogRef<JsonViewDialogComponent>,
-  ) {}
+  readonly data = inject<{
+    json: any;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<JsonViewDialogComponent>>(MatDialogRef);
+
 
   closeDialog() {
     this.dialogRef.close();

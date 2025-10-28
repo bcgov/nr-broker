@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +35,12 @@ interface ExpiryDay {
   styleUrls: ['./account-generate-dialog.component.scss'],
 })
 export class AccountGenerateDialogComponent {
+  readonly data = inject<{
+    accountId: string;
+}>(MAT_DIALOG_DATA);
+  private readonly clipboard = inject(Clipboard);
+  private readonly systemApi = inject(SystemApiService);
+
   token = '';
   selectedPeriod = 7776000;
   expiryList: ExpiryDay[] = [
@@ -44,15 +50,6 @@ export class AccountGenerateDialogComponent {
   ];
   patchVaultTools = true;
   syncGithub = true;
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      accountId: string;
-    },
-    private readonly clipboard: Clipboard,
-    private readonly systemApi: SystemApiService,
-  ) {}
 
   generate() {
     this.systemApi

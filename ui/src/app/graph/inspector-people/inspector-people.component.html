@@ -38,6 +38,6 @@
     <tr mat-row *matRowDef="let element; columns: propPeopleDisplayedColumns();" class="element-row"></tr>
   </table>
 }
-@if (collectionPeople && collectionPeople.length == 0) {
+@if (collectionPeople && collectionPeople.length === 0) {
   <div class="people-none">None</div>
 }
