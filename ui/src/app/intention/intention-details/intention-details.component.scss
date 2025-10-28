@@ -41,6 +41,23 @@
   background: var(--mat-sys-surface-container-high);
 }
 
+.details-message {
+  display: flex;
+  align-items: center;
+  background: var(--mat-sys-surface-container-high);
+  margin: 0 0 24px;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.details-message .info-icon {
+  margin-right: 8px;
+}
+
+.details-message .info-text {
+  flex: 1;
+}
+
 .artifact-container.narrow .artifact-card {
   width: 50%;
 }
