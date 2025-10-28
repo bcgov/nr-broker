@@ -33,7 +33,7 @@ export const CollectionDtoUnionObject = {
   team: TeamDto,
   user: UserDto,
 };
-export type CollectionBaseDtoUnion = {
+export interface CollectionBaseDtoUnion {
   brokerAccount: BrokerAccountBaseDto;
   environment: EnvironmentBaseDto;
   project: ProjectBaseDto;
@@ -43,8 +43,8 @@ export type CollectionBaseDtoUnion = {
   service: ServiceBaseDto;
   team: TeamBaseDto;
   user: UserBaseDto;
-};
-export type CollectionDtoUnion = {
+}
+export interface CollectionDtoUnion {
   brokerAccount: BrokerAccountDto;
   environment: EnvironmentDto;
   project: ProjectDto;
@@ -54,7 +54,7 @@ export type CollectionDtoUnion = {
   service: ServiceDto;
   team: TeamDto;
   user: UserDto;
-};
+}
 
 export const CollectionBaseSubTypes = Object.entries(
   CollectionBaseDtoUnionObject,
@@ -66,9 +66,7 @@ export const CollectionBaseSubTypes = Object.entries(
 export type CollectionNames = keyof CollectionDtoUnion;
 export type CollectionValues = CollectionDtoUnion[CollectionNames];
 
-export const CollectionNameEnum: {
-  [Property in CollectionNames]: number;
-} = {
+export const CollectionNameEnum: Record<CollectionNames, number> = {
   environment: 0,
   project: 1,
   service: 2,

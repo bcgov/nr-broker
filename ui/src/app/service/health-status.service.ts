@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, startWith, switchMap } from 'rxjs';
 
@@ -9,12 +9,14 @@ import { HealthCheckDto } from './health/health-check.dto';
   providedIn: 'root',
 })
 export class HealthStatusService {
+  private readonly http = inject(HttpClient);
+
   private healthSubject = new BehaviorSubject<
     HealthCheckDto | null | undefined
   >(undefined);
   public health$ = this.healthSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {
+  constructor() {
     this.startPolling();
   }
 

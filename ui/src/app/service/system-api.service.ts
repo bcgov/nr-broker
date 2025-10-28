@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { filter, finalize, map, Observable, share } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
 
@@ -14,10 +14,9 @@ import { ConnectionConfigDto } from './persistence/dto/connection-config.dto';
   providedIn: 'root',
 })
 export class SystemApiService {
-  constructor(
-    private readonly http: HttpClient,
-    private sseClient: SseClient,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private sseClient = inject(SseClient);
+
 
   static accountEventObserver: Observable<any> | null = null;
 

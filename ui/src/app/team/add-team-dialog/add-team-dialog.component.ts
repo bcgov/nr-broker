@@ -1,4 +1,4 @@
-import { Component, Inject, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject, OnInit } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -28,26 +28,23 @@ import { CollectionUtilService } from '../../service/collection-util.service';
   templateUrl: './add-team-dialog.component.html',
   styleUrl: './add-team-dialog.component.scss',
 })
-export class AddTeamDialogComponent {
+export class AddTeamDialogComponent implements OnInit {
+  readonly data = inject<{
+    configMap: CollectionConfigNameRecord;
+    collection?: string;
+    vertexId?: string;
+    data?: any;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<AddTeamDialogComponent>>(MatDialogRef);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   public config: CollectionConfigDto | undefined;
 
   @ViewChild(VertexFormBuilderComponent)
   private formComponent!: VertexFormBuilderComponent;
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      configMap: CollectionConfigNameRecord;
-      collection?: string;
-      vertexId?: string;
-      data?: any;
-    },
-    public readonly dialogRef: MatDialogRef<AddTeamDialogComponent>,
-    private readonly graphApi: GraphApiService,
-    private readonly graphUtil: GraphUtilService,
-    private readonly collectionUtil: CollectionUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-  ) {}
 
   ngOnInit(): void {
     this.config = this.collectionUtil.getCollectionConfigByName('team');

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, EventEmitter, Output, input, inject } from '@angular/core';
 
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,12 +12,12 @@ import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.co
   styleUrls: ['./inspector-team.component.scss'],
 })
 export class InspectorTeamComponent {
+  private readonly dialog = inject(MatDialog);
+
   readonly vertex = input.required<any | undefined>();
   readonly name = input.required<any | undefined>();
   readonly screenSize = input.required<string>();
   @Output() graphChanged = new EventEmitter<boolean>();
-
-  constructor(private readonly dialog: MatDialog) {}
 
   openMemberDialog() {
     const vertex = this.vertex();

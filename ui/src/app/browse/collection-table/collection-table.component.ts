@@ -1,16 +1,4 @@
-import {
-  Component,
-  effect,
-  inject,
-  Inject,
-  numberAttribute,
-  input,
-  output,
-  computed,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -82,7 +70,7 @@ export interface TableQuery {
   collection: CollectionNames;
   text: string;
   showFilter: ShowFilter;
-  tags: Array<string>;
+  tags: string[];
   sortActive: string;
   sortDirection: string;
   index: number;
@@ -114,6 +102,14 @@ export interface TableQuery {
   styleUrl: './collection-table.component.scss',
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
+  readonly permission = inject(PermissionService);
+  private readonly router = inject(Router);
+  private readonly collectionApi = inject(CollectionApiService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+  readonly graphUtil = inject(GraphUtilService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly configArr = inject(CONFIG_ARR);
+
   collection = input.required<CollectionNames>();
   collectionOptions = input<CollectionNames[]>([]);
   upstreamId = input<string>();
@@ -142,7 +138,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   total = 0;
   loading = true;
 
-  screenSize: string = '';
+  screenSize = '';
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
     [Breakpoints.XSmall, 'narrow'],
@@ -182,18 +178,11 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   });
 
   private triggerRefresh = new Subject<number>();
-  private ngUnsubscribe: Subject<any> = new Subject();
+  private ngUnsubscribe = new Subject<any>();
 
-  constructor(
-    public readonly permission: PermissionService,
-    private readonly router: Router,
-    private readonly collectionApi: CollectionApiService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    public readonly graphUtil: GraphUtilService,
-    @Inject(CONFIG_RECORD)
-    private readonly configRecord: CollectionConfigNameRecord,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-  ) {
+  constructor() {
+    const configRecord = this.configRecord;
+
     effect(() => {
       this.sort$.next({
         active: this.sortActive(),

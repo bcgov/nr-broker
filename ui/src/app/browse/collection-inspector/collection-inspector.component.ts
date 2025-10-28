@@ -1,16 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import {
-  Component,
-  computed,
-  inject,
-  Inject,
-  input,
-  effect,
-  numberAttribute,
-  OnDestroy,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
@@ -120,11 +109,26 @@ import { HealthStatusService } from '../../service/health-status.service';
   styleUrl: './collection-inspector.component.scss',
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly permission = inject(PermissionService);
+  readonly collectionUtil = inject(CollectionUtilService);
+  readonly healthStatus = inject(HealthStatusService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   // Url params
   public collection = input<CollectionNames>('project');
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   public collectionId = input('', { alias: 'id' });
   public selectedTabIndex = input(0, {
     transform: (v) => numberAttribute(v, 0),
+    // eslint-disable-next-line @angular-eslint/no-input-rename
     alias: 'index',
   });
 
@@ -156,7 +160,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   refresh = signal(0);
-  screenSize: string = '';
+  screenSize = '';
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -185,23 +189,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     [Breakpoints.XLarge, 'wide'],
   ]);
 
-  private ngUnsubscribe: Subject<any> = new Subject();
+  private ngUnsubscribe = new Subject<any>();
 
-  constructor(
-    private readonly router: Router,
-    private readonly location: Location,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly dialog: MatDialog,
-    private readonly snackBar: MatSnackBar,
-    private readonly graphApi: GraphApiService,
-    private readonly graphUtil: GraphUtilService,
-    private readonly collectionApi: CollectionApiService,
-    private readonly permission: PermissionService,
-    public readonly collectionUtil: CollectionUtilService,
-    public readonly healthStatus: HealthStatusService,
-    @Inject(CONFIG_RECORD)
-    private readonly configRecord: CollectionConfigNameRecord,
-  ) {
+  constructor() {
     effect(() => {
       const collectionOptions = this.config()?.connectedTable;
       if (collectionOptions && collectionOptions[0]) {

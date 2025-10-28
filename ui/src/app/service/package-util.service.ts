@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { CollectionApiService } from './collection-api.service';
@@ -8,12 +8,11 @@ import { GraphApiService } from './graph-api.service';
   providedIn: 'root',
 })
 export class PackageUtilService {
-  constructor(
-    private readonly router: Router,
-    private readonly collectionApi: CollectionApiService,
-    private readonly graphApi: GraphApiService,
-    private readonly snackBar: MatSnackBar,
-  ) {}
+  private readonly router = inject(Router);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly snackBar = inject(MatSnackBar);
+
 
   async openPackageBuildVersion(vertexId: string, version: string) {
     this.graphApi

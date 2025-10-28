@@ -1,4 +1,4 @@
-import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -63,6 +63,16 @@ import { CollectionNames } from '../service/persistence/dto/collection-dto-union
   ],
 })
 export class GraphComponent implements OnInit, OnDestroy {
+  readonly permission = inject(PermissionService);
+  readonly graphUtil = inject(GraphUtilService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+  readonly configArr = inject(CONFIG_ARR);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly preferences = inject(PreferencesService);
+
   public data!: Observable<GraphDataConfig>;
   public selected: InspectorTarget | undefined = undefined;
   public showFilter: 'connected' | 'all' =
@@ -75,21 +85,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   private inspectorComponent!: InspectorComponent;
 
   private triggerRefresh = new BehaviorSubject(true);
-  private ngUnsubscribe: Subject<any> = new Subject();
+  private ngUnsubscribe = new Subject<any>();
   private latestData: GraphData | null = null;
-
-  constructor(
-    public readonly permission: PermissionService,
-    public readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-    private readonly dialog: MatDialog,
-    private readonly route: ActivatedRoute,
-    private readonly graphApi: GraphApiService,
-    private readonly preferences: PreferencesService,
-  ) {}
 
   ngOnInit(): void {
     this.preferences.onSet

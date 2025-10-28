@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, OnChanges, OnDestroy, OnInit, SimpleChanges, input, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -43,6 +36,11 @@ import { HealthStatusService } from '../../service/health-status.service';
   styleUrls: ['./inspector-account.component.scss'],
 })
 export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly systemApi = inject(SystemApiService);
+  readonly healthStatus = inject(HealthStatusService);
+
   readonly account = input.required<BrokerAccountDto>();
   readonly userIndex = input.required<number | undefined>();
   readonly hasSudo = input(false);
@@ -61,13 +59,6 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   propDisplayedColumns: string[] = ['key', 'value'];
 
   private tokenUpdateSubscription: Subscription | undefined;
-
-  constructor(
-    private readonly dialog: MatDialog,
-    private readonly snackBar: MatSnackBar,
-    private readonly systemApi: SystemApiService,
-    public readonly healthStatus: HealthStatusService,
-  ) {}
 
   ngOnInit(): void {
     this.tokenUpdateSubscription = this.systemApi

@@ -14,7 +14,7 @@
 </div>
 }
 
-@if (this.tableData.length == 0 && !loading) {
+@if (this.tableData.length === 0 && !loading) {
   <div class="edge-container intention-none">None</div>
 }
 
@@ -74,7 +74,7 @@
     *matCellDef="let element"
     [attr.colspan]="propDisplayedColumnsWithExpand.length">
     <div class="element-detail"
-      [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+      [@detailExpand]="element === expandedElement ? 'expanded' : 'collapsed'">
     <app-inspector-installs
       [pointers]="element.actionHistory"
       ></app-inspector-installs>

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 
-export type Color = {
+export interface Color {
   r: number;
   g: number;
   b: number;
-};
+}
 
 @Injectable({
   providedIn: 'root',

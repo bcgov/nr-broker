@@ -1,8 +1,8 @@
-@if (total == 0) {
+@if (total === 0) {
   <div class="edge-container intention-none">None</div>
 } @else {
   <app-history-table
-    [actionServiceFilter]="collection() == 'service' ? name() : ''"
+    [actionServiceFilter]="collection() === 'service' ? name() : ''"
     [intentionData]="intentions"
     [layout]="layout()"
     [showHeader]="showHeader()"

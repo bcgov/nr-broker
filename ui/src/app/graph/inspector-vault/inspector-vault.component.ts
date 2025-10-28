@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, input } from '@angular/core';
+import { Component, EventEmitter, Input, Output, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +26,10 @@ import { PermissionService } from '../../service/permission.service';
   styleUrl: './inspector-vault.component.scss',
 })
 export class InspectorVaultComponent {
+  private readonly permission = inject(PermissionService);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly dialog = inject(MatDialog);
+
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
@@ -33,12 +37,6 @@ export class InspectorVaultComponent {
   readonly isAdministrator = input.required<boolean>();
 
   @Output() refreshData = new EventEmitter();
-
-  constructor(
-    private readonly permission: PermissionService,
-    private readonly graphApi: GraphApiService,
-    private readonly dialog: MatDialog,
-  ) {}
 
   totalDuration(val: any) {
     return prettyMilliseconds(val * 1000);

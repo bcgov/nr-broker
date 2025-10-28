@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,11 +29,8 @@ import { MatButtonModule } from '@angular/material/button';
     styleUrl: './inspector-service-secure-dialog.component.scss'
 })
 export class InspectorServiceSecureDialogComponent {
-  reveal = false;
+  readonly data = inject(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<InspectorServiceSecureDialogComponent>>(MatDialogRef);
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: any,
-    public readonly dialogRef: MatDialogRef<InspectorServiceSecureDialogComponent>,
-  ) {}
+  reveal = false;
 }

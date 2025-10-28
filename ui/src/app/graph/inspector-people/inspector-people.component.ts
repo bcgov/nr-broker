@@ -1,11 +1,4 @@
-import {
-  Component,
-  Inject,
-  OnChanges,
-  booleanAttribute,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, OnChanges, booleanAttribute, computed, input, inject } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,6 +40,10 @@ interface UserData {
   styleUrl: './inspector-people.component.scss',
 })
 export class InspectorPeopleComponent implements OnChanges {
+  private readonly graphApi = inject(GraphApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   readonly collection = input.required<CollectionNames>();
   readonly vertex = input.required<string>();
   readonly showLinked = input(false, { transform: booleanAttribute });
@@ -59,13 +56,6 @@ export class InspectorPeopleComponent implements OnChanges {
     return this.showLinked() ? ['name', 'role', 'linked'] : ['name', 'role'];
   });
 
-  constructor(
-    private readonly graphApi: GraphApiService,
-    private readonly collectionUtil: CollectionUtilService,
-    @Inject(CONFIG_RECORD)
-    public readonly configMap: CollectionConfigNameRecord,
-  ) {}
-
   ngOnChanges() {
     if (this.configMap['user']) {
       this.edges = this.configMap['user'].edges.filter(
@@ -74,7 +64,7 @@ export class InspectorPeopleComponent implements OnChanges {
     }
 
     this.getUpstreamUsers(this.vertex()).subscribe((data) => {
-      const userMap: Map<string, UserData> = new Map();
+      const userMap = new Map<string, UserData>();
 
       for (const upstream of data) {
         if (!userMap.has(upstream.collection.id)) {
@@ -107,7 +97,7 @@ export class InspectorPeopleComponent implements OnChanges {
   }
 
   private getUpstreamUsers(vertexId: string) {
-    const mapCollectionToEdgeName: { [key: string]: string[] } = {
+    const mapCollectionToEdgeName: Record<string, string[]> = {
       repository: [
         'developer',
         'lead-developer',

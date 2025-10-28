@@ -1,13 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  EventEmitter,
-  Inject,
-  Output,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, EventEmitter, Output, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
@@ -45,6 +36,13 @@ import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
   ],
 })
 export class ToolbarComponent implements OnInit, OnDestroy {
+  private readonly dialog = inject(MatDialog);
+  private readonly healthService = inject(HealthStatusService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly preferences = inject(PreferencesService);
+  private readonly snackBar = inject(MatSnackBar);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   @Output() readonly sidebarClick = new EventEmitter<boolean>();
 
   readonly healthStatus = signal<boolean | undefined>(undefined);
@@ -53,15 +51,6 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   });
   private showLinkDialog = false;
   private unsubscribe = new Subject<void>();
-
-  constructor(
-    private readonly dialog: MatDialog,
-    private readonly healthService: HealthStatusService,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly preferences: PreferencesService,
-    private readonly snackBar: MatSnackBar,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-  ) {}
 
   ngOnInit(): void {
     if (!this.user.alias && !this.preferences.get('ignoreGitHubLink')) {

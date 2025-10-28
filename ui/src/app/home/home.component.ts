@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -29,17 +29,15 @@ import { PreferencesService } from '../preferences.service';
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  private readonly systemApiService = inject(SystemApiService);
+  private readonly preferences = inject(PreferencesService);
+
   loading = true;
   selectedTabIndex = 0;
   services: ConnectionConfigDto[] = [];
   documents: ConnectionConfigDto[] = [];
   @ViewChild(MatRipple, { static: true }) ripple!: MatRipple;
   private intervalId: any;
-
-  constructor(
-    private readonly systemApiService: SystemApiService,
-    private readonly preferences: PreferencesService,
-  ) {}
 
   ngOnInit(): void {
     this.systemApiService.getConnectionConfig().subscribe((data) => {

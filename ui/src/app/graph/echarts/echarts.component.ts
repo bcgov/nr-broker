@@ -1,12 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  Output,
-  OnInit,
-  EventEmitter,
-  Inject,
-  input,
-} from '@angular/core';
+import { Component, ElementRef, Output, OnInit, EventEmitter, input, inject, OnDestroy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsCoreOption } from 'echarts/core';
 import * as echarts from 'echarts/core';
@@ -27,7 +19,6 @@ import {
 import { ChartClickTarget, GraphDataConfig } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PreferencesService } from '../../preferences.service';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
@@ -40,7 +31,12 @@ echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
   imports: [NgxEchartsDirective, AsyncPipe],
   providers: [provideEchartsCore({ echarts })],
 })
-export class EchartsComponent implements OnInit {
+export class EchartsComponent implements OnInit, OnDestroy {
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly preferences = inject(PreferencesService);
+  private readonly elRef = inject(ElementRef);
+  private readonly configArr = inject(CONFIG_ARR);
+
   readonly dataConfig = input.required<Observable<GraphDataConfig>>();
   @Output() selected = new EventEmitter<ChartClickTarget>();
   @Output() legendChanged = new EventEmitter<{
@@ -52,15 +48,8 @@ export class EchartsComponent implements OnInit {
   loading!: boolean;
   echartsInstance: ECharts | undefined;
   private triggerRefresh = new BehaviorSubject(true);
-  private ngUnsubscribe: Subject<any> = new Subject();
+  private ngUnsubscribe = new Subject<any>();
   private prefSubscription!: Subscription;
-
-  constructor(
-    private readonly graphUtil: GraphUtilService,
-    private readonly preferences: PreferencesService,
-    private readonly elRef: ElementRef,
-    @Inject(CONFIG_ARR) private readonly configArr: CollectionConfigDto[],
-  ) {}
 
   ngOnInit(): void {
     this.loading = true;
@@ -159,7 +148,7 @@ export class EchartsComponent implements OnInit {
                       : dataConfig.config[key as CollectionNames].show;
                   return pv;
                 },
-                {} as { [key: string]: boolean },
+                {} as Record<string, boolean>,
               ),
               data: graph.categories.map(function (a: any) {
                 return { name: a.name };

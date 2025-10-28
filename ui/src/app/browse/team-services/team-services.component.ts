@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject, OnInit } from '@angular/core';
 import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +25,9 @@ import { TeamServiceRequestComponent } from '../../team/team-service-request/tea
   templateUrl: './team-services.component.html',
   styleUrl: './team-services.component.scss',
 })
-export class TeamServicesComponent {
+export class TeamServicesComponent implements OnInit {
+  private readonly graphApi = inject(GraphApiService);
+
   readonly teamVertex = input.required<string>();
 
   propDisplayedColumns: string[] = ['key', 'value'];
@@ -33,8 +35,6 @@ export class TeamServicesComponent {
   activeServices: CollectionConfigInstanceDto[] = [];
   requestServices: CollectionConfigInstanceDto[] = [];
   serviceCount = 0;
-
-  constructor(private readonly graphApi: GraphApiService) {}
 
   ngOnInit() {
     this.graphApi

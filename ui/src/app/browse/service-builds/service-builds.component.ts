@@ -1,16 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {
-  AfterViewInit,
-  Component,
-  OnDestroy,
-  OnInit,
-  input,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
-import { PackageApiService } from '../../service/package-api.service';
-import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
 import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -28,6 +20,8 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CollectionUtilService } from '../../service/collection-util.service';
+import { PackageApiService } from '../../service/package-api.service';
+import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
 
 interface TablePageQuery {
   index: number;
@@ -51,8 +45,13 @@ interface TablePageQuery {
   styleUrl: './service-builds.component.scss',
 })
 export class ServiceBuildsComponent
-  implements AfterViewInit, OnInit, OnDestroy
+  implements OnInit, OnDestroy
 {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly packageApi = inject(PackageApiService);
+
   readonly serviceId = input.required<string>();
   readonly isApprover = input.required<boolean>();
 
@@ -65,9 +64,7 @@ export class ServiceBuildsComponent
   page$ = new Subject<TablePageQuery>();
   sort$ = new Subject<Sort>();
 
-  public disableApprove: {
-    [key: string]: boolean;
-  } = {};
+  public disableApprove: Record<string, boolean> = {};
 
   propDisplayedColumns: string[] = [
     'version',
@@ -79,22 +76,15 @@ export class ServiceBuildsComponent
 
   private triggerRefresh = new Subject<number>();
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly packageApi: PackageApiService,
-  ) {}
-
-  ngAfterViewInit() {
-    // console.log('ngAfterViewInit');
-    // this.sort.sortChange.asObservable().subscribe({
-    //   next: (v) => {
-    //     this.pageIndexReset();
-    //     this.sort$.next(v);
-    //   },
-    // });
-  }
+  // ngAfterViewInit() {
+  //   // console.log('ngAfterViewInit');
+  //   // this.sort.sortChange.asObservable().subscribe({
+  //   //   next: (v) => {
+  //   //     this.pageIndexReset();
+  //   //     this.sort$.next(v);
+  //   //   },
+  //   // });
+  // }
 
   ngOnInit(): void {
     // console.log('ngOnInit');

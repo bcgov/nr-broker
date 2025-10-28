@@ -1,10 +1,4 @@
-import {
-  Component,
-  Inject,
-  OnChanges,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -31,16 +25,14 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './inspector-service-secure.component.scss',
 })
 export class InspectorServiceSecureComponent implements OnChanges {
+  private readonly collectionApi = inject(CollectionApiService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+  private readonly dialog = inject(MatDialog);
+
   readonly service = input.required<ServiceDto>();
   readonly userIndex = input<number | undefined>();
   data: any;
   reveal = false;
-
-  constructor(
-    private readonly collectionApi: CollectionApiService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    private readonly dialog: MatDialog,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['service']) {

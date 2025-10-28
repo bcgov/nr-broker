@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
@@ -12,7 +12,8 @@ import {
   providedIn: 'root',
 })
 export class GraphUtilService {
-  constructor(private readonly router: Router) {}
+  private readonly router = inject(Router);
+
 
   static configArrToSrcTarRecord(
     configArr: CollectionConfigDto[],

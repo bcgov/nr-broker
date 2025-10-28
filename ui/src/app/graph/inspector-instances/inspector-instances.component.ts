@@ -1,12 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Inject,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, EventEmitter, OnChanges, Output, SimpleChanges, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -58,6 +50,11 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   styleUrl: './inspector-instances.component.scss',
 })
 export class InspectorInstancesComponent implements OnChanges {
+  readonly permission = inject(PermissionService);
+  private readonly dialog = inject(MatDialog);
+  private readonly graphApi = inject(GraphApiService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+
   readonly vertex = input.required<VertexDto>();
   readonly vertices = input.required<GraphDirectedCombo[]>();
   readonly service = input.required<ServiceDto>();
@@ -74,13 +71,6 @@ export class InspectorInstancesComponent implements OnChanges {
     'expand',
   ];
   expandedElement: any | null;
-
-  constructor(
-    public readonly permission: PermissionService,
-    private readonly dialog: MatDialog,
-    private readonly graphApi: GraphApiService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['details']) {

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   CollectionDtoUnion,
@@ -14,12 +14,10 @@ import { CollectionConfigNameRecord } from './graph.types';
   providedIn: 'root',
 })
 export class CollectionUtilService {
-  constructor(
-    private readonly router: Router,
-    private readonly collectionApi: CollectionApiService,
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
+  private readonly router = inject(Router);
+  private readonly collectionApi = inject(CollectionApiService);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
 
   static configArrToMap(
     configArr: CollectionConfigDto[],

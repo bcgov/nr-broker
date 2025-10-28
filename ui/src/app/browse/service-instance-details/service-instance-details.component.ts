@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, input } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -28,6 +28,11 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   styleUrl: './service-instance-details.component.scss',
 })
 export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly router = inject(Router);
+
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
@@ -36,13 +41,6 @@ export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
   serverSelection: any | undefined;
 
   current: IntentionActionPointerDto | undefined;
-
-  constructor(
-    private readonly dialog: MatDialog,
-    private readonly snackBar: MatSnackBar,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly router: Router,
-  ) {}
 
   ngOnChanges(): void {
     this.ngOnInit();
@@ -73,6 +71,7 @@ export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
   openUserInBrowserByGuid(guid: string) {
     try {
       this.collectionUtil.openUserInBrowserByGuid(guid);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       const config = new MatSnackBarConfig();
       config.duration = 5000;

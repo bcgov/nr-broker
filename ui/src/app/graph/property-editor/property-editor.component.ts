@@ -61,7 +61,7 @@ export class PropertyEditorComponent implements OnInit {
           }
           return pv;
         },
-        {} as { [key: string]: string },
+        {} as Record<string, string>,
       ),
     };
   }

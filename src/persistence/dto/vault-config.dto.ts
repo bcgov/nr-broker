@@ -79,13 +79,9 @@ export function IsStringOrStringArray(validationOptions?: ValidationOptions) {
 
 export class VaultActorPoliciesDto {
   @IsDefined()
-  approle!: {
-    [key: string]: ReadonlyArray<string>;
-  };
+  approle!: Record<string, readonly string[]>;
   @IsDefined()
-  developer!: {
-    [key: string]: ReadonlyArray<string>;
-  };
+  developer!: Record<string, readonly string[]>;
 }
 
 export class VaultConfigApproleDto {

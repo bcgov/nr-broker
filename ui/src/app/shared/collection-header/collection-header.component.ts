@@ -1,10 +1,4 @@
-import {
-  Component,
-  Inject,
-  OnChanges,
-  SimpleChanges,
-  input,
-} from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -23,7 +17,11 @@ import { GraphDirectedCombo } from '../../service/persistence/dto/collection-com
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',
 })
-export class CollectionHeaderComponent implements OnChanges {
+export class CollectionHeaderComponent implements OnChanges, OnInit {
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   readonly collection = input.required<CollectionNames>();
   readonly name = input.required<string>();
   readonly screenSize = input.required<string>();
@@ -33,13 +31,6 @@ export class CollectionHeaderComponent implements OnChanges {
   parentName = '';
 
   config: CollectionConfigDto | undefined;
-
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    @Inject(CONFIG_RECORD)
-    private readonly configMap: CollectionConfigNameRecord,
-  ) {}
 
   ngOnInit(): void {
     this.parentName = '';

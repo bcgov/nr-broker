@@ -20,7 +20,7 @@
 <mat-card appearance="outlined">
   <mat-card-content>
 
-  @if (details.serviceInstance.length == 0) {
+  @if (details.serviceInstance.length === 0) {
     <p class="no-instances">No instances found</p>
   }
   @for(env of envs; track env.id; let last = $last) {

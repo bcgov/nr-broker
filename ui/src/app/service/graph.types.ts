@@ -73,12 +73,8 @@ export interface GraphDataResponseEdgeEntityWithConfig
 
 export interface GraphData extends GraphDataResponseDto {
   edges: GraphDataResponseEdgeEntityWithConfig[];
-  idToEdge: {
-    [key: string]: GraphDataResponseEdgeEntity;
-  };
-  idToVertex: {
-    [key: string]: GraphDataVertex;
-  };
+  idToEdge: Record<string, GraphDataResponseEdgeEntity>;
+  idToVertex: Record<string, GraphDataVertex>;
 }
 
 // forward: inbound / reverse: outbound
@@ -91,9 +87,7 @@ export interface VertexNavigation {
   connections: ConnectionMap;
 }
 
-export interface ConnectionMap {
-  [key: string]: Connection[];
-}
+export type ConnectionMap = Record<string, Connection[]>;
 
 export interface Connection {
   edge: GraphDataResponseEdgeEntity;

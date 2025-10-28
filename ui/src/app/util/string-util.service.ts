@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { CollectionNames } from '../service/persistence/dto/collection-dto-union.type';
 
 import { CONFIG_RECORD } from '../app-initialize.factory';
@@ -8,10 +8,8 @@ import { CollectionConfigNameRecord } from '../service/graph.types';
   providedIn: 'root',
 })
 export class StringUtilService {
-  constructor(
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
 
   snakecase(str: string) {
     if (!str) {

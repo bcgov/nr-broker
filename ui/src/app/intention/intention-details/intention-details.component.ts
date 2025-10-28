@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, input, Output, OnDestroy } from '@angular/core';
 import { Subject, switchMap, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -47,7 +47,15 @@ import { CommonModule } from '@angular/common';
   templateUrl: './intention-details.component.html',
   styleUrl: './intention-details.component.scss',
 })
-export class IntentionDetailsComponent {
+export class IntentionDetailsComponent implements OnDestroy {
+  private readonly router = inject(Router);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly packageUtil = inject(PackageUtilService);
+  private readonly snackBar = inject(MatSnackBar);
+  readonly intentionUtil = inject(IntentionUtilService);
+
   screenSize: 'narrow' | 'normal' = 'normal';
   intention = input.required<IntentionDto>();
 
@@ -73,15 +81,7 @@ export class IntentionDetailsComponent {
   });
   @Output() viewIntentionEvent = new EventEmitter<string>();
 
-  constructor(
-    private readonly router: Router,
-    private readonly collectionApi: CollectionApiService,
-    private readonly collectionUtil: CollectionUtilService,
-    private readonly graphUtil: GraphUtilService,
-    private readonly packageUtil: PackageUtilService,
-    private readonly snackBar: MatSnackBar,
-    public readonly intentionUtil: IntentionUtilService,
-  ) {
+  constructor() {
     inject(BreakpointObserver)
       .observe([
         Breakpoints.XSmall,
@@ -161,7 +161,7 @@ export class IntentionDetailsComponent {
   }
 
   openCollection(
-    $event: MouseEvent,
+    $event: MouseEvent | Event,
     collection: keyof CollectionDtoUnion,
     key: string,
     value: string,
@@ -178,7 +178,7 @@ export class IntentionDetailsComponent {
         }),
       )
       .subscribe((collectionDto) => {
-        if ($event.altKey) {
+        if ('altKey' in $event && ($event as MouseEvent).altKey) {
           this.graphUtil.openInGraph(collectionDto.vertex, 'vertex');
         } else {
           this.router.navigate([`/browse/${collection}/${collectionDto.id}`]);

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,9 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./delete-confirm-dialog.component.scss'],
 })
 export class DeleteConfirmDialogComponent {
-  constructor(
-    public readonly dialogRef: MatDialogRef<DeleteConfirmDialogComponent>,
-  ) {}
+  readonly dialogRef = inject<MatDialogRef<DeleteConfirmDialogComponent>>(MatDialogRef);
+
 
   confirm() {
     this.dialogRef.close({ confirm: true });

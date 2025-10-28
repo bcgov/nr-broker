@@ -1,11 +1,4 @@
-import {
-  Component,
-  Inject,
-  Input,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, inject } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -50,7 +43,6 @@ import { PermissionService } from '../../service/permission.service';
 import { InspectorConnectionsComponent } from '../inspector-connections/inspector-connections.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { EdgeComboDto } from '../../service/persistence/dto/edge-combo.dto';
@@ -84,6 +76,16 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {
+  private readonly permission = inject(PermissionService);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly dialog = inject(MatDialog);
+  private readonly preferences = inject(PreferencesService);
+  private readonly graphUtil = inject(GraphUtilService);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+  readonly configArr = inject(CONFIG_ARR);
+  readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
@@ -101,19 +103,6 @@ export class InspectorComponent implements OnChanges, OnInit {
   hasSudo = false;
   hasUpdate = false;
   hasDelete = false;
-
-  constructor(
-    private readonly permission: PermissionService,
-    private readonly graphApi: GraphApiService,
-    private readonly collectionApi: CollectionApiService,
-    private readonly dialog: MatDialog,
-    private readonly preferences: PreferencesService,
-    private readonly graphUtil: GraphUtilService,
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    @Inject(CONFIG_ARR) public readonly configArr: CollectionConfigDto[],
-    @Inject(CONFIG_RECORD)
-    public readonly configMap: CollectionConfigNameRecord,
-  ) {}
 
   ngOnInit(): void {
     this.hasAdmin = this.permission.hasAdmin();

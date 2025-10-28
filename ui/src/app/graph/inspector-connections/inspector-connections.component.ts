@@ -1,12 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Inject,
-  OnChanges,
-  OnInit,
-  Output,
-  input,
-} from '@angular/core';
+import { Component, EventEmitter, OnChanges, OnInit, Output, input, inject } from '@angular/core';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
@@ -40,6 +32,11 @@ import { ColorUtilService } from '../../util/color-util.service';
   styleUrl: './inspector-connections.component.scss',
 })
 export class InspectorConnectionsComponent implements OnInit, OnChanges {
+  private readonly preferences = inject(PreferencesService);
+  private readonly dialog = inject(MatDialog);
+  private readonly colorUtil = inject(ColorUtilService);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   readonly collection = input.required<CollectionNames>();
   readonly config = input.required<CollectionConfigDto>();
   readonly vertex = input.required<string>();
@@ -52,14 +49,6 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
 
   inboundConnections: GraphDirectedComboMap = {};
   outboundConnections: GraphDirectedComboMap = {};
-
-  constructor(
-    private readonly preferences: PreferencesService,
-    private readonly dialog: MatDialog,
-    private readonly colorUtil: ColorUtilService,
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-  ) {}
 
   ngOnChanges(): void {
     this.outboundConnections = this.groupEdges(this.downstream());

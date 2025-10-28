@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -64,6 +64,17 @@ import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component'
   ],
 })
 export class EdgeDialogComponent implements OnInit {
+  readonly data = inject<{
+    collection: CollectionNames;
+    source: VertexDto;
+    edge?: EdgeDto;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<EdgeDialogComponent>>(MatDialogRef);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
+
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex | symbol>('');
 
@@ -115,21 +126,6 @@ export class EdgeDialogComponent implements OnInit {
       },
     },
   );
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      collection: CollectionNames;
-      source: VertexDto;
-      edge?: EdgeDto;
-    },
-    public readonly dialogRef: MatDialogRef<EdgeDialogComponent>,
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-    private readonly graphApi: GraphApiService,
-    private readonly dialog: MatDialog,
-    private readonly snackBar: MatSnackBar,
-  ) {}
 
   ngOnInit(): void {
     this.configChanged();

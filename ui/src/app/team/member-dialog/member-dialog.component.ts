@@ -1,11 +1,4 @@
-import {
-  Component,
-  Inject,
-  OnDestroy,
-  OnInit,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
@@ -71,6 +64,19 @@ import { HealthStatusService } from '../../service/health-status.service';
   styleUrls: ['./member-dialog.component.scss'],
 })
 export class MemberDialogComponent implements OnInit, OnDestroy {
+  readonly permission = inject(PermissionService);
+  readonly dialogRef = inject<MatDialogRef<MemberDialogComponent>>(MatDialogRef);
+  readonly data = inject<{
+    vertex: string;
+    name: string;
+}>(MAT_DIALOG_DATA);
+  readonly user = inject<UserSelfDto>(CURRENT_USER);
+  readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly healthStatus = inject(HealthStatusService);
+
   edges: CollectionEdgeConfig[] | undefined;
   users: any = {};
 
@@ -85,20 +91,6 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   modified = false;
 
   accordion = viewChild.required(MatAccordion);
-
-  constructor(
-    public readonly permission: PermissionService,
-    public readonly dialogRef: MatDialogRef<MemberDialogComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: { vertex: string; name: string },
-    @Inject(CURRENT_USER) public readonly user: UserSelfDto,
-    @Inject(CONFIG_RECORD)
-    public readonly configRecord: CollectionConfigNameRecord,
-    private readonly graphApi: GraphApiService,
-    private readonly collectionApi: CollectionApiService,
-    private readonly snackBar: MatSnackBar,
-    private readonly healthStatus: HealthStatusService,
-  ) {}
 
   onUserRoleChange(name: string) {
     if (this.userRoleSelected() === name) {

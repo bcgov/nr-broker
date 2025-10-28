@@ -47,9 +47,7 @@ export class CollectionFieldSelectOption {
 export class CollectionFieldConfig {
   hint!: string;
   init?: 'uuid' | 'now';
-  mask?: {
-    [Property in UserPermissionNames]?: boolean | string[];
-  };
+  mask?: Partial<Record<UserPermissionNames, boolean | string[]>>;
   name!: string;
   placeholder?: string;
   required!: boolean;
@@ -142,18 +140,18 @@ export class LinksDto {
 export class CollectionSyncConfig {
   index!: string;
   unique!: string;
-  map!: {
-    [key: string]:
-      | {
-          type: 'first';
-          dest: string;
-        }
-      | {
-          type: 'pick';
-          endsWith: string[];
-          dest: string;
-        };
-  };
+  map!: Record<
+    string,
+    | {
+        type: 'first';
+        dest: string;
+      }
+    | {
+        type: 'pick';
+        endsWith: string[];
+        dest: string;
+      }
+  >;
 }
 
 export type CollectionConfigInstanceDto = Omit<CollectionConfigDto, 'edges'> & {

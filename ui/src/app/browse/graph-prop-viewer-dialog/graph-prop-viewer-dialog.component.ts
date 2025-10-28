@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -22,11 +22,8 @@ import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
   styleUrl: './graph-prop-viewer-dialog.component.scss',
 })
 export class GraphPropViewerDialogComponent {
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      prop: VertexPropDto | EdgePropDto;
-    },
-    public readonly dialogRef: MatDialogRef<GraphPropViewerDialogComponent>,
-  ) {}
+  readonly data = inject<{
+    prop: VertexPropDto | EdgePropDto;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<GraphPropViewerDialogComponent>>(MatDialogRef);
 }

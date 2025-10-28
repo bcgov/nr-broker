@@ -1,10 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, inject, AfterViewInit } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -44,7 +38,18 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
     VertexFormBuilderComponent,
   ],
 })
-export class VertexDialogComponent implements OnInit {
+export class VertexDialogComponent implements OnInit, AfterViewInit {
+  readonly data = inject<{
+    collection?: string;
+    data?: any;
+    vertex?: VertexDto;
+}>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject<MatDialogRef<VertexDialogComponent>>(MatDialogRef);
+  private readonly graphApi = inject(GraphApiService);
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+
   collectionControl = new FormControl<string | CollectionConfigDto>('');
   configs!: CollectionConfigDto[];
 
@@ -53,21 +58,6 @@ export class VertexDialogComponent implements OnInit {
 
   @ViewChild(PropertyEditorComponent)
   private propertyEditorComponent!: PropertyEditorComponent;
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public readonly data: {
-      collection?: string;
-      data?: any;
-      vertex?: VertexDto;
-    },
-    public readonly dialogRef: MatDialogRef<VertexDialogComponent>,
-    private readonly graphApi: GraphApiService,
-    private readonly graphUtil: GraphUtilService,
-    private readonly changeDetectorRef: ChangeDetectorRef,
-    @Inject(CONFIG_RECORD)
-    private readonly configRecord: CollectionConfigNameRecord,
-  ) {}
 
   ngOnInit() {
     this.configs = Object.values(this.configRecord)
