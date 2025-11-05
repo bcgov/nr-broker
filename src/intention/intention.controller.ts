@@ -54,13 +54,16 @@ export class IntentionController {
     @Query('ttl') ttl: number | undefined,
     @Query('quickstart') quickStart: boolean | undefined,
   ) {
+    if (quickStart) {
+      this.intentionService.quickStartPreflight(intentionDto);
+    }
     const intention = await this.intentionService.open(
       request,
       intentionDto,
       ttl,
     );
     if (quickStart) {
-      this.intentionService.quickStart(request, intention);
+      await this.intentionService.quickStart(request, intention);
     }
     return intention;
   }

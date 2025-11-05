@@ -4,7 +4,7 @@
 
 Once you have used your Broker Token to open an intention, you can use the provided action tokens to retrieve applications secrets from the Broker API.
 
-## Provisioning or Accessing
+## Provisioning or accessing
 
 The first step is to determine if you are provisioning an application or just accessing its secrets. In this context, provisioning means setting up an application to have continued access to the Vault. Accessing means you need temporary access to accomplish some goal.
 
@@ -15,7 +15,7 @@ The first step is to determine if you are provisioning an application or just ac
 
 It is not recommended to use the "access" pattern to simply copy the secrets and then do a continuous activity. The source of truth for the secrets should always be Vault. Tools like envconsul and consul-template should be used to manage the provisioned Vault token and keep the secrets that your application is using up-to-date.
 
-## Provisioning Action
+## Provisioning action
 
 **Examples:** Start an OpenShift pod, Run a server application on premise and other continuous activities
 

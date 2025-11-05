@@ -130,7 +130,7 @@ export class AuditService {
             category: 'session',
             dataset: 'broker.audit',
             kind: 'event',
-            outcome: action.valid ? 'success' : 'failure',
+            outcome: !action.ruleViolation ? 'success' : 'failure',
             provider: intention.event.provider,
             reason: intention.event.reason,
             type: 'info',
