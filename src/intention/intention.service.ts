@@ -363,18 +363,25 @@ export class IntentionService {
   }
 
   /**
-   * Quick start an intention with a single action
-   * @param req The associated request object
-   * @param openResp The intention open response to quick start
+   * Check intention for a single action compatible with quick start
+   * @param intentionDto The intention to check
    */
-  public async quickStart(req: Request, openResp: IntentionOpenResponse) {
-    if (openResp.actions && Object.keys(openResp.actions).length !== 1) {
+  public quickStartPreflight(intentionDto: IntentionDto) {
+    if (intentionDto.actions && intentionDto.actions.length !== 1) {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Quick start failure',
         error: ` Quick start intentions must have 1 action`,
       });
     }
+  }
+
+  /**
+   * Quick start an intention with a single action
+   * @param req The associated request object
+   * @param openResp The intention open response to quick start
+   */
+  public async quickStart(req: Request, openResp: IntentionOpenResponse) {
     const intention = await this.intentionRepository.getIntentionByToken(
       openResp.token,
     );
@@ -390,7 +397,7 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Quick start failure',
-        error: ` Quick start could not start action`,
+        error: `Quick start could not start action`,
       });
     }
   }

@@ -16,7 +16,8 @@
       },
       "package": {
         "version": "2.73.2-snapshot",
-        "name": "superapp-backend"
+        "name": "superapp-backend",
+        "license": "Apache License 2.0"
       }
     }
   ],

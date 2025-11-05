@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
   IsDefined,
   IsIn,
   IsOptional,
@@ -87,10 +86,6 @@ export class ActionDto {
   @IsOptional()
   @Type(() => UserDto)
   user?: UserDto;
-
-  @IsOptional()
-  @IsBoolean()
-  valid?: boolean;
 
   @IsOptional()
   @IsString()

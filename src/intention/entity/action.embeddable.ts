@@ -92,9 +92,6 @@ export abstract class ActionEmbeddable {
   @Embedded({ entity: () => UserEmbeddable, object: true })
   user: UserEmbeddable;
 
-  @Property({ nullable: true })
-  valid?: boolean;
-
   @Enum({ items: () => ENVIRONMENT_NAMES, nullable: true })
   vaultEnvironment?: ENVIRONMENT_NAMES | undefined;
 
