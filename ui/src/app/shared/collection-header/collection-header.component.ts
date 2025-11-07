@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject, OnInit } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -22,24 +22,27 @@ export class CollectionHeaderComponent implements OnChanges, OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
+  // Inputs
   readonly collection = input.required<CollectionNames>();
   readonly name = input.required<string>();
   readonly screenSize = input.required<string>();
   readonly backSteps = input(1);
   readonly navigateCommands = input<any>();
+  readonly backIcon = input<'arrow_upward' | 'arrow_back'>('arrow_upward');
   readonly upstream = input<GraphDirectedCombo[]>();
-  parentName = '';
 
-  config: CollectionConfigDto | undefined;
+  protected parentName = signal('');
+  protected config = signal<CollectionConfigDto | undefined>(undefined);
 
   ngOnInit(): void {
-    this.parentName = '';
-    this.config = this.configMap[this.collection()];
+    this.parentName.set('');
+    this.config.set(this.configMap[this.collection()]);
     const upstreamValue = this.upstream();
-    if (this.config?.parent?.edgeName && upstreamValue) {
+    const config = this.config();
+    if (config?.parent?.edgeName && upstreamValue) {
       for (const upstream of upstreamValue) {
-        if (upstream.edge.name === this.config.parent.edgeName) {
-          this.parentName = upstream.vertex.name;
+        if (upstream.edge.name === config.parent.edgeName) {
+          this.parentName.set(upstream.vertex.name);
           break;
         }
       }
@@ -62,6 +65,6 @@ export class CollectionHeaderComponent implements OnChanges, OnInit {
   }
 
   isBrowseDisabled() {
-    return !this.config?.permissions.browse;
+    return !this.config()?.permissions.browse;
   }
 }

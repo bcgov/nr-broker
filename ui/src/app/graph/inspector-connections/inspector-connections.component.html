@@ -1,22 +1,50 @@
 <div>
+  @let connectedTable = configRecord[collection()].connectedTable;
+
+  @if (collection() === 'service' || collection() === 'project' || collection() === 'brokerAccount' || collection() === 'repository') {
+    <div class="wrapper vertex-edge-container">
+      <button
+        matButton="outlined"
+        (click)="openUserRolesDialog()">View Users</button>
+    </div>
+  }
+  @if (connectedTable) {
+    <div class="wrapper vertex-edge-container">
+      <div class="fields-wrapper">
+        <h3 class="vertex-heading">Type</h3>
+      </div>
+    </div>
+    <div class="vertex-edge-type-container">
+      <mat-chip-listbox [selectable]="false">
+        @for (item of connectedTable; track item.collection) {
+          <mat-chip-option
+            [ngStyle]="{'background-color': '#' + configRecord[item.collection].color}"
+            (click)="openCollectionConnections(item.collection)">
+            <span [ngStyle]="{color: this.getVisibleTextColor(configRecord[item.collection].color)}">
+              {{ configRecord[item.collection].name }}
+            </span></mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+  }
   <div class="wrapper vertex-edge-container">
     <div class="fields-wrapper">
       <h3 class="vertex-heading">Inbound</h3>
     </div>
     @if (config().edges.length > 0) {
-      <div class="fields-wrapper" >
+      <div class="fields-wrapper">
         <button
           mat-button
-          (click)="openDeleteEdgeDialog(inboundConnections)"
+          (click)="openDeleteEdgeDialog(inboundConnections())"
           [disabled]="!hasAdmin() ||
-        (inboundConnections | keyvalue)?.length === 0">Delete</button>
+        (inboundConnections() | keyvalue)?.length === 0">Delete</button>
       </div>
     }
   </div>
-  @if ((inboundConnections | keyvalue)?.length === 0) {
+  @if ((inboundConnections() | keyvalue)?.length === 0) {
     <p class="vertex-edge-type-container">None</p>
   }
-  @for (group of (inboundConnections | keyvalue); track group.key) {
+  @for (group of (inboundConnections() | keyvalue); track group.key) {
     <div class="vertex-edge-type-container">
       <h5>{{group.key | titlecase}}</h5>
       <mat-chip-listbox [selectable]="false">
@@ -44,16 +72,16 @@
           [disabled]="!hasAdmin()">Add</button>
         <button
           mat-button
-          (click)="openDeleteEdgeDialog(outboundConnections)"
+          (click)="openDeleteEdgeDialog(outboundConnections())"
           [disabled]="!hasAdmin() ||
-        (outboundConnections | keyvalue)?.length === 0">Delete</button>
+        (outboundConnections() | keyvalue)?.length === 0">Delete</button>
       </div>
     }
   </div>
-  @if ((outboundConnections | keyvalue)?.length === 0) {
+  @if ((outboundConnections() | keyvalue)?.length === 0) {
     <p class="vertex-edge-type-container">None</p>
   }
-  @for (group of (outboundConnections | keyvalue); track group.key) {
+  @for (group of (outboundConnections() | keyvalue); track group.key) {
     <div class="vertex-edge-type-container">
       <h5>{{group.key | titlecase}}</h5>
       <mat-chip-listbox [selectable]="false">

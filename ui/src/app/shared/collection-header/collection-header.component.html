@@ -4,11 +4,11 @@
     mat-icon-button
     [disabled]="isBrowseDisabled()"
     (click)="back()">
-    <mat-icon>arrow_back</mat-icon>
+    <mat-icon>{{ backIcon() }}</mat-icon>
   </button>
   <div>
-    <div class="collection-subtitle">Browse - {{ config?.name }}</div>
-    <div class="collection-title">@if (parentName) {{{ parentName }} > }{{ name() }}</div>
+    <div class="collection-subtitle">Browse - {{ config()?.name }}</div>
+    <div class="collection-title">@if (parentName()) { {{ parentName() }} > }{{ name() }}</div>
   </div>
   <span class="spacer"></span>
 

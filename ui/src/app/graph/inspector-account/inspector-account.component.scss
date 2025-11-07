@@ -5,8 +5,19 @@
   align-items: center;
 }
 
+.header-container {
+  margin-left: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .heading {
   margin: 8px 0;
+}
+
+.margin-top-medium {
+  margin-top: 16px;
 }
 
 table {

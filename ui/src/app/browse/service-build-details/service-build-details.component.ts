@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, } from '@angular/common';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
@@ -41,21 +41,21 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   templateUrl: './service-build-details.component.html',
   styleUrl: './service-build-details.component.scss',
 })
-export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
+export class ServiceBuildDetailsComponent implements OnDestroy {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly packageApi = inject(PackageApiService);
   private readonly packageUtil = inject(PackageUtilService);
   private readonly collectionUtil = inject(CollectionUtilService);
 
-  collection!: CollectionNames;
-  serviceId!: string;
+  collection = signal<CollectionNames>('service');
+  serviceId = signal<string>('');
+  buildId = signal<string>('');
+
   vertex!: string;
-  buildId!: string;
-  name!: string;
-  isApprover!: boolean;
-  hasDelete = false;
-  screenSize = 'wide';
+  name = signal('');
+  hasDelete = signal(false);
+  screenSize = signal('wide');
 
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
@@ -66,7 +66,7 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
     [Breakpoints.XLarge, 'wide'],
   ]);
 
-  loading = true;
+  loading = signal(true);
   data: PackageBuildDto | undefined;
 
   private ngUnsubscribe = new Subject<any>();
@@ -84,26 +84,22 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         for (const query of Object.keys(result.breakpoints)) {
           if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
+            this.screenSize.set(this.displayNameMap.get(query) ?? 'Unknown');
           }
         }
       });
-  }
-
-  ngOnInit(): void {
     this.activatedRoute.params.subscribe((params) => {
-      this.serviceId = params['id'];
-      this.buildId = params['buildId'];
-      this.collection = params['collection'];
+      this.serviceId.set(params['id']);
+      this.buildId.set(params['buildId']);
 
       combineLatest([
-        this.collectionApi.getCollectionById('service', this.serviceId),
-        this.packageApi.getBuild(this.buildId),
+        this.collectionApi.getCollectionById('service', this.serviceId()),
+        this.packageApi.getBuild(this.buildId()),
       ]).subscribe(([service, data]) => {
-        this.name = service.name;
+        this.name.set(service.name);
         this.vertex = service.vertex;
         this.data = data;
-        this.loading = false;
+        this.loading.set(false);
         // console.log('Service build details', data);
       });
     });
@@ -124,13 +120,13 @@ export class ServiceBuildDetailsComponent implements OnInit, OnDestroy {
   openLatestPackageBuild() {
     this.packageApi
       .getServiceBuildByVersion(
-        this.name,
+        this.name(),
         this.data?.package.name ?? '',
         this.data?.package.version ?? '',
       )
       .subscribe((build) => {
         if (build) {
-          this.collectionUtil.openServicePackage(this.serviceId, build.id);
+          this.collectionUtil.openServicePackage(this.serviceId(), build.id);
         } else {
           //this.packageUtil.openSnackBar('No build found');
         }

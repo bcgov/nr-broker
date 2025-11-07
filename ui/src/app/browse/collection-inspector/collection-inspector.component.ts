@@ -28,14 +28,9 @@ import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
-import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
-import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
-import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
-import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
@@ -46,23 +41,15 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
-import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamRolesComponent } from '../team-roles/team-roles.component';
-import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { UserAliasComponent } from '../user-alias/user-alias.component';
-import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
-import {
-  CollectionTableComponent,
-  ShowFilter,
-} from '../collection-table/collection-table.component';
-import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
@@ -83,28 +70,19 @@ import { HealthStatusService } from '../../service/health-status.service';
     MatSnackBarModule,
     MatTabsModule,
     CollectionHeaderComponent,
-    CollectionTableComponent,
     InspectorAccountComponent,
-    InspectorInstallsComponent,
-    InspectorIntentionsComponent,
-    InspectorServiceSecureComponent,
     InspectorTeamComponent,
-    InspectorVaultComponent,
     InspectorVertexFieldsComponent,
     InspectorConnectionsComponent,
     InspectorRepositorySyncComponent,
-    InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    ServiceBuildsComponent,
-    ServiceInstanceDetailsComponent,
-    ServiceInstancesComponent,
     TeamMembersComponent,
     TeamServicesComponent,
     TeamRolesComponent,
     UserAliasComponent,
-    VertexTagsComponent,
-  ],
+    VertexTagsComponent
+],
   templateUrl: './collection-inspector.component.html',
   styleUrl: './collection-inspector.component.scss',
 })
@@ -172,13 +150,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     }
   });
 
-  text = signal('');
-  tags = signal('');
-  showFilter = signal<ShowFilter>('all');
-  index = signal(0);
-  size = signal(10);
-  sortActive = signal('');
-  sortDirection = signal<SortDirection>('');
+  // text = signal('');
+  // tags = signal('');
+  // showFilter = signal<ShowFilter>('all');
+  // index = signal(0);
+  // size = signal(10);
+  // sortActive = signal('');
+  // sortDirection = signal<SortDirection>('');
 
   // Create a map from breakpoints to css class
   displayNameMap = new Map([
@@ -370,6 +348,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     }
   }
 
+  openAccessToken() {
+    this.collectionUtil.openAccessToken(this.comboData.collection.id);
+  }
+
   edit() {
     this.dialog
       .open(VertexDialogComponent, {
@@ -439,25 +421,25 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .subscribe(() => {});
   }
 
-  updateTableRoute($event: any) {
-    if (this.connectedTableCollection() === $event.collection) {
-      this.text.set($event.text);
-      this.tags.set($event.tags.join(','));
-      this.index.set($event.index);
-      this.size.set($event.size);
-      this.sortActive.set($event.sortActive);
-      this.sortDirection.set($event.sortDirection);
-    } else {
-      this.connectedTableCollection.set($event.collection);
-      this.text.set('');
-      this.tags.set('');
-      this.index.set(0);
-      this.size.set($event.size);
-      this.sortActive.set('');
-      this.sortDirection.set('');
-    }
-    // console.log($event);
-  }
+  // updateTableRoute($event: any) {
+  //   if (this.connectedTableCollection() === $event.collection) {
+  //     this.text.set($event.text);
+  //     this.tags.set($event.tags.join(','));
+  //     this.index.set($event.index);
+  //     this.size.set($event.size);
+  //     this.sortActive.set($event.sortActive);
+  //     this.sortDirection.set($event.sortDirection);
+  //   } else {
+  //     this.connectedTableCollection.set($event.collection);
+  //     this.text.set('');
+  //     this.tags.set('');
+  //     this.index.set(0);
+  //     this.size.set($event.size);
+  //     this.sortActive.set('');
+  //     this.sortDirection.set('');
+  //   }
+  //   // console.log($event);
+  // }
 
   private openSnackBar(message: string) {
     const config = new MatSnackBarConfig();

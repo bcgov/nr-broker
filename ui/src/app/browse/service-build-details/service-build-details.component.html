@@ -1,21 +1,21 @@
-@if (loading || !data) {
+@if (loading() || !data) {
   <mat-spinner></mat-spinner>
 } @else {
   <app-collection-header
-    [collection]="collection"
-    [name]="name"
-    [screenSize]="screenSize"
+    [collection]="collection()"
+    [name]="name()"
+    [screenSize]="screenSize()"
     [backSteps]="2"
     [navigateCommands]="{index: 3}"
   >
     <div
-      class="spaced-btn" [class]="screenSize">
+      class="spaced-btn" [class]="screenSize()">
       <button
         mat-stroked-button
         class="collection-btn"
         extended
         color="warn"
-        [disabled]="!hasDelete"
+        [disabled]="!hasDelete()"
         (click)="delete()">
         Delete
       </button>
@@ -30,7 +30,7 @@
     }
   </app-collection-header>
 
-  <div class="details-container details-container-margin" [class]="screenSize">
+  <div class="details-container details-container-margin" [class]="screenSize()">
 
     @if (data.replaced) {
       <mat-card appearance="outlined" class="full-width card-margin">

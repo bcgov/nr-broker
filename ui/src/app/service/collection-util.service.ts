@@ -9,6 +9,7 @@ import { CollectionApiService } from './collection-api.service';
 import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
 import { CONFIG_RECORD } from '../app-initialize.factory';
 import { CollectionConfigNameRecord } from './graph.types';
+import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,6 @@ export class CollectionUtilService {
   private readonly router = inject(Router);
   private readonly collectionApi = inject(CollectionApiService);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
-
 
   static configArrToMap(
     configArr: CollectionConfigDto[],
@@ -36,28 +36,43 @@ export class CollectionUtilService {
     this.router.navigate([`/browse/${collection}/${id}`]);
   }
 
-  openInBrowserByVertexId(
-    collection: CollectionNames,
+  getCollectionByVertexId<T extends CollectionNames>(
+    collection: T,
     vertexId: string,
-    replaceUrl = false,
   ) {
-    this.collectionApi
+    return this.collectionApi
       .searchCollection(collection, {
         vertexId,
         offset: 0,
         limit: 1,
       })
-      .subscribe((result) => {
-        if (result && result.meta.total > 0) {
-          this.router.navigate(
-            ['/browse', collection, result.data[0].collection.id, { index: 0 }],
-            {
-              replaceUrl,
-            },
-          );
-        } else {
-          throw new Error('Vertex not found');
-        }
+      .pipe(
+        // Map to the collection id
+        map((result) => {
+          if (result && result.meta.total > 0) {
+            return result.data[0].collection.id;
+          } else {
+            throw new Error('Vertex not found');
+          }
+        }),
+      );
+  }
+
+  openInBrowserByVertexId(
+    collection: CollectionNames,
+    vertexId: string,
+    replaceUrl = false,
+    subCommands: any[] = [],
+
+  ) {
+    this.getCollectionByVertexId(collection, vertexId)
+      .subscribe((collectionId) => {
+        this.router.navigate(
+          ['/browse', collection, collectionId, ...subCommands],
+          {
+            replaceUrl,
+          },
+        );
       });
   }
 
@@ -84,6 +99,10 @@ export class CollectionUtilService {
 
   openServicePackage(serviceId: string, packageId: string) {
     this.router.navigate([`/browse/service/${serviceId}/build/${packageId}`]);
+  }
+
+  openAccessToken(brokerAccountId: string) {
+    this.router.navigate([`/browse/brokerAccount/${brokerAccountId}/token`]);
   }
 
   /**

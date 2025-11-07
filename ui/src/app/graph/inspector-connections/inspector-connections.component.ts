@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnChanges, OnInit, Output, input, inject } from '@angular/core';
+import { Component, EventEmitter, OnChanges, OnInit, Output, input, inject, signal } from '@angular/core';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
@@ -18,6 +18,8 @@ import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
+import { CollectionUtilService } from '../../service/collection-util.service';
+import { InspectorPeopleDialogComponent } from '../inspector-people-dialog/inspector-people-dialog.component';
 
 @Component({
   selector: 'app-inspector-connections',
@@ -35,6 +37,7 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
   private readonly preferences = inject(PreferencesService);
   private readonly dialog = inject(MatDialog);
   private readonly colorUtil = inject(ColorUtilService);
+  private readonly collectionUtil = inject(CollectionUtilService);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   readonly collection = input.required<CollectionNames>();
@@ -47,17 +50,17 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
 
   @Output() selected = new EventEmitter<EdgeDto | VertexDto>();
 
-  inboundConnections: GraphDirectedComboMap = {};
-  outboundConnections: GraphDirectedComboMap = {};
+  inboundConnections = signal<GraphDirectedComboMap>({});
+  outboundConnections = signal<GraphDirectedComboMap>({});
 
   ngOnChanges(): void {
-    this.outboundConnections = this.groupEdges(this.downstream());
-    this.inboundConnections = this.groupEdges(this.upstream());
+    this.outboundConnections.set(this.groupEdges(this.downstream()));
+    this.inboundConnections.set(this.groupEdges(this.upstream()));
   }
 
   ngOnInit(): void {
-    this.outboundConnections = this.groupEdges(this.downstream());
-    this.inboundConnections = this.groupEdges(this.upstream());
+    this.outboundConnections.set(this.groupEdges(this.downstream()));
+    this.inboundConnections.set(this.groupEdges(this.upstream()));
   }
 
   private groupEdges(comboArr: GraphDirectedCombo[]): GraphDirectedComboMap {
@@ -69,6 +72,24 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
       map[combo.edge.name].push(combo);
     }
     return map;
+  }
+
+  openCollectionConnections(connectedTableCollection: CollectionNames) {
+    this.collectionUtil.openInBrowserByVertexId(this.collection(), this.vertex(), false, ['connections', { connectedTableCollection }]);
+  }
+
+  openUserRolesDialog() {
+    this.dialog
+      .open(InspectorPeopleDialogComponent, {
+        width: '640px',
+        data: {
+          collection: this.collection(),
+          vertex: this.vertex(),
+          showLinked: this.collection() === 'repository',
+        },
+      })
+      .afterClosed()
+      .subscribe();
   }
 
   addEdgeToVertex() {

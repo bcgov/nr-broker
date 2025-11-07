@@ -19,6 +19,7 @@ import { SystemApiService } from '../../service/system-api.service';
 import { BrokerAccountDto } from '../../service/persistence/dto/broker-account.dto';
 import { JwtRegistryDto } from '../../service/persistence/dto/jwt-registry.dto';
 import { HealthStatusService } from '../../service/health-status.service';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-inspector-account',
@@ -40,6 +41,7 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly systemApi = inject(SystemApiService);
   readonly healthStatus = inject(HealthStatusService);
+  readonly collectionUtil = inject(CollectionUtilService);
 
   readonly account = input.required<BrokerAccountDto>();
   readonly userIndex = input.required<number | undefined>();
@@ -86,6 +88,10 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
     if (this.tokenUpdateSubscription) {
       this.tokenUpdateSubscription.unsubscribe();
     }
+  }
+
+  openAccessToken() {
+    this.collectionUtil.openAccessToken(this.account().id);
   }
 
   openGenerateDialog() {

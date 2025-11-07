@@ -49,7 +49,10 @@
     }</app-details-item>
 
   @let intentionEnd = intention().transaction?.end;
-  <app-details-item item="End">
+  @let intentionExpiry = intention().expiry;
+  <app-details-item
+    item="End"
+    matTooltip="Expiry: {{intentionExpiry | date:'medium' }}">
     @if (intentionEnd) {
       {{intentionEnd | date:'medium' }}
     } @else {
@@ -95,7 +98,10 @@
 </div>
 
 <div class="details-container">
-  <app-details-item item="Client Id" clickable="true" (click)="openCollection($event, 'brokerAccount', 'id', brokerAccountResource.value().id )">
+  <app-details-item
+    item="Client Id"
+    clickable="true"
+    (click)="openCollection($event, 'brokerAccount', 'id', brokerAccountResource.value().id )">
     {{ brokerAccountResource.value().clientId }}
   </app-details-item>
 

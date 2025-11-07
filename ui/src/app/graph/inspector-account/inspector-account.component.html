@@ -1,42 +1,33 @@
 @if (account()) {
-  <div class="edge-container">
+  <div class="header-container">
     <div class="fields-wrapper">
-      @if (header() === 'small') {
-        <h3 class="heading">Token</h3>
-      } @else {
-        <h2 class="heading">Token</h2>
-      }
-    </div>
-    <div class="fields-wrapper">
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
-        <mat-icon>more_vert</mat-icon>
+      <button
+        mat-button
+        extended
+        class="collection-btn"
+        (click)="openAccessToken()">
+        Access Token
       </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo()">
-          <mat-icon>add_circle</mat-icon>Generate
-        </button>
-        @if(healthStatus.health$ | async; as health) {
-        <button mat-menu-item
-          (click)="sync()"
-          [disabled]="!hasSudo() || !health.details['github']['sync']"
-          matTooltip="Connected service's secrets stored in the Vault under the tools path will be copied to GitHub as action secrets."
-          matTooltipShowDelay="500"
-          matTooltipPosition="left">
-          <mat-icon>sync</mat-icon>Sync secrets
-        </button>
-        }
-        @if (lastJwtTokenData) {
-        <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
-          <mat-icon>content_copy</mat-icon>Copy JTI
-        </button>
-        }
-      </mat-menu>
     </div>
+    @if (lastJwtTokenData) {
+      <div class="fields-wrapper">
+        <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
+            <mat-icon>content_copy</mat-icon>Copy JTI
+          </button>
+        </mat-menu>
+      </div>
+    }
   </div>
   @if (!lastJwtTokenData) {
-    <p class="edge-container">No token found. Click generate to create a token.</p>
+    <div class="fields-wrapper margin-top-medium">
+      <p class="edge-container">This account has no active access token.</p>
+    </div>
   } @else {
-    <table mat-table [dataSource]="lastJwtTokenData | keyvalue">
+    <table class="margin-top-medium" mat-table [dataSource]="lastJwtTokenData | keyvalue">
       <!-- Key Column -->
       <ng-container matColumnDef="key">
         <th mat-header-cell *matHeaderCellDef> Key </th>

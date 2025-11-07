@@ -1,0 +1,13 @@
+@if (loading()) {
+  <mat-spinner></mat-spinner>
+} @else {
+  <app-collection-header
+    [collection]="collection()"
+    [name]="name()"
+    [screenSize]="screenSize()"
+    [backIcon]="'arrow_back'"
+  ></app-collection-header>
+  <p>broker-account-token-details works!</p>
+
+  {{screenSize()}}
+}

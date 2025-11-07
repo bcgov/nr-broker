@@ -1,0 +1,30 @@
+@if (loading()) {
+  <mat-spinner></mat-spinner>
+} @else {
+  <app-collection-header
+    [collection]="collection()"
+    [name]="name()"
+    [screenSize]="screenSize()"
+    [backIcon]="'arrow_back'"
+  ></app-collection-header>
+  <div
+    class="inspector-card-layout"
+    [class]="screenSize()">
+
+    <app-collection-table
+      class="full-width order-end"
+      [collection]="connectedTableCollection()"
+      [collectionOptions]="connectedTableCollectionOptions()"
+      [upstreamId]="!isUpstreamConnectedCollection(connectedTableCollection()) ? vertex() : undefined"
+      [downstreamId]="isUpstreamConnectedCollection(connectedTableCollection()) ? vertex() : undefined"
+      [text]="text()"
+      [showFilter]="showFilter()"
+      [tags]="tags()"
+      [index]="index()"
+      [size]="size()"
+      [sortActive]="sortActive()"
+      [sortDirection]="sortDirection()"
+      (settingsUpdated)="updateTableRoute($event)"
+      ></app-collection-table>
+  </div>
+}

@@ -1,11 +1,12 @@
 import { inject } from '@angular/core';
 import { Route } from '@angular/router';
-// import { CollectionTableComponent } from './collection-table/collection-table.component';
 import { CollectionInspectorComponent } from './collection-inspector/collection-inspector.component';
 import { PreferencesService } from '../preferences.service';
 import { ServiceBuildDetailsComponent } from './service-build-details/service-build-details.component';
 import { CollectionBrowserComponent } from './collection-browser/collection-browser.component';
 import { StringUtilService } from '../util/string-util.service';
+import { BrokerAccountTokenDetailsComponent } from './broker-account-token-details/broker-account-token-details.component';
+import { CollectionConnectionComponent } from './collection-connection/collection-connection.component';
 
 export const BROWSE_ROUTES: Route[] = [
   {
@@ -30,7 +31,17 @@ export const BROWSE_ROUTES: Route[] = [
     title: 'Inspector',
   },
   {
-    path: ':collection/:id/build/:buildId',
+    path: ':collection/:id/connections',
+    component: CollectionConnectionComponent,
+    title: 'Connections',
+  },
+  {
+    path: 'brokerAccount/:id/token',
+    component: BrokerAccountTokenDetailsComponent,
+    title: 'Broker Account Token',
+  },
+  {
+    path: 'service/:id/build/:buildId',
     component: ServiceBuildDetailsComponent,
     title: 'Build',
   },
