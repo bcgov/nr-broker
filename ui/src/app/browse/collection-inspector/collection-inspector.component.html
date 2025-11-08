@@ -3,13 +3,12 @@
 } @else {
   <app-collection-header
     [collection]="collection()"
-    [name]="comboData.collection.name"
-    [screenSize]="screenSize"
+    [title]="comboData.collection.name"
     [upstream]="comboData.upstream"
   >
   <div
-    class="spaced-btn {{screenSize}} collection-btn">
-    @if (screenSize === 'wide') {
+    class="spaced-btn {{screen.screenSize()}} collection-btn">
+    @if (screen.screenSize() === 'wide') {
       <button
         mat-stroked-button
         extended
@@ -29,7 +28,7 @@
     }
   </div>
 
-  @if (screenSize === 'wide') {
+  @if (screen.screenSize() === 'wide') {
     <button
       mat-stroked-button
       extended
@@ -60,7 +59,7 @@
         class="collection-btn"
         [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
-        [screenSize]="screenSize"></app-inspector-team>
+        [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
       mat-stroked-button
@@ -89,7 +88,7 @@
         class="collection-btn"
         [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
-        [screenSize]="screenSize"></app-inspector-team>
+        [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
       mat-icon-button
@@ -102,7 +101,7 @@
 
 </app-collection-header>
       @let localCollection = collection();
-    <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+    <div class="inspector-card-layout inspector-tab-margin" [class]="screen.screenSize()">
       <app-vertex-tags
         class="full-width"
         [collection]="collection()"
@@ -160,6 +159,24 @@
             [timestamps]="comboData.vertex.timestamps"></app-inspector-timestamps>
         </mat-card-content>
       </mat-card>
+
+      @if (localCollection === 'service') {
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Secrets</mat-card-title>
+            </div>
+            <app-inspector-vault
+              [service]="comboData.collection"
+              [isAdministrator]="hasSudo"></app-inspector-vault>
+            @if (hasSudo) {
+              <mat-divider></mat-divider>
+              <app-inspector-service-secure
+                [service]="comboData.collection"></app-inspector-service-secure>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
 
       @if (localCollection === 'team') {
         <mat-card appearance="outlined" class="inspector-card-gap">
@@ -253,7 +270,44 @@
                 </div>
                 <app-user-alias
                 [collection]="comboData.collection"></app-user-alias>
-          }
+            }
+
+            <!-- @if (collection() === 'brokerAccount') {
+              <div class="card-content-container">
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openBrokerAccountHistory()">
+                  History
+                </button>
+              </div>
+            } -->
+            @if (collection() === 'service') {
+              <div class="card-content-container">
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceBuilds()">
+                  Builds
+                </button>
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceInstances()">
+                  Instances
+                </button>
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceHistory()">
+                  History
+                </button>
+              </div>
+            }
           </mat-card-content>
         </mat-card>
 

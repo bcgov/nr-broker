@@ -1,7 +1,6 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
@@ -47,13 +46,15 @@ import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component'
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { UserAliasComponent } from '../user-alias/user-alias.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
-import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
 import { httpResource } from '@angular/common/http';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { HealthStatusService } from '../../service/health-status.service';
+import { ScreenService } from '../../util/screen.service';
+import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
+import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -77,6 +78,8 @@ import { HealthStatusService } from '../../service/health-status.service';
     InspectorRepositorySyncComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
+    InspectorVaultComponent,
+    InspectorServiceSecureComponent,
     TeamMembersComponent,
     TeamServicesComponent,
     TeamRolesComponent,
@@ -88,7 +91,6 @@ import { HealthStatusService } from '../../service/health-status.service';
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -98,6 +100,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly permission = inject(PermissionService);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
+  readonly screen = inject(ScreenService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   // Url params
@@ -126,7 +129,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.comboDataResource.asReadonly().value,
   ).pipe(filter((data) => !!data));
 
-  public serviceDetails: ServiceDetailsResponseDto | null = null;
   public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
     null;
 
@@ -138,7 +140,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   refresh = signal(0);
-  screenSize = '';
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -159,14 +160,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   // sortDirection = signal<SortDirection>('');
 
   // Create a map from breakpoints to css class
-  displayNameMap = new Map([
-    [Breakpoints.XSmall, 'narrow'],
-    [Breakpoints.Small, 'narrow'],
-    [Breakpoints.Medium, 'wide'],
-    [Breakpoints.Large, 'wide'],
-    [Breakpoints.XLarge, 'wide'],
-  ]);
-
   private ngUnsubscribe = new Subject<any>();
 
   constructor() {
@@ -178,23 +171,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.connectedTableCollection.set('project');
       }
     });
-
-    inject(BreakpointObserver)
-      .observe([
-        Breakpoints.XSmall,
-        Breakpoints.Small,
-        Breakpoints.Medium,
-        Breakpoints.Large,
-        Breakpoints.XLarge,
-      ])
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((result) => {
-        for (const query of Object.keys(result.breakpoints)) {
-          if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
-          }
-        }
-      });
   }
 
   ngOnInit(): void {
@@ -266,16 +242,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.comboData.collection.vertex,
       );
 
-      this.serviceDetails = null;
       this.serviceInstanceDetails = null;
 
-      if (this.collection() === 'service') {
-        this.collectionApi
-          .getServiceDetails(this.comboData.collection.id)
-          .subscribe((data) => {
-            this.serviceDetails = data;
-          });
-      } else if (this.collection() === 'serviceInstance') {
+      if (this.collection() === 'serviceInstance') {
         this.collectionApi
           .getServiceInstanceDetails(this.comboData.collection.id)
           .subscribe((data) => {
@@ -350,6 +319,22 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   openAccessToken() {
     this.collectionUtil.openAccessToken(this.comboData.collection.id);
+  }
+
+  openServiceBuilds() {
+    this.collectionUtil.openServiceBuilds(this.comboData.collection.id);
+  }
+
+  openServiceInstances() {
+    this.collectionUtil.openServiceInstances(this.comboData.collection.id);
+  }
+
+  openServiceHistory() {
+    this.collectionUtil.openServiceHistory(this.comboData.collection.id);
+  }
+
+  openBrokerAccountHistory() {
+    this.collectionUtil.openBrokerAccountHistory(this.comboData.collection.id);
   }
 
   edit() {

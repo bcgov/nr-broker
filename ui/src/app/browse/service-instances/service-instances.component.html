@@ -1,24 +1,25 @@
-@if (vertices()) {
-<div class="edge-container">
-  <div class="header-container">
-    @if (permission.hasAdmin()) {
-      <div class="header-buttons">
-        <button
-          mat-stroked-button
-          (click)="openInstanceDialog()"
-          [disabled]="!permission.hasAdmin()">Quick Add</button>
-      </div>
-    }
-  </div>
-</div>
-}
-
-@if(loading || !details) {
+@if(loading()) {
   <mat-spinner></mat-spinner>
-}
-@if (!loading && details) {
-<mat-card appearance="outlined">
+} @else {
+
+  <app-collection-header
+    [collection]="collection()"
+    [title]="name()"
+    [backIcon]="'arrow_back'"
+  >
+    @if (permission.hasAdmin()) {
+  <button
+    mat-stroked-button
+    (click)="openInstanceDialog()"
+    [disabled]="!permission.hasAdmin()">Quick Add</button>
+    }
+</app-collection-header>
+
+<mat-card class="card-margin" appearance="outlined">
   <mat-card-content>
+    <mat-card-title>Instances</mat-card-title>
+
+    <p>{{ configMap['serviceInstance'].hint }}</p>
 
   @if (details.serviceInstance.length === 0) {
     <p class="no-instances">No instances found</p>

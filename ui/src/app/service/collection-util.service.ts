@@ -97,12 +97,27 @@ export class CollectionUtilService {
       });
   }
 
+  openServiceBuilds(serviceId: string) {
+    this.router.navigate([`/browse/service/${serviceId}/build`]);
+  }
+
   openServicePackage(serviceId: string, packageId: string) {
     this.router.navigate([`/browse/service/${serviceId}/build/${packageId}`]);
   }
 
+  openServiceInstances(serviceId: string) {
+    this.router.navigate([`/browse/service/${serviceId}/instances`]);
+  }
+
+  openServiceHistory(serviceId: string) {
+    this.router.navigate([`/browse/service/${serviceId}/history`]);
+  }
+
   openAccessToken(brokerAccountId: string) {
     this.router.navigate([`/browse/brokerAccount/${brokerAccountId}/token`]);
+  }
+  openBrokerAccountHistory(brokerAccountId: string) {
+    this.router.navigate([`/browse/brokerAccount/${brokerAccountId}/history`]);
   }
 
   /**

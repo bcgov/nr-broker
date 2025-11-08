@@ -2,13 +2,13 @@
   class="collection-flex-container">
   <button
     mat-icon-button
-    [disabled]="isBrowseDisabled()"
+    [disabled]="isBackDisabled()"
     (click)="back()">
     <mat-icon>{{ backIcon() }}</mat-icon>
   </button>
   <div>
-    <div class="collection-subtitle">Browse - {{ config()?.name }}</div>
-    <div class="collection-title">@if (parentName()) { {{ parentName() }} > }{{ name() }}</div>
+    <div class="collection-subtitle">Browse - {{ config().name }}</div>
+    <div class="collection-title">@if (parentName()) { {{ parentName() }} > }{{ title() }}</div>
   </div>
   <span class="spacer"></span>
 

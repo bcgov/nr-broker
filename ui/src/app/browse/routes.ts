@@ -7,6 +7,9 @@ import { CollectionBrowserComponent } from './collection-browser/collection-brow
 import { StringUtilService } from '../util/string-util.service';
 import { BrokerAccountTokenDetailsComponent } from './broker-account-token-details/broker-account-token-details.component';
 import { CollectionConnectionComponent } from './collection-connection/collection-connection.component';
+import { ServiceBuildsComponent } from './service-builds/service-builds.component';
+import { ServiceInstancesComponent } from './service-instances/service-instances.component';
+import { CollectionHistoryComponent } from './collection-history/collection-history.component';
 
 export const BROWSE_ROUTES: Route[] = [
   {
@@ -41,8 +44,30 @@ export const BROWSE_ROUTES: Route[] = [
     title: 'Broker Account Token',
   },
   {
+    path: 'brokerAccount/:id/history',
+    component: CollectionHistoryComponent,
+    title: 'History',
+    data: { collection: 'brokerAccount' },
+  },
+  {
+    path: 'service/:id/build',
+    component: ServiceBuildsComponent,
+    title: 'Build',
+  },
+  {
     path: 'service/:id/build/:buildId',
     component: ServiceBuildDetailsComponent,
     title: 'Build',
+  },
+  {
+    path: 'service/:id/instances',
+    component: ServiceInstancesComponent,
+    title: 'Instances',
+  },
+  {
+    path: 'service/:id/history',
+    component: CollectionHistoryComponent,
+    title: 'History',
+    data: { collection: 'service' },
   },
 ];

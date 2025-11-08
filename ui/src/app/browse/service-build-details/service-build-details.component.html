@@ -3,13 +3,11 @@
 } @else {
   <app-collection-header
     [collection]="collection()"
-    [name]="name()"
-    [screenSize]="screenSize()"
-    [backSteps]="2"
-    [navigateCommands]="{index: 3}"
+    [title]="name()"
+    [backIcon]="'arrow_back'"
   >
     <div
-      class="spaced-btn" [class]="screenSize()">
+      class="spaced-btn" [class]="screen.screenSize()">
       <button
         mat-stroked-button
         class="collection-btn"
@@ -23,14 +21,14 @@
     @if (data.package.buildVersion) {
     <button mat-stroked-button
       class="collection-btn"
-      (click)="openPackageBuildVersion(vertex, data.package.buildVersion)"
+      (click)="openPackageBuildVersion(vertex(), data.package.buildVersion)"
       matTooltip="Access to this content may be restricted"
       matTooltipShowDelay="500"
       >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></button>
     }
   </app-collection-header>
 
-  <div class="details-container details-container-margin" [class]="screenSize()">
+  <div class="details-container details-container-margin" [class]="screen.screenSize()">
 
     @if (data.replaced) {
       <mat-card appearance="outlined" class="full-width card-margin">

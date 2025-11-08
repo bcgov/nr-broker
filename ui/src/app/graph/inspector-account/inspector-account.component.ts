@@ -94,6 +94,10 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
     this.collectionUtil.openAccessToken(this.account().id);
   }
 
+  openBrokerAccountHistory() {
+    this.collectionUtil.openBrokerAccountHistory(this.account().id);
+  }
+
   openGenerateDialog() {
     this.dialog
       .open(AccountGenerateDialogComponent, {
