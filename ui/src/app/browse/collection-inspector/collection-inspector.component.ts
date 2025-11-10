@@ -98,10 +98,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly graphUtil = inject(GraphUtilService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
   readonly screen = inject(ScreenService);
-  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   // Url params
   public collection = input<CollectionNames>('project');

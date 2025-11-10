@@ -83,6 +83,15 @@
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
+    @if (collection() === 'brokerAccount') {
+      <button
+        mat-icon-button
+        class="collection-btn"
+        [disabled]="!hasUpdate"
+        (click)="openAccessToken()">
+        <mat-icon>account_box</mat-icon>
+      </button>
+    }
     @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
