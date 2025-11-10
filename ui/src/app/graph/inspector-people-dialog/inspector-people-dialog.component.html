@@ -3,7 +3,8 @@
   <app-inspector-people
     [collection]="data.collection"
     [vertex]="data.vertex"
-    [showLinked]="data.collection === 'repository'"></app-inspector-people>
+    [showLinked]="data.collection === 'repository'"
+    (navigated)="close()"></app-inspector-people>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button

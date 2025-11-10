@@ -81,6 +81,7 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
   openUserRolesDialog() {
     this.dialog
       .open(InspectorPeopleDialogComponent, {
+        closeOnNavigation: true,
         width: '640px',
         data: {
           collection: this.collection(),
