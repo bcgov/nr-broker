@@ -27,14 +27,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { debounceTime, Subject } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
 import { PageErrorComponent } from '../../page-error/page-error.component';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
+import { ScreenService } from '../../util/screen.service';
 
 export interface HistoryQuery {
   field: string;
@@ -77,6 +77,7 @@ export class HistoryComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly intentionApi = inject(IntentionApiService);
+  readonly screen = inject(ScreenService);
 
   field = input('');
   currentField = '';
@@ -152,16 +153,6 @@ export class HistoryComponent implements OnDestroy {
   sortActive = input('');
   sortDirection = input<SortDirection>('');
   destroyed = new Subject<void>();
-  screenSize: 'narrow' | 'normal' = 'normal';
-
-  // Create a map from breakpoints to css class
-  displayNameMap = new Map<string, 'narrow' | 'normal'>([
-    [Breakpoints.XSmall, 'narrow'],
-    [Breakpoints.Small, 'narrow'],
-    [Breakpoints.Medium, 'normal'],
-    [Breakpoints.Large, 'normal'],
-    [Breakpoints.XLarge, 'normal'],
-  ]);
 
   intentionResource = httpResource<any>(() => {
     let whereClause: any = {
@@ -251,22 +242,6 @@ export class HistoryComponent implements OnDestroy {
   });
 
   constructor() {
-    inject(BreakpointObserver)
-      .observe([
-        Breakpoints.XSmall,
-        Breakpoints.Small,
-        Breakpoints.Medium,
-        Breakpoints.Large,
-        Breakpoints.XLarge,
-      ])
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((result) => {
-        for (const query of Object.keys(result.breakpoints)) {
-          if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'normal';
-          }
-        }
-      });
     effect(() => {
       this.currentField = this.field();
       this.currentValue = this.value();

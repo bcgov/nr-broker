@@ -151,15 +151,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     }
   });
 
-  // text = signal('');
-  // tags = signal('');
-  // showFilter = signal<ShowFilter>('all');
-  // index = signal(0);
-  // size = signal(10);
-  // sortActive = signal('');
-  // sortDirection = signal<SortDirection>('');
-
-  // Create a map from breakpoints to css class
   private ngUnsubscribe = new Subject<any>();
 
   constructor() {
@@ -405,26 +396,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
   }
-
-  // updateTableRoute($event: any) {
-  //   if (this.connectedTableCollection() === $event.collection) {
-  //     this.text.set($event.text);
-  //     this.tags.set($event.tags.join(','));
-  //     this.index.set($event.index);
-  //     this.size.set($event.size);
-  //     this.sortActive.set($event.sortActive);
-  //     this.sortDirection.set($event.sortDirection);
-  //   } else {
-  //     this.connectedTableCollection.set($event.collection);
-  //     this.text.set('');
-  //     this.tags.set('');
-  //     this.index.set(0);
-  //     this.size.set($event.size);
-  //     this.sortActive.set('');
-  //     this.sortDirection.set('');
-  //   }
-  //   // console.log($event);
-  // }
 
   private openSnackBar(message: string) {
     const config = new MatSnackBarConfig();

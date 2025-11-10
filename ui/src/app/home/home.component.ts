@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -32,7 +32,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly systemApiService = inject(SystemApiService);
   private readonly preferences = inject(PreferencesService);
 
-  loading = true;
+  loading = signal(true);
   selectedTabIndex = 0;
   services: ConnectionConfigDto[] = [];
   documents: ConnectionConfigDto[] = [];
@@ -45,7 +45,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.documents = data.filter(
         (dataum) => dataum.collection === 'documentation',
       );
-      this.loading = false;
+      this.loading.set(false);
     });
 
     this.selectedTabIndex = this.preferences.get('homeSectionTab');

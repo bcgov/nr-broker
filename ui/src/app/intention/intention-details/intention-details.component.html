@@ -174,7 +174,7 @@
             >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         }
       </div>
-      <div class="artifact-container {{ screenSize }}">
+      <div class="artifact-container {{ screen.screenSize() }}">
         @for (artifact of action.artifacts; track artifact.name) {
           <mat-card
             class="artifact-card"
@@ -234,7 +234,7 @@
             >Open SCM<mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
         }
       </div>
-      <div class="artifact-container {{ screenSize }}">
+      <div class="artifact-container {{ screen.screenSize() }}">
         <mat-card class="artifact-card" appearance="outlined">
           <mat-card-header>
             <mat-card-title>{{action.package.name}}</mat-card-title>

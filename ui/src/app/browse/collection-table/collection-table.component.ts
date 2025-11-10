@@ -1,4 +1,4 @@
-import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,7 +18,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   Subject,
   catchError,
@@ -28,7 +27,6 @@ import {
   of,
   startWith,
   switchMap,
-  takeUntil,
 } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 
@@ -52,6 +50,7 @@ import { CollectionComboDto } from '../../service/persistence/dto/collection-com
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { ScreenService } from '../../util/screen.service';
 
 export type ShowFilter = 'connected' | 'all';
 
@@ -109,6 +108,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   readonly graphUtil = inject(GraphUtilService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   readonly configArr = inject(CONFIG_ARR);
+  readonly screen = inject(ScreenService);
 
   collection = input.required<CollectionNames>();
   collectionOptions = input<CollectionNames[]>([]);
@@ -127,26 +127,16 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   sortDirection = input<SortDirection>('');
 
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
-  currentIndex = 0;
+  currentIndex = signal(0);
 
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
-  currentSize = 10;
+  currentSize = signal(10);
 
   settingsUpdated = output<TableQuery>();
 
   data: CollectionCombo<any>[] = [];
-  total = 0;
-  loading = true;
-
-  screenSize = '';
-  // Create a map from breakpoints to css class
-  displayNameMap = new Map([
-    [Breakpoints.XSmall, 'narrow'],
-    [Breakpoints.Small, 'narrow'],
-    [Breakpoints.Medium, 'wide'],
-    [Breakpoints.Large, 'wide'],
-    [Breakpoints.XLarge, 'wide'],
-  ]);
+  total = signal(0);
+  loading = signal(true);
 
   sort$ = new Subject<Sort>();
   page$ = new Subject<TablePageQuery>();
@@ -191,11 +181,11 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     });
 
     effect(() => {
-      this.currentIndex = this.index();
-      this.currentSize = this.size();
+      this.currentIndex.set(this.index());
+      this.currentSize.set(this.size());
       this.page$.next({
-        index: this.currentIndex,
-        size: this.currentSize,
+        index: this.currentIndex(),
+        size: this.currentSize(),
       });
     });
 
@@ -218,23 +208,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
       this.refresh();
     });
-
-    inject(BreakpointObserver)
-      .observe([
-        Breakpoints.XSmall,
-        Breakpoints.Small,
-        Breakpoints.Medium,
-        Breakpoints.Large,
-        Breakpoints.XLarge,
-      ])
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((result) => {
-        for (const query of Object.keys(result.breakpoints)) {
-          if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
-          }
-        }
-      });
 
     combineLatest([
       toObservable(this.collection),
@@ -290,7 +263,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
           );
         }),
         switchMap((settings) => {
-          this.loading = true;
+          this.loading.set(true);
           const sortActive = settings.sortActive;
           const sortDirection = settings.sortDirection ?? 'asc';
           // this.settingsUpdated.emit(settings);
@@ -326,8 +299,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       )
       .subscribe((data) => {
         this.data = data.data;
-        this.total = data.meta.total;
-        this.loading = false;
+        this.total.set(data.meta.total);
+        this.loading.set(false);
       });
   }
 
@@ -380,8 +353,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   }
 
   currentIndexReset() {
-    this.currentIndex = 0;
-    this.page$.next({ index: this.currentIndex, size: this.currentSize });
+    this.currentIndex.set(0);
+    this.page$.next({ index: this.currentIndex(), size: this.currentSize() });
   }
 
   handlePageEvent(event: PageEvent) {
@@ -428,7 +401,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
   openInInspector(event: Event, id: string) {
     event.stopPropagation();
-
     this.router.navigate([`/browse/${this.collection()}/${id}`]);
   }
 }

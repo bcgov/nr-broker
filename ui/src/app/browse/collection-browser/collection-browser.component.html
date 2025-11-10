@@ -8,7 +8,7 @@
         [(ngModel)]="currentCollection"
         (selectionChange)="onCollectionChange()"
         name="collection">
-        @for (opt of collectionFilterOptions; track opt) {
+        @for (opt of collectionFilterOptions(); track opt) {
           <mat-option
             [value]="opt.value"
             [matTooltip]="opt.tooltip"
@@ -27,7 +27,7 @@
     mat-stroked-button
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!((currentCollection === 'team' || permission.hasAdmin()) && !disableAdd)">
+    [disabled]="!((currentCollection === 'team' || permission.hasAdmin()) && !disableAdd())">
     <mat-icon>add</mat-icon>
     Add
   </button>

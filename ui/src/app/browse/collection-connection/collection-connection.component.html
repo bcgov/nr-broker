@@ -6,9 +6,10 @@
     [title]="name()"
     [backIcon]="'arrow_back'"
   ></app-collection-header>
+  <h1 class="header-margin">Connections</h1>
   <div
     class="inspector-card-layout"
-    [class]="screenSize()">
+    [class]="screen.screenSize()">
 
     <app-collection-table
       class="full-width order-end"

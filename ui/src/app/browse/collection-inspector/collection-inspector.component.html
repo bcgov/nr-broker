@@ -231,8 +231,7 @@
               <app-inspector-account
                 [account]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
                 [userIndex]="4"
-                [hasSudo]="hasSudo"
-                [header]="'large'"></app-inspector-account>
+                [hasSudo]="hasSudo"></app-inspector-account>
             }
 
             @if (hasSudo && localCollection === 'repository' && comboData.vertex.collection === localCollection) {

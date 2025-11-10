@@ -1,4 +1,3 @@
-
 <div class="collection-flex-container">
   <form>
     @if (collectionFilterOptions().length > 0) {
@@ -59,7 +58,7 @@
       (click)="clearAndRefresh()">
       Clear
     </button>
-  @if (loading) {
+  @if (loading()) {
     <mat-spinner diameter="20"></mat-spinner>
   }
   </form>
@@ -72,8 +71,8 @@
   </button>
 </div>
 
-<div class="teams-table">
-  @if ((!data || data.length === 0) && loading) {
+<div class="table-card">
+  @if ((!data || data.length === 0) && loading()) {
     <mat-spinner></mat-spinner>
   }
   @if (data && data.length === 0 && !loading) {
@@ -118,7 +117,7 @@
           <ng-container matColumnDef="action-caa4f8db8b42">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
-              @if (screenSize === 'wide') {
+              @if (screen.screenSize() === 'wide') {
                 <button
                   mat-stroked-button
                   extended
@@ -146,7 +145,7 @@
                   class="collection-btn"
                   [vertex]="element.collection.vertex"
                   [name]="element.collection.name"
-                  [screenSize]="screenSize"
+                  [screenSize]="screen.screenSize()"
                   (click)="$event.stopPropagation()"></app-inspector-team>
               }
             </td>
@@ -159,9 +158,9 @@
         </table>
 
         <mat-paginator
-          [length]="total"
-          [pageIndex]="currentIndex"
-          [pageSize]="currentSize"
+          [length]="total()"
+          [pageIndex]="currentIndex()"
+          [pageSize]="currentSize()"
           [pageSizeOptions]="[5, 10, 25, 100]"
           (page)="handlePageEvent($event)"
           aria-label="Select page">

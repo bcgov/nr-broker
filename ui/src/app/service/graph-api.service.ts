@@ -221,12 +221,16 @@ export class GraphApiService {
   }
 
   getUserPermissions() {
-    return this.http.get<UserPermissionDto>(
-      `${environment.apiUrl}/v1/graph/data/user-permissions`,
-      {
-        responseType: 'json',
-      },
-    );
+    const { url, options } = this.getUserPermissionsArgs();
+    return this.http.get<UserPermissionDto>(url, options);
+  }
+
+  getUserPermissionsArgs(): { method: string; url: string; options: { responseType: 'json' } } {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/data/user-permissions`,
+      options: { responseType: 'json' },
+    };
   }
 
   doTypeaheadSearch(typeahead: string, collections?: string[]) {

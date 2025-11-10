@@ -1,24 +1,36 @@
+<div class="margin-medium">
 @if (account()) {
   <div class="header-container">
-    <div class="fields-wrapper">
+    <div class="fields-wrapper card-text">
+      @if (display() === 'details') {
+        <h2>Details</h2>
+      } @else {
       <button
-        mat-button
+        mat-stroked-button
         extended
         class="collection-btn"
         (click)="openAccessToken()">
         Access Token
       </button>
+      }
     </div>
     @if (lastJwtTokenData) {
       <div class="fields-wrapper">
-        <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu"
+          class="menu">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
+          <button
+            mat-menu-item
+            [cdkCopyToClipboard]="lastJwtTokenData.JTI">
             <mat-icon>content_copy</mat-icon>Copy JTI
           </button>
-          <button mat-menu-item (click)="openBrokerAccountHistory()">
+          <button
+            mat-menu-item
+            (click)="openBrokerAccountHistory()">
             <mat-icon>history</mat-icon>History
           </button>
         </mat-menu>
@@ -26,11 +38,11 @@
     }
   </div>
   @if (!lastJwtTokenData) {
-    <div class="fields-wrapper margin-top-medium">
-      <p class="edge-container">This account has no active access token.</p>
+    <div class="margin-medium">
+      <div class="card-text">This account has no active access token.</div>
     </div>
   } @else {
-    <table class="margin-top-medium" mat-table [dataSource]="lastJwtTokenData | keyvalue">
+    <table mat-table [dataSource]="lastJwtTokenData | keyvalue">
       <!-- Key Column -->
       <ng-container matColumnDef="key">
         <th mat-header-cell *matHeaderCellDef> Key </th>
@@ -42,6 +54,16 @@
         <td mat-cell *matCellDef="let element">
           <span class="ellipsis">
             @switch (element.key) {
+
+                @case ('Blocked') {
+                  {{element.value ? 'Yes' : 'No'}}
+                }
+                @case ('Issued At') {
+                  {{element.value | date:'medium'}}
+                }
+                @case ('Client Id') {
+                  {{element.value}}
+                }
                 @case ('JTI') {
                   {{element.value}}
                 }
@@ -74,3 +96,4 @@
     </table>
   }
 }
+</div>

@@ -1,4 +1,4 @@
-import { Component, effect, input, numberAttribute, inject } from '@angular/core';
+import { Component, effect, input, numberAttribute, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,6 @@ import { of, switchMap } from 'rxjs';
 
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
@@ -72,34 +71,31 @@ export class CollectionBrowserComponent {
   sortActive = input('');
   sortDirection = input<SortDirection>('');
 
-  disableAdd = true;
+  disableAdd = signal(true);
 
-  config: CollectionConfigDto[] | undefined;
-  collectionFilterOptions: filterOptions<CollectionNames>[] = [];
-
-  constructor() {
-    this.config = this.configArr.filter((config) => config.permissions.browse);
-    this.collectionFilterOptions = this.config.map((config) => {
+  private readonly configArrBrowse = this.configArr.filter((config) => config.permissions.browse);
+  readonly collectionFilterOptions = signal<filterOptions<CollectionNames>[]>(this.configArrBrowse.map((config) => {
       return {
         value: config.collection,
         viewValue: config.name,
         tooltip: config.hint,
       };
-    });
+    }));
 
+  constructor() {
     effect(() => {
       this.currentCollection = this.collection();
-      if (!this.config) {
+      if (!this.configArrBrowse) {
         return;
       }
-      const config = this.config.find(
+      const config = this.configArrBrowse.find(
         (config) => config.collection === this.currentCollection,
       );
 
       if (!config) {
         return;
       }
-      this.disableAdd = !config.permissions.create;
+      this.disableAdd.set(!config.permissions.create);
     });
   }
 
@@ -155,7 +151,7 @@ export class CollectionBrowserComponent {
         width: '500px',
         data: {
           configMap: {
-            [this.currentCollection]: this.config?.find(
+            [this.currentCollection]: this.configArrBrowse?.find(
               (config) => config.collection === this.currentCollection,
             ),
           },

@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { combineLatest } from 'rxjs';
 import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
-import { ActivatedRoute } from '@angular/router';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { combineLatest } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-collection-history',
@@ -21,13 +21,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class CollectionHistoryComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
-    private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionApi = inject(CollectionApiService);
 
   collection = signal<CollectionNames>('service');
   collectionId = signal('');
   name = signal('');
   loading = signal(true);
-
 
   constructor() {
     this.activatedRoute.params.subscribe((params) => {

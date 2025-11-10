@@ -1,16 +1,16 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { httpResource } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, inject, input, numberAttribute, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SortDirection } from '@angular/material/sort';
 import { combineLatest } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { BreakpointBaseComponent } from '../../shared/breakpoint-base/breakpoint-base.component';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
-import { CollectionTableComponent, ShowFilter } from '../collection-table/collection-table.component';
+import { CollectionTableComponent, ShowFilter, TableQuery } from '../collection-table/collection-table.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { ScreenService } from '../../util/screen.service';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-collection-connection',
@@ -22,21 +22,19 @@ import { CONFIG_RECORD } from '../../app-initialize.factory';
   templateUrl: './collection-connection.component.html',
   styleUrl: './collection-connection.component.scss',
 })
-export class CollectionConnectionComponent extends BreakpointBaseComponent {
+export class CollectionConnectionComponent {
+  readonly screen = inject(ScreenService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly router = inject(Router);
+  private readonly preferences = inject(PreferencesService);
 
   connectedTableCollection = signal<CollectionNames>('project');
 
   collection = signal<CollectionNames>('project');
   collectionId = signal<string>('');
-  showFilter = signal<ShowFilter>('all');
-  index = signal(0);
-  size = signal(10);
-  sortActive = signal('');
-  sortDirection = signal<SortDirection>('');
-  readonly config = computed(() => {
+  private readonly config = computed(() => {
     return this.configRecord[this.collection()];
   });
   connectedTableCollectionOptions = computed(() => {
@@ -47,22 +45,26 @@ export class CollectionConnectionComponent extends BreakpointBaseComponent {
       return [];
     }
   });
-  public comboDataResource = httpResource(() => {
-    return this.collectionApi.getCollectionComboByIdArgs(
-      this.collection(),
-      this.collectionId(),
-    );
-  });
 
-  text = signal('');
-  tags = signal('');
+  text = input('', { transform: (v: string | undefined) => v ?? '' });
+  tags = input('');
+  showFilter = input(
+    this.preferences.get('browseConnectionFilter') ?? 'connected',
+    {
+      transform: (v: ShowFilter | undefined) =>
+        v ?? this.preferences.get('browseConnectionFilter') ?? 'connected',
+    },
+  );
+  index = input(0, { transform: (v) => numberAttribute(v, 0) });
+  size = input(10, { transform: (v) => numberAttribute(v, 10) });
+  sortActive = input('');
+  sortDirection = input<SortDirection>('');
 
   name = signal('');
   vertex = signal('');
   loading = signal(true);
 
   constructor() {
-    super();
     this.activatedRoute.params.subscribe((params) => {
       this.collectionId.set(params['id']);
       this.collection.set(params['collection']);
@@ -85,23 +87,48 @@ export class CollectionConnectionComponent extends BreakpointBaseComponent {
     );
   }
 
-  updateTableRoute($event: any) {
-    if (this.connectedTableCollection() === $event.collection) {
-      this.text.set($event.text);
-      this.tags.set($event.tags.join(','));
-      this.index.set($event.index);
-      this.size.set($event.size);
-      this.sortActive.set($event.sortActive);
-      this.sortDirection.set($event.sortDirection);
+  updateTableRoute(settings: TableQuery) {
+    if (this.connectedTableCollection() === settings.collection) {
+      this.router.navigate(
+        [
+          `/browse/${this.collection()}/${this.collectionId()}/connections`,
+          {
+            connectedTableCollection: settings.collection,
+            text: settings.text,
+            index: settings.index,
+            size: settings.size,
+            ...(settings.sortActive ? { sortActive: settings.sortActive } : {}),
+            ...(settings.sortDirection
+              ? { sortDirection: settings.sortDirection }
+              : {}),
+            ...(settings.showFilter ? { showFilter: settings.showFilter } : {}),
+            tags: settings.tags,
+          },
+        ],
+        {
+          replaceUrl: true,
+        },
+      );
     } else {
-      this.connectedTableCollection.set($event.collection);
-      this.text.set('');
-      this.tags.set('');
-      this.index.set(0);
-      this.size.set($event.size);
-      this.sortActive.set('');
-      this.sortDirection.set('');
+      this.router.navigate(
+        [
+          `/browse/${this.collection()}/${this.collectionId()}/connections`,
+          {
+            connectedTableCollection: settings.collection,
+            text: '',
+            index: 0,
+            size: 10,
+            sortActive: '',
+            sortDirection: '',
+            showFilter: 'all',
+            tags: [],
+            refresh: 1,
+          },
+        ],
+        {
+          replaceUrl: true,
+        },
+      );
     }
-    console.log($event);
   }
 }
