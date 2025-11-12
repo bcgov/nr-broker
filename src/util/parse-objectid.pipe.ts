@@ -29,9 +29,7 @@ export interface ParseObjectIdPipeOptions {
 }
 
 @Injectable()
-export class ParseObjectIdPipe
-  implements PipeTransform<string | number | undefined | null>
-{
+export class ParseObjectIdPipe implements PipeTransform<string | number | undefined | null> {
   protected exceptionFactory: (error: string) => any;
 
   constructor(private readonly options: ParseObjectIdPipeOptions = {}) {

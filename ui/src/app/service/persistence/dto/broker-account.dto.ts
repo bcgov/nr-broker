@@ -43,8 +43,7 @@ export class BrokerAccountBaseDto extends CollectionBaseDto {
 
 export class BrokerAccountDto
   extends BrokerAccountBaseDto
-  implements VertexPointerDto
-{
+  implements VertexPointerDto {
   @IsString()
   @IsDefined()
   id!: string;

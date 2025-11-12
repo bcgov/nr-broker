@@ -420,7 +420,7 @@ export class GithubSyncService {
       await this.removeRepoCollaborator(owner, repo, user, token);
     }
 
-    //sync environments
+    // sync environments
     if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
       const syncableEnvironments = [
         ENVIRONMENT_NAMES.DEVELOPMENT,
@@ -472,7 +472,7 @@ export class GithubSyncService {
                 ).guid,
               );
             })
-            .slice(0, 5); //todo: handle >6 reviewers (github limit)
+            .slice(0, 5); // todo: handle >6 reviewers (github limit)
         }
 
         const can_admins_bypass = false;
@@ -513,7 +513,7 @@ export class GithubSyncService {
           );
         }
       }
-    } //FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
+    } // FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
 
     await this.graphService.updateSyncStatus(
       repository,
@@ -557,7 +557,7 @@ export class GithubSyncService {
       console.error(
         `Catch error on make API call on get Installation ID for ${owner}/${repo}`,
       );
-      //throw new Error('Failed to get installation id.');
+      // throw new Error('Failed to get installation id.');
     }
   }
 
@@ -584,7 +584,7 @@ export class GithubSyncService {
       console.error(
         `Github App has not been authorized to access ${owner}/${repo}`,
       );
-      //throw new Error('Failed to get access token.');
+      // throw new Error('Failed to get access token.');
     }
   }
 
@@ -651,7 +651,7 @@ export class GithubSyncService {
       return encryptedBase64;
     } catch (error) {
       console.error('Error encrypting the secret:', error);
-      //throw new Error('Failed to encrypt the secret.');
+      // throw new Error('Failed to encrypt the secret.');
     }
   }
 

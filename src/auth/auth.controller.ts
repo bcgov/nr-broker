@@ -53,9 +53,9 @@ export class AuthController {
         if (end_session_endpoint) {
           res.redirect(
             end_session_endpoint +
-              '?post_logout_redirect_uri=' +
-              process.env
-                .OAUTH2_CLIENT_REGISTRATION_LOGIN_POST_LOGOUT_REDIRECT_URI +
+            '?post_logout_redirect_uri=' +
+            process.env
+              .OAUTH2_CLIENT_REGISTRATION_LOGIN_POST_LOGOUT_REDIRECT_URI +
               (id_token ? '&id_token_hint=' + id_token : ''),
           );
         } else {

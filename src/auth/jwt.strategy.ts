@@ -34,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new ForbiddenException({
         statusCode: 403,
         message: 'Invalid JWT',
-        error: `Allow list has no match`,
+        error: 'Allow list has no match',
       });
     }
     if (
@@ -44,7 +44,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new ForbiddenException({
         statusCode: 403,
         message: 'Invalid JWT',
-        error: `Block list has match`,
+        error: 'Block list has match',
       });
     }
     return payload;

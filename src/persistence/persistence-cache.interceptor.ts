@@ -22,9 +22,7 @@ export interface Response<T> {
 }
 
 @Injectable()
-export class PersistenceCacheInterceptor<T>
-  implements NestInterceptor<T, Response<T>>
-{
+export class PersistenceCacheInterceptor<T> implements NestInterceptor<T, Response<T>> {
   constructor(
     @Inject('REDIS_CLIENT') private client: RedisClientType,
     protected readonly reflector: Reflector,

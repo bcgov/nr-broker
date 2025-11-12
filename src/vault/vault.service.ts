@@ -37,9 +37,7 @@ export class VaultService {
     const config = this.prepareConfig();
     config.headers['Content-Type'] = 'application/json';
     return this.httpService
-      .get<{
-        data?: { [key: string]: any };
-      }>(`${this.vaultAddr}/v1/${mount}/data/${path}`, this.prepareConfig())
+      .get<{ data?: { [key: string]: any } }>(`${this.vaultAddr}/v1/${mount}/data/${path}`, this.prepareConfig())
       .pipe(
         map((response) => {
           const kvData = response.data?.data?.data;

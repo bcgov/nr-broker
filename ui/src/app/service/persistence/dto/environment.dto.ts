@@ -34,8 +34,7 @@ export class EnvironmentBaseDto extends CollectionBaseDto {
 
 export class EnvironmentDto
   extends EnvironmentBaseDto
-  implements VertexPointerDto
-{
+  implements VertexPointerDto {
   @IsString()
   @IsDefined()
   id!: string;

@@ -273,8 +273,8 @@ export class GraphRedisRepository implements GraphRepository {
   ): Promise<GraphTypeaheadResult> {
     const collectionClause = !!collections
       ? `(@collection:{${collections
-          .map((collection) => this.util.escapeRedisStr(collection))
-          .join('|')}}) `
+        .map((collection) => this.util.escapeRedisStr(collection))
+        .join('|')}}) `
       : '';
 
     const data = await this.client.ft.search(

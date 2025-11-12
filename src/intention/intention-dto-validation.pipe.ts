@@ -13,6 +13,7 @@ import { IntentionDto } from './dto/intention.dto';
 @Injectable()
 export class IntentionEntityValidationPipe implements PipeTransform {
   constructor(private readonly validatorUtil: ValidatorUtil) {}
+
   async transform(value: any, { metatype }: ArgumentMetadata) {
     if (!metatype || !this.toValidate(metatype)) {
       return value;

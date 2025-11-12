@@ -31,6 +31,7 @@ export class VaultRoleGuard implements CanActivate {
     private readonly actionUtil: ActionUtil,
     private readonly auditService: AuditService,
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
     if (!roles) {

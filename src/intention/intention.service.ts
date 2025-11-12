@@ -371,7 +371,7 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Quick start failure',
-        error: ` Quick start intentions must have 1 action`,
+        error: 'Quick start intentions must have 1 action',
       });
     }
   }
@@ -397,7 +397,7 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Quick start failure',
-        error: `Quick start could not start action`,
+        error: 'Quick start could not start action',
       });
     }
   }
@@ -444,7 +444,7 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search argument',
-        error: `Check parameters for errors`,
+        error: 'Check parameters for errors',
       });
     }
   }
@@ -506,7 +506,7 @@ export class IntentionService {
       throw new BadRequestException({
         statusCode: 400,
         message: 'Illegal search argument',
-        error: `Check parameters for errors`,
+        error: 'Check parameters for errors',
       });
     }
   }
@@ -705,7 +705,7 @@ export class IntentionService {
     if (
       (type === 'start' &&
         (action.lifecycle === 'started' || action.lifecycle === 'ended')) ||
-      (type === 'end' && action.lifecycle === 'ended')
+        (type === 'end' && action.lifecycle === 'ended')
     ) {
       throw new BadRequestException({
         statusCode: 400,
@@ -752,7 +752,7 @@ export class IntentionService {
     if (
       action.artifacts &&
       action.artifacts.filter((value) => value.name === artifact.name).length >
-        0
+      0
     ) {
       throw new BadRequestException({
         statusCode: 400,

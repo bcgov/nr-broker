@@ -196,7 +196,7 @@ export class TokenService {
         this.logger.error('Lookup: fail');
       },
       next: (val: AxiosResponse<VaultTokenLookupDto, any>) => {
-        this.logger.log(`Lookup: success`);
+        this.logger.log('Lookup: success');
         this.tokenLookup = val.data;
         const baseTime = this.tokenLookup.data.last_renewal_time
           ? this.tokenLookup.data.last_renewal_time
@@ -206,7 +206,7 @@ export class TokenService {
             Math.round(
               this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
             )) *
-          1000;
+            1000;
       },
     });
   }
