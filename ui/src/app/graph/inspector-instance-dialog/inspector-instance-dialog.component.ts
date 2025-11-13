@@ -37,7 +37,7 @@ export interface InspectorInstanceDialogReturnDao {
 export class InspectorInstanceDialogComponent implements OnInit {
   readonly data = inject<{
     vertices: GraphDirectedCombo[];
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<InspectorInstanceDialogComponent>>(MatDialogRef);
   private readonly collectionApi = inject(CollectionApiService);
 

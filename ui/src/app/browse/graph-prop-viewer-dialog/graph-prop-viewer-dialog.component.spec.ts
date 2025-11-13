@@ -8,9 +8,9 @@ describe('GraphPropViewerDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GraphPropViewerDialogComponent]
+      imports: [GraphPropViewerDialogComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(GraphPropViewerDialogComponent);
     component = fixture.componentInstance;

@@ -37,7 +37,7 @@ interface ExpiryDay {
 export class AccountGenerateDialogComponent {
   readonly data = inject<{
     accountId: string;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   private readonly clipboard = inject(Clipboard);
   private readonly systemApi = inject(SystemApiService);
 

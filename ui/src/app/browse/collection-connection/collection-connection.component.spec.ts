@@ -8,9 +8,9 @@ describe('CollectionConnectionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CollectionConnectionComponent]
+      imports: [CollectionConnectionComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(CollectionConnectionComponent);
     component = fixture.componentInstance;

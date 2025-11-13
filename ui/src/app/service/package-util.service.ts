@@ -13,14 +13,13 @@ export class PackageUtilService {
   private readonly graphApi = inject(GraphApiService);
   private readonly snackBar = inject(MatSnackBar);
 
-
   async openPackageBuildVersion(vertexId: string, version: string) {
     this.graphApi
       .searchEdgesShallow('source', 'target', vertexId)
       .subscribe((targets) => {
         if (targets.length === 0) {
           this.openSnackBar('SCM url for this service is not set');
-          throw new Error(`SCM url for this service is not set`);
+          throw new Error('SCM url for this service is not set');
         }
 
         if (targets.length > 1) {
@@ -54,7 +53,7 @@ export class PackageUtilService {
               }
 
               this.openSnackBar('SCM url for this service is not set');
-              throw new Error(`SCM url for this service is not set`);
+              throw new Error('SCM url for this service is not set');
             } else {
               this.openSnackBar('Repository not found');
               throw new Error('Repository not found');

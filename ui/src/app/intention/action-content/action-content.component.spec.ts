@@ -8,7 +8,7 @@ describe('ActionContentComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ActionContentComponent]
+      imports: [ActionContentComponent],
     });
     fixture = TestBed.createComponent(ActionContentComponent);
     component = fixture.componentInstance;

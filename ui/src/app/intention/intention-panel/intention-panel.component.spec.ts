@@ -8,9 +8,9 @@ describe('IntentionPanelComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IntentionPanelComponent]
+      imports: [IntentionPanelComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(IntentionPanelComponent);
     component = fixture.componentInstance;

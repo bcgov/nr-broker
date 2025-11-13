@@ -34,7 +34,7 @@ export class AddTeamDialogComponent implements OnInit {
     collection?: string;
     vertexId?: string;
     data?: any;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<AddTeamDialogComponent>>(MatDialogRef);
   private readonly graphApi = inject(GraphApiService);
   private readonly graphUtil = inject(GraphUtilService);

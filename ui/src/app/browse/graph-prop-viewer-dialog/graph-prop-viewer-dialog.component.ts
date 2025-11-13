@@ -24,6 +24,6 @@ import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
 export class GraphPropViewerDialogComponent {
   readonly data = inject<{
     prop: VertexPropDto | EdgePropDto;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<GraphPropViewerDialogComponent>>(MatDialogRef);
 }

@@ -17,9 +17,9 @@ import { InspectorPeopleComponent } from '../inspector-people/inspector-people.c
 export class InspectorPeopleDialogComponent {
   private readonly dialog = inject(MatDialog);
   readonly data = inject<{
-      collection: CollectionNames;
-      vertex: string;
-      showLinked: boolean;
+    collection: CollectionNames;
+    vertex: string;
+    showLinked: boolean;
   }>(MAT_DIALOG_DATA);
 
   close() {

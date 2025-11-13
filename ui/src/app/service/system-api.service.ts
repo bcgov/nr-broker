@@ -17,7 +17,6 @@ export class SystemApiService {
   private readonly http = inject(HttpClient);
   private sseClient = inject(SseClient);
 
-
   static accountEventObserver: Observable<any> | null = null;
 
   getAccountTokens(accountId: string) {
@@ -80,9 +79,9 @@ export class SystemApiService {
           map((event) => {
             if (event.type !== 'error') {
               const messageEvent = event as MessageEvent;
-              //console.info(
+              // console.info(
               //  `SSE request with type "${messageEvent.type}" and data "${messageEvent.data}"`,
-              //);
+              // );
               return JSON.parse(messageEvent.data);
             }
           }),

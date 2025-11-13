@@ -46,4 +46,3 @@ export class ScreenService {
   readonly isDesktop = computed(() => this.isMedium() || this.isLarge() || this.isXLarge());
   readonly screenSize = computed(() => this.isDesktop() ? 'wide' : 'narrow');
 }
-

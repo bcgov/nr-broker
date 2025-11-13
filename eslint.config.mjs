@@ -35,6 +35,7 @@ export default defineConfig(
           ],
         },
       ],
+      '@stylistic/comma-dangle': ['error', 'always-multiline'],
     },
   },
 );

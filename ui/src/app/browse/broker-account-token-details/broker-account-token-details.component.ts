@@ -18,12 +18,7 @@ import { PermissionService } from '../../service/permission.service';
 @Component({
   selector: 'app-broker-account-token-details',
   imports: [
-    CollectionHeaderComponent,
-    InspectorAccountComponent,
-    MatButtonModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-  ],
+    CollectionHeaderComponent, InspectorAccountComponent, MatButtonModule, MatCardModule, MatProgressSpinnerModule],
   templateUrl: './broker-account-token-details.component.html',
   styleUrl: './broker-account-token-details.component.scss',
 })

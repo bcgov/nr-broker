@@ -50,8 +50,7 @@ interface TablePageQuery {
   templateUrl: './service-builds.component.html',
   styleUrl: './service-builds.component.scss',
 })
-export class ServiceBuildsComponent
-  implements OnInit, OnDestroy {
+export class ServiceBuildsComponent implements OnInit, OnDestroy {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly collectionUtil = inject(CollectionUtilService);

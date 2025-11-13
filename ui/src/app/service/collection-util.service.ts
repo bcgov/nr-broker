@@ -116,6 +116,7 @@ export class CollectionUtilService {
   openAccessToken(brokerAccountId: string) {
     this.router.navigate([`/browse/brokerAccount/${brokerAccountId}/token`]);
   }
+
   openBrokerAccountHistory(brokerAccountId: string) {
     this.router.navigate([`/browse/brokerAccount/${brokerAccountId}/history`]);
   }

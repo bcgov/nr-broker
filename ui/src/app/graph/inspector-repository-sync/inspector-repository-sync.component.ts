@@ -70,7 +70,7 @@ export class InspectorRepositorySyncComponent {
       this.repository.syncSecretsStatus?.queuedAt &&
       (!this.repository.syncSecretsStatus?.syncAt ||
         this.repository.syncSecretsStatus?.queuedAt >
-          this.repository.syncSecretsStatus?.syncAt)
+        this.repository.syncSecretsStatus?.syncAt)
     );
   }
 
@@ -79,7 +79,7 @@ export class InspectorRepositorySyncComponent {
       this.repository.syncUsersStatus?.queuedAt &&
       (!this.repository.syncUsersStatus?.syncAt ||
         this.repository.syncUsersStatus?.queuedAt >
-          this.repository.syncUsersStatus?.syncAt)
+        this.repository.syncUsersStatus?.syncAt)
     );
   }
 

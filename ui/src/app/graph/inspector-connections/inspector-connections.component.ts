@@ -1,13 +1,13 @@
 import { Component, EventEmitter, OnChanges, OnInit, Output, input, inject, signal } from '@angular/core';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
-import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
-import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { EdgeDialogComponent } from '../edge-dialog/edge-dialog.component';
+import { DeleteEdgeDialogComponent } from '../delete-edge-dialog/delete-edge-dialog.component';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { PreferencesService } from '../../preferences.service';
 import {

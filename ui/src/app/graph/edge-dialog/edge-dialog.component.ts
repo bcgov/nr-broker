@@ -68,7 +68,7 @@ export class EdgeDialogComponent implements OnInit {
     collection: CollectionNames;
     source: VertexDto;
     edge?: EdgeDto;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<EdgeDialogComponent>>(MatDialogRef);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly graphApi = inject(GraphApiService);

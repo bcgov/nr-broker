@@ -272,7 +272,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
               ...(settings.text.length >= 3 ? { q: settings.text } : {}),
               ...(settings.tags.length > 0 ? { tags: settings.tags } : {}),
               ...(this.canFilterConnected.includes(settings.collection) &&
-              settings.showFilter === 'connected'
+                settings.showFilter === 'connected'
                 ? { upstreamVertex: this.user.vertex }
                 : {}),
               ...(this.upstreamId()

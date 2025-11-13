@@ -39,7 +39,7 @@ export class TagDialogComponent implements OnInit {
   private readonly data = inject<{
     collection: keyof CollectionDtoUnion;
     collectionData: any;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
 
   addOnBlur = true;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;

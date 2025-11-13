@@ -8,10 +8,10 @@ describe('AddTeamDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddTeamDialogComponent]
+      imports: [AddTeamDialogComponent],
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(AddTeamDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

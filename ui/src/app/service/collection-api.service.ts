@@ -20,7 +20,6 @@ export class CollectionApiService {
   private readonly http = inject(HttpClient);
   private readonly stringUtil = inject(StringUtilService);
 
-
   public getCollectionTags(name: CollectionNames) {
     return this.http.get<string[]>(
       `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/tags`,

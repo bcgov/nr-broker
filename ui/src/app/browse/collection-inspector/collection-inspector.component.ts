@@ -84,8 +84,8 @@ import { InspectorServiceSecureComponent } from '../../graph/inspector-service-s
     TeamServicesComponent,
     TeamRolesComponent,
     UserAliasComponent,
-    VertexTagsComponent
-],
+    VertexTagsComponent,
+  ],
   templateUrl: './collection-inspector.component.html',
   styleUrl: './collection-inspector.component.scss',
 })
@@ -176,31 +176,31 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
               es.edge.target === this.comboData.collection.vertex
             ) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           }
           if (es.event === 'vertex-edit') {
             if (es.vertex.id === this.comboData.collection.vertex) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           } else if (es.event === 'collection-edit') {
             if (es.collection.vertex === this.comboData.collection.vertex) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           } else if (
             es.event === 'vertex-delete' ||
             es.event === 'edge-delete'
           ) {
             if (es.vertex.indexOf(this.comboData.collection.vertex) !== -1) {
-              this.openSnackBar(`The object was deleted.`);
+              this.openSnackBar('The object was deleted.');
               this.back();
             } else if (
               es.adjacentVertex.indexOf(this.comboData.collection.vertex) !== -1
             ) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           }
         }

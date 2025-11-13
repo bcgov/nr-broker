@@ -1,4 +1,4 @@
-import { CommonModule, } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -97,7 +97,7 @@ export class ServiceBuildDetailsComponent {
         if (build) {
           this.collectionUtil.openServicePackage(this.serviceId(), build.id);
         } else {
-          //this.packageUtil.openSnackBar('No build found');
+          // this.packageUtil.openSnackBar('No build found');
         }
       });
   }

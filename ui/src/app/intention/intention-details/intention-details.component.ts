@@ -97,7 +97,7 @@ export class IntentionDetailsComponent {
 
   openBrokerAccountHistory(id: string) {
     this.router.navigate([
-      `/intention/history`,
+      '/intention/history',
       { field: 'account', value: id },
     ]);
   }

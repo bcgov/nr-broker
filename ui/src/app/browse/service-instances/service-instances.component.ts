@@ -74,7 +74,7 @@ export class ServiceInstancesComponent {
     this.comboDataResource.asReadonly().value,
   ).pipe(filter((data) => !!data));
 
-  readonly vertex = signal<VertexDto|undefined>(undefined);
+  readonly vertex = signal<VertexDto | undefined>(undefined);
   readonly vertices = signal<GraphDirectedCombo[]>([]);
   readonly service = input.required<ServiceDto>();
 

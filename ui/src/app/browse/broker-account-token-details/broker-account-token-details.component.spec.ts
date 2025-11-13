@@ -8,9 +8,9 @@ describe('BrokerAccountTokenDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BrokerAccountTokenDetailsComponent]
+      imports: [BrokerAccountTokenDetailsComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(BrokerAccountTokenDetailsComponent);
     component = fixture.componentInstance;

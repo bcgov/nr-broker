@@ -98,13 +98,13 @@ export class GanttGraphComponent implements OnInit {
             ? [
                 this.action.trace.start && this.intention.transaction.start
                   ? new Date(this.action.trace.start).valueOf() -
-                    new Date(this.intention.transaction.start).valueOf()
+                  new Date(this.intention.transaction.start).valueOf()
                   : 0,
               ]
             : this.intention.actions.map((action: any) =>
                 action.trace.start && this.intention.transaction.start
                   ? new Date(action.trace.start).valueOf() -
-                    new Date(this.intention.transaction.start).valueOf()
+                  new Date(this.intention.transaction.start).valueOf()
                   : 0,
               ),
         },
@@ -147,13 +147,13 @@ export class GanttGraphComponent implements OnInit {
             ? [
                 this.action.trace.end && this.intention.transaction.end
                   ? new Date(this.intention.transaction.end).valueOf() -
-                    new Date(this.action.trace.end).valueOf()
+                  new Date(this.action.trace.end).valueOf()
                   : 0,
               ]
             : this.intention.actions.map((action: any) =>
                 action.trace.end && this.intention.transaction.end
                   ? new Date(this.intention.transaction.end).valueOf() -
-                    new Date(action.trace.end).valueOf()
+                  new Date(action.trace.end).valueOf()
                   : 0,
               ),
         },

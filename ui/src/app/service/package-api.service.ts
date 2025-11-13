@@ -12,7 +12,6 @@ import {
 export class PackageApiService {
   private readonly http = inject(HttpClient);
 
-
   getBuild(id: string) {
     return this.http.get<PackageBuildDto>(
       `${environment.apiUrl}/v1/package/${id}`,

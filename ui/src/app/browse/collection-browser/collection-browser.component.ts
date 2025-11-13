@@ -75,12 +75,12 @@ export class CollectionBrowserComponent {
 
   private readonly configArrBrowse = this.configArr.filter((config) => config.permissions.browse);
   readonly collectionFilterOptions = signal<filterOptions<CollectionNames>[]>(this.configArrBrowse.map((config) => {
-      return {
-        value: config.collection,
-        viewValue: config.name,
-        tooltip: config.hint,
-      };
-    }));
+    return {
+      value: config.collection,
+      viewValue: config.name,
+      tooltip: config.hint,
+    };
+  }));
 
   constructor() {
     effect(() => {

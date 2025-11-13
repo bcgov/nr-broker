@@ -8,9 +8,9 @@ describe('InspectorPeopleDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InspectorPeopleDialogComponent]
+      imports: [InspectorPeopleDialogComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(InspectorPeopleDialogComponent);
     component = fixture.componentInstance;

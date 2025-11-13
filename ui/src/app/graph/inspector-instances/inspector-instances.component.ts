@@ -81,6 +81,7 @@ export class InspectorInstancesComponent implements OnChanges {
   isGroup(index: any, item: any): boolean {
     return item.isGroup;
   }
+
   isNotGroup(index: any, item: any): boolean {
     return !item.isGroup;
   }

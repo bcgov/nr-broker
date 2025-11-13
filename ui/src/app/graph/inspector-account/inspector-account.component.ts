@@ -50,10 +50,10 @@ export class InspectorAccountComponent implements OnChanges, OnInit, OnDestroy {
   expired = false;
   hourlyUsage:
     | {
-        success: number;
-        unknown: number;
-        failure: number;
-      }
+      success: number;
+      unknown: number;
+      failure: number;
+    }
     | undefined;
   propDisplayedColumns: string[] = ['key', 'value'];
 
