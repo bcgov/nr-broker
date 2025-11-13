@@ -39,6 +39,7 @@ export class VertexFormFieldComponent {
   get isValid() {
     return this.form().controls[this.field.name].valid;
   }
+
   get isDirty() {
     return this.form().controls[this.field.name].dirty;
   }

@@ -3,13 +3,12 @@
 } @else {
   <app-collection-header
     [collection]="collection()"
-    [name]="comboData.collection.name"
-    [screenSize]="screenSize"
+    [title]="comboData.collection.name"
     [upstream]="comboData.upstream"
   >
   <div
-    class="spaced-btn {{screenSize}} collection-btn">
-    @if (screenSize === 'wide') {
+    class="spaced-btn {{screen.screenSize()}} collection-btn">
+    @if (screen.screenSize() === 'wide') {
       <button
         mat-stroked-button
         extended
@@ -29,7 +28,7 @@
     }
   </div>
 
-  @if (screenSize === 'wide') {
+  @if (screen.screenSize() === 'wide') {
     <button
       mat-stroked-button
       extended
@@ -45,12 +44,22 @@
       (click)="editTags()">
       Tags
     </button>
+    @if (collection() === 'brokerAccount') {
+      <button
+        mat-stroked-button
+        extended
+        class="collection-btn"
+        [disabled]="!hasUpdate"
+        (click)="openAccessToken()">
+        Access Token
+      </button>
+    }
     @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
-        [screenSize]="screenSize"></app-inspector-team>
+        [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
       mat-stroked-button
@@ -74,12 +83,21 @@
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
+    @if (collection() === 'brokerAccount') {
+      <button
+        mat-icon-button
+        class="collection-btn"
+        [disabled]="!hasUpdate"
+        (click)="openAccessToken()">
+        <mat-icon>account_box</mat-icon>
+      </button>
+    }
     @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
         [vertex]="comboData.vertex.id"
         [name]="comboData.collection.name"
-        [screenSize]="screenSize"></app-inspector-team>
+        [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
       mat-icon-button
@@ -91,18 +109,15 @@
   }
 
 </app-collection-header>
-  <mat-tab-group
-    [animationDuration]="0"
-    [selectedIndex]="selectedTabIndex()"
-    (selectedTabChange)="selectedTabChange($event)">
-  <mat-tab label="Collection">
-    <div class="inspector-card-layout inspector-tab-margin" [class]="screenSize">
+      @let localCollection = collection();
+    <div class="inspector-card-layout inspector-tab-margin" [class]="screen.screenSize()">
       <app-vertex-tags
         class="full-width"
         [collection]="collection()"
         [collectionData]="comboData.collection"></app-vertex-tags>
 
-      <mat-card appearance="outlined">
+      <div>
+      <mat-card appearance="outlined" class="inspector-card-gap">
         <mat-card-content>
           <div class="card-title-container">
             <mat-card-title>Details</mat-card-title>
@@ -144,6 +159,7 @@
             [collectionData]="comboData.collection"
             [filter]="'no'"
             ></app-inspector-vertex-fields>
+
           @if (comboData.vertex.prop) {
             <app-inspector-properties
               [prop]="comboData.vertex.prop"></app-inspector-properties>
@@ -153,114 +169,7 @@
         </mat-card-content>
       </mat-card>
 
-      @let localCollection = collection();
-      <div>
-        @if (hasSudo && localCollection === 'repository' && comboData.vertex.collection === localCollection) {
-          <mat-card class="inspector-card-gap" appearance="outlined">
-            <mat-card-content>
-              <app-inspector-repository-sync
-                [repository]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
-                [hasSudo]="hasSudo"
-                [header]="'large'"></app-inspector-repository-sync>
-            </mat-card-content>
-          </mat-card>
-        }
-        @if (localCollection === 'brokerAccount' && comboData.vertex.collection === localCollection) {
-          <mat-card class="inspector-card-gap" appearance="outlined">
-            <mat-card-content>
-              <app-inspector-account
-                [account]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
-                [userIndex]="4"
-                [hasSudo]="hasSudo"
-                [header]="'large'"></app-inspector-account>
-            </mat-card-content>
-          </mat-card>
-        }
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <div class="card-title-container">
-              <mat-card-title>Direct Connections</mat-card-title>
-            </div>
-            <app-inspector-connections
-              [collection]="collection()"
-              [config]="config()"
-              [vertex]="comboData.collection.vertex"
-              [source]="comboData.vertex"
-              [upstream]="comboData.upstream"
-              [downstream]="comboData.downstream"
-              [hasAdmin]="hasAdmin"
-              (selected)="navigate($event)"
-              ></app-inspector-connections>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    @if (collection() === 'user') {
-      <mat-card appearance="outlined">
-        <mat-card-content>
-          <div class="card-title-container">
-            <mat-card-title>Alias</mat-card-title>
-          </div>
-          <app-user-alias
-          [collection]="comboData.collection"></app-user-alias>
-        </mat-card-content>
-      </mat-card>
-    }
-
-    @if (collection() === 'service' || collection() === 'project' || collection() === 'brokerAccount' || collection() === 'repository') {
-      <mat-card appearance="outlined">
-        <mat-card-content>
-          <div class="card-title-container">
-            <mat-card-title>Connected Users</mat-card-title>
-          </div>
-          <app-inspector-people
-            [collection]="comboData.vertex.collection"
-            [vertex]="comboData.collection.vertex"
-            [showLinked]="collection() === 'repository'"></app-inspector-people>
-        </mat-card-content>
-      </mat-card>
-    }
-    </div>
-  </mat-tab>
-
-  @if (collection() === 'serviceInstance') {
-    <mat-tab label="Details">
-      <div class="inspector-tab-margin">
-        <mat-card class="inspector-card-gap" appearance="outlined">
-          <mat-card-content class="card-content-container">
-            <app-service-instance-details
-              [instance]="serviceInstanceDetails"
-              [showName]="false"></app-service-instance-details>
-          </mat-card-content>
-        </mat-card>
-        @if (comboData.collection.actionHistory && comboData.collection.actionHistory.length > 0) {
-          <mat-card appearance="outlined">
-            <mat-card-content>
-              <div class="card-title-container">
-                <mat-card-title>History</mat-card-title>
-              </div>
-              <app-inspector-installs
-                [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
-            </mat-card-content>
-          </mat-card>
-        }
-      </div>
-    </mat-tab>
-  }
-
-  @if (collection() === 'service') {
-    <mat-tab label="Instances">
-      <div class="inspector-tab-margin">
-            <app-service-instances
-              [service]="comboData.collection"
-              [vertex]="comboData.vertex"
-              [vertices]="comboData.downstream"
-              [details]="serviceDetails"></app-service-instances>
-      </div>
-    </mat-tab>
-    <mat-tab label="Secrets">
-      <ng-template matTabContent>
-      <div class="inspector-card-layout inspector-tab-full-margin" [class]="screenSize">
+      @if (localCollection === 'service') {
         <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
@@ -276,56 +185,10 @@
             }
           </mat-card-content>
         </mat-card>
-      </div>
-      </ng-template>
-    </mat-tab>
-    <mat-tab label="Builds">
-      <ng-template matTabContent>
-      <div class="inspector-tab-full-margin">
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            @if (serviceDetails) {
-            <app-service-builds
-              [serviceId]="comboData.collection.id"
-              [isApprover]="hasSudo || hasApprove"></app-service-builds>
-            }
-          </mat-card-content>
-        </mat-card>
-      </div>
-      </ng-template>
-    </mat-tab>
-  }
-  @if (collection() === 'service' || collection() === 'brokerAccount') {
-    <mat-tab label="History">
-      <ng-template matTabContent>
-      <div
-        class="inspector-card-layout inspector-tab-full-margin"
-        [class]="screenSize">
-        <mat-card class="full-width order-end" appearance="outlined">
-          <mat-card-content>
-            <div class="card-title-container">
-              <mat-card-title>Intentions</mat-card-title>
-              <mat-card-subtitle>Most recent history</mat-card-subtitle>
-            </div>
-            <app-inspector-intentions
-              [id]="comboData.collection.id"
-              [name]="comboData.collection.name"
-              [collection]="collection()"
-              [showHeader]="true"
-              layout="normal"></app-inspector-intentions>
-          </mat-card-content>
-        </mat-card>
-      </div>
-      </ng-template>
-    </mat-tab>
-  }
+      }
 
-  @if (collection() === 'team') {
-    <mat-tab label="Team">
-      <div
-        class="inspector-card-layout inspector-tab-full-margin"
-        [class]="screenSize">
-        <mat-card appearance="outlined">
+      @if (localCollection === 'team') {
+        <mat-card appearance="outlined" class="inspector-card-gap">
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Members</mat-card-title>
@@ -347,10 +210,50 @@
           </mat-card-content>
         </mat-card>
 
+
         <mat-card appearance="outlined">
           <mat-card-content>
             <div class="card-title-container">
+              <mat-card-title>Services</mat-card-title>
+            </div>
+
+            <div class="card-team-members-margin">
+              <app-team-services
+                class="full-width order-end"
+                [teamVertex]="comboData.collection.vertex"></app-team-services>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+        </div>
+
+      <div>
+        <mat-card class="inspector-card-gap" appearance="outlined">
+          <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>{{ config().name }}</mat-card-title>
+            </div>
+
+            <div class="card-content-container-full">{{ config().hint }}</div>
+
+            @if (localCollection === 'brokerAccount' && comboData.vertex.collection === localCollection) {
+              <app-inspector-account
+                [account]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
+                [userIndex]="4"
+                [hasSudo]="hasSudo"></app-inspector-account>
+            }
+
+            @if (hasSudo && localCollection === 'repository' && comboData.vertex.collection === localCollection) {
+              <app-inspector-repository-sync
+                [repository]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
+                [hasSudo]="hasSudo"
+                [header]="'large'"></app-inspector-repository-sync>
+            }
+            @if (localCollection === 'team') {
+
+            <div class="card-title-container">
               <mat-card-title>Roles</mat-card-title>
+            </div>
               @if(healthStatus.health$ | async; as health) {
                 @if(health.details['github']['sync']) {
                   <div>
@@ -363,51 +266,76 @@
                   </div>
                 }
               }
-            </div>
 
-            <div class="card-team-members-margin">
-              <app-team-roles></app-team-roles>
-            </div>
+              <div class="card-team-members-margin">
+                <app-team-roles></app-team-roles>
+              </div>
+            }
+
+            @if (collection() === 'user') {
+                <div class="card-title-container">
+                  <mat-card-title>Alias</mat-card-title>
+                </div>
+                <app-user-alias
+                [collection]="comboData.collection"></app-user-alias>
+            }
+
+            <!-- @if (collection() === 'brokerAccount') {
+              <div class="card-content-container">
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openBrokerAccountHistory()">
+                  History
+                </button>
+              </div>
+            } -->
+            @if (collection() === 'service') {
+              <div class="card-content-container">
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceBuilds()">
+                  Builds
+                </button>
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceInstances()">
+                  Instances
+                </button>
+                <button
+                  class="{{screen.screenSize()}} collection-btn"
+                  mat-stroked-button
+                  extended
+                  (click)="openServiceHistory()">
+                  History
+                </button>
+              </div>
+            }
           </mat-card-content>
         </mat-card>
-      </div>
-    </mat-tab>
-    <mat-tab label="Services">
-      <div
-        class="inspector-card-layout inspector-tab-full-margin"
-        [class]="screenSize">
-        <app-team-services
-          class="full-width order-end"
-          [teamVertex]="comboData.collection.vertex"></app-team-services>
-      </div>
-    </mat-tab>
-  }
-  @if (connectedTableCollectionOptions() && connectedTableCollectionOptions().length > 0) {
-    <mat-tab label="Connected">
-      <ng-template matTabContent>
-        <div
-          class="inspector-card-layout"
-          [class]="screenSize">
 
-          <app-collection-table
-            class="full-width order-end"
-            [collection]="connectedTableCollection()"
-            [collectionOptions]="connectedTableCollectionOptions()"
-            [upstreamId]="!isUpstreamConnectedCollection(connectedTableCollection()) ? comboData.collection.vertex : null"
-            [downstreamId]="isUpstreamConnectedCollection(connectedTableCollection()) ? comboData.collection.vertex : null"
-            [text]="text()"
-            [showFilter]="showFilter()"
-            [tags]="tags()"
-            [index]="index()"
-            [size]="size()"
-            [sortActive]="sortActive()"
-            [sortDirection]="sortDirection()"
-            (settingsUpdated)="updateTableRoute($event)"
-            ></app-collection-table>
-
-        </div>
-      </ng-template>
-    </mat-tab>
-  }
-  </mat-tab-group>
+        <mat-card appearance="outlined">
+          <mat-card-content>
+            <div class="card-title-container">
+              <mat-card-title>Connections</mat-card-title>
+            </div>
+            <app-inspector-connections
+              [collection]="collection()"
+              [config]="config()"
+              [vertex]="comboData.collection.vertex"
+              [source]="comboData.vertex"
+              [upstream]="comboData.upstream"
+              [downstream]="comboData.downstream"
+              [hasAdmin]="hasAdmin"
+              (selected)="navigate($event)"
+              ></app-inspector-connections>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 }

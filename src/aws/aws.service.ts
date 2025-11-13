@@ -146,7 +146,7 @@ export class AwsService {
       const renewAt = Math.round(
         (new Date(stsAssumedRole.Credentials.Expiration).getTime() -
           new Date().getTime()) *
-          TOKEN_RENEW_RATIO,
+            TOKEN_RENEW_RATIO,
       );
       this.logger.log(
         `Identity assumed (valid till: ${stsAssumedRole.Credentials.Expiration}, renew in: ${renewAt})`,

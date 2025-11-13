@@ -1068,7 +1068,7 @@ export class GraphMongoRepository implements GraphRepository {
         .aggregate([
           { $match: { source: vertexId } },
           {
-            $replaceRoot: { newRoot: { ['edge']: `$$ROOT` } },
+            $replaceRoot: { newRoot: { ['edge']: '$$ROOT' } },
           },
           {
             $lookup: {
@@ -1093,7 +1093,7 @@ export class GraphMongoRepository implements GraphRepository {
         .aggregate([
           { $match: { target: vertexId } },
           {
-            $replaceRoot: { newRoot: { ['edge']: `$$ROOT` } },
+            $replaceRoot: { newRoot: { ['edge']: '$$ROOT' } },
           },
           {
             $lookup: {

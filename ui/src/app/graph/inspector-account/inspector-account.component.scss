@@ -5,8 +5,18 @@
   align-items: center;
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .heading {
   margin: 8px 0;
+}
+
+.margin-medium {
+  margin: 16px 0;
 }
 
 table {
@@ -36,4 +46,12 @@ table {
 .fields-wrapper {
   display: inline-flex;
   flex-wrap: wrap;
+}
+
+.fields-wrapper > * {
+  margin: 0;
+}
+
+.card-text {
+  margin: 0 16px;
 }

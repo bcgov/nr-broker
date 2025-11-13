@@ -8,10 +8,10 @@ describe('OutcomeIconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OutcomeIconComponent]
+      imports: [OutcomeIconComponent],
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(OutcomeIconComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -37,6 +37,6 @@ export class CommunicationEmailService extends CommunicationTaskService {
       html,
     };
     await this.transporter.sendMail(mailOptions);
-    //console.info('Message sent: %s', info.messageId);
+    // console.info('Message sent: %s', info.messageId);
   }
 }

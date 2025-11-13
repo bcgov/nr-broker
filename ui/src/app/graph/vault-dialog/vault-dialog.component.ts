@@ -33,7 +33,7 @@ export class VaultDialogComponent implements OnInit {
   readonly data = inject<{
     service: ServiceDto;
     showMasked: boolean;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
 
   public config: {

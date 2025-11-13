@@ -4,5 +4,9 @@
   },
   "[typescript]": {
     "editor.tabSize": 2
-  }
+  },
+  "eslint.workingDirectories": [
+    "./",
+    "./ui"
+  ]
 }

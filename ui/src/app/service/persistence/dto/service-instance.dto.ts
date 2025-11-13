@@ -34,8 +34,7 @@ export class ServiceInstanceBaseDto extends CollectionBaseDto {
 
 export class ServiceInstanceDto
   extends ServiceInstanceBaseDto
-  implements VertexPointerDto
-{
+  implements VertexPointerDto {
   @IsString()
   @IsDefined()
   id!: string;

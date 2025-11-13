@@ -24,7 +24,6 @@ export class GraphApiService {
   private readonly http = inject(HttpClient);
   private readonly sseClient = inject(SseClient);
 
-
   createEventSource(): Observable<GraphEventDto> {
     return this.sseClient.stream(`${environment.apiUrl}/v1/graph/events`).pipe(
       filter((event) => {
@@ -153,9 +152,9 @@ export class GraphApiService {
       `${
         environment.apiUrl
       }/v1/graph/edge/shallow-search?name=${encodeURIComponent(name)}` +
-        (source ? `&source=${encodeURIComponent(source)}` : '') +
-        (target ? `&target=${encodeURIComponent(target)}` : '') +
-        (map ? `&map=${encodeURIComponent(map)}` : ''),
+      (source ? `&source=${encodeURIComponent(source)}` : '') +
+      (target ? `&target=${encodeURIComponent(target)}` : '') +
+      (map ? `&map=${encodeURIComponent(map)}` : ''),
       null,
       {
         responseType: 'json',
@@ -221,12 +220,16 @@ export class GraphApiService {
   }
 
   getUserPermissions() {
-    return this.http.get<UserPermissionDto>(
-      `${environment.apiUrl}/v1/graph/data/user-permissions`,
-      {
-        responseType: 'json',
-      },
-    );
+    const { url, options } = this.getUserPermissionsArgs();
+    return this.http.get<UserPermissionDto>(url, options);
+  }
+
+  getUserPermissionsArgs(): { method: string; url: string; options: { responseType: 'json' } } {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/data/user-permissions`,
+      options: { responseType: 'json' },
+    };
   }
 
   doTypeaheadSearch(typeahead: string, collections?: string[]) {

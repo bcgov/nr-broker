@@ -28,7 +28,7 @@ import { ConnectionMap } from '../../service/graph.types';
 export class DeleteEdgeDialogComponent {
   readonly data = inject<{
     connections: ConnectionMap;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<DeleteEdgeDialogComponent>>(MatDialogRef);
   private readonly graphApi = inject(GraphApiService);
 

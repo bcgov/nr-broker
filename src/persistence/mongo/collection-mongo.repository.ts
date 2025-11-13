@@ -294,7 +294,7 @@ export class CollectionMongoRepository implements CollectionRepository {
           ...idQuery,
           ...vertexQuery,
           {
-            $replaceRoot: { newRoot: { ['collection']: `$$ROOT` } },
+            $replaceRoot: { newRoot: { ['collection']: '$$ROOT' } },
           },
           ...tagsQuery,
           ...upstreamQuery,

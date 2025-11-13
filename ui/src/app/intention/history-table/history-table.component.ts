@@ -31,7 +31,7 @@ export class HistoryTableComponent {
   intentionUtil = inject(IntentionUtilService);
 
   readonly intentionData = input<any[]>([]);
-  readonly layout = input<'narrow' | 'normal'>('normal');
+  readonly layout = input<'narrow' | 'wide'>('wide');
   readonly showHeader = input(true);
   readonly actionServiceFilter = input('');
   @Output() viewIntentionEvent = new EventEmitter<string>();

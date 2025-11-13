@@ -43,7 +43,7 @@ export class VertexDialogComponent implements OnInit, AfterViewInit {
     collection?: string;
     data?: any;
     vertex?: VertexDto;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<VertexDialogComponent>>(MatDialogRef);
   private readonly graphApi = inject(GraphApiService);
   private readonly graphUtil = inject(GraphUtilService);

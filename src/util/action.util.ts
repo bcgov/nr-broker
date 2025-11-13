@@ -29,8 +29,7 @@ export class ActionUtil {
   private readonly AUDIT_URL_TEMPLATE = process.env.AUDIT_URL_TEMPLATE
     ? process.env.AUDIT_URL_TEMPLATE
     : '';
-  private readonly VERSION_REGEX =
-    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+  private readonly VERSION_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
   public resolveVaultEnvironment(action: ActionEmbeddable): string | undefined {
     return (
@@ -68,7 +67,7 @@ export class ActionUtil {
             throw new BadRequestException({
               statusCode: 400,
               message: 'Illegal action argument',
-              error: `Check parameters for errors`,
+              error: 'Check parameters for errors',
             });
           }
         }
@@ -84,7 +83,7 @@ export class ActionUtil {
         throw new BadRequestException({
           statusCode: 400,
           message: 'Illegal action argument',
-          error: `Check parameters for errors`,
+          error: 'Check parameters for errors',
         });
       }
     }

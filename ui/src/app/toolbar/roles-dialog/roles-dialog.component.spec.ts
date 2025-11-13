@@ -8,9 +8,9 @@ describe('RolesDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RolesDialogComponent]
-})
-    .compileComponents();
+      imports: [RolesDialogComponent],
+    })
+      .compileComponents();
 
     fixture = TestBed.createComponent(RolesDialogComponent);
     component = fixture.componentInstance;

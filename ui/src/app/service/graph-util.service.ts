@@ -14,7 +14,6 @@ import {
 export class GraphUtilService {
   private readonly router = inject(Router);
 
-
   static configArrToSrcTarRecord(
     configArr: CollectionConfigDto[],
     configRecord: CollectionConfigNameRecord,

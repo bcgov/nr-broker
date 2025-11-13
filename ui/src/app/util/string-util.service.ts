@@ -10,7 +10,6 @@ import { CollectionConfigNameRecord } from '../service/graph.types';
 export class StringUtilService {
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
-
   snakecase(str: string) {
     if (!str) {
       return str;

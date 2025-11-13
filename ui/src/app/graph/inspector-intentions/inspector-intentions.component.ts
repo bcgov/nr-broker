@@ -27,7 +27,7 @@ export class InspectorIntentionsComponent implements OnChanges {
   readonly id = input.required<string>();
   readonly name = input.required<string>();
   readonly collection = input.required<string>();
-  readonly layout = input<'narrow' | 'normal'>('narrow');
+  readonly layout = input<'narrow' | 'wide'>('narrow');
   readonly showMore = input<boolean>(true);
   readonly showHeader = input<boolean>(false);
   intentions: any[] = [];

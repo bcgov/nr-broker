@@ -136,7 +136,7 @@
 
   <div class="cards">
 
-    @if (loading) {
+    @if (loading()) {
       <mat-spinner></mat-spinner>
     } @else {
       @if (services.length === 0) {
@@ -163,7 +163,7 @@
 
   <div class="cards">
 
-    @if (loading) {
+    @if (loading()) {
       <mat-spinner></mat-spinner>
     } @else {
       @if (documents.length === 0) {

@@ -1,4 +1,4 @@
-import { Component, OnChanges, booleanAttribute, computed, input, inject } from '@angular/core';
+import { Component, OnChanges, booleanAttribute, computed, input, inject, EventEmitter, Output } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,6 +47,7 @@ export class InspectorPeopleComponent implements OnChanges {
   readonly collection = input.required<CollectionNames>();
   readonly vertex = input.required<string>();
   readonly showLinked = input(false, { transform: booleanAttribute });
+  @Output() navigated = new EventEmitter();
 
   edges: CollectionEdgeConfig[] | undefined;
   collectionPeople: GraphUpDownDto<any>[] | null = null;

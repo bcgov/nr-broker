@@ -215,7 +215,7 @@ export class GraphComponent implements OnInit, OnDestroy {
             }
           }
           this.latestData = graphData;
-          //setTimeout(() => this.ref.detectChanges(), 0);
+          // setTimeout(() => this.ref.detectChanges(), 0);
           return {
             data: graphData,
             es,
@@ -236,13 +236,13 @@ export class GraphComponent implements OnInit, OnDestroy {
             (graphData.es.event === 'edge-add' &&
               (graphData.es.edge.source === this.selected.id ||
                 graphData.es.edge.target === this.selected.id)) ||
-            (graphData.es.event === 'vertex-edit' &&
-              graphData.es.vertex.id === this.selected.id) ||
-            (graphData.es.event === 'collection-edit' &&
-              graphData.es.collection.vertex === this.selected.id) ||
-            ((graphData.es.event === 'vertex-delete' ||
-              graphData.es.event === 'edge-delete') &&
-              graphData.es.adjacentVertex.indexOf(this.selected.id) !== -1)
+                (graphData.es.event === 'vertex-edit' &&
+                  graphData.es.vertex.id === this.selected.id) ||
+                  (graphData.es.event === 'collection-edit' &&
+                    graphData.es.collection.vertex === this.selected.id) ||
+                    ((graphData.es.event === 'vertex-delete' ||
+                      graphData.es.event === 'edge-delete') &&
+                      graphData.es.adjacentVertex.indexOf(this.selected.id) !== -1)
           ) {
             this.inspectorComponent.refreshData();
             // console.log('reload!');

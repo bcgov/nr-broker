@@ -8,9 +8,9 @@ describe('EdgeRequestDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EdgeRequestDialogComponent]
+      imports: [EdgeRequestDialogComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(EdgeRequestDialogComponent);
     component = fixture.componentInstance;

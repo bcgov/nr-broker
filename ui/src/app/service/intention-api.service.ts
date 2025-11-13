@@ -10,7 +10,6 @@ import { IntentionDto } from './intention/dto/intention.dto';
 export class IntentionApiService {
   private readonly http = inject(HttpClient);
 
-
   searchIntentionsArgs(
     where: string,
     offset = 0,

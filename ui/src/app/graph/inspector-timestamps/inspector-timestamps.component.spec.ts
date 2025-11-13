@@ -8,9 +8,9 @@ describe('InspectorTimestampsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InspectorTimestampsComponent]
+      imports: [InspectorTimestampsComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(InspectorTimestampsComponent);
     component = fixture.componentInstance;

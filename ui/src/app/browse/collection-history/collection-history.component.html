@@ -1,0 +1,24 @@
+@if (loading()) {
+  <mat-spinner></mat-spinner>
+} @else {
+  <app-collection-header
+    [collection]="collection()"
+    [title]="name()"
+    [backIcon]="'arrow_back'"
+  ></app-collection-header>
+
+  <mat-card class="card-margin" appearance="outlined">
+    <mat-card-content>
+      <div class="card-title-container">
+        <mat-card-title>Intentions</mat-card-title>
+        <mat-card-subtitle>Most recent history</mat-card-subtitle>
+      </div>
+      <app-inspector-intentions
+        [id]="collectionId()"
+        [name]="name()"
+        [collection]="collection()"
+        [showHeader]="true"
+        layout="wide"></app-inspector-intentions>
+    </mat-card-content>
+  </mat-card>
+}

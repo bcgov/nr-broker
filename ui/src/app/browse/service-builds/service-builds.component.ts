@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, input, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
@@ -7,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
 import {
   catchError,
   combineLatest,
@@ -17,22 +20,24 @@ import {
   Subject,
   switchMap,
 } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { PackageApiService } from '../../service/package-api.service';
 import { PackageBuildDto } from '../../service/persistence/dto/package-build.dto';
+import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionApiService } from '../../service/collection-api.service';
 
 interface TablePageQuery {
   index: number;
   size: number;
 }
-
 @Component({
   selector: 'app-service-builds',
   imports: [
     CommonModule,
     ClipboardModule,
+    MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
@@ -40,26 +45,27 @@ interface TablePageQuery {
     MatSortModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    CollectionHeaderComponent,
   ],
   templateUrl: './service-builds.component.html',
   styleUrl: './service-builds.component.scss',
 })
-export class ServiceBuildsComponent
-  implements OnInit, OnDestroy
-{
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+export class ServiceBuildsComponent implements OnInit, OnDestroy {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly collectionApi = inject(CollectionApiService);
   private readonly collectionUtil = inject(CollectionUtilService);
   private readonly packageApi = inject(PackageApiService);
 
-  readonly serviceId = input.required<string>();
-  readonly isApprover = input.required<boolean>();
+  collection = signal<CollectionNames>('service');
+  serviceId = signal('');
+  vertex = signal('');
+  name = signal('');
+  loading = signal(true);
 
   data: any[] = [];
   total = 0;
   pageIndex = 0;
   pageSize = 10;
-  loading = true;
 
   page$ = new Subject<TablePageQuery>();
   sort$ = new Subject<Sort>();
@@ -71,20 +77,24 @@ export class ServiceBuildsComponent
     'date',
     'name',
     'type',
-    'approval',
   ];
 
   private triggerRefresh = new Subject<number>();
 
-  // ngAfterViewInit() {
-  //   // console.log('ngAfterViewInit');
-  //   // this.sort.sortChange.asObservable().subscribe({
-  //   //   next: (v) => {
-  //   //     this.pageIndexReset();
-  //   //     this.sort$.next(v);
-  //   //   },
-  //   // });
-  // }
+  constructor() {
+    this.activatedRoute.params.subscribe((params) => {
+      this.serviceId.set(params['id']);
+
+      combineLatest([
+        this.collectionApi.getCollectionById('service', this.serviceId()),
+      ]).subscribe(([service]) => {
+        this.name.set(service.name);
+        this.vertex.set(service.vertex);
+        this.loading.set(false);
+        // console.log('Service build details', data);
+      });
+    });
+  }
 
   ngOnInit(): void {
     // console.log('ngOnInit');
@@ -116,7 +126,7 @@ export class ServiceBuildsComponent
           );
         }),
         switchMap((settings) => {
-          this.loading = true;
+          this.loading.set(true);
           // const sortActive = settings.sort?.active;
           // const sortDirection = settings.sort?.direction ?? 'asc';
           // this.updateRoute(settings);
@@ -142,9 +152,9 @@ export class ServiceBuildsComponent
       .subscribe((data) => {
         this.data = data.data;
         this.total = data.meta.total;
-        this.loading = false;
+        this.loading.set(false);
       });
-    const params = this.route.snapshot.params;
+    const params = this.activatedRoute.snapshot.params;
     if (params['index'] && params['size']) {
       this.pageIndex = params['index'];
       this.pageSize = params['size'];

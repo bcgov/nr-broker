@@ -49,6 +49,7 @@ export class SystemMongoRepository implements SystemRepository {
       ],
     } as any));
   }
+
   public async jwtMatchesBlocked(jwt: JwtDto): Promise<boolean> {
     return !!(await this.jwtBlockRepository.findOne({
       $and: [

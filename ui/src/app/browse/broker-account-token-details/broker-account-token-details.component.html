@@ -1,0 +1,42 @@
+@if (accountResource.isLoading() || !accountResource.hasValue()) {
+  <mat-spinner></mat-spinner>
+} @else {
+  @let account = accountResource.value();
+  <app-collection-header
+    [collection]="collection()"
+    [title]="account.name"
+    [backIcon]="'arrow_back'"
+  ></app-collection-header>
+  <div class="card-layout {{screen.screenSize()}}">
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <div class="card-text">
+      <div class="card-title-container">
+        <mat-card-title>Broker Account Access Token</mat-card-title>
+      </div>
+
+      <p>A Broker Account allows your team to generate access tokens that are used
+        to authenticate machine API requests. The account's connections to other
+        collection objects may be used to authorize requests.</p>
+
+      <p>If the account has expired or is soon to expire, then teams are encouraged
+        to generate a new token to ensure continued access. If the account is not
+        being actively used, then the token should be allowed to expire.</p>
+      </div>
+      <app-inspector-account
+        [account]="account"
+        [userIndex]="4"
+        [hasSudo]="hasSudo()"
+        [display]="'details'"
+        ></app-inspector-account>
+
+      <button
+        class="card-text"
+        mat-stroked-button
+        (click)="openGenerateDialog()">
+        Generate Token
+      </button>
+    </mat-card-content>
+  </mat-card>
+  </div>
+}

@@ -13,7 +13,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef> Name </th>
       <td mat-cell *matCellDef="let element">
-        <a routerLink="/browse/user/{{element.id}}">
+        <a routerLink="/browse/user/{{element.id}}" (click)="navigated.emit()">
           {{element.name}}
         </a>
       </td>

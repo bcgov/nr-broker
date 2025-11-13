@@ -14,19 +14,19 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-    selector: 'app-inspector-service-secure-dialog',
-    imports: [
-        ClipboardModule,
-        FormsModule,
-        MatButtonModule,
-        MatDialogModule,
-        MatIconModule,
-        MatListModule,
-        MatSlideToggleModule,
-        MatTooltipModule,
-    ],
-    templateUrl: './inspector-service-secure-dialog.component.html',
-    styleUrl: './inspector-service-secure-dialog.component.scss'
+  selector: 'app-inspector-service-secure-dialog',
+  imports: [
+    ClipboardModule,
+    FormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    MatListModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
+  ],
+  templateUrl: './inspector-service-secure-dialog.component.html',
+  styleUrl: './inspector-service-secure-dialog.component.scss',
 })
 export class InspectorServiceSecureDialogComponent {
   readonly data = inject(MAT_DIALOG_DATA);

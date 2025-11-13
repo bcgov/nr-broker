@@ -46,8 +46,7 @@ export class RepositoryBaseDto extends CollectionBaseDto {
 
 export class RepositoryDto
   extends RepositoryBaseDto
-  implements VertexPointerDto
-{
+  implements VertexPointerDto {
   @IsString()
   @IsDefined()
   id!: string;

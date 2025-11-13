@@ -1,40 +1,46 @@
+<div class="margin-medium">
 @if (account()) {
-  <div class="edge-container">
-    <div class="fields-wrapper">
-      @if (header() === 'small') {
-        <h3 class="heading">Token</h3>
+  <div class="header-container">
+    <div class="fields-wrapper card-text">
+      @if (display() === 'details') {
+        <h2>Details</h2>
       } @else {
-        <h2 class="heading">Token</h2>
+      <button
+        mat-stroked-button
+        extended
+        class="collection-btn"
+        (click)="openAccessToken()">
+        Access Token
+      </button>
       }
     </div>
-    <div class="fields-wrapper">
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="menu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="openGenerateDialog()" [disabled]="!hasSudo()">
-          <mat-icon>add_circle</mat-icon>Generate
+    @if (lastJwtTokenData) {
+      <div class="fields-wrapper">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="menu"
+          class="menu">
+          <mat-icon>more_vert</mat-icon>
         </button>
-        @if(healthStatus.health$ | async; as health) {
-        <button mat-menu-item
-          (click)="sync()"
-          [disabled]="!hasSudo() || !health.details['github']['sync']"
-          matTooltip="Connected service's secrets stored in the Vault under the tools path will be copied to GitHub as action secrets."
-          matTooltipShowDelay="500"
-          matTooltipPosition="left">
-          <mat-icon>sync</mat-icon>Sync secrets
-        </button>
-        }
-        @if (lastJwtTokenData) {
-        <button mat-menu-item [cdkCopyToClipboard]="lastJwtTokenData.JTI">
-          <mat-icon>content_copy</mat-icon>Copy JTI
-        </button>
-        }
-      </mat-menu>
-    </div>
+        <mat-menu #menu="matMenu">
+          <button
+            mat-menu-item
+            [cdkCopyToClipboard]="lastJwtTokenData.JTI">
+            <mat-icon>content_copy</mat-icon>Copy JTI
+          </button>
+          <button
+            mat-menu-item
+            (click)="openBrokerAccountHistory()">
+            <mat-icon>history</mat-icon>History
+          </button>
+        </mat-menu>
+      </div>
+    }
   </div>
   @if (!lastJwtTokenData) {
-    <p class="edge-container">No token found. Click generate to create a token.</p>
+    <div class="margin-medium">
+      <div class="card-text">This account has no active access token.</div>
+    </div>
   } @else {
     <table mat-table [dataSource]="lastJwtTokenData | keyvalue">
       <!-- Key Column -->
@@ -48,6 +54,16 @@
         <td mat-cell *matCellDef="let element">
           <span class="ellipsis">
             @switch (element.key) {
+
+                @case ('Blocked') {
+                  {{element.value ? 'Yes' : 'No'}}
+                }
+                @case ('Issued At') {
+                  {{element.value | date:'medium'}}
+                }
+                @case ('Client Id') {
+                  {{element.value}}
+                }
                 @case ('JTI') {
                   {{element.value}}
                 }
@@ -80,3 +96,4 @@
     </table>
   }
 }
+</div>

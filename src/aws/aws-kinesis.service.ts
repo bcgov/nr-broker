@@ -45,7 +45,7 @@ export class AwsKinesisService extends KinesisService {
               (record) =>
                 record.ErrorMessage &&
                 record.ErrorMessage ===
-                  'ProvisionedThroughputExceededException',
+                'ProvisionedThroughputExceededException',
             ).forEach((record, i) => this.putRecord(dataArr[i]));
           }
         } catch (error) {

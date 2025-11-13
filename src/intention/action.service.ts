@@ -115,7 +115,7 @@ export class ActionService {
       const serviceFound =
         projectFound &&
         accountBoundProjects[service.project].services.indexOf(service.name) !==
-          -1;
+        -1;
 
       if (!projectFound && requireProjectExists) {
         return new ActionRuleViolationEmbeddable(

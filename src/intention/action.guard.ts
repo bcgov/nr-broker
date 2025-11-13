@@ -12,6 +12,7 @@ import { IntentionEntity } from './entity/intention.entity';
 @Injectable()
 export class ActionGuard implements CanActivate {
   constructor(private intentionRepository: IntentionRepository) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<ActionGuardRequest>();
     const tokenHeader = request.headers[HEADER_BROKER_TOKEN];

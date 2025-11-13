@@ -143,14 +143,14 @@ export class CollectionSyncConfig {
   map!: Record<
     string,
     | {
-        type: 'first';
-        dest: string;
-      }
+      type: 'first';
+      dest: string;
+    }
     | {
-        type: 'pick';
-        endsWith: string[];
-        dest: string;
-      }
+      type: 'pick';
+      endsWith: string[];
+      dest: string;
+    }
   >;
 }
 

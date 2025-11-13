@@ -8,10 +8,10 @@ describe('VaultDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VaultDialogComponent]
+      imports: [VaultDialogComponent],
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(VaultDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

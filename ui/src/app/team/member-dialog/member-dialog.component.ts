@@ -69,7 +69,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   readonly data = inject<{
     vertex: string;
     name: string;
-}>(MAT_DIALOG_DATA);
+  }>(MAT_DIALOG_DATA);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly graphApi = inject(GraphApiService);

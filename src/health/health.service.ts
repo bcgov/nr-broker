@@ -4,6 +4,7 @@ import { TokenService } from '../token/token.service';
 @Injectable()
 export class HealthService {
   constructor(private readonly token: TokenService) {}
+
   check() {
     if (!this.token.hasValidToken()) {
       throw new ServiceUnavailableException();

@@ -1,7 +1,6 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
@@ -28,14 +27,9 @@ import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { InspectorAccountComponent } from '../../graph/inspector-account/inspector-account.component';
-import { InspectorInstallsComponent } from '../../graph/inspector-installs/inspector-installs.component';
-import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
-import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
-import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorVertexFieldsComponent } from '../../graph/inspector-vertex-fields/inspector-vertex-fields.component';
 import { VertexTagsComponent } from '../../graph/vertex-tags/vertex-tags.component';
-import { ServiceBuildsComponent } from '../service-builds/service-builds.component';
 import { TeamServicesComponent } from '../team-services/team-services.component';
 import { TeamMembersComponent } from '../team-members/team-members.component';
 import { InspectorConnectionsComponent } from '../../graph/inspector-connections/inspector-connections.component';
@@ -46,27 +40,21 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
-import { InspectorPeopleComponent } from '../../graph/inspector-people/inspector-people.component';
 import { TeamRolesComponent } from '../team-roles/team-roles.component';
-import { ServiceInstancesComponent } from '../service-instances/service-instances.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { UserAliasComponent } from '../user-alias/user-alias.component';
-import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
-import { ServiceDetailsResponseDto } from '../../service/persistence/dto/service.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
-import {
-  CollectionTableComponent,
-  ShowFilter,
-} from '../collection-table/collection-table.component';
-import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { HealthStatusService } from '../../service/health-status.service';
+import { ScreenService } from '../../util/screen.service';
+import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
+import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -83,22 +71,15 @@ import { HealthStatusService } from '../../service/health-status.service';
     MatSnackBarModule,
     MatTabsModule,
     CollectionHeaderComponent,
-    CollectionTableComponent,
     InspectorAccountComponent,
-    InspectorInstallsComponent,
-    InspectorIntentionsComponent,
-    InspectorServiceSecureComponent,
     InspectorTeamComponent,
-    InspectorVaultComponent,
     InspectorVertexFieldsComponent,
     InspectorConnectionsComponent,
     InspectorRepositorySyncComponent,
-    InspectorPeopleComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    ServiceBuildsComponent,
-    ServiceInstanceDetailsComponent,
-    ServiceInstancesComponent,
+    InspectorVaultComponent,
+    InspectorServiceSecureComponent,
     TeamMembersComponent,
     TeamServicesComponent,
     TeamRolesComponent,
@@ -110,7 +91,6 @@ import { HealthStatusService } from '../../service/health-status.service';
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly location = inject(Location);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -118,9 +98,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly graphUtil = inject(GraphUtilService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
-  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly screen = inject(ScreenService);
 
   // Url params
   public collection = input<CollectionNames>('project');
@@ -148,7 +129,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.comboDataResource.asReadonly().value,
   ).pipe(filter((data) => !!data));
 
-  public serviceDetails: ServiceDetailsResponseDto | null = null;
   public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
     null;
 
@@ -160,7 +140,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = false;
 
   refresh = signal(0);
-  screenSize = '';
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -171,23 +150,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       return [];
     }
   });
-
-  text = signal('');
-  tags = signal('');
-  showFilter = signal<ShowFilter>('all');
-  index = signal(0);
-  size = signal(10);
-  sortActive = signal('');
-  sortDirection = signal<SortDirection>('');
-
-  // Create a map from breakpoints to css class
-  displayNameMap = new Map([
-    [Breakpoints.XSmall, 'narrow'],
-    [Breakpoints.Small, 'narrow'],
-    [Breakpoints.Medium, 'wide'],
-    [Breakpoints.Large, 'wide'],
-    [Breakpoints.XLarge, 'wide'],
-  ]);
 
   private ngUnsubscribe = new Subject<any>();
 
@@ -200,23 +162,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.connectedTableCollection.set('project');
       }
     });
-
-    inject(BreakpointObserver)
-      .observe([
-        Breakpoints.XSmall,
-        Breakpoints.Small,
-        Breakpoints.Medium,
-        Breakpoints.Large,
-        Breakpoints.XLarge,
-      ])
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((result) => {
-        for (const query of Object.keys(result.breakpoints)) {
-          if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'Unknown';
-          }
-        }
-      });
   }
 
   ngOnInit(): void {
@@ -231,31 +176,31 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
               es.edge.target === this.comboData.collection.vertex
             ) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           }
           if (es.event === 'vertex-edit') {
             if (es.vertex.id === this.comboData.collection.vertex) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           } else if (es.event === 'collection-edit') {
             if (es.collection.vertex === this.comboData.collection.vertex) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           } else if (
             es.event === 'vertex-delete' ||
             es.event === 'edge-delete'
           ) {
             if (es.vertex.indexOf(this.comboData.collection.vertex) !== -1) {
-              this.openSnackBar(`The object was deleted.`);
+              this.openSnackBar('The object was deleted.');
               this.back();
             } else if (
               es.adjacentVertex.indexOf(this.comboData.collection.vertex) !== -1
             ) {
               this.updateCollection();
-              this.openSnackBar(`The object was updated.`);
+              this.openSnackBar('The object was updated.');
             }
           }
         }
@@ -288,16 +233,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.comboData.collection.vertex,
       );
 
-      this.serviceDetails = null;
       this.serviceInstanceDetails = null;
 
-      if (this.collection() === 'service') {
-        this.collectionApi
-          .getServiceDetails(this.comboData.collection.id)
-          .subscribe((data) => {
-            this.serviceDetails = data;
-          });
-      } else if (this.collection() === 'serviceInstance') {
+      if (this.collection() === 'serviceInstance') {
         this.collectionApi
           .getServiceInstanceDetails(this.comboData.collection.id)
           .subscribe((data) => {
@@ -370,6 +308,26 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     }
   }
 
+  openAccessToken() {
+    this.collectionUtil.openAccessToken(this.comboData.collection.id);
+  }
+
+  openServiceBuilds() {
+    this.collectionUtil.openServiceBuilds(this.comboData.collection.id);
+  }
+
+  openServiceInstances() {
+    this.collectionUtil.openServiceInstances(this.comboData.collection.id);
+  }
+
+  openServiceHistory() {
+    this.collectionUtil.openServiceHistory(this.comboData.collection.id);
+  }
+
+  openBrokerAccountHistory() {
+    this.collectionUtil.openBrokerAccountHistory(this.comboData.collection.id);
+  }
+
   edit() {
     this.dialog
       .open(VertexDialogComponent, {
@@ -437,26 +395,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
-  }
-
-  updateTableRoute($event: any) {
-    if (this.connectedTableCollection() === $event.collection) {
-      this.text.set($event.text);
-      this.tags.set($event.tags.join(','));
-      this.index.set($event.index);
-      this.size.set($event.size);
-      this.sortActive.set($event.sortActive);
-      this.sortDirection.set($event.sortDirection);
-    } else {
-      this.connectedTableCollection.set($event.collection);
-      this.text.set('');
-      this.tags.set('');
-      this.index.set(0);
-      this.size.set($event.size);
-      this.sortActive.set('');
-      this.sortDirection.set('');
-    }
-    // console.log($event);
   }
 
   private openSnackBar(message: string) {

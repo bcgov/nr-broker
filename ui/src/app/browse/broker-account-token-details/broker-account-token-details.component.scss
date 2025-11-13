@@ -1,0 +1,25 @@
+.card-layout {
+  margin: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.card-layout > * {
+  width: calc(50% - 8px);
+}
+
+.card-layout.narrow > * {
+  width: 100%;
+}
+
+.card-title-container {
+  margin-bottom: 16px;
+}
+
+
+.card-text {
+  margin: 0 16px;
+}

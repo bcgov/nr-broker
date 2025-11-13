@@ -22,10 +22,12 @@
   }
 
   @if (collection === 'brokerAccount') {
-    <app-inspector-account
-      [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
-      [userIndex]="4"
-      [hasSudo]="hasSudo()"></app-inspector-account>
+    <div class="component-spacer">
+      <app-inspector-account
+        [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
+        [userIndex]="4"
+        [hasSudo]="hasSudo()"></app-inspector-account>
+    </div>
   }
   @if (collection === 'service') {
     @if (comboData) {

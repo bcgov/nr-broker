@@ -1,5 +1,5 @@
-import { Component, EventEmitter, inject, input, Output, OnDestroy } from '@angular/core';
-import { Subject, switchMap, takeUntil } from 'rxjs';
+import { Component, EventEmitter, inject, input, Output } from '@angular/core';
+import { switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatMenuModule } from '@angular/material/menu';
@@ -9,8 +9,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { httpResource } from '@angular/common/http';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { CommonModule } from '@angular/common';
 
 import { CollectionApiService } from '../../service/collection-api.service';
 import { CollectionUtilService } from '../../service/collection-util.service';
@@ -25,7 +25,7 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
 import { ActionContentComponent } from '../action-content/action-content.component';
 import { IntentionUtilService } from '../../util/intention-util.service';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
-import { CommonModule } from '@angular/common';
+import { ScreenService } from '../../util/screen.service';
 
 @Component({
   selector: 'app-intention-details',
@@ -47,7 +47,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './intention-details.component.html',
   styleUrl: './intention-details.component.scss',
 })
-export class IntentionDetailsComponent implements OnDestroy {
+export class IntentionDetailsComponent {
   private readonly router = inject(Router);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly collectionUtil = inject(CollectionUtilService);
@@ -55,18 +55,9 @@ export class IntentionDetailsComponent implements OnDestroy {
   private readonly packageUtil = inject(PackageUtilService);
   private readonly snackBar = inject(MatSnackBar);
   readonly intentionUtil = inject(IntentionUtilService);
+  readonly screen = inject(ScreenService);
 
-  screenSize: 'narrow' | 'normal' = 'normal';
   intention = input.required<IntentionDto>();
-
-  displayNameMap = new Map<string, 'narrow' | 'normal'>([
-    [Breakpoints.XSmall, 'narrow'],
-    [Breakpoints.Small, 'narrow'],
-    [Breakpoints.Medium, 'normal'],
-    [Breakpoints.Large, 'normal'],
-    [Breakpoints.XLarge, 'normal'],
-  ]);
-  destroyed = new Subject<void>();
 
   brokerAccountResource = httpResource<BrokerAccountDto>(() => {
     const accountId = this.intention().accountId;
@@ -80,31 +71,6 @@ export class IntentionDetailsComponent implements OnDestroy {
     }
   });
   @Output() viewIntentionEvent = new EventEmitter<string>();
-
-  constructor() {
-    inject(BreakpointObserver)
-      .observe([
-        Breakpoints.XSmall,
-        Breakpoints.Small,
-        Breakpoints.Medium,
-        Breakpoints.Large,
-        Breakpoints.XLarge,
-      ])
-      .pipe(takeUntil(this.destroyed))
-      .subscribe((result) => {
-        for (const query of Object.keys(result.breakpoints)) {
-          if (result.breakpoints[query]) {
-            this.screenSize = this.displayNameMap.get(query) ?? 'normal';
-            // console.log('Screen size changed to:', this.screenSize);
-          }
-        }
-      });
-  }
-
-  ngOnDestroy() {
-    this.destroyed.next();
-    this.destroyed.complete();
-  }
 
   async openPackageBuildVersion(id: string | undefined, version: string) {
     if (!id) {
@@ -131,7 +97,7 @@ export class IntentionDetailsComponent implements OnDestroy {
 
   openBrokerAccountHistory(id: string) {
     this.router.navigate([
-      `/intention/history`,
+      '/intention/history',
       { field: 'account', value: id },
     ]);
   }
