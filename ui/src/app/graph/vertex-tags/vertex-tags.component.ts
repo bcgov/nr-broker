@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
@@ -8,7 +7,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
 
 @Component({
   selector: 'app-vertex-tags',
-  imports: [CommonModule, RouterModule, MatChipsModule],
+  imports: [RouterModule, MatChipsModule],
   templateUrl: './vertex-tags.component.html',
   styleUrl: './vertex-tags.component.scss',
 })

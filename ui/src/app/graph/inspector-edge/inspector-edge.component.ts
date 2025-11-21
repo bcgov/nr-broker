@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output, input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -14,7 +13,6 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 @Component({
   selector: 'app-inspector-edge',
   imports: [
-    CommonModule,
     ClipboardModule,
     MatButtonModule,
     MatChipsModule,

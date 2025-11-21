@@ -1,5 +1,4 @@
 import { Component, computed, input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import {
   MatExpansionModule,
@@ -22,7 +21,6 @@ import { MatChipsModule } from '@angular/material/chips';
 @Component({
   selector: 'app-team-members',
   imports: [
-    CommonModule,
     MatDividerModule,
     MatExpansionModule,
     MatChipsModule,

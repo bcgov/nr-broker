@@ -19,7 +19,6 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
-import { CommonModule } from '@angular/common';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -47,7 +46,6 @@ import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component'
   templateUrl: './edge-dialog.component.html',
   styleUrls: ['./edge-dialog.component.scss'],
   imports: [
-    CommonModule,
     FormsModule,
     MatAutocompleteModule,
     MatButtonModule,

@@ -1,5 +1,4 @@
 import { Component, OnChanges, SimpleChanges, input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -11,7 +10,6 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
 @Component({
   selector: 'app-inspector-intentions',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatExpansionModule,
     MatListModule,

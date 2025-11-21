@@ -7,7 +7,6 @@ import {
   OnDestroy,
   computed,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   FormsModule,
@@ -54,7 +53,6 @@ export interface HistoryQuery {
 @Component({
   selector: 'app-history',
   imports: [
-    CommonModule,
     FormsModule,
     MatButtonModule,
     MatCardModule,

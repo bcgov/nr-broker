@@ -124,6 +124,7 @@ export class CollectionConfigDto {
   parent!: CollectionConfigParent;
   permissions!: CollectionConfigPermissions;
   show!: boolean;
+  showUserRoles!: boolean;
 }
 
 export class LinksAltDto {

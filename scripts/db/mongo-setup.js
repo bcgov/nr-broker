@@ -148,6 +148,7 @@ result = db.collectionConfig.insertOne({
     delete: false,
   },
   show: false,
+  showUserRoles: false,
 });
 result = db.collectionConfig.insertOne({
   collection: 'project',
@@ -226,6 +227,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+  showUserRoles: true,
 });
 result = db.collectionConfig.insertOne({
   collection: 'service',
@@ -340,6 +342,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+  showUserRoles: true,
 });
 result = db.collectionConfig.insertOne({
   collection: 'serviceInstance',
@@ -415,6 +418,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: false,
+  showUserRoles: false,
 });
 result = db.collectionConfig.insertOne({
   collection: 'user',
@@ -536,6 +540,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: false,
+  showUserRoles: false,
 });
 
 result = db.collectionConfig.insertOne({
@@ -649,6 +654,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+  showUserRoles: true,
 });
 
 result = db.collectionConfig.insertOne({
@@ -728,6 +734,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+  showUserRoles: false,
 });
 
 result = db.collectionConfig.insertOne({
@@ -830,6 +837,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: true,
+  showUserRoles: false,
 });
 
 result = db.collectionConfig.insertOne({
@@ -915,6 +923,7 @@ result = db.collectionConfig.insertOne({
     delete: true,
   },
   show: false,
+  showUserRoles: true,
 });
 
 // ==> Graph Permission Setup

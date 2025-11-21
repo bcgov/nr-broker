@@ -3,7 +3,6 @@ import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { of } from 'rxjs';
 import {
@@ -29,7 +28,6 @@ interface UserData {
 @Component({
   selector: 'app-inspector-people',
   imports: [
-    CommonModule,
     MatTableModule,
     MatIconModule,
     MatButtonModule,

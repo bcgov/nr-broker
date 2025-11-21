@@ -14,7 +14,6 @@
       </button>
       }
     </div>
-    @if (lastJwtTokenData) {
       <div class="fields-wrapper">
         <button
           mat-icon-button
@@ -23,11 +22,13 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
+          @if (lastJwtTokenData) {
           <button
             mat-menu-item
             [cdkCopyToClipboard]="lastJwtTokenData.JTI">
             <mat-icon>content_copy</mat-icon>Copy JTI
           </button>
+          }
           <button
             mat-menu-item
             (click)="openBrokerAccountHistory()">
@@ -35,14 +36,14 @@
           </button>
         </mat-menu>
       </div>
-    }
   </div>
-  @if (!lastJwtTokenData) {
+  @let lastJwtTokenDataKv = lastJwtTokenData | keyvalue;
+  @if (!lastJwtTokenDataKv) {
     <div class="margin-medium">
       <div class="card-text">This account has no active access token.</div>
     </div>
   } @else {
-    <table mat-table [dataSource]="lastJwtTokenData | keyvalue">
+    <table mat-table [dataSource]="lastJwtTokenDataKv">
       <!-- Key Column -->
       <ng-container matColumnDef="key">
         <th mat-header-cell *matHeaderCellDef> Key </th>

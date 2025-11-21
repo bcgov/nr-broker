@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
@@ -8,7 +7,7 @@ import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 
 @Component({
   selector: 'app-team-roles',
-  imports: [CommonModule, MatDividerModule, EdgetitlePipe],
+  imports: [MatDividerModule, EdgetitlePipe],
   templateUrl: './team-roles.component.html',
   styleUrl: './team-roles.component.scss',
 })

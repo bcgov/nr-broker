@@ -1,5 +1,4 @@
 import { Component, OnInit, SimpleChanges, input, inject, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +13,6 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 @Component({
   selector: 'app-team-accounts',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
