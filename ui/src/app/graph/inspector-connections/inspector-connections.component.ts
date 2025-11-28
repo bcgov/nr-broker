@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnChanges, OnInit, Output, input, inject, signal } from '@angular/core';
+import { Component, OnChanges, OnInit, output, input, inject, signal } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
@@ -48,7 +48,7 @@ export class InspectorConnectionsComponent implements OnInit, OnChanges {
   readonly downstream = input.required<GraphDirectedCombo[]>();
   readonly hasAdmin = input.required<boolean>();
 
-  @Output() selected = new EventEmitter<EdgeDto | VertexDto>();
+  readonly selected = output<EdgeDto | VertexDto>();
 
   inboundConnections = signal<GraphDirectedComboMap>({});
   outboundConnections = signal<GraphDirectedComboMap>({});

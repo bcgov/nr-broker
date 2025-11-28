@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, signal } from '@angular/core';
 
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,10 +21,10 @@ import { MatInputModule } from '@angular/material/input';
 export class PropertyEditorComponent implements OnInit {
   readonly graphProperties = input<any>();
 
-  properties: {
+  properties = signal<{
     key: FormControl<string | null>;
     value: FormControl<string | null>;
-  }[] = [];
+  }[]>([]);
 
   ngOnInit(): void {
     const graphProperties = this.graphProperties();
@@ -36,25 +36,29 @@ export class PropertyEditorComponent implements OnInit {
   }
 
   addProperty(key = '', value = '') {
-    this.properties.push({
-      key: new FormControl<string>(key),
-      value: new FormControl<string>(value),
-    });
+    this.properties.set([
+      ...this.properties(),
+      {
+        key: new FormControl<string>(key),
+        value: new FormControl<string>(value),
+      },
+    ]);
     return false;
   }
 
   removeProperty(property: any) {
-    this.properties = this.properties.filter((p) => {
+    this.properties.set(this.properties().filter((p) => {
       return p !== property;
-    });
+    }));
+    return false;
   }
 
   getPropertyValues() {
-    if (this.properties.length === 0) {
+    if (this.properties().length === 0) {
       return {};
     }
     return {
-      prop: this.properties.reduce(
+      prop: this.properties().reduce(
         (pv, cv) => {
           if (cv.key.value && cv.value.value) {
             pv[cv.key.value] = cv.value.value;

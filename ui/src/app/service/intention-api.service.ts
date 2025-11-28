@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import type { HttpResourceRequest } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { IntentionSearchResult } from './intention/dto/intention-search-result.dto';
 import { IntentionDto } from './intention/dto/intention.dto';
@@ -14,20 +15,10 @@ export class IntentionApiService {
     where: string,
     offset = 0,
     limit = 5,
-  ): {
-    method: string;
-    url: string;
-    headers: {
-      responseType: 'json';
-    };
-    params: { where: string; offset: number; limit: number };
-  } {
+  ): HttpResourceRequest {
     return {
       method: 'POST',
       url: `${environment.apiUrl}/v1/intention/search`,
-      headers: {
-        responseType: 'json',
-      },
       params: {
         where,
         offset,
@@ -37,14 +28,12 @@ export class IntentionApiService {
   }
 
   searchIntentions(where: string, offset = 0, limit = 5) {
-    const { url, headers, params } = this.searchIntentionsArgs(
-      where,
-      offset,
-      limit,
-    );
-    return this.http.post<IntentionSearchResult>(url, null, {
-      responseType: headers.responseType,
-      params,
+    const args = this.searchIntentionsArgs(where, offset, limit);
+    return this.http.request<IntentionSearchResult>(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
     });
   }
 

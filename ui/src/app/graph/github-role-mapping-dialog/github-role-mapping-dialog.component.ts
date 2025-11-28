@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
@@ -17,11 +17,11 @@ export class GithubRoleMappingDialogComponent implements OnInit {
 
   displayedColumns: string[] = ['edge', 'role'];
 
-  dataSource: GitHubEdgeToRoles[] = [];
+  dataSource = signal<GitHubEdgeToRoles[]>([]);
 
   ngOnInit() {
     if (this.configRecord['user'].edgeToRoles) {
-      this.dataSource = this.configRecord['user'].edgeToRoles;
+      this.dataSource.set(this.configRecord['user'].edgeToRoles);
     }
   }
 }

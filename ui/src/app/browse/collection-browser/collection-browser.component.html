@@ -5,8 +5,8 @@
     <mat-form-field>
       <mat-label>Collection</mat-label>
       <mat-select
-        [(ngModel)]="currentCollection"
-        (selectionChange)="onCollectionChange()"
+        [value]="collection()"
+        (selectionChange)="onCollectionChange($event.value)"
         name="collection">
         @for (opt of collectionFilterOptions(); track opt) {
           <mat-option
@@ -27,7 +27,7 @@
     mat-stroked-button
     aria-label="Add Vertex"
     (click)="addVertex()"
-    [disabled]="!((currentCollection === 'team' || permission.hasAdmin()) && !disableAdd())">
+    [disabled]="!((collection() === 'team' || permission.hasAdmin()) && !disableAdd())">
     <mat-icon>add</mat-icon>
     Add
   </button>

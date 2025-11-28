@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import type { HttpResourceRequest } from '@angular/common/http';
 import { Observable, filter, map } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
 
@@ -220,15 +221,19 @@ export class GraphApiService {
   }
 
   getUserPermissions() {
-    const { url, options } = this.getUserPermissionsArgs();
-    return this.http.get<UserPermissionDto>(url, options);
+    const args = this.getUserPermissionsArgs();
+    return this.http.request<UserPermissionDto>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
   }
 
-  getUserPermissionsArgs(): { method: string; url: string; options: { responseType: 'json' } } {
+  getUserPermissionsArgs(): HttpResourceRequest {
     return {
       method: 'GET',
       url: `${environment.apiUrl}/v1/graph/data/user-permissions`,
-      options: { responseType: 'json' },
     };
   }
 

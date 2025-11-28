@@ -1,4 +1,4 @@
-import { Component, OnInit, booleanAttribute, input, inject } from '@angular/core';
+import { Component, computed, booleanAttribute, input, inject } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { IntentionUtilService } from '../../util/intention-util.service';
@@ -9,21 +9,19 @@ import { IntentionUtilService } from '../../util/intention-util.service';
   templateUrl: './action-content.component.html',
   styleUrls: ['./action-content.component.scss'],
 })
-export class ActionContentComponent implements OnInit {
+export class ActionContentComponent {
   private service = inject(IntentionUtilService);
 
   readonly intention = input<any>();
   readonly key = input.required<string>();
   readonly actionServiceFilter = input('');
   readonly showMultiple = input(false, { transform: booleanAttribute });
-  values: string[] = [];
-
-  ngOnInit(): void {
+  readonly values = computed<string[]>(() => {
     const valueSet = this.service.actionValueSet(
       this.intention(),
       this.key(),
       this.actionServiceFilter(),
     );
-    this.values = [...valueSet];
-  }
+    return [...valueSet];
+  });
 }

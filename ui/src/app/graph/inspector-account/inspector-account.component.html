@@ -1,4 +1,3 @@
-<div class="margin-medium">
 @if (account()) {
   <div class="header-container">
     <div class="fields-wrapper card-text">
@@ -14,7 +13,11 @@
       </button>
       }
     </div>
+    @let data = lastJwtTokenData();
       <div class="fields-wrapper">
+        <!-- <section class="slide-toggle-section">
+          Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+        </section> -->
         <button
           mat-icon-button
           [matMenuTriggerFor]="menu"
@@ -22,10 +25,10 @@
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          @if (lastJwtTokenData) {
+          @if (data) {
           <button
             mat-menu-item
-            [cdkCopyToClipboard]="lastJwtTokenData.JTI">
+            [cdkCopyToClipboard]="jtiValue()">
             <mat-icon>content_copy</mat-icon>Copy JTI
           </button>
           }
@@ -37,64 +40,39 @@
         </mat-menu>
       </div>
   </div>
-  @let lastJwtTokenDataKv = lastJwtTokenData | keyvalue;
-  @if (!lastJwtTokenDataKv) {
+  @let lastJwtTokenDataKv = lastJwtTokenData();
+  @if (accountTokensResource.isLoading()) {
+    <mat-spinner></mat-spinner>
+  }
+  @else if (!lastJwtTokenDataKv) {
     <div class="margin-medium">
       <div class="card-text">This account has no active access token.</div>
     </div>
   } @else {
-    <table mat-table [dataSource]="lastJwtTokenDataKv">
-      <!-- Key Column -->
-      <ng-container matColumnDef="key">
-        <th mat-header-cell *matHeaderCellDef> Key </th>
-        <td mat-cell *matCellDef="let element"> {{element.key}} </td>
-      </ng-container>
-      <!-- Value Column -->
-      <ng-container matColumnDef="value">
-        <th mat-header-cell *matHeaderCellDef> Value </th>
-        <td mat-cell *matCellDef="let element">
-          <span class="ellipsis">
-            @switch (element.key) {
+    <app-inspector-account-table
+      [display]="display()"
+      [tokenData]="lastJwtTokenDataKv"
+      [showHelp]="showHelp()"
+      ></app-inspector-account-table>
+  }
 
-                @case ('Blocked') {
-                  {{element.value ? 'Yes' : 'No'}}
-                }
-                @case ('Issued At') {
-                  {{element.value | date:'medium'}}
-                }
-                @case ('Client Id') {
-                  {{element.value}}
-                }
-                @case ('JTI') {
-                  {{element.value}}
-                }
-                @case ('Expiry') {
-                  @if (!expired) {
-                    <mat-icon class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
-                  } @else {
-                    <mat-icon class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
-                  }
-                  {{element.value | date:'medium'}}
-                }
-                @case ('Usage') {
-                  <span
-                    matTooltip="in last hour"
-                    matTooltipShowDelay="500"
-                    >
-                    {{ element.value.success + element.value.unknown + element.value.failure }}
-                    @if (element.value.failure > 0) {
-                      / {{ element.value.failure }} failure(s)
-                    }
-                  </span>
-                }
-                @default {
-                }
-            }
-          </span>
-        </td>
-      </ng-container>
-      <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
-    </table>
+  @let prevJwtTokenDataKv = prevJwtTokenData();
+  @if (!prevJwtTokenDataKv || display() === 'table') {
+    <!-- <div class="margin-medium">
+      <div class="card-text">This account has no previous access token.</div>
+    </div> -->
+  } @else {
+    <mat-accordion>
+      <mat-expansion-panel multi>
+        <mat-expansion-panel-header>
+          <mat-panel-title> Previous </mat-panel-title>
+        </mat-expansion-panel-header>
+        <app-inspector-account-table
+          [display]="display()"
+          [tokenData]="prevJwtTokenDataKv"
+          [showHelp]="showHelp()"
+          ></app-inspector-account-table>
+      </mat-expansion-panel>
+    </mat-accordion>
   }
 }
-</div>

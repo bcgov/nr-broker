@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnChanges, Output, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnChanges, output, SimpleChanges, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -63,7 +63,7 @@ export class InspectorInstancesComponent implements OnChanges {
   tableData: any[] = [];
   environments: any[] = [];
   loading = true;
-  @Output() refreshData = new EventEmitter();
+  readonly refreshData = output();
 
   propDisplayedColumns: string[] = ['outcome', 'version'];
   propDisplayedColumnsWithExpand: string[] = [

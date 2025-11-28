@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
@@ -38,21 +38,15 @@ export class InspectorVertexComponent implements OnChanges {
   readonly collectionUtil = inject(CollectionUtilService);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() collection!: CollectionNames;
+  readonly collection = input.required<CollectionNames>();
   readonly collectionConfig = input.required<CollectionConfigDto>();
   readonly collectionId = input<string | null>();
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() comboData!: CollectionCombo<any>;
+  readonly comboData = input.required<CollectionCombo<any>>();
 
   // Permissions
   readonly hasSudo = input(false);
   readonly hasUpdate = input(false);
-  serviceDetails: any = null;
+  readonly serviceDetails = signal(null);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['collection']) {
@@ -61,11 +55,11 @@ export class InspectorVertexComponent implements OnChanges {
   }
 
   private loadServiceDetails() {
-    if (this.collection === 'service') {
+    if (this.collection() === 'service') {
       this.collectionApi
-        .getServiceDetails(this.comboData.collection.id)
+        .getServiceDetails(this.comboData().collection.id)
         .subscribe((data: any) => {
-          this.serviceDetails = data;
+          this.serviceDetails.set(data);
         });
     }
   }

@@ -9,6 +9,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute } from '@angular/router';
+import { httpResource } from '@angular/common/http';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
 import {
@@ -27,9 +30,6 @@ import { CollectionUtilService } from '../../service/collection-util.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
-import { ActivatedRoute } from '@angular/router';
-import { httpResource } from '@angular/common/http';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 @Component({

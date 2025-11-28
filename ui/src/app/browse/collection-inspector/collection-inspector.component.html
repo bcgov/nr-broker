@@ -1,10 +1,11 @@
-@if (!comboData || (comboDataResource.isLoading() && !hideLoading())) {
+@let cd = comboData();
+@if (!cd || (comboDataResource.isLoading() && !hideLoading())) {
   <mat-spinner></mat-spinner>
 } @else {
   <app-collection-header
     [collection]="collection()"
-    [title]="comboData.collection.name"
-    [upstream]="comboData.upstream"
+    [title]="cd.collection.name"
+    [upstream]="cd.upstream"
   >
   <div
     class="spaced-btn {{screen.screenSize()}} collection-btn">
@@ -57,8 +58,8 @@
     @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
-        [vertex]="comboData.vertex.id"
-        [name]="comboData.collection.name"
+        [vertex]="cd.vertex.id"
+        [name]="cd.collection.name"
         [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
@@ -95,8 +96,8 @@
     @if (collection() === 'team') {
       <app-inspector-team
         class="collection-btn"
-        [vertex]="comboData.vertex.id"
-        [name]="comboData.collection.name"
+        [vertex]="cd.vertex.id"
+        [name]="cd.collection.name"
         [screenSize]="screen.screenSize()"></app-inspector-team>
     }
     <button
@@ -114,7 +115,7 @@
       <app-vertex-tags
         class="full-width"
         [collection]="collection()"
-        [collectionData]="comboData.collection"></app-vertex-tags>
+        [collectionData]="cd.collection"></app-vertex-tags>
 
       <div>
       <mat-card appearance="outlined" class="inspector-card-gap">
@@ -134,18 +135,18 @@
               <mat-menu #detailsCopyMenu="matMenu">
                 <button
                   mat-menu-item
-                  [cdkCopyToClipboard]="comboData.collection.vertex"
+                  [cdkCopyToClipboard]="cd.collection.vertex"
                   >Vertex Id</button>
                 <button
                   mat-menu-item
-                  [cdkCopyToClipboard]="comboData.collection.id"
+                  [cdkCopyToClipboard]="cd.collection.id"
                   >Collection Id</button>
                 <mat-divider></mat-divider>
                 @for (item of (config().fields | keyvalue); track item.key) {
-                  @if (comboData.collection[item.key] && (item.value.type === 'string' || item.value.type === 'email' || item.value.type === 'url')) {
+                  @if (cd.collection[item.key] && (item.value.type === 'string' || item.value.type === 'email' || item.value.type === 'url')) {
                     <button
                       mat-menu-item
-                      [cdkCopyToClipboard]="comboData.collection[item.key]"
+                      [cdkCopyToClipboard]="cd.collection[item.key]"
                       >{{ item.value.name }}</button>
                   }
                 }
@@ -156,16 +157,16 @@
           <app-inspector-vertex-fields
             [collection]="collection()"
             [collectionConfig]="config()"
-            [collectionData]="comboData.collection"
+            [collectionData]="cd.collection"
             [filter]="'no'"
             ></app-inspector-vertex-fields>
 
-          @if (comboData.vertex.prop) {
+          @if (cd.vertex.prop) {
             <app-inspector-properties
-              [prop]="comboData.vertex.prop"></app-inspector-properties>
+              [prop]="cd.vertex.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
-            [timestamps]="comboData.vertex.timestamps"></app-inspector-timestamps>
+            [timestamps]="cd.vertex.timestamps"></app-inspector-timestamps>
         </mat-card-content>
       </mat-card>
 
@@ -176,12 +177,12 @@
               <mat-card-title>Secrets</mat-card-title>
             </div>
             <app-inspector-vault
-              [service]="comboData.collection"
-              [isAdministrator]="hasSudo"></app-inspector-vault>
-            @if (hasSudo) {
+              [service]="cd.collection"
+              [isAdministrator]="hasSudo()"></app-inspector-vault>
+            @if (hasSudo()) {
               <mat-divider></mat-divider>
               <app-inspector-service-secure
-                [service]="comboData.collection"></app-inspector-service-secure>
+                [service]="cd.collection"></app-inspector-service-secure>
             }
           </mat-card-content>
         </mat-card>
@@ -204,7 +205,7 @@
             </div>
             <div class="card-team-members-margin">
               <app-team-members
-                [teamId]="comboData.collection.id"
+                [teamId]="cd.collection.id"
                 [refresh]="refresh()"></app-team-members>
             </div>
           </mat-card-content>
@@ -220,7 +221,7 @@
             <div class="card-team-members-margin">
               <app-team-services
                 class="full-width order-end"
-                [teamVertex]="comboData.collection.vertex"></app-team-services>
+                [teamVertex]="cd.collection.vertex"></app-team-services>
             </div>
           </mat-card-content>
         </mat-card>
@@ -236,17 +237,16 @@
 
             <div class="card-content-container-full">{{ config().hint }}</div>
 
-            @if (localCollection === 'brokerAccount' && comboData.vertex.collection === localCollection) {
+            @if (localCollection === 'brokerAccount' && cd.vertex.collection === localCollection) {
               <app-inspector-account
-                [account]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
-                [userIndex]="4"
-                [hasSudo]="hasSudo"></app-inspector-account>
+                [account]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
+                [hasSudo]="hasSudo()"></app-inspector-account>
             }
 
-            @if (hasSudo && localCollection === 'repository' && comboData.vertex.collection === localCollection) {
+            @if (hasSudo() && localCollection === 'repository' && cd.vertex.collection === localCollection) {
               <app-inspector-repository-sync
-                [repository]="collectionUtil.narrowCollectionType(localCollection, comboData.vertex, comboData.collection)"
-                [hasSudo]="hasSudo"
+                [repository]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
+                [hasSudo]="hasSudo()"
                 [header]="'large'"></app-inspector-repository-sync>
             }
             @if (localCollection === 'team') {
@@ -277,7 +277,7 @@
                   <mat-card-title>Alias</mat-card-title>
                 </div>
                 <app-user-alias
-                [collection]="comboData.collection"></app-user-alias>
+                [collection]="cd.collection"></app-user-alias>
             }
 
             <!-- @if (collection() === 'brokerAccount') {
@@ -327,11 +327,11 @@
             <app-inspector-connections
               [collection]="collection()"
               [config]="config()"
-              [vertex]="comboData.collection.vertex"
-              [source]="comboData.vertex"
-              [upstream]="comboData.upstream"
-              [downstream]="comboData.downstream"
-              [hasAdmin]="hasAdmin"
+              [vertex]="cd.collection.vertex"
+              [source]="cd.vertex"
+              [upstream]="cd.upstream"
+              [downstream]="cd.downstream"
+              [hasAdmin]="hasAdmin()"
               (selected)="navigate($event)"
               ></app-inspector-connections>
         </mat-card-content>

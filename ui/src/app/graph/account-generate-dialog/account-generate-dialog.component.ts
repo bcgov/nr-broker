@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,7 +41,7 @@ export class AccountGenerateDialogComponent {
   private readonly clipboard = inject(Clipboard);
   private readonly systemApi = inject(SystemApiService);
 
-  token = '';
+  token = signal('');
   selectedPeriod = 7776000;
   expiryList: ExpiryDay[] = [
     { value: 5184000, viewValue: '60 days' },
@@ -60,11 +60,11 @@ export class AccountGenerateDialogComponent {
         this.syncGithub && this.patchVaultTools,
       )
       .subscribe((data) => {
-        this.token = data.token;
+        this.token.set(data.token);
       });
   }
 
   copyToClipboard() {
-    this.clipboard.copy(this.token);
+    this.clipboard.copy(this.token());
   }
 }

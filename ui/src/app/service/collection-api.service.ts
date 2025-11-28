@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import type { HttpResourceRequest } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {
   CollectionCombo,
@@ -32,27 +33,30 @@ export class CollectionApiService {
   public getCollectionByIdArgs<T extends CollectionNames>(
     name: T,
     id: string,
-  ): { method: string; url: string; options: { responseType: 'json' } } {
+  ): HttpResourceRequest {
     return {
       method: 'GET',
       url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}`,
-      options: { responseType: 'json' },
     };
   }
 
   public getCollectionById<T extends CollectionNames>(name: T, id: string) {
-    const { url, options } = this.getCollectionByIdArgs(name, id);
-    return this.http.get<CollectionDtoUnion[T]>(url, options);
+    const args = this.getCollectionByIdArgs(name, id);
+    return this.http.request<CollectionDtoUnion[T]>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
   }
 
   public getCollectionComboByIdArgs<T extends CollectionNames>(
     name: T,
     id: string,
-  ): { method: string; url: string; options: { responseType: 'json' } } {
+  ): HttpResourceRequest {
     return {
       method: 'GET',
       url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/combo`,
-      options: { responseType: 'json' },
     };
   }
 
@@ -60,8 +64,13 @@ export class CollectionApiService {
     name: T,
     id: string,
   ) {
-    const { url, options } = this.getCollectionComboByIdArgs(name, id);
-    return this.http.get<CollectionCombo<CollectionDtoUnion[T]>>(url, options);
+    const args = this.getCollectionComboByIdArgs(name, id);
+    return this.http.request<CollectionCombo<CollectionDtoUnion[T]>>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
   }
 
   public searchCollection<T extends CollectionNames>(
@@ -111,17 +120,21 @@ export class CollectionApiService {
 
   public exportCollectionArgs<T extends CollectionNames>(
     name: T,
-  ): { method: string; url: string; options: { responseType: 'json' } } {
+  ): HttpResourceRequest {
     return {
       method: 'POST',
       url: `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/export`,
-      options: { responseType: 'json' },
     };
   }
 
   public exportCollection<T extends CollectionNames>(name: T) {
-    const { url, options } = this.exportCollectionArgs(name);
-    return this.http.post<CollectionDtoUnion[T][]>(url, options);
+    const args = this.exportCollectionArgs(name);
+    return this.http.request<CollectionDtoUnion[T][]>(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
   }
 
   public getServiceSecure(serviceId: string) {

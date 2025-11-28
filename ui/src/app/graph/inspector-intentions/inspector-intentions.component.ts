@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -29,8 +29,8 @@ export class InspectorIntentionsComponent implements OnChanges {
   readonly showMore = input<boolean>(true);
   readonly showHeader = input<boolean>(false);
   intentions: any[] = [];
-  total = 0;
-  limit = 10;
+  total = signal(0);
+  limit = signal(10);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['name']) {
@@ -69,15 +69,15 @@ export class InspectorIntentionsComponent implements OnChanges {
             : { accountId: this.id() },
         ),
         0,
-        this.limit,
+        this.limit(),
       )
       .subscribe((data) => {
         if (data) {
           this.intentions = data.data;
-          this.total = data.meta.total;
+          this.total.set(data.meta.total);
         } else {
           this.intentions = [];
-          this.total = 0;
+          this.total.set(0);
         }
       });
   }

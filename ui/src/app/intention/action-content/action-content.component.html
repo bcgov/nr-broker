@@ -1,13 +1,15 @@
-@if (values.length === 0) {
+@let localValues = values();
+
+@if (localValues.length === 0) {
   none
 }
-@if (values.length === 1) {
-  {{ values[0] }}
+@if (localValues.length === 1) {
+  {{ localValues[0] }}
 }
-@if (values.length > 1) {
+@if (localValues.length > 1) {
   @if (showMultiple()) {
-    {{ values.join(', ') }}
+    {{ localValues.join(', ') }}
   } @else {
-    <span matTooltip="{{ values.join(', ') }}">multiple</span>
+    <span matTooltip="{{ localValues.join(', ') }}">multiple</span>
   }
 }

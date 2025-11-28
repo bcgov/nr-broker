@@ -36,15 +36,11 @@ import {
   CONFIG_RECORD,
   CURRENT_USER,
 } from '../../app-initialize.factory';
-import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { GraphTypeaheadData } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import {
-  CollectionConfigDto,
   CollectionFieldConfigMap,
 } from '../../service/persistence/dto/collection-config.dto';
-import { PermissionService } from '../../service/permission.service';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
@@ -101,19 +97,55 @@ export interface TableQuery {
   styleUrl: './collection-table.component.scss',
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
-  readonly permission = inject(PermissionService);
   private readonly router = inject(Router);
   private readonly collectionApi = inject(CollectionApiService);
-  readonly user = inject<UserSelfDto>(CURRENT_USER);
-  readonly graphUtil = inject(GraphUtilService);
-  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
-  readonly configArr = inject(CONFIG_ARR);
+  private readonly user = inject<UserSelfDto>(CURRENT_USER);
+  private readonly graphUtil = inject(GraphUtilService);
+  private readonly configRecord = inject(CONFIG_RECORD);
+  private readonly configArr = inject(CONFIG_ARR);
+  // private readonly configRecord = inject(CONFIG_RECORD);
   readonly screen = inject(ScreenService);
 
+  // The selected collection to view
   collection = input.required<CollectionNames>();
-  collectionOptions = input<CollectionNames[]>([]);
-  upstreamId = input<string>();
-  downstreamId = input<string>();
+
+  // If set, the collection is filtered to those having a connection to the target
+  target = input<{
+    collection: CollectionNames;
+    vertex: string;
+  }>();
+  // If target set, show collection dropdown based on configuration
+  collectionOptions = computed(() => {
+    const targetCollection = this.target()?.collection;
+    if (!targetCollection) {
+      return [];
+    }
+    const config = this.configRecord[targetCollection];
+    const collectionOptions = config?.connectedTable;
+    if (collectionOptions && collectionOptions[0]) {
+      return collectionOptions.map((c) => c.collection);
+    } else {
+      return [];
+    }
+  });
+  upstreamId = computed(() => {
+    if (!this.target()?.vertex) {
+      return undefined;
+    }
+    return !this.isUpstreamConnectedCollection(this.collection(), this.target()?.collection)
+      ? this.target()?.vertex
+      : undefined;
+  });
+  downstreamId = computed(() => {
+    if (!this.target()?.vertex) {
+      return undefined;
+    }
+    return this.isUpstreamConnectedCollection(this.collection(), this.target()?.collection)
+      ? this.target()?.vertex
+      : undefined;
+  });
+
+  // The filter text
   text = input('');
   computedText = computed(() =>
     (this.text() ? this.text().length : 0) < 3 ? '' : this.text(),
@@ -134,7 +166,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
   settingsUpdated = output<TableQuery>();
 
-  data: CollectionCombo<any>[] = [];
+  data = signal<CollectionCombo<any>[]>([]);
   total = signal(0);
   loading = signal(true);
 
@@ -149,10 +181,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     { value: 'all', viewValue: 'All' },
   ];
 
-  config: CollectionConfigDto[] | undefined;
+  // config: CollectionConfigDto[] | undefined;
+  // readonly config = computed(() => {
+  //   return this.configRecord[this.collection()];
+  // });
   fields: CollectionFieldConfigMap = {};
   propDisplayedColumns: string[] = [];
-  tagList: string[] = [];
+  tagList = signal<string[]>([]);
   collectionFilterOptions = computed(() => {
     return this.configArr
       .filter(
@@ -168,7 +203,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   });
 
   private triggerRefresh = new Subject<number>();
-  private ngUnsubscribe = new Subject<any>();
 
   constructor() {
     const configRecord = this.configRecord;
@@ -193,7 +227,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.collectionApi
         .getCollectionTags(this.collection() as CollectionNames)
         .subscribe((tags) => {
-          this.tagList = tags;
+          this.tagList.set(tags);
         });
 
       this.fields = configRecord[this.collection()].fields;
@@ -242,7 +276,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
             // Clear data if collection changes to prevent stale data displaying
             // as fields in new collection's table. Otherwise, we keep the data
             // so the UI doesn't flash the table in and out.
-            this.data = [];
+            this.data.set([]);
           }
           return (
             prev.refresh === curr.refresh &&
@@ -298,7 +332,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((data) => {
-        this.data = data.data;
+        this.data.set(data.data);
         this.total.set(data.meta.total);
         this.loading.set(false);
       });
@@ -340,18 +374,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.triggerRefresh.next(Math.random());
   }
 
-  countUpstream(elem: CollectionComboDto<any>, names: string[]) {
-    return elem.upstream.filter(
-      (combo: any) => names.indexOf(combo.edge.name) !== -1,
-    ).length;
-  }
-
-  countDownstream(elem: CollectionComboDto<any>, names: string[]) {
-    return elem.downstream.filter(
-      (combo: any) => names.indexOf(combo.edge.name) !== -1,
-    ).length;
-  }
-
   currentIndexReset() {
     this.currentIndex.set(0);
     this.page$.next({ index: this.currentIndex(), size: this.currentSize() });
@@ -362,14 +384,6 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       index: event.pageIndex,
       size: event.pageSize,
     });
-  }
-
-  displayFn(vertex: GraphTypeaheadData): string {
-    if (vertex) {
-      return vertex.name;
-    } else {
-      return '';
-    }
   }
 
   onTextInput(event: Event) {
@@ -402,5 +416,17 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   openInInspector(event: Event, id: string) {
     event.stopPropagation();
     this.router.navigate([`/browse/${this.collection()}/${id}`]);
+  }
+
+  isUpstreamConnectedCollection(collection: CollectionNames, targetCollection?: CollectionNames) {
+    if (!targetCollection) {
+      return [];
+    }
+    const config = this.configRecord[targetCollection];
+    return (
+      config?.connectedTable?.find(
+        (c) => c.collection === collection && c.direction === 'upstream',
+      ) !== undefined
+    );
   }
 }

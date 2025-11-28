@@ -1,17 +1,18 @@
-@if (timestamps) {
+@let localTimestamps = timestamps();
+@if (localTimestamps) {
   <div class="container">
     <h3>Information</h3>
     <mat-list>
-    @if (timestamps.createdAt) {
+    @if (localTimestamps.createdAt) {
       <mat-list-item>
         <span matListItemTitle>Created</span>
-        <span matListItemLine>{{ timestamps.createdAt | date:'medium' }}</span>
+        <span matListItemLine>{{ localTimestamps.createdAt | date:'medium' }}</span>
       </mat-list-item>
     }
-    @if (timestamps.updatedAt) {
+    @if (localTimestamps.updatedAt) {
       <mat-list-item>
         <span matListItemTitle>Modified</span>
-        <span matListItemLine>{{ timestamps.updatedAt | date:'medium' }}</span>
+        <span matListItemLine>{{ localTimestamps.updatedAt | date:'medium' }}</span>
       </mat-list-item>
     }
     </mat-list>

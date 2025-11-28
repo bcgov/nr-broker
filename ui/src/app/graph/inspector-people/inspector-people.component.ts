@@ -1,4 +1,4 @@
-import { Component, OnChanges, booleanAttribute, computed, input, inject, EventEmitter, Output } from '@angular/core';
+import { Component, OnChanges, booleanAttribute, computed, input, inject, output, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,11 +45,11 @@ export class InspectorPeopleComponent implements OnChanges {
   readonly collection = input.required<CollectionNames>();
   readonly vertex = input.required<string>();
   readonly showLinked = input(false, { transform: booleanAttribute });
-  @Output() navigated = new EventEmitter();
+  readonly navigated = output();
 
-  edges: CollectionEdgeConfig[] | undefined;
-  collectionPeople: GraphUpDownDto<any>[] | null = null;
-  users: UserData[] | null = null;
+  collectionPeople = signal<GraphUpDownDto<any>[] | null>(null);
+  users = signal<UserData[] | null>(null);
+  private edges: CollectionEdgeConfig[] | undefined;
 
   readonly propPeopleDisplayedColumns = computed(() => {
     return this.showLinked() ? ['name', 'role', 'linked'] : ['name', 'role'];
@@ -88,10 +88,10 @@ export class InspectorPeopleComponent implements OnChanges {
         }
       }
 
-      this.users = [...userMap.values()].sort((a, b) =>
+      this.users.set([...userMap.values()].sort((a, b) =>
         a.name.localeCompare(b.name),
-      );
-      this.collectionPeople = data;
+      ));
+      this.collectionPeople.set(data);
     });
   }
 

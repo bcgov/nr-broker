@@ -173,27 +173,27 @@ export class EdgeDialogComponent implements OnInit {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
     const prop = this.propertyEditorComponent.getPropertyValues();
-    if (
-      !vertex ||
-      typeof vertex === 'string' ||
-      !edge ||
-      typeof edge === 'string'
-    ) {
-      return;
-    }
-    let target: string;
-    if (typeof vertex === 'symbol') {
-      if (this.data.edge) {
-        // Does not make sense to create a new vertex if we are editing an edge
+    console.log('addEditEdge');
+    if (!this.data.edge) {
+      if (
+        !vertex ||
+        typeof vertex === 'string' ||
+        !edge ||
+        typeof edge === 'string'
+      ) {
         return;
       }
-      // If the vertex is the NEW_VERTEX symbol, we create a new vertex first
-      target = await this.addVertex(edge.collection);
-    } else {
-      target = vertex.id;
-    }
-
-    if (!this.data.edge) {
+      let target: string;
+      if (typeof vertex === 'symbol') {
+        if (this.data.edge) {
+          // Does not make sense to create a new vertex if we are editing an edge
+          return;
+        }
+        // If the vertex is the NEW_VERTEX symbol, we create a new vertex first
+        target = await this.addVertex(edge.collection);
+      } else {
+        target = vertex.id;
+      }
       this.graphApi
         .addEdge({
           name: edge.name,

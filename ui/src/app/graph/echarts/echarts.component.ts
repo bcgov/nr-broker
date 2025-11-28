@@ -1,4 +1,4 @@
-import { Component, ElementRef, Output, OnInit, EventEmitter, input, inject, OnDestroy } from '@angular/core';
+import { Component, ElementRef, output, OnInit, input, inject, OnDestroy, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsCoreOption } from 'echarts/core';
 import * as echarts from 'echarts/core';
@@ -38,21 +38,20 @@ export class EchartsComponent implements OnInit, OnDestroy {
   private readonly configArr = inject(CONFIG_ARR);
 
   readonly dataConfig = input.required<Observable<GraphDataConfig>>();
-  @Output() selected = new EventEmitter<ChartClickTarget>();
-  @Output() legendChanged = new EventEmitter<{
+  readonly selected = output<ChartClickTarget>();
+  readonly legendChanged = output<{
     name: string;
     selected: boolean;
   }>();
   options!: EChartsCoreOption;
   updateOptions!: Observable<EChartsCoreOption>;
-  loading!: boolean;
+  loading = signal(true);
   echartsInstance: ECharts | undefined;
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe = new Subject<any>();
   private prefSubscription!: Subscription;
 
   ngOnInit(): void {
-    this.loading = true;
     this.prefSubscription = this.preferences.onSet.subscribe((pref) => {
       if (
         pref.key === 'graphEdgeSrcTarVisibility' ||
@@ -129,7 +128,7 @@ export class EchartsComponent implements OnInit, OnDestroy {
       switchMap(() => this.dataConfig()),
       map((dataConfig) => {
         const graph = dataConfig.data;
-        this.loading = false;
+        this.loading.set(false);
         const graphVertexVisibility = this.preferences.get(
           'graphVertexVisibility',
         );

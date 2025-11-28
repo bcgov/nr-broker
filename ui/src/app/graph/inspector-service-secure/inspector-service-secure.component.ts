@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -31,8 +31,7 @@ export class InspectorServiceSecureComponent implements OnChanges {
 
   readonly service = input.required<ServiceDto>();
   readonly userIndex = input<number | undefined>();
-  data: any;
-  reveal = false;
+  data = signal<any>(undefined);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['service']) {
@@ -54,7 +53,7 @@ export class InspectorServiceSecureComponent implements OnChanges {
     const service = this.service();
     if (service) {
       this.collectionApi.getServiceSecure(service.id).subscribe((data) => {
-        this.data = data;
+        this.data.set(data);
       });
     }
   }

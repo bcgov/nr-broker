@@ -4,7 +4,7 @@
     <button mat-icon-button class="add" aria-label="Add Vertex" (click)="addVertex()" [disabled]="!permission.hasAdmin()">
       <mat-icon>add</mat-icon>
     </button>
-    @if (showFilter === 'connected') {
+    @if (showFilter() === 'connected') {
       <button
         mat-icon-button
         class="filter"
@@ -81,6 +81,6 @@
       </div>
       <div class="graph-flex-inspector">
         <app-inspector
-          [target]="selected"></app-inspector>
+          [target]="selected()"></app-inspector>
       </div>
     </div>

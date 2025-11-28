@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, Output, input, inject } from '@angular/core';
+import { Component, input, inject, output } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
@@ -27,13 +28,7 @@ export class InspectorEdgeComponent {
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   readonly edge = input.required<EdgeDto>();
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() sourceVertex!: VertexDto;
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() targetVertex!: VertexDto;
-  @Output() vertexSelected = new EventEmitter<string>();
+  readonly sourceVertex = input.required<VertexDto>();
+  readonly targetVertex = input.required<VertexDto>();
+  readonly vertexSelected = output<string>();
 }

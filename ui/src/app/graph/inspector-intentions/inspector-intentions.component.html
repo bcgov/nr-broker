@@ -1,4 +1,4 @@
-@if (total === 0) {
+@if (total() === 0) {
   <div class="edge-container intention-none">None</div>
 } @else {
   <app-history-table
@@ -9,11 +9,11 @@
     (viewIntentionEvent)="this.viewIntention($event)"
     ></app-history-table>
 }
-@if (showMore() && total > 0) {
+@if (showMore() && total() > 0) {
   <div class="more-panel">
     <button
       mat-stroked-button
       (click)="navigateHistory()">View in History</button>
-    <div>1 - {{ total > limit ? limit : total }} of {{ total }}</div>
+    <div>1 - {{ total() > limit() ? limit() : total() }} of {{ total() }}</div>
   </div>
 }

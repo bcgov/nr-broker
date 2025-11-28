@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, input, inject } from '@angular/core';
+import { Component, input, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -27,39 +27,37 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   templateUrl: './service-instance-details.component.html',
   styleUrl: './service-instance-details.component.scss',
 })
-export class ServiceInstanceDetailsComponent implements OnInit, OnChanges {
+export class ServiceInstanceDetailsComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly collectionUtil = inject(CollectionUtilService);
   private readonly router = inject(Router);
 
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() instance!: any | undefined;
-  readonly showName = input.required<boolean>();
-  serverSelection: any | undefined;
+  public readonly instance = input.required<any>();
+  public readonly showName = input.required<boolean>();
 
-  current: IntentionActionPointerDto | undefined;
+  public readonly action = computed<IntentionActionPointerDto | undefined>(() => {
+    return this.instance()?.action;
+  });
+  public readonly serverIndex = signal<number>(0);
+  public readonly selectedServer = computed(() => {
+    return this.instance()?.server[this.serverIndex()];
+  });
 
-  ngOnChanges(): void {
-    this.ngOnInit();
-  }
-
-  ngOnInit(): void {
-    this.current = this.instance?.action;
-    if (this.instance?.server) {
-      this.serverSelection = this.instance.server[0];
-    }
+  onServerSelectionChange(index: number) {
+    this.serverIndex.set(index);
   }
 
   open() {
-    this.collectionUtil.openInBrowser('serviceInstance', this.instance.id);
+    this.collectionUtil.openInBrowser(
+      'serviceInstance',
+      this.instance().id,
+    );
   }
 
   openServicePackage(packageId: string) {
     this.collectionUtil.openServicePackage(
-      this.current?.source?.action.service.id,
+      this.action()?.source?.action.service.id,
       packageId,
     );
   }

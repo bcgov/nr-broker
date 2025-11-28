@@ -36,9 +36,7 @@
             "allowedCommonJsDependencies": [
               "dlv"
             ],
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [

@@ -4,7 +4,7 @@
   <mat-form-field class="tags-container">
     <mat-label>Tags</mat-label>
     <mat-chip-grid #chipGrid aria-label="Enter tags">
-      @for (tag of tags; track tag) {
+      @for (tag of tags(); track tag) {
         <mat-chip-row
           (removed)="remove(tag)"
           [editable]="true"

@@ -1,0 +1,17 @@
+<div class="chart-section">
+@if (accountUsageResource.isLoading()) {
+  <mat-spinner></mat-spinner>
+} @else {
+  @if (accountUsageResource.hasValue()) {
+    <div class="text-margin">
+      This graph shows the frequency of account usage (event.action: intention-open) over the last 48 hours.
+      Please view the <a [routerLink]="['/intention/history', {lifespan: 'all', field: 'account', value: account().id,}]">history</a> for further details on these events.
+    </div>
+    <div echarts
+      [options]="toChartOptions(accountUsageResource.value())"
+      ></div>
+  } @else {
+    <div class="text-margin">Could not load usage chart.</div>
+  }
+}
+</div>

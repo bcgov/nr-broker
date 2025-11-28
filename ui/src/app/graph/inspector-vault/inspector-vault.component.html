@@ -10,6 +10,7 @@
   </div>
 </div>
 
+@let vaultConfig = service().vaultConfig;
 <div class="vault-details">
   <mat-list>
     <mat-list-item
@@ -21,9 +22,9 @@
           class="mat-icon-info"
           inline="true">info</mat-icon>
       </span>
-      <span matListItemLine>{{ service.vaultConfig?.enabled | yesno }}</span>
+      <span matListItemLine>{{ vaultConfig?.enabled | yesno }}</span>
     </mat-list-item>
-    @if (service.vaultConfig && service.vaultConfig.approle) {
+    @if (vaultConfig && vaultConfig.approle) {
       <mat-list-item
         matTooltip="Allow service to login and access own secrets"
         matTooltipShowDelay="500"
@@ -33,13 +34,13 @@
             class="mat-icon-info"
             inline="true">info</mat-icon>
         </span>
-        <span matListItemLine>{{ service.vaultConfig.approle.enabled | yesno }}</span>
+        <span matListItemLine>{{ vaultConfig.approle.enabled | yesno }}</span>
         <span matListItemLine>Period:
-          @if (service.vaultConfig.approle.token_period) {
-            {{ totalDuration(service.vaultConfig.approle.token_period) }}
+          @if (vaultConfig.approle && vaultConfig.approle.token_period) {
+            {{ totalDuration(vaultConfig.approle.token_period) }}
           } @else {
-            @if (service.vaultConfig.policyOptions?.tokenPeriod) {
-              {{ service.vaultConfig.policyOptions?.tokenPeriod }}
+            @if (vaultConfig.policyOptions && vaultConfig.policyOptions.tokenPeriod) {
+              {{ vaultConfig.policyOptions.tokenPeriod }}
             } @else {
               daily
             }

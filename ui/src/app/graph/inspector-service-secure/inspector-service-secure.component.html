@@ -6,11 +6,12 @@
 
 <div class="chip-container">
 <mat-chip-listbox [selectable]="false">
-  @if (data) {
-    @for (role of data.appRole; track role.env.id) {
+  @let localData = data();
+  @if (localData) {
+    @for (role of localData.appRole; track role.env.id) {
       <mat-chip-option
         [disabled]="!role.enabled"
-        (click)="openSecureDialog(data.api, role)">
+        (click)="openSecureDialog(localData.api, role)">
         {{role.env.title}}
       </mat-chip-option>
     }

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { SystemApiService } from '../../service/system-api.service';
@@ -13,21 +13,16 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   templateUrl: './user-alias.component.html',
   styleUrl: './user-alias.component.scss',
 })
-export class UserAliasComponent implements OnChanges {
+export class UserAliasComponent {
   private readonly systemApi = inject(SystemApiService);
   readonly healthStatus = inject(HealthStatusService);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() collection: any;
+  collection = input<any>();
 
-  isSelf = false;
-
-  ngOnChanges(): void {
-    this.isSelf = this.user.vertex === this.collection?.vertex;
-  }
+  isSelf = computed(() => {
+    return this.user.vertex === this.collection()?.vertex;
+  });
 
   public async linkGitHubAccount() {
     this.systemApi.userLinkGithub().subscribe({

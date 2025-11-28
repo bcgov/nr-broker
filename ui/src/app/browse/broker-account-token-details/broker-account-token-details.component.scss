@@ -19,7 +19,23 @@
   margin-bottom: 16px;
 }
 
-
 .card-text {
   margin: 0 16px;
+}
+
+.action-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.slide-toggle-section{
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 48px;
+  gap: 8px;
 }

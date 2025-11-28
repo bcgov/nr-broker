@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, EventEmitter, Output, computed, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, output, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
@@ -43,7 +43,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
-  @Output() readonly sidebarClick = new EventEmitter<boolean>();
+  readonly sidebarClick = output<boolean>();
 
   readonly healthStatus = signal<boolean | undefined>(undefined);
   readonly statusText = computed(() => {

@@ -37,6 +37,7 @@ import { VaultService } from '../vault/vault.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { HistogramSeriesDto } from './dto/histogram-series.dto';
 
 export class TokenCreateDTO {
   token: string;
@@ -65,24 +66,20 @@ export class AccountService {
 
   async getUsage(
     id: string,
-    hours: number,
-  ): Promise<
-    {
-      key: string;
-      doc_count: number;
-    }[]
-  > {
+    rangeCount: number,
+    calendarInterval: 'hour' = 'hour',
+  ): Promise<HistogramSeriesDto> {
     const account = await this.collectionRepository.getCollectionById(
       'brokerAccount',
       id,
     );
-    if (!account || hours <= 0) {
+    if (!account || rangeCount <= 0) {
       throw new Error();
     }
     const now = Date.now();
     const index = this.dateUtil.computeIndex(
       OPENSEARCH_INDEX_BROKER_AUDIT,
-      new Date(now - INTERVAL_HOUR_MS * hours),
+      new Date(now - INTERVAL_HOUR_MS * rangeCount),
       new Date(now),
     );
 
@@ -105,7 +102,7 @@ export class AccountService {
               {
                 range: {
                   '@timestamp': {
-                    gte: `now-${hours}h`,
+                    gte: `now-${rangeCount}h`,
                   },
                 },
               },
@@ -113,32 +110,73 @@ export class AccountService {
           },
         },
         aggs: {
-          response_codes: {
-            terms: {
-              field: 'event.outcome',
-              size: 4,
+          logs_per_hour: {
+            date_histogram: {
+              field: '@timestamp',
+              calendar_interval: calendarInterval,
+              min_doc_count: 0,
+            },
+            aggs: {
+              response_codes: {
+                terms: {
+                  field: 'event.outcome',
+                  size: 4,
+                },
+              },
             },
           },
         },
       })
       .then((response) => {
         const result = JSON.parse(response.data);
-        if (!result?.aggregations?.response_codes?.buckets) {
+        if (!result?.aggregations?.logs_per_hour?.buckets) {
           throw new BadRequestException({
             statusCode: 400,
             message: 'No buckets found',
           });
         }
-        return result.aggregations.response_codes.buckets.reduce(
-          (pv, cv) => {
-            return {
-              ...pv,
-              [cv.key]: cv.doc_count,
-            };
-          },
-          { success: 0, unknown: 0, failure: 0 },
-        );
+        return this.transformForEcharts(result);
       });
+  }
+
+  private transformForEcharts(osResponse): HistogramSeriesDto {
+    const buckets = osResponse.aggregations.logs_per_hour.buckets;
+
+    // Collect all possible response codes across all hours
+    const allStatuses: Set<string> = buckets.reduce((set, b) => {
+      b.response_codes.buckets.forEach((rc) => set.add(rc.key));
+      return set;
+    }, new Set());
+
+    const statusList = Array.from(allStatuses);
+
+    // Initialize series object: { success: [], failure: [], ... }
+    const series = statusList.reduce((obj, status) => {
+      obj[status] = [];
+      return obj;
+    }, {});
+
+    const timestamps = [];
+
+    buckets.forEach((bucket) => {
+      timestamps.push(bucket.key_as_string);
+
+      // Build a map for fast lookup of counts in this bucket
+      const map = bucket.response_codes.buckets.reduce((m, rc) => {
+        m[rc.key] = rc.doc_count;
+        return m;
+      }, {});
+
+      // Push either the value or 0 for each status
+      statusList.forEach((status) => {
+        series[status].push(map[status] ?? 0);
+      });
+    });
+
+    return {
+      timestamps,
+      series,
+    };
   }
 
   async generateAccountToken(

@@ -3,7 +3,7 @@
     <h3>GitHub</h3>
 
     @if(healthStatus.health$ | async; as health) {
-      @if(isSelf && health?.details?.['github']?.['alias']) {
+      @if(isSelf() && health?.details?.['github']?.['alias']) {
       <button
         mat-button
         (click)="linkGitHubAccount()"
@@ -15,16 +15,17 @@
   </div>
 </div>
 
-@if(!collection?.alias || collection?.alias.length === 0) {
+@let collectionAlias = this.collection()?.alias;
+@if(!collectionAlias || collectionAlias.length === 0) {
   <div class="edge-container edge-container-margin-left">Account is not linked</div>
 }
 
-@if(collection?.alias && collection?.alias.length > 0) {
+@if(collectionAlias && collectionAlias.length > 0) {
 <div class="edge-container edge-container-margin-left details-container">
-  <a href="https://github.com/{{ collection.alias[0].username }}" target="_blank">
+  <a href="https://github.com/{{ collectionAlias[0].username }}" target="_blank">
     <app-details-item
       item="Username"
-      clickable="true">{{ collection.alias[0].username }}</app-details-item>
+      clickable="true">{{ collectionAlias[0].username }}</app-details-item>
   </a>
 </div>
 }
