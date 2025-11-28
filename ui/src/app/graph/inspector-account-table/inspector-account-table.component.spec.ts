@@ -8,9 +8,9 @@ describe('InspectorAccountTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InspectorAccountTableComponent]
+      imports: [InspectorAccountTableComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(InspectorAccountTableComponent);
     component = fixture.componentInstance;

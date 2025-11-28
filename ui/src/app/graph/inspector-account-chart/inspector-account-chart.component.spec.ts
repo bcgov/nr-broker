@@ -8,9 +8,9 @@ describe('InspectorAccountChartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InspectorAccountChartComponent]
+      imports: [InspectorAccountChartComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(InspectorAccountChartComponent);
     component = fixture.componentInstance;
