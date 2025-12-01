@@ -252,25 +252,36 @@ export class GraphApiService {
     );
   }
 
+  getEdgeConfigByVertexArgs(
+    sourceId: string,
+    targetCollection?: string,
+    edgeName?: string,
+  ): HttpResourceRequest {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/vertex/${sourceId}/edge-config`,
+      params: {
+        ...(targetCollection
+          ? { targetCollection: targetCollection }
+          : {}),
+        ...(edgeName ? { edgeName: edgeName } : {}),
+      },
+    };
+  }
+
   getEdgeConfigByVertex(
     sourceId: string,
     targetCollection?: string,
     edgeName?: string,
   ) {
-    const params = [];
-    if (targetCollection) {
-      params.push(`targetCollection=${encodeURIComponent(targetCollection)}`);
-    }
-    if (edgeName) {
-      params.push(`edgeName=${encodeURIComponent(edgeName)}`);
-    }
-    return this.http.get<CollectionConfigInstanceDto[]>(
-      `${environment.apiUrl}/v1/graph/vertex/${sourceId}/edge-config${
-        params.length > 0 ? '?' + params.join('&') : ''
-      }`,
-      {
-        responseType: 'json',
-      },
+    const args = this.getEdgeConfigByVertexArgs(
+      sourceId,
+      targetCollection,
+      edgeName,
     );
+    return this.http.request<CollectionConfigInstanceDto[]>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+    });
   }
 }
