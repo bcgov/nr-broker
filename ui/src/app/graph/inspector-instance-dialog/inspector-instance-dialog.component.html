@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Add Instances</h2>
 <mat-dialog-content>
   <div class="edge-editor-form-panel">
-    @for (env of envMap; track env.title) {
+    @for (env of envMap(); track env.title) {
       <h3>{{ env.title }}</h3>
 
       <ul>

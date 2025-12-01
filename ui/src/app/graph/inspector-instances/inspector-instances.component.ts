@@ -1,16 +1,9 @@
-import { Component, OnChanges, output, SimpleChanges, input, inject } from '@angular/core';
+import { Component, output, input, inject, signal, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  animate,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
 import { lastValueFrom } from 'rxjs';
 import { CURRENT_USER } from '../../app-initialize.factory';
 import {
@@ -37,32 +30,50 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed,void', style({ height: '0px', minHeight: '0' })),
-      state('expanded', style({ height: '*' })),
-      transition(
-        'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-      ),
-    ]),
-  ],
   styleUrl: './inspector-instances.component.scss',
 })
-export class InspectorInstancesComponent implements OnChanges {
+export class InspectorInstancesComponent {
   readonly permission = inject(PermissionService);
   private readonly dialog = inject(MatDialog);
   private readonly graphApi = inject(GraphApiService);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
+  readonly service = input.required<ServiceDto>();
   readonly vertex = input.required<VertexDto>();
   readonly vertices = input.required<GraphDirectedCombo[]>();
-  readonly service = input.required<ServiceDto>();
   readonly details = input.required<any>();
-  data: any;
-  tableData: any[] = [];
-  environments: any[] = [];
-  loading = true;
+
+  readonly data = computed(() => {
+    return this.details().serviceInstance.reduce((pv: any, cv: any) => {
+      const env = cv.environment.name;
+
+      if (pv[env]) {
+        pv[env].push(cv);
+      } else {
+        pv[env] = [cv];
+      }
+      return pv;
+    }, {});
+  });
+  environments = computed(() => {
+    return Object.values(this.data())
+      .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
+      .sort((a, b) => a.position - b.position);
+  });
+  tableData = computed(() => {
+    const tableData: any[] = [];
+    for (const env of this.environments()) {
+      tableData.push(
+        {
+          isGroup: true,
+          env,
+        },
+        ...this.data()[env.name],
+      );
+    };
+    return tableData;
+  });
+  loading = signal(false);
   readonly refreshData = output();
 
   propDisplayedColumns: string[] = ['outcome', 'version'];
@@ -70,13 +81,7 @@ export class InspectorInstancesComponent implements OnChanges {
     ...this.propDisplayedColumns,
     'expand',
   ];
-  expandedElement: any | null;
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['details']) {
-      this.loadServiceDetails();
-    }
-  }
+  expandedElement = signal<any | null>(null);
 
   isGroup(index: any, item: any): boolean {
     return item.isGroup;
@@ -84,36 +89,6 @@ export class InspectorInstancesComponent implements OnChanges {
 
   isNotGroup(index: any, item: any): boolean {
     return !item.isGroup;
-  }
-
-  private loadServiceDetails() {
-    const details = this.details();
-    if (details) {
-      const data = details;
-      this.data = data.serviceInstance.reduce((pv: any, cv: any) => {
-        const env = cv.environment.name;
-        if (pv[env]) {
-          pv[env].push(cv);
-        } else {
-          pv[env] = [cv];
-        }
-        return pv;
-      }, {});
-      this.environments = Object.values(this.data)
-        .map((instanceDetialsArr: any) => instanceDetialsArr[0].environment)
-        .sort((a, b) => a.position - b.position);
-      this.tableData = [];
-      for (const env of this.environments) {
-        this.tableData.push(
-          {
-            isGroup: true,
-            env,
-          },
-          ...this.data[env.name],
-        );
-      }
-      this.loading = false;
-    }
   }
 
   openInstanceDialog() {

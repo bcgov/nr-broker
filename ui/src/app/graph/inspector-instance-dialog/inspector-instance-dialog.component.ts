@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -39,7 +39,7 @@ export class InspectorInstanceDialogComponent implements OnInit {
   readonly dialogRef = inject<MatDialogRef<InspectorInstanceDialogComponent>>(MatDialogRef);
   private readonly collectionApi = inject(CollectionApiService);
 
-  public envMap: InspectorInstanceDialogReturnDao[] = [];
+  public envMap = signal<InspectorInstanceDialogReturnDao[]>([]);
 
   ngOnInit(): void {
     const instances = this.data.vertices.filter(
@@ -50,8 +50,9 @@ export class InspectorInstanceDialogComponent implements OnInit {
       : [];
 
     this.collectionApi.exportCollection('environment').subscribe((envArr) => {
+      const arr: InspectorInstanceDialogReturnDao[] = [];
       for (const env of envArr) {
-        this.envMap.push({
+        arr.push({
           id: env.id,
           vertex: env.vertex,
           aliases: [
@@ -65,10 +66,11 @@ export class InspectorInstanceDialogComponent implements OnInit {
           title: env.title,
         });
       }
+      this.envMap.set(arr);
     });
   }
 
   addInstances() {
-    this.dialogRef.close(this.envMap);
+    this.dialogRef.close(this.envMap());
   }
 }

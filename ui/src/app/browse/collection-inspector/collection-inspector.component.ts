@@ -1,5 +1,7 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { httpResource } from '@angular/common/http';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -48,8 +50,6 @@ import { UserAliasComponent } from '../user-alias/user-alias.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
-import { httpResource } from '@angular/common/http';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { HealthStatusService } from '../../service/health-status.service';
 import { ScreenService } from '../../util/screen.service';
@@ -105,8 +105,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   // Url params
   public collection = input<CollectionNames>('project');
-  // eslint-disable-next-line @angular-eslint/no-input-rename
-  public collectionId = input('', { alias: 'id' });
+  public collectionId = input('');
   public selectedTabIndex = input(0, {
     transform: (v) => numberAttribute(v, 0),
     // eslint-disable-next-line @angular-eslint/no-input-rename

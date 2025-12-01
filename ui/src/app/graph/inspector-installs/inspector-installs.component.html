@@ -20,34 +20,35 @@
       <mat-icon>navigate_next</mat-icon>
     </button>
 
-    @if (current && current.intention) {
+    @let curr = current();
+    @if (curr && curr.intention) {
       <button
         mat-icon-button
         [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
       <mat-menu #menu="matMenu">
-        @if (current && current.intention) {
-          <button mat-menu-item (click)="viewIntention(current.intention)">View Intention</button>
+        @if (curr && curr.intention) {
+          <button mat-menu-item (click)="viewIntention(curr.intention)">View Intention</button>
         }
-        @if (current && current.source?.action.source?.intention) {
-          <button mat-menu-item (click)="viewIntention(current.source.action.source.intention)">View Build</button>
+        @if (curr && curr.source?.action.source?.intention) {
+          <button mat-menu-item (curr)="viewIntention(curr.source.action.source.intention)">View Build</button>
         }
-        @if (current && current.source?.action.package?.id) {
-          <button mat-menu-item (click)="openServicePackage(current.source.action.service.id, current.source.action.package.id)">View Package</button>
+        @if (curr && curr.source?.action.package?.id) {
+          <button mat-menu-item (click)="openServicePackage(curr.source.action.service.id, curr.source.action.package.id)">View Package</button>
         }
         <mat-divider></mat-divider>
-        @if (current && current.source?.intention?.event.url) {
+        @if (curr && curr.source?.intention?.event.url) {
           <a
             mat-menu-item
             matTooltip="Access to this content may be restricted"
             matTooltipPosition="left"
             matTooltipShowDelay="500"
-            href="{{current.source.intention.event.url}}"
+            href="{{curr.source.intention.event.url}}"
             target="_blank">View Event</a>
         }
-        @if (current && current.source?.intention?.auditUrl) {
+        @if (curr && curr.source?.intention?.auditUrl) {
           <a
             mat-menu-item
-            href="{{current.source.intention.auditUrl}}"
+            href="{{curr.source.intention.auditUrl}}"
             target="_blank">View Audit</a>
         }
       </mat-menu>
@@ -55,26 +56,26 @@
   </div>
 </div>
 @if (pointers()) {
-  @if (!current || !current.source?.intention) {
+  @if (!curr || !curr.source?.intention) {
     <div class="edge-container edge-container-margin-left">No recorded installation</div>
   }
-  @if (current && current.source?.intention) {
+  @if (curr && curr.source?.intention) {
     <div class="edge-container edge-container-margin-left install-details">
       <div class="install-version">
         <app-outcome-icon
-          [outcome]="current.source.intention.transaction.outcome"></app-outcome-icon>
+          [outcome]="curr.source.intention.transaction.outcome"></app-outcome-icon>
 
-          @if (current.source?.action?.package?.version) {
-            {{current.source.action.package.version}}
+          @if (curr.source?.action?.package?.version) {
+            {{curr.source.action.package.version}}
           }
       </div>
 
-      <app-details-item item="Installed">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
+      <app-details-item item="Installed">{{curr.source.intention.transaction.start | date:'short'}}</app-details-item>
 
       <app-details-item
-        (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
+        (click)="openUserInBrowserByGuid(curr.source.intention.user.id)"
         item="User"
-        clickable="true">{{current.source.intention.user.name}}</app-details-item>
+        clickable="true">{{curr.source.intention.user.name}}</app-details-item>
 
     </div>
   }

@@ -7,15 +7,15 @@
     }
   </div>
 </div>
-@if(healthStatus.health$ | async; as health) {
-  @if(health.details['github']['sync']) {
+@if (healthStatus.health$ | async; as health) {
+  @if (health.details['github']['sync']) {
     <div class="edge-body">
 
       <div>
 
       <div class="details-section">Secrets</div>
 
-      @if(showSecretsQueued()) {
+      @if (showSecretsQueued()) {
         <app-details-item item="Queued">{{repository().syncSecretsStatus?.queuedAt | date: 'medium'}}</app-details-item>
       } @else {
         <app-details-item item="Last sync">@if(repository().syncSecretsStatus?.syncAt) {

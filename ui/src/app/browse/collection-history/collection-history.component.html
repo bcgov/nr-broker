@@ -1,9 +1,10 @@
-@if (loading()) {
+@if (collectionResource.isLoading()) {
   <mat-spinner></mat-spinner>
-} @else {
+}
+@if (collectionResource.hasValue()) {
   <app-collection-header
     [collection]="collection()"
-    [title]="name()"
+    [title]="collectionResource.value().name"
     [backIcon]="'arrow_back'"
   ></app-collection-header>
 
@@ -15,7 +16,7 @@
       </div>
       <app-inspector-intentions
         [id]="collectionId()"
-        [name]="name()"
+        [name]="collectionResource.value().name"
         [collection]="collection()"
         [showHeader]="true"
         layout="wide"></app-inspector-intentions>

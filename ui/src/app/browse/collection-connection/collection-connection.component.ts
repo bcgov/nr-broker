@@ -1,16 +1,16 @@
-import { Component, computed, inject, input, numberAttribute, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, computed, inject, input, numberAttribute } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SortDirection } from '@angular/material/sort';
-import { combineLatest } from 'rxjs';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { CollectionTableComponent, ShowFilter, TableQuery } from '../collection-table/collection-table.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ScreenService } from '../../util/screen.service';
 import { PreferencesService } from '../../preferences.service';
+import { httpResource } from '@angular/common/http';
 
 @Component({
   selector: 'app-collection-connection',
@@ -24,16 +24,15 @@ import { PreferencesService } from '../../preferences.service';
 })
 export class CollectionConnectionComponent {
   readonly screen = inject(ScreenService);
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly router = inject(Router);
   private readonly preferences = inject(PreferencesService);
 
-  connectedTableCollection = signal<CollectionNames>('project');
+  connectedTableCollection = input<CollectionNames>('project');
+  collection = input.required<CollectionNames>();
+  collectionId = input.required<string>();
 
-  collection = signal<CollectionNames>('project');
-  collectionId = signal<string>('');
   private readonly config = computed(() => {
     return this.configRecord[this.collection()];
   });
@@ -44,6 +43,10 @@ export class CollectionConnectionComponent {
     } else {
       return [];
     }
+  });
+
+  collectionResource = httpResource<CollectionValues>(() => {
+    return this.collectionApi.getCollectionByIdArgs(this.collection(), this.collectionId());
   });
 
   text = input('', { transform: (v: string | undefined) => v ?? '' });
@@ -59,25 +62,6 @@ export class CollectionConnectionComponent {
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
   sortActive = input('');
   sortDirection = input<SortDirection>('');
-
-  name = signal('');
-  vertex = signal('');
-  loading = signal(true);
-
-  constructor() {
-    this.activatedRoute.params.subscribe((params) => {
-      this.collectionId.set(params['id']);
-      this.collection.set(params['collection']);
-      this.connectedTableCollection.set(params['connectedTableCollection']);
-      combineLatest([
-        this.collectionApi.getCollectionById(this.collection(), this.collectionId()),
-      ]).subscribe(([collection]) => {
-        this.name.set(collection.name);
-        this.vertex.set(collection.vertex);
-        this.loading.set(false);
-      });
-    });
-  }
 
   isUpstreamConnectedCollection(collection: CollectionNames) {
     return (

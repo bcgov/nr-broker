@@ -29,12 +29,12 @@ export const BROWSE_ROUTES: Route[] = [
     title: 'Browse',
   },
   {
-    path: ':collection/:id',
+    path: ':collection/:collectionId',
     component: CollectionInspectorComponent,
     title: 'Inspector',
   },
   {
-    path: ':collection/:id/connections',
+    path: ':collection/:collectionId/connections',
     component: CollectionConnectionComponent,
     title: 'Connections',
   },
@@ -44,7 +44,7 @@ export const BROWSE_ROUTES: Route[] = [
     title: 'Broker Account Token',
   },
   {
-    path: 'brokerAccount/:id/history',
+    path: 'brokerAccount/:collectionId/history',
     component: CollectionHistoryComponent,
     title: 'History',
     data: { collection: 'brokerAccount' },
@@ -65,7 +65,7 @@ export const BROWSE_ROUTES: Route[] = [
     title: 'Instances',
   },
   {
-    path: 'service/:id/history',
+    path: 'service/:collectionId/history',
     component: CollectionHistoryComponent,
     title: 'History',
     data: { collection: 'service' },

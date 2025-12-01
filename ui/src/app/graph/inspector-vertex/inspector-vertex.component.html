@@ -29,7 +29,7 @@
     </div>
   }
   @if (collection() === 'service') {
-    @if (comboData()) {
+    @if (comboData() && serviceDetails()) {
       <app-inspector-instances
       [service]="comboData().collection"
       [vertex]="comboData().vertex"
