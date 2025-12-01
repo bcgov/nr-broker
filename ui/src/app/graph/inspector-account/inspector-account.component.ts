@@ -92,6 +92,15 @@ export class InspectorAccountComponent implements OnInit, OnDestroy {
           hint: 'The date and time when the token was created',
         },
       );
+      if (token.lastUsedAt) {
+        data.push(
+          {
+            key: 'Last Used At',
+            value: token.lastUsedAt,
+            hint: 'The date and time when the token was last used',
+          },
+        );
+      }
       data.push(
         {
           key: 'Client Id',

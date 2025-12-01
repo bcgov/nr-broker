@@ -53,4 +53,7 @@ export class JwtRegistryEntity {
 
   @Property()
   createdAt: Date;
+
+  @Property({ nullable: true })
+  lastUsedAt?: Date;
 }

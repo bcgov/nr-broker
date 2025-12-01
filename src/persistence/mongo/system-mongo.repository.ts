@@ -109,6 +109,13 @@ export class SystemMongoRepository implements SystemRepository {
     } as any);
   }
 
+  public async updateJwtLastUsed(jti: string): Promise<void> {
+    await this.jwtRegistryRepository.nativeUpdate(
+      { 'claims.jti': jti } as any,
+      { lastUsedAt: new Date() },
+    );
+  }
+
   public async findExpiredRegistryJwts(
     currentTime: number,
   ): Promise<JwtRegistryEntity[]> {

@@ -179,48 +179,6 @@ export class AccountService {
     };
   }
 
-  async getLastTokenUsage(clientId: string): Promise<Date | null> {
-    const now = Date.now();
-    const index = this.dateUtil.computeIndex(
-      OPENSEARCH_INDEX_BROKER_AUDIT,
-      new Date(now - INTERVAL_HOUR_MS * 24 * 14), // Look back 14 days
-      new Date(now),
-    );
-
-    try {
-      const response = await this.opensearchService.search(index, {
-        size: 1,
-        sort: [{ '@timestamp': { order: 'desc' } }],
-        query: {
-          bool: {
-            must: [
-              {
-                match_phrase: {
-                  'event.action': 'intention-open',
-                },
-              },
-              {
-                match_phrase: {
-                  'auth.client_id': clientId,
-                },
-              },
-            ],
-          },
-        },
-      });
-
-      const result = JSON.parse(response.data);
-      if (result?.hits?.hits?.length > 0) {
-        const lastUsedTimestamp = result.hits.hits[0]._source['@timestamp'];
-        return new Date(lastUsedTimestamp);
-      }
-      return null;
-    } catch (error) {
-      // If OpenSearch is not available or there's an error, return null
-      return null;
-    }
-  }
-
   async generateAccountToken(
     req: any,
     id: string,
@@ -569,26 +527,16 @@ export class AccountService {
         continue;
       }
 
-      // Get the last time the token was used
-      const lastUsedAt = await this.getLastTokenUsage(
-        expiredJwt.claims.client_id,
-      );
+      // Get last used timestamp from the JWT registry
+      const lastUsedAt = expiredJwt.lastUsedAt;
 
       const context = {
         accountName: account.name,
         clientId: expiredJwt.claims.client_id,
         collectionId: account.id.toString(),
         daysUntilExpiration: daysUntilExpiration,
-        expirationDisplay: new Date(expiredJwt.claims.exp * 1000).toLocaleDateString(
-          'en-US',
-          {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          },
-        ),
+        expirationDate: new Date(expiredJwt.claims.exp * 1000),
+        lastUsedAt: lastUsedAt,
         lastUsedDisplay: lastUsedAt
           ? lastUsedAt.toLocaleDateString('en-US', {
               year: 'numeric',
@@ -597,7 +545,7 @@ export class AccountService {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : 'Never used (in last 14 days)',
+          : 'Never used',
       };
 
       // Queue the notification

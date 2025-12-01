@@ -38,12 +38,18 @@ export class BrokerJwtAuthGuard extends AuthGuard('jwt') {
       const user = request.user;
 
       if (user) {
+        const account = plainToInstance(BrokerJwtDto, user);
+
+        // Update last used timestamp for JWT tokens
+        if (account?.jti) {
+          await this.systemRepository.updateJwtLastUsed(account.jti);
+        }
+
         const accountPermissionCheck = this.reflector.get<string>(
           'account-permission',
           context.getHandler(),
         );
         if (accountPermissionCheck) {
-          const account = plainToInstance(BrokerJwtDto, user);
           const registryJwt =
             await this.systemRepository.getRegisteryJwtByClaimJti(account.jti);
           if (!registryJwt) {
