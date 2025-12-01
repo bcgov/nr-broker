@@ -410,7 +410,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
 
   openInGraph(event: Event, elem: CollectionComboDto<any>) {
     event.stopPropagation();
-    this.graphUtil.openInGraph(elem.vertex.id, 'vertex');
+    this.graphUtil.openInGraph(elem.vertex.id, 'vertex', false);
   }
 
   openInInspector(event: Event, id: string) {
