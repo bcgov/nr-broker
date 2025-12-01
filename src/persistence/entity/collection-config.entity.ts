@@ -194,6 +194,9 @@ export class CollectionConfigEntity extends BaseEntity {
   @Property()
   show: boolean;
 
+  @Property()
+  showUserRoles: boolean;
+
   @Embedded({
     entity: () => CollectionSyncConfigEmbeddable,
     object: true,

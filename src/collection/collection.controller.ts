@@ -247,8 +247,11 @@ export class CollectionController {
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
-  async getTokenUsage(@Param('id', new ParseObjectIdPipe()) id: string) {
-    return this.accountService.getUsage(id, 1);
+  async getTokenUsage(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+    @Query('rangeCount') rangeCount: number = 48,
+  ) {
+    return this.accountService.getUsage(id, rangeCount);
   }
 
   @Post('broker-account/renewal')

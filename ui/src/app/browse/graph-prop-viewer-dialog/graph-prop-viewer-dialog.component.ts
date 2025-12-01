@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
@@ -13,7 +12,6 @@ import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
 @Component({
   selector: 'app-graph-prop-viewer-dialog',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatDialogModule,
     InspectorPropertiesComponent,

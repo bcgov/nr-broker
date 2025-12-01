@@ -1,5 +1,6 @@
 <mat-card class="inspector-card" appearance="outlined">
   @if (configMap) {
+    @let localComboData = comboData();
   <div
     #card
     (window:resize)="titleWidth=card.getBoundingClientRect().width"
@@ -7,30 +8,30 @@
     <div class="fields-wrapper">
       <mat-card-header class="inspector-header">
         <mat-card-subtitle class="text-oneline" [style.width.px]="titleWidth - 130">
-          @if (!target) {
+          @if (!target()) {
             Click graph item to view
           }
-          @if (target) {
-            {{target.type | titlecase}}
+          @if (target()) {
+            {{target()?.type | titlecase}}
           }
-          @if (target && target.type === 'vertex') {
-            - {{configMap[target.collection].name}}
+          @if (target() && target()?.type === 'vertex') {
+            - {{config().name}}
           }
         </mat-card-subtitle>
         <mat-card-title class="text-oneline" [style.width.px]="titleWidth - 130">
-          @if (comboData && comboData.type === 'vertex') {
-            <span class="inspector-header-link" routerLink="/browse/{{comboData.vertex.collection}}/{{comboData.collection.id}}">{{comboData.vertex.name}}</span>
+          @if (localComboData && localComboData.type === 'vertex') {
+            <span class="inspector-header-link" routerLink="/browse/{{localComboData.vertex.collection}}/{{localComboData.collection.id}}">{{localComboData.vertex.name}}</span>
           }
-          @if (comboData && comboData.type === 'edge') {
-            {{comboData.edge.name | titlecase}}
+          @if (localComboData && localComboData.type === 'edge') {
+            {{localComboData.edge.name | titlecase}}
           }
-          @if (!target) {
+          @if (!target()) {
             Inspector
           }
         </mat-card-title>
       </mat-card-header>
     </div>
-    @if (target) {
+    @if (target()) {
       <div class="fields-wrapper">
         <button
           class="menu-btn"
@@ -43,12 +44,12 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!hasUpdate || (target.type === 'vertex' && !configMap[target.collection].permissions.update)"
+              [disabled]="!hasUpdate || (target()?.type === 'vertex' && !config().permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
             </button>
-            @if (target.type === 'edge') {
+            @if (target()?.type === 'edge') {
               <button
                 mat-menu-item
                 aria-label="Copy Id"
@@ -57,10 +58,10 @@
                 <span>Copy Edge Id</span>
               </button>
             }
-            @if (target.type === 'vertex') {
+            @if (target()?.type === 'vertex') {
               <button
                 mat-menu-item
-                [disabled]="!hasUpdate || (!configMap[target.collection].permissions.update)"
+                [disabled]="!hasUpdate || (!config().permissions.update)"
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
@@ -76,14 +77,14 @@
               <button
                 mat-menu-item
                 (click)="toggleNavigationFollows()">
-                <mat-icon>{{this.navigationFollows === 'vertex' ? 'east' : 'radio_button_unchecked' }}</mat-icon>
-                <span>{{this.navigationFollows === 'vertex' ? 'Follow Edge' : 'Follow Vertex'}}</span>
+                <mat-icon>{{this.navigationFollows() === 'vertex' ? 'east' : 'radio_button_unchecked' }}</mat-icon>
+                <span>{{this.navigationFollows() === 'vertex' ? 'Follow Edge' : 'Follow Vertex'}}</span>
               </button>
             }
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!hasDelete || (target.type === 'vertex' && !configMap[target.collection].permissions.delete)"
+              [disabled]="!hasDelete || (target()?.type === 'vertex' && !config().permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
@@ -95,51 +96,51 @@
   </div>
   <mat-card-content>
     <mat-divider></mat-divider>
-    @if (comboData) {
+    @if (localComboData) {
       <div>
-        @if (comboData.type === 'edge') {
+        @if (localComboData.type === 'edge') {
           <app-inspector-edge
-            [edge]="comboData.edge"
-            [sourceVertex]="comboData.source"
-            [targetVertex]="comboData.target"
+            [edge]="localComboData.edge"
+            [sourceVertex]="localComboData.source"
+            [targetVertex]="localComboData.target"
             (vertexSelected)="selectVertex($event)"
           ></app-inspector-edge>
         }
-        @if (comboData.type === 'vertex') {
+        @if (localComboData.type === 'vertex') {
           <app-inspector-vertex
-            [collection]="comboData.vertex.collection"
-            [collectionConfig]="configMap[comboData.vertex.collection]"
-            [comboData]="comboData"
+            [collection]="localComboData.vertex.collection"
+            [collectionConfig]="configMap[localComboData.vertex.collection]"
+            [comboData]="localComboData"
             [hasSudo]="hasSudo"
             [hasUpdate]="hasUpdate"
             ></app-inspector-vertex>
 
           <app-inspector-connections
-            [collection]="comboData.vertex.collection"
-            [config]="configMap[comboData.vertex.collection]"
-            [vertex]="comboData.collection.vertex"
-            [source]="comboData.vertex"
-            [upstream]="comboData.upstream"
-            [downstream]="comboData.downstream"
+            [collection]="localComboData.vertex.collection"
+            [config]="configMap[localComboData.vertex.collection]"
+            [vertex]="localComboData.collection.vertex"
+            [source]="localComboData.vertex"
+            [upstream]="localComboData.upstream"
+            [downstream]="localComboData.downstream"
             [hasAdmin]="hasAdmin"
             (selected)="navigate($event)"
             ></app-inspector-connections>
         }
-        @if (comboData.type === 'edge') {
-          @if (comboData.edge.prop) {
+        @if (localComboData.type === 'edge') {
+          @if (localComboData.edge.prop) {
             <app-inspector-properties
-              [prop]="comboData.edge.prop"></app-inspector-properties>
+              [prop]="localComboData.edge.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
-            [timestamps]="comboData.edge.timestamps"></app-inspector-timestamps>
+            [timestamps]="localComboData.edge.timestamps"></app-inspector-timestamps>
         }
-        @if (comboData.type === 'vertex') {
-          @if (comboData.vertex.prop) {
+        @if (localComboData.type === 'vertex') {
+          @if (localComboData.vertex.prop) {
             <app-inspector-properties
-              [prop]="comboData.vertex.prop"></app-inspector-properties>
+              [prop]="localComboData.vertex.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
-            [timestamps]="comboData.vertex.timestamps"></app-inspector-timestamps>
+            [timestamps]="localComboData.vertex.timestamps"></app-inspector-timestamps>
         }
       </div>
     }

@@ -8,35 +8,71 @@
     [backIcon]="'arrow_back'"
   ></app-collection-header>
   <div class="card-layout {{screen.screenSize()}}">
-  <mat-card appearance="outlined">
-    <mat-card-content>
-      <div class="card-text">
-      <div class="card-title-container">
-        <mat-card-title>Broker Account Access Token</mat-card-title>
-      </div>
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="card-text">
+          <div class="card-title-container">
+            <mat-card-title>Broker Account Access Token</mat-card-title>
+          </div>
 
-      <p>A Broker Account allows your team to generate access tokens that are used
-        to authenticate machine API requests. The account's connections to other
-        collection objects may be used to authorize requests.</p>
+            <p>A Broker Account allows your team to generate access tokens that are used
+              to authenticate machine API requests. The account's connections to other
+              collection objects may be used to authorize requests.</p>
 
-      <p>If the account has expired or is soon to expire, then teams are encouraged
-        to generate a new token to ensure continued access. If the account is not
-        being actively used, then the token should be allowed to expire.</p>
-      </div>
-      <app-inspector-account
-        [account]="account"
-        [userIndex]="4"
-        [hasSudo]="hasSudo()"
-        [display]="'details'"
-        ></app-inspector-account>
+            <p>If the account has expired or is soon to expire, then teams are encouraged
+              to generate a new token to ensure continued access. If the account is not
+              being actively used, then the token should be allowed to expire.</p>
+        </div>
 
-      <button
-        class="card-text"
-        mat-stroked-button
-        (click)="openGenerateDialog()">
-        Generate Token
-      </button>
-    </mat-card-content>
-  </mat-card>
+        <section class="action-section">
+          <button
+            class="card-text"
+            mat-stroked-button
+            (click)="openGenerateDialog()">
+            Generate Token
+          </button>
+
+          <section class="slide-toggle-section">
+            Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+          </section>
+        </section>
+
+        <app-inspector-account
+          [account]="account"
+          [hasSudo]="hasSudo()"
+          [showHelp]="showHelp()"
+          [display]="'details'"
+          ></app-inspector-account>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="card-text">
+          <div class="card-title-container">
+            <mat-card-title>Usage Chart</mat-card-title>
+          </div>
+        </div>
+        <app-inspector-account-chart
+          [account]="account"></app-inspector-account-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="card-text">
+          <div class="card-title-container">
+            <mat-card-title>Connections</mat-card-title>
+          </div>
+        </div>
+
+        <app-collection-table
+          class="full-width order-end"
+          [collection]="'service'"
+          [target]="{ collection: 'brokerAccount', vertex: account.vertex}"
+          [showFilter]="'all'"
+          ></app-collection-table>
+      </mat-card-content>
+    </mat-card> -->
   </div>
 }

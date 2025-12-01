@@ -7,19 +7,19 @@
     }
   </div>
 </div>
-@if(healthStatus.health$ | async; as health) {
-  @if(health.details['github']['sync']) {
+@if (healthStatus.health$ | async; as health) {
+  @if (health.details['github']['sync']) {
     <div class="edge-body">
 
       <div>
 
       <div class="details-section">Secrets</div>
 
-      @if(showSecretsQueued()) {
-        <app-details-item item="Queued">{{repository.syncSecretsStatus?.queuedAt | date: 'medium'}}</app-details-item>
+      @if (showSecretsQueued()) {
+        <app-details-item item="Queued">{{repository().syncSecretsStatus?.queuedAt | date: 'medium'}}</app-details-item>
       } @else {
-        <app-details-item item="Last sync">@if(repository.syncSecretsStatus?.syncAt) {
-            {{repository.syncSecretsStatus?.syncAt | date: 'medium'}}
+        <app-details-item item="Last sync">@if(repository().syncSecretsStatus?.syncAt) {
+            {{repository().syncSecretsStatus?.syncAt | date: 'medium'}}
           } @else {
             Never
           }</app-details-item>
@@ -29,7 +29,7 @@
         <button
           mat-stroked-button
           (click)="syncSecrets()"
-          [disabled]="!repository.enableSyncSecrets">Sync</button>
+          [disabled]="!repository().enableSyncSecrets">Sync</button>
 
         <button
           mat-button
@@ -41,10 +41,10 @@
       <div class="details-section">User Access</div>
 
       @if(showUsersQueued()) {
-        <app-details-item item="Queued">{{repository.syncUsersStatus?.queuedAt | date: 'medium'}}</app-details-item>
+        <app-details-item item="Queued">{{repository().syncUsersStatus?.queuedAt | date: 'medium'}}</app-details-item>
       } @else {
-        <app-details-item item="Last sync">@if(repository.syncUsersStatus?.syncAt) {
-            {{repository.syncUsersStatus?.syncAt | date: 'medium'}}
+        <app-details-item item="Last sync">@if(repository().syncUsersStatus?.syncAt) {
+            {{repository().syncUsersStatus?.syncAt | date: 'medium'}}
           } @else {
             Never
           }</app-details-item>
@@ -54,7 +54,7 @@
         <button
           mat-stroked-button
           (click)="syncUsers()"
-          [disabled]="!repository.enableSyncUsers">Sync</button>
+          [disabled]="!repository().enableSyncUsers">Sync</button>
 
         <button
           mat-button

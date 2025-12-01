@@ -1,4 +1,4 @@
-import { Component, input, inject, OnInit } from '@angular/core';
+import { Component, input, inject, computed } from '@angular/core';
 import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { TeamServiceRequestComponent } from '../../team/team-service-request/team-service-request.component';
+import { httpResource } from '@angular/common/http';
 
 @Component({
   selector: 'app-team-services',
@@ -25,23 +26,27 @@ import { TeamServiceRequestComponent } from '../../team/team-service-request/tea
   templateUrl: './team-services.component.html',
   styleUrl: './team-services.component.scss',
 })
-export class TeamServicesComponent implements OnInit {
+export class TeamServicesComponent {
   private readonly graphApi = inject(GraphApiService);
 
   readonly teamVertex = input.required<string>();
 
   propDisplayedColumns: string[] = ['key', 'value'];
 
-  activeServices: CollectionConfigInstanceDto[] = [];
-  requestServices: CollectionConfigInstanceDto[] = [];
-  serviceCount = 0;
+  readonly servicesResource = httpResource<CollectionConfigInstanceDto[]>(() => {
+    return this.graphApi.getEdgeConfigByVertexArgs(
+      this.teamVertex(),
+      'service',
+      'uses',
+    );
+  });
 
-  ngOnInit() {
-    this.graphApi
-      .getEdgeConfigByVertex(this.teamVertex(), 'service', 'uses')
-      .subscribe((search) => {
-        this.activeServices = search.filter((cci) => cci.instance);
-        this.requestServices = search.filter((cci) => !cci.instance);
-      });
-  }
+  readonly activeServices = computed<CollectionConfigInstanceDto[]>(() => {
+    const search = this.servicesResource.hasValue() ? this.servicesResource.value() : [];
+    return search.filter((cci) => cci.instance);
+  });
+  readonly requestServices = computed<CollectionConfigInstanceDto[]>(() => {
+    const search = this.servicesResource.hasValue() ? this.servicesResource.value() : [];
+    return search.filter((cci) => !cci.instance);
+  });
 }

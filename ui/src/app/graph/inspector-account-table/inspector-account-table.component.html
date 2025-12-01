@@ -1,0 +1,50 @@
+<table mat-table [dataSource]="tokenData()">
+  <!-- Key Column -->
+  <ng-container matColumnDef="key">
+    <th mat-header-cell *matHeaderCellDef> Key </th>
+    <td mat-cell *matCellDef="let element">
+      <span [matTooltip]="element.hint"
+        matTooltipShowDelay="500"
+        matTooltipPosition="right">
+        {{element.key}}
+      </span>
+    </td>
+  </ng-container>
+  <!-- Value Column -->
+  <ng-container matColumnDef="value">
+    <th mat-header-cell *matHeaderCellDef> Value </th>
+    <td mat-cell *matCellDef="let element">
+      <span class="ellipsis">
+        @switch (element.key) {
+          @case ('Blocked') {
+            {{element.value ? 'Yes' : 'No'}}
+          }
+          @case ('Issued At') {
+            {{element.value | date:'medium'}}
+          }
+          @case ('Client Id') {
+            {{element.value}}
+          }
+          @case ('JTI') {
+            {{element.value}}
+          }
+          @case ('Expiry') {
+            @if (!isDateExpired(element.value)) {
+              <mat-icon class="mat-icon-status" inline="true" color="primary">check_circle_outline</mat-icon>
+            } @else {
+              <mat-icon class="mat-icon-status" inline="true" color="warn">dangerous</mat-icon>
+            }
+            {{element.value | date:'medium'}}
+          }
+          @default {
+          }
+        }
+      </span>
+      @if (showHelp()) {
+        <br />
+        <small>{{element.hint}}</small>
+      }
+    </td>
+  </ng-container>
+  <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
+</table>

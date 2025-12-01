@@ -1,3 +1,10 @@
-.header-margin {
+.page-title {
   margin: 16px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.page-title > * {
+  width: 100%;
+  margin: 0;
 }

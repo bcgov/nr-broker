@@ -11,7 +11,7 @@
 
   <h3>GitHub Role Mapping</h3>
 
-  <table mat-table [dataSource]="dataSource" class="role-mapping-table">
+  <table mat-table [dataSource]="dataSource()" class="role-mapping-table">
     <!-- Edge Column -->
     <ng-container matColumnDef="edge">
       <th mat-header-cell *matHeaderCellDef> Broker </th>

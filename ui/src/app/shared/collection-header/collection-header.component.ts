@@ -1,5 +1,4 @@
 import { Component, input, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +11,7 @@ import { GraphDirectedCombo } from '../../service/persistence/dto/collection-com
 
 @Component({
   selector: 'app-collection-header',
-  imports: [CommonModule, MatButtonModule, MatDividerModule, MatIconModule],
+  imports: [MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './collection-header.component.html',
   styleUrl: './collection-header.component.scss',
 })

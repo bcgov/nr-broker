@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, input, inject } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,13 +30,10 @@ export class InspectorVaultComponent {
   private readonly graphApi = inject(GraphApiService);
   private readonly dialog = inject(MatDialog);
 
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() service!: ServiceDto;
+  readonly service = input.required<ServiceDto>();
   readonly isAdministrator = input.required<boolean>();
 
-  @Output() refreshData = new EventEmitter();
+  readonly refreshData = output();
 
   totalDuration(val: any) {
     return prettyMilliseconds(val * 1000);
@@ -62,7 +59,7 @@ export class InspectorVaultComponent {
           data.vaultConfig = result.vaultConfig;
           this.graphApi
             .editVertex(
-              this.service.vertex,
+              this.service().vertex,
               {
                 collection: 'service',
                 data,

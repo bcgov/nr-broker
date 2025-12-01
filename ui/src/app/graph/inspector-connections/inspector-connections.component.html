@@ -1,7 +1,7 @@
 <div>
   @let connectedTable = configRecord[collection()].connectedTable;
 
-  @if (collection() === 'service' || collection() === 'project' || collection() === 'brokerAccount' || collection() === 'repository') {
+  @if (configRecord[collection()].showUserRoles) {
     <div class="wrapper vertex-edge-container">
       <button
         matButton="outlined"

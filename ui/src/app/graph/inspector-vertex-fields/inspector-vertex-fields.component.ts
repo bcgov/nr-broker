@@ -1,6 +1,5 @@
 import {
   Component,
-  Input,
   OnChanges,
   SimpleChanges,
   input,
@@ -29,10 +28,7 @@ import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspect
 })
 export class InspectorVertexFieldsComponent implements OnChanges {
   readonly collection = input.required<CollectionNames>();
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() collectionConfig!: CollectionConfigDto;
+  readonly collectionConfig = input.required<CollectionConfigDto>();
   readonly collectionData = input<
     CollectionDtoUnion[keyof CollectionDtoUnion] | null
   >(null);
@@ -46,14 +42,14 @@ export class InspectorVertexFieldsComponent implements OnChanges {
     const collectionData = this.collectionData();
     if (
       (changes['collectionConfig'] || changes['collectionData']) &&
-      this.collectionConfig &&
+      this.collectionConfig() &&
       collectionData
     ) {
       const filteredCollectionData: any = {
         ...collectionData,
       };
 
-      for (const [key, value] of Object.entries(this.collectionConfig.fields)) {
+      for (const [key, value] of Object.entries(this.collectionConfig().fields)) {
         if (
           this.filter() === 'no' &&
           filteredCollectionData[key] === undefined
@@ -70,7 +66,7 @@ export class InspectorVertexFieldsComponent implements OnChanges {
       delete filteredCollectionData.name;
 
       for (const key of Object.keys(filteredCollectionData)) {
-        if (!this.collectionConfig.fields[key]) {
+        if (!this.collectionConfig().fields[key]) {
           delete filteredCollectionData[key];
         }
       }
@@ -81,9 +77,9 @@ export class InspectorVertexFieldsComponent implements OnChanges {
   }
 
   getFieldConfig(key: string) {
-    if (!this.collectionConfig) {
+    if (!this.collectionConfig()) {
       return undefined;
     }
-    return this.collectionConfig.fields[key];
+    return this.collectionConfig().fields[key];
   }
 }

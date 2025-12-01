@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -74,9 +74,10 @@ export class GraphComponent implements OnInit, OnDestroy {
   private readonly preferences = inject(PreferencesService);
 
   public data!: Observable<GraphDataConfig>;
-  public selected: InspectorTarget | undefined = undefined;
-  public showFilter: 'connected' | 'all' =
-    this.preferences.get('browseConnectionFilter') ?? 'connected';
+  public selected = signal<InspectorTarget | undefined>(undefined);
+  public showFilter = signal(
+    this.preferences.get('browseConnectionFilter') ?? 'connected',
+  );
   private showFilter$ = new ReplaySubject<'connected' | 'all'>(1);
 
   @ViewChild(EchartsComponent)
@@ -231,27 +232,28 @@ export class GraphComponent implements OnInit, OnDestroy {
         if (graphData.es === null) {
           return;
         }
-        if (this.selected?.type === 'vertex') {
+        const selected = this.selected();
+        if (selected && selected.type === 'vertex') {
           if (
             (graphData.es.event === 'edge-add' &&
-              (graphData.es.edge.source === this.selected.id ||
-                graphData.es.edge.target === this.selected.id)) ||
+              (graphData.es.edge.source === selected.id ||
+                graphData.es.edge.target === selected.id)) ||
                 (graphData.es.event === 'vertex-edit' &&
-                  graphData.es.vertex.id === this.selected.id) ||
+                  graphData.es.vertex.id === selected.id) ||
                   (graphData.es.event === 'collection-edit' &&
-                    graphData.es.collection.vertex === this.selected.id) ||
+                    graphData.es.collection.vertex === selected.id) ||
                     ((graphData.es.event === 'vertex-delete' ||
                       graphData.es.event === 'edge-delete') &&
-                      graphData.es.adjacentVertex.indexOf(this.selected.id) !== -1)
+                      graphData.es.adjacentVertex.indexOf(selected.id) !== -1)
           ) {
             this.inspectorComponent.refreshData();
             // console.log('reload!');
           }
         }
-        if (this.selected?.type === 'edge') {
+        if (this.selected()?.type === 'edge') {
           if (
             graphData.es.event === 'edge-edit' &&
-            graphData.es.edge.id === this.selected.id
+            graphData.es.edge.id === this.selected()?.id
           ) {
             this.inspectorComponent.refreshData();
             // console.log('reload!');
@@ -265,7 +267,7 @@ export class GraphComponent implements OnInit, OnDestroy {
       if (params['selected']) {
         const selector = JSON.parse(params['selected']);
         if (selector.type === 'vertex') {
-          if (this.selected?.id === selector.id) {
+          if (this.selected()?.id === selector.id) {
             return;
           }
           this.graphApi.getVertex(selector.id).subscribe((vertex) => {
@@ -290,7 +292,7 @@ export class GraphComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.showFilter$.next(this.showFilter);
+    this.showFilter$.next(this.showFilter());
   }
 
   ngOnDestroy() {
@@ -324,9 +326,9 @@ export class GraphComponent implements OnInit, OnDestroy {
       setTimeout(() => this.onSelected(event, dispatch), 100);
       return;
     }
-    const prevSelection = this.selected;
+    const prevSelection = this.selected();
     if (event?.type === 'vertex') {
-      this.selected = event;
+      this.selected.set(event);
       const dataIndex = this.latestData?.vertices.findIndex(
         (vertex) => event.id === vertex.id,
       );
@@ -345,7 +347,7 @@ export class GraphComponent implements OnInit, OnDestroy {
     }
 
     if (event?.type === 'edge') {
-      this.selected = event;
+      this.selected.set(event);
     }
 
     if (
@@ -372,8 +374,9 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   updateRoute() {
-    if (this.selected) {
-      this.graphUtil.openInGraph(this.selected.id, this.selected.type);
+    const selected = this.selected();
+    if (selected) {
+      this.graphUtil.openInGraph(selected.id, selected.type);
     }
   }
 
@@ -461,8 +464,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   toggleFilter() {
-    this.showFilter = this.showFilter === 'all' ? 'connected' : 'all';
-    this.preferences.set('browseConnectionFilter', this.showFilter);
-    this.showFilter$.next(this.showFilter);
+    this.showFilter.set(this.showFilter() === 'all' ? 'connected' : 'all');
+    this.preferences.set('browseConnectionFilter', this.showFilter());
+    this.showFilter$.next(this.showFilter());
   }
 }

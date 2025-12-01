@@ -25,14 +25,14 @@
         [value]="text()"
         #inputText>
     </mat-form-field>
-    @if (tagList.length > 0) {
+    @if (tagList().length > 0) {
       <mat-form-field>
         <mat-label>Tags</mat-label>
         <mat-select
           (selectionChange)="updateSettings({tags: $event.value})"
           [value]="computedTags()"
           multiple>
-          @for (tag of tagList; track tag) {
+          @for (tag of tagList(); track tag) {
             <mat-option [value]="tag">{{tag}}</mat-option>
           }
         </mat-select>
@@ -72,10 +72,11 @@
 </div>
 
 <div class="table-card">
-  @if ((!data || data.length === 0) && loading()) {
+  @let localData = data();
+  @if ((!localData || localData.length === 0) && loading()) {
     <mat-spinner></mat-spinner>
   }
-  @if (data && data.length === 0 && !loading) {
+  @if (localData && localData.length === 0 && !loading) {
     <mat-card class="warning-panel" appearance="outlined">
       <mat-card-header>
         <mat-card-title>No results found</mat-card-title>
@@ -85,7 +86,7 @@
       </mat-card-content>
     </mat-card>
   }
-  <div [hidden]="!data || (data && data.length === 0 && !loading)">
+  <div [hidden]="!localData || (localData && localData.length === 0 && !loading)">
     <mat-card class="team-table" appearance="outlined">
       <mat-card-content>
         <table
@@ -94,7 +95,7 @@
           (matSortChange)="onSortChange($event)"
           [matSortActive]="sortActive()"
           [matSortDirection]="sortDirection()"
-          [dataSource]="data">
+          [dataSource]="localData">
 
           @for (item of (fields | keyvalue); track item.key) {
             <ng-container
@@ -124,13 +125,6 @@
                   class="collection-btn"
                   (click)="openInGraph($event, element)">
                   View on Graph
-                </button>
-                <button
-                  mat-stroked-button
-                  extended
-                  class="collection-btn"
-                  (click)="openInGraph($event, element)">
-                  Sync
                 </button>
               } @else {
                 <button

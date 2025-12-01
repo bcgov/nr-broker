@@ -77,18 +77,18 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly healthStatus = inject(HealthStatusService);
 
-  edges: CollectionEdgeConfig[] | undefined;
-  users: any = {};
+  readonly edges = signal<CollectionEdgeConfig[] | undefined>(undefined);
+  readonly users = signal<any>({});
 
   userRoleSelected = signal('');
   userControl = new FormControl<{ id: string } | string | undefined>(undefined);
   filteredOptions!: Observable<GraphTypeaheadResult>;
 
   private triggerRefresh = new Subject<void>();
-  loading = true;
-  userCount = 0;
-  isOwner = false;
-  modified = false;
+  loading = signal(true);
+  userCount = signal(0);
+  isOwner = signal(false);
+  modified = signal(false);
 
   accordion = viewChild.required(MatAccordion);
 
@@ -103,7 +103,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     this.triggerRefresh
       .pipe(
         switchMap(() => {
-          this.loading = true;
+          this.loading.set(true);
           return this.collectionApi.searchCollection('team', {
             vertexId: this.data.vertex,
             offset: 0,
@@ -114,11 +114,12 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
       .subscribe((data) => {
         const userMap: any = {};
         const users: any = {};
-        if (!this.edges) {
+        const edges = this.edges();
+        if (!edges) {
           return;
         }
-        this.userCount = 0;
-        for (const edge of this.edges) {
+        this.userCount.set(0);
+        for (const edge of edges) {
           users[edge.name] = [];
         }
         for (const { vertex } of data.data[0].upstream) {
@@ -128,24 +129,24 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
           };
         }
         for (const { edge } of data.data[0].upstream) {
-          this.userCount++;
+          this.userCount.set(this.userCount() + 1);
           users[edge.name].push({
             id: edge.id,
             name: userMap[edge.source].name,
             vertex: edge.source,
           });
         }
-        for (const edge of this.edges) {
+        for (const edge of edges) {
           users[edge.name] = users[edge.name].sort((a: any, b: any) =>
             a.name.localeCompare(b.name),
           );
         }
 
-        this.users = users;
-        this.loading = false;
-        this.isOwner = this.users['owner'].find(
+        this.users.set(users);
+        this.loading.set(false);
+        this.isOwner.set(this.users()['owner'].find(
           (user: any) => this.user.vertex == user.vertex,
-        );
+        ));
       });
     this.filteredOptions = this.userControl.valueChanges.pipe(
       startWith(undefined),
@@ -165,15 +166,15 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     );
 
     if (this.configRecord['user']) {
-      this.edges = this.configRecord['user'].edges.filter(
+      this.edges.set(this.configRecord['user'].edges.filter(
         (edge) => edge.collection === 'team',
-      );
+      ));
       this.triggerRefresh.next();
     }
   }
 
   ngOnDestroy() {
-    if (this.modified && (this.permission.hasAdmin() || this.isOwner)) {
+    if (this.modified() && (this.permission.hasAdmin() || this.isOwner())) {
       this.healthStatus.health$.pipe(take(1)).subscribe((health) => {
         if (health?.details?.['github']?.['alias']) {
           this.collectionApi.teamRefreshUsers(this.data.vertex).subscribe();
@@ -216,7 +217,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         )
         .subscribe(() => {
           this.userControl.setValue(undefined);
-          this.modified = true;
+          this.modified.set(true);
           this.triggerRefresh.next();
         });
     }
@@ -233,7 +234,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     for (const datum of data) {
       const user = datum.value;
       this.graphApi.deleteEdge(user.id).subscribe(() => {
-        this.modified = true;
+        this.modified.set(true);
         this.triggerRefresh.next();
       });
     }

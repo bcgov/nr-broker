@@ -1,5 +1,4 @@
-import { Component, computed, input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, input, inject, signal } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import {
   MatExpansionModule,
@@ -22,7 +21,6 @@ import { MatChipsModule } from '@angular/material/chips';
 @Component({
   selector: 'app-team-members',
   imports: [
-    CommonModule,
     MatDividerModule,
     MatExpansionModule,
     MatChipsModule,
@@ -45,7 +43,7 @@ export class TeamMembersComponent {
   readonly collectionSearchResult = toSignal(
     combineLatest([toObservable(this.teamId), toObservable(this.refresh)]).pipe(
       switchMap(([id]) => {
-        this.loading = true;
+        this.loading.set(true);
         return firstValueFrom(
           this.collectionApi
             .searchCollection('team', {
@@ -55,7 +53,7 @@ export class TeamMembersComponent {
             })
             .pipe(
               tap(() => {
-                this.loading = false;
+                this.loading.set(false);
               }),
             ),
         );
@@ -107,7 +105,7 @@ export class TeamMembersComponent {
     (edge) => edge.collection === 'team',
   );
 
-  loading = true;
+  loading = signal(true);
 
   navigateUser(vertexId: string) {
     this.collectionUtil.openInBrowserByVertexId('user', vertexId);

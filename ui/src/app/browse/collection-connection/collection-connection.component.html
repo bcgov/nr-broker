@@ -1,12 +1,16 @@
-@if (loading()) {
+@if (collectionResource.isLoading()) {
   <mat-spinner></mat-spinner>
-} @else {
+}
+@if (collectionResource.hasValue()) {
   <app-collection-header
     [collection]="collection()"
-    [title]="name()"
+    [title]="collectionResource.value().name"
     [backIcon]="'arrow_back'"
   ></app-collection-header>
-  <h1 class="header-margin">Connections</h1>
+  <section class="page-title">
+    <h1>Connections by Collection</h1>
+    <small class="header-margin">An object is connected if there is an unrestricted path from or to this collection object.</small>
+  </section>
   <div
     class="inspector-card-layout"
     [class]="screen.screenSize()">
@@ -14,9 +18,7 @@
     <app-collection-table
       class="full-width order-end"
       [collection]="connectedTableCollection()"
-      [collectionOptions]="connectedTableCollectionOptions()"
-      [upstreamId]="!isUpstreamConnectedCollection(connectedTableCollection()) ? vertex() : undefined"
-      [downstreamId]="isUpstreamConnectedCollection(connectedTableCollection()) ? vertex() : undefined"
+      [target]="{collection: this.collection(), vertex: this.collectionResource.value().vertex}"
       [text]="text()"
       [showFilter]="showFilter()"
       [tags]="tags()"

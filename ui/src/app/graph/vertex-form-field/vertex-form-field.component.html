@@ -1,118 +1,119 @@
 <div
   class="form-group row"
   [formGroup]="form()">
-  @switch (field.type) {
+  @let localField = field();
+  @switch (localField.type) {
     @case ('string') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           value="">
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('number') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           value="">
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('stringArray') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           value="">
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('email') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           type="email"
           value="">
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('boolean') {
       <section appearance="fill">
         <mat-checkbox
-          matTooltip="{{field.hint}}"
+          matTooltip="{{localField.hint}}"
           matTooltipPosition="after"
-          [formControlName]="field.key">{{field.name}}</mat-checkbox>
-        <!-- <mat-hint *ngIf="field.hint">{{field.hint}}</mat-hint> -->
+          [formControlName]="localField.key">{{localField.name}}</mat-checkbox>
+        <!-- <mat-hint *ngIf="localField.hint">{{localField.hint}}</mat-hint> -->
       </section>
     }
     @case ('url') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           type="url"
           value="">
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('select') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
-          <mat-select [formControlName]="field.key">
-            @for (option of field.options; track option) {
+          <mat-select [formControlName]="localField.key">
+            @for (option of localField.options; track option) {
               <mat-option value="{{option.value}}">{{option.label}}</mat-option>
             }
           </mat-select>
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
     @case ('date') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <input
           matInput
           [matDatepicker]="picker"
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           type="url"
           value="">
         <mat-hint align="end">MM/DD/YYYY</mat-hint>
@@ -120,16 +121,16 @@
           matIconSuffix
           [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }
 
     @case ('json') {
       <mat-form-field appearance="fill">
-        @if (field.name) {
-          <mat-label>{{field.name}}</mat-label>
+        @if (localField.name) {
+          <mat-label>{{localField.name}}</mat-label>
         }
         <textarea
           matInput
@@ -137,11 +138,11 @@
           #autosize="cdkTextareaAutosize"
           cdkAutosizeMinRows="12"
           cdkAutosizeMaxRows="15"
-          [formControlName]="field.key"
-          placeholder="{{field.placeholder ? field.placeholder : ''}}"
+          [formControlName]="localField.key"
+          placeholder="{{localField.placeholder ? localField.placeholder : ''}}"
           value=""></textarea>
-        @if (field.hint) {
-          <mat-hint>{{field.hint}}</mat-hint>
+        @if (localField.hint) {
+          <mat-hint>{{localField.hint}}</mat-hint>
         }
       </mat-form-field>
     }

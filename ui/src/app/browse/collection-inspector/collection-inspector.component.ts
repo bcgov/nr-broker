@@ -1,5 +1,7 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { httpResource } from '@angular/common/http';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -48,8 +50,6 @@ import { UserAliasComponent } from '../user-alias/user-alias.component';
 import { ServiceInstanceDetailsResponseDto } from '../../service/persistence/dto/service-instance.dto';
 import { InspectorRepositorySyncComponent } from '../../graph/inspector-repository-sync/inspector-repository-sync.component';
 import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.component';
-import { httpResource } from '@angular/common/http';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { GithubRoleMappingDialogComponent } from '../../graph/github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { HealthStatusService } from '../../service/health-status.service';
 import { ScreenService } from '../../util/screen.service';
@@ -105,8 +105,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   // Url params
   public collection = input<CollectionNames>('project');
-  // eslint-disable-next-line @angular-eslint/no-input-rename
-  public collectionId = input('', { alias: 'id' });
+  public collectionId = input('');
   public selectedTabIndex = input(0, {
     transform: (v) => numberAttribute(v, 0),
     // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -118,7 +117,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   readonly config = computed(() => {
     return this.configRecord[this.collection()];
   });
-  public comboData!: CollectionCombo<any>;
+  public comboData = signal<CollectionCombo<any> | null>(null);
   public comboDataResource = httpResource(() => {
     return this.collectionApi.getCollectionComboByIdArgs(
       this.collection(),
@@ -133,11 +132,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     null;
 
   // Permissions
-  hasAdmin = false;
-  hasDelete = false;
-  hasSudo = false;
-  hasUpdate = false;
-  hasApprove = false;
+  hasAdmin = signal(false);
+  hasDelete = signal(false);
+  hasSudo = signal(false);
+  hasUpdate = signal(false);
+  hasApprove = signal(false);
 
   refresh = signal(0);
 
@@ -169,23 +168,23 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
       .subscribe((es: any) => {
-        if (es !== null && this.comboData.collection) {
+        if (es !== null && this.comboData()?.collection) {
           if (es.event === 'edge-add') {
             if (
-              es.edge.source === this.comboData.collection.vertex ||
-              es.edge.target === this.comboData.collection.vertex
+              es.edge.source === this.comboData()?.collection.vertex ||
+              es.edge.target === this.comboData()?.collection.vertex
             ) {
               this.updateCollection();
               this.openSnackBar('The object was updated.');
             }
           }
           if (es.event === 'vertex-edit') {
-            if (es.vertex.id === this.comboData.collection.vertex) {
+            if (es.vertex.id === this.comboData()?.collection.vertex) {
               this.updateCollection();
               this.openSnackBar('The object was updated.');
             }
           } else if (es.event === 'collection-edit') {
-            if (es.collection.vertex === this.comboData.collection.vertex) {
+            if (es.collection.vertex === this.comboData()?.collection.vertex) {
               this.updateCollection();
               this.openSnackBar('The object was updated.');
             }
@@ -193,11 +192,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
             es.event === 'vertex-delete' ||
             es.event === 'edge-delete'
           ) {
-            if (es.vertex.indexOf(this.comboData.collection.vertex) !== -1) {
+            if (es.vertex.indexOf(this.comboData()?.collection.vertex) !== -1) {
               this.openSnackBar('The object was deleted.');
               this.back();
             } else if (
-              es.adjacentVertex.indexOf(this.comboData.collection.vertex) !== -1
+              es.adjacentVertex.indexOf(this.comboData()?.collection.vertex) !== -1
             ) {
               this.updateCollection();
               this.openSnackBar('The object was updated.');
@@ -214,30 +213,30 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.comboData = comboData as any;
-      this.hasAdmin = this.permission.hasAdmin();
-      this.hasSudo = this.permission.hasSudo(
+      this.comboData.set(comboData as CollectionCombo<any>);
+      this.hasAdmin.set(this.permission.hasAdmin());
+      this.hasSudo.set(this.permission.hasSudo(
         permissions,
-        this.comboData.collection.vertex,
-      );
-      this.hasUpdate = this.permission.hasUpdate(
+        this.comboData()?.collection.vertex,
+      ));
+      this.hasUpdate.set(this.permission.hasUpdate(
         permissions,
-        this.comboData.collection.vertex,
-      );
-      this.hasDelete = this.permission.hasDelete(
+        this.comboData()?.collection.vertex,
+      ));
+      this.hasDelete.set(this.permission.hasDelete(
         permissions,
-        this.comboData.collection.vertex,
-      );
-      this.hasApprove = this.permission.hasApprove(
+        this.comboData()?.collection.vertex,
+      ));
+      this.hasApprove.set(this.permission.hasApprove(
         permissions,
-        this.comboData.collection.vertex,
-      );
+        this.comboData()?.collection.vertex,
+      ));
 
       this.serviceInstanceDetails = null;
 
       if (this.collection() === 'serviceInstance') {
         this.collectionApi
-          .getServiceInstanceDetails(this.comboData.collection.id)
+          .getServiceInstanceDetails(this.comboData()?.collection.id)
           .subscribe((data) => {
             this.serviceInstanceDetails = data;
           });
@@ -303,29 +302,30 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   openInGraph() {
-    if (this.comboData.vertex) {
-      this.graphUtil.openInGraph(this.comboData.vertex.id, 'vertex', false);
+    const vertex = this.comboData()?.vertex;
+    if (vertex) {
+      this.graphUtil.openInGraph(vertex.id, 'vertex', false);
     }
   }
 
   openAccessToken() {
-    this.collectionUtil.openAccessToken(this.comboData.collection.id);
+    this.collectionUtil.openAccessToken(this.comboData()?.collection.id);
   }
 
   openServiceBuilds() {
-    this.collectionUtil.openServiceBuilds(this.comboData.collection.id);
+    this.collectionUtil.openServiceBuilds(this.comboData()?.collection.id);
   }
 
   openServiceInstances() {
-    this.collectionUtil.openServiceInstances(this.comboData.collection.id);
+    this.collectionUtil.openServiceInstances(this.comboData()?.collection.id);
   }
 
   openServiceHistory() {
-    this.collectionUtil.openServiceHistory(this.comboData.collection.id);
+    this.collectionUtil.openServiceHistory(this.comboData()?.collection.id);
   }
 
   openBrokerAccountHistory() {
-    this.collectionUtil.openBrokerAccountHistory(this.comboData.collection.id);
+    this.collectionUtil.openBrokerAccountHistory(this.comboData()?.collection.id);
   }
 
   edit() {
@@ -334,8 +334,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           collection: this.collection(),
-          vertex: this.comboData.vertex,
-          data: this.comboData.collection,
+          vertex: this.comboData()?.vertex,
+          data: this.comboData()?.collection,
         },
       })
       .afterClosed()
@@ -348,7 +348,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           collection: this.collection(),
-          collectionData: this.comboData.collection,
+          collectionData: this.comboData()?.collection,
         },
       })
       .afterClosed()
@@ -364,22 +364,22 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .subscribe((result) => {
         if (result && result.confirm) {
           this.graphApi
-            .deleteVertex(this.comboData.collection.vertex)
+            .deleteVertex(this.comboData()?.collection.vertex)
             .subscribe();
         }
       });
   }
 
   openMemberDialog() {
-    if (!this.comboData) {
+    if (!this.comboData()) {
       return;
     }
     this.dialog
       .open(MemberDialogComponent, {
         width: '600px',
         data: {
-          vertex: this.comboData.vertex.id,
-          name: this.comboData.collection.name,
+          vertex: this.comboData()?.vertex.id,
+          name: this.comboData()?.collection.name,
         },
       })
       .afterClosed()

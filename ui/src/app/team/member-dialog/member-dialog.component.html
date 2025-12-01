@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Members - {{ data.name }}</h2>
 
 <mat-dialog-content>
-  @if (permission.hasAdmin() || isOwner) {
+  @if (permission.hasAdmin() || isOwner()) {
     <p>Add a user to role</p>
     <div class="form-panel">
       <mat-form-field>
@@ -30,7 +30,7 @@
         <mat-select
           [value]="userRoleSelected()"
           (selectionChange)="onUserRoleChange($event.value)">
-          @for (edge of edges; track edge.id) {
+          @for (edge of edges(); track edge.id) {
             <mat-option
               value="{{ edge.name }}">
               {{ edge | edgetitle }}
@@ -45,17 +45,17 @@
         [disabled]="!isUserSelected()">Add</button>
     </div>
   }
-  @if (loading) {
+  @if (loading()) {
     <mat-spinner></mat-spinner>
   } @else {
-    @if (userCount === 0) {
+    @if (userCount() === 0) {
       <h2 class="no-members">No members</h2>
     } @else {
       <p>Review member roles</p>
       <div class="member-role-accordian">
       <mat-accordion>
-      @for (edge of edges; track edge.id) {
-        @if (users[edge.name].length > 0 || userRoleSelected() === edge.name) {
+      @for (edge of edges(); track edge.id) {
+        @if (users()[edge.name].length > 0 || userRoleSelected() === edge.name) {
           <mat-expansion-panel
             [expanded]="userRoleSelected() === edge.name"
             (opened)="onUserRoleChange(edge.name)">
@@ -63,18 +63,18 @@
               <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
               <mat-panel-description>
               <mat-chip-set aria-label="Users" class="disable-mouse">
-                <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users[edge.name].length}}</mat-chip>
+                <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users()[edge.name].length}}</mat-chip>
               </mat-chip-set>
             </mat-panel-description>
             </mat-expansion-panel-header>
             @if (edge.help) {
               <div class="user-role-help">{{ edge.help }}</div>
             }
-          @if (permission.hasAdmin() || isOwner) {
+          @if (permission.hasAdmin() || isOwner()) {
             <mat-selection-list
               #userList
               class="user-list">
-              @for (member of users[edge.name]; track member.id) {
+              @for (member of users()[edge.name]; track member.id) {
                 <mat-list-option
                   class="user-list-item"
                   [value]="member"
@@ -94,7 +94,7 @@
             <mat-list
               class="user-list"
               role="list">
-              @for (member of users[edge.name]; track member.id) {
+              @for (member of users()[edge.name]; track member.id) {
                 <mat-list-item
                   class="user-list-item"
                   role="listitem">

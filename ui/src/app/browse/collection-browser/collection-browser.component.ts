@@ -1,5 +1,4 @@
-import { Component, effect, input, numberAttribute, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, numberAttribute, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
@@ -11,7 +10,7 @@ import { SortDirection } from '@angular/material/sort';
 import { of, switchMap } from 'rxjs';
 
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionDtoUnion, CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { VertexDialogComponent } from '../../graph/vertex-dialog/vertex-dialog.component';
 import { PermissionService } from '../../service/permission.service';
 import { AddTeamDialogComponent } from '../../team/add-team-dialog/add-team-dialog.component';
@@ -33,7 +32,6 @@ interface filterOptions<T> {
 @Component({
   selector: 'app-collection-browser',
   imports: [
-    CommonModule,
     FormsModule,
     MatButtonModule,
     MatIconModule,
@@ -55,7 +53,9 @@ export class CollectionBrowserComponent {
   private readonly preferences = inject(PreferencesService);
 
   collection = input<CollectionNames>('project');
-  currentCollection!: CollectionNames;
+  readonly config = computed(() => {
+    return this.configRecord[this.collection()];
+  });
 
   text = input('', { transform: (v: string | undefined) => v ?? '' });
   tags = input('');
@@ -71,7 +71,9 @@ export class CollectionBrowserComponent {
   sortActive = input('');
   sortDirection = input<SortDirection>('');
 
-  disableAdd = signal(true);
+  disableAdd = computed(() => {
+    return !this.config().permissions.create;
+  });
 
   private readonly configArrBrowse = this.configArr.filter((config) => config.permissions.browse);
   readonly collectionFilterOptions = signal<filterOptions<CollectionNames>[]>(this.configArrBrowse.map((config) => {
@@ -82,26 +84,9 @@ export class CollectionBrowserComponent {
     };
   }));
 
-  constructor() {
-    effect(() => {
-      this.currentCollection = this.collection();
-      if (!this.configArrBrowse) {
-        return;
-      }
-      const config = this.configArrBrowse.find(
-        (config) => config.collection === this.currentCollection,
-      );
-
-      if (!config) {
-        return;
-      }
-      this.disableAdd.set(!config.permissions.create);
-    });
-  }
-
-  onCollectionChange() {
+  onCollectionChange(val: keyof CollectionDtoUnion) {
     this.updateRoute({
-      collection: this.currentCollection,
+      collection: val,
       index: 0,
       size: 10,
       sortActive: '',
@@ -112,7 +97,7 @@ export class CollectionBrowserComponent {
       refresh: 1,
     });
 
-    this.preferences.set('browseCollectionDefault', this.currentCollection);
+    this.preferences.set('browseCollectionDefault', val);
   }
 
   updateRoute(settings: TableQuery) {
@@ -142,7 +127,7 @@ export class CollectionBrowserComponent {
 
   addVertex() {
     const dialogClass: any =
-      this.currentCollection === 'team'
+      this.collection() === 'team'
         ? AddTeamDialogComponent
         : VertexDialogComponent;
 
@@ -151,18 +136,18 @@ export class CollectionBrowserComponent {
         width: '500px',
         data: {
           configMap: {
-            [this.currentCollection]: this.configArrBrowse?.find(
-              (config) => config.collection === this.currentCollection,
+            [this.collection()]: this.configArrBrowse?.find(
+              (config) => config.collection === this.collection(),
             ),
           },
-          collection: this.currentCollection,
+          collection: this.collection(),
         },
       })
       .afterClosed()
       .pipe(
         switchMap((result) => {
           if (result && result.id) {
-            return this.collectionApi.searchCollection(this.currentCollection, {
+            return this.collectionApi.searchCollection(this.collection(), {
               vertexId: result.id,
               offset: 0,
               limit: 1,
@@ -174,7 +159,7 @@ export class CollectionBrowserComponent {
       .subscribe((result) => {
         if (result) {
           this.router.navigate(
-            ['/browse', this.currentCollection, result.data[0].collection.id],
+            ['/browse', this.collection(), result.data[0].collection.id],
             {
               replaceUrl: true,
             },

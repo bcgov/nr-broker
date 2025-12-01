@@ -1,4 +1,4 @@
-import { Component, input, OnChanges, OnInit, inject } from '@angular/core';
+import { Component, input, OnChanges, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -50,7 +50,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
   pointers = input.required<IntentionActionPointerDto[]>();
 
   pointer$ = new Subject<IntentionActionPointerDto | undefined>();
-  current: IntentionActionPointerDto | undefined;
+  readonly current = signal<IntentionActionPointerDto | undefined>(undefined);
 
   ngOnInit(): void {
     this.pointer$
@@ -66,7 +66,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
       .subscribe(([result, pointer]) => {
         if (result && pointer) {
           const actionId = pointer.action?.split('#').pop();
-          this.current = {
+          this.current.set({
             ...pointer,
             source: {
               intention: result,
@@ -74,9 +74,9 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
                 (action: any) => action.id === actionId,
               ),
             },
-          };
+          });
         } else {
-          this.current = undefined;
+          this.current.set(undefined);
         }
       });
 
@@ -131,7 +131,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
       return;
     }
     const index = pointerValue.findIndex(
-      (history) => history.intention === this.current?.intention,
+      (history) => history.intention === this.current()?.intention,
     );
     const history = pointerValue[index + move];
     if (!history) {
@@ -147,7 +147,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
       return true;
     }
 
-    return this.current.intention === pointerValue[0].intention;
+    return this.current()?.intention === pointerValue[0].intention;
   }
 
   isLast() {
@@ -157,7 +157,7 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
     }
 
     return (
-      this.current.intention === pointerValue[pointerValue.length - 1].intention
+      this.current()?.intention === pointerValue[pointerValue.length - 1].intention
     );
   }
 }

@@ -16,7 +16,6 @@ import {
   withFetch,
 } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { routes } from './app.routes';
 import { RouteTitleStrategy } from './route-title.strategy';
@@ -47,7 +46,6 @@ export const appConfig: ApplicationConfig = {
       provide: TitleStrategy,
       useClass: RouteTitleStrategy,
     },
-    provideAnimations(),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideNativeDateAdapter(),
   ],

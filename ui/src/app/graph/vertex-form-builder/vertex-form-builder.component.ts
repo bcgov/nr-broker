@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, input, inject } from '@angular/core';
+import { Component, OnChanges, OnInit, output, SimpleChanges, input, inject, signal } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -25,24 +25,20 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
 export class VertexFormBuilderComponent implements OnInit, OnChanges {
   private collectionService = inject(CollectionApiService);
 
-  @Output() formSubmitted = new EventEmitter();
+  readonly formSubmitted = output();
   readonly collection = input.required<string>();
   readonly fieldMap = input.required<CollectionFieldConfigMap>();
-  // TODO: Skipped for migration because:
-  //  Your application code writes to the input. This prevents migration.
-  // TODO: Skipped for migration because:
-  //  Your application code writes to the input. This prevents migration.
-  @Input() data!: any;
+  readonly data = input<any>();
+  readonly formData = signal<any>({});
   form!: FormGroup;
   fieldConfigs!: CollectionFieldConfigNameMapped[];
 
   ngOnInit() {
     const fieldCtrls: Record<string, FormGroup | FormControl> = {};
     const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
-    if (!this.data) {
-      this.data = {};
+    if (this.data()) {
+      this.formData.set(JSON.parse(JSON.stringify(this.data())));
     }
-    const data = JSON.parse(JSON.stringify(this.data));
 
     for (const key of Object.keys(this.fieldMap())) {
       fieldConfigs.push({
@@ -57,14 +53,10 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
 
       if (f.init) {
         if (f.init === 'uuid') {
-          if (!data[f.key]) {
-            data[f.key] = uuidv4();
-          }
+          this.setFormDataDefault(f.key, () => uuidv4());
         }
         if (f.init === 'now') {
-          if (!data[f.key]) {
-            data[f.key] = new Date().toISOString();
-          }
+          this.setFormDataDefault(f.key, () => new Date().toISOString());
         }
       }
 
@@ -74,7 +66,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       }
       if (f.type === 'boolean') {
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] !== undefined ? data[f.key] : !!f.value,
+          this.formData()[f.key] ?? !!f.value,
           validators,
         );
       }
@@ -85,7 +77,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         const pattern = new RegExp('^[0-9]*$', 'i');
         validators.push(Validators.pattern(pattern));
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key] : 0,
+          this.formData()[f.key] ?? 0,
           validators,
         );
       }
@@ -95,12 +87,12 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
             this.collectionService,
             this.collection() as keyof CollectionDtoUnion,
             f.key,
-            data && data.id ? data.id : null,
+            this.formData()['id'] ?? null,
           );
           asyncValidators.push(uniqueValidator);
         }
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key] : '',
+          this.formData()[f.key] ?? '',
           f.unique ? { updateOn: 'blur' } : {},
         );
         fieldCtrls[f.key].addValidators(validators);
@@ -108,14 +100,14 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       }
       if (f.type === 'stringArray') {
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key].join(', ') : '',
+          this.formData()[f.key] ? this.formData()[f.key].join(', ') : '',
           validators,
         );
       }
 
       if (f.type === 'select') {
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key] : '',
+          this.formData()[f.key] ?? '',
           validators,
         );
       }
@@ -123,7 +115,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       if (f.type === 'email') {
         validators.push(Validators.email);
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key] : '',
+          this.formData()[f.key] ?? '',
           validators,
         );
       }
@@ -133,7 +125,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
           validators.push(Validators.required);
         }
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key].slice(0, -1) : '',
+          this.formData()[f.key] ? this.formData()[f.key].slice(0, -1) : '',
           validators,
         );
       }
@@ -150,14 +142,14 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
         );
         validators.push(Validators.pattern(pattern));
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? data[f.key] : '',
+          this.formData()[f.key] ?? '',
           validators,
         );
       }
 
       if (f.type === 'json') {
         fieldCtrls[f.key] = new FormControl(
-          data && data[f.key] ? JSON.stringify(data[f.key], undefined, 4) : '',
+          this.formData()[f.key] ? JSON.stringify(this.formData()[f.key], undefined, 4) : '',
           validators,
         );
       }
@@ -182,6 +174,24 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     if (changes['fieldMap']) {
       this.ngOnInit();
     }
+  }
+
+  setFormDataDefault(key: string, value: () => any, truthy = true) {
+    const keyVal = this.formData()[key];
+    if ((truthy && keyVal) || (!truthy && keyVal === undefined)) {
+      return;
+    }
+    this.formData.set({
+      ...this.formData(),
+      [key]: value(),
+    });
+  }
+
+  setFormDataValue(key: string, value: any) {
+    this.formData.set({
+      ...this.formData(),
+      [key]: value,
+    });
   }
 
   submitForm() {

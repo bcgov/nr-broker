@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -43,11 +43,11 @@ export class TagDialogComponent implements OnInit {
 
   addOnBlur = true;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
-  public tags: string[] = [];
+  public tags = signal<string[]>([]);
 
   ngOnInit() {
     if (this.data.collectionData.tags) {
-      this.tags = [...this.data.collectionData.tags];
+      this.tags.set([...this.data.collectionData.tags]);
     }
   }
 
@@ -55,7 +55,7 @@ export class TagDialogComponent implements OnInit {
     const value = (event.value || '').trim();
 
     if (value) {
-      this.tags.push(value);
+      this.tags.set([...this.tags(), value]);
     }
 
     // Clear the input value
@@ -63,26 +63,30 @@ export class TagDialogComponent implements OnInit {
   }
 
   remove(tag: string): void {
-    const index = this.tags.indexOf(tag);
+    const tags = this.tags();
+    const index = tags.indexOf(tag);
 
     if (index >= 0) {
-      this.tags.splice(index, 1);
+      tags.splice(index, 1);
+      this.tags.set(tags);
     }
   }
 
   edit(tag: string, event: MatChipEditedEvent) {
     const value = event.value.trim();
 
-    // Remove tag if it no longer
+    // Remove tag if trims to nothing
     if (!value) {
       this.remove(tag);
       return;
     }
 
     // Edit existing tag
-    const index = this.tags.indexOf(tag);
+    const tags = this.tags();
+    const index = tags.indexOf(tag);
     if (index >= 0) {
-      this.tags[index] = value;
+      tags[index] = value;
+      this.tags.set(tags);
     }
   }
 
@@ -91,7 +95,7 @@ export class TagDialogComponent implements OnInit {
       .setCollectionTags(
         this.data.collection,
         this.data.collectionData.id,
-        this.tags,
+        this.tags(),
       )
       .subscribe(() => {
         this.dialogRef.close({

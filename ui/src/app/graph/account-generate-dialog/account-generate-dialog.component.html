@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Generate JWT</h2>
+<h2 mat-dialog-title>Generate Token</h2>
 <mat-dialog-content>
 
   <p>Please choose length and click generate to create a new token. The current
@@ -31,7 +31,7 @@
     </mat-form-field>
     <button
       mat-stroked-button
-      [disabled]="!!token"
+      [disabled]="!!token()"
       (click)="generate()">Generate</button>
   </div>
 
@@ -42,8 +42,8 @@
         cdkTextareaAutosize
         cdkAutosizeMinRows="14"
         type="text"
-        [(ngModel)]="token"></textarea>
-      @if (token !== '') {
+        [value]="token()"></textarea>
+      @if (token() !== '') {
         <button
           matSuffix
           mat-icon-button

@@ -3,7 +3,7 @@
 <div echarts
   [options]="options"
   [merge]="updateOptionsVal"
-  [loading]="loading"
+  [loading]="loading()"
   (chartClick)="onChartClick($event)"
   (chartInit)="onChartInit($event)"
   (chartLegendSelectChanged)="onChartLegendSelectChanged($event)"

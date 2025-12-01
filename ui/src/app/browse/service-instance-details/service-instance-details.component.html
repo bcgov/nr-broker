@@ -1,84 +1,90 @@
-@if (instance) {
+@let inst = instance();
+@if (inst) {
   @if (showName()) {
   <div class="details-container details-container-margin">
-    <app-details-item item="Name">{{instance.name}}</app-details-item>
+    <app-details-item item="Name">{{inst.name}}</app-details-item>
 
-    @if (instance.tags && this.instance.server.length === 1) {
-      <app-details-item item="Tags">{{instance.tags.join(', ')}}</app-details-item>
+    @if (inst.tags && inst.server.length === 1) {
+      <app-details-item item="Tags">{{ inst.join(', ') }}</app-details-item>
     }
   </div>
   }
   <div class="details-container">
     <div>
       <app-details-item item="Status">
-        @if (!current || !current.source?.intention) {
+        @if (!action()?.source?.intention) {
           No recorded installation
         } @else {
           Installed
         }
       </app-details-item>
 
-      @if (instance.url) {
-      <a href="{{instance.url}}" target="_blank">
-        <app-details-item item="Url" clickable="true">{{instance.url}}</app-details-item>
+      @if (inst.url) {
+      <a href="{{inst.url}}" target="_blank">
+        <app-details-item item="Url" clickable="true">{{inst.url}}</app-details-item>
       </a>
       }
 
-      @if (current && current.source?.intention) {
+      @let actionSource = action()?.source;
+      @if (actionSource && actionSource.intention) {
 
-      @if (current.source?.action?.package?.version && current.source.action.package.id) {
+      @if (actionSource.package?.version && actionSource.package.id) {
         <app-details-item
-          (click)="openServicePackage(current.source.action.package.id)"
+          (click)="openServicePackage(actionSource.action.package.id)"
           item="Version"
-          clickable="true">{{current.source.action.package.version}}</app-details-item>
+          clickable="true">{{actionSource.action.package.version}}</app-details-item>
       } @else {
-        <app-details-item item="Version">{{current.source.action.package.version}}</app-details-item>
+        <app-details-item item="Version">{{actionSource.action.package.version}}</app-details-item>
       }
 
       <app-details-item
-        (click)="navigateHistoryById(current.source.intention.id)"
+        (click)="navigateHistoryById(actionSource.intention.id)"
         item="Installed"
-        clickable="true">{{current.source.intention.transaction.start | date:'short'}}</app-details-item>
+        clickable="true">{{actionSource.intention.transaction.start | date:'short'}}</app-details-item>
 
       <app-details-item
-        (click)="openUserInBrowserByGuid(current.source.intention.user.id)"
+        (click)="openUserInBrowserByGuid(actionSource.intention.user.id)"
         item="User"
-        clickable="true">{{current.source.intention.user.name}}</app-details-item>
+        clickable="true">{{actionSource.intention.user.name}}</app-details-item>
       }
     </div>
 
-    @if (serverSelection) {
+    @let serverSelectionLocal = selectedServer();
+    @if (serverSelectionLocal) {
     <div>
 
-      @if (this.instance.server.length > 1) {
+      @if (inst.server.length > 1) {
         <mat-form-field class="server-form">
           <mat-label>Server</mat-label>
-          <mat-select [(ngModel)]="serverSelection">
-            @for (element of this.instance.server; track element.server.id) {
+          <mat-select
+            [value]="selectedServer()"
+            (selectionChange)="onServerSelectionChange($event.value)">
+            @for (element of inst.server; track element.server.id) {
               <mat-option [value]="element">{{element.server.name}}</mat-option>
             }
           </mat-select>
         </mat-form-field>
       } @else {
         <app-details-item
-          (click)="openInBrowser('server', serverSelection.server.id)"
+          (click)="openInBrowser('server', serverSelectionLocal.server.id)"
           item="Server"
-          clickable="true">{{serverSelection.server.name}}</app-details-item>
+          clickable="true">{{serverSelectionLocal.server.name}}</app-details-item>
       }
 
       <app-details-item item="Status">Unknown - Telemetery not available</app-details-item>
 
-      <app-details-item item="Platform">{{serverSelection.server.osType}}</app-details-item>
+      <app-details-item item="Platform">{{serverSelectionLocal.server.osType}}</app-details-item>
 
-      <app-details-item item="Platform Details">{{serverSelection.server.osFull}}</app-details-item>
+      <app-details-item item="Platform Details">{{serverSelectionLocal.server.osFull}}</app-details-item>
 
       <div class="details-item">
         <div class="details-header">
+          @let propKv = serverSelectionLocal.edge.prop | keyvalue;
           <button
             mat-stroked-button
             extended
-            [disabled]="!serverSelection.edge.prop || (serverSelection.edge.prop | keyvalue).length === 0"
-            (click)="openInstancePropertyDialog(serverSelection.edge.prop)">
+            [disabled]="!propKv || propKv.length === 0"
+            (click)="openInstancePropertyDialog(serverSelectionLocal.edge.prop)">
             Properties
           </button>
         </div>

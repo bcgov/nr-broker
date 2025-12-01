@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, inject } from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges, computed, inject, input, signal } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { TitleCasePipe } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import {
   BehaviorSubject,
   Observable,
@@ -38,7 +39,6 @@ import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-co
 import { InspectorEdgeComponent } from '../inspector-edge/inspector-edge.component';
 import { InspectorVertexComponent } from '../inspector-vertex/inspector-vertex.component';
 import { TagDialogComponent } from '../tag-dialog/tag-dialog.component';
-import { RouterModule } from '@angular/router';
 import { PermissionService } from '../../service/permission.service';
 import { InspectorConnectionsComponent } from '../inspector-connections/inspector-connections.component';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -89,11 +89,19 @@ export class InspectorComponent implements OnChanges, OnInit {
   // TODO: Skipped for migration because:
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
-  @Input() target!: InspectorTarget | undefined;
+  target = input<InspectorTarget | undefined>();
   targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
+  config = computed(() => {
+    const target = this.target();
+    if (target && target.type === 'vertex') {
+      return this.configMap[target.collection];
+    }
+    // Default of 'user' config if target is undefined or an edge
+    return this.configMap['user'];
+  });
 
-  public comboData!: CollectionCombo<any> | EdgeComboDto | null;
-  navigationFollows: 'vertex' | 'edge' = 'vertex';
+  public comboData = signal<CollectionCombo<any> | EdgeComboDto | null>(null);
+  public navigationFollows = signal<'vertex' | 'edge'>('vertex');
 
   propPeopleDisplayedColumns: string[] = ['role', 'name', 'via'];
   titleWidth = 0;
@@ -121,7 +129,7 @@ export class InspectorComponent implements OnChanges, OnInit {
         }),
       )
       .subscribe((data) => {
-        this.comboData = data;
+        this.comboData.set(data);
         // console.log('reloaded!');
       });
 
@@ -138,24 +146,21 @@ export class InspectorComponent implements OnChanges, OnInit {
       this.hasSudo = this.permission.hasSudo(permissions, targetId);
     });
     window.dispatchEvent(new Event('resize'));
-    this.navigationFollows = this.preferences.get('graphFollows');
+    this.navigationFollows.set(this.preferences.get('graphFollows'));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     const targetChange = changes['target'];
-    if (targetChange && this.target?.id !== targetChange.previousValue?.id) {
-      this.comboData = null;
+    if (targetChange && this.target()?.id !== targetChange.previousValue?.id) {
+      this.comboData.set(null);
       if (this.target) {
-        this.targetSubject.next(this.target);
+        this.targetSubject.next(this.target());
       }
     }
   }
 
   getTargetId(): string {
-    if (!this.target) {
-      return '';
-    }
-    return this.target.id;
+    return this.target()?.id ?? '';
   }
 
   selectEdge(id: string) {
@@ -187,11 +192,12 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   editTarget() {
+    const comboData = this.comboData();
     if (!this.target) {
       return;
     }
-    if (this.comboData?.type === 'edge') {
-      const sourceIndex = this.comboData.edge.is;
+    if (comboData?.type === 'edge') {
+      const sourceIndex = comboData.edge.is;
       const config = Object.values(this.configArr).find((config) => {
         return config.index === sourceIndex;
       });
@@ -200,34 +206,35 @@ export class InspectorComponent implements OnChanges, OnInit {
           width: '500px',
           data: {
             collection: config.collection,
-            source: this.comboData.source,
-            edge: this.comboData.edge,
+            source: comboData.source,
+            edge: comboData.edge,
           },
         });
       }
-    } else if (this.comboData?.type === 'vertex') {
+    } else if (comboData?.type === 'vertex') {
       this.dialog.open(VertexDialogComponent, {
         width: '500px',
         data: {
-          collection: this.comboData.vertex.collection,
-          data: this.comboData.collection,
-          vertex: this.comboData.vertex,
+          collection: comboData.vertex.collection,
+          data: comboData.collection,
+          vertex: comboData.vertex,
         },
       });
     }
   }
 
   editTags() {
-    if (!this.comboData || !this.target) {
+    const comboData = this.comboData();
+    if (!comboData || !this.target) {
       return;
     }
-    if (this.comboData.type === 'vertex') {
+    if (comboData.type === 'vertex') {
       this.dialog
         .open(TagDialogComponent, {
           width: '500px',
           data: {
-            collection: this.comboData.vertex.collection,
-            collectionData: this.comboData.collection,
+            collection: comboData.vertex.collection,
+            collectionData: comboData.collection,
           },
         })
         .afterClosed()
@@ -286,11 +293,12 @@ export class InspectorComponent implements OnChanges, OnInit {
       })
       .afterClosed()
       .subscribe((result) => {
-        if (this.target && result && result.confirm) {
+        const target = this.target();
+        if (target && result && result.confirm) {
           const obs =
-            this.target.type === 'vertex'
-              ? this.graphApi.deleteVertex(this.target.id)
-              : this.graphApi.deleteEdge(this.target.id);
+            target.type === 'vertex'
+              ? this.graphApi.deleteVertex(target.id)
+              : this.graphApi.deleteEdge(target.id);
 
           obs.subscribe(() => {
             // this.refreshData();
@@ -300,7 +308,7 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   navigateConnection($event: MouseEvent, item: Connection) {
-    const isEdgeNav = this.navigationFollows === 'edge';
+    const isEdgeNav = this.navigationFollows() === 'edge';
     if ($event.altKey ? !isEdgeNav : isEdgeNav) {
       this.selectEdge(item.edge.id);
     } else {
@@ -309,9 +317,10 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   toggleNavigationFollows() {
-    this.navigationFollows =
-      this.navigationFollows === 'vertex' ? 'edge' : 'vertex';
-    this.preferences.set('graphFollows', this.navigationFollows);
+    this.navigationFollows.set(
+      this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
+    );
+    this.preferences.set('graphFollows', this.navigationFollows());
   }
 
   getVertexTargetData(target: InspectorTargetVertex) {
@@ -348,15 +357,16 @@ export class InspectorComponent implements OnChanges, OnInit {
   }
 
   getFieldType(key: string) {
-    if (!this.target || this.target.type !== 'vertex') {
+    const target = this.target();
+    if (!target || target.type !== 'vertex') {
       return '';
     }
-    return this.configMap[this.target.collection].fields[key].type;
+    return this.configMap[target.collection].fields[key].type;
   }
 
   refreshData() {
-    if (this.target) {
-      this.targetSubject.next(this.target);
+    if (this.target()) {
+      this.targetSubject.next(this.target());
     }
   }
 }

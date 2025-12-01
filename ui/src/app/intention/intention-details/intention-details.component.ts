@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, input, Output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -70,7 +70,7 @@ export class IntentionDetailsComponent {
       return undefined;
     }
   });
-  @Output() viewIntentionEvent = new EventEmitter<string>();
+  readonly viewIntentionEvent = output<string>();
 
   async openPackageBuildVersion(id: string | undefined, version: string) {
     if (!id) {

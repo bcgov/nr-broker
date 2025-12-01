@@ -1,12 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, inject, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { combineLatest } from 'rxjs';
 import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
-import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionApiService } from '../../service/collection-api.service';
+import { httpResource } from '@angular/common/http';
 
 @Component({
   selector: 'app-collection-history',
@@ -20,25 +19,11 @@ import { CollectionApiService } from '../../service/collection-api.service';
   styleUrl: './collection-history.component.scss',
 })
 export class CollectionHistoryComponent {
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly collectionApi = inject(CollectionApiService);
 
-  collection = signal<CollectionNames>('service');
-  collectionId = signal('');
-  name = signal('');
-  loading = signal(true);
-
-  constructor() {
-    this.activatedRoute.params.subscribe((params) => {
-      this.collectionId.set(params['id']);
-      this.collection.set(this.activatedRoute.snapshot.data['collection']);
-
-      combineLatest([
-        this.collectionApi.getCollectionById(this.collection(), this.collectionId()),
-      ]).subscribe(([service]) => {
-        this.name.set(service.name);
-        this.loading.set(false);
-      });
-    });
-  }
+  collection = input.required<CollectionNames>();
+  collectionId = input.required<string>();
+  collectionResource = httpResource<CollectionValues>(() => {
+    return this.collectionApi.getCollectionByIdArgs(this.collection(), this.collectionId());
+  });
 }

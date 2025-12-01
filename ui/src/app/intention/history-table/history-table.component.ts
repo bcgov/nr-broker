@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, computed, input, inject } from '@angular/core';
+import { Component, output, computed, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,7 +34,7 @@ export class HistoryTableComponent {
   readonly layout = input<'narrow' | 'wide'>('wide');
   readonly showHeader = input(true);
   readonly actionServiceFilter = input('');
-  @Output() viewIntentionEvent = new EventEmitter<string>();
+  readonly viewIntentionEvent = output<string>();
 
   readonly propDisplayedColumns = computed(() => {
     if (this.layout() === 'narrow') {

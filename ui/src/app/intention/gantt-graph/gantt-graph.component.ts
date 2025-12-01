@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, input, inject, computed } from '@angular/core';
 
 import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
@@ -28,15 +28,13 @@ echarts.use([
   templateUrl: './gantt-graph.component.html',
   styleUrl: './gantt-graph.component.scss',
 })
-export class GanttGraphComponent implements OnInit {
+export class GanttGraphComponent {
   private readonly elRef = inject(ElementRef);
 
-  @Input() intention: any;
-  @Input() action?: any;
-  options!: EChartsCoreOption;
-
-  ngOnInit(): void {
-    this.options = {
+  readonly intention = input.required<any>();
+  readonly action = input<any>();
+  options = computed<EChartsCoreOption>(() => {
+    return {
       title: {
         text: 'Actions',
         show: false,
@@ -66,9 +64,9 @@ export class GanttGraphComponent implements OnInit {
       },
       yAxis: {
         type: 'category',
-        data: this.action
-          ? [this.action.action]
-          : this.intention.actions.map((action: any) => action.action),
+        data: this.action()
+          ? [this.action().action]
+          : this.intention().actions.map((action: any) => action.action),
       },
       xAxis: {
         type: 'value',
@@ -94,17 +92,17 @@ export class GanttGraphComponent implements OnInit {
               color: 'transparent',
             },
           },
-          data: this.action
+          data: this.action()
             ? [
-                this.action.trace.start && this.intention.transaction.start
-                  ? new Date(this.action.trace.start).valueOf() -
-                  new Date(this.intention.transaction.start).valueOf()
+                this.action().trace.start && this.intention().transaction.start
+                  ? new Date(this.action().trace.start).valueOf() -
+                  new Date(this.intention().transaction.start).valueOf()
                   : 0,
               ]
-            : this.intention.actions.map((action: any) =>
-                action.trace.start && this.intention.transaction.start
+            : this.intention().actions.map((action: any) =>
+                action.trace.start && this.intention().transaction.start
                   ? new Date(action.trace.start).valueOf() -
-                  new Date(this.intention.transaction.start).valueOf()
+                  new Date(this.intention().transaction.start).valueOf()
                   : 0,
               ),
         },
@@ -116,14 +114,14 @@ export class GanttGraphComponent implements OnInit {
             show: false,
             position: 'bottom',
           },
-          data: this.action
+          data: this.action()
             ? [
                 {
-                  name: this.action.service.name,
-                  value: this.action.trace.duration ?? 0,
+                  name: this.action().service.name,
+                  value: this.action().trace.duration ?? 0,
                 },
               ]
-            : this.intention.actions.map((action: any) => ({
+            : this.intention().actions.map((action: any) => ({
                 name: action.service.name,
                 value: action.trace.duration ?? 0,
               })),
@@ -143,21 +141,21 @@ export class GanttGraphComponent implements OnInit {
               color: 'transparent',
             },
           },
-          data: this.action
+          data: this.action()
             ? [
-                this.action.trace.end && this.intention.transaction.end
-                  ? new Date(this.intention.transaction.end).valueOf() -
-                  new Date(this.action.trace.end).valueOf()
+                this.action().trace.end && this.intention().transaction.end
+                  ? new Date(this.intention().transaction.end).valueOf() -
+                  new Date(this.action().trace.end).valueOf()
                   : 0,
               ]
-            : this.intention.actions.map((action: any) =>
-                action.trace.end && this.intention.transaction.end
-                  ? new Date(this.intention.transaction.end).valueOf() -
+            : this.intention().actions.map((action: any) =>
+                action.trace.end && this.intention().transaction.end
+                  ? new Date(this.intention().transaction.end).valueOf() -
                   new Date(action.trace.end).valueOf()
                   : 0,
               ),
         },
       ],
     };
-  }
+  });
 }

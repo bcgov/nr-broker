@@ -1,19 +1,19 @@
 <div>
-  @if (comboData.collection.tags && comboData.collection.tags.length > 0) {
+  @if (comboData().collection.tags && comboData().collection.tags.length > 0) {
     <div class="component-spacer"></div>
 
     <app-vertex-tags
-      [collection]="collection"
-      [collectionData]="comboData.collection"></app-vertex-tags>
+      [collection]="collection()"
+      [collectionData]="comboData().collection"></app-vertex-tags>
 
     <mat-divider></mat-divider>
   }
 
   <app-inspector-vertex-fields
     #vertexFields
-    [collection]="collection"
+    [collection]="collection()"
     [collectionConfig]="collectionConfig()"
-    [collectionData]="comboData.collection"
+    [collectionData]="comboData().collection"
     [filter]="'yes'"
     ></app-inspector-vertex-fields>
 
@@ -21,46 +21,45 @@
     <mat-divider></mat-divider>
   }
 
-  @if (collection === 'brokerAccount') {
+  @if (collection() === 'brokerAccount') {
     <div class="component-spacer">
       <app-inspector-account
-        [account]="collectionUtil.narrowCollectionType(collection, comboData.vertex, comboData.collection)"
-        [userIndex]="4"
+        [account]="collectionUtil.narrowCollectionType('brokerAccount', comboData().vertex, comboData().collection)"
         [hasSudo]="hasSudo()"></app-inspector-account>
     </div>
   }
-  @if (collection === 'service') {
-    @if (comboData) {
+  @if (collection() === 'service') {
+    @if (comboData() && serviceDetails()) {
       <app-inspector-instances
-      [service]="comboData.collection"
-      [vertex]="comboData.vertex"
-      [vertices]="comboData.downstream"
-      [details]="serviceDetails"></app-inspector-instances>
+      [service]="comboData().collection"
+      [vertex]="comboData().vertex"
+      [vertices]="comboData().downstream"
+      [details]="serviceDetails()"></app-inspector-instances>
     }
     <mat-divider></mat-divider>
     <app-inspector-vault
-      [service]="comboData.collection"
+      [service]="comboData().collection"
       [isAdministrator]="hasSudo()"></app-inspector-vault>
     @if (hasSudo()) {
       <mat-divider></mat-divider>
       <app-inspector-service-secure
-        [service]="comboData.collection"
+        [service]="comboData().collection"
         ></app-inspector-service-secure>
     }
     <mat-divider></mat-divider>
   }
-  @if (collection === 'serviceInstance') {
+  @if (collection() === 'serviceInstance') {
     <div class="component-spacer">
       <app-inspector-installs
-        [pointers]="comboData.collection.actionHistory"></app-inspector-installs>
+        [pointers]="comboData().collection.actionHistory"></app-inspector-installs>
     </div>
     <mat-divider></mat-divider>
   }
-  @if (collection === 'team') {
+  @if (collection() === 'team') {
     <div class="edge-container">
       <app-inspector-team
-        [vertex]="comboData.collection.vertex"
-        [name]="comboData.collection.name"
+        [vertex]="comboData().collection.vertex"
+        [name]="comboData().collection.name"
         [screenSize]="'wide'"
         ></app-inspector-team>
     </div>

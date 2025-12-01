@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, input, inject } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+
 import { RepositoryDto } from '../../service/persistence/dto/repository.dto';
 import { SystemApiService } from '../../service/system-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
@@ -28,16 +29,13 @@ export class InspectorRepositorySyncComponent {
   private readonly systemApi = inject(SystemApiService);
   readonly healthStatus = inject(HealthStatusService);
 
-  // TODO: Skipped for migration because:
-  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
-  //  and migrating would break narrowing currently.
-  @Input() repository!: RepositoryDto;
+  readonly repository = input.required<RepositoryDto>();
   readonly hasSudo = input(false);
   readonly header = input<'small' | 'large'>('small');
 
   syncSecrets() {
     this.systemApi
-      .repositoryRefresh(this.repository.id, true, false)
+      .repositoryRefresh(this.repository().id, true, false)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of secrets queued');
@@ -52,7 +50,7 @@ export class InspectorRepositorySyncComponent {
 
   syncUsers() {
     this.systemApi
-      .repositoryRefresh(this.repository.id, false, true)
+      .repositoryRefresh(this.repository().id, false, true)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of users queued');
@@ -66,20 +64,22 @@ export class InspectorRepositorySyncComponent {
   }
 
   showSecretsQueued() {
+    const status = this.repository().syncSecretsStatus;
     return !!(
-      this.repository.syncSecretsStatus?.queuedAt &&
-      (!this.repository.syncSecretsStatus?.syncAt ||
-        this.repository.syncSecretsStatus?.queuedAt >
-        this.repository.syncSecretsStatus?.syncAt)
+      status?.queuedAt &&
+      (!status?.syncAt ||
+        status?.queuedAt >
+        status?.syncAt)
     );
   }
 
   showUsersQueued() {
+    const status = this.repository().syncUsersStatus;
     return !!(
-      this.repository.syncUsersStatus?.queuedAt &&
-      (!this.repository.syncUsersStatus?.syncAt ||
-        this.repository.syncUsersStatus?.queuedAt >
-        this.repository.syncUsersStatus?.syncAt)
+      status?.queuedAt &&
+      (!status?.syncAt ||
+        status?.queuedAt >
+        status?.syncAt)
     );
   }
 

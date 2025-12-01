@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import type { HttpResourceRequest } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { filter, finalize, map, Observable, share } from 'rxjs';
 import { SseClient } from 'ngx-sse-client';
@@ -9,6 +10,7 @@ import {
   TokenCreateDto,
 } from './persistence/dto/jwt-registry.dto';
 import { ConnectionConfigDto } from './persistence/dto/connection-config.dto';
+import { HistogramSeriesDto } from './collection/dto/histogram-series.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -19,26 +21,39 @@ export class SystemApiService {
 
   static accountEventObserver: Observable<any> | null = null;
 
+  getAccountTokensArgs(accountId: string): HttpResourceRequest {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`,
+    };
+  }
+
   getAccountTokens(accountId: string) {
-    return this.http.get<JwtRegistryDto[]>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`,
-      {
-        responseType: 'json',
-      },
-    );
+    const args = this.getAccountTokensArgs(accountId);
+    return this.http.request<JwtRegistryDto[]>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
+  }
+
+  getAccountUsageArgs(accountId: string): HttpResourceRequest {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/collection/broker-account/${accountId}/usage`,
+      body: {},
+    };
   }
 
   getAccountUsage(accountId: string) {
-    return this.http.post<{
-      success: number;
-      unknown: number;
-      failure: number;
-    }>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/usage`,
-      {
-        responseType: 'json',
-      },
-    );
+    const args = this.getAccountUsageArgs(accountId);
+    return this.http.request<HistogramSeriesDto>(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      body: args.body,
+      params: args.params,
+      headers: args.headers as any,
+    });
   }
 
   generateAccountToken(
@@ -47,18 +62,36 @@ export class SystemApiService {
     patchVaultTools: boolean,
     sync: boolean,
   ) {
-    return this.http.post<TokenCreateDto>(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`,
-      {},
-      {
-        responseType: 'json',
-        params: {
-          expiration: expirationInSeconds,
-          patch: patchVaultTools,
-          syncSecrets: sync,
-        },
-      },
+    const args = this.generateAccountTokenArgs(
+      accountId,
+      expirationInSeconds,
+      patchVaultTools,
+      sync,
     );
+    return this.http.request<TokenCreateDto>(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      body: args.body,
+      params: args.params,
+      headers: args.headers as any,
+    });
+  }
+
+  generateAccountTokenArgs(
+    accountId: string,
+    expirationInSeconds: number,
+    patchVaultTools: boolean,
+    sync: boolean,
+  ): HttpResourceRequest {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`,
+      body: {},
+      params: {
+        expiration: expirationInSeconds,
+        patch: patchVaultTools,
+        syncSecrets: sync,
+      },
+    };
   }
 
   createAccountTokenEventSource(): Observable<any> {
@@ -95,22 +128,38 @@ export class SystemApiService {
   }
 
   getConnectionConfig() {
-    return this.http.get<ConnectionConfigDto[]>(
-      `${environment.apiUrl}/v1/system/preference/connection`,
-      {
-        responseType: 'json',
-      },
-    );
+    const args = this.getConnectionConfigArgs();
+    return this.http.request<ConnectionConfigDto[]>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
+  }
+
+  getConnectionConfigArgs(): HttpResourceRequest {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/system/preference/connection`,
+    };
   }
 
   brokerAccountRefresh(accountId: string) {
-    return this.http.post(
-      `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
-      {},
-      {
-        responseType: 'json',
-      },
-    );
+    const args = this.brokerAccountRefreshArgs(accountId);
+    return this.http.request(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      body: args.body,
+      params: args.params,
+      headers: args.headers as any,
+    });
+  }
+
+  brokerAccountRefreshArgs(accountId: string) {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
+      body: {},
+    } as HttpResourceRequest;
   }
 
   repositoryRefresh(
@@ -118,26 +167,42 @@ export class SystemApiService {
     syncSecrets: boolean,
     syncUsers: boolean,
   ) {
-    return this.http.post(
-      `${environment.apiUrl}/v1/collection/repository/${repositoryId}/refresh`,
-      {},
-      {
-        responseType: 'json',
-        params: {
-          syncSecrets,
-          syncUsers,
-        },
+    const args = this.repositoryRefreshArgs(repositoryId, syncSecrets, syncUsers);
+    return this.http.request(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      body: args.body,
+      params: args.params,
+      headers: args.headers as any,
+    });
+  }
+
+  repositoryRefreshArgs(repositoryId: string, syncSecrets: boolean, syncUsers: boolean): HttpResourceRequest {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/collection/repository/${repositoryId}/refresh`,
+      body: {},
+      params: {
+        syncSecrets,
+        syncUsers,
       },
-    );
+    };
   }
 
   userLinkGithub() {
-    return this.http.post<any>(
-      `${environment.apiUrl}/v1/system/user-link/github`,
-      {},
-      {
-        responseType: 'json',
-      },
-    );
+    const args = this.userLinkGithubArgs();
+    return this.http.request<any>(args.method ?? 'POST', args.url, {
+      responseType: 'json',
+      body: args.body,
+      params: args.params,
+      headers: args.headers as any,
+    });
+  }
+
+  userLinkGithubArgs(): HttpResourceRequest {
+    return {
+      method: 'POST',
+      url: `${environment.apiUrl}/v1/system/user-link/github`,
+      body: {},
+    };
   }
 }
