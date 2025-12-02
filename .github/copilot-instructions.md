@@ -57,15 +57,47 @@ src/
 
 ## Key Conventions
 
-### Validation Pattern (ActionService)
-Business rule validation happens in `src/intention/action.service.ts`:
-- Each action type has a `validateXxxAction()` private method
-- Validations return `ActionRuleViolationEmbeddable | null`
-- Violations include user-friendly messages following **BC Gov Style Guide**:
-  - Sentence case (not title case)
-  - Plain language (no jargon)
-  - Clear actionable resolution steps
-  - Front-loaded important information
+### Validation Architecture (Rule-Based System)
+
+The validation system uses a **rule-based architecture** compatible with DMN (Decision Model and Notation) and Drools rule engines. Business rules are separated into individual, testable classes that evaluate a common decision context.
+
+**Two-Phase Validation:**
+1. **Intention-Level** (`IntentionValidationRuleEngine`): Validates before actions are processed (JWT blocked, account binding, etc.)
+2. **Action-Level** (`ValidationRuleEngine`): Validates individual actions against business rules
+
+**Architecture Components:**
+- **Decision Contexts**: `DecisionContext` (action-level), `IntentionDecisionContext` (intention-level) - contain all facts for validation
+- **Validation Rules**: Each rule implements `ValidationRule` or `IntentionValidationRule` interface
+- **Rule Engines**: Orchestrate rule execution in priority order, short-circuit on first failure
+- **Base Classes**: `BaseValidationRule` and `BaseIntentionValidationRule` provide helper methods
+
+**Key Files:**
+- **Interfaces**: `src/intention/validation/decision-context.interface.ts`, `validation-rule.interface.ts`
+- **Intention Rules**: `src/intention/validation/intention-rules/` (JWT blocked, account binding)
+- **Action Rules**: `src/intention/validation/rules/` (8 rules: user set, vault env, account bound project, target service, database access, package build, package installation, assisted delivery)
+- **Engines**: `validation-rule.engine.ts`, `intention-validation-rule.engine.ts`
+- **Documentation**: `docs/dev_validation_rules.md`
+
+**Adding New Validation Rules:**
+1. Create rule class extending `BaseValidationRule` or `BaseIntentionValidationRule`
+2. Implement `getRuleName()`, `evaluate()`, and optionally `getPriority()`
+3. Add to module providers in `intention.module.ts`
+4. Inject into appropriate rule engine constructor
+5. Update documentation
+
+**Migration Path to Drools:**
+- Current TypeScript rules map directly to DRL rules or DMN decision tables
+- `DecisionContext` → Working Memory Facts
+- `ValidationRule` → DRL Rule
+- Rule priority → Salience
+- See `docs/dev_validation_rules.md` for complete migration guide
+
+**Validation Messages:**
+All validation messages follow **BC Gov Style Guide**:
+- Sentence case (not title case)
+- Plain language (no jargon)
+- Clear actionable resolution steps
+- Front-loaded important information
 - Example: `"Build must be deployed to test environment before deploying to production. Deploy to test first, then retry this installation."`
 
 ### Repository Pattern
@@ -174,9 +206,10 @@ No formal migrations - MongoDB schema-less. Entities evolve in-place:
 1. Create DTO: `src/intention/dto/xxx-action.dto.ts` (validation decorators)
 2. Create Embeddable: `src/intention/entity/xxx-action.embeddable.ts`
 3. Add discriminator entry to `IntentionDto.actions` array
-4. Add validation method in `ActionService.validate()`
-5. Mirror DTO in `ui/src/app/service/intention/dto/`
-6. Update API docs: `docs/dev_intention_actions.md`
+4. Create validation rule(s) in `src/intention/validation/rules/` if needed
+5. Register validation rules in `intention.module.ts` and inject into `ValidationRuleEngine`
+6. Mirror DTO in `ui/src/app/service/intention/dto/`
+7. Update API docs: `docs/dev_intention_actions.md`
 
 ## Common Pitfalls
 
@@ -214,7 +247,12 @@ return new ActionRuleViolationEmbeddable(
 ## Key Files Reference
 
 - **Intention Lifecycle**: `src/intention/intention.service.ts` (open, start, end, close)
-- **Action Validation**: `src/intention/action.service.ts` (business rules)
+- **Validation System**: `src/intention/validation/` (rule-based validation architecture)
+  - **Rule Engines**: `validation-rule.engine.ts`, `intention-validation-rule.engine.ts`
+  - **Action Rules**: `rules/` directory (8 action-level validation rules)
+  - **Intention Rules**: `intention-rules/` directory (2 intention-level validation rules)
+  - **Documentation**: `docs/dev_validation_rules.md` (architecture and Drools migration guide)
+- **Action Service**: `src/intention/action.service.ts` (orchestrates validation via rule engine)
 - **Graph Queries**: `src/graph/graph.repository.ts` (`$graphLookup` aggregations)
 - **MongoDB Repos**: `src/persistence/mongo/*.repository.ts` (MikroORM queries)
 - **Email Templates**: `src/communication/templates/*.ejs` (EJS + inline CSS)
@@ -226,8 +264,15 @@ return new ActionRuleViolationEmbeddable(
 
 Comprehensive docs in `docs/` directory served via GitHub Pages:
 - `dev_intention_*.md`: Intention system deep dives
+- `dev_validation_rules.md`: Validation rule architecture and Drools migration guide
 - `dev_*.md`: Developer guides (MongoDB, Vault, DTOs, etc.)
 - `operations_*.md`: Admin/ops guides (audit, JWT, OpenSearch, etc.)
 - `ops_*.md`: Team management guides
 
 When adding features, update relevant docs and link from `docs/_sidebar.md`.
+
+## TypeScript Conventions
+
+- **Do not prefix interfaces with "I"**: Use `ValidationRule` not `IValidationRule`
+- **Sentence case for user messages**: Follow BC Gov Style Guide for all user-facing text
+- **No emojis**: Use plain text in all messages and documentation
