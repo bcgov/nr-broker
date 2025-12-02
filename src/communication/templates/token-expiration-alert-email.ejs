@@ -1,12 +1,154 @@
-<h3>Hi <%= user.name %>,</h3>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 3px solid #003366;
+      margin-bottom: 30px;
+    }
+    .logo {
+      max-width: 200px;
+      height: auto;
+    }
+    .alert-box {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .alert-box strong {
+      color: #d32f2f;
+      font-size: 1.1em;
+    }
+    .info-section {
+      background-color: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+    .info-value {
+      font-size: 1.05em;
+      color: #212529;
+      margin-bottom: 15px;
+    }
+    .cta-section {
+      background-color: #e3f2fd;
+      border: 2px solid #1976d2;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #1976d2;
+      color: white !important;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    .cta-button:hover {
+      background-color: #1565c0;
+    }
+    .usage-info {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f1f8ff;
+      border-left: 4px solid #0366d6;
+      border-radius: 4px;
+    }
+    .secondary-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: #1976d2;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+    .help-text {
+      font-size: 0.95em;
+      color: #495057;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="<%= brokerUrl %>/favicon.png" alt="NR Broker Logo" class="logo">
+    <h2 style="margin: 10px 0 0 0; color: #003366;">NR Broker</h2>
+  </div>
 
-<p>This is a notification of a Broker token your team controls will expire in <strong style="color: red;"><%= daysUntilExpiration %></strong> day(s).
+  <p>Hi <%= user.name %>,</p>
 
-<p>Broker Account: <b><%= accountName %></b></p>
-<p>Client ID: <b><%= clientId %></b></p>
+  <div class="alert-box">
+    <p style="margin: 0;">Your team's Broker Account access token will expire in <strong><%= daysUntilExpiration %></strong> day<%= daysUntilExpiration !== 1 ? 's' : '' %>.</p>
+  </div>
 
-<p>Please visit <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>">NR Broker</a> and take the necessary actions to renew the token. If your team is not actively using this account, you can ignore this email.</p>
+  <div class="info-section">
+    <div class="info-label">Broker Account</div>
+    <div class="info-value"><strong><%= accountName %></strong></div>
 
-<p>Reference: <a href="https://bcgov.github.io/nr-broker/#/dev_account_token">Broker Account Token</a></p>
+    <div class="info-label">Client ID</div>
+    <div class="info-value"><code><%= clientId %></code></div>
 
-<p>Thank you</p>
+    <div class="info-label">Expiration date</div>
+    <div class="info-value"><%= expirationDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
+  </div>
+
+  <div class="usage-info">
+    <div class="info-label">Token last used</div>
+    <div class="info-value"><%= lastUsedDisplay %></div>
+    <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>/usage" class="secondary-link">View complete usage history</a>
+  </div>
+
+  <div class="cta-section">
+    <h3 style="margin-top: 0; color: #1976d2;">Action required</h3>
+    <p style="margin: 10px 0;">If your team is actively using this account, renew the token to maintain uninterrupted access.</p>
+    <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>/token" class="cta-button">
+      Renew token now
+    </a>
+  </div>
+
+  <div class="help-text">
+    <p>What action should you take?</p>
+    <p><strong>Active account</strong></p>
+    <p>Generate a new token before the current one expires.</p>
+
+    <p><strong>Inactive account</strong></p>
+    <p>If your team is no longer using this account, you can ignore this email and let the token expire.</p>
+  </div>
+
+  <div class="footer">
+    <p>For more information, see <a href="https://bcgov.github.io/nr-broker/#/dev_account_token">Broker Account Token documentation</a>.</p>
+    <p>If you have questions or need help, contact your team lead or the Broker support team.</p>
+  </div>
+</body>
+</html>

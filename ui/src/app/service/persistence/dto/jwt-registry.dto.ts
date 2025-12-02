@@ -18,4 +18,5 @@ export interface JwtRegistryDto {
   claims: JwtRegistryClaimsDto;
   createdUserId: string;
   createdAt: string;
+  lastUsedAt?: string;
 }

@@ -22,6 +22,9 @@
           @case ('Issued At') {
             {{element.value | date:'medium'}}
           }
+          @case ('Last Used At') {
+            {{element.value | date:'medium'}}
+          }
           @case ('Client Id') {
             {{element.value}}
           }
