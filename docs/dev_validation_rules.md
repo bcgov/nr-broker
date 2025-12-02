@@ -318,13 +318,13 @@ export class DroolsValidationRuleEngine {
 
   async validate(context: IDecisionContext): Promise<ActionRuleViolationEmbeddable | null> {
     const results: DecisionResult[] = [];
-    
+
     // Insert facts into working memory
     this.kieSession.execute([context], results);
-    
+
     // Find first failure
     const failure = results.find(r => !r.valid);
-    return failure 
+    return failure
       ? new ActionRuleViolationEmbeddable(failure.message, failure.key)
       : null;
   }
