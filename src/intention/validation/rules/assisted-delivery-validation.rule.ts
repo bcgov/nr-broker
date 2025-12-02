@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 import { CollectionRepository } from '../../../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../../../persistence/interfaces/graph.repository';
 import { PersistenceUtilService } from '../../../persistence/persistence-util.service';
@@ -40,7 +40,7 @@ export class AssistedDeliveryValidationRule extends BaseValidationRule {
     return 80; // Execute later - requires database queries
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     const project = await this.collectionRepository.getCollectionByKeyValue(
       'project',
       'name',

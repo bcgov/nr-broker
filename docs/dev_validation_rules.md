@@ -8,10 +8,10 @@ The validation system has been refactored to use a rule-based architecture compa
 
 ### 1. Intention-Level Decision Context (`intention-decision-context.interface.ts`)
 
-The `IIntentionDecisionContext` interface represents the state needed for intention-level validations that occur before individual actions are validated. These are high-level business rules about whether an intention can be opened at all.
+The `IntentionDecisionContext` interface represents the state needed for intention-level validations that occur before individual actions are validated. These are high-level business rules about whether an intention can be opened at all.
 
 ```typescript
-interface IIntentionDecisionContext {
+interface IntentionDecisionContext {
   brokerJwt: BrokerJwtEmbeddable | null;
   registryJwt: JwtRegistryEntity | null;
   account: BrokerAccountEntity | null;
@@ -20,27 +20,10 @@ interface IIntentionDecisionContext {
 
 ### 2. Action-Level Decision Context (`decision-context.interface.ts`)
 
-The `IDecisionContext` interface represents the complete state (facts) needed for validation. In DMN/Drools terminology, this is the "Working Memory" containing all facts that rules evaluate against.
+The `DecisionContext` interface represents the complete state (facts) needed for validation. In DMN/Drools terminology, this is the "Working Memory" containing all facts that rules evaluate against.
 
 ```typescript
-interface IDecisionContext {
-  intention: IntentionEntity;
-  action: ActionEmbeddable;
-  account: BrokerAccountEntity | null;
-  accountBoundProjects: BrokerAccountProjectMapDto | null;
-  user: UserEntity | null;
-  targetServices: string[];
-  requireProjectExists: boolean;
-  requireServiceExists: boolean;
-}
-```
-
-### 2. Action-Level Decision Context (`decision-context.interface.ts`)
-
-The `IDecisionContext` interface represents the complete state (facts) needed for action validation. In DMN/Drools terminology, this is the "Working Memory" containing all facts that rules evaluate against.
-
-```typescript
-interface IDecisionContext {
+interface DecisionContext {
   intention: IntentionEntity;
   action: ActionEmbeddable;
   account: BrokerAccountEntity | null;
@@ -56,32 +39,32 @@ interface IDecisionContext {
 
 #### Intention-Level Rules (`intention-validation-rule.interface.ts`)
 
-Intention-level rules implement `IIntentionValidationRule` and validate before actions are processed:
+Intention-level rules implement `IntentionValidationRule` and validate before actions are processed:
 
 ```typescript
-interface IIntentionValidationRule {
+interface IntentionValidationRule {
   getRuleName(): string;
-  evaluate(context: IIntentionDecisionContext): Promise<IIntentionDecisionResult>;
+  evaluate(context: IntentionDecisionContext): Promise<IntentionDecisionResult>;
   getPriority?(): number;
 }
 ```
 
 #### Action-Level Rules (`validation-rule.interface.ts`)
 
-Each action validation rule implements `IValidationRule`:
+Each action validation rule implements `ValidationRule`:
 
 ```typescript
-interface IValidationRule {
+interface ValidationRule {
   getRuleName(): string;
-  evaluate(context: IDecisionContext): Promise<IDecisionResult>;
+  evaluate(context: DecisionContext): Promise<DecisionResult>;
   getPriority?(): number;
 }
 ```
 
-Rules are independent, stateless, and return `IDecisionResult`:
+Rules are independent, stateless, and return `DecisionResult`:
 
 ```typescript
-interface IDecisionResult {
+interface DecisionResult {
   valid: boolean;
   message?: string;
   key?: string;
@@ -144,7 +127,7 @@ try {
 }
 
 // Then validates action-level rules
-const decisionContext: IDecisionContext = {
+const decisionContext: DecisionContext = {
   intention,
   action,
   account,
@@ -173,7 +156,7 @@ export class MyNewValidationRule extends BaseValidationRule {
     return 45; // Execute after target service, before database access
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (/* validation fails */) {
       return this.fail('Error message', 'field.key');
     }
@@ -219,10 +202,10 @@ The current architecture is designed to facilitate migration to Drools Business 
 
 | Current TypeScript | Drools Equivalent |
 |-------------------|-------------------|
-| `IDecisionContext` | Working Memory Facts |
-| `IValidationRule` | DRL Rule or DMN Decision |
+| `DecisionContext` | Working Memory Facts |
+| `ValidationRule` | DRL Rule or DMN Decision |
 | `ValidationRuleEngine` | KieSession / StatelessKieSession |
-| `IDecisionResult` | Rule Consequence / Output |
+| `DecisionResult` | Rule Consequence / Output |
 | `getPriority()` | Rule Salience |
 
 ### Migration Steps
@@ -316,7 +299,7 @@ export class DroolsValidationRuleEngine {
     this.kieSession = kieContainer.newStatelessKieSession();
   }
 
-  async validate(context: IDecisionContext): Promise<ActionRuleViolationEmbeddable | null> {
+  async validate(context: DecisionContext): Promise<ActionRuleViolationEmbeddable | null> {
     const results: DecisionResult[] = [];
 
     // Insert facts into working memory
@@ -375,7 +358,7 @@ describe('UserSetValidationRule', () => {
   });
 
   it('should pass when user is set', async () => {
-    const context: IDecisionContext = {
+    const context: DecisionContext = {
       user: mockUser,
       account: null,
       // ... other context
@@ -386,7 +369,7 @@ describe('UserSetValidationRule', () => {
   });
 
   it('should fail when user is null', async () => {
-    const context: IDecisionContext = {
+    const context: DecisionContext = {
       user: null,
       account: null,
       // ... other context

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 
 /**
  * Validation Rule: Target Service Validation
@@ -25,7 +25,7 @@ export class TargetServiceValidationRule extends BaseValidationRule {
     return 40; // Execute early - cheap validation
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (!context.action.service.target) {
       return this.pass();
     }

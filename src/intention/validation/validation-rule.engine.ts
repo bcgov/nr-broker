@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IValidationRule } from './validation-rule.interface';
-import { IDecisionContext } from './decision-context.interface';
+import { ValidationRule } from './validation-rule.interface';
+import { DecisionContext } from './decision-context.interface';
 import { ActionRuleViolationEmbeddable } from '../entity/action-rule-violation.embeddable';
 import {
   UserSetValidationRule,
@@ -29,7 +29,7 @@ import {
  */
 @Injectable()
 export class ValidationRuleEngine {
-  private rules: IValidationRule[];
+  private rules: ValidationRule[];
 
   constructor(
     // Inject all validation rules
@@ -65,7 +65,7 @@ export class ValidationRuleEngine {
    * @returns ActionRuleViolationEmbeddable if any rule fails, null if all pass
    */
   async validate(
-    context: IDecisionContext,
+    context: DecisionContext,
   ): Promise<ActionRuleViolationEmbeddable | null> {
     for (const rule of this.rules) {
       const result = await rule.evaluate(context);
@@ -81,7 +81,7 @@ export class ValidationRuleEngine {
   /**
    * Get all registered rules (useful for debugging/testing)
    */
-  getRules(): IValidationRule[] {
+  getRules(): ValidationRule[] {
     return [...this.rules];
   }
 }

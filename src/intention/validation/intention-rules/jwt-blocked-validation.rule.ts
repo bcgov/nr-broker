@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { BaseIntentionValidationRule } from '../intention-validation-rule.interface';
 import {
-  IIntentionDecisionContext,
-  IIntentionDecisionResult,
+  IntentionDecisionContext,
+  IntentionDecisionResult,
 } from '../intention-decision-context.interface';
 
 /**
@@ -29,8 +29,8 @@ export class JwtBlockedValidationRule extends BaseIntentionValidationRule {
   }
 
   async evaluate(
-    context: IIntentionDecisionContext,
-  ): Promise<IIntentionDecisionResult> {
+    context: IntentionDecisionContext,
+  ): Promise<IntentionDecisionResult> {
     if (context.registryJwt && context.registryJwt.blocked) {
       return this.fail('Authorization failed', 'jwt.jti', []);
     }

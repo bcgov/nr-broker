@@ -1,4 +1,4 @@
-import { IDecisionContext, IDecisionResult } from './decision-context.interface';
+import { DecisionContext, DecisionResult } from './decision-context.interface';
 
 /**
  * Base interface for validation rules.
@@ -10,7 +10,7 @@ import { IDecisionContext, IDecisionResult } from './decision-context.interface'
  * When migrating to Drools, each implementation of this interface
  * would map to a DRL rule or DMN decision table.
  */
-export interface IValidationRule {
+export interface ValidationRule {
   /**
    * Unique identifier for this rule (used for logging/debugging)
    */
@@ -23,7 +23,7 @@ export interface IValidationRule {
    * @param context - The complete decision context containing all facts
    * @returns Promise resolving to the decision result
    */
-  evaluate(context: IDecisionContext): Promise<IDecisionResult>;
+  evaluate(context: DecisionContext): Promise<DecisionResult>;
 
   /**
    * Optional priority/order for rule execution.
@@ -35,11 +35,11 @@ export interface IValidationRule {
 
 /**
  * Abstract base class providing common functionality for validation rules.
- * Implements IValidationRule with helper methods for creating results.
+ * Implements ValidationRule with helper methods for creating results.
  */
-export abstract class BaseValidationRule implements IValidationRule {
+export abstract class BaseValidationRule implements ValidationRule {
   abstract getRuleName(): string;
-  abstract evaluate(context: IDecisionContext): Promise<IDecisionResult>;
+  abstract evaluate(context: DecisionContext): Promise<DecisionResult>;
 
   /**
    * Get execution priority for this rule.
@@ -52,14 +52,14 @@ export abstract class BaseValidationRule implements IValidationRule {
   /**
    * Helper method to create a passing decision result
    */
-  protected pass(): IDecisionResult {
+  protected pass(): DecisionResult {
     return { valid: true };
   }
 
   /**
    * Helper method to create a failing decision result
    */
-  protected fail(message: string, key: string): IDecisionResult {
+  protected fail(message: string, key: string): DecisionResult {
     return { valid: false, message, key };
   }
 }

@@ -1,6 +1,6 @@
 import {
-  IIntentionDecisionContext,
-  IIntentionDecisionResult,
+  IntentionDecisionContext,
+  IntentionDecisionResult,
 } from './intention-decision-context.interface';
 
 /**
@@ -10,7 +10,7 @@ import {
  * When migrating to Drools, each implementation would map to a
  * high-priority DRL rule or DMN decision that gates intention opening.
  */
-export interface IIntentionValidationRule {
+export interface IntentionValidationRule {
   /**
    * Unique identifier for this rule
    */
@@ -20,8 +20,8 @@ export interface IIntentionValidationRule {
    * Evaluate the rule against the intention-level decision context
    */
   evaluate(
-    context: IIntentionDecisionContext,
-  ): Promise<IIntentionDecisionResult>;
+    context: IntentionDecisionContext,
+  ): Promise<IntentionDecisionResult>;
 
   /**
    * Optional priority/order for rule execution
@@ -32,17 +32,17 @@ export interface IIntentionValidationRule {
 /**
  * Abstract base class for intention-level validation rules
  */
-export abstract class BaseIntentionValidationRule implements IIntentionValidationRule {
+export abstract class BaseIntentionValidationRule implements IntentionValidationRule {
   abstract getRuleName(): string;
   abstract evaluate(
-    context: IIntentionDecisionContext,
-  ): Promise<IIntentionDecisionResult>;
+    context: IntentionDecisionContext,
+  ): Promise<IntentionDecisionResult>;
 
   getPriority(): number {
     return 100;
   }
 
-  protected pass(): IIntentionDecisionResult {
+  protected pass(): IntentionDecisionResult {
     return { valid: true };
   }
 
@@ -50,7 +50,7 @@ export abstract class BaseIntentionValidationRule implements IIntentionValidatio
     message: string,
     key: string,
     data?: any,
-  ): IIntentionDecisionResult {
+  ): IntentionDecisionResult {
     return { valid: false, message, key, data };
   }
 }

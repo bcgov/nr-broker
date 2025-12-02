@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 import { PackageInstallationActionEmbeddable } from '../../entity/package-installation-action.embeddable';
 import { PersistenceUtilService } from '../../../persistence/persistence-util.service';
 import { ActionUtil } from '../../../util/action.util';
@@ -46,7 +46,7 @@ export class PackageInstallationValidationRule extends BaseValidationRule {
     return 70; // Execute after build validation
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (!(context.action instanceof PackageInstallationActionEmbeddable)) {
       return this.pass();
     }
@@ -95,7 +95,7 @@ export class PackageInstallationValidationRule extends BaseValidationRule {
     return this.assistedDeliveryValidationRule.evaluate(context);
   }
 
-  private validateSemver(context: IDecisionContext): IDecisionResult {
+  private validateSemver(context: DecisionContext): DecisionResult {
     const parsedVersion = this.parseActionVersion(context);
     if (!this.actionUtil.isStrictSemver(parsedVersion)) {
       return this.fail(
@@ -108,7 +108,7 @@ export class PackageInstallationValidationRule extends BaseValidationRule {
     return this.pass();
   }
 
-  private parseActionVersion(context: IDecisionContext) {
+  private parseActionVersion(context: DecisionContext) {
     return this.actionUtil.parseVersion(context.action.package?.version ?? '');
   }
 }

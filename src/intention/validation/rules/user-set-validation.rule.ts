@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 
 /**
  * Validation Rule: User Set Validation
@@ -25,7 +25,7 @@ export class UserSetValidationRule extends BaseValidationRule {
     return 10; // Execute early - cheap validation
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (context.account && context.account.skipUserValidation) {
       return this.pass();
     }

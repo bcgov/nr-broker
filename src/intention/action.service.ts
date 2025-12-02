@@ -5,7 +5,7 @@ import { BrokerAccountProjectMapDto } from '../persistence/dto/graph-data.dto';
 import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { UserCollectionService } from '../collection/user-collection.service';
 import { ValidationRuleEngine } from './validation/validation-rule.engine';
-import { IDecisionContext } from './validation/decision-context.interface';
+import { DecisionContext } from './validation/decision-context.interface';
 
 /**
  * Assists with the validation of intention actions
@@ -31,7 +31,7 @@ export class ActionService {
     );
 
     // Build decision context (DMN-compatible facts)
-    const decisionContext: IDecisionContext = {
+    const decisionContext: DecisionContext = {
       intention,
       action,
       account,

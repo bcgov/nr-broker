@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 
 /**
  * Validation Rule: Account Bound Project Validation
@@ -32,7 +32,7 @@ export class AccountBoundProjectValidationRule extends BaseValidationRule {
     return 30; // Execute early - cheap validation
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (context.accountBoundProjects) {
       const service = context.action.service;
       const projectFound = !!context.accountBoundProjects[service.project];

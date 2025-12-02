@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 import { ActionUtil } from '../../../util/action.util';
 
 /**
@@ -31,7 +31,7 @@ export class VaultEnvValidationRule extends BaseValidationRule {
     return 20; // Execute early - cheap validation
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (
       this.actionUtil.isProvisioned(context.action) &&
       !this.actionUtil.isValidVaultEnvironment(context.action)

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseValidationRule } from '../validation-rule.interface';
-import { IDecisionContext, IDecisionResult } from '../decision-context.interface';
+import { DecisionContext, DecisionResult } from '../decision-context.interface';
 import { DatabaseAccessActionEmbeddable } from '../../entity/database-access-action.embeddable';
 import { AssistedDeliveryValidationRule } from './assisted-delivery-validation.rule';
 import { UserSetValidationRule } from './user-set-validation.rule';
@@ -35,13 +35,13 @@ export class DatabaseAccessValidationRule extends BaseValidationRule {
     return 50; // Execute after basic validations
   }
 
-  async evaluate(context: IDecisionContext): Promise<IDecisionResult> {
+  async evaluate(context: DecisionContext): Promise<DecisionResult> {
     if (!(context.action instanceof DatabaseAccessActionEmbeddable)) {
       return this.pass();
     }
 
     // Ensure user validation done. May have been skipped if option set.
-    const userValidationContext: IDecisionContext = {
+    const userValidationContext: DecisionContext = {
       ...context,
       account: null, // Force user validation even if skipUserValidation is true
     };

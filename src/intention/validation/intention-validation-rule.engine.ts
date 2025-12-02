@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IIntentionValidationRule } from './intention-validation-rule.interface';
-import { IIntentionDecisionContext } from './intention-decision-context.interface';
+import { IntentionValidationRule } from './intention-validation-rule.interface';
+import { IntentionDecisionContext } from './intention-decision-context.interface';
 import {
   JwtBlockedValidationRule,
   AccountBindingValidationRule,
@@ -34,7 +34,7 @@ export class IntentionValidationException extends Error {
  */
 @Injectable()
 export class IntentionValidationRuleEngine {
-  private rules: IIntentionValidationRule[];
+  private rules: IntentionValidationRule[];
 
   constructor(
     private readonly jwtBlockedValidationRule: JwtBlockedValidationRule,
@@ -58,7 +58,7 @@ export class IntentionValidationRuleEngine {
    * @param context - The intention-level decision context
    * @throws IntentionValidationException if any rule fails
    */
-  async validate(context: IIntentionDecisionContext): Promise<void> {
+  async validate(context: IntentionDecisionContext): Promise<void> {
     for (const rule of this.rules) {
       const result = await rule.evaluate(context);
 
@@ -76,7 +76,7 @@ export class IntentionValidationRuleEngine {
   /**
    * Get all registered rules (useful for debugging/testing)
    */
-  getRules(): IIntentionValidationRule[] {
+  getRules(): IntentionValidationRule[] {
     return [...this.rules];
   }
 }

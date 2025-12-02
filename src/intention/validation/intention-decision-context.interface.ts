@@ -12,7 +12,7 @@ import { BrokerJwtEmbeddable } from '../../auth/broker-jwt.embeddable';
  * In a Drools implementation, this would map to Working Memory facts
  * for intention-level rules that execute before action-level rules.
  */
-export interface IIntentionDecisionContext {
+export interface IntentionDecisionContext {
   /**
    * The JWT extracted from the request
    */
@@ -32,7 +32,7 @@ export interface IIntentionDecisionContext {
 /**
  * Decision Result from an intention-level validation rule evaluation.
  */
-export interface IIntentionDecisionResult {
+export interface IntentionDecisionResult {
   /**
    * Whether the validation passed (true) or failed (false)
    */

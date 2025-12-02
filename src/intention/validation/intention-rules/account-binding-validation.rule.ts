@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { BaseIntentionValidationRule } from '../intention-validation-rule.interface';
 import {
-  IIntentionDecisionContext,
-  IIntentionDecisionResult,
+  IntentionDecisionContext,
+  IntentionDecisionResult,
 } from '../intention-decision-context.interface';
 
 /**
@@ -28,8 +28,8 @@ export class AccountBindingValidationRule extends BaseIntentionValidationRule {
   }
 
   async evaluate(
-    context: IIntentionDecisionContext,
-  ): Promise<IIntentionDecisionResult> {
+    context: IntentionDecisionContext,
+  ): Promise<IntentionDecisionResult> {
     if (!context.account) {
       return this.fail(
         'Token must be bound to a broker account',

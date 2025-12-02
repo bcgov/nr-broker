@@ -11,7 +11,7 @@ import { UserEntity } from '../../persistence/entity/user.entity';
  *
  * In a Drools implementation, this would map to Working Memory facts.
  */
-export interface IDecisionContext {
+export interface DecisionContext {
   /**
    * The intention being validated
    */
@@ -57,7 +57,7 @@ export interface IDecisionContext {
  * Decision Result from a validation rule evaluation.
  * In DMN/Drools terminology, this represents the output of a decision.
  */
-export interface IDecisionResult {
+export interface DecisionResult {
   /**
    * Whether the validation passed (true) or failed (false)
    */
