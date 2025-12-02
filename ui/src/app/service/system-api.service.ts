@@ -94,6 +94,12 @@ export class SystemApiService {
     };
   }
 
+  revokeAccountToken(accountId: string) {
+    return this.http.request<void>('DELETE', `${environment.apiUrl}/v1/collection/broker-account/${accountId}/token`, {
+      responseType: 'json',
+    });
+  }
+
   createAccountTokenEventSource(): Observable<any> {
     if (!SystemApiService.accountEventObserver) {
       SystemApiService.accountEventObserver = this.sseClient

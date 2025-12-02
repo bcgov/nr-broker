@@ -35,7 +35,13 @@ Tokens can be regenerated at any time. The procedure is identical to generating 
 
 ### Revoke a token
 
-If you need to revoke the current token immediately, generate the token twice. Generating the token twice ends the initial token's one-hour grace period. You can ignore the first generated token, as it is only used to cancel the grace period.
+If you need to immediately revoke all active tokens for an account:
+
+1. Navigate to the access token page for the broker account
+2. Click the "Revoke Token" button
+3. Confirm the revocation in the dialog
+
+This will immediately block all active tokens for the account, including any tokens in the grace period. Any services using these tokens will lose access until a new token is generated. This action cannot be undone.
 
 ## How to look up an account from a token
 

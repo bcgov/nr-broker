@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>Revoke Token</h2>
+<mat-dialog-content>
+  <h4>Are you sure you want to revoke the current access token?</h4>
+
+  <p>This will immediately block the current token and the previous token (if within the grace period). Any services using these tokens will lose access until a new token is generated.</p>
+
+  <p>You can't undo this action.</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-stroked-button color="warn" (click)="confirm()">Revoke Token</button>
+</mat-dialog-actions>

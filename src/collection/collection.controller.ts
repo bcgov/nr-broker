@@ -238,6 +238,26 @@ export class CollectionController {
     );
   }
 
+  @Delete('broker-account/:id/token')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'brokerAccount',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async revokeAccountToken(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+    @Request() req: ExpressRequest,
+  ): Promise<void> {
+    return this.accountService.revokeAccountToken(
+      req,
+      id,
+      delve((req.user as any).userinfo, OAUTH2_CLIENT_MAP_GUID),
+    );
+  }
+
   @Post('broker-account/:id/usage')
   @Roles('admin')
   @AllowOwner({
