@@ -25,12 +25,24 @@
         </div>
 
         <section class="action-section">
-          <button
-            class="card-text"
-            mat-stroked-button
-            (click)="openGenerateDialog()">
-            Generate Token
-          </button>
+          <div class="button-group">
+            <button
+              class="card-text"
+              mat-stroked-button
+              [disabled]="!hasSudo()"
+              (click)="openGenerateDialog()">
+              Generate Token
+            </button>
+
+            <button
+              class="card-text"
+              color="warn"
+              mat-stroked-button
+              [disabled]="!hasSudo()"
+              (click)="openRevokeDialog()">
+              Revoke Token
+            </button>
+          </div>
 
           <section class="slide-toggle-section">
             Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>

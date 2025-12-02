@@ -306,6 +306,53 @@ export class AccountService {
     );
   }
 
+  async revokeAccountToken(
+    request: Request,
+    id: string,
+    creatorGuid: string,
+  ): Promise<void> {
+    // Get all active tokens for this account
+    const registryJwts = await this.systemRepository.getRegisteryJwts(id);
+
+    // Block each token by its JTI
+    for (const registryJwt of registryJwts) {
+      if (!registryJwt.blocked) {
+        await this.systemRepository.blockJwtByJti(registryJwt.claims.jti);
+      }
+    }
+
+    // Get account info for audit logging
+    const account = await this.getBrokerAccount(id);
+    if (account) {
+      const user = await this.collectionRepository.getCollectionByKeyValue(
+        'user',
+        'guid',
+        creatorGuid,
+      );
+
+      const message = user
+        ? `All tokens revoked for ${account.name} (${account.clientId}) by ${user.name} <${user.email}>`
+        : `All tokens revoked for ${account.name} (${account.clientId})`;
+
+      // Audit the revocation
+      this.auditService.recordAccountTokenLifecycle(
+        request,
+        { client_id: account.clientId, jti: 'multiple' },
+        message,
+        'deletion',
+        'success',
+        ['token', 'revoked'],
+      );
+
+      // Publish event to notify clients
+      this.redisService.publish(REDIS_PUBSUB.BROKER_ACCOUNT_TOKEN, {
+        data: {
+          clientId: account.clientId,
+        },
+      });
+    }
+  }
+
   async addTokenToAccountServices(token: string, account: BrokerAccountEntity) {
     const downstreamServices =
       await this.graphRepository.getDownstreamVertex<ServiceDto>(
