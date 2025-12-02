@@ -23,6 +23,7 @@
 ** [Document Site](/dev_docsite.md)
 ** [MongoDB](/dev_mongodb.md)
 ** [Vault](/dev_vault.md)
+** [Validation Rules Architecture](/dev_validation_rules.md)
 
 * Maintenance
 ** [Adding Internal Users](/operations_internal_user.md)
