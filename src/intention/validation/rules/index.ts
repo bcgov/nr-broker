@@ -4,5 +4,6 @@ export * from './account-bound-project-validation.rule';
 export * from './target-service-validation.rule';
 export * from './database-access-validation.rule';
 export * from './package-build-validation.rule';
+export * from './environment-promotion-validation.rule';
 export * from './package-installation-validation.rule';
 export * from './assisted-delivery-validation.rule';

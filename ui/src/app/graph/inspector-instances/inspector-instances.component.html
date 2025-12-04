@@ -1,7 +1,13 @@
 @if (vertices()) {
 <div class="edge-container">
   <div class="header-container">
-    <h3 class="header-text">Instances</h3>
+    <button
+      class="collection-btn"
+      mat-stroked-button
+      extended
+      (click)="openServiceInstances()">
+      Instances
+    </button>
     @if (permission.hasAdmin()) {
       <div class="header-buttons">
         <button

@@ -3,6 +3,7 @@
   display: flex;
   flex: 0 0 auto;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .details-container a {
@@ -10,7 +11,11 @@
 }
 
 .details-container > * {
-  width: 50%;
+  width: calc(50% - 8px);
+}
+
+.details-container > .details-container-fullwidth {
+  width: 100%;
 }
 
 .details-container-margin {

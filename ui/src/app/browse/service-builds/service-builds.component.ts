@@ -62,22 +62,22 @@ export class ServiceBuildsComponent implements OnInit, OnDestroy {
   name = signal('');
   loading = signal(true);
 
-  data: any[] = [];
-  total = 0;
-  pageIndex = 0;
-  pageSize = 10;
+  data = signal<any[]>([]);
+  total = signal(0);
+  pageIndex = signal(0);
+  pageSize = signal(10);
 
   page$ = new Subject<TablePageQuery>();
   sort$ = new Subject<Sort>();
 
-  public disableApprove: Record<string, boolean> = {};
+  public disableApprove = signal<Record<string, boolean>>({});
 
-  propDisplayedColumns: string[] = [
+  propDisplayedColumns = signal<string[]>([
     'version',
     'date',
     'name',
     'type',
-  ];
+  ]);
 
   private triggerRefresh = new Subject<number>();
 
@@ -150,18 +150,18 @@ export class ServiceBuildsComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((data) => {
-        this.data = data.data;
-        this.total = data.meta.total;
+        this.data.set(data.data);
+        this.total.set(data.meta.total);
         this.loading.set(false);
       });
     const params = this.activatedRoute.snapshot.params;
     if (params['index'] && params['size']) {
-      this.pageIndex = params['index'];
-      this.pageSize = params['size'];
+      this.pageIndex.set(params['index']);
+      this.pageSize.set(params['size']);
     }
     this.page$.next({
-      index: this.pageIndex,
-      size: this.pageSize,
+      index: this.pageIndex(),
+      size: this.pageSize(),
     });
 
     this.refresh();
@@ -176,19 +176,19 @@ export class ServiceBuildsComponent implements OnInit, OnDestroy {
   }
 
   pageIndexReset() {
-    this.pageIndex = 0;
-    this.page$.next({ index: this.pageIndex, size: this.pageSize });
+    this.pageIndex.set(0);
+    this.page$.next({ index: this.pageIndex(), size: this.pageSize() });
   }
 
   handlePageEvent(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
     this.page$.next({ index: event.pageIndex, size: event.pageSize });
   }
 
   approvePackageBuild(event: Event, build: PackageBuildDto) {
     event.stopPropagation();
-    this.disableApprove[build.id] = true;
+    this.disableApprove.update((state) => ({ ...state, [build.id]: true }));
     this.packageApi.approveBuild(build.id).subscribe(() => {
       this.refresh();
     });

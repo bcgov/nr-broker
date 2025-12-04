@@ -291,21 +291,31 @@
                 </button>
               </div>
             } -->
+
+            @if (collection() === 'serviceInstance') {
+              <div class="card-content-container">
+                <app-service-instance-details
+                  [instance]="serviceInstanceDetails"
+                  [showName]="false"
+                  ></app-service-instance-details>
+              </div>
+            }
             @if (collection() === 'service') {
+              <div class="card-content-container card-content-container-nogutter">
+                <app-inspector-instances
+                  [service]="cd.collection"
+                  [vertex]="cd.vertex"
+                  [vertices]="cd.downstream"
+                  [details]="serviceDetails()"></app-inspector-instances>
+              </div>
+
               <div class="card-content-container">
                 <button
                   class="{{screen.screenSize()}} collection-btn"
                   mat-stroked-button
                   extended
                   (click)="openServiceBuilds()">
-                  Builds
-                </button>
-                <button
-                  class="{{screen.screenSize()}} collection-btn"
-                  mat-stroked-button
-                  extended
-                  (click)="openServiceInstances()">
-                  Instances
+                  Releases
                 </button>
                 <button
                   class="{{screen.screenSize()}} collection-btn"
@@ -315,6 +325,7 @@
                   History
                 </button>
               </div>
+
             }
           </mat-card-content>
         </mat-card>

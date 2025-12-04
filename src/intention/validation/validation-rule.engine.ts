@@ -9,6 +9,7 @@ import {
   TargetServiceValidationRule,
   DatabaseAccessValidationRule,
   PackageBuildValidationRule,
+  EnvironmentPromotionValidationRule,
   PackageInstallationValidationRule,
 } from './rules';
 
@@ -39,6 +40,7 @@ export class ValidationRuleEngine {
     private readonly targetServiceValidationRule: TargetServiceValidationRule,
     private readonly databaseAccessValidationRule: DatabaseAccessValidationRule,
     private readonly packageBuildValidationRule: PackageBuildValidationRule,
+    private readonly environmentPromotionValidationRule: EnvironmentPromotionValidationRule,
     private readonly packageInstallationValidationRule: PackageInstallationValidationRule,
   ) {
     // Register all rules and sort by priority
@@ -49,6 +51,7 @@ export class ValidationRuleEngine {
       this.targetServiceValidationRule,
       this.databaseAccessValidationRule,
       this.packageBuildValidationRule,
+      this.environmentPromotionValidationRule,
       this.packageInstallationValidationRule,
     ].sort((a, b) => {
       const priorityA = a.getPriority?.() ?? 100;

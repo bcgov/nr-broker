@@ -9,15 +9,15 @@
 
   <mat-card appearance="outlined" class="card-margin">
     <mat-card-content>
-    <mat-card-title>Builds</mat-card-title>
-  @if (total === 0) {
+    <mat-card-title>Release Packages</mat-card-title>
+  @if (total() === 0) {
 
     <div class="edge-container intention-none">No builds recorded</div>
   } @else {
 
   <table
     mat-table
-    [dataSource]="data"
+    [dataSource]="data()"
     multiTemplateDataRows>
 
     <!-- Version Column -->
@@ -59,19 +59,19 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="propDisplayedColumns()"></tr>
     <tr
       mat-row
-      *matRowDef="let element; columns: propDisplayedColumns"
+      *matRowDef="let element; columns: propDisplayedColumns()"
       class="element-row"
       (click)="openInBrowser($event, element)">
     </tr>
   </table>
 
   <mat-paginator
-    [length]="total"
-    [pageIndex]="pageIndex"
-    [pageSize]="pageSize"
+    [length]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
     [pageSizeOptions]="[5, 10, 25]"
     (page)="handlePageEvent($event)"
     aria-label="Select page">

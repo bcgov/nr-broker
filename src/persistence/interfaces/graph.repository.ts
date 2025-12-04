@@ -103,12 +103,14 @@ export abstract class GraphRepository {
   public abstract getUpstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
-    matchEdgeNames: string[] | null,
+    matchEdgeNames?: string[] | null,
+    allowRestrictedEdges?: boolean,
   ): Promise<GraphUpDownDto<T>[]>;
   public abstract getDownstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     maxDepth: number,
+    allowRestrictedEdges?: boolean,
   ): Promise<GraphUpDownDto<T>[]>;
   public abstract getBrokerAccountServices(
     id: string,

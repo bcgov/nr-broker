@@ -91,7 +91,17 @@ result = db.collectionConfig.insertOne({
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
   index: 0,
-  edges: [],
+  edges: [
+    {
+      id: '35PBwbX1',
+      collection: 'environment',
+      name: 'promotes-to',
+      relation: 'oneToOne',
+      restrict: true,
+      show: true,
+      titleInbound: 'Promoted From',
+    },
+  ],
   fieldDefaultSort: {
     field: 'position',
     dir: 1,

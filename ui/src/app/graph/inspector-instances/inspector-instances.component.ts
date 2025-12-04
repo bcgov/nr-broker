@@ -18,6 +18,7 @@ import { PermissionService } from '../../service/permission.service';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { GraphDirectedCombo } from '../../service/persistence/dto/collection-combo.dto';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { CollectionUtilService } from '../../service/collection-util.service';
 
 @Component({
   selector: 'app-inspector-instances',
@@ -37,6 +38,7 @@ export class InspectorInstancesComponent {
   private readonly dialog = inject(MatDialog);
   private readonly graphApi = inject(GraphApiService);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
+  readonly collectionUtil = inject(CollectionUtilService);
 
   readonly service = input.required<ServiceDto>();
   readonly vertex = input.required<VertexDto>();
@@ -44,7 +46,8 @@ export class InspectorInstancesComponent {
   readonly details = input.required<any>();
 
   readonly data = computed(() => {
-    return this.details().serviceInstance.reduce((pv: any, cv: any) => {
+    const serviceInstance = this.details()?.serviceInstance ?? [];
+    return serviceInstance.reduce((pv: any, cv: any) => {
       const env = cv.environment.name;
 
       if (pv[env]) {
@@ -89,6 +92,10 @@ export class InspectorInstancesComponent {
 
   isNotGroup(index: any, item: any): boolean {
     return !item.isGroup;
+  }
+
+  openServiceInstances() {
+    this.collectionUtil.openServiceInstances(this.service().id);
   }
 
   openInstanceDialog() {

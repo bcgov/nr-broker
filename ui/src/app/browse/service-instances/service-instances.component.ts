@@ -31,6 +31,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { ScreenService } from '../../util/screen.service';
 
 @Component({
   selector: 'app-service-instances',
@@ -58,6 +59,7 @@ export class ServiceInstancesComponent {
   private readonly collectionUtil = inject(CollectionUtilService);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
   readonly configMap = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly screen = inject(ScreenService);
 
   collection = signal<CollectionNames>('service');
   serviceId = signal('');

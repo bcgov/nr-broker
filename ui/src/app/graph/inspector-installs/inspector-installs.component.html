@@ -29,14 +29,14 @@
         @if (curr && curr.intention) {
           <button mat-menu-item (click)="viewIntention(curr.intention)">View Intention</button>
         }
-        @if (curr && curr.source?.action.source?.intention) {
+        @if (curr.source && curr.source.action && curr.source.action.source && curr.source.action.source.intention) {
           <button mat-menu-item (curr)="viewIntention(curr.source.action.source.intention)">View Build</button>
         }
-        @if (curr && curr.source?.action.package?.id) {
+        @if (curr.source && curr.source.action && curr.source.action.package && curr.source.action.service.id && curr.source.action.package.id) {
           <button mat-menu-item (click)="openServicePackage(curr.source.action.service.id, curr.source.action.package.id)">View Package</button>
         }
         <mat-divider></mat-divider>
-        @if (curr && curr.source?.intention?.event.url) {
+        @if (curr && curr.source &&  curr.source.intention && curr.source.intention.event.url) {
           <a
             mat-menu-item
             matTooltip="Access to this content may be restricted"
@@ -45,7 +45,7 @@
             href="{{curr.source.intention.event.url}}"
             target="_blank">View Event</a>
         }
-        @if (curr && curr.source?.intention?.auditUrl) {
+        @if (curr && curr.source && curr.source.intention && curr.source.intention.auditUrl) {
           <a
             mat-menu-item
             href="{{curr.source.intention.auditUrl}}"
@@ -59,23 +59,32 @@
   @if (!curr || !curr.source?.intention) {
     <div class="edge-container edge-container-margin-left">No recorded installation</div>
   }
-  @if (curr && curr.source?.intention) {
+  @if (curr && curr.source && curr.source.intention && curr.source.intention.transaction) {
     <div class="edge-container edge-container-margin-left install-details">
       <div class="install-version">
         <app-outcome-icon
           [outcome]="curr.source.intention.transaction.outcome"></app-outcome-icon>
-
-          @if (curr.source?.action?.package?.version) {
+          @if (curr.source.action && curr.source.action.package && curr.source.action.package.version) {
             {{curr.source.action.package.version}}
           }
       </div>
 
-      <app-details-item item="Installed">{{curr.source.intention.transaction.start | date:'short'}}</app-details-item>
+      @if (curr.source.action && curr.source.action.package && !curr.source.action.package.id) {
+        <app-details-item item="Build Version">{{curr.source.action.package.buildVersion ?? ''}}</app-details-item>
+      }
 
-      <app-details-item
-        (click)="openUserInBrowserByGuid(curr.source.intention.user.id)"
-        item="User"
-        clickable="true">{{curr.source.intention.user.name}}</app-details-item>
+
+      @if (curr.source.intention.transaction && curr.source.intention.transaction.start) {
+        <app-details-item item="Installed">{{curr.source.intention.transaction.start | date:'short'}}</app-details-item>
+      }
+
+
+      @if (curr.source.intention.user.id) {
+        <app-details-item
+          (click)="openUserInBrowserByGuid(curr.source.intention.user.id)"
+          item="User"
+          clickable="true">{{curr.source.intention.user.name}}</app-details-item>
+      }
 
     </div>
   }

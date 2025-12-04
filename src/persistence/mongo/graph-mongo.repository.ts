@@ -638,6 +638,34 @@ export class GraphMongoRepository implements GraphRepository {
     if (edgeInsert.source === edgeInsert.target) {
       throw new Error('No edges to self');
     }
+
+    // Check for cycles: if there's a path from target to source through any edges,
+    // adding this edge would create a cycle
+    const pathExists = await this.vertexRepository
+      .aggregate([
+        { $match: { _id: new ObjectId(edgeInsert.target) } },
+        {
+          $graphLookup: {
+            from: 'edge',
+            startWith: '$_id',
+            connectFromField: 'target',
+            connectToField: 'source',
+            as: 'paths',
+          },
+        },
+        {
+          $project: {
+            hasCycle: {
+              $in: [new ObjectId(edgeInsert.source), '$paths.target'],
+            },
+          },
+        },
+      ])
+      .then((result: any[]) => result.length > 0 && result[0].hasCycle);
+
+    if (pathExists) {
+      throw new Error('Edge would create a cycle in the graph');
+    }
     const edge = EdgeEntity.upgradeInsertDto(edgeInsert);
     edge.is = sourceConfig.index;
     edge.it = targetConfig.index;
@@ -1224,6 +1252,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     index: number,
     matchEdgeNames: string[] | null = null,
+    allowRestrictedEdges: boolean = false,
   ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       index,
@@ -1240,7 +1269,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'source',
             connectToField: 'target',
-            restrictSearchWithMatch: { restrict: { $ne: true } },
+            ...(allowRestrictedEdges ? {} : { restrictSearchWithMatch: { restrict: { $ne: true } } }),
             as: 'edge',
           },
         },
@@ -1296,6 +1325,7 @@ export class GraphMongoRepository implements GraphRepository {
     id: string,
     index: number,
     maxDepth: number,
+    allowRestrictedEdges: boolean = false,
   ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       index,
@@ -1312,7 +1342,7 @@ export class GraphMongoRepository implements GraphRepository {
             startWith: '$_id',
             connectFromField: 'target',
             connectToField: 'source',
-            restrictSearchWithMatch: { restrict: { $ne: true } },
+            ...(allowRestrictedEdges ? {} : { restrictSearchWithMatch: { restrict: { $ne: true } } }),
             as: 'edge',
             maxDepth,
           },

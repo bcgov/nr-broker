@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { Embeddable, Property } from '@mikro-orm/core';
-import { IntentionEntity } from '../../intention/entity/intention.entity';
-import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
+import { IntentionDto } from '../../intention/dto/intention.dto';
+import { ActionDto } from '../../intention/dto/action.dto';
 
 @Embeddable()
 export class IntentionActionPointerEmbeddable {
@@ -18,7 +18,7 @@ export class IntentionActionPointerEmbeddable {
 
   // For returning joined intention
   source?: {
-    intention: IntentionEntity;
-    action: ActionEmbeddable;
+    intention: IntentionDto;
+    action: ActionDto;
   };
 }

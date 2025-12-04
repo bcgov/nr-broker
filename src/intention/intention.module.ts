@@ -18,6 +18,7 @@ import {
   TargetServiceValidationRule,
   DatabaseAccessValidationRule,
   PackageBuildValidationRule,
+  EnvironmentPromotionValidationRule,
   PackageInstallationValidationRule,
   AssistedDeliveryValidationRule,
 } from './validation/rules';
@@ -53,6 +54,7 @@ import {
     TargetServiceValidationRule,
     DatabaseAccessValidationRule,
     PackageBuildValidationRule,
+    EnvironmentPromotionValidationRule,
     PackageInstallationValidationRule,
     AssistedDeliveryValidationRule,
     // Intention Validation Rule Engine and Rules
@@ -60,6 +62,6 @@ import {
     JwtBlockedValidationRule,
     AccountBindingValidationRule,
   ],
-  exports: [ActionUtil, ActionService, IntentionService],
+  exports: [ActionUtil, ActionService, IntentionService, IntentionUtilService],
 })
 export class IntentionModule {}

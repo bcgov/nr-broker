@@ -447,7 +447,8 @@ export class IntentionService {
   }
 
   public async getIntention(id: string) {
-    const intention = await this.intentionRepository.getIntention(id);
+    const intention = this.intentionUtilService
+      .convertIntentionEntityToDto(await this.intentionRepository.getIntention(id));
     if (intention) {
       intention.auditUrl = this.actionUtil.auditUrlForIntention(intention);
     }
@@ -509,7 +510,7 @@ export class IntentionService {
   }
 
   private findArtifacts(
-    intention: IntentionEntity | null,
+    intention: IntentionDto | null,
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {

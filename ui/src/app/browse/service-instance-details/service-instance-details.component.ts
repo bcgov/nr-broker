@@ -56,10 +56,13 @@ export class ServiceInstanceDetailsComponent {
   }
 
   openServicePackage(packageId: string) {
-    this.collectionUtil.openServicePackage(
-      this.action()?.source?.action.service.id,
-      packageId,
-    );
+    const action = this.action();
+    if (action?.source?.action?.service?.id) {
+      this.collectionUtil.openServicePackage(
+        action.source?.action?.service?.id,
+        packageId,
+      );
+    }
   }
 
   openInBrowser(collection: CollectionNames, id: string) {
@@ -86,12 +89,6 @@ export class ServiceInstanceDetailsComponent {
   }
 
   navigateHistoryById(id: string) {
-    this.router.navigate([
-      '/intention/history',
-      {
-        field: 'id',
-        value: id,
-      },
-    ]);
+    this.router.navigate([`/intention/${id}`]);
   }
 }

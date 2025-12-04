@@ -55,6 +55,8 @@ import { HealthStatusService } from '../../service/health-status.service';
 import { ScreenService } from '../../util/screen.service';
 import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-vault.component';
 import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
+import { InspectorInstancesComponent } from '../../graph/inspector-instances/inspector-instances.component';
+import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -85,6 +87,8 @@ import { InspectorServiceSecureComponent } from '../../graph/inspector-service-s
     TeamRolesComponent,
     UserAliasComponent,
     VertexTagsComponent,
+    InspectorInstancesComponent,
+    ServiceInstanceDetailsComponent,
   ],
   templateUrl: './collection-inspector.component.html',
   styleUrl: './collection-inspector.component.scss',
@@ -130,6 +134,8 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
     null;
+
+  public serviceDetails = signal<any>(null);
 
   // Permissions
   hasAdmin = signal(false);
@@ -241,6 +247,15 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
             this.serviceInstanceDetails = data;
           });
       }
+
+      if (this.collection() === 'service') {
+        this.collectionApi
+          .getServiceDetails(this.comboData()?.collection.id)
+          .subscribe((data) => {
+            this.serviceDetails.set(data);
+          });
+      }
+
       this.hideLoading.set(false);
       this.refresh.set(this.refresh() + 1);
     });
