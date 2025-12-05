@@ -295,7 +295,7 @@
             @if (collection() === 'serviceInstance') {
               <div class="card-content-container">
                 <app-service-instance-details
-                  [instance]="serviceInstanceDetails"
+                  [instance]="serviceInstanceDetails()"
                   [showName]="false"
                   ></app-service-instance-details>
               </div>

@@ -132,8 +132,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     this.comboDataResource.asReadonly().value,
   ).pipe(filter((data) => !!data));
 
-  public serviceInstanceDetails: ServiceInstanceDetailsResponseDto | null =
-    null;
+  public serviceInstanceDetails = signal<ServiceInstanceDetailsResponseDto | null>(null);
 
   public serviceDetails = signal<any>(null);
 
@@ -238,13 +237,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.comboData()?.collection.vertex,
       ));
 
-      this.serviceInstanceDetails = null;
+      this.serviceInstanceDetails.set(null);
 
       if (this.collection() === 'serviceInstance') {
         this.collectionApi
           .getServiceInstanceDetails(this.comboData()?.collection.id)
           .subscribe((data) => {
-            this.serviceInstanceDetails = data;
+            this.serviceInstanceDetails.set(data);
           });
       }
 
