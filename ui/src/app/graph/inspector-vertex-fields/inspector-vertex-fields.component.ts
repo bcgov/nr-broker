@@ -33,6 +33,7 @@ export class InspectorVertexFieldsComponent implements OnChanges {
     CollectionDtoUnion[keyof CollectionDtoUnion] | null
   >(null);
   readonly filter = input.required<'yes' | 'no'>();
+  readonly showHelp = input(false);
 
   filteredCollectionData: any = null;
   public filteredCollectionCount = 0;

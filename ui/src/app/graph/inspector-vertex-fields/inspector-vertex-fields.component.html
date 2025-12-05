@@ -20,6 +20,10 @@
         <app-inspector-vertex-field
           [config]="getFieldConfig(element.key)"
           [value]="element.value"></app-inspector-vertex-field>
+        @if (showHelp()) {
+          <br />
+          <small>{{collectionConfig().fields[element.key].hint}}</small>
+        }
       </td>
     </ng-container>
     <tr mat-header-row

@@ -112,10 +112,14 @@
 </app-collection-header>
       @let localCollection = collection();
     <div class="inspector-card-layout inspector-tab-margin" [class]="screen.screenSize()">
-      <app-vertex-tags
-        class="full-width"
-        [collection]="collection()"
-        [collectionData]="cd.collection"></app-vertex-tags>
+      <div class="full-width vertex-tags-section">
+        <app-vertex-tags
+          [collection]="collection()"
+          [collectionData]="cd.collection"></app-vertex-tags>
+        <div class="slide-toggle-section">
+          Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+        </div>
+      </div>
 
       <div>
       <mat-card appearance="outlined" class="inspector-card-gap">
@@ -159,6 +163,7 @@
             [collectionConfig]="config()"
             [collectionData]="cd.collection"
             [filter]="'no'"
+            [showHelp]="showHelp()"
             ></app-inspector-vertex-fields>
 
           @if (cd.vertex.prop) {
@@ -240,7 +245,8 @@
             @if (localCollection === 'brokerAccount' && cd.vertex.collection === localCollection) {
               <app-inspector-account
                 [account]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
-                [hasSudo]="hasSudo()"></app-inspector-account>
+                [hasSudo]="hasSudo()"
+                [showHelp]="showHelp()"></app-inspector-account>
             }
 
             @if (hasSudo() && localCollection === 'repository' && cd.vertex.collection === localCollection) {
