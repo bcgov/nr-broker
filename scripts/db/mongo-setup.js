@@ -637,6 +637,13 @@ result = db.collectionConfig.insertOne({
       hint: 'Require service to be owned by account',
       value: false,
     },
+    skipInstallBuildValidation: {
+      name: 'Skip Install Build Validation',
+      required: true,
+      type: 'boolean',
+      hint: 'Allow installs to proceed without validating the build version exists',
+      value: false,
+    },
     skipUserValidation: {
       name: 'Skip User Validation',
       required: true,

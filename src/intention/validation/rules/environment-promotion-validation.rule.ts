@@ -3,8 +3,6 @@ import { BaseValidationRule } from '../validation-rule.interface';
 import { DecisionContext, DecisionResult } from '../decision-context.interface';
 import { PackageInstallationActionEmbeddable } from '../../entity/package-installation-action.embeddable';
 import { GraphRepository } from '../../../persistence/interfaces/graph.repository';
-import { CollectionRepository } from '../../../persistence/interfaces/collection.repository';
-import { IntentionRepository } from '../../../persistence/interfaces/intention.repository';
 import { CollectionNameEnum } from '../../../persistence/dto/collection-dto-union.type';
 import { EnvironmentDto } from '../../../persistence/dto/environment.dto';
 import { PersistenceUtilService } from '../../../persistence/persistence-util.service';
@@ -32,8 +30,6 @@ import { PersistenceUtilService } from '../../../persistence/persistence-util.se
 export class EnvironmentPromotionValidationRule extends BaseValidationRule {
   constructor(
     private readonly graphRepository: GraphRepository,
-    private readonly collectionRepository: CollectionRepository,
-    private readonly intentionRepository: IntentionRepository,
     private readonly persistenceUtil: PersistenceUtilService,
   ) {
     super();
@@ -54,8 +50,16 @@ export class EnvironmentPromotionValidationRule extends BaseValidationRule {
 
     // Get the git hash (buildVersion) being deployed
     const deployingBuildVersion = context.action.package?.buildVersion;
+    const skipInstallBuildValidation = !!context.account?.skipInstallBuildValidation;
+    if (!deployingBuildVersion && skipInstallBuildValidation) {
+      return this.pass();
+    }
+
     if (!deployingBuildVersion) {
-      return this.pass(); // No buildVersion, let other rules handle
+      return this.fail(
+        'Package build version is required for environment promotion validation.',
+        'package.buildVersion',
+      );
     }
 
     // Get target environment by name

@@ -411,6 +411,7 @@ db.brokerAccount.insertMany([
     requireRoleId: false,
     requireProjectExists: false,
     requireServiceExists: false,
+    skipInstallBuildValidation: false,
     skipUserValidation: false,
     maskSemverFailures: false,
   },

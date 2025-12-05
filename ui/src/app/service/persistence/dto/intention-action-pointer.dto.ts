@@ -17,7 +17,7 @@ export class IntentionActionPointerDto {
   @IsOptional()
   source?: {
     intention: IntentionDto;
-    action?: ActionDto;
+    action: ActionDto;
     package?: PackageDto;
   };
 }

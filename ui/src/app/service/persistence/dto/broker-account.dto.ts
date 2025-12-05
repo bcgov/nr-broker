@@ -34,6 +34,10 @@ export class BrokerAccountBaseDto extends CollectionBaseDto {
 
   @IsBoolean()
   @IsDefined()
+  skipInstallBuildValidation!: boolean;
+
+  @IsBoolean()
+  @IsDefined()
   skipUserValidation!: boolean;
 
   @IsBoolean()
