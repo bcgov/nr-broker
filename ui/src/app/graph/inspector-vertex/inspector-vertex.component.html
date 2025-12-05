@@ -30,11 +30,13 @@
   }
   @if (collection() === 'service') {
     @if (comboData() && serviceDetails()) {
+      <div class="component-spacer">
       <app-inspector-instances
-      [service]="comboData().collection"
-      [vertex]="comboData().vertex"
-      [vertices]="comboData().downstream"
-      [details]="serviceDetails()"></app-inspector-instances>
+        [service]="comboData().collection"
+        [vertex]="comboData().vertex"
+        [vertices]="comboData().downstream"
+        [details]="serviceDetails()"></app-inspector-instances>
+      </div>
     }
     <mat-divider></mat-divider>
     <app-inspector-vault

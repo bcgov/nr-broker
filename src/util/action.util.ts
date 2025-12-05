@@ -7,10 +7,11 @@ import {
   VAULT_ENVIRONMENTS,
 } from '../constants';
 import { ACTION_NAMES, ActionDto } from '../intention/dto/action.dto';
-import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import { VAULT_PROVISIONED_ACTION_SET } from '../intention/dto/constants.dto';
 import { ActionErrorDto } from '../intention/dto/action-error.dto';
+import { IntentionDto } from '../intention/dto/intention.dto';
+import { IntentionEntity } from '../intention/entity/intention.entity';
 
 export type FindArtifactActionOptions = Partial<
   Pick<ActionDto, 'action' | 'id'>
@@ -90,7 +91,7 @@ export class ActionUtil {
     return actionOptions;
   }
 
-  public filterActions<T extends ActionEmbeddable>(
+  public filterActions<T extends ActionDto>(
     actions: T[] | null,
     actionOptions: FindArtifactActionOptions,
   ): T[] {
@@ -134,7 +135,7 @@ export class ActionUtil {
    * @param intention The intention to create the audit url for
    * @returns The audit url string
    */
-  public auditUrlForIntention(intention: IntentionEntity): string {
+  public auditUrlForIntention(intention: IntentionDto | IntentionEntity): string {
     return ejs.render(this.AUDIT_URL_TEMPLATE, { intention });
   }
 

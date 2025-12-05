@@ -1,16 +1,14 @@
 @let inst = instance();
 @if (inst) {
-  @if (showName()) {
   <div class="details-container details-container-margin">
+  @if (showName()) {
     <app-details-item item="Name">{{inst.name}}</app-details-item>
 
     @if (inst.tags && inst.server.length === 1) {
       <app-details-item item="Tags">{{ inst.join(', ') }}</app-details-item>
     }
-  </div>
   }
-  <div class="details-container">
-    <div>
+
       <app-details-item item="Status">
         @if (!action()?.source?.intention) {
           No recorded installation
@@ -28,30 +26,50 @@
       @let actionSource = action()?.source;
       @if (actionSource && actionSource.intention) {
 
-      @if (actionSource.package?.version && actionSource.package.id) {
-        <app-details-item
-          (click)="openServicePackage(actionSource.action.package.id)"
-          item="Version"
-          clickable="true">{{actionSource.action.package.version}}</app-details-item>
+      @if (actionSource.action && actionSource.action.package && actionSource.action.package.id) {
+        <div class="details-container details-container-fullwidth">
+          <app-details-item
+            item="Version">
+              {{actionSource.action.package.version}}
+          </app-details-item>
+          <button
+            mat-stroked-button
+            (click)="openServicePackage(actionSource.action.package.id)"
+            >Package Information</button>
+        </div>
       } @else {
-        <app-details-item item="Version">{{actionSource.action.package.version}}</app-details-item>
+        @if (actionSource.action && actionSource.action.package && actionSource.action.package.version) {
+          <div class="details-container details-container-fullwidth">
+            <app-details-item item="Version">{{actionSource.action.package.version}}</app-details-item>
+            <button
+            mat-stroked-button
+            [disabled]="true"
+            >Unreleased Package</button>
+          </div>
+        }
       }
 
-      <app-details-item
-        (click)="navigateHistoryById(actionSource.intention.id)"
-        item="Installed"
-        clickable="true">{{actionSource.intention.transaction.start | date:'short'}}</app-details-item>
-
-      <app-details-item
-        (click)="openUserInBrowserByGuid(actionSource.intention.user.id)"
-        item="User"
-        clickable="true">{{actionSource.intention.user.name}}</app-details-item>
+      @if (actionSource.action && actionSource.action.package && actionSource.action.package.buildVersion) {
+        <app-details-item item="Build Version">{{actionSource.action.package.buildVersion}}</app-details-item>
       }
-    </div>
+
+      @if (actionSource.intention.id && actionSource.intention.transaction?.start) {
+        <app-details-item
+          (click)="navigateHistoryById(actionSource.intention.id)"
+          item="Installed"
+          clickable="true">{{actionSource.intention.transaction?.start | date:'short'}}</app-details-item>
+      }
+      @if (actionSource.intention.user.id) {
+        <app-details-item
+          (click)="openUserInBrowserByGuid(actionSource.intention.user.id)"
+          item="User"
+          clickable="true">{{actionSource.intention.user.name}}</app-details-item>
+      }
+      }
+
 
     @let serverSelectionLocal = selectedServer();
     @if (serverSelectionLocal) {
-    <div>
 
       @if (inst.server.length > 1) {
         <mat-form-field class="server-form">
@@ -89,7 +107,7 @@
           </button>
         </div>
       </div>
-    </div>
     }
-  </div>
+    </div>
 }
+

@@ -91,7 +91,17 @@ result = db.collectionConfig.insertOne({
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
   index: 0,
-  edges: [],
+  edges: [
+    {
+      id: '35PBwbX1',
+      collection: 'environment',
+      name: 'promotes-to',
+      relation: 'oneToOne',
+      restrict: true,
+      show: true,
+      titleInbound: 'Promoted From',
+    },
+  ],
   fieldDefaultSort: {
     field: 'position',
     dir: 1,
@@ -625,6 +635,13 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'boolean',
       hint: 'Require service to be owned by account',
+      value: false,
+    },
+    skipInstallBuildValidation: {
+      name: 'Skip Install Build Validation',
+      required: true,
+      type: 'boolean',
+      hint: 'Allow installs to proceed without validating the build version exists',
       value: false,
     },
     skipUserValidation: {

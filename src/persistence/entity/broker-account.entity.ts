@@ -44,6 +44,9 @@ export class BrokerAccountEntity extends VertexPointerEntity {
   requireServiceExists: boolean;
 
   @Property()
+  skipInstallBuildValidation: boolean;
+
+  @Property()
   skipUserValidation: boolean;
 
   @Property()

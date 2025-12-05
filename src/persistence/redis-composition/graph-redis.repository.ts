@@ -243,16 +243,18 @@ export class GraphRedisRepository implements GraphRepository {
     id: string,
     index: number,
     matchEdgeNames: string[],
+    allowRestrictedEdges?: boolean,
   ): Promise<GraphUpDownDto<T>[]> {
-    return this.repo.getUpstreamVertex(id, index, matchEdgeNames);
+    return this.repo.getUpstreamVertex(id, index, matchEdgeNames, allowRestrictedEdges);
   }
 
   public getDownstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     maxDepth: number,
+    allowRestrictedEdges?: boolean,
   ): Promise<GraphUpDownDto<T>[]> {
-    return this.repo.getDownstreamVertex(id, index, maxDepth);
+    return this.repo.getDownstreamVertex(id, index, maxDepth, allowRestrictedEdges);
   }
 
   public getBrokerAccountServices(

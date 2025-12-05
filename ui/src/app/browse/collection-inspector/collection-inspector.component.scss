@@ -68,7 +68,11 @@
 }
 
 .card-content-container {
-  margin-left: 16px;
+  margin: 16px;
+}
+
+.card-content-container-nogutter {
+  margin-left: 0;
 }
 
 .card-content-container-full {

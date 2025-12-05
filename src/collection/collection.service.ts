@@ -272,7 +272,6 @@ export class CollectionService {
           actionPointer.intention.toString(),
         );
         if (intention) {
-          // console.log(this.actionUtil.actionToOptions(actionPointer.action));
           const actions = this.actionUtil.filterActions(
             intention.actions,
             this.actionUtil.actionToOptions(actionPointer.action),

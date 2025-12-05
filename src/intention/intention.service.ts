@@ -70,6 +70,7 @@ import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
+import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -102,6 +103,7 @@ export class IntentionService {
     private readonly persistenceUtilService: PersistenceUtilService,
     private readonly intentionUtilService: IntentionUtilService,
     private readonly validatorUtil: ValidatorUtil,
+    private readonly intentionValidationRuleEngine: IntentionValidationRuleEngine,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -140,28 +142,23 @@ export class IntentionService {
       brokerJwt && brokerJwt.jti
         ? await this.systemRepository.getRegisteryJwtByClaimJti(brokerJwt.jti)
         : null;
-    // Note: This check should never pass because of an earlier check of the
-    // block list. This is a backup check.
-    if (registryJwt && registryJwt.blocked) {
-      throw new BadRequestException({
-        statusCode: 400,
-        message: 'Authorization failed',
-        error: [],
-      });
-    }
+
     // Map JWT to Broker Account
     const account = await this.getAccountFromRegistry(registryJwt);
-    if (!account) {
+
+    // Validate intention-level business rules using rule engine
+    try {
+      await this.intentionValidationRuleEngine.validate({
+        brokerJwt,
+        registryJwt,
+        account,
+      });
+    } catch (error) {
       throw new BadRequestException({
-        statusCode: 400,
-        message: 'Token must be bound to a broker account',
-        error: [],
-        data: {
-          action: '',
-          action_id: '',
-          key: 'jwt.jti',
-          value: brokerJwt.jti,
-        },
+        statusCode: error.statusCode,
+        message: error.message,
+        error: error.error,
+        data: error.data,
       });
     }
 
@@ -450,7 +447,8 @@ export class IntentionService {
   }
 
   public async getIntention(id: string) {
-    const intention = await this.intentionRepository.getIntention(id);
+    const intention = this.intentionUtilService
+      .convertIntentionEntityToDto(await this.intentionRepository.getIntention(id));
     if (intention) {
       intention.auditUrl = this.actionUtil.auditUrlForIntention(intention);
     }
@@ -512,7 +510,7 @@ export class IntentionService {
   }
 
   private findArtifacts(
-    intention: IntentionEntity | null,
+    intention: IntentionDto | null,
     actionOptions: FindArtifactActionOptions,
     artifactOptions: FindArtifactArtifactOptions,
   ): ArtifactActionCombo[] {

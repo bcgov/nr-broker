@@ -66,18 +66,21 @@ export class InspectorInstallsComponent implements OnInit, OnChanges {
       .subscribe(([result, pointer]) => {
         if (result && pointer) {
           const actionId = pointer.action?.split('#').pop();
-          this.current.set({
-            ...pointer,
-            source: {
-              intention: result,
-              action: result.actions.find(
-                (action: any) => action.id === actionId,
-              ),
-            },
-          });
-        } else {
-          this.current.set(undefined);
+          const action = result.actions.find(
+            (action: any) => action.id === actionId,
+          );
+          if (action) {
+            this.current.set({
+              ...pointer,
+              source: {
+                intention: result,
+                action,
+              },
+            });
+          }
+          return;
         }
+        this.current.set(undefined);
       });
 
     this.navigateCurrent();
