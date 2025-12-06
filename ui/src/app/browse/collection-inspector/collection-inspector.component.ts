@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatMenuModule } from '@angular/material/menu';
@@ -70,6 +71,7 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
     MatIconModule,
     MatMenuModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     MatSnackBarModule,
     MatTabsModule,
     CollectionHeaderComponent,
@@ -144,6 +146,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasApprove = signal(false);
 
   refresh = signal(0);
+  showHelp = signal(false);
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {

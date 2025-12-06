@@ -87,3 +87,18 @@
 .card-team-member-button {
   margin-right: 16px;
 }
+
+.vertex-tags-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.slide-toggle-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 52px;
+  gap: 8px;
+}
