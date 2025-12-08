@@ -4,6 +4,16 @@ export const INTERVAL_HOUR_MS = 3600000;
 
 @Injectable()
 export class DateUtil {
+  public toLocaleDateString(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
   public computeIndex(index: string, start: Date, end: Date) {
     if (index.endsWith('-d')) {
       const indexArr = index.split(',');
