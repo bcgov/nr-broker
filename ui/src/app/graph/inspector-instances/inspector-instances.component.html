@@ -13,16 +13,16 @@
         <button
           mat-button
           (click)="openInstanceDialog()"
-          [disabled]="!permission.hasAdmin()">Add</button>
+          [disabled]="!permission.hasAdmin()">Add Instances</button>
       </div>
     }
   </div>
 </div>
 }
 
-@if (this.tableData().length === 0 && !loading()) {
+<!-- @if (this.tableData().length === 0 && !loading()) {
   <div class="edge-container intention-none">None</div>
-}
+} -->
 <table
   mat-table
   [dataSource]="tableData()"

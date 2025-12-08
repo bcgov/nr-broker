@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -32,11 +32,11 @@ export class DeleteEdgeDialogComponent {
   readonly dialogRef = inject<MatDialogRef<DeleteEdgeDialogComponent>>(MatDialogRef);
   private readonly graphApi = inject(GraphApiService);
 
-  @ViewChild(MatSelectionList) private selectionComponent!: MatSelectionList;
+  readonly selectionComponent = viewChild.required(MatSelectionList);
 
   deleteEdge() {
-    const edges = this.selectionComponent.selectedOptions.selected;
-    edges.forEach((element) => {
+    const edges = this.selectionComponent()?.selectedOptions.selected;
+    edges?.forEach((element) => {
       this.graphApi.deleteEdge(element.value.edge.id).subscribe(() => {
         this.dialogRef.close({ refresh: true });
       });

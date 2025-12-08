@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, inject, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -76,8 +76,7 @@ export class EdgeDialogComponent implements OnInit {
   edgeControl = new FormControl<string | CollectionEdgeConfig>('');
   vertexControl = new FormControl<string | GraphDataVertex | symbol>('');
 
-  @ViewChild(PropertyEditorComponent)
-  private propertyEditorComponent!: PropertyEditorComponent;
+  readonly propertyEditorComponent = viewChild.required(PropertyEditorComponent);
 
   public NEW_VERTEX = Symbol('newVertex');
 
@@ -172,8 +171,8 @@ export class EdgeDialogComponent implements OnInit {
   async addEditEdge() {
     const edge = this.edgeControl.value;
     const vertex = this.vertexControl.value;
-    const prop = this.propertyEditorComponent.getPropertyValues();
-    console.log('addEditEdge');
+    const prop = this.propertyEditorComponent()?.getPropertyValues();
+    // console.log('addEditEdge');
     if (!this.data.edge) {
       if (
         !vertex ||

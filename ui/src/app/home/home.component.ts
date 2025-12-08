@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -36,7 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   selectedTabIndex = 0;
   services: ConnectionConfigDto[] = [];
   documents: ConnectionConfigDto[] = [];
-  @ViewChild(MatRipple, { static: true }) ripple!: MatRipple;
+  readonly ripple = viewChild.required(MatRipple);
   private intervalId: any;
 
   ngOnInit(): void {
@@ -60,14 +60,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   triggerRipple() {
-    this.ripple.launch({
-      persistent: false,
-      centered: true,
-      animation: {
-        enterDuration: 300,
-        exitDuration: 600,
-      },
-    });
+    const ripple = this.ripple();
+    if (ripple) {
+      ripple.launch({
+        persistent: false,
+        centered: true,
+        animation: {
+          enterDuration: 300,
+          exitDuration: 600,
+        },
+      });
+    }
   }
 
   setSelectedTabIndex(event: any) {

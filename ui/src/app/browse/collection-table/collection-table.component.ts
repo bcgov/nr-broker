@@ -1,4 +1,4 @@
-import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -173,7 +173,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   sort$ = new Subject<Sort>();
   page$ = new Subject<TablePageQuery>();
 
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly sort = viewChild.required(MatSort);
 
   canFilterConnected: string[] = [];
   showFilterOptions = [
