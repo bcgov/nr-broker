@@ -576,22 +576,17 @@ export class AccountService {
 
       // Get last used timestamp from the JWT registry
       const lastUsedAt = expiredJwt.lastUsedAt;
+      const expirationDate = new Date(expiredJwt.claims.exp * 1000);
 
       const context = {
         accountName: account.name,
         clientId: expiredJwt.claims.client_id,
         collectionId: account.id.toString(),
         daysUntilExpiration: daysUntilExpiration,
-        expirationDate: new Date(expiredJwt.claims.exp * 1000),
+        expirationDisplay: this.dateUtil.toLocaleDateString(expirationDate),
         lastUsedAt: lastUsedAt,
         lastUsedDisplay: lastUsedAt
-          ? lastUsedAt.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
+          ? this.dateUtil.toLocaleDateString(lastUsedAt)
           : 'Never used',
       };
 
