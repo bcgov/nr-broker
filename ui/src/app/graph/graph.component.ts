@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -80,10 +80,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   );
   private showFilter$ = new ReplaySubject<'connected' | 'all'>(1);
 
-  @ViewChild(EchartsComponent)
-  private echartsComponent!: EchartsComponent;
-  @ViewChild(InspectorComponent)
-  private inspectorComponent!: InspectorComponent;
+  readonly echartsComponent = viewChild.required(EchartsComponent);
+  readonly inspectorComponent = viewChild.required(InspectorComponent);
 
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe = new Subject<any>();
@@ -246,7 +244,7 @@ export class GraphComponent implements OnInit, OnDestroy {
                       graphData.es.event === 'edge-delete') &&
                       graphData.es.adjacentVertex.indexOf(selected.id) !== -1)
           ) {
-            this.inspectorComponent.refreshData();
+            this.inspectorComponent()?.refreshData();
             // console.log('reload!');
           }
         }
@@ -255,7 +253,7 @@ export class GraphComponent implements OnInit, OnDestroy {
             graphData.es.event === 'edge-edit' &&
             graphData.es.edge.id === this.selected()?.id
           ) {
-            this.inspectorComponent.refreshData();
+            this.inspectorComponent()?.refreshData();
             // console.log('reload!');
           }
         }
@@ -322,7 +320,7 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   onSelected(event: InspectorTarget | undefined, dispatch = true): void {
-    if (!this.echartsComponent?.echartsInstance) {
+    if (!this.echartsComponent()?.echartsInstance) {
       setTimeout(() => this.onSelected(event, dispatch), 100);
       return;
     }
@@ -333,16 +331,19 @@ export class GraphComponent implements OnInit, OnDestroy {
         (vertex) => event.id === vertex.id,
       );
       if (dispatch && dataIndex !== -1) {
-        this.echartsComponent.echartsInstance.dispatchAction({
-          type: 'select',
+        const echarts = this.echartsComponent();
+        if (echarts?.echartsInstance) {
+          echarts.echartsInstance.dispatchAction({
+            type: 'select',
 
-          // Find  by index or id or name.
-          // Can be an array to find multiple components.
-          seriesIndex: 0,
+            // Find  by index or id or name.
+            // Can be an array to find multiple components.
+            seriesIndex: 0,
 
-          // data index; could assign by name attribute when not defined
-          dataIndex,
-        });
+            // data index; could assign by name attribute when not defined
+            dataIndex,
+          });
+        }
       }
     }
 

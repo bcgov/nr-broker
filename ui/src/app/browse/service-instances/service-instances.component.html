@@ -8,10 +8,10 @@
     [backIcon]="'arrow_back'"
   >
     @if (permission.hasAdmin()) {
-  <button
-    mat-stroked-button
-    (click)="openInstanceDialog()"
-    [disabled]="!permission.hasAdmin()">Quick Add</button>
+      <button
+        mat-stroked-button
+        (click)="openInstanceDialog()"
+        [disabled]="!permission.hasAdmin()">Add Instances</button>
     }
 </app-collection-header>
 
