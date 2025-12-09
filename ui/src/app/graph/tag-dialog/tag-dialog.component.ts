@@ -7,7 +7,6 @@ import {
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { VaultDialogComponent } from '../vault-dialog/vault-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MatChipEditedEvent,
@@ -34,7 +33,7 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
   styleUrl: './tag-dialog.component.scss',
 })
 export class TagDialogComponent implements OnInit {
-  readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
+  readonly dialogRef = inject<MatDialogRef<TagDialogComponent>>(MatDialogRef);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly data = inject<{
     collection: keyof CollectionDtoUnion;
