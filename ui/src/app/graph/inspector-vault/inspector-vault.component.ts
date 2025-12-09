@@ -44,7 +44,7 @@ export class InspectorVaultComponent {
       .open(VaultDialogComponent, {
         width: '500px',
         data: {
-          service: this.service,
+          service: this.service(),
           showMasked: this.permission.hasAdmin(),
         },
       })
@@ -52,7 +52,7 @@ export class InspectorVaultComponent {
       .subscribe((result) => {
         if (result && result.save) {
           const data: any = {
-            ...this.service,
+            ...this.service(),
           };
           delete data.id;
           delete data.vertex;

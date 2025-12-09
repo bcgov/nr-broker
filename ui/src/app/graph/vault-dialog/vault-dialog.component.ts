@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -36,22 +36,7 @@ export class VaultDialogComponent implements OnInit {
   }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
 
-  public config: {
-    actor: string;
-    approle: {
-      enabled: boolean;
-      advanced: string;
-    };
-    brokerGlobal: boolean;
-    brokerFor: string;
-    db: string;
-    enabled: boolean;
-    policyOptions: {
-      kvReadProject: boolean;
-      systemPolicies: string;
-      tokenPeriod: 'hourly' | 'bidaily' | 'daily' | 'weekly';
-    };
-  } = {
+  readonly config = signal({
     actor: '',
     approle: {
       enabled: false,
@@ -64,59 +49,101 @@ export class VaultDialogComponent implements OnInit {
     policyOptions: {
       kvReadProject: false,
       systemPolicies: '',
-      tokenPeriod: 'daily',
+      tokenPeriod: 'daily' as 'hourly' | 'bidaily' | 'daily' | 'weekly',
     },
-  };
+  });
 
   ngOnInit() {
-    this.config.enabled = this.data.service.vaultConfig?.enabled ?? false;
-    this.config.approle.enabled =
-      this.data.service.vaultConfig?.approle?.enabled ?? false;
+    this.config.update((current) => ({
+      ...current,
+      enabled: this.data.service.vaultConfig?.enabled ?? false,
+      approle: {
+        ...current.approle,
+        enabled: this.data.service.vaultConfig?.approle?.enabled ?? false,
+        advanced: (() => {
+          if (this.data.service.vaultConfig?.approle) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { enabled, ...advancedApprole } =
+              this.data.service.vaultConfig.approle;
+            if (Object.keys(advancedApprole).length > 0) {
+              return JSON.stringify(advancedApprole);
+            }
+          }
+          return current.approle.advanced;
+        })(),
+      },
+      actor: this.data.service.vaultConfig?.actor
+        ? JSON.stringify(this.data.service.vaultConfig.actor)
+        : current.actor,
+      brokerGlobal: this.data.service.vaultConfig?.brokerGlobal ?? current.brokerGlobal,
+      brokerFor: this.data.service.vaultConfig?.brokerFor
+        ? this.data.service.vaultConfig.brokerFor.join()
+        : current.brokerFor,
+      db: this.data.service.vaultConfig?.db
+        ? this.data.service.vaultConfig.db.join()
+        : current.db,
+      policyOptions: {
+        kvReadProject:
+          this.data.service.vaultConfig?.policyOptions?.kvReadProject ??
+          current.policyOptions.kvReadProject,
+        systemPolicies: this.data.service.vaultConfig?.policyOptions
+          ?.systemPolicies
+          ? this.data.service.vaultConfig.policyOptions.systemPolicies.join()
+          : current.policyOptions.systemPolicies,
+        tokenPeriod:
+          this.data.service.vaultConfig?.policyOptions?.tokenPeriod ??
+          current.policyOptions.tokenPeriod,
+      },
+    }));
+  }
 
-    // Actor
-    if (this.data.service.vaultConfig?.actor) {
-      this.config.actor = JSON.stringify(this.data.service.vaultConfig.actor);
-    }
+  updateEnabled(enabled: boolean) {
+    this.config.update((c) => ({ ...c, enabled }));
+  }
 
-    // Broker
-    if (this.data.service.vaultConfig?.brokerGlobal) {
-      this.config.brokerGlobal = this.data.service.vaultConfig.brokerGlobal;
-    }
+  updateDb(db: string) {
+    this.config.update((c) => ({ ...c, db }));
+  }
 
-    if (this.data.service.vaultConfig?.brokerFor) {
-      this.config.brokerFor = this.data.service.vaultConfig.brokerFor.join();
-    }
+  updateApproleEnabled(enabled: boolean) {
+    this.config.update((c) => ({ ...c, approle: { ...c.approle, enabled } }));
+  }
 
-    // DB
-    if (this.data.service.vaultConfig?.db) {
-      this.config.db = this.data.service.vaultConfig.db.join();
-    }
+  updateApproleAdvanced(advanced: string) {
+    this.config.update((c) => ({ ...c, approle: { ...c.approle, advanced } }));
+  }
 
-    // AppRole
-    if (this.data.service.vaultConfig?.approle) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { enabled, ...advancedApprole } =
-        this.data.service.vaultConfig.approle;
-      if (Object.keys(advancedApprole).length > 0) {
-        this.config.approle.advanced = JSON.stringify(advancedApprole);
-      }
-    }
+  updateKvReadProject(kvReadProject: boolean) {
+    this.config.update((c) => ({
+      ...c,
+      policyOptions: { ...c.policyOptions, kvReadProject },
+    }));
+  }
 
-    // Policy options
-    if (this.data.service.vaultConfig?.policyOptions?.kvReadProject) {
-      this.config.policyOptions.kvReadProject =
-        this.data.service.vaultConfig.policyOptions.kvReadProject;
-    }
+  updateSystemPolicies(systemPolicies: string) {
+    this.config.update((c) => ({
+      ...c,
+      policyOptions: { ...c.policyOptions, systemPolicies },
+    }));
+  }
 
-    if (this.data.service.vaultConfig?.policyOptions?.systemPolicies) {
-      this.config.policyOptions.systemPolicies =
-        this.data.service.vaultConfig.policyOptions.systemPolicies.join();
-    }
+  updateTokenPeriod(tokenPeriod: 'hourly' | 'bidaily' | 'daily' | 'weekly') {
+    this.config.update((c) => ({
+      ...c,
+      policyOptions: { ...c.policyOptions, tokenPeriod },
+    }));
+  }
 
-    if (this.data.service.vaultConfig?.policyOptions?.tokenPeriod) {
-      this.config.policyOptions.tokenPeriod =
-        this.data.service.vaultConfig.policyOptions.tokenPeriod;
-    }
+  updateActor(actor: string) {
+    this.config.update((c) => ({ ...c, actor }));
+  }
+
+  updateBrokerGlobal(brokerGlobal: boolean) {
+    this.config.update((c) => ({ ...c, brokerGlobal }));
+  }
+
+  updateBrokerFor(brokerFor: string) {
+    this.config.update((c) => ({ ...c, brokerFor }));
   }
 
   isFormInvalid() {
@@ -124,50 +151,50 @@ export class VaultDialogComponent implements OnInit {
   }
 
   update() {
+    const config = this.config();
     const configObj: VaultConfigDto = {
-      enabled: this.config.enabled,
+      enabled: config.enabled,
     };
 
     if (!this.data.showMasked) {
       configObj.approle = {
-        enabled: this.config.approle.enabled,
+        enabled: config.approle.enabled,
       };
       configObj.policyOptions = {
-        tokenPeriod: this.config.policyOptions.tokenPeriod,
+        tokenPeriod: config.policyOptions.tokenPeriod,
       };
     } else {
-      if (this.config.actor && this.config.actor !== '') {
-        configObj.actor = JSON.parse(this.config.actor);
+      if (config.actor && config.actor !== '') {
+        configObj.actor = JSON.parse(config.actor);
       }
       configObj.approle = {
-        enabled: this.config.approle.enabled,
+        enabled: config.approle.enabled,
         ...JSON.parse(
-          this.config.approle.advanced && this.config.approle.advanced !== ''
-            ? this.config.approle.advanced
+          config.approle.advanced && config.approle.advanced !== ''
+            ? config.approle.advanced
             : '{}',
         ),
       };
-      if (this.config.brokerGlobal) {
-        configObj.brokerGlobal = this.config.brokerGlobal;
+      if (config.brokerGlobal) {
+        configObj.brokerGlobal = config.brokerGlobal;
       }
-      if (this.config.brokerFor) {
-        configObj.brokerFor = this.config.brokerFor.split(',');
+      if (config.brokerFor) {
+        configObj.brokerFor = config.brokerFor.split(',');
       }
-      if (this.config.db) {
-        configObj.db = this.config.db.split(',');
+      if (config.db) {
+        configObj.db = config.db.split(',');
       }
       configObj.policyOptions = {
-        kvReadProject: this.config.policyOptions.kvReadProject,
-        tokenPeriod: this.config.policyOptions.tokenPeriod,
-        ...(this.config.policyOptions.kvReadProject
+        kvReadProject: config.policyOptions.kvReadProject,
+        tokenPeriod: config.policyOptions.tokenPeriod,
+        ...(config.policyOptions.kvReadProject
           ? {
-              kvReadProject: this.config.policyOptions.kvReadProject,
+              kvReadProject: config.policyOptions.kvReadProject,
             }
           : {}),
-        ...(this.config.policyOptions.systemPolicies
+        ...(config.policyOptions.systemPolicies
           ? {
-              systemPolicies:
-                this.config.policyOptions.systemPolicies.split(','),
+              systemPolicies: config.policyOptions.systemPolicies.split(','),
             }
           : {}),
       };

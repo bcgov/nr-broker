@@ -3,7 +3,8 @@
 
   <div class="vault-form">
     <mat-checkbox
-      [(ngModel)]="config.enabled">
+      [ngModel]="config().enabled"
+      (ngModelChange)="updateEnabled($event)">
       Enabled
     </mat-checkbox>
   </div>
@@ -15,7 +16,8 @@
       <mat-form-field>
         <mat-label>db</mat-label>
         <input matInput type="text"
-          [(ngModel)]="config.db">
+          [ngModel]="config().db"
+          (ngModelChange)="updateDb($event)">
         <mat-hint>Comma separated list of databases</mat-hint>
       </mat-form-field>
     </div>
@@ -25,13 +27,15 @@
 
   <div class="vault-form">
     <mat-checkbox
-      [(ngModel)]="config.approle.enabled">
+      [ngModel]="config().approle.enabled"
+      (ngModelChange)="updateApproleEnabled($event)">
       Enabled
     </mat-checkbox>
 
     @if (data.showMasked) {
       <mat-checkbox
-        [(ngModel)]="config.policyOptions.kvReadProject">
+        [ngModel]="config().policyOptions.kvReadProject"
+        (ngModelChange)="updateKvReadProject($event)">
         Enable access to project secrets
       </mat-checkbox>
 
@@ -39,7 +43,8 @@
         <mat-label>Policies</mat-label>
         <input
           matInput type="text"
-          [(ngModel)]="config.policyOptions.systemPolicies">
+          [ngModel]="config().policyOptions.systemPolicies"
+          (ngModelChange)="updateSystemPolicies($event)">
         <mat-hint>Comma separated list of policies added to all logins</mat-hint>
       </mat-form-field>
     }
@@ -47,7 +52,8 @@
     <mat-form-field>
       <mat-label>Token Period</mat-label>
       <mat-select
-        [(value)]="config.policyOptions.tokenPeriod">
+        [value]="config().policyOptions.tokenPeriod"
+        (valueChange)="updateTokenPeriod($event)">
         <mat-option value="hourly">Hourly</mat-option>
         <mat-option value="daily">Daily</mat-option>
         <mat-option value="bidaily">Bidaily</mat-option>
@@ -60,7 +66,8 @@
       <mat-form-field>
         <mat-label>AppRole parameters</mat-label>
         <textarea matInput
-          [(ngModel)]="config.approle.advanced"></textarea>
+          [ngModel]="config().approle.advanced"
+          (ngModelChange)="updateApproleAdvanced($event)"></textarea>
         <mat-hint>Any AppRole parameter as JSON</mat-hint>
       </mat-form-field>
     }
@@ -73,7 +80,8 @@
         <mat-label>Actor definition</mat-label>
         <textarea
           matInput
-          [(ngModel)]="config.actor"></textarea>
+          [ngModel]="config().actor"
+          (ngModelChange)="updateActor($event)"></textarea>
         <mat-hint>Actor definition as JSON</mat-hint>
       </mat-form-field>
     </div>
@@ -85,7 +93,9 @@
 
     <div class="vault-form">
 
-      <mat-checkbox [(ngModel)]="config.brokerGlobal">
+      <mat-checkbox
+        [ngModel]="config().brokerGlobal"
+        (ngModelChange)="updateBrokerGlobal($event)">
         Global
       </mat-checkbox>
 
@@ -94,7 +104,8 @@
         <input
           matInput
           type="text"
-          [(ngModel)]="config.brokerFor">
+          [ngModel]="config().brokerFor"
+          (ngModelChange)="updateBrokerFor($event)">
         <mat-hint>Comma separated list of services to broker</mat-hint>
       </mat-form-field>
     </div>
