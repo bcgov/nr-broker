@@ -5,22 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: arial, 'helvetica neue', helvetica, sans-serif;
       line-height: 1.6;
       color: #333;
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
     }
+    h2 {
+      margin: 0;
+      color: #003366;
+    }
     .header {
       text-align: center;
-      padding: 20px 0;
       border-bottom: 3px solid #003366;
-      margin-bottom: 30px;
-    }
-    .logo {
-      max-width: 200px;
-      height: auto;
+      margin-bottom: 16px;
     }
     .alert-box {
       background-color: #fff3cd;
@@ -72,20 +71,6 @@
     .cta-button:hover {
       background-color: #1565c0;
     }
-    .usage-info {
-      margin: 20px 0;
-      padding: 15px;
-      background-color: #f1f8ff;
-      border-left: 4px solid #0366d6;
-      border-radius: 4px;
-    }
-    .secondary-link {
-      display: inline-block;
-      margin-top: 10px;
-      color: #1976d2;
-      text-decoration: none;
-      font-weight: 500;
-    }
     .footer {
       margin-top: 30px;
       padding-top: 20px;
@@ -102,8 +87,8 @@
 </head>
 <body>
   <div class="header">
-    <img src="<%= brokerUrl %>/favicon.png" alt="NR Broker Logo" class="logo">
-    <h2 style="margin: 10px 0 0 0; color: #003366;">NR Broker</h2>
+    <img src="<%= brokerUrl %>/favicon-email.png" alt="NR Broker Logo" width="60" height="60">
+    <h2>NR Broker</h2>
   </div>
 
   <p>Hi <%= user.name %>,</p>
@@ -121,12 +106,9 @@
 
     <div class="info-label">Expiration date</div>
     <div class="info-value"><%= expirationDisplay %></div>
-  </div>
 
-  <div class="usage-info">
     <div class="info-label">Token last used</div>
     <div class="info-value"><%= lastUsedDisplay %></div>
-    <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>/usage" class="secondary-link">View complete usage history</a>
   </div>
 
   <div class="cta-section">
