@@ -25,6 +25,7 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
+import { CommunicationQueueService } from '../communication/communication-queue.service';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
 import { ACTION_NAMES, ActionDto } from './dto/action.dto';
@@ -97,6 +98,7 @@ export class IntentionService {
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
     private readonly actionUtil: ActionUtil,
+    private readonly communicationQueueService: CommunicationQueueService,
     @Inject(forwardRef(() => IntentionSyncService))
     private readonly intentionSync: IntentionSyncService,
     private readonly graphRepository: GraphRepository,
@@ -689,6 +691,42 @@ export class IntentionService {
     return this.intentionRepository.closeIntention(intention);
   }
 
+  private async sendActionLifecycleCommunication(
+    //intention: IntentionEntity, //TODO: unused?
+    action: ActionEmbeddable,
+    outcome: string | undefined,
+    type: 'start' | 'end',
+  ): Promise<boolean> {
+    //TODO: is this exit logic correct? additional configurations?
+    if (type !== 'end' || action.lifecycle !== 'ended' || action.action !== 'package-installation') {
+      return true;
+    }
+    //TODO: any additional context for the communication?
+    const context = {
+      title: 'Application Deployed',
+      collectionId: action.service.id.toString(),
+      serviceName: action.service.name,
+      projectName: action.service.project,
+      environmentName: action.service.environment,
+      outcome: outcome,
+      userName: action.user.full_name,
+    };
+    //TODO: who should be notified?
+    const toUsers = [
+      { ref: 'upstream', value: 'owner' },
+    ];
+    /* //TODO: make 'intention-event-notification' template
+    await this.communicationQueueService.queue(
+      'intention-event-notification',
+      action.service.id.toString(), //TODO: this is undefined on first run? //TODO: should this use getCollectionById?
+      'toUsers',
+      'intention-event-notification',
+      'context',
+    );
+   */
+    return true;
+  }
+
   /**
    * Logs the start and end of an action
    * @param req The associated request object
@@ -724,6 +762,12 @@ export class IntentionService {
     }
     await this.intentionRepository.setIntentionActionLifecycle(
       intention,
+      action,
+      outcome,
+      type,
+    );
+    this.sendActionLifecycleCommunication(
+     // intention,
       action,
       outcome,
       type,
