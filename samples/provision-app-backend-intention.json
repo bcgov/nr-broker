@@ -15,7 +15,8 @@
         "environment": "production"
       },
       "package": {
-        "version": "2.73.2"
+        "version": "2.73.2",
+        "buildVersion": "abcd123"
       }
     },
     {
