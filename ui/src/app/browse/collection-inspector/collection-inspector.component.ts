@@ -124,7 +124,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     return this.configRecord[this.collection()];
   });
   public comboData = signal<CollectionCombo<any> | null>(null);
-  public comboDataResource = httpResource(() => {
+  public comboDataResource = httpResource<CollectionCombo<any>>(() => {
     return this.collectionApi.getCollectionComboByIdArgs(
       this.collection(),
       this.collectionId(),
@@ -135,6 +135,10 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   public permissions = signal<UserPermissionDto | null>(null);
 
   public serviceDetails = signal<any>(null);
+
+  public vertexProperties = computed(() => {
+    return this.comboData()?.vertex.prop;
+  });
 
   // Permissions
   hasAdmin = signal(false);
@@ -173,7 +177,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       if (!comboData || !this.config()) {
         return;
       }
-      console.log('Combo data loaded', comboData);
+      // console.log('Combo data loaded', comboData);
 
       this.comboData.set(comboData as CollectionCombo<any>);
       this.graphApi.getUserPermissions().subscribe((permissions) => {

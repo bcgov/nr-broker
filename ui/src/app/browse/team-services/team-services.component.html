@@ -11,7 +11,7 @@
         [showHelp]="showHelp()"
         [userPermissions]="userPermissions()"
         [service]="service"
-        (refresh)="refresh.emit()"></app-team-service>
+        (refresh)="servicesResource.reload()"></app-team-service>
     }
   }
 }

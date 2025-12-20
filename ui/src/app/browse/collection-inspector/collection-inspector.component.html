@@ -166,10 +166,11 @@
             [showHelp]="showHelp()"
             ></app-inspector-vertex-fields>
 
-          @if (cd.vertex.prop) {
+          @let prop = vertexProperties();
+          @if (prop) {
             <app-inspector-properties
               [showHelp]="showHelp()"
-              [prop]="cd.vertex.prop"></app-inspector-properties>
+              [prop]="prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
             [timestamps]="cd.vertex.timestamps"></app-inspector-timestamps>
