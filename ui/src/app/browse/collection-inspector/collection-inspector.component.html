@@ -168,6 +168,7 @@
 
           @if (cd.vertex.prop) {
             <app-inspector-properties
+              [showHelp]="showHelp()"
               [prop]="cd.vertex.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
@@ -203,7 +204,6 @@
                   mat-stroked-button
                   (click)="openMemberDialog()"
                   class="card-team-member-button">
-                  <mat-icon>edit</mat-icon>
                   Edit
                 </button>
               </div>
@@ -224,9 +224,15 @@
             </div>
 
             <div class="card-team-members-margin">
-              <app-team-services
-                class="full-width order-end"
-                [teamVertex]="cd.collection.vertex"></app-team-services>
+              @let permLocal = permissions();
+              @if (permLocal) {
+                <app-team-services
+                  class="full-width order-end"
+                  [showHelp]="showHelp()"
+                  [userPermissions]="permLocal"
+                  [teamVertex]="cd.collection.vertex"
+                  (refresh)="updateCollection()"></app-team-services>
+              }
             </div>
           </mat-card-content>
         </mat-card>

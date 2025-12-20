@@ -44,7 +44,7 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!hasUpdate || (target()?.type === 'vertex' && !config().permissions.update)"
+              [disabled]="!hasUpdate() || (target()?.type === 'vertex' && !config().permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
@@ -61,7 +61,7 @@
             @if (target()?.type === 'vertex') {
               <button
                 mat-menu-item
-                [disabled]="!hasUpdate || (!config().permissions.update)"
+                [disabled]="!hasUpdate() || (!config().permissions.update)"
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
@@ -84,7 +84,7 @@
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!hasDelete || (target()?.type === 'vertex' && !config().permissions.delete)"
+              [disabled]="!hasDelete() || (target()?.type === 'vertex' && !config().permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
@@ -111,8 +111,8 @@
             [collection]="localComboData.vertex.collection"
             [collectionConfig]="configMap[localComboData.vertex.collection]"
             [comboData]="localComboData"
-            [hasSudo]="hasSudo"
-            [hasUpdate]="hasUpdate"
+            [hasSudo]="hasSudo()"
+            [hasUpdate]="hasUpdate()"
             ></app-inspector-vertex>
 
           <app-inspector-connections
@@ -122,7 +122,7 @@
             [source]="localComboData.vertex"
             [upstream]="localComboData.upstream"
             [downstream]="localComboData.downstream"
-            [hasAdmin]="hasAdmin"
+            [hasAdmin]="hasAdmin()"
             (selected)="navigate($event)"
             ></app-inspector-connections>
         }

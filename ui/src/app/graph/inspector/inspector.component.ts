@@ -107,13 +107,13 @@ export class InspectorComponent implements OnChanges, OnInit {
   titleWidth = 0;
 
   // Permissions
-  hasAdmin = false;
-  hasSudo = false;
-  hasUpdate = false;
-  hasDelete = false;
+  hasAdmin = signal(false);
+  hasSudo = signal(false);
+  hasUpdate = signal(false);
+  hasDelete = signal(false);
 
   ngOnInit(): void {
-    this.hasAdmin = this.permission.hasAdmin();
+    this.hasAdmin.set(this.permission.hasAdmin());
 
     this.targetSubject
       .pipe(
@@ -141,9 +141,9 @@ export class InspectorComponent implements OnChanges, OnInit {
         return;
       }
       const targetId = target.type === 'edge' ? target.target : target.id;
-      this.hasDelete = this.permission.hasDelete(permissions, targetId);
-      this.hasUpdate = this.permission.hasUpdate(permissions, targetId);
-      this.hasSudo = this.permission.hasSudo(permissions, targetId);
+      this.hasDelete.set(this.permission.hasDelete(permissions, targetId));
+      this.hasUpdate.set(this.permission.hasUpdate(permissions, targetId));
+      this.hasSudo.set(this.permission.hasSudo(permissions, targetId));
     });
     window.dispatchEvent(new Event('resize'));
     this.navigationFollows.set(this.preferences.get('graphFollows'));
@@ -202,12 +202,20 @@ export class InspectorComponent implements OnChanges, OnInit {
         return config.index === sourceIndex;
       });
       if (config) {
+        const edgeConfig = config.edges.find(
+          (e) => e.collection === comboData.target.collection && e.name === comboData.edge.name,
+        );
+        const prototype = edgeConfig?.prototypes?.find(
+          (p) => p.target === comboData.edge.target,
+        );
+        // console.log('Editing edge with prototype', prototype);
         this.dialog.open(EdgeDialogComponent, {
           width: '500px',
           data: {
             collection: config.collection,
             source: comboData.source,
             edge: comboData.edge,
+            prototype,
           },
         });
       }

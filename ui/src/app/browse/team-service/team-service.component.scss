@@ -1,0 +1,66 @@
+h3 {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+
+.service-target-chip {
+  mat-chip-option {
+    cursor: pointer;
+  }
+}
+
+.service-title {
+  flex-grow: 1;
+  line-height: 40px;
+  font-size: 16px;
+}
+
+.service-description {
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 16px;
+}
+
+.service-actions {
+  display: flex;
+  gap: 8px;
+}
+
+table {
+  margin-bottom: 16px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.mat-column-key {
+  width: 30%;
+}
+
+.mat-column-value {
+  width: 70%;
+  max-width: 0;
+}
+
+.parent-ellipsis {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.ellipsis {
+  flex-grow: 1;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

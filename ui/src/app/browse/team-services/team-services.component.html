@@ -1,57 +1,20 @@
 @if (activeServices().length === 0) {
-  <h3>No Provisioned Services</h3>
-
-  <p>Teams can use services provisioned through Broker.</p>
+  <p>No services have been provisioned through Broker.</p>
+} @else {
+  <p>These services are provisioned through Broker.</p>
 }
 
-<div class="card-container">
-@for (service of activeServices(); track service.id) {
-  @if (service.instance) {
-
-    <mat-card class="service-card" appearance="outlined">
-      <mat-card-header>
-        <mat-card-subtitle>{{service.edge.prototype.targetName}}</mat-card-subtitle>
-        <mat-card-title>{{service.edge.prototype.name}}</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>{{service.edge.prototype.description}}</p>
-
-        @if (service.instance.prop) {
-          <table mat-table [dataSource]="service.edge.prototype.property | keyvalue">
-            <!-- Key Column -->
-            <ng-container matColumnDef="key">
-              <th mat-header-cell *matHeaderCellDef> Key </th>
-              <td mat-cell *matCellDef="let element" matTooltip="{{element.key}}" matTooltipShowDelay="500"> {{element.value.name}}</td>
-            </ng-container>
-            <!-- Value Column -->
-            <ng-container matColumnDef="value">
-              <th mat-header-cell *matHeaderCellDef> Value </th>
-              <td mat-cell *matCellDef="let element" matTooltip="{{element.value.hint}}" matTooltipShowDelay="500">
-                <span class="ellipsis">
-                  @if (service.instance.prop[element.key]) {
-                    {{service.instance.prop[element.key]}}
-                  }
-                </span>
-              </td>
-            </ng-container>
-            <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>
-          </table>
-        }
-
-        <mat-divider></mat-divider>
-      </mat-card-content>
-      <mat-card-actions>
-        @if (service.links?.default) {
-        <a
-          mat-stroked-button
-          href="{{service.links?.default}}"
-          target="_blank">Open <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></a>
-        }
-      </mat-card-actions>
-    </mat-card>
+@if (userPermissions()) {
+  @for (service of activeServices(); track service.id) {
+    @if (service.instance) {
+      <app-team-service
+        [showHelp]="showHelp()"
+        [userPermissions]="userPermissions()"
+        [service]="service"
+        (refresh)="refresh.emit()"></app-team-service>
+    }
   }
 }
-</div>
 
 @if (requestServices.length > 0 && false) {
   <app-team-service-request
