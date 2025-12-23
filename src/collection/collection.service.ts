@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Request } from 'express';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
+import { CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
 import { TokenService } from '../token/token.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -112,6 +114,15 @@ export class CollectionService {
       }
     }
     return collection;
+  }
+
+  async addWatchToCollectionById(
+    request: Request,
+    body: CollectionWatchDto,
+    id: string,
+  ) {
+    console.log(request);
+    return true;
   }
 
   async addTagToCollectionById<T extends keyof CollectionDtoUnion>(

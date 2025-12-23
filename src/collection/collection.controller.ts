@@ -46,6 +46,7 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
+import { CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
@@ -311,6 +312,17 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async getServiceSecureInfo(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.service.getServiceSecureInfo(id);
+  }
+
+  @Post('service/:id/watch')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  async watchService(
+    @Request() request: ExpressRequest,
+    @Body() watchDto: CollectionWatchDto,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
+    return this.service.addWatchToCollectionById(request, watchDto, id);
   }
 
   @Get('service-instance/:id/details')
