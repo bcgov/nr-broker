@@ -1,14 +1,5 @@
 <div>
-  @let connectedTable = configRecord[collection()].connectedTable;
-
-  @if (configRecord[collection()].showUserRoles) {
-    <div class="wrapper vertex-edge-container">
-      <button
-        matButton="outlined"
-        (click)="openUserRolesDialog()">User Roles</button>
-    </div>
-  }
-  @if (connectedTable) {
+  @if (connectedTable().length > 0) {
     <div class="wrapper vertex-edge-container">
       <div class="fields-wrapper">
         <h3 class="vertex-heading">Collections</h3>
@@ -16,83 +7,36 @@
     </div>
     <div class="vertex-edge-type-container">
       <mat-chip-listbox [selectable]="false">
-        @for (item of connectedTable; track item.collection) {
+        @for (item of connectedTable(); track item.collection + ':' + item.direction) {
           <mat-chip-option
             [ngStyle]="{'background-color': '#' + configRecord[item.collection].color}"
-            (click)="openCollectionConnections(item.collection)">
+            (click)="openCollectionConnections(item.collection, item.direction, item.restrict === 'all')">
             <span [ngStyle]="{color: this.getVisibleTextColor(configRecord[item.collection].color)}">
-              {{ configRecord[item.collection].name }}
+              {{item.direction === 'upstream' ? '↑' : '↓'}} {{ configRecord[item.collection].name }}
             </span></mat-chip-option>
         }
       </mat-chip-listbox>
     </div>
   }
-  <div class="wrapper vertex-edge-container">
-    <div class="fields-wrapper">
-      <h3 class="vertex-heading">Inbound</h3>
-    </div>
-    @if (config().edges.length > 0) {
-      <div class="fields-wrapper">
-        <button
-          mat-button
-          (click)="openDeleteEdgeDialog(inboundConnections())"
-          [disabled]="!hasAdmin() ||
-        (inboundConnections() | keyvalue)?.length === 0">Delete</button>
-      </div>
-    }
-  </div>
-  @if ((inboundConnections() | keyvalue)?.length === 0) {
-    <p class="vertex-edge-type-container">None</p>
-  }
-  @for (group of (inboundConnections() | keyvalue); track group.key) {
-    <div class="vertex-edge-type-container">
-      <h5>{{group.key | titlecase}}</h5>
-      <mat-chip-listbox [selectable]="false">
-        @for (item of group.value; track item.vertex.id) {
-          <mat-chip-option
-            [ngStyle]="{'background-color': '#' + configRecord[item.vertex.collection].color}"
-            (click)="navigateConnection($event, item)">
-            <span [ngStyle]="{color: this.getVisibleTextColor(configRecord[item.vertex.collection].color)}">@if ($any(item.vertex).parentName) {
-            {{ $any(item.vertex).parentName}} &gt;
-          }{{item.vertex.name}}</span></mat-chip-option>
-        }
-      </mat-chip-listbox>
-    </div>
-  }
 
-  <div class="wrapper vertex-edge-container">
-    <div class="fields-wrapper">
-      <h3 class="vertex-heading">Outbound</h3>
-    </div>
-    @if (config().edges.length > 0) {
-      <div class="fields-wrapper" >
-        <button
-          mat-button
-          (click)="addEdgeToVertex()"
-          [disabled]="!hasAdmin()">Add</button>
-        <button
-          mat-button
-          (click)="openDeleteEdgeDialog(outboundConnections())"
-          [disabled]="!hasAdmin() ||
-        (outboundConnections() | keyvalue)?.length === 0">Delete</button>
-      </div>
-    }
-  </div>
-  @if ((outboundConnections() | keyvalue)?.length === 0) {
-    <p class="vertex-edge-type-container">None</p>
-  }
-  @for (group of (outboundConnections() | keyvalue); track group.key) {
-    <div class="vertex-edge-type-container">
-      <h5>{{group.key | titlecase}}</h5>
-      <mat-chip-listbox [selectable]="false">
-        @for (item of group.value; track item.vertex.id) {
-          <mat-chip-option
-            [ngStyle]="{'background-color': '#' + configRecord[item.vertex.collection].color}"
-            (click)="navigateConnection($event, item)">@if ($any(item.vertex).parentName) {
-            {{ $any(item.vertex).parentName}} &gt;
-          } {{item.vertex.name}}</mat-chip-option>
-        }
-      </mat-chip-listbox>
-    </div>
-  }
+  <app-inspector-connections-direction
+    direction="inbound"
+    [config]="config()"
+    [edges]="upstream()"
+    [hideRestricted]="hideRestricted()"
+    [hasAdmin]="hasAdmin()"
+    (selected)="selected.emit($event)"
+    (deleteEdges)="openDeleteEdgeDialog($event)"
+    ></app-inspector-connections-direction>
+
+  <app-inspector-connections-direction
+    direction="outbound"
+    [config]="config()"
+    [edges]="downstream()"
+    [hideRestricted]="hideRestricted()"
+    [hasAdmin]="hasAdmin()"
+    (selected)="selected.emit($event)"
+    (addEdge)="addEdgeToVertex()"
+    (deleteEdges)="openDeleteEdgeDialog($event)"
+    ></app-inspector-connections-direction>
 </div>

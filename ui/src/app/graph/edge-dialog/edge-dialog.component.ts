@@ -31,7 +31,7 @@ import {
   GraphDataVertex,
 } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
-import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionEdgeConfig, CollectionEdgePrototype } from '../../service/persistence/dto/collection-config.dto';
 import { VertexNameComponent } from '../vertex-name/vertex-name.component';
 import { PropertyEditorComponent } from '../property-editor/property-editor.component';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
@@ -66,6 +66,7 @@ export class EdgeDialogComponent implements OnInit {
     collection: CollectionNames;
     source: VertexDto;
     edge?: EdgeDto;
+    prototype?: CollectionEdgePrototype;
   }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<EdgeDialogComponent>>(MatDialogRef);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);

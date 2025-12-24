@@ -1,43 +1,54 @@
-@let localUsers = users();
-@if (localUsers && localUsers.length > 0) {
-  <table
-    mat-table
-    [dataSource]="localUsers">
+@let groups = teamGroups();
+@if (groups && groups.length > 0) {
+  @for (group of groups; track group.teamId) {
+    <div class="team-group">
+      <a
+        mat-stroked-button
+        tabindex="0"
+        (click)="navigate('team', group.teamId)"
+        (keyup.enter)="navigate('team', group.teamId)">
+        {{ group.teamName }}
+      </a>
+      <table
+        mat-table
+        [dataSource]="group.users">
 
-    <!-- Type Column -->
-    <ng-container matColumnDef="role">
-      <th mat-header-cell *matHeaderCellDef> Role(s) </th>
-      <td mat-cell *matCellDef="let element"> {{element.roles.join(', ')}} </td>
-    </ng-container>
+        <!-- Type Column -->
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef> Role(s) </th>
+          <td mat-cell *matCellDef="let element"> {{element.roles.join(', ')}} </td>
+        </ng-container>
 
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef> Name </th>
-      <td mat-cell *matCellDef="let element">
-        <a routerLink="/browse/user/{{element.id}}" (click)="navigated.emit()">
-          {{element.name}}
-        </a>
-      </td>
-    </ng-container>
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Name </th>
+          <td mat-cell *matCellDef="let element">
+            <a routerLink="/browse/user/{{element.id}}" (click)="navigated.emit()">
+              {{element.name}}
+            </a>
+          </td>
+        </ng-container>
 
-    <!-- Link Column -->
-    <ng-container matColumnDef="linked">
-      <th mat-header-cell *matHeaderCellDef> &nbsp; </th>
-      <td mat-cell *matCellDef="let element">
-        @if (element.linked) {
-        <mat-icon
-          matTooltip="Linked to GitHub"
-          matTooltipPosition="above"
-          class="link-icon">
-          link
-        </mat-icon>
-        }
-      </td>
-    </ng-container>
+        <!-- Link Column -->
+        <ng-container matColumnDef="linked">
+          <th mat-header-cell *matHeaderCellDef> &nbsp; </th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.linked) {
+            <mat-icon
+              matTooltip="Linked to GitHub"
+              matTooltipPosition="above"
+              class="link-icon">
+              link
+            </mat-icon>
+            }
+          </td>
+        </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns()"></tr>
-    <tr mat-row *matRowDef="let element; columns: propPeopleDisplayedColumns();" class="element-row"></tr>
-  </table>
+        <tr mat-header-row *matHeaderRowDef="propPeopleDisplayedColumns()"></tr>
+        <tr mat-row *matRowDef="let element; columns: propPeopleDisplayedColumns();" class="element-row"></tr>
+      </table>
+    </div>
+  }
 }
 @if (collectionPeople() && collectionPeople()?.length === 0) {
   <div class="people-none">None</div>

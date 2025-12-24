@@ -2,16 +2,23 @@
   <h1>Browse</h1>
 
   <form>
-    <mat-form-field>
+    <mat-form-field
+      [matTooltip]="config().hint"
+      [matTooltipDisabled]="collectionSelect.panelOpen"
+      matTooltipShowDelay="500"
+      matTooltipPosition="right">
       <mat-label>Collection</mat-label>
       <mat-select
+        #collectionSelect="matSelect"
         [value]="collection()"
         (selectionChange)="onCollectionChange($event.value)"
         name="collection">
         @for (opt of collectionFilterOptions(); track opt) {
           <mat-option
+            #collectionOptionTooltip="matTooltip"
             [value]="opt.value"
             [matTooltip]="opt.tooltip"
+            [matTooltipDisabled]="!collectionSelect.panelOpen"
             matTooltipShowDelay="500"
             matTooltipPosition="right">
             {{opt.viewValue}}
@@ -43,6 +50,6 @@
     [size]="size()"
     [sortActive]="sortActive()"
     [sortDirection]="sortDirection()"
-    (settingsUpdated)="updateRoute($event)"
+    (settingsUpdated)="updateTableRoute($event)"
     ></app-collection-table>
 }

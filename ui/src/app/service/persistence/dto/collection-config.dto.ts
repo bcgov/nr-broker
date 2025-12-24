@@ -101,6 +101,18 @@ export class GitHubEdgeToRoles {
   role!: string;
 }
 
+export class ConnectedTableEdgeInfo {
+  collection!: CollectionNames;
+  restrict!: boolean;
+  direction!: 'upstream' | 'downstream';
+}
+
+export class ConnectedTableOptions {
+  collection!: CollectionNames;
+  restrict!: 'all' | 'none' | 'some';
+  direction!: 'upstream' | 'downstream';
+}
+
 export class ConnectedTableConfig {
   collection!: CollectionNames;
   direction!: 'upstream' | 'downstream';

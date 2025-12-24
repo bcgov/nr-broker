@@ -56,6 +56,7 @@ export abstract class CollectionRepository {
     tags: string[] | undefined,
     upstreamVertex: string | undefined,
     downstreamVertex: string | undefined,
+    includeRestricted: boolean | undefined,
     id: string | undefined,
     vertexIds: string[] | undefined,
     sort: string | undefined,

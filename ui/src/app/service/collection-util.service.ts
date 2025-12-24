@@ -6,7 +6,7 @@ import {
 } from './persistence/dto/collection-dto-union.type';
 import { VertexDto } from './persistence/dto/vertex.dto';
 import { CollectionApiService } from './collection-api.service';
-import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
+import { CollectionConfigDto, ConnectedTableEdgeInfo, ConnectedTableOptions } from './persistence/dto/collection-config.dto';
 import { CONFIG_RECORD } from '../app-initialize.factory';
 import { CollectionConfigNameRecord } from './graph.types';
 import { map } from 'rxjs';
@@ -56,6 +56,56 @@ export class CollectionUtilService {
           }
         }),
       );
+  }
+
+  computeConnectedTables(
+    collection: CollectionNames | undefined,
+    additionalTables: ConnectedTableEdgeInfo[] = [],
+  ): ConnectedTableOptions[] {
+    if (!collection) {
+      return [];
+    }
+    const connectedTables = this.configRecord[collection]?.connectedTable ?? [];
+    const seen = new Set<string>(
+      connectedTables.map((t) => `${t.collection}:${t.direction}`),
+    );
+
+    const additionalTablesWithUsers = [
+      ...additionalTables,
+      ...(this.configRecord[collection]?.showUserRoles
+        ? [{ collection: 'user' as CollectionNames, restrict: false, direction: 'upstream' as const }]
+        : []),
+    ];
+    const restrictVal = new Map<string, 'all' | 'none' | 'some'>();
+    for (const table of additionalTablesWithUsers) {
+      if (!restrictVal.has(`${table.collection}:${table.direction}`)) {
+        restrictVal.set(
+          `${table.collection}:${table.direction}`,
+          table.restrict ? 'all' : 'none',
+        );
+      } else {
+        const current = restrictVal.get(
+          `${table.collection}:${table.direction}`,
+        );
+        if ((current === 'none' && table.restrict) || (current === 'all' && !table.restrict)) {
+          restrictVal.set(
+            `${table.collection}:${table.direction}`,
+            'some',
+          );
+        }
+      }
+    }
+    const result: ConnectedTableOptions[] = [];
+
+    for (const table of additionalTablesWithUsers) {
+      const key = `${table.collection}:${table.direction}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push({ ...table, restrict: restrictVal.get(key)! });
+      }
+    }
+
+    return result.sort((a, b) => a.collection.localeCompare(b.collection));
   }
 
   openInBrowserByVertexId(

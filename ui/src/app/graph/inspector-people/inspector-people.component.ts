@@ -1,10 +1,9 @@
-import { Component, OnChanges, booleanAttribute, computed, input, inject, output, signal } from '@angular/core';
+import { Component, OnChanges, computed, input, inject, output, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { of } from 'rxjs';
 import {
   CollectionDtoUnion,
   CollectionNames,
@@ -23,6 +22,12 @@ interface UserData {
   roleSet: Set<string>;
   roles: string[];
   linked: boolean;
+}
+
+interface TeamGroup {
+  teamId: string;
+  teamName: string;
+  users: UserData[];
 }
 
 @Component({
@@ -44,15 +49,16 @@ export class InspectorPeopleComponent implements OnChanges {
 
   readonly collection = input.required<CollectionNames>();
   readonly vertex = input.required<string>();
-  readonly showLinked = input(false, { transform: booleanAttribute });
+  readonly filterVertex = input<string>();
   readonly navigated = output();
 
   collectionPeople = signal<GraphUpDownDto<any>[] | null>(null);
   users = signal<UserData[] | null>(null);
+  teamGroups = signal<TeamGroup[]>([]);
   private edges: CollectionEdgeConfig[] | undefined;
 
   readonly propPeopleDisplayedColumns = computed(() => {
-    return this.showLinked() ? ['name', 'role', 'linked'] : ['name', 'role'];
+    return ['name', 'role'];
   });
 
   ngOnChanges() {
@@ -63,11 +69,30 @@ export class InspectorPeopleComponent implements OnChanges {
     }
 
     this.getUpstreamUsers(this.vertex()).subscribe((data) => {
-      const userMap = new Map<string, UserData>();
+      // Group by team (edge.source is the team vertex)
+      const teamMap = new Map<string, { teamName: string; users: Map<string, UserData> }>();
+      const filterVertex = this.filterVertex();
 
       for (const upstream of data) {
-        if (!userMap.has(upstream.collection.id)) {
-          userMap.set(upstream.collection.id, {
+        // upstream.vertex is the team vertex (where edge.source points to)
+        const teamId = upstream.vertex.id;
+        const teamName = upstream.vertex.name;
+
+        // If filterVertex is set, only include users from that team
+        if (filterVertex && upstream.collection.vertex !== filterVertex) {
+          continue;
+        }
+
+        if (!teamMap.has(teamId)) {
+          teamMap.set(teamId, {
+            teamName,
+            users: new Map<string, UserData>(),
+          });
+        }
+
+        const team = teamMap.get(teamId)!;
+        if (!team.users.has(upstream.collection.id)) {
+          team.users.set(upstream.collection.id, {
             id: upstream.collection.id,
             name: upstream.collection.name,
             roleSet: new Set<string>(),
@@ -76,65 +101,48 @@ export class InspectorPeopleComponent implements OnChanges {
           });
         }
 
-        userMap.get(upstream.collection.id)?.roleSet.add(upstream.edge.name);
-        userMap.get(upstream.edge.target)?.roleSet.add(upstream.edge.name);
+        team.users.get(upstream.collection.id)?.roleSet.add(upstream.edge.name);
       }
 
-      for (const user of userMap.values()) {
-        for (const edge of this.edges || []) {
-          if (user.roleSet.has(edge.name)) {
-            user.roles.push(edge.name);
+      // Convert roleSet to roles array for each user in each team
+      const groups: TeamGroup[] = [];
+      for (const [teamId, team] of teamMap) {
+        const users: UserData[] = [];
+        for (const user of team.users.values()) {
+          for (const edge of this.edges || []) {
+            if (user.roleSet.has(edge.name)) {
+              user.roles.push(edge.name);
+            }
           }
+          users.push(user);
         }
+        users.sort((a, b) => a.name.localeCompare(b.name));
+        groups.push({
+          teamId,
+          teamName: team.teamName,
+          users,
+        });
       }
 
-      this.users.set([...userMap.values()].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      ));
+      groups.sort((a, b) => a.teamName.localeCompare(b.teamName));
+      this.teamGroups.set(groups);
+
+      // Also set flat users list for backward compatibility
+      const allUsers: UserData[] = groups.flatMap((g) => g.users);
+      this.users.set(allUsers);
       this.collectionPeople.set(data);
     });
   }
 
   private getUpstreamUsers(vertexId: string) {
-    const mapCollectionToEdgeName: Record<string, string[]> = {
-      repository: [
-        'developer',
-        'lead-developer',
-        'full-access',
-        'owner',
-        'tester',
-      ],
-      service: [
-        'developer',
-        'lead-developer',
-        'full-access',
-        'prod-operator',
-        'owner',
-        'tester',
-      ],
-      project: [
-        'developer',
-        'lead-developer',
-        'full-access',
-        'prod-operator',
-        'owner',
-        'tester',
-      ],
-      brokerAccount: ['lead-developer', 'full-access'],
-    };
-    const collection = this.collection();
-    if (!Object.keys(mapCollectionToEdgeName).includes(collection)) {
-      return of([]);
-    }
-
     return this.graphApi.getUpstream<UserDto>(
       vertexId,
       this.configMap['user'].index,
-      mapCollectionToEdgeName[collection],
     );
   }
 
   navigate(collection: keyof CollectionDtoUnion, vertexId: string) {
     this.collectionUtil.openInBrowserByVertexId(collection, vertexId);
+    this.navigated.emit();
   }
 }

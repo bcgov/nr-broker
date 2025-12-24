@@ -1,26 +1,18 @@
-import { Component, input, inject, computed } from '@angular/core';
+import { Component, input, inject, computed, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { httpResource } from '@angular/common/http';
+
 import { CollectionConfigInstanceDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphApiService } from '../../service/graph-api.service';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
 import { TeamServiceRequestComponent } from '../../team/team-service-request/team-service-request.component';
-import { httpResource } from '@angular/common/http';
+import { TeamServiceComponent } from '../team-service/team-service.component';
+import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 
 @Component({
   selector: 'app-team-services',
   imports: [
     CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    MatDividerModule,
-    MatIconModule,
-    MatTableModule,
-    MatTooltipModule,
+    TeamServiceComponent,
     TeamServiceRequestComponent,
   ],
   templateUrl: './team-services.component.html',
@@ -29,9 +21,10 @@ import { httpResource } from '@angular/common/http';
 export class TeamServicesComponent {
   private readonly graphApi = inject(GraphApiService);
 
+  readonly showHelp = input<boolean>(false);
   readonly teamVertex = input.required<string>();
-
-  propDisplayedColumns: string[] = ['key', 'value'];
+  readonly userPermissions = input.required<UserPermissionDto>();
+  readonly refresh = output<void>();
 
   readonly servicesResource = httpResource<CollectionConfigInstanceDto[]>(() => {
     return this.graphApi.getEdgeConfigByVertexArgs(

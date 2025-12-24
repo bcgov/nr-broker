@@ -44,7 +44,7 @@
           <ng-template matMenuContent>
             <button
               mat-menu-item
-              [disabled]="!hasUpdate || (target()?.type === 'vertex' && !config().permissions.update)"
+              [disabled]="!hasUpdate() || (target()?.type === 'vertex' && !config().permissions.update)"
               (click)="editTarget()">
               <mat-icon>edit</mat-icon>
               <span>Edit</span>
@@ -61,7 +61,7 @@
             @if (target()?.type === 'vertex') {
               <button
                 mat-menu-item
-                [disabled]="!hasUpdate || (!config().permissions.update)"
+                [disabled]="!hasUpdate() || (!config().permissions.update)"
                 (click)="editTags()">
                 <mat-icon>label</mat-icon>
                 <span>Add/Remove Tags</span>
@@ -74,6 +74,10 @@
                 <mat-icon>content_copy</mat-icon>
                 <span>Copy Vertex Id</span>
               </button>
+                <button mat-menu-item (click)="toggleHideRestricted()">
+                  <mat-icon>{{hideRestricted() ? 'visibility' : 'visibility_off'}}</mat-icon>
+                  <span>{{hideRestricted() ? 'Show All Edges' : 'Hide Restricted Edges'}}</span>
+                </button>
               <button
                 mat-menu-item
                 (click)="toggleNavigationFollows()">
@@ -84,7 +88,7 @@
             <mat-divider></mat-divider>
             <button
               mat-menu-item
-              [disabled]="!hasDelete || (target()?.type === 'vertex' && !config().permissions.delete)"
+              [disabled]="!hasDelete() || (target()?.type === 'vertex' && !config().permissions.delete)"
               (click)="deleteTarget()">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
@@ -111,18 +115,19 @@
             [collection]="localComboData.vertex.collection"
             [collectionConfig]="configMap[localComboData.vertex.collection]"
             [comboData]="localComboData"
-            [hasSudo]="hasSudo"
-            [hasUpdate]="hasUpdate"
+            [hasSudo]="hasSudo()"
+            [hasUpdate]="hasUpdate()"
             ></app-inspector-vertex>
 
+          <div class="wrapper vertex-edge-container">
+            <div class="fields-wrapper">
+              <h3 class="vertex-heading">Connections</h3>
+            </div>
+          </div>
           <app-inspector-connections
-            [collection]="localComboData.vertex.collection"
-            [config]="configMap[localComboData.vertex.collection]"
-            [vertex]="localComboData.collection.vertex"
-            [source]="localComboData.vertex"
-            [upstream]="localComboData.upstream"
-            [downstream]="localComboData.downstream"
-            [hasAdmin]="hasAdmin"
+            [comboData]="localComboData"
+            [hasAdmin]="hasAdmin()"
+            [hideRestricted]="hideRestricted()"
             (selected)="navigate($event)"
             ></app-inspector-connections>
         }

@@ -49,7 +49,7 @@ export class EchartsComponent implements OnInit, OnDestroy {
   echartsInstance: ECharts | undefined;
   private triggerRefresh = new BehaviorSubject(true);
   private ngUnsubscribe = new Subject<any>();
-  private prefSubscription!: Subscription;
+  private prefSubscription: Subscription | undefined;
 
   ngOnInit(): void {
     this.prefSubscription = this.preferences.onSet.subscribe((pref) => {
@@ -224,7 +224,9 @@ export class EchartsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.prefSubscription.unsubscribe();
+    if (this.prefSubscription) {
+      this.prefSubscription.unsubscribe();
+    }
     this.ngUnsubscribe.next(true);
     this.ngUnsubscribe.complete();
   }

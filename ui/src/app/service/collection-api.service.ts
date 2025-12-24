@@ -80,6 +80,7 @@ export class CollectionApiService {
       tags?: string[];
       upstreamVertex?: string;
       downstreamVertex?: string;
+      includeRestricted?: boolean;
       id?: string;
       vertexId?: string;
       sortActive?: string;
@@ -88,32 +89,43 @@ export class CollectionApiService {
       limit: number;
     },
   ) {
+    const params: Record<string, string | string[]> = {
+      offset: options.offset.toString(),
+      limit: options.limit.toString(),
+    };
+
+    if (options.q) {
+      params['q'] = options.q;
+    }
+    if (options.tags && options.tags.length > 0) {
+      params['tags'] = options.tags;
+    }
+    if (options.upstreamVertex) {
+      params['upstreamVertex'] = options.upstreamVertex;
+    }
+    if (options.downstreamVertex) {
+      params['downstreamVertex'] = options.downstreamVertex;
+    }
+    if (options.includeRestricted) {
+      params['includeRestricted'] = options.includeRestricted.toString();
+    }
+    if (options.id) {
+      params['id'] = options.id;
+    }
+    if (options.vertexId) {
+      params['vertexId'] = options.vertexId;
+    }
+    if (options.sortActive && options.sortDirection) {
+      params['sort'] = options.sortActive;
+      params['dir'] = options.sortDirection;
+    }
+
     return this.http.post<CollectionSearchResult<CollectionDtoUnion[T]>>(
-      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(
-        name,
-      )}/search?${options.q ? `q=${encodeURIComponent(options.q)}&` : ''}${
-        options.tags
-          ? options.tags
-              .map((tag) => `tags=${encodeURIComponent(tag)}&`)
-              .join('')
-          : ''
-      }${
-        options.upstreamVertex
-          ? `upstreamVertex=${options.upstreamVertex}&`
-          : ''
-      }${
-        options.downstreamVertex
-          ? `downstreamVertex=${options.downstreamVertex}&`
-          : ''
-      }${options.id ? `id=${options.id}&` : ''}${
-        options.vertexId ? `vertexId=${options.vertexId}&` : ''
-      }${options.sortActive && options.sortDirection ? `sort=${options.sortActive}&` : ''}${
-        options.sortActive && options.sortDirection
-          ? `dir=${options.sortDirection}&`
-          : ''
-      }offset=${options.offset}&limit=${options.limit}`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/search`,
+      null,
       {
         responseType: 'json',
+        params,
       },
     );
   }

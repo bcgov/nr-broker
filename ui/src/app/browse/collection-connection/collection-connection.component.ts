@@ -2,15 +2,18 @@ import { Component, computed, inject, input, numberAttribute } from '@angular/co
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SortDirection } from '@angular/material/sort';
+import { httpResource } from '@angular/common/http';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { CollectionTableComponent, ShowFilter, TableQuery } from '../collection-table/collection-table.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ScreenService } from '../../util/screen.service';
 import { PreferencesService } from '../../preferences.service';
-import { httpResource } from '@angular/common/http';
+import { CollectionUtilService } from '../../service/collection-util.service';
+import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
+import { ConnectedTableEdgeInfo } from '../../service/persistence/dto/collection-config.dto';
 
 @Component({
   selector: 'app-collection-connection',
@@ -25,28 +28,48 @@ import { httpResource } from '@angular/common/http';
 export class CollectionConnectionComponent {
   readonly screen = inject(ScreenService);
   private readonly collectionApi = inject(CollectionApiService);
+  private readonly collectionUtil = inject(CollectionUtilService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly router = inject(Router);
   private readonly preferences = inject(PreferencesService);
 
   connectedTableCollection = input<CollectionNames>('project');
+  connectedTableDirection = input<'upstream' | 'downstream'>('downstream');
   collection = input.required<CollectionNames>();
   collectionId = input.required<string>();
 
   private readonly config = computed(() => {
     return this.configRecord[this.collection()];
   });
-  connectedTableCollectionOptions = computed(() => {
-    const collectionOptions = this.config()?.connectedTable;
-    if (collectionOptions && collectionOptions[0]) {
-      return collectionOptions.map((c) => c.collection);
-    } else {
-      return [];
-    }
+
+  collectionResource = httpResource<CollectionComboDto<any>>(() => {
+    return this.collectionApi.getCollectionComboByIdArgs(this.collection(), this.collectionId());
   });
 
-  collectionResource = httpResource<CollectionValues>(() => {
-    return this.collectionApi.getCollectionByIdArgs(this.collection(), this.collectionId());
+  edgeOptions = computed<ConnectedTableEdgeInfo[]>(() => {
+    const combo = this.collectionResource.value();
+    if (!combo) {
+      return [];
+    }
+    return [
+      ...(combo.upstream.map((combo) => ({
+        collection: combo.vertex.collection,
+        restrict: !!combo.edge.restrict,
+        direction: 'upstream' as const,
+      })) || []),
+      ...(combo.downstream.map((combo) => ({
+        collection: combo.vertex.collection,
+        restrict: !!combo.edge.restrict,
+        direction: 'downstream' as const,
+      })) || []),
+    ];
+  });
+
+  connectedTableCollectionOptions = computed(() => {
+    return this.collectionUtil.computeConnectedTables(
+      this.collection(),
+      this.edgeOptions(),
+    );
   });
 
   text = input('', { transform: (v: string | undefined) => v ?? '' });
@@ -62,6 +85,10 @@ export class CollectionConnectionComponent {
   size = input(10, { transform: (v) => numberAttribute(v, 10) });
   sortActive = input('');
   sortDirection = input<SortDirection>('');
+  includeRestricted = input(false, {
+    transform: (v: boolean | string | undefined) =>
+      v === true || v === 'true',
+  });
 
   isUpstreamConnectedCollection(collection: CollectionNames) {
     return (
@@ -72,12 +99,17 @@ export class CollectionConnectionComponent {
   }
 
   updateTableRoute(settings: TableQuery) {
-    if (this.connectedTableCollection() === settings.collection) {
+    if (
+      this.connectedTableCollection() === settings.collection &&
+      this.connectedTableDirection() === settings.direction
+    ) {
       this.router.navigate(
         [
           `/browse/${this.collection()}/${this.collectionId()}/connections`,
           {
             connectedTableCollection: settings.collection,
+            connectedTableDirection: settings.direction,
+            includeRestricted: settings.includeRestricted,
             text: settings.text,
             index: settings.index,
             size: settings.size,
@@ -99,6 +131,8 @@ export class CollectionConnectionComponent {
           `/browse/${this.collection()}/${this.collectionId()}/connections`,
           {
             connectedTableCollection: settings.collection,
+            connectedTableDirection: settings.direction,
+            includeRestricted: settings.includeRestricted,
             text: '',
             index: 0,
             size: 10,

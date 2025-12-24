@@ -1,6 +1,9 @@
 <div class="container">
   @if (showHeader()) {
     <h3 class="property-heading">Properties</h3>
+    @if (showHelp()) {
+      <small>Key-value pairs that describe the graph item.</small>
+    }
   }
   <table mat-table [dataSource]="prop() | keyvalue">
     <!-- Key Column -->

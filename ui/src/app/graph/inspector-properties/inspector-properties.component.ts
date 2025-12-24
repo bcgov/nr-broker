@@ -13,5 +13,6 @@ import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
 export class InspectorPropertiesComponent {
   readonly prop = input.required<VertexPropDto | EdgePropDto>();
   readonly showHeader = input(true);
+  readonly showHelp = input(false);
   propDisplayedColumns: string[] = ['key', 'value'];
 }

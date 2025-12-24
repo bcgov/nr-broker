@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CollectionSearchQuery {
   @IsOptional()
@@ -23,6 +23,11 @@ export class CollectionSearchQuery {
   @IsString()
   @Type(() => String)
   downstreamVertex?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  includeRestricted?: boolean;
 
   @IsOptional()
   @IsString()

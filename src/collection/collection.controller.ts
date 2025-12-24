@@ -436,6 +436,10 @@ export class CollectionController {
     required: false,
   })
   @ApiQuery({
+    name: 'includeRestricted',
+    required: false,
+  })
+  @ApiQuery({
     name: 'vertexId',
     required: false,
   })
@@ -478,6 +482,7 @@ export class CollectionController {
       query.tags,
       query.upstreamVertex,
       query.downstreamVertex,
+      query.includeRestricted,
       query.id,
       query.vertexId,
       query.sort,

@@ -18,8 +18,9 @@ export class InspectorPeopleDialogComponent {
   private readonly dialog = inject(MatDialog);
   readonly data = inject<{
     collection: CollectionNames;
+    name: string;
     vertex: string;
-    showLinked: boolean;
+    filterVertex?: string;
   }>(MAT_DIALOG_DATA);
 
   close() {
