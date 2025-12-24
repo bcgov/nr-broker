@@ -1,9 +1,9 @@
-<h2 mat-dialog-title>View User Roles</h2>
+<h2 mat-dialog-title>{{ data.name }} - Team User Roles</h2>
 <mat-dialog-content>
   <app-inspector-people
     [collection]="data.collection"
     [vertex]="data.vertex"
-    [showLinked]="data.collection === 'repository'"
+    [filterVertex]="data.filterVertex"
     (navigated)="close()"></app-inspector-people>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

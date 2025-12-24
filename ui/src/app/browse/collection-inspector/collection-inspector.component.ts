@@ -58,6 +58,8 @@ import { InspectorServiceSecureComponent } from '../../graph/inspector-service-s
 import { InspectorInstancesComponent } from '../../graph/inspector-instances/inspector-instances.component';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
 import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
+import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -105,6 +107,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
   readonly screen = inject(ScreenService);
@@ -133,6 +136,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   public serviceInstanceDetails = signal<ServiceInstanceDetailsResponseDto | null>(null);
   public permissions = signal<UserPermissionDto | null>(null);
+  public navigationFollows = signal<'vertex' | 'edge'>('vertex');
 
   public serviceDetails = signal<any>(null);
 
@@ -149,6 +153,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   refresh = signal(0);
   showHelp = signal(false);
+  hideRestricted = signal(this.preferences.get('graphHideRestricted'));
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -224,6 +229,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.navigationFollows.set(this.preferences.get('graphFollows'));
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
@@ -415,6 +421,33 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
+  }
+
+  openUserRolesDialog() {
+    this.dialog
+      .open(InspectorPeopleDialogComponent, {
+        closeOnNavigation: true,
+        width: '640px',
+        data: {
+          collection: this.collection(),
+          vertex: this.comboData()?.vertex.id,
+          name: this.comboData()?.vertex.name,
+        },
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  toggleNavigationFollows() {
+    this.navigationFollows.set(
+      this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
+    );
+    this.preferences.set('graphFollows', this.navigationFollows());
+  }
+
+  toggleHideRestricted() {
+    this.hideRestricted.set(!this.hideRestricted());
+    this.preferences.set('graphHideRestricted', this.hideRestricted());
   }
 
   private openSnackBar(message: string) {

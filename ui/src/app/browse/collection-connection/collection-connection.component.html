@@ -4,7 +4,7 @@
 @if (collectionResource.hasValue()) {
   <app-collection-header
     [collection]="collection()"
-    [title]="collectionResource.value().name"
+    [title]="collectionResource.value().collection.name"
     [backIcon]="'arrow_back'"
   ></app-collection-header>
   <section class="page-title">
@@ -18,7 +18,14 @@
     <app-collection-table
       class="full-width order-end"
       [collection]="connectedTableCollection()"
-      [target]="{collection: this.collection(), vertex: this.collectionResource.value().vertex}"
+      [direction]="connectedTableDirection()"
+      [target]="{
+        collection: this.collection(),
+        vertex: this.collectionResource.value().vertex.id,
+        options: this.connectedTableCollectionOptions(),
+        name: this.collectionResource.value().vertex.name
+      }"
+      [includeRestricted]="includeRestricted()"
       [text]="text()"
       [showFilter]="showFilter()"
       [tags]="tags()"

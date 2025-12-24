@@ -21,8 +21,10 @@ export class PreferenceEntity extends BaseEntity {
 
   public setFromDto(preference: PreferenceDto): void {
     this.browseCollectionDefault = preference.browseCollectionDefault;
+    this.browseConnectionSize = preference.browseConnectionSize;
     this.browseConnectionFilter = preference.browseConnectionFilter;
     this.graphFollows = preference.graphFollows;
+    this.graphHideRestricted = preference.graphHideRestricted;
     this.graphVertexVisibility = preference.graphVertexVisibility;
     this.graphEdgeSrcTarVisibility = preference.graphEdgeSrcTarVisibility;
     this.homeSectionTab = preference.homeSectionTab;
@@ -47,7 +49,13 @@ export class PreferenceEntity extends BaseEntity {
   browseCollectionDefault: CollectionNames = 'project';
 
   @Property()
+  browseConnectionSize: number = 10;
+
+  @Property()
   graphFollows: 'edge' | 'vertex' = 'vertex';
+
+  @Property()
+  graphHideRestricted: boolean = true;
 
   @Property({
     type: 'json',

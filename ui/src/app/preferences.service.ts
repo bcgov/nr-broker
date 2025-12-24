@@ -10,6 +10,7 @@ import { PreferenceDto } from './service/persistence/dto/preference.dto';
 export class PreferencesService {
   private readonly http = inject(HttpClient);
   private readonly preferences = inject<PreferenceDto>(INITIAL_PREFERENCES);
+  private writeQueued = false;
 
   public _onSet = new EventEmitter<{
     key: keyof PreferenceDto;
@@ -39,7 +40,7 @@ export class PreferencesService {
       value,
     });
 
-    this.writePreferences().subscribe();
+    this.queueWritePreferences();
   }
 
   reset<K extends keyof PreferenceDto>(keys: K[]) {
@@ -51,6 +52,17 @@ export class PreferencesService {
     }
 
     this.writePreferences().subscribe();
+  }
+
+  private queueWritePreferences() {
+    if (this.writeQueued) {
+      return;
+    }
+    this.writeQueued = true;
+    setTimeout(() => {
+      this.writeQueued = false;
+      this.writePreferences().subscribe();
+    }, 0);
   }
 
   private writePreferences() {

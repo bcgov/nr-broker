@@ -74,6 +74,10 @@
                 <mat-icon>content_copy</mat-icon>
                 <span>Copy Vertex Id</span>
               </button>
+                <button mat-menu-item (click)="toggleHideRestricted()">
+                  <mat-icon>{{hideRestricted() ? 'visibility' : 'visibility_off'}}</mat-icon>
+                  <span>{{hideRestricted() ? 'Show All Edges' : 'Hide Restricted Edges'}}</span>
+                </button>
               <button
                 mat-menu-item
                 (click)="toggleNavigationFollows()">
@@ -115,14 +119,15 @@
             [hasUpdate]="hasUpdate()"
             ></app-inspector-vertex>
 
+          <div class="wrapper vertex-edge-container">
+            <div class="fields-wrapper">
+              <h3 class="vertex-heading">Connections</h3>
+            </div>
+          </div>
           <app-inspector-connections
-            [collection]="localComboData.vertex.collection"
-            [config]="configMap[localComboData.vertex.collection]"
-            [vertex]="localComboData.collection.vertex"
-            [source]="localComboData.vertex"
-            [upstream]="localComboData.upstream"
-            [downstream]="localComboData.downstream"
+            [comboData]="localComboData"
             [hasAdmin]="hasAdmin()"
+            [hideRestricted]="hideRestricted()"
             (selected)="navigate($event)"
             ></app-inspector-connections>
         }

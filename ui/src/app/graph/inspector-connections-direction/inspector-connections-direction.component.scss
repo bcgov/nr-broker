@@ -1,0 +1,39 @@
+.vertex-heading {
+  margin: 8px 0;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.fields-wrapper {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.vertex-edge-container, .vertex-edge-type-container {
+  margin-left: 16px;
+  margin-top: 8px;
+}
+
+.hidden-link a {
+  color: var(--mat-sys-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.icon-restricted {
+  font-size: 16px;
+  vertical-align: bottom;
+}
+
+.wrapper-graphlookups {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mat-sys-on-surface-variant);
+}

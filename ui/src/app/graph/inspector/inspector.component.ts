@@ -112,6 +112,9 @@ export class InspectorComponent implements OnChanges, OnInit {
   hasUpdate = signal(false);
   hasDelete = signal(false);
 
+  // Connection display options
+  hideRestricted = signal(this.preferences.get('graphHideRestricted'));
+
   ngOnInit(): void {
     this.hasAdmin.set(this.permission.hasAdmin());
 
@@ -329,6 +332,11 @@ export class InspectorComponent implements OnChanges, OnInit {
       this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
     );
     this.preferences.set('graphFollows', this.navigationFollows());
+  }
+
+  toggleHideRestricted() {
+    this.hideRestricted.set(!this.hideRestricted());
+    this.preferences.set('graphHideRestricted', this.hideRestricted());
   }
 
   getVertexTargetData(target: InspectorTargetVertex) {
