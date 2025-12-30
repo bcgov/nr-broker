@@ -65,10 +65,7 @@ export class CollectionUtilService {
     if (!collection) {
       return [];
     }
-    const connectedTables = this.configRecord[collection]?.connectedTable ?? [];
-    const seen = new Set<string>(
-      connectedTables.map((t) => `${t.collection}:${t.direction}`),
-    );
+    const seen = new Set<string>();
 
     const additionalTablesWithUsers = [
       ...additionalTables,
