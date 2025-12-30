@@ -4,13 +4,35 @@
       <mat-form-field>
         <mat-label>Collection</mat-label>
         <mat-select
-          (selectionChange)="updateSettings({collection: $event.value})"
-          [value]="collection()">
-          @for (collection of collectionFilterOptions(); track collection.value) {
-            <mat-option [value]="collection.value">{{collection.viewValue}}</mat-option>
+          (selectionChange)="onCollectionChange($event.value)"
+          [value]="{collection: collection(), direction: direction()}"
+          [compareWith]="compareCollectionOption">
+          @for (option of collectionFilterOptions(); track option.value + ':' + option.direction) {
+            <mat-option [value]="{
+              collection: option.value,
+              restrict: option.restrict,
+              direction: option.direction
+            }">
+              {{option.direction === 'upstream' ? '↑' : '↓'}}
+              {{option.viewValue}}
+            </mat-option>
           }
         </mat-select>
       </mat-form-field>
+
+      @if (selectedIncludeRestricted() !== 'none') {
+        <mat-form-field class="field-show-filter">
+          <mat-label>Graph Edge</mat-label>
+
+          <mat-select
+            [disabled]="selectedIncludeRestricted() === 'all'"
+            (selectionChange)="onIncludeRestrictedChange(!!$event.value)"
+            [value]="includeRestricted()">
+            <mat-option [value]="false">Connected</mat-option>
+            <mat-option [value]="true">Direct (Restricted)</mat-option>
+          </mat-select>
+        </mat-form-field>
+      }
     }
     <mat-form-field class="field-typeahead-filter">
       <mat-label>Filter</mat-label>
@@ -53,7 +75,7 @@
       </mat-form-field>
     }
     <button
-      mat-stroked-button
+      mat-button
       aria-label="Clear"
       (click)="clearAndRefresh()">
       Clear
@@ -73,6 +95,14 @@
 
 <div class="table-card">
   @let localData = data();
+  @if (includeRestricted()) {
+    <mat-card class="info-panel" appearance="outlined">
+      <mat-card-content>
+        <mat-icon>info</mat-icon>
+        <span>Showing direct connections with restricted edges included.</span>
+      </mat-card-content>
+    </mat-card>
+  }
   @if ((!localData || localData.length === 0) && loading()) {
     <mat-spinner></mat-spinner>
   }
@@ -114,11 +144,33 @@
             </ng-container>
           }
 
+          <!-- Connections Column -->
+          <ng-container matColumnDef="connections-column">
+            <th mat-header-cell *matHeaderCellDef>Connections</th>
+            <td mat-cell *matCellDef="let element">
+              @if (element.upstream?.length > 0) {
+                <span class="connection-direction">↑ {{ element.upstream.length }}</span>
+              }
+              @if (element.downstream?.length > 0) {
+                <span class="connection-direction">↓ {{ element.downstream.length }}</span>
+              }
+            </td>
+          </ng-container>
+
           <!-- Action Column -->
           <ng-container matColumnDef="action-caa4f8db8b42">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
               @if (screen.screenSize() === 'wide') {
+                @if (showUserRoles()) {
+                  <button
+                    mat-button
+                    class="collection-btn"
+                    aria-label="User Roles"
+                    (click)="openUserRolesDialog(element); $event.stopPropagation()">
+                    Roles
+                  </button>
+                }
                 <button
                   mat-stroked-button
                   extended
@@ -127,6 +179,15 @@
                   View on Graph
                 </button>
               } @else {
+                @if (showUserRoles()) {
+                  <button
+                    mat-icon-button
+                    aria-label="User Roles"
+                    class="collection-btn"
+                    (click)="openUserRolesDialog(element); $event.stopPropagation()">
+                    <mat-icon>view_list</mat-icon>
+                  </button>
+                }
                 <button
                   mat-icon-button
                   class="collection-btn"

@@ -67,7 +67,7 @@ export class CollectionBrowserComponent {
     },
   );
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
-  size = input(10, { transform: (v) => numberAttribute(v, 10) });
+  size = input(10, { transform: (v) => numberAttribute(v ?? this.preferences.get('browseConnectionSize'), 10) });
   sortActive = input('');
   sortDirection = input<SortDirection>('');
 
@@ -85,10 +85,12 @@ export class CollectionBrowserComponent {
   }));
 
   onCollectionChange(val: keyof CollectionDtoUnion) {
-    this.updateRoute({
+    this.updateTableRoute({
       collection: val,
+      direction: 'upstream',
+      includeRestricted: false,
       index: 0,
-      size: 10,
+      size: this.preferences.get('browseConnectionSize') ?? 10,
       sortActive: '',
       sortDirection: '',
       showFilter: 'all',
@@ -100,9 +102,12 @@ export class CollectionBrowserComponent {
     this.preferences.set('browseCollectionDefault', val);
   }
 
-  updateRoute(settings: TableQuery) {
+  updateTableRoute(settings: TableQuery) {
     if (settings.showFilter) {
       this.preferences.set('browseConnectionFilter', settings.showFilter);
+    }
+    if (settings.size) {
+      this.preferences.set('browseConnectionSize', settings.size);
     }
     this.router.navigate(
       [

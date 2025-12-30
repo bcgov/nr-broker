@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild, inject, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, viewChild, inject, AfterViewInit, computed, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -13,10 +13,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { GraphApiService } from '../../service/graph-api.service';
-import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
-import { PropertyEditorComponent } from '../property-editor/property-editor.component';
+import { VertexDialogEditorComponent } from '../vertex-dialog-editor/vertex-dialog-editor.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -34,8 +33,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
     MatSelectModule,
     MatOptionModule,
     ReactiveFormsModule,
-    PropertyEditorComponent,
-    VertexFormBuilderComponent,
+    VertexDialogEditorComponent,
   ],
 })
 export class VertexDialogComponent implements OnInit, AfterViewInit {
@@ -51,18 +49,16 @@ export class VertexDialogComponent implements OnInit, AfterViewInit {
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   collectionControl = new FormControl<string | CollectionConfigDto>('');
-  configs!: CollectionConfigDto[];
-
-  @ViewChild(VertexFormBuilderComponent)
-  private formComponent!: VertexFormBuilderComponent;
-
-  @ViewChild(PropertyEditorComponent)
-  private propertyEditorComponent!: PropertyEditorComponent;
-
-  ngOnInit() {
-    this.configs = Object.values(this.configRecord)
+  configs = computed(() => {
+    return Object.values(this.configRecord)
       .filter((config) => config.permissions.create)
       .sort((a, b) => a.name.localeCompare(b.name));
+  });
+  isFormValid = signal(false);
+
+  private readonly editorComponent = viewChild(VertexDialogEditorComponent);
+
+  ngOnInit() {
     if (this.data.collection) {
       const config = this.configRecord[this.data.collection as CollectionNames];
       if (config) {
@@ -79,16 +75,20 @@ export class VertexDialogComponent implements OnInit, AfterViewInit {
   }
 
   addUpdateVertex() {
-    if (this.isFormInvalid()) {
+    if (!this.isFormValid()) {
       return;
     }
     const config = this.collectionControl.value;
-    const prop = this.propertyEditorComponent.getPropertyValues();
+    const editor = this.editorComponent();
+    if (!editor) {
+      return;
+    }
+    const prop = editor.getPropertyValues();
 
     if (this.isCollectionConfig(config)) {
       const vertexData = this.graphUtil.extractVertexData(
         config,
-        this.formComponent.form.value,
+        editor.getFormValue(),
       );
 
       if (this.data.vertex) {
@@ -117,10 +117,6 @@ export class VertexDialogComponent implements OnInit, AfterViewInit {
 
   closeDialog() {
     this.dialogRef.close();
-  }
-
-  isFormInvalid() {
-    return !this.formComponent?.form?.valid;
   }
 
   isCollectionConfig(cc: any): cc is CollectionConfigDto {

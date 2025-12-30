@@ -1,7 +1,6 @@
 import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { httpResource } from '@angular/common/http';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -19,7 +18,7 @@ import {
   MatSnackBarModule,
 } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
-import { Subject, combineLatest, filter, startWith, takeUntil } from 'rxjs';
+import { Subject, startWith, takeUntil } from 'rxjs';
 
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -58,6 +57,9 @@ import { InspectorVaultComponent } from '../../graph/inspector-vault/inspector-v
 import { InspectorServiceSecureComponent } from '../../graph/inspector-service-secure/inspector-service-secure.component';
 import { InspectorInstancesComponent } from '../../graph/inspector-instances/inspector-instances.component';
 import { ServiceInstanceDetailsComponent } from '../service-instance-details/service-instance-details.component';
+import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
+import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -105,6 +107,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
   readonly screen = inject(ScreenService);
@@ -124,19 +127,22 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     return this.configRecord[this.collection()];
   });
   public comboData = signal<CollectionCombo<any> | null>(null);
-  public comboDataResource = httpResource(() => {
+  public comboDataResource = httpResource<CollectionCombo<any>>(() => {
     return this.collectionApi.getCollectionComboByIdArgs(
       this.collection(),
       this.collectionId(),
     );
   });
-  public comboDataResource$ = toObservable(
-    this.comboDataResource.asReadonly().value,
-  ).pipe(filter((data) => !!data));
 
   public serviceInstanceDetails = signal<ServiceInstanceDetailsResponseDto | null>(null);
+  public permissions = signal<UserPermissionDto | null>(null);
+  public navigationFollows = signal<'vertex' | 'edge'>('vertex');
 
   public serviceDetails = signal<any>(null);
+
+  public vertexProperties = computed(() => {
+    return this.comboData()?.vertex.prop;
+  });
 
   // Permissions
   hasAdmin = signal(false);
@@ -147,6 +153,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   refresh = signal(0);
   showHelp = signal(false);
+  hideRestricted = signal(this.preferences.get('graphHideRestricted'));
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -169,9 +176,60 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
         this.connectedTableCollection.set('project');
       }
     });
+
+    effect(() => {
+      const comboData = this.comboDataResource.value();
+      if (!comboData || !this.config()) {
+        return;
+      }
+      // console.log('Combo data loaded', comboData);
+
+      this.comboData.set(comboData as CollectionCombo<any>);
+      this.graphApi.getUserPermissions().subscribe((permissions) => {
+        this.permissions.set(permissions);
+        this.hasAdmin.set(this.permission.hasAdmin());
+        this.hasSudo.set(this.permission.hasSudo(
+          permissions,
+          this.comboData()?.collection.vertex,
+        ));
+        this.hasUpdate.set(this.permission.hasUpdate(
+          permissions,
+          this.comboData()?.collection.vertex,
+        ));
+        this.hasDelete.set(this.permission.hasDelete(
+          permissions,
+          this.comboData()?.collection.vertex,
+        ));
+        this.hasApprove.set(this.permission.hasApprove(
+          permissions,
+          this.comboData()?.collection.vertex,
+        ));
+      });
+
+      this.serviceInstanceDetails.set(null);
+
+      if (this.collection() === 'serviceInstance') {
+        this.collectionApi
+          .getServiceInstanceDetails(this.comboData()?.collection.id)
+          .subscribe((data) => {
+            this.serviceInstanceDetails.set(data);
+          });
+      }
+
+      if (this.collection() === 'service') {
+        this.collectionApi
+          .getServiceDetails(this.comboData()?.collection.id)
+          .subscribe((data) => {
+            this.serviceDetails.set(data);
+          });
+      }
+
+      this.hideLoading.set(false);
+    });
   }
 
   ngOnInit(): void {
+    this.navigationFollows.set(this.preferences.get('graphFollows'));
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
@@ -212,55 +270,6 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           }
         }
       });
-
-    combineLatest([
-      this.graphApi.getUserPermissions(),
-      this.comboDataResource$,
-    ]).subscribe(([permissions, comboData]) => {
-      if (!this.config()) {
-        return;
-      }
-
-      this.comboData.set(comboData as CollectionCombo<any>);
-      this.hasAdmin.set(this.permission.hasAdmin());
-      this.hasSudo.set(this.permission.hasSudo(
-        permissions,
-        this.comboData()?.collection.vertex,
-      ));
-      this.hasUpdate.set(this.permission.hasUpdate(
-        permissions,
-        this.comboData()?.collection.vertex,
-      ));
-      this.hasDelete.set(this.permission.hasDelete(
-        permissions,
-        this.comboData()?.collection.vertex,
-      ));
-      this.hasApprove.set(this.permission.hasApprove(
-        permissions,
-        this.comboData()?.collection.vertex,
-      ));
-
-      this.serviceInstanceDetails.set(null);
-
-      if (this.collection() === 'serviceInstance') {
-        this.collectionApi
-          .getServiceInstanceDetails(this.comboData()?.collection.id)
-          .subscribe((data) => {
-            this.serviceInstanceDetails.set(data);
-          });
-      }
-
-      if (this.collection() === 'service') {
-        this.collectionApi
-          .getServiceDetails(this.comboData()?.collection.id)
-          .subscribe((data) => {
-            this.serviceDetails.set(data);
-          });
-      }
-
-      this.hideLoading.set(false);
-      this.refresh.set(this.refresh() + 1);
-    });
   }
 
   ngOnDestroy() {
@@ -412,6 +421,33 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
+  }
+
+  openUserRolesDialog() {
+    this.dialog
+      .open(InspectorPeopleDialogComponent, {
+        closeOnNavigation: true,
+        width: '640px',
+        data: {
+          collection: this.collection(),
+          vertex: this.comboData()?.vertex.id,
+          name: this.comboData()?.vertex.name,
+        },
+      })
+      .afterClosed()
+      .subscribe();
+  }
+
+  toggleNavigationFollows() {
+    this.navigationFollows.set(
+      this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
+    );
+    this.preferences.set('graphFollows', this.navigationFollows());
+  }
+
+  toggleHideRestricted() {
+    this.hideRestricted.set(!this.hideRestricted());
+    this.preferences.set('graphHideRestricted', this.hideRestricted());
   }
 
   private openSnackBar(message: string) {

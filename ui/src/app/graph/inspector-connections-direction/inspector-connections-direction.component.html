@@ -1,0 +1,58 @@
+<div class="wrapper vertex-edge-container">
+  <div class="fields-wrapper">
+    <h3 class="vertex-heading">{{ direction() === 'inbound' ? 'Inbound' : 'Outbound' }}</h3>
+  </div>
+  @if (config().edges.length > 0) {
+    <div class="fields-wrapper">
+      @if (direction() === 'outbound') {
+        <button
+          mat-button
+          (click)="addEdge.emit()"
+          [disabled]="!hasAdmin()">Add</button>
+      }
+      <button
+        mat-button
+        (click)="deleteEdges.emit(connections())"
+        [disabled]="!hasAdmin() || (connections() | keyvalue)?.length === 0">Delete</button>
+    </div>
+  }
+</div>
+@if ((connections() | keyvalue)?.length === 0) {
+  <p class="vertex-edge-type-container">None</p>
+}
+@for (group of (connections() | keyvalue); track group.key) {
+  <div class="vertex-edge-type-container">
+    <h5>{{group.key | titlecase}}</h5>
+    <mat-chip-listbox [selectable]="false">
+      @for (item of group.value; track item.vertex.id) {
+        <mat-chip-option
+          [ngStyle]="{'background-color': '#' + configRecord[item.vertex.collection].color}"
+          [class.restricted]="item.edge.restrict"
+          (click)="navigateConnection($event, item)">
+          <span [ngStyle]="{color: getVisibleTextColor(configRecord[item.vertex.collection].color)}">
+            @if(item.edge.restrict) {<mat-icon class="icon-restricted" inline="true">link_off</mat-icon>}
+
+            @if ($any(item.vertex).parentName) {
+              {{ $any(item.vertex).parentName }} &gt;
+            }
+            {{item.vertex.name}}
+          </span>
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </div>
+}
+@if (hiddenCount() > 0) {
+  <p class="vertex-edge-type-container hidden-link">
+    <small>{{ hiddenCount() }} restricted edge{{ hiddenCount() === 1 ? '' : 's' }} hidden</small>
+  </p>
+}
+@if (restrictedShown()) {
+  <div
+    class="wrapper-graphlookups vertex-edge-type-container"
+    matTooltip="Not followed in graph lookups"
+    matTooltipShowDelay="500">
+    <mat-icon>link_off</mat-icon>
+    <div>Restricted graph traversal</div>
+  </div>
+}

@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import {
   MatSort,
   MatSortModule,
@@ -15,6 +16,7 @@ import {
   Sort,
 } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
@@ -40,11 +42,13 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import {
   CollectionFieldConfigMap,
+  ConnectedTableOptions,
 } from '../../service/persistence/dto/collection-config.dto';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionComboDto } from '../../service/persistence/dto/collection-combo.dto';
 import { InspectorVertexFieldComponent } from '../../graph/inspector-vertex-field/inspector-vertex-field.component';
 import { InspectorTeamComponent } from '../../graph/inspector-team/inspector-team.component';
+import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { ScreenService } from '../../util/screen.service';
 
@@ -63,6 +67,8 @@ interface TablePageQuery {
 
 export interface TableQuery {
   collection: CollectionNames;
+  direction: 'upstream' | 'downstream';
+  includeRestricted?: boolean;
   text: string;
   showFilter: ShowFilter;
   tags: string[];
@@ -80,11 +86,13 @@ export interface TableQuery {
     FormsModule,
     MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
@@ -98,6 +106,7 @@ export interface TableQuery {
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly user = inject<UserSelfDto>(CURRENT_USER);
   private readonly graphUtil = inject(GraphUtilService);
@@ -113,26 +122,25 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   target = input<{
     collection: CollectionNames;
     vertex: string;
+    name: string;
+    options: ConnectedTableOptions[];
   }>();
   // If target set, show collection dropdown based on configuration
-  collectionOptions = computed(() => {
-    const targetCollection = this.target()?.collection;
-    if (!targetCollection) {
-      return [];
-    }
-    const config = this.configRecord[targetCollection];
-    const collectionOptions = config?.connectedTable;
-    if (collectionOptions && collectionOptions[0]) {
-      return collectionOptions.map((c) => c.collection);
-    } else {
-      return [];
-    }
-  });
+  // collectionOptions = computed(() => {
+  //   // const targetCollection = this.target()?.collection;
+  //   // if (!targetCollection) {
+  //   //   return [];
+  //   // }
+  //   // const config = this.configRecord[targetCollection];
+  //   return this.collectionUtil.computeConnectedTables(
+  //     this.target()?.collection,
+  //   );
+  // });
   upstreamId = computed(() => {
     if (!this.target()?.vertex) {
       return undefined;
     }
-    return !this.isUpstreamConnectedCollection(this.collection(), this.target()?.collection)
+    return !this.isUpstreamConnectedCollection(this.collection())
       ? this.target()?.vertex
       : undefined;
   });
@@ -140,9 +148,30 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     if (!this.target()?.vertex) {
       return undefined;
     }
-    return this.isUpstreamConnectedCollection(this.collection(), this.target()?.collection)
+    return this.isUpstreamConnectedCollection(this.collection())
       ? this.target()?.vertex
       : undefined;
+  });
+  includeRestricted = input<boolean>(false);
+  selectedIncludeRestricted = computed(() => {
+    const option = this.collectionFilterOptions().find((option) => {
+      return option.value === this.collection() && option.direction === this.direction();
+    });
+    return option?.restrict ?? 'all';
+  });
+
+  showConnectionsColumn = signal(() => {
+    return true;
+  });
+
+  showUserRoles = computed(() => {
+    const target = this.target();
+    if (!target?.collection) {
+      return false;
+    }
+    // console.log('Checking showUserRoles for', target.collection);
+    // console.log(this.configRecord[target.collection]?.showUserRoles);
+    return this.configRecord[target.collection]?.showUserRoles === true;
   });
 
   // The filter text
@@ -157,6 +186,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   );
   sortActive = input('');
   sortDirection = input<SortDirection>('');
+  direction = input<'upstream' | 'downstream'>('downstream');
+  restrict = signal<'all' | 'some' | 'none'>('none');
 
   index = input(0, { transform: (v) => numberAttribute(v, 0) });
   currentIndex = signal(0);
@@ -189,17 +220,20 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   propDisplayedColumns: string[] = [];
   tagList = signal<string[]>([]);
   collectionFilterOptions = computed(() => {
-    return this.configArr
-      .filter(
-        (config) => this.collectionOptions().indexOf(config.collection) !== -1,
-      )
-      .map((config) => {
-        return {
-          value: config.collection,
-          viewValue: config.name,
-          tooltip: config.hint,
-        };
-      });
+    const targetOptions = this.target()?.options;
+    if (targetOptions === undefined) {
+      return [];
+    }
+    return targetOptions.map((option) => {
+      const config = this.configRecord[option.collection];
+      return {
+        value: option.collection,
+        viewValue: config?.name ?? option.collection,
+        tooltip: config?.hint ?? '',
+        direction: option.direction,
+        restrict: option.restrict,
+      };
+    });
   });
 
   private triggerRefresh = new Subject<number>();
@@ -234,6 +268,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       this.propDisplayedColumns = [
         ...(configRecord[this.collection()].browseFields ??
           Object.keys(this.fields)),
+        ...(this.showConnectionsColumn() ? ['connections-column'] : []),
         'action-caa4f8db8b42',
       ];
       this.canFilterConnected = this.configArr
@@ -315,6 +350,7 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
               ...(this.downstreamId()
                 ? { downstreamVertex: this.downstreamId() }
                 : {}),
+              includeRestricted: this.includeRestricted(),
               sortActive,
               sortDirection,
               offset: settings.index * settings.size,
@@ -348,6 +384,8 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   updateSettings(settings: Partial<TableQuery>) {
     this.settingsUpdated.emit({
       collection: this.collection(),
+      direction: this.direction(),
+      includeRestricted: this.includeRestricted(),
       text: this.text(),
       showFilter: this.showFilter(),
       tags: this.computedTags(),
@@ -358,6 +396,21 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
       refresh: 0,
       ...settings,
     });
+  }
+
+  onCollectionChange(connection: ConnectedTableOptions) {
+    this.updateSettings({
+      collection: connection.collection,
+      direction: connection.direction,
+      includeRestricted: connection.restrict === 'all',
+    });
+  }
+
+  onIncludeRestrictedChange(includeRestricted: boolean) {
+    this.updateSettings({
+      includeRestricted,
+    });
+    // this.includeRestricted.set(includeRestricted);
   }
 
   ngOnInit(): void {
@@ -391,6 +444,13 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.updateSettings({ text: input.value });
   }
 
+  compareCollectionOption(
+    a: { collection: CollectionNames; direction: string },
+    b: { collection: CollectionNames; direction: string },
+  ): boolean {
+    return a?.collection === b?.collection && a?.direction === b?.direction;
+  }
+
   clearAndRefresh() {
     this.currentIndexReset();
     this.updateSettings({
@@ -418,15 +478,35 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
     this.router.navigate([`/browse/${this.collection()}/${id}`]);
   }
 
-  isUpstreamConnectedCollection(collection: CollectionNames, targetCollection?: CollectionNames) {
-    if (!targetCollection) {
-      return [];
+  isUpstreamConnectedCollection(collection?: CollectionNames) {
+    const targetOptions = this.target()?.options;
+    if (targetOptions === undefined || !collection) {
+      return false;
     }
-    const config = this.configRecord[targetCollection];
     return (
-      config?.connectedTable?.find(
+      targetOptions.find(
         (c) => c.collection === collection && c.direction === 'upstream',
       ) !== undefined
     );
+  }
+
+  openUserRolesDialog(element: CollectionComboDto<any>) {
+    const target = this.target();
+    if (!target) {
+      return;
+    }
+    this.dialog
+      .open(InspectorPeopleDialogComponent, {
+        closeOnNavigation: true,
+        width: '640px',
+        data: {
+          collection: target.collection,
+          vertex: target.vertex,
+          filterVertex: element.vertex.id,
+          name: target.name,
+        },
+      })
+      .afterClosed()
+      .subscribe();
   }
 }

@@ -10,7 +10,7 @@
       <mat-select [formControl]="collectionControl"
         name="type">
         <mat-option value="" selected></mat-option>
-        @for (value of configs; track value.id) {
+        @for (value of configs(); track value.id) {
           <mat-option [value]="value">{{value.name}}</mat-option>
         }
       </mat-select>
@@ -20,15 +20,13 @@
     }
     <mat-divider></mat-divider>
     @if (isCollectionConfig(collectionControl.value)) {
-      <app-vertex-form-builder
+      <app-vertex-dialog-editor
         [collection]="collectionControl.value.collection"
         [fieldMap]="collectionControl.value.fields"
         [data]="data.data"
-        (formSubmitted)="addUpdateVertex()"></app-vertex-form-builder>
-      <mat-divider
-        class="property-editor"></mat-divider>
-      <app-property-editor
-        [graphProperties]="data.vertex?.prop"></app-property-editor>
+        [graphProperties]="data.vertex?.prop"
+        (formSubmitted)="addUpdateVertex()"
+        (isFormValid)="isFormValid.set($event)"></app-vertex-dialog-editor>
     }
   </mat-dialog-content>
   <mat-dialog-actions align="end">
@@ -37,7 +35,7 @@
       mat-dialog-close>Cancel</button>
     <button
       mat-stroked-button
-      [disabled]="isFormInvalid()"
+      [disabled]="!isFormValid()"
       (click)="addUpdateVertex()">
       @if (data.vertex) {
         Edit

@@ -26,6 +26,7 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
   private collectionService = inject(CollectionApiService);
 
   readonly formSubmitted = output();
+  readonly isFormValid = output<boolean>();
   readonly collection = input.required<string>();
   readonly fieldMap = input.required<CollectionFieldConfigMap>();
   readonly data = input<any>();
@@ -164,9 +165,13 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
     }
     this.fieldConfigs = fieldConfigs;
     this.form = new FormGroup(fieldCtrls);
+    this.form.statusChanges.subscribe(() => {
+      this.isFormValid.emit(this.form.valid);
+    });
     this.form.disable();
     setTimeout(() => {
       this.form.enable();
+      this.isFormValid.emit(this.form.valid);
     }, 100);
   }
 

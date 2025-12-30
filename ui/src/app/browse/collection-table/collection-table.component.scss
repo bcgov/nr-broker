@@ -29,6 +29,15 @@ mat-card.warning-panel {
   }
 }
 
+mat-card.info-panel {
+  margin-bottom: 16px;
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
 .action-buttons button:not(:first-child) {
   margin-left: .5em;
 }
@@ -45,4 +54,9 @@ tr.element-row:not(.expanded-row):hover {
 .collection-btn {
   margin: 0;
   margin-right: 12px;
+}
+
+.connection-direction {
+  margin-right: 8px;
+  white-space: nowrap;
 }
