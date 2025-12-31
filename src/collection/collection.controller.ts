@@ -315,14 +315,15 @@ export class CollectionController {
   }
 
   @Post('service/:id/watch')
-  @UseGuards(BrokerCombinedAuthGuard)
-  @ApiBearerAuth()
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiOAuth2(['openid', 'profile'])
   async watchService(
     @Request() request: ExpressRequest,
     @Body() watchDto: CollectionWatchDto,
     @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
-    return this.service.addWatchToCollectionById(request, watchDto, id);
+    const user = await this.userCollectionService.extractUserFromRequest(request);
+    return this.service.addWatchToCollectionById(user, watchDto, id);
   }
 
   @Get('service-instance/:id/details')

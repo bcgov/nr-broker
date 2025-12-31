@@ -704,24 +704,26 @@ export class IntentionService {
     //TODO: any additional context for the communication?
     const context = {
       title: 'Application Deployed',
-      collectionId: action.service.id.toString(),
+      collectionId: action.service.id ? action.service.id.toString() : "",
       serviceName: action.service.name,
       projectName: action.service.project,
       environmentName: action.service.environment,
       outcome: outcome,
       userName: action.user.full_name,
     };
-    //TODO: who should be notified?
-    const toUsers = [
-      { ref: 'upstream', value: 'owner' },
-    ];
+    const toUsers = []; //will be looked up via notificationIdentifier
+    const notificationIdentifier = {
+      channel: action.action,
+      event: outcome,
+    }
     /* //TODO: make 'intention-event-notification' template
     await this.communicationQueueService.queue(
       'intention-event-notification',
       action.service.id.toString(), //TODO: this is undefined on first run? //TODO: should this use getCollectionById?
-      'toUsers',
+      toUsers,
       'intention-event-notification',
       'context',
+      notificationIdentifier,
     );
    */
     return true;
