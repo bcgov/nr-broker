@@ -19,6 +19,11 @@ interface CommunicationUserRef {
   optional?: boolean;
 }
 
+interface NotificationIdentifier {
+  channel: string;
+  event: string | string[];
+}
+
 interface CommunicationJob {
   uuid: string;
   vertexId: string;
@@ -26,6 +31,7 @@ interface CommunicationJob {
   optionalUsers: CommunicationUserRef[];
   template: string;
   context: ejs.Data;
+  notificationIdentifier?: string;
 }
 
 @Injectable()
@@ -47,6 +53,7 @@ export class CommunicationQueueService {
     toUsers: CommunicationUserRef[],
     template: string,
     context: ejs.Data,
+    notificationIdentifier?: NotificationIdentifier,
   ): Promise<void> {
     const job = {
       uuid: uuidv4(),
@@ -55,6 +62,7 @@ export class CommunicationQueueService {
       toUsers,
       template,
       context,
+      notificationIdentifier,
     };
     this.auditService.recordCommunications(
       job.uuid,
@@ -94,7 +102,7 @@ export class CommunicationQueueService {
           'unknown',
           ['communication'],
         );
-        const users = await this.getUserArr(job);
+        let users = await this.getUserArr(job);
 
         if (users.length === 0) {
           this.auditService.recordCommunications(
@@ -168,6 +176,9 @@ export class CommunicationQueueService {
           'unknown',
           ['communication'],
         );
+      }
+      if (job.notificationIdentifier !== undefined) {
+        //TODO: getVertexById and parse user
       }
     }
     return userArr;

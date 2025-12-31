@@ -18,6 +18,7 @@ import { IntentionActionPointerEmbeddable } from '../persistence/entity/intentio
 import { CollectionComboDto } from '../persistence/dto/collection-combo.dto';
 import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { UserRolesDto } from './dto/user-roles.dto';
 
 @Injectable()
 export class CollectionService {
@@ -117,11 +118,16 @@ export class CollectionService {
   }
 
   async addWatchToCollectionById(
-    request: Request,
-    body: CollectionWatchDto,
+    user: UserRolesDto,
+    watch: CollectionWatchDto,
     id: string,
   ) {
-    console.log(request);
+    const context  = {
+      source: user.vertex,
+      target: id,
+      channel: watch.channel,
+      events: watch.events,
+    }
     return true;
   }
 
