@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, effect, numberAttribute, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, effect, numberAttribute, viewChild, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -151,7 +151,14 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   hasUpdate = signal(false);
   hasApprove = signal(false);
 
-  refresh = signal(0);
+  teamMembersComponent = viewChild(TeamMembersComponent);
+  refreshableComponents = computed<TeamMembersComponent[]>(() => {
+    return [
+      this.teamMembersComponent(),
+    ].filter((c) => c !== undefined && c.refresh !== undefined) as TeamMembersComponent[];
+  });
+
+  // UI state
   showHelp = signal(false);
   hideRestricted = signal(this.preferences.get('graphHideRestricted'));
 
@@ -288,6 +295,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   updateCollection() {
     this.hideLoading.set(true);
     this.comboDataResource.reload();
+    for (const component of this.refreshableComponents()) {
+      component.refresh.set(component.refresh() + 1);
+    }
   }
 
   navigate(target: EdgeDto | VertexDto) {

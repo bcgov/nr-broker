@@ -39,7 +39,7 @@ export class TeamMembersComponent {
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   readonly teamId = input.required<string>();
-  readonly refresh = input.required<number>();
+  readonly refresh = signal<number>(0);
   readonly collectionSearchResult = toSignal(
     combineLatest([toObservable(this.teamId), toObservable(this.refresh)]).pipe(
       switchMap(([id]) => {
