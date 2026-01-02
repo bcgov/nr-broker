@@ -202,7 +202,7 @@
               <mat-card-title>Members</mat-card-title>
               <div>
                 <button
-                  mat-stroked-button
+                  mat-button
                   (click)="openMemberDialog()"
                   class="card-team-member-button">
                   Edit
@@ -212,7 +212,7 @@
             <div class="card-team-members-margin">
               <app-team-members
                 [teamId]="cd.collection.id"
-                [refresh]="refresh()"></app-team-members>
+                ></app-team-members>
             </div>
           </mat-card-content>
         </mat-card>
