@@ -31,7 +31,7 @@ interface CommunicationJob {
   optionalUsers: CommunicationUserRef[];
   template: string;
   context: ejs.Data;
-  notificationIdentifier?: string;
+  notificationIdentifier?: NotificationIdentifier;
 }
 
 @Injectable()

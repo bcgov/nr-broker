@@ -3,10 +3,20 @@ import {
   IsDefined,
   IsArray,
 } from 'class-validator';
+import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 
-export class CollectionWatchDto {
+
+export class CollectionWatchBaseDto extends CollectionBaseDto {
+  @IsString()
+  @IsDefined()
+  userId!: string;
+
+  @IsString()
+  @IsDefined()
+  serviceId!: string;
+
   @IsString()
   @IsDefined()
   channel!: string;
@@ -14,4 +24,14 @@ export class CollectionWatchDto {
   @IsArray()
   @IsDefined()
   events!: ('success' | 'failure')[];
+}
+
+export class CollectionWatchDto implements VertexPointerDto {
+  @IsString()
+  @IsDefined()
+  id!: string;
+
+  @IsString()
+  @IsDefined()
+  vertex!: string;
 }
