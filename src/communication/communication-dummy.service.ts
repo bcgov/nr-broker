@@ -15,9 +15,11 @@ export class CommunicationDummyService extends CommunicationTaskService {
     template: string,
     context: ejs.Data,
   ): Promise<void> {
+    const html = await this.render('email', template, to, context);
     const subject = await this.render('subject', template, to, context);
     this.logger.log(
       `to: "${to.username}@${to.domain}" template: "${template}" subject: "${subject}" context: ${JSON.stringify(context)} user: ${JSON.stringify(to)}`,
     );
+    this.logger.log(`Rendered HTML: ${html}`);
   }
 }
