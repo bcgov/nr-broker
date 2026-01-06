@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
-import { CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
+import { CollectionWatchBaseDto } from '../persistence/dto/collection-watch.dto';
 import { TokenService } from '../token/token.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -117,18 +117,14 @@ export class CollectionService {
     return collection;
   }
 
-  async addWatchToCollectionById(
-    user: UserRolesDto,
-    watch: CollectionWatchDto,
+  async addWatchToCollectionById<T extends keyof CollectionDtoUnion>(
+    type: T,
     id: string,
+    userId: string,
+    watch: CollectionWatchBaseDto,
   ) {
-    const context  = {
-      source: user.vertex,
-      target: id,
-      channel: watch.channel,
-      events: watch.events,
-    }
-    return true;
+    await this.collectionRepository.saveWatch(type, id, userId, watch.channel, watch.events);
+    return watch;
   }
 
   async addTagToCollectionById<T extends keyof CollectionDtoUnion>(

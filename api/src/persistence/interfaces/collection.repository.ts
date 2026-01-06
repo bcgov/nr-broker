@@ -71,6 +71,14 @@ export abstract class CollectionRepository {
     value: string,
   ): Promise<string[]>;
 
+  public abstract saveWatch(
+    collection: keyof CollectionEntityUnion,
+    id: string,
+    userId: string,
+    channel: string,
+    events: string[],
+  ): Promise<string[]>;
+
   public abstract saveTags(
     collection: keyof CollectionEntityUnion,
     id: string,

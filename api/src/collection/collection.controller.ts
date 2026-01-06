@@ -46,7 +46,7 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
-import { CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
+import { CollectionWatchBaseDto } from '../persistence/dto/collection-watch.dto';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
@@ -319,11 +319,17 @@ export class CollectionController {
   @ApiOAuth2(['openid', 'profile'])
   async watchService(
     @Request() request: ExpressRequest,
-    @Body() watchDto: CollectionWatchDto,
+    @Body() watch: CollectionWatchBaseDto,
     @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
+    const collection = 'service';
     const user = await this.userCollectionService.extractUserFromRequest(request);
-    return this.service.addWatchToCollectionById(user, watchDto, id);
+    return this.service.addWatchToCollectionById(
+      this.parseCollectionApi(collection),
+      id,
+      user.vertex,
+      watch,
+    );
   }
 
   @Get('service-instance/:id/details')
@@ -550,6 +556,8 @@ export class CollectionController {
         return collection;
       case 'broker-account':
         return 'brokerAccount';
+      case 'collection-watch':
+        return 'collectionWatch';
       case 'service-instance':
         return 'serviceInstance';
       default:
