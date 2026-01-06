@@ -84,6 +84,7 @@ export class CommunicationQueueService {
         >,
       async (jobString: string) => {
         let userCount = 0;
+        let failCount = 0;
         const job = JSON.parse(jobString) as CommunicationJob;
         const notifiedUsers = new Set<string>();
         this.auditService.recordCommunications(
@@ -124,6 +125,7 @@ export class CommunicationQueueService {
               await communicationService.send(user, job.template, job.context);
             }
           } catch (error) {
+            failCount++;
             this.auditService.recordCommunications(
               job.uuid,
               `Failed to send to ${user.email}: ${error.message}`,
@@ -135,9 +137,9 @@ export class CommunicationQueueService {
         }
         this.auditService.recordCommunications(
           job.uuid,
-          `Communication job ${job.uuid} completed for ${userCount} users`,
+          `Communication job ${job.uuid} completed for ${userCount} users with ${failCount} failures`,
           'end',
-          'success',
+          failCount > 0 ? 'failure' : 'success',
           ['communication'],
         );
       },
