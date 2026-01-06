@@ -1,4 +1,5 @@
 import { BrokerAccountBaseDto, BrokerAccountDto } from './broker-account.dto';
+import { CollectionWatchBaseDto, CollectionWatchDto } from './collection-watch.dto';
 import { EnvironmentBaseDto, EnvironmentDto } from './environment.dto';
 import { ProjectBaseDto, ProjectDto } from './project.dto';
 import { RepositoryBaseDto, RepositoryDto } from './repository.dto';
@@ -13,6 +14,7 @@ import { UserBaseDto, UserDto } from './user.dto';
 
 export const CollectionBaseDtoUnionObject = {
   brokerAccount: BrokerAccountBaseDto,
+  collectionWatch: CollectionWatchBaseDto,
   environment: EnvironmentBaseDto,
   project: ProjectBaseDto,
   repository: RepositoryBaseDto,
@@ -24,6 +26,7 @@ export const CollectionBaseDtoUnionObject = {
 };
 export const CollectionDtoUnionObject = {
   brokerAccount: BrokerAccountDto,
+  collectionWatch: CollectionWatchDto,
   environment: EnvironmentDto,
   project: ProjectDto,
   repository: RepositoryDto,
@@ -35,6 +38,7 @@ export const CollectionDtoUnionObject = {
 };
 export interface CollectionBaseDtoUnion {
   brokerAccount: BrokerAccountBaseDto;
+  collectionWatch: CollectionWatchBaseDto;
   environment: EnvironmentBaseDto;
   project: ProjectBaseDto;
   repository: RepositoryBaseDto;
@@ -46,6 +50,7 @@ export interface CollectionBaseDtoUnion {
 }
 export interface CollectionDtoUnion {
   brokerAccount: BrokerAccountDto;
+  collectionWatch: CollectionWatchDto;
   environment: EnvironmentDto;
   project: ProjectDto;
   repository: RepositoryDto;
@@ -76,4 +81,5 @@ export const CollectionNameEnum: Record<CollectionNames, number> = {
   team: 6,
   server: 7,
   repository: 8,
+  collectionWatch: 9,
 } as const;
