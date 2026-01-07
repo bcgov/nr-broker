@@ -2,6 +2,7 @@ import { createHmac, randomUUID } from 'node:crypto';
 import {
   Injectable,
   BadRequestException,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -45,6 +46,8 @@ export class TokenCreateDTO {
 
 @Injectable()
 export class AccountService {
+  private readonly logger = new Logger(AccountService.name);
+
   constructor(
     private readonly auditService: AuditService,
     private readonly communicationQueueService: CommunicationQueueService,
@@ -458,84 +461,98 @@ export class AccountService {
   @Cron(CronExpression.EVERY_MINUTE)
   @CreateRequestContext()
   async runJwtLifecycle() {
-    const CURRENT_TIME_MS = Date.now();
-    const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
+    try {
+      const CURRENT_TIME_MS = Date.now();
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not run lifecycle
-      return;
-    }
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not run lifecycle
+        return;
+      }
 
-    const expiredJwtArr =
-      await this.systemRepository.findExpiredRegistryJwts(CURRENT_TIME_S);
-    for (const expiredJwt of expiredJwtArr) {
-      await this.systemRepository.deleteRegistryJwt(expiredJwt);
-    }
+      const expiredJwtArr =
+        await this.systemRepository.findExpiredRegistryJwts(CURRENT_TIME_S);
+      for (const expiredJwt of expiredJwtArr) {
+        await this.systemRepository.deleteRegistryJwt(expiredJwt);
+      }
 
-    const groupedAccounts =
-      await this.systemRepository.groupRegistryByAccountId();
+      const groupedAccounts =
+        await this.systemRepository.groupRegistryByAccountId();
 
-    for (const account of groupedAccounts) {
-      const count = account.jti.length;
-      const expireTime =
-        account.createdAt[count - 1].valueOf() +
-        JWT_GENERATE_BLOCK_GRACE_PERIOD;
-      const accountCollection =
-        await this.collectionRepository.getCollectionById(
-          'brokerAccount',
-          account._id.accountId.toString(),
-        );
-      for (let i = 0; i < count; i++) {
-        if (account.blocked[i]) {
-          continue;
-        }
+      for (const account of groupedAccounts) {
+        const count = account.jti.length;
+        const expireTime =
+          account.createdAt[count - 1].valueOf() +
+          JWT_GENERATE_BLOCK_GRACE_PERIOD;
+        const accountCollection =
+          await this.collectionRepository.getCollectionById(
+            'brokerAccount',
+            account._id.accountId.toString(),
+          );
+        for (let i = 0; i < count; i++) {
+          if (account.blocked[i]) {
+            continue;
+          }
 
-        if (!accountCollection) {
-          // Block all if the account was deleted.
-          await this.systemRepository.blockJwtByJti(account.jti[i]);
-          continue;
-        }
+          if (!accountCollection) {
+            // Block all if the account was deleted.
+            await this.systemRepository.blockJwtByJti(account.jti[i]);
+            continue;
+          }
 
-        if (i <= count - 3) {
-          await this.systemRepository.blockJwtByJti(account.jti[i]);
-        } else if (i == count - 2 && expireTime < CURRENT_TIME_MS) {
-          await this.systemRepository.blockJwtByJti(account.jti[i]);
+          if (i <= count - 3) {
+            await this.systemRepository.blockJwtByJti(account.jti[i]);
+          } else if (i == count - 2 && expireTime < CURRENT_TIME_MS) {
+            await this.systemRepository.blockJwtByJti(account.jti[i]);
+          }
         }
       }
+    } catch (error) {
+      this.logger.error(
+        `Failed to run JWT lifecycle: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
   async runJwtExpirationNotification() {
-    const CURRENT_TIME_MS = Date.now();
-    const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
+    try {
+      const CURRENT_TIME_MS = Date.now();
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not run lifecycle
-      return;
-    }
-
-    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
-      CURRENT_TIME_S + 60 * 60 * 24 * 7,
-    );
-
-    for (const expiredJwt of expiredJwtArr) {
-      if (expiredJwt.blocked) {
-        continue;
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not run lifecycle
+        return;
       }
-      const account = await this.collectionRepository.getCollectionById(
-        'brokerAccount',
-        expiredJwt.accountId.toString(),
+
+      const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
+        CURRENT_TIME_S + 60 * 60 * 24 * 7,
       );
 
-      this.auditService.recordAccountTokenLifecycle(
-        null,
-        expiredJwt.claims,
-        `Token will expire soon for ${account.name} (${expiredJwt.claims.client_id})`,
-        'info',
-        'success',
-        ['token', 'warning', 'expiry'],
+      for (const expiredJwt of expiredJwtArr) {
+        if (expiredJwt.blocked) {
+          continue;
+        }
+        const account = await this.collectionRepository.getCollectionById(
+          'brokerAccount',
+          expiredJwt.accountId.toString(),
+        );
+
+        this.auditService.recordAccountTokenLifecycle(
+          null,
+          expiredJwt.claims,
+          `Token will expire soon for ${account.name} (${expiredJwt.claims.client_id})`,
+          'info',
+          'success',
+          ['token', 'warning', 'expiry'],
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to run JWT expiration notification: ${error.message}`,
+        error.stack,
       );
     }
   }
@@ -543,63 +560,70 @@ export class AccountService {
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @CreateRequestContext()
   async sendJwtExpirationNotification() {
-    const CURRENT_TIME_MS = Date.now();
-    const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
+    try {
+      const CURRENT_TIME_MS = Date.now();
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not run lifecycle
-      return;
-    }
-
-    const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
-      CURRENT_TIME_S + 60 * 60 * 24 * 7,
-    );
-
-    for (const expiredJwt of expiredJwtArr) {
-      if (expiredJwt.blocked) {
-        continue;
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not run lifecycle
+        return;
       }
-      const timeUntilExpiration = expiredJwt.claims.exp - CURRENT_TIME_S;
-      const daysUntilExpiration = Math.floor(
-        timeUntilExpiration / (60 * 60 * 24),
+
+      const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
+        CURRENT_TIME_S + 60 * 60 * 24 * 7,
       );
-      if (![7, 3, 2, 1].includes(daysUntilExpiration)) {
-        continue;
+
+      for (const expiredJwt of expiredJwtArr) {
+        if (expiredJwt.blocked) {
+          continue;
+        }
+        const timeUntilExpiration = expiredJwt.claims.exp - CURRENT_TIME_S;
+        const daysUntilExpiration = Math.floor(
+          timeUntilExpiration / (60 * 60 * 24),
+        );
+        if (![7, 3, 2, 1].includes(daysUntilExpiration)) {
+          continue;
+        }
+        const account = await this.collectionRepository.getCollectionById(
+          'brokerAccount',
+          expiredJwt.accountId.toString(),
+        );
+        if (!account) {
+          continue;
+        }
+
+        // Get last used timestamp from the JWT registry
+        const lastUsedAt = expiredJwt.lastUsedAt;
+        const expirationDate = new Date(expiredJwt.claims.exp * 1000);
+
+        const context = {
+          accountName: account.name,
+          clientId: expiredJwt.claims.client_id,
+          collectionId: account.id.toString(),
+          daysUntilExpiration: daysUntilExpiration,
+          expirationDisplay: this.dateUtil.toLocaleDateString(expirationDate),
+          lastUsedAt: lastUsedAt,
+          lastUsedDisplay: lastUsedAt
+            ? this.dateUtil.toLocaleDateString(lastUsedAt)
+            : 'Never used',
+        };
+
+        // Queue the notification
+        await this.communicationQueueService.queue(
+          'token-expiration-alert',
+          account.vertex.toString(),
+          [
+            { ref: 'upstream', value: ['lead-developer', 'full-access'] },
+            { ref: 'upstream', value: 'owner', optional: true },
+          ],
+          'token-expiration-alert',
+          context,
+        );
       }
-      const account = await this.collectionRepository.getCollectionById(
-        'brokerAccount',
-        expiredJwt.accountId.toString(),
-      );
-      if (!account) {
-        continue;
-      }
-
-      // Get last used timestamp from the JWT registry
-      const lastUsedAt = expiredJwt.lastUsedAt;
-      const expirationDate = new Date(expiredJwt.claims.exp * 1000);
-
-      const context = {
-        accountName: account.name,
-        clientId: expiredJwt.claims.client_id,
-        collectionId: account.id.toString(),
-        daysUntilExpiration: daysUntilExpiration,
-        expirationDisplay: this.dateUtil.toLocaleDateString(expirationDate),
-        lastUsedAt: lastUsedAt,
-        lastUsedDisplay: lastUsedAt
-          ? this.dateUtil.toLocaleDateString(lastUsedAt)
-          : 'Never used',
-      };
-
-      // Queue the notification
-      await this.communicationQueueService.queue(
-        'token-expiration-alert',
-        account.vertex.toString(),
-        [
-          { ref: 'upstream', value: ['lead-developer', 'full-access'] },
-          { ref: 'upstream', value: 'owner', optional: true },
-        ],
-        'token-expiration-alert',
-        context,
+    } catch (error) {
+      this.logger.error(
+        `Failed to send JWT expiration notification: ${error.message}`,
+        error.stack,
       );
     }
   }
