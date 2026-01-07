@@ -29,17 +29,24 @@ export class GraphSyncService {
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
   @CreateRequestContext()
   async runCollectionSync() {
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not run sync
-      return;
-    }
-    const configs = await this.collectionRepository.getCollectionConfigs();
-    for (const config of configs) {
-      try {
-        await this.syncCollection(config);
-      } catch (e) {
-        this.logger.log(`Failed to sync collection: ${config.collection}`);
+    try {
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not run sync
+        return;
       }
+      const configs = await this.collectionRepository.getCollectionConfigs();
+      for (const config of configs) {
+        try {
+          await this.syncCollection(config);
+        } catch (e) {
+          this.logger.log(`Failed to sync collection: ${config.collection}`);
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to run collection sync: ${error.message}`,
+        error.stack,
+      );
     }
   }
 

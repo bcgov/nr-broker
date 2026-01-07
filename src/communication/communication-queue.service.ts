@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
 import ejs from 'ejs';
@@ -30,6 +30,8 @@ interface CommunicationJob {
 
 @Injectable()
 export class CommunicationQueueService {
+  private readonly logger = new Logger(CommunicationQueueService.name);
+
   constructor(
     private readonly auditService: AuditService,
     @Inject(COMMUNICATION_TASKS)
@@ -74,76 +76,83 @@ export class CommunicationQueueService {
   })
   @CreateRequestContext()
   async pollQueue(): Promise<void> {
-    await this.jobQueueUtil.refreshJobWrap(
-      this.schedulerRegistry,
-      CRON_JOB_SEND_COMS,
-      REDIS_QUEUES.NOTIFICATION_COMS,
-      () =>
-        this.redisService.dequeue(REDIS_QUEUES.NOTIFICATION_COMS) as Promise<
-          string | null
-        >,
-      async (jobString: string) => {
-        let userCount = 0;
-        let failCount = 0;
-        const job = JSON.parse(jobString) as CommunicationJob;
-        const notifiedUsers = new Set<string>();
-        this.auditService.recordCommunications(
-          job.uuid,
-          `Communication job: ${job.uuid}`,
-          'start',
-          'unknown',
-          ['communication'],
-        );
-        const users = await this.getUserArr(job);
-
-        if (users.length === 0) {
+    try {
+      await this.jobQueueUtil.refreshJobWrap(
+        this.schedulerRegistry,
+        CRON_JOB_SEND_COMS,
+        REDIS_QUEUES.NOTIFICATION_COMS,
+        () =>
+          this.redisService.dequeue(REDIS_QUEUES.NOTIFICATION_COMS) as Promise<
+            string | null
+          >,
+        async (jobString: string) => {
+          let userCount = 0;
+          let failCount = 0;
+          const job = JSON.parse(jobString) as CommunicationJob;
+          const notifiedUsers = new Set<string>();
           this.auditService.recordCommunications(
             job.uuid,
-            `Communication job ${job.uuid} found no users`,
-            'end',
-            'unknown',
-            ['communication'],
-          );
-          return;
-        }
-
-        for (const user of users) {
-          if (notifiedUsers.has(user.id)) {
-            continue; // Skip if already notified
-          }
-          notifiedUsers.add(user.id);
-          userCount++;
-          this.auditService.recordCommunications(
-            job.uuid,
-            `Communication job for user: ${user.email}`,
+            `Communication job: ${job.uuid}`,
             'start',
             'unknown',
             ['communication'],
           );
-          try {
-            for (const communicationService of this.communicationTasks) {
-              await communicationService.send(user, job.template, job.context);
-            }
-          } catch (error) {
-            failCount++;
+          const users = await this.getUserArr(job);
+
+          if (users.length === 0) {
             this.auditService.recordCommunications(
               job.uuid,
-              `Failed to send to ${user.email}: ${error.message}`,
-              'info',
-              'failure',
-              ['email', 'communication'],
+              `Communication job ${job.uuid} found no users`,
+              'end',
+              'unknown',
+              ['communication'],
             );
+            return;
           }
-        }
-        this.auditService.recordCommunications(
-          job.uuid,
-          `Communication job ${job.uuid} completed for ${userCount} users with ${failCount} failures`,
-          'end',
-          failCount > 0 ? 'failure' : 'success',
-          ['communication'],
-        );
-      },
-    );
+
+          for (const user of users) {
+            if (notifiedUsers.has(user.id)) {
+              continue; // Skip if already notified
+            }
+            notifiedUsers.add(user.id);
+            userCount++;
+            this.auditService.recordCommunications(
+              job.uuid,
+              `Communication job for user: ${user.email}`,
+              'start',
+              'unknown',
+              ['communication'],
+            );
+            try {
+              for (const communicationService of this.communicationTasks) {
+                await communicationService.send(user, job.template, job.context);
+              }
+            } catch (error) {
+              failCount++;
+              this.auditService.recordCommunications(
+                job.uuid,
+                `Failed to send to ${user.email}: ${error.message}`,
+                'info',
+                'failure',
+                ['email', 'communication'],
+              );
+            }
+          }
+          this.auditService.recordCommunications(
+            job.uuid,
+            `Communication job ${job.uuid} completed for ${userCount} users with ${failCount} failures`,
+            'end',
+            failCount > 0 ? 'failure' : 'success',
+            ['communication'],
+          );
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to poll communication queue: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   async getUserArr(job: CommunicationJob): Promise<UserDto[]> {

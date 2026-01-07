@@ -1,4 +1,4 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
@@ -35,6 +35,7 @@ import { JobQueueUtil } from '../util/job-queue.util';
 
 @Injectable()
 export class GithubSyncService {
+  private readonly logger = new Logger(GithubSyncService.name);
   private readonly axiosInstance: AxiosInstance;
   private brokerManagedRegex = new RegExp(GITHUB_MANAGED_URL_REGEX);
 
@@ -149,18 +150,25 @@ export class GithubSyncService {
   })
   @CreateRequestContext()
   async pollRefreshCronSecrets(): Promise<void> {
-    await this.jobQueueUtil.refreshJobWrap(
-      this.schedulerRegistry,
-      CRON_JOB_SYNC_SECRETS,
-      REDIS_QUEUES.GITHUB_SYNC_SECRETS,
-      () =>
-        this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_SECRETS) as Promise<
-          string | null
-        >,
-      async (id: string) => {
-        return this.runRefresh(id, true, false);
-      },
-    );
+    try {
+      await this.jobQueueUtil.refreshJobWrap(
+        this.schedulerRegistry,
+        CRON_JOB_SYNC_SECRETS,
+        REDIS_QUEUES.GITHUB_SYNC_SECRETS,
+        () =>
+          this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_SECRETS) as Promise<
+            string | null
+          >,
+        async (id: string) => {
+          return this.runRefresh(id, true, false);
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to poll refresh cron secrets: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   @Cron(CronExpression.EVERY_30_SECONDS, {
@@ -168,18 +176,25 @@ export class GithubSyncService {
   })
   @CreateRequestContext()
   async pollRefreshCronUsers(): Promise<void> {
-    await this.jobQueueUtil.refreshJobWrap(
-      this.schedulerRegistry,
-      CRON_JOB_SYNC_USERS,
-      REDIS_QUEUES.GITHUB_SYNC_USERS,
-      () =>
-        this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_USERS) as Promise<
-          string | null
-        >,
-      async (id: string) => {
-        return this.runRefresh(id, false, true);
-      },
-    );
+    try {
+      await this.jobQueueUtil.refreshJobWrap(
+        this.schedulerRegistry,
+        CRON_JOB_SYNC_USERS,
+        REDIS_QUEUES.GITHUB_SYNC_USERS,
+        () =>
+          this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_USERS) as Promise<
+            string | null
+          >,
+        async (id: string) => {
+          return this.runRefresh(id, false, true);
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to poll refresh cron users: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   async runRefresh(
