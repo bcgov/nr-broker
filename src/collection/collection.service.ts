@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
-import { CollectionWatchBaseDto } from '../persistence/dto/collection-watch.dto';
+import { CollectionWatchConfigDto } from '../persistence/dto/collection-watch.dto';
 import { TokenService } from '../token/token.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -121,9 +121,9 @@ export class CollectionService {
     type: T,
     id: string,
     userId: string,
-    watch: CollectionWatchBaseDto,
+    watch: CollectionWatchConfigDto,
   ) {
-    await this.collectionRepository.saveWatch(type, id, userId, watch.channel, watch.events);
+    await this.collectionRepository.saveWatch(type, id, userId, watch);
     return watch;
   }
 

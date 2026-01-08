@@ -1,6 +1,7 @@
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
+import { CollectionWatchConfigDto } from '../dto/collection-watch.dto';
 import {
   CollectionEntityUnion,
   CollectionNames,
@@ -75,9 +76,8 @@ export abstract class CollectionRepository {
     collection: keyof CollectionEntityUnion,
     id: string,
     userId: string,
-    channel: string,
-    events: string[],
-  ): Promise<string[]>;
+    watch: CollectionWatchConfigDto
+  ): Promise<CollectionWatchConfigDto>;
 
   public abstract saveTags(
     collection: keyof CollectionEntityUnion,
