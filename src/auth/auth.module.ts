@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import passport from 'passport';
 
 import { AuditModule } from '../audit/audit.module';
 import { JwtStrategy } from './jwt.strategy';
@@ -18,6 +19,7 @@ const OidcStrategyFactory = {
   useFactory: async (authService: AuthService) => {
     const client = await buildOpenIdClient(); // secret sauce! build the dynamic client before injecting it into the strategy for use in the constructor super call.
     const strategy = new OidcStrategy(authService, client);
+    passport.use('oidc', strategy);
     return strategy;
   },
   inject: [AuthService],

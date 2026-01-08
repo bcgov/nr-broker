@@ -1,60 +1,53 @@
-import { UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import {
-  Strategy,
-  Client,
-  UserinfoResponse,
-  TokenSet,
-  Issuer,
-} from 'openid-client';
+import * as client from 'openid-client';
+import { Strategy } from 'openid-client/passport';
+import { Injectable } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 export const buildOpenIdClient = async () => {
-  const TrustIssuer = await Issuer.discover(
-    `${process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER}/.well-known/openid-configuration`,
+  const config = await client.discovery(
+    new URL(process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER),
+    process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_ID,
+    process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_SECRET,
   );
-  const client = new TrustIssuer.Client({
-    client_id: process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_ID,
-    client_secret: process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_SECRET,
-  });
-  return client;
+  return config;
 };
 
-export class OidcStrategy extends PassportStrategy(Strategy, 'oidc') {
-  client: Client;
+@Injectable()
+export class OidcStrategy extends Strategy {
+  name = 'oidc';
+  config: client.Configuration;
 
   constructor(
     private readonly authService: AuthService,
-    client: Client,
+    config: client.Configuration,
   ) {
-    super({
-      client: client,
-      params: {
-        redirect_uri: process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_REDIRECT_URI,
+    super(
+      {
+        config: config,
+        callbackURL: process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_REDIRECT_URI,
         scope: process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_SCOPE,
       },
-      passReqToCallback: false,
-      usePKCE: false,
-    });
+      async (tokens, verified) => {
+        try {
+          const claims = tokens.claims();
+          const userinfo = await client.fetchUserInfo(
+            config,
+            tokens.access_token,
+            claims?.sub || '',
+          );
+          const user = {
+            id_token: tokens.id_token,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            userinfo,
+          };
+          verified(null, user);
+        } catch (err) {
+          verified(err);
+        }
+      },
+    );
 
-    this.client = client;
-  }
-
-  async validate(tokenset: TokenSet): Promise<any> {
-    const userinfo: UserinfoResponse = await this.client.userinfo(tokenset);
-    try {
-      const id_token = tokenset.id_token;
-      const access_token = tokenset.access_token;
-      const refresh_token = tokenset.refresh_token;
-      const user = {
-        id_token,
-        access_token,
-        refresh_token,
-        userinfo,
-      };
-      return user;
-    } catch (err) {
-      throw new UnauthorizedException();
-    }
+    this.config = config;
   }
 }
