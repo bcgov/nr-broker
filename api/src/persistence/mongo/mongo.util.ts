@@ -6,7 +6,7 @@ import { ServiceInstanceEntity } from '../entity/service-instance.entity';
 import { ServiceEntity } from '../entity/service.entity';
 import { UserEntity } from '../entity/user.entity';
 import { TeamEntity } from '../entity/team.entity';
-import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+//import { CollectionWatchDto } from '../entity/collection-watch.embeddable';
 import {
   MongoEntityManager,
   MongoEntityRepository,
@@ -32,10 +32,6 @@ export function getRepositoryFromCollectionName<
     case 'brokerAccount':
       return dataSource.getRepository(
         BrokerAccountEntity,
-      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
-    case 'collectionWatch':
-      return dataSource.getRepository(
-        CollectionWatchEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'environment':
       return dataSource.getRepository(

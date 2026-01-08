@@ -16,7 +16,7 @@ import {
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
-import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { CollectionWatchDto, CollectionWatchConfigDto } from '../entity/collection-watch.embeddable';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
@@ -28,6 +28,7 @@ import { UserEntity } from '../entity/user.entity';
 import {
   CollectionEntityUnion,
   CollectionNames,
+  CollectionNameEnum,
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
@@ -63,7 +64,6 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): any {
     switch (collection) {
       case 'brokerAccount':
-      case 'collectionWatch':
       case 'environment':
       case 'project':
       case 'repository':
@@ -101,8 +101,6 @@ export class CollectionMongoRepository implements CollectionRepository {
     switch (collection) {
       case 'brokerAccount':
         return new BrokerAccountEntity();
-      case 'collectionWatch':
-        return new CollectionWatchEntity();
       case 'environment':
         return new EnvironmentEntity();
       case 'project':
@@ -151,14 +149,13 @@ export class CollectionMongoRepository implements CollectionRepository {
     type: T,
     id: string,
     userId: string,
-    channel: string,
-    events: string[],
-  ): Promise<string[]> {
-    const repo = getRepositoryFromCollectionName(this.dataSource, 'collectionWatch');
+    watch: CollectionWatchConfigDto,
+  ): Promise<CollectionWatchConfigDto> {
+    const repo = getRepositoryFromCollectionName(this.dataSource, type);
     repo
       .getCollection()
-      .updateOne({ collection: type, vertexId: id, userId: userId, channel: channel } as any, { $set: { events } } as any, { upsert: true });
-      return events;
+      .updateOne({ _id: new ObjectId(id) } as any, { $set: { watch } } as any, { upsert: true });
+      return watch;
   }
 
   public async saveTags<T extends keyof CollectionEntityUnion>(
