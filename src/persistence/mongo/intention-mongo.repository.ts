@@ -229,4 +229,40 @@ export class IntentionMongoRepository implements IntentionRepository {
       expiry: { $lt: Date.now() - rejectedTtl },
     });
   }
+
+  public async getUniqueFieldValues(
+    field: string,
+    search: string,
+    limit: number,
+  ): Promise<string[]> {
+    const fieldMap: Record<string, string> = {
+      service: 'actions.service.name',
+      project: 'actions.service.project',
+      action: 'actions.action',
+      username: 'actions.user.name',
+    };
+
+    const mongoField = fieldMap[field];
+    if (!mongoField) {
+      return [];
+    }
+
+    const matchStage: any = {};
+    if (search) {
+      matchStage[mongoField] = { $regex: search, $options: 'i' };
+    }
+
+    return this.intentionRepository
+      .aggregate([
+        ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+        { $unwind: '$actions' },
+        ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+        { $group: { _id: `$${mongoField}` } },
+        { $match: { _id: { $ne: null } } },
+        { $sort: { _id: 1 } },
+        { $limit: limit },
+        { $project: { _id: 0, value: '$_id' } },
+      ])
+      .then((results: any[]) => results.map((r) => r.value));
+  }
 }

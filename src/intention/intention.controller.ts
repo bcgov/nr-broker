@@ -256,6 +256,23 @@ export class IntentionController {
     ) as unknown as Promise<IntentionDto>;
   }
 
+  @Get('field/:field/values')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  getFieldValues(
+    @Param('field') field: string,
+    @Query('search') search: string,
+    @Query('limit') limit: string,
+  ) {
+    return this.intentionService.getUniqueFieldValues(
+      field,
+      search ?? '',
+      limit ? parseInt(limit, 10) : 10,
+    );
+  }
+
   @Post('search')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()

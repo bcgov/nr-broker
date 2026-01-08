@@ -1,10 +1,10 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 
-xdescribe('IntentionController', () => {
+describe.skip('IntentionController', () => {
   let controller: IntentionController;
 
   beforeEach(async () => {
@@ -13,7 +13,9 @@ xdescribe('IntentionController', () => {
       providers: [IntentionService],
       imports: [PersistenceModule],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     controller = module.get<IntentionController>(IntentionController);

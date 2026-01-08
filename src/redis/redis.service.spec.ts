@@ -1,3 +1,4 @@
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
 
@@ -12,7 +13,7 @@ describe('RedisService', () => {
           provide: 'REDIS_CLIENT',
           useValue: {
             duplicate: () => ({
-              on: jest.fn(),
+              on: vi.fn(),
               // eslint-disable-next-line @typescript-eslint/no-empty-function
               connect: () => new Promise(() => {}),
             }),

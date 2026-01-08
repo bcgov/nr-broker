@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { AccessLogsMiddleware } from './access-logs.middleware';
 import { AuditService } from './audit/audit.service';
 
@@ -10,17 +11,17 @@ describe('AccessLogsMiddleware', () => {
 
   it('should call recordHttpAccess upon use', () => {
     const mockAuditService = {
-      recordHttpAccess: jest.fn(),
+      recordHttpAccess: vi.fn(),
     } as unknown as AuditService;
     const service = new AccessLogsMiddleware(mockAuditService);
     const mockReq = 'req';
     let resFinishCb: () => void;
     const mockRes = {
-      on: jest.fn((event, cb) => {
+      on: vi.fn((event, cb) => {
         resFinishCb = cb;
       }),
     };
-    const mockNext = jest.fn();
+    const mockNext = vi.fn();
     expect(service).toBeDefined();
 
     service.use(mockReq, mockRes, mockNext);
@@ -37,10 +38,10 @@ describe('AccessLogsMiddleware', () => {
       expect.any(Date),
       expect.any(Date),
     );
-    const startDate = jest
+    const startDate = vi
       .mocked(mockAuditService.recordHttpAccess)
       .mock.lastCall[2].valueOf();
-    const endDate = jest
+    const endDate = vi
       .mocked(mockAuditService.recordHttpAccess)
       .mock.lastCall[3].valueOf();
     expect(startDate <= endDate).toBe(true);

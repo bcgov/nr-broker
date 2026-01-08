@@ -1,4 +1,4 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PreferenceService } from './preference.service';
 
@@ -9,7 +9,9 @@ describe('PreferenceService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [PreferenceService],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<PreferenceService>(PreferenceService);
