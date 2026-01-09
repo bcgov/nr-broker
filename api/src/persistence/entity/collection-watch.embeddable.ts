@@ -21,5 +21,5 @@ export class CollectionWatchDto {
   userId: string;
 
   @Property()
-  watches: CollectionWatchConfigDto[]
+  watchConfigs: CollectionWatchConfigDto[]
 }

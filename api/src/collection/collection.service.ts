@@ -123,7 +123,7 @@ export class CollectionService {
     userId: string,
     watch: CollectionWatchConfigDto,
   ) {
-    await this.collectionRepository.saveWatch(type, id, userId, watch);
+    await this.collectionRepository.saveWatch(type, id, { userId: userId, watchConfigs: [watch] });
     return watch;
   }
 
