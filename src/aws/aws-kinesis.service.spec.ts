@@ -1,15 +1,17 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AwsKinesisService } from './aws-kinesis.service';
 
-xdescribe('AwsKinesisService', () => {
+describe.skip('AwsKinesisService', () => {
   let service: AwsKinesisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AwsKinesisService],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<AwsKinesisService>(AwsKinesisService);

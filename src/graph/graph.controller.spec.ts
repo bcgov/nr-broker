@@ -1,12 +1,12 @@
+import { beforeEach, describe, it, expect, vi, Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DeepMocked, createMock } from '@golevelup/ts-jest';
 import { GraphController } from './graph.controller';
 import { GraphService } from './graph.service';
 
 describe('GraphController', () => {
   let controller: GraphController;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let graphService: DeepMocked<GraphService>;
+  let graphService: Record<string, Mock>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,12 +15,14 @@ describe('GraphController', () => {
         {
           provide: 'REDIS_CLIENT',
           useValue: {
-            emit: jest.fn(),
+            emit: vi.fn(),
           },
         },
       ],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     controller = module.get<GraphController>(GraphController);

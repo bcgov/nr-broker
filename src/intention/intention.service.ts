@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -90,6 +91,8 @@ type FindArtifactArtifactOptions = Partial<ArtifactDto>;
 
 @Injectable()
 export class IntentionService {
+  private readonly logger = new Logger(IntentionService.name);
+
   constructor(
     private readonly auditService: AuditService,
     private readonly actionService: ActionService,
@@ -444,6 +447,14 @@ export class IntentionService {
         error: 'Check parameters for errors',
       });
     }
+  }
+
+  public async getUniqueFieldValues(
+    field: string,
+    search: string,
+    limit = 10,
+  ): Promise<string[]> {
+    return this.intentionRepository.getUniqueFieldValues(field, search, limit);
   }
 
   public async getIntention(id: string) {
@@ -971,36 +982,57 @@ export class IntentionService {
   @Cron(CronExpression.EVERY_MINUTE)
   @CreateRequestContext()
   async handleIntentionExpiry() {
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not do expiry
-      return;
-    }
+    try {
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not do expiry
+        return;
+      }
 
-    const expiredIntentionArr =
-      await this.intentionRepository.findExpiredIntentions();
-    for (const intention of expiredIntentionArr) {
-      await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
+      const expiredIntentionArr =
+        await this.intentionRepository.findExpiredIntentions();
+      for (const intention of expiredIntentionArr) {
+        await this.finalizeIntention(intention, 'unknown', 'TTL expiry');
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle intention expiry: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
   async handleTransientCleanup() {
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not do cleanup
-      return;
+    try {
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not do cleanup
+        return;
+      }
+      await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle transient cleanup: ${error.message}`,
+        error.stack,
+      );
     }
-    await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
   async handleRejectedCleanup() {
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not do cleanup
-      return;
+    try {
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not do cleanup
+        return;
+      }
+      await this.intentionRepository.cleanupRejected(INTENTION_REJECTED_TTL_MS);
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle rejected cleanup: ${error.message}`,
+        error.stack,
+      );
     }
-    await this.intentionRepository.cleanupRejected(INTENTION_REJECTED_TTL_MS);
   }
 
   private async getAccountFromRegistry(registryJwt: JwtRegistryEntity) {

@@ -14,18 +14,18 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" eslint.config.mjs",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:e2e": "vitest run --config ./test/vitest-e2e.config.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-kinesis": "^3.958.0",
-    "@aws-sdk/client-sts": "^3.958.0",
-    "@aws-sdk/credential-provider-node": "^3.958.0",
-    "@mikro-orm/core": "^6.6.2",
-    "@mikro-orm/mongodb": "^6.6.2",
+    "@aws-sdk/client-kinesis": "^3.965.0",
+    "@aws-sdk/client-sts": "^3.965.0",
+    "@aws-sdk/credential-provider-node": "^3.965.0",
+    "@mikro-orm/core": "^6.6.3",
+    "@mikro-orm/mongodb": "^6.6.3",
     "@mikro-orm/nestjs": "^6.1.1",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.11",
@@ -36,7 +36,7 @@
     "@nestjs/platform-express": "^11.1.11",
     "@nestjs/schedule": "^6.1.0",
     "@nestjs/serve-static": "^5.0.4",
-    "@nestjs/swagger": "^11.2.3",
+    "@nestjs/swagger": "^11.2.4",
     "@nestjs/terminus": "^11.0.0",
     "@types/lodash.merge": "^4.6.9",
     "class-transformer": "^0.5.1",
@@ -49,11 +49,11 @@
     "express-session": "^1.18.2",
     "file-stream-rotator": "^1.0.0",
     "helmet": "^8.1.0",
-    "libsodium-wrappers": "^0.7.16",
+    "libsodium-wrappers": "^0.8.0",
     "lodash.merge": "^4.6.2",
     "mongodb": "^6.21.0",
     "nodemailer": "^7.0.12",
-    "openid-client": "^5.7.1",
+    "openid-client": "^6.8.1",
     "passport": "^0.7.0",
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
@@ -63,12 +63,12 @@
     "reflect-metadata": "^0.2.2",
     "rimraf": "^6.1.2",
     "rxjs": "^7.8.2",
-    "snakecase-keys": "^8.1.0",
-    "uuid": "^11.1.0"
+    "snakecase-keys": "^9.0.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
-    "@golevelup/ts-jest": "^0.7.0",
+    "@golevelup/ts-vitest": "^2.2.0",
     "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.11",
@@ -79,7 +79,6 @@
     "@types/eslint__js": "^8.42.3",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.1",
-    "@types/jest": "^30.0.0",
     "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "^24.10.4",
     "@types/nodemailer": "^7.0.4",
@@ -90,32 +89,16 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
+    "@vitest/coverage-v8": "^4.0.16",
     "eslint": "^9.39.2",
-    "jest": "^30.2.0",
     "source-map-support": "^0.5.20",
-    "supertest": "^7.1.4",
-    "ts-jest": "^29.4.6",
+    "supertest": "^7.2.2",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.51.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "typescript-eslint": "^8.52.0",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.0.16"
   }
 }

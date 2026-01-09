@@ -1,36 +1,40 @@
+import { beforeEach, describe, it, expect, vi, Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMock } from '@golevelup/ts-jest';
 import { CommunicationEmailService } from './communication-email.service';
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import ejs from 'ejs';
 
-jest.mock('nodemailer', () => ({
-  createTransport: jest.fn(() => ({
-    sendMail: jest.fn(),
-    use: jest.fn(),
-  })),
+vi.mock('nodemailer', () => ({
+  default: {
+    createTransport: vi.fn(() => ({
+      sendMail: vi.fn(),
+      use: vi.fn(),
+    })),
+  },
 }));
-jest.mock('ejs', () => ({
-  render: jest.fn(),
+vi.mock('ejs', () => ({
+  default: {
+    render: vi.fn(),
+  },
 }));
 
-(fs.promises.readFile as unknown as jest.Mock) = jest.fn();
+(fs.promises.readFile as unknown as Mock) = vi.fn();
 
 describe('EmailService', () => {
   let service: CommunicationEmailService;
-  let sendMailMock: jest.Mock;
-  let useMock: jest.Mock;
-  let readFileMock: jest.Mock;
-  let ejsRenderMock: jest.Mock;
+  let sendMailMock: Mock;
+  let useMock: Mock;
+  let readFileMock: Mock;
+  let ejsRenderMock: Mock;
 
   beforeEach(async () => {
-    sendMailMock = jest.fn();
-    useMock = jest.fn();
-    readFileMock = fs.promises.readFile as jest.Mock;
-    ejsRenderMock = ejs.render as jest.Mock;
+    sendMailMock = vi.fn();
+    useMock = vi.fn();
+    readFileMock = fs.promises.readFile as Mock;
+    ejsRenderMock = ejs.render as Mock;
 
-    (nodemailer.createTransport as jest.Mock).mockReturnValue({
+    (nodemailer.createTransport as Mock).mockReturnValue({
       sendMail: sendMailMock,
       use: useMock,
     });
@@ -48,7 +52,9 @@ describe('EmailService', () => {
         CommunicationEmailService,
       ],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<CommunicationEmailService>(CommunicationEmailService);
@@ -99,7 +105,8 @@ describe('EmailService', () => {
     const error = new Error('Failed to send email');
     sendMailMock.mockRejectedValueOnce(error);
 
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     try {
       await service.send(

@@ -60,4 +60,10 @@ export abstract class IntentionRepository {
   public abstract cleanupTransient(transientTtl: number): Promise<void>;
 
   public abstract cleanupRejected(rejectedTtl: number): Promise<void>;
+
+  public abstract getUniqueFieldValues(
+    field: string,
+    search: string,
+    limit: number,
+  ): Promise<string[]>;
 }

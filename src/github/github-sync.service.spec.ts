@@ -1,4 +1,4 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GithubSyncService } from './github-sync.service';
 
@@ -9,7 +9,9 @@ describe('GithubSyncService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [GithubSyncService],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<GithubSyncService>(GithubSyncService);

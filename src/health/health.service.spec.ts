@@ -1,11 +1,11 @@
+import { beforeEach, describe, it, expect, vi, Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMock, DeepMocked } from '@golevelup/ts-jest';
 import { HealthService } from './health.service';
 import { TokenService } from '../token/token.service';
 
 describe('HealthService', () => {
   let service: HealthService;
-  let tokenService: DeepMocked<TokenService>;
+  let tokenService: Record<string, Mock>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,7 +14,9 @@ describe('HealthService', () => {
         TokenService,
         {
           provide: TokenService,
-          useValue: createMock<TokenService>(),
+          useValue: {
+            hasValidToken: vi.fn(),
+          },
         },
       ],
     }).compile();

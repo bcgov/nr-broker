@@ -3,7 +3,7 @@ import {
   Response as ExpressResponse,
   Request as ExpressRequest,
 } from 'express';
-import { Issuer } from 'openid-client';
+import * as client from 'openid-client';
 
 import { BrokerOidcRedirectGuard } from './broker-oidc-redirect.guard';
 
@@ -46,10 +46,12 @@ export class AuthController {
     const id_token = req.user ? (req.user as any).id_token : undefined;
     req.logout(() => {
       req.session.destroy(async () => {
-        const TrustIssuer = await Issuer.discover(
-          `${process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER}/.well-known/openid-configuration`,
+        const config = await client.discovery(
+          new URL(process.env.OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER),
+          process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_ID,
+          process.env.OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_SECRET,
         );
-        const end_session_endpoint = TrustIssuer.metadata.end_session_endpoint;
+        const end_session_endpoint = config.serverMetadata().end_session_endpoint;
         if (end_session_endpoint) {
           res.redirect(
             end_session_endpoint +
