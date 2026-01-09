@@ -26,5 +26,5 @@ export class CollectionWatchDto {
   @ValidateNested()
   @IsArray()
   @IsDefined()
-  watches!: CollectionWatchConfigDto[]
+  watchConfigs!: CollectionWatchConfigDto[]
 }

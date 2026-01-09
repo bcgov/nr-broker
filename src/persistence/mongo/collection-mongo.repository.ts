@@ -148,13 +148,20 @@ export class CollectionMongoRepository implements CollectionRepository {
   public async saveWatch<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
-    userId: string,
-    watch: CollectionWatchConfigDto,
-  ): Promise<CollectionWatchConfigDto> {
+    watch: CollectionWatchDto,
+  ): Promise<CollectionWatchDto> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     repo
       .getCollection()
-      .updateOne({ _id: new ObjectId(id) } as any, { $set: { watch } } as any, { upsert: true });
+
+      //upsert?
+      //NOTE TO SELF :: Don't Upsert when Matching
+      //.updateOne({ _id: new ObjectId(id), "watches.userId": { $elemMatch: { $eq: watch.userId } } } as any, { $set: { "watches.$[e].watchConfigs": watch.watchConfigs } } as any, { arrayFilters: [ { "e.userId": watch.userId } ],  upsert: true } );
+      .updateOne({ _id: new ObjectId(id), "watches.userId": watch.userId } as any, { $set: { "watches.$.watchConfigs": watch.watchConfigs } } as any );
+
+
+      //insert first?
+      //.updateOne({ _id: new ObjectId(id) } as any, { $set: {"watches": [watch]} } as any, { upsert: true } );
       return watch;
   }
 
