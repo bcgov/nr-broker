@@ -21,7 +21,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["ui/**"],
+  "exclude": ["ui/**", "dist/**", "node_modules/**"],
   "watchOptions": {
     "excludeFiles": ["ui"]
   }
