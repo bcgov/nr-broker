@@ -1,7 +1,7 @@
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
-import { CollectionWatchDto } from '../dto/collection-watch.dto';
+import { CollectionWatchBaseDto } from '../dto/collection-watch.dto';
 import {
   CollectionEntityUnion,
   CollectionNames,
@@ -75,8 +75,8 @@ export abstract class CollectionRepository {
   public abstract saveWatch(
     collection: keyof CollectionEntityUnion,
     id: string,
-    watch: CollectionWatchDto
-  ): Promise<CollectionWatchDto>;
+    watch: CollectionWatchBaseDto
+  ): Promise<CollectionWatchBaseDto>;
 
   public abstract saveTags(
     collection: keyof CollectionEntityUnion,
