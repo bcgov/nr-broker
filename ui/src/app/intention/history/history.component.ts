@@ -6,6 +6,7 @@ import {
   inject,
   OnDestroy,
   computed,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
@@ -14,6 +15,7 @@ import {
   FormControl,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -26,7 +28,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { SortDirection } from '@angular/material/sort';
 import { httpResource } from '@angular/common/http';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, Subject, switchMap, of, catchError } from 'rxjs';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { HistoryTableComponent } from '../history-table/history-table.component';
@@ -54,6 +56,7 @@ export interface HistoryQuery {
   selector: 'app-history',
   imports: [
     FormsModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatDatepickerModule,
@@ -89,9 +92,14 @@ export class HistoryComponent implements OnDestroy {
     { value: 'username', viewValue: 'Username' },
   ];
 
+  // Fields that support typeahead
+  typeaheadFields = ['project', 'service', 'action', 'username'];
+
   value = input('');
   currentValue = '';
   debouncedValueModelChange$ = new Subject<any>();
+  typeaheadSearch$ = new Subject<string>();
+  typeaheadOptions = signal<string[]>([]);
 
   readonly lifespan = input('permanent', {
     transform: (v: string | undefined) => v ?? 'permanent',
@@ -282,6 +290,39 @@ export class HistoryComponent implements OnDestroy {
     this.debouncedValueModelChange$.pipe(debounceTime(1000)).subscribe(() => {
       this.updateFieldValue();
     });
+    this.typeaheadSearch$
+      .pipe(
+        debounceTime(300),
+        switchMap((search) => {
+          if (!this.typeaheadFields.includes(this.currentField)) {
+            return of([]);
+          }
+          return this.intentionApi
+            .getFieldValues(this.currentField, search, 15)
+            .pipe(catchError(() => of([])));
+        }),
+      )
+      .subscribe((options) => {
+        this.typeaheadOptions.set(options);
+      });
+  }
+
+  supportsTypeahead(): boolean {
+    return this.typeaheadFields.includes(this.currentField);
+  }
+
+  onFieldChange(field: string): void {
+    this.typeaheadOptions.set([]);
+    if (this.typeaheadFields.includes(field) && this.currentValue) {
+      this.typeaheadSearch$.next(this.currentValue);
+    }
+  }
+
+  onValueInput(value: string): void {
+    this.debouncedValueModelChange$.next(value);
+    if (this.supportsTypeahead()) {
+      this.typeaheadSearch$.next(value);
+    }
   }
 
   ngOnDestroy() {
