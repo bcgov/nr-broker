@@ -5,6 +5,7 @@ db.service.drop();
 db.vertex.drop();
 db.edge.drop();
 db.brokerAccount.drop();
+db.collectionWatch.drop();
 db.project.drop();
 db.environment.drop();
 db.jwtRegistry.drop();

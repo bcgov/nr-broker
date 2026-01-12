@@ -10,13 +10,14 @@ import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
+import { CollectionWatchBaseDto } from '../dto/collection-watch.dto';
 import {
   COLLECTION_COLLATION_LOCALE,
   GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
-import { CollectionWatchDto, CollectionWatchConfigDto } from '../entity/collection-watch.embeddable';
+import { CollectionWatchEntity, CollectionWatchIdentifierEmbeddable } from '../entity/collection-watch.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
@@ -64,6 +65,7 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): any {
     switch (collection) {
       case 'brokerAccount':
+      case 'collectionWatch':
       case 'environment':
       case 'project':
       case 'repository':
@@ -101,6 +103,8 @@ export class CollectionMongoRepository implements CollectionRepository {
     switch (collection) {
       case 'brokerAccount':
         return new BrokerAccountEntity();
+      case 'collectionWatch':
+        return new CollectionWatchEntity();
       case 'environment':
         return new EnvironmentEntity();
       case 'project':
@@ -148,21 +152,20 @@ export class CollectionMongoRepository implements CollectionRepository {
   public async saveWatch<T extends keyof CollectionEntityUnion>(
     type: T,
     id: string,
-    watch: CollectionWatchDto,
-  ): Promise<CollectionWatchDto> {
-    const repo = getRepositoryFromCollectionName(this.dataSource, type);
-    repo
+    watch: CollectionWatchBaseDto,
+  ): Promise<CollectionWatchBaseDto> {
+    const watchRepo = getRepositoryFromCollectionName(this.dataSource, 'collectionWatch');
+    const collectionWatch = await watchRepo
       .getCollection()
+      .updateOne({ collectionVertexId: new ObjectId(id), channel: watch.watchIdentifier.channel, event: watch.watchIdentifier.event } as any, { $addToSet: { "users": new ObjectId(watch.userId) } }, { upsert: true } );
 
-      //upsert?
-      //NOTE TO SELF :: Don't Upsert when Matching
-      //.updateOne({ _id: new ObjectId(id), "watches.userId": { $elemMatch: { $eq: watch.userId } } } as any, { $set: { "watches.$[e].watchConfigs": watch.watchConfigs } } as any, { arrayFilters: [ { "e.userId": watch.userId } ],  upsert: true } );
-      .updateOne({ _id: new ObjectId(id), "watches.userId": watch.userId } as any, { $set: { "watches.$.watchConfigs": watch.watchConfigs } } as any );
-
-
-      //insert first?
-      //.updateOne({ _id: new ObjectId(id) } as any, { $set: {"watches": [watch]} } as any, { upsert: true } );
-      return watch;
+    if (collectionWatch.upsertedId != null) {
+      const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
+      collectionRepo
+        .getCollection()
+        .updateOne({ _id: new ObjectId(id) } as any, { $addToSet: { "watches": [ collectionWatch.upsertedId ] } } as any, { upsert: true } );
+    }
+    return watch;
   }
 
   public async saveTags<T extends keyof CollectionEntityUnion>(

@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
-import { CollectionWatchConfigDto } from '../persistence/dto/collection-watch.dto';
+import { CollectionWatchIdentifierDto } from '../persistence/dto/collection-watch.dto';
 import { TokenService } from '../token/token.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
@@ -19,6 +19,7 @@ import { CollectionComboDto } from '../persistence/dto/collection-combo.dto';
 import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { UserRolesDto } from './dto/user-roles.dto';
+
 
 @Injectable()
 export class CollectionService {
@@ -121,10 +122,10 @@ export class CollectionService {
     type: T,
     id: string,
     userId: string,
-    watch: CollectionWatchConfigDto,
+    watchIdentifier: CollectionWatchIdentifierDto,
   ) {
-    await this.collectionRepository.saveWatch(type, id, { userId: userId, watchConfigs: [watch] });
-    return watch;
+    await this.collectionRepository.saveWatch(type, id, { collectionVertexId: id, watchIdentifier: watchIdentifier, userId: userId });
+    return watchIdentifier;
   }
 
   async addTagToCollectionById<T extends keyof CollectionDtoUnion>(
