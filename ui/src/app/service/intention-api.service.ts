@@ -37,6 +37,16 @@ export class IntentionApiService {
     });
   }
 
+  getFieldValues(field: string, search = '', limit = 10) {
+    return this.http.get<string[]>(
+      `${environment.apiUrl}/v1/intention/field/${field}/values`,
+      {
+        params: { search, limit },
+        responseType: 'json',
+      },
+    );
+  }
+
   getIntentionArgs(id: string) {
     return {
       method: 'GET',
