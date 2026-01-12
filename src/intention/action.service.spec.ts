@@ -1,4 +1,4 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActionService } from './action.service';
 import { ActionUtil } from '../util/action.util';
@@ -10,7 +10,9 @@ describe('ActionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [ActionService, ActionUtil],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<ActionService>(ActionService);

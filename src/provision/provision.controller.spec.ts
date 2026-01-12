@@ -1,4 +1,4 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProvisionController } from './provision.controller';
 
@@ -9,7 +9,9 @@ describe('ProvisionController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProvisionController],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     controller = module.get<ProvisionController>(ProvisionController);

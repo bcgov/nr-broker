@@ -1,18 +1,23 @@
-import { createMock, DeepMocked } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi, Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
-  // let healthCheckService: DeepMocked<HealthCheckService>;
-  let healthService: DeepMocked<HealthService>;
+  // let healthCheckService: Record<string, Mock>;
+  let healthService: Record<string, Mock>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
     })
-      .useMocker(createMock)
+      .useMocker((token) => {
+        if (token === HealthService) {
+          return { check: vi.fn() };
+        }
+        return vi.fn();
+      })
       .compile();
 
     controller = module.get<HealthController>(HealthController);

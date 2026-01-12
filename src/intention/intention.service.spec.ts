@@ -1,4 +1,4 @@
-import { createMock } from '@golevelup/ts-jest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { IntentionService } from './intention.service';
 
@@ -9,7 +9,9 @@ describe('IntentionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [IntentionService],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<IntentionService>(IntentionService);

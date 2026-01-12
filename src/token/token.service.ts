@@ -214,30 +214,37 @@ export class TokenService {
   @Cron(CronExpression.EVERY_MINUTE)
   @CreateRequestContext()
   handleTokenRenewal() {
-    if (
-      !this.hasValidToken() ||
-      this.renewAt === undefined ||
-      Date.now() < this.renewAt
-    ) {
-      return;
-    }
-    if (!IS_PRIMARY_NODE) {
-      // Nodes that are not the primary one should not renew
-      this.lookupSelf();
-      return;
-    }
-    this.logger.debug('Renew: start');
-    this.vaultService.postAuthTokenRenewSelf().subscribe({
-      error: () => {
-        this.logger.error('Renew: fail');
-      },
-      next: (val: AxiosResponse<any, any>) => {
-        this.logger.log(
-          `Renew: success (duration: ${val.data.auth.lease_duration})`,
-        );
+    try {
+      if (
+        !this.hasValidToken() ||
+        this.renewAt === undefined ||
+        Date.now() < this.renewAt
+      ) {
+        return;
+      }
+      if (!IS_PRIMARY_NODE) {
+        // Nodes that are not the primary one should not renew
         this.lookupSelf();
-      },
-    });
+        return;
+      }
+      this.logger.debug('Renew: start');
+      this.vaultService.postAuthTokenRenewSelf().subscribe({
+        error: () => {
+          this.logger.error('Renew: fail');
+        },
+        next: (val: AxiosResponse<any, any>) => {
+          this.logger.log(
+            `Renew: success (duration: ${val.data.auth.lease_duration})`,
+          );
+          this.lookupSelf();
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle token renewal: ${error.message}`,
+        error.stack,
+      );
+    }
   }
 
   private convertUnderscoreToDash(str: string) {

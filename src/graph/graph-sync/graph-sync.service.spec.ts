@@ -1,5 +1,5 @@
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMock } from '@golevelup/ts-jest';
 import { GraphSyncService } from './graph-sync.service';
 
 describe('GraphSyncService', () => {
@@ -9,7 +9,9 @@ describe('GraphSyncService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [GraphSyncService],
     })
-      .useMocker(createMock)
+      .useMocker(() => {
+        return vi.fn();
+      })
       .compile();
 
     service = module.get<GraphSyncService>(GraphSyncService);
