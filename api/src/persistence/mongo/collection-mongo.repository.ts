@@ -10,7 +10,7 @@ import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { CollectionWatchBaseDto } from '../dto/collection-watch.dto';
+import { CollectionWatchBaseDto, CollectionWatchIdentifierDto } from '../dto/collection-watch.dto';
 import {
   COLLECTION_COLLATION_LOCALE,
   GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
@@ -166,6 +166,15 @@ export class CollectionMongoRepository implements CollectionRepository {
         .updateOne({ _id: new ObjectId(id) } as any, { $addToSet: { "watches": [ collectionWatch.upsertedId ] } } as any, { upsert: true } );
     }
     return watch;
+  }
+
+  public async getWatchers<T extends keyof CollectionEntityUnion>(
+    type: T,
+    id: string,
+    watchIdentifier: CollectionWatchIdentifierDto,
+  ): Promise<UserEntity[]> {
+    return [new UserEntity()];
+
   }
 
   public async saveTags<T extends keyof CollectionEntityUnion>(

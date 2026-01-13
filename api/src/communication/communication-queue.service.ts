@@ -8,6 +8,7 @@ import { RedisService } from '../redis/redis.service';
 import { JobQueueUtil } from '../util/job-queue.util';
 import { AuditService } from '../audit/audit.service';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { UserDto } from '../persistence/dto/user.dto';
 import { CommunicationTaskService } from './communication-task.service';
@@ -21,7 +22,7 @@ interface CommunicationUserRef {
 
 interface NotificationIdentifier {
   channel: string;
-  event: string | string[];
+  event: string;
 }
 
 interface CommunicationJob {
@@ -43,6 +44,7 @@ export class CommunicationQueueService {
     @Inject(COMMUNICATION_TASKS)
     private readonly communicationTasks: Array<CommunicationTaskService>,
     private readonly graphRepository: GraphRepository,
+    private readonly collectionRepository: CollectionRepository,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly redisService: RedisService,
     private readonly jobQueueUtil: JobQueueUtil,
@@ -187,7 +189,9 @@ export class CommunicationQueueService {
         );
       }
       if (job.notificationIdentifier !== undefined) {
-        //TODO: getVertexById and parse user
+        const collectionType = 'service';
+        const watchers = await this.collectionRepository.getWatchers(collectionType, job.vertexId, job.notificationIdentifier);
+        userArr.push(...watchers);
       }
     }
     return userArr;

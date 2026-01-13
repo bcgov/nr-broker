@@ -703,7 +703,7 @@ export class IntentionService {
     }
     //TODO: any additional context for the communication?
     const context = {
-      title: 'Application Deployed',
+      title: 'Application Deployed: (' + outcome ? outcome : 'undefined' + ')',
       collectionId: action.service.id ? action.service.id.toString() : "",
       serviceName: action.service.name,
       projectName: action.service.project,
