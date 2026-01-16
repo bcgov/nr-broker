@@ -68,16 +68,20 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
+          cache-dependency-path: ./api/package-lock.json
 
       - name: npm ci
         run: npm ci
+        working-directory: ./api
 
       - name: lint
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: npm run lint
+        working-directory: ./api
 
       - name: unit test
         run: npm run test:cov
+        working-directory: ./api
 
       - name: Report code coverage
         if: ${{ github.actor != 'dependabot[bot]' }}
@@ -86,7 +90,7 @@ jobs:
           title: Backend coverage report
           delete-old-comments: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          lcov-file: ./coverage/lcov.info
+          lcov-file: ./api/coverage/lcov.info
 
   tests-frontend:
     name: Frontend Tests
@@ -100,6 +104,7 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
+          cache-dependency-path: ./ui/package-lock.json
 
       - name: npm ci
         run: npm ci

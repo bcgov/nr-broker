@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: nr-broker-app
+  description: NR Broker handles the business logic of authenticating and
+    validating requests for automated processes to access secrets.
+  title: NR Broker
+  annotations:
+    github.com/project-slug: "bcgov-nr/nr-broker"
+    license: Apache-2.0
+    composer.io.nrs.gov.bc.ca/generators: backstage
+spec:
+  system: nr-broker
+  type: website
+  lifecycle: production
+  owner: Oscar

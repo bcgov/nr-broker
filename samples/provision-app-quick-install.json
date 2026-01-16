@@ -24,7 +24,7 @@
       "service": {
         "project": "superapp",
         "name": "superapp-backend",
-        "environment": "development"
+        "environment": "test"
       },
       "source": {
         "action": "package-build#build",

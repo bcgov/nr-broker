@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Source and destination directories
-SOURCE_DIR="../src"
+SOURCE_DIR="../api/src"
 DEST_DIR="../ui/src/app/service"
 
 # Ensure the destination directory exists
