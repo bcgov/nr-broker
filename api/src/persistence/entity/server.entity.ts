@@ -7,7 +7,7 @@ import {
   SerializedPrimaryKey,
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
-import { VertexPointerEntity } from '../entity/vertex-pointer.entity';
+import { VertexPointerEntity } from './vertex-pointer.entity';
 import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 
 @Entity({ tableName: 'server' })

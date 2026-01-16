@@ -17,6 +17,13 @@ $ ./scripts/mongo-setup.sh
 
 The setup script can be rerun to reset the local database. You may need to reindex the redis cache by calling the api `/v1/graph/reindex-cache`.
 
+### Taking and restoring a local database snapshot
+
+```bash
+mongodump --host=localhost:27017 --authenticationDatabase=admin -u=mongoadmin -p=secret --db=brokerDB -o dump
+mongorestore --host=localhost:27017 --authenticationDatabase=admin -u=mongoadmin -p=secret --db=brokerDB ./dump/brokerDB
+```
+
 ## Production
 
 ### Restoring a database from a dump

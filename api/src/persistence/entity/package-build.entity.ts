@@ -10,7 +10,7 @@ import {
 } from '@mikro-orm/core';
 import { ObjectId } from 'mongodb';
 
-import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
+import { TimestampEmbeddable } from './timestamp.embeddable';
 import { PackageEmbeddable } from '../../intention/entity/package.embeddable';
 import { IntentionActionPointerEmbeddable } from './intention-action-pointer.embeddable';
 

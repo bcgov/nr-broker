@@ -16,7 +16,7 @@ import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import { CollectionEntityUnion } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexEntity } from '../entity/vertex.entity';
-import { GraphVertexConnections } from '../../persistence/dto/collection-combo.dto';
+import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 
