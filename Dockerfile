@@ -4,10 +4,13 @@ ARG NG_BUILD_CONFIG=
 
 RUN npm i -g @nestjs/cli
 
-### --------------------------------- Build: Backend
-# Install packages and build
 WORKDIR /app
 COPY . ./
+
+### --------------------------------- Build: Backend
+# Install packages and build
+WORKDIR /app/api
+
 RUN npm ci && \
     npm run build
 
@@ -43,9 +46,9 @@ RUN unzip /tmp/envconsul.zip && \
 
 # Copy over app
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/env.hcl /config/envconsul/env.hcl
+COPY --from=builder /app/api/node_modules ./node_modules
+COPY --from=builder /app/api/dist ./dist
+COPY --from=builder /app/api/env.hcl /config/envconsul/env.hcl
 
 COPY --from=builder /app/ui/dist-development ./ui-development
 COPY --from=builder /app/ui/dist-test ./ui-test
