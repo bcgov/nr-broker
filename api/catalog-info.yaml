@@ -7,8 +7,8 @@ metadata:
   title: NR Broker
   annotations:
     github.com/project-slug: "bcgov-nr/nr-broker"
-    backstage.io/techdocs-ref: dir:.
-    composer.io.nrs.gov.bc.ca/generators: gh-docs-deploy
+    license: Apache-2.0
+    composer.io.nrs.gov.bc.ca/generators: backstage
 spec:
   system: nr-broker
   type: website

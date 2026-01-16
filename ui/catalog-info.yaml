@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+spec:
+  system: nr-broker
+  type: library
+  lifecycle: production
+  owner: Oscar
+metadata:
+  name: nr-broker-ui
+  description: NR Broker UI
+  title: NR Broker UI
+  annotations:
+    license: Apache-2.0
+    github.com/project-slug: bcgov-nr/nr-broker
+    composer.io.nrs.gov.bc.ca/generators: backstage
