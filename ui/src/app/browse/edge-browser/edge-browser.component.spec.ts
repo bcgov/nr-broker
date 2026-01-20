@@ -8,9 +8,9 @@ describe('EdgeBrowserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EdgeBrowserComponent]
+      imports: [EdgeBrowserComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(EdgeBrowserComponent);
     component = fixture.componentInstance;
