@@ -2,7 +2,7 @@
   @if (showHeader()) {
     <h3 class="property-heading">Properties</h3>
     @if (showHelp()) {
-      <small>Key-value pairs that describe the graph item.</small>
+      <small class="help">Key-value pairs that describe the graph item.</small>
     }
   }
   <table mat-table [dataSource]="prop() | keyvalue">
@@ -14,7 +14,14 @@
     <!-- Value Column -->
     <ng-container matColumnDef="value">
       <th mat-header-cell *matHeaderCellDef> Value </th>
-      <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+      <td mat-cell *matCellDef="let element">
+        <div class="parent-ellipsis">
+          <span class="ellipsis">{{element.value}}</span>
+          @if (showHelp()) {
+            <small class="ellipsis">{{keyHint(element.key)}}</small>
+          }
+        </div>
+      </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="propDisplayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: propDisplayedColumns;"></tr>

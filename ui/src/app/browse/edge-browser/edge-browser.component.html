@@ -1,0 +1,135 @@
+<div
+  class="collection-flex-container">
+  <button
+    mat-icon-button
+    (click)="openInGraph()">
+    <mat-icon>account_tree</mat-icon>
+  </button>
+  <div>
+    <div class="collection-subtitle">Browse - Edge</div>
+    @if (edgeResource.hasValue()) {
+      <div class="collection-title">{{ edgeResource.value().name }}</div>
+    } @else {
+      <div class="collection-title">Loading</div>
+    }
+  </div>
+  <span class="spacer"></span>
+
+  <div
+    class="spaced-btn {{screen.screenSize()}} collection-btn">
+    @if (screen.screenSize() === 'wide') {
+      <button
+        mat-button
+        extended
+        color="warn"
+        [disabled]="!hasDelete()"
+        (click)="delete()">
+        Delete
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        color="warn"
+        [disabled]="!hasDelete()"
+        (click)="delete()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (screen.screenSize() === 'wide') {
+    <button
+      mat-stroked-button
+      extended
+      class="collection-btn"
+      (click)="openInGraph()">
+      View on Graph
+    </button>
+    <button
+      mat-button
+      extended
+      class="collection-btn"
+      [disabled]="!hasUpdate()"
+      (click)="edit()">
+      Edit
+    </button>
+  } @else {
+    <button
+      mat-icon-button
+      class="collection-btn"
+      (click)="openInGraph()">
+      <mat-icon>account_tree</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      class="collection-btn"
+      [disabled]="!hasUpdate()"
+      (click)="edit()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  }
+
+</div>
+<mat-divider></mat-divider>
+
+<div
+  class="inspector-card-layout inspector-tab-margin"
+  [class]="screen.screenSize()">
+
+  <div class="full-width vertex-tags-section">
+    <div class="spacer"></div>
+    <div class="slide-toggle-section">
+      Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+    </div>
+  </div>
+
+@if (edgeResource.hasValue() && sourceResource.hasValue() && targetResource.hasValue()) {
+  <div>
+    <mat-card appearance="outlined" class="inspector-card-gap">
+      <mat-card-content>
+        <div class="card-title-container">
+          <mat-card-title>Details</mat-card-title>
+        </div>
+        <app-inspector-edge
+          [edge]="edgeResource.value()"
+          [sourceVertex]="sourceResource.value()"
+          [targetVertex]="targetResource.value()"
+          (vertexSelected)="selectVertex($event)"
+          ></app-inspector-edge>
+        @let prop = edgeResource.value().prop;
+        @if (prop) {
+          <app-inspector-properties
+            [prototype]="prototype()"
+            [showHelp]="showHelp()"
+            [prop]="prop"></app-inspector-properties>
+        }
+        <app-inspector-timestamps
+          [timestamps]="edgeResource.value().timestamps"></app-inspector-timestamps>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div>
+    <mat-card class="inspector-card-gap" appearance="outlined">
+      <mat-card-content>
+        <div class="card-title-container">
+          <mat-card-title>Edge</mat-card-title>
+        </div>
+
+        <div class="card-content-container-full">
+          <p>On the graph, an edge is a named relationship that connects two collections in the graph.
+            It describes how items in one collection relate to items in another. The forward direction from source to target is said to be downstream, while the reverse direction is upstream.
+          </p>
+
+          @if (edgeResource.value().restrict) {
+            <p>
+              Restricted edges (<mat-icon inline="true" style="margin-bottom: -6px;">link_off</mat-icon>) add supplemental information to the vertex. Restricted edges are not directly followed as part of graph lookups. In other words, they are metadata about the vertex, not part of its core relationships.
+            </p>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+} @else {
+  <mat-spinner></mat-spinner>
+}
+</div>

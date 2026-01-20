@@ -55,11 +55,12 @@ export class TeamServiceComponent {
   propDisplayedColumns: string[] = ['key', 'value'];
 
   navigateToService($event: MouseEvent) {
-    console.log(this.service());
+    // console.log(this.service());
     const target = this.service().edge.prototype.target;
     const instanceId = this.service().instance?.id;
     if ($event.altKey && instanceId) {
-      this.graphUtil.openInGraph(instanceId, 'edge');
+      this.router.navigate(['/browse', 'edge', instanceId]);
+      // this.graphUtil.openInGraph(instanceId, 'edge');
     } else {
       this.collectionApi
         .searchCollection('service', {
@@ -105,8 +106,4 @@ export class TeamServiceComponent {
         }
       });
   }
-
-  // hasUpdate(): boolean {
-  //   return true;
-  // }
 }

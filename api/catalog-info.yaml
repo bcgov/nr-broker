@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: nr-broker-app
+  name: nr-broker
   description: NR Broker handles the business logic of authenticating and
     validating requests for automated processes to access secrets.
   title: NR Broker

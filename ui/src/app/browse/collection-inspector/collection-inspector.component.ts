@@ -318,7 +318,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           }
         });
     } else {
-      this.graphUtil.openInGraph(target.id, 'edge', false);
+      this.router.navigate(['/browse', 'edge', target.id]);
     }
   }
 

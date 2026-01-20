@@ -10,6 +10,7 @@ import { CollectionConnectionComponent } from './collection-connection/collectio
 import { ServiceBuildsComponent } from './service-builds/service-builds.component';
 import { ServiceInstancesComponent } from './service-instances/service-instances.component';
 import { CollectionHistoryComponent } from './collection-history/collection-history.component';
+import { EdgeBrowserComponent } from './edge-browser/edge-browser.component';
 
 export const BROWSE_ROUTES: Route[] = [
   {
@@ -27,6 +28,11 @@ export const BROWSE_ROUTES: Route[] = [
     path: ':collection',
     component: CollectionBrowserComponent,
     title: 'Browse',
+  },
+  {
+    path: 'edge/:edgeId',
+    component: EdgeBrowserComponent,
+    title: 'Inspector',
   },
   {
     path: ':collection/:collectionId',

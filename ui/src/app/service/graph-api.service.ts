@@ -94,13 +94,22 @@ export class GraphApiService {
     );
   }
 
-  getEdge(id: string) {
-    return this.http.get<EdgeDto>(
-      `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
-      {
+  getEdgeArgs(id: string) {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}`,
+      headers: {
         responseType: 'json',
       },
-    );
+    };
+  }
+
+  getEdge(id: string) {
+    const args = this.getEdgeArgs(id);
+    return this.http.request<EdgeDto>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      headers: args.headers as any,
+    });
   }
 
   addEdge(edge: EdgeInsertDto) {
@@ -163,13 +172,22 @@ export class GraphApiService {
     );
   }
 
-  getVertex(id: string) {
-    return this.http.get<VertexDto>(
-      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
-      {
+  getVertexArgs(id: string) {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
+      headers: {
         responseType: 'json',
       },
-    );
+    };
+  }
+
+  getVertex(id: string) {
+    const args = this.getVertexArgs(id);
+    return this.http.request<VertexDto>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      headers: args.headers as any,
+    });
   }
 
   addVertex(vertex: VertexInsertDto) {

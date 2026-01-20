@@ -1,3 +1,28 @@
-small, h3 {
+small.help, h3 {
   margin: 16px 16px 0;
+}
+
+table {
+  margin-bottom: 16px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.mat-column-key {
+  width: 30%;
+}
+
+.parent-ellipsis {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.ellipsis {
+  flex-grow: 1;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
