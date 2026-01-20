@@ -1,6 +1,11 @@
-# compiled output
+# Compiled output
 /api/dist
 /api/node_modules
+/ui/dist
+/ui/tmp
+/ui/out-tsc
+/ui/bazel-out
+/ui/node_modules
 
 # Logs
 logs
@@ -11,12 +16,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# OS
-.DS_Store
-
 # Tests
 /api/coverage
 /api/.nyc_output
+/ui/coverage
+
+# OS
+.DS_Store
+Thumbs.db
 
 # IDEs and editors
 /.idea
@@ -33,7 +40,17 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.history/*
 
+# Angular
+/ui/.angular/cache
+/ui/.sass-cache/
+/ui/connect.lock
+/ui/libpeerconnection.log
+/ui/testem.log
+/ui/typings
+
+# Environment and secrets
 /api/env-prod.hcl
 /scripts/db/mongo-setup-ext.js
 /scripts/setenv-common.sh

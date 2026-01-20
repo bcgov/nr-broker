@@ -23,7 +23,7 @@
             <span class="inspector-header-link" routerLink="/browse/{{localComboData.vertex.collection}}/{{localComboData.collection.id}}">{{localComboData.vertex.name}}</span>
           }
           @if (localComboData && localComboData.type === 'edge') {
-            {{localComboData.edge.name | titlecase}}
+             <span class="inspector-header-link" routerLink="/browse/edge/{{localComboData.edge.id}}">{{localComboData.edge.name | titlecase}}</span>
           }
           @if (!target()) {
             Inspector

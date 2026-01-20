@@ -54,7 +54,7 @@ Developers may wish to setup thing own client or use the same client as your dev
 The backend and the ui are separate node projects. You must setup their dependencies before they can be run.
 
 ```bash
-$ npm ci
+$ cd api; npm ci
 $ cd ui; npm ci
 ```
 
@@ -127,6 +127,7 @@ The UI should be built before starting the backend server.
 ```bash
 # Run server in watch mode
 # Will source ./scripts/setenv-backend-dev.sh for environment vars
+$ cd api
 $ npm run watch
 ```
 
