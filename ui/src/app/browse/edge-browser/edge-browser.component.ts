@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit, signal, OnDestroy, computed } from '@angular/core';
+import { Component, effect, inject, input, OnInit, signal, OnDestroy, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { ScreenService } from '../../util/screen.service';
 import { GraphApiService } from '../../service/graph-api.service';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { GraphUtilService } from '../../service/graph-util.service';
+import { PermissionService } from '../../service/permission.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 import { EdgeDialogComponent } from '../../graph/edge-dialog/edge-dialog.component';
@@ -23,6 +24,7 @@ import { InspectorEdgeComponent } from '../../graph/inspector-edge/inspector-edg
 import { CollectionApiService } from '../../service/collection-api.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
+import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 
 @Component({
   selector: 'app-edge-browser',
@@ -45,6 +47,7 @@ export class EdgeBrowserComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly collectionApi = inject(CollectionApiService);
+  private readonly permission = inject(PermissionService);
 
   readonly screen = inject(ScreenService);
   readonly configArr = inject(CONFIG_ARR);
@@ -56,8 +59,8 @@ export class EdgeBrowserComponent implements OnInit, OnDestroy {
 
   public edgeId = input('');
 
-  hasDelete = signal(true);
-  hasUpdate = signal(true);
+  hasDelete = signal(false);
+  hasUpdate = signal(false);
   showHelp = signal(false);
 
   config = computed(() => {
@@ -110,6 +113,22 @@ export class EdgeBrowserComponent implements OnInit, OnDestroy {
     }
     return this.graphApi.getVertexArgs(this.edgeResource.value().target);
   });
+
+  permissionsResource = httpResource<UserPermissionDto>(() => {
+    return this.graphApi.getUserPermissionsArgs();
+  });
+
+  constructor() {
+    effect(() => {
+      const edge = this.edgeResource.value();
+      const permissions = this.permissionsResource.value();
+      if (edge && permissions) {
+        const targetId = edge.target;
+        this.hasDelete.set(this.permission.hasDelete(permissions, targetId));
+        this.hasUpdate.set(this.permission.hasUpdate(permissions, targetId));
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.graphApi
