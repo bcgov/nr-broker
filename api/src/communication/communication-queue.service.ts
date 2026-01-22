@@ -190,8 +190,12 @@ export class CommunicationQueueService {
       }
       if (job.notificationIdentifier !== undefined) {
         const collectionType = 'service';
-        const watchers = await this.collectionRepository.getWatchers(collectionType, job.vertexId, job.notificationIdentifier);
-        //userArr.push(...watchers.map((watcher) => watcher.toDto()));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const watchers = await this.collectionRepository.getWatchers(
+          collectionType,
+          job.vertexId,
+          job.notificationIdentifier);
+        // userArr.push(...watchers.map((watcher) => watcher.toDto()));
       }
     }
     return userArr;

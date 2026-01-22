@@ -692,33 +692,36 @@ export class IntentionService {
   }
 
   private async sendActionLifecycleCommunication(
-    //intention: IntentionEntity, //TODO: unused?
+    // intention: IntentionEntity, //TODO: unused?
     action: ActionEmbeddable,
     outcome: string | undefined,
     type: 'start' | 'end',
   ): Promise<boolean> {
-    //TODO: is this exit logic correct? additional configurations?
+    // TODO: is this exit logic correct? additional configurations?
     if (type !== 'end' || action.lifecycle !== 'ended' || action.action !== 'package-installation') {
       return true;
     }
-    //TODO: any additional context for the communication?
+    // TODO: any additional context for the communication?
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const context = {
       title: `Application Deployed: (${outcome})`,
-      collectionId: action.service.id ? action.service.id.toString() : "",
+      collectionId: action.service.id ? action.service.id.toString() : '',
       serviceName: action.service.name,
       projectName: action.service.project,
       environmentName: action.service.environment,
       outcome: outcome,
       userName: action.user.full_name,
     };
-    const toUsers = []; //will be looked up via notificationIdentifier
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const toUsers = []; // will be looked up via notificationIdentifier
     const notificationIdentifier = {
       channel: action.action,
       event: outcome,
-    }
+    };
     if (action.service.id) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const watchers = await this.collectionRepository.getWatchers('service', action.service.id.toString(), notificationIdentifier);
-      //console.log(watchers);
+      // console.log(watchers);
     }
     /* //TODO: make 'intention-event-notification' template
     await this.communicationQueueService.queue(
@@ -773,7 +776,7 @@ export class IntentionService {
       type,
     );
     this.sendActionLifecycleCommunication(
-     // intention,
+      // intention,
       action,
       outcome,
       type,

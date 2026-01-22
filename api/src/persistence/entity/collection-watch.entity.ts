@@ -1,6 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import {
-  Index,
   Embeddable,
   Entity,
   PrimaryKey,
@@ -33,8 +32,8 @@ export class CollectionWatchEntity extends VertexPointerEntity {
   collectionVertexId: string;
 
   @Property()
-  watchIdentifier: CollectionWatchIdentifierEmbeddable
-  
+  watchIdentifier: CollectionWatchIdentifierEmbeddable;
+
   @Property()
   userId: string;
 }

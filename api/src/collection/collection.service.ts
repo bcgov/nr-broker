@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Request } from 'express';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionDtoUnion } from '../persistence/dto/collection-dto-union.type';
@@ -18,8 +17,6 @@ import { IntentionActionPointerEmbeddable } from '../persistence/entity/intentio
 import { CollectionComboDto } from '../persistence/dto/collection-combo.dto';
 import { CollectionEntityUnion } from '../persistence/entity/collection-entity-union.type';
 import { ProjectDto } from '../persistence/dto/project.dto';
-import { UserRolesDto } from './dto/user-roles.dto';
-
 
 @Injectable()
 export class CollectionService {
@@ -124,7 +121,10 @@ export class CollectionService {
     userId: string,
     watchIdentifier: CollectionWatchIdentifierDto,
   ) {
-    await this.collectionRepository.saveWatch(type, id, { collectionVertexId: id, watchIdentifier: watchIdentifier, userId: userId });
+    await this.collectionRepository.saveWatch(
+      type,
+      id,
+      { collectionVertexId: id, watchIdentifier: watchIdentifier, userId: userId });
     return watchIdentifier;
   }
 

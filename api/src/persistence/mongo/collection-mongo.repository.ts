@@ -18,7 +18,7 @@ import {
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
-import { CollectionWatchEntity, CollectionWatchIdentifierEmbeddable } from '../entity/collection-watch.entity';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
@@ -30,7 +30,6 @@ import { UserEntity } from '../entity/user.entity';
 import {
   CollectionEntityUnion,
   CollectionNames,
-  CollectionNameEnum,
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
@@ -158,13 +157,21 @@ export class CollectionMongoRepository implements CollectionRepository {
     const watchRepo = getRepositoryFromCollectionName(this.dataSource, 'collectionWatch');
     const collectionWatch = await watchRepo
       .getCollection()
-      .updateOne({ collectionVertexId: new ObjectId(id), channel: watch.watchIdentifier.channel, event: watch.watchIdentifier.event } as any, { $addToSet: { "users": new ObjectId(watch.userId) } }, { upsert: true } );
+      .updateOne({
+        collectionVertexId: new ObjectId(id),
+        channel: watch.watchIdentifier.channel,
+        event: watch.watchIdentifier.event } as any,
+      { $addToSet: { users: new ObjectId(watch.userId) } },
+      { upsert: true });
 
     if (collectionWatch.upsertedId) {
       const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
       collectionRepo
         .getCollection()
-        .updateOne({ _id: new ObjectId(id) } as any, { $addToSet: { "watches": collectionWatch.upsertedId } } as any, { upsert: true } );
+        .updateOne({
+          _id: new ObjectId(id) } as any,
+        { $addToSet: { watches: collectionWatch.upsertedId } } as any,
+        { upsert: true });
     }
     return watch;
   }
@@ -178,12 +185,35 @@ export class CollectionMongoRepository implements CollectionRepository {
     console.log(watchIdentifier);
     const collectionWatchers = await collectionRepo
       .getCollection()
-      .aggregate([{$match: {'name': 'nr-broker'}}, {$lookup: {from: 'collectionWatch', localField: 'watches', foreignField: '_id', as: 'watchIdentifier', pipeline:[{$match: {'channel': watchIdentifier.channel, 'event': watchIdentifier.event}}]}}, {$lookup: {from: 'user', localField: 'watchIdentifier.users', foreignField: 'vertex', as: 'watchUsers'}}, {$unset: ['watches']} ]).toArray();
-      //.aggregate([{$match: {'vertex': new ObjectId(id)}}, {$lookup: {from: 'collectionWatch', localField: 'watches', foreignField: '_id', as: 'watchIdentifier', pipeline:[{$match: {'channel': watchIdentifier.channel, 'event': watchIdentifier.event}}]}}, {$lookup: {from: 'user', localField: 'watchIdentifier.users', foreignField: 'vertex', as: 'watchUsers'}}, {$unset: ['watches']} ]).toArray();
-      console.log(collectionWatchers);
-      console.log(JSON.stringify(collectionWatchers));
+      .aggregate([{
+        $match: { name: 'nr-broker' },
+      },
+      {
+        $lookup: {
+          from: 'collectionWatch',
+          localField: 'watches',
+          foreignField: '_id',
+          as: 'watchIdentifier',
+          pipeline: [{
+            $match: {
+              channel: watchIdentifier.channel,
+              event: watchIdentifier.event,
+            },
+          }],
+        },
+      },
+      {
+        $lookup: {
+          from: 'user',
+          localField: 'watchIdentifier.users',
+          foreignField: 'vertex',
+          as: 'watchUsers',
+        },
+      },
+      { $unset: ['watches'] }]).toArray();
+    console.log(collectionWatchers);
+    console.log(JSON.stringify(collectionWatchers));
     return [new UserDto()];
-
   }
 
   public async saveTags<T extends keyof CollectionEntityUnion>(
