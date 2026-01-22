@@ -11,6 +11,7 @@ import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
 import { CollectionWatchBaseDto, CollectionWatchIdentifierDto } from '../dto/collection-watch.dto';
+import { UserDto } from '../dto/user.dto';
 import {
   COLLECTION_COLLATION_LOCALE,
   GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
@@ -159,11 +160,11 @@ export class CollectionMongoRepository implements CollectionRepository {
       .getCollection()
       .updateOne({ collectionVertexId: new ObjectId(id), channel: watch.watchIdentifier.channel, event: watch.watchIdentifier.event } as any, { $addToSet: { "users": new ObjectId(watch.userId) } }, { upsert: true } );
 
-    if (collectionWatch.upsertedId != null) {
+    if (collectionWatch.upsertedId) {
       const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
       collectionRepo
         .getCollection()
-        .updateOne({ _id: new ObjectId(id) } as any, { $addToSet: { "watches": [ collectionWatch.upsertedId ] } } as any, { upsert: true } );
+        .updateOne({ _id: new ObjectId(id) } as any, { $addToSet: { "watches": collectionWatch.upsertedId } } as any, { upsert: true } );
     }
     return watch;
   }
@@ -172,8 +173,16 @@ export class CollectionMongoRepository implements CollectionRepository {
     type: T,
     id: string,
     watchIdentifier: CollectionWatchIdentifierDto,
-  ): Promise<UserEntity[]> {
-    return [new UserEntity()];
+  ): Promise<UserDto[]> {
+    const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
+    console.log(watchIdentifier);
+    const collectionWatchers = await collectionRepo
+      .getCollection()
+      .aggregate([{$match: {'name': 'nr-broker'}}, {$lookup: {from: 'collectionWatch', localField: 'watches', foreignField: '_id', as: 'watchIdentifier', pipeline:[{$match: {'channel': watchIdentifier.channel, 'event': watchIdentifier.event}}]}}, {$lookup: {from: 'user', localField: 'watchIdentifier.users', foreignField: 'vertex', as: 'watchUsers'}}, {$unset: ['watches']} ]).toArray();
+      //.aggregate([{$match: {'vertex': new ObjectId(id)}}, {$lookup: {from: 'collectionWatch', localField: 'watches', foreignField: '_id', as: 'watchIdentifier', pipeline:[{$match: {'channel': watchIdentifier.channel, 'event': watchIdentifier.event}}]}}, {$lookup: {from: 'user', localField: 'watchIdentifier.users', foreignField: 'vertex', as: 'watchUsers'}}, {$unset: ['watches']} ]).toArray();
+      console.log(collectionWatchers);
+      console.log(JSON.stringify(collectionWatchers));
+    return [new UserDto()];
 
   }
 

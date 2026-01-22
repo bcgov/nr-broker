@@ -703,7 +703,7 @@ export class IntentionService {
     }
     //TODO: any additional context for the communication?
     const context = {
-      title: 'Application Deployed: (' + outcome ? outcome : 'undefined' + ')',
+      title: `Application Deployed: (${outcome})`,
       collectionId: action.service.id ? action.service.id.toString() : "",
       serviceName: action.service.name,
       projectName: action.service.project,
@@ -716,10 +716,14 @@ export class IntentionService {
       channel: action.action,
       event: outcome,
     }
+    if (action.service.id) {
+      const watchers = await this.collectionRepository.getWatchers('service', action.service.id.toString(), notificationIdentifier);
+      //console.log(watchers);
+    }
     /* //TODO: make 'intention-event-notification' template
     await this.communicationQueueService.queue(
       'intention-event-notification',
-      action.service.id.toString(), //TODO: this is undefined on first run? //TODO: should this use getCollectionById?
+      action.service.id.toString(), //TODO: this is undefined on first run?
       toUsers,
       'intention-event-notification',
       'context',
