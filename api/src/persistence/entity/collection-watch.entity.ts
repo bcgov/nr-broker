@@ -29,9 +29,6 @@ export class CollectionWatchEntity extends VertexPointerEntity {
   id!: string; // won't be saved in the database
 
   @Property()
-  collectionVertexId: string;
-
-  @Property()
   watchIdentifier: CollectionWatchIdentifierEmbeddable;
 
   @Property()

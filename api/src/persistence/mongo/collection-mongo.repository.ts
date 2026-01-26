@@ -65,7 +65,6 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): any {
     switch (collection) {
       case 'brokerAccount':
-      case 'collectionWatch':
       case 'environment':
       case 'project':
       case 'repository':
@@ -103,8 +102,6 @@ export class CollectionMongoRepository implements CollectionRepository {
     switch (collection) {
       case 'brokerAccount':
         return new BrokerAccountEntity();
-      case 'collectionWatch':
-        return new CollectionWatchEntity();
       case 'environment':
         return new EnvironmentEntity();
       case 'project':
@@ -154,7 +151,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     id: string,
     watch: CollectionWatchBaseDto,
   ): Promise<CollectionWatchBaseDto> {
-    const watchRepo = getRepositoryFromCollectionName(this.dataSource, 'collectionWatch');
+    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
     const collectionWatch = await watchRepo
       .getCollection()
       .updateOne({

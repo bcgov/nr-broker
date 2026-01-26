@@ -1,5 +1,4 @@
 import { BrokerAccountEntity } from './broker-account.entity';
-import { CollectionWatchEntity } from './collection-watch.entity';
 import { EnvironmentEntity } from './environment.entity';
 import { ProjectEntity } from './project.entity';
 import { RepositoryEntity } from './repository.entity';
@@ -11,7 +10,6 @@ import { UserEntity } from './user.entity';
 
 export type CollectionEntityUnion = {
   brokerAccount: BrokerAccountEntity;
-  collectionWatch: CollectionWatchEntity;
   environment: EnvironmentEntity;
   project: ProjectEntity;
   repository: RepositoryEntity;
@@ -37,7 +35,6 @@ export const CollectionNameEnum: {
   team: 6,
   server: 7,
   repository: 8,
-  collectionWatch: 9,
 } as const;
 
 export enum CollectionNameStringEnum {
@@ -50,5 +47,4 @@ export enum CollectionNameStringEnum {
   team = 'team',
   server = 'server',
   repository = 'repository',
-  collectionWatch = 'collectionWatch',
 }

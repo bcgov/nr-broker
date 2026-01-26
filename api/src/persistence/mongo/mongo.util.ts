@@ -1,5 +1,4 @@
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
-import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { ServerEntity } from '../entity/server.entity';
@@ -33,10 +32,6 @@ export function getRepositoryFromCollectionName<
     case 'brokerAccount':
       return dataSource.getRepository(
         BrokerAccountEntity,
-      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
-    case 'collectionWatch':
-      return dataSource.getRepository(
-        CollectionWatchEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'environment':
       return dataSource.getRepository(

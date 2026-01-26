@@ -7,7 +7,6 @@ import {
 import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-
 export class CollectionWatchIdentifierDto {
   @IsString()
   @IsDefined()

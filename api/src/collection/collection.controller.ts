@@ -5,6 +5,7 @@ import {
   Get,
   MessageEvent,
   NotFoundException,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -314,16 +315,19 @@ export class CollectionController {
     return this.service.getServiceSecureInfo(id);
   }
 
-  @Post('service/:id/watch')
+  @Post(':collection/:id/watch')
   @UseGuards(BrokerOidcAuthGuard)
-  @ApiOAuth2(['openid', 'profile'])
+  @UsePipes(new ValidationPipe({ transform: true }))
   async watchService(
     @Request() request: ExpressRequest,
     @Body() watchIdentifier: CollectionWatchIdentifierDto,
+    @Param('collection') collection: string,
     @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
-    const collection = 'service';
     const user = await this.userCollectionService.extractUserFromRequest(request);
+    if (collection !== 'service') {
+      throw new NotImplementedException();
+    }
     return this.service.addWatchToCollectionById(
       this.parseCollectionApi(collection),
       id,
