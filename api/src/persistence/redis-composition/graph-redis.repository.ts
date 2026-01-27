@@ -36,7 +36,7 @@ import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { MongoEntityRepository } from '@mikro-orm/mongodb';
+import { MongoEntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import {
   CollectionEntityUnion,
   CollectionNames,
@@ -44,6 +44,8 @@ import {
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
+import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -360,6 +362,27 @@ export class GraphRedisRepository implements GraphRepository {
     await this.invalidateCache();
 
     return true;
+  }
+
+  public async saveWatch(
+    watch: CollectionWatchVertexDto,
+  ): Promise<CollectionWatchEntity> {
+    return this.repo.saveWatch(watch);
+  }
+
+  public async getWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchEntity | null> {
+    return this.repo.getWatchesForVertex(vertexId, userId);
+  }
+
+  public async getWatchers(
+    id: string,
+    channel: string,
+    event: string,
+  ): Promise<ObjectId[]> {
+    return this.repo.getWatchers(id, channel, event);
   }
 
   private async getCollectionConfig(

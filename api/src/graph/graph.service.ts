@@ -42,6 +42,7 @@ import {
 } from '../persistence/entity/collection-entity-union.type';
 import { ValidatorUtil } from '../util/validator.util';
 import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddable';
+import { CollectionWatchIdentifierDto } from '../persistence/dto/collection-watch.dto';
 
 @Injectable()
 export class GraphService {
@@ -840,6 +841,25 @@ export class GraphService {
         error: '',
       });
     }
+  }
+
+  async getWatchesForVertex(request: Request, id: string) {
+    const user = await this.authSerivice.getUser(request);
+    return await this.graphRepository.getWatchesForVertex(
+      id,
+      user.vertex.toString(),
+    );
+  }
+
+  async addWatchToVertex(
+    request: Request,
+    id: string,
+    watches: CollectionWatchIdentifierDto[],
+  ) {
+    const user = await this.authSerivice.getUser(request);
+    return await this.graphRepository.saveWatch(
+      { vertex: id, watches: watches, user: user.vertex.toString() },
+    );
   }
 
   private publishGraphEvent(event: MessageEvent) {

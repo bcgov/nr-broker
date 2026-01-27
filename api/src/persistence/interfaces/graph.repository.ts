@@ -19,6 +19,9 @@ import { VertexEntity } from '../entity/vertex.entity';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
+import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { ObjectId } from 'mongodb';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -127,4 +130,19 @@ export abstract class GraphRepository {
   ): Promise<GraphTypeaheadResult>;
 
   public abstract reindexCache(): Promise<boolean>;
+
+  public abstract saveWatch(
+    watch: CollectionWatchVertexDto
+  ): Promise<CollectionWatchEntity>;
+
+  public abstract getWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchEntity | null>;
+
+  public abstract getWatchers(
+    id: string,
+    channel: string,
+    event: string,
+  ): Promise<ObjectId[]>;
 }

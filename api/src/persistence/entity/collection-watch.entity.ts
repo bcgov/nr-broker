@@ -1,7 +1,8 @@
-import { ApiHideProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   Embeddable,
   Entity,
+  Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
@@ -14,11 +15,13 @@ export class CollectionWatchIdentifierEmbeddable {
   @Property()
   channel: string;
 
-  @Property()
-  event: string;
+  @Property({ nullable: true })
+  events?: string[];
 }
 
 @Entity({ tableName: 'collectionWatch' })
+@Index({ options: { user: 1 } })
+@Index({ options: { vertex: 1 } })
 export class CollectionWatchEntity extends VertexPointerEntity {
   @ApiHideProperty()
   @PrimaryKey()
@@ -29,8 +32,9 @@ export class CollectionWatchEntity extends VertexPointerEntity {
   id!: string; // won't be saved in the database
 
   @Property()
-  watchIdentifier: CollectionWatchIdentifierEmbeddable;
+  watches: CollectionWatchIdentifierEmbeddable[];
 
   @Property()
-  userId: string;
+  @ApiProperty({ type: () => String })
+  user: ObjectId;
 }

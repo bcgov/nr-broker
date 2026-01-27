@@ -10,15 +10,12 @@ import { CollectionRepository } from '../interfaces/collection.repository';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { getRepositoryFromCollectionName } from './mongo.util';
 import { CollectionSearchResult } from '../../collection/dto/collection-search-result.dto';
-import { CollectionWatchBaseDto, CollectionWatchIdentifierDto } from '../dto/collection-watch.dto';
-import { UserDto } from '../dto/user.dto';
 import {
   COLLECTION_COLLATION_LOCALE,
   GRAPH_MAX_UPSTREAM_LOOKUP_DEPTH,
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
-import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
@@ -144,73 +141,6 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<CollectionEntityUnion[T] | null> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
     return repo.findOne({ _id: new ObjectId(id) } as any);
-  }
-
-  public async saveWatch<T extends keyof CollectionEntityUnion>(
-    type: T,
-    id: string,
-    watch: CollectionWatchBaseDto,
-  ): Promise<CollectionWatchBaseDto> {
-    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
-    const collectionWatch = await watchRepo
-      .getCollection()
-      .updateOne({
-        collectionVertexId: new ObjectId(id),
-        channel: watch.watchIdentifier.channel,
-        event: watch.watchIdentifier.event } as any,
-      { $addToSet: { users: new ObjectId(watch.userId) } },
-      { upsert: true });
-
-    if (collectionWatch.upsertedId) {
-      const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
-      collectionRepo
-        .getCollection()
-        .updateOne({
-          _id: new ObjectId(id) } as any,
-        { $addToSet: { watches: collectionWatch.upsertedId } } as any,
-        { upsert: true });
-    }
-    return watch;
-  }
-
-  public async getWatchers<T extends keyof CollectionEntityUnion>(
-    type: T,
-    id: string,
-    watchIdentifier: CollectionWatchIdentifierDto,
-  ): Promise<UserDto[]> {
-    const collectionRepo = getRepositoryFromCollectionName(this.dataSource, type);
-    console.log(watchIdentifier);
-    const collectionWatchers = await collectionRepo
-      .getCollection()
-      .aggregate([{
-        $match: { name: 'nr-broker' },
-      },
-      {
-        $lookup: {
-          from: 'collectionWatch',
-          localField: 'watches',
-          foreignField: '_id',
-          as: 'watchIdentifier',
-          pipeline: [{
-            $match: {
-              channel: watchIdentifier.channel,
-              event: watchIdentifier.event,
-            },
-          }],
-        },
-      },
-      {
-        $lookup: {
-          from: 'user',
-          localField: 'watchIdentifier.users',
-          foreignField: 'vertex',
-          as: 'watchUsers',
-        },
-      },
-      { $unset: ['watches'] }]).toArray();
-    console.log(collectionWatchers);
-    console.log(JSON.stringify(collectionWatchers));
-    return [new UserDto()];
   }
 
   public async saveTags<T extends keyof CollectionEntityUnion>(

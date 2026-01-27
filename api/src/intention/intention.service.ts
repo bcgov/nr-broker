@@ -714,13 +714,10 @@ export class IntentionService {
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const toUsers = []; // will be looked up via notificationIdentifier
-    const notificationIdentifier = {
-      channel: action.action,
-      event: outcome,
-    };
+
     if (action.service.id) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const watchers = await this.collectionRepository.getWatchers('service', action.service.id.toString(), notificationIdentifier);
+      const watchers = await this.graphRepository.getWatchers(action.service.id.toString(), action.action, outcome);
       // console.log(watchers);
     }
     /* //TODO: make 'intention-event-notification' template

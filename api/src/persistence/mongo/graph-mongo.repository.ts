@@ -41,6 +41,8 @@ import {
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
+import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -694,7 +696,8 @@ export class GraphMongoRepository implements GraphRepository {
         throw new Error('One-to-one relation already exists');
       }
     }
-    await this.dataSource.persistAndFlush(edge);
+    this.dataSource.persist(edge);
+    await this.dataSource.flush();
     // console.log(edge);
     if (!edge.id) {
       throw new Error();
@@ -763,7 +766,8 @@ export class GraphMongoRepository implements GraphRepository {
       );
     }
     // console.log(`edgeRepository.delete(${id})`);
-    await this.dataSource.removeAndFlush(edge);
+    this.dataSource.remove(edge);
+    await this.dataSource.flush();
     return resp;
   }
 
@@ -935,7 +939,8 @@ export class GraphMongoRepository implements GraphRepository {
     });
     // console.log(entry);
     if (entry !== null) {
-      await this.dataSource.removeAndFlush(entry);
+      this.dataSource.remove(entry);
+      await this.dataSource.flush();
     }
     // Delete vertex
     await this.vertexRepository.nativeDelete({ _id: new ObjectId(id) });
@@ -957,17 +962,20 @@ export class GraphMongoRepository implements GraphRepository {
   ): Promise<VertexEntity> {
     vertex.timestamps = TimestampEmbeddable.create();
 
-    await this.dataSource.persistAndFlush(vertex);
+    this.dataSource.persist(vertex);
+    await this.dataSource.flush();
     if (!vertex.id) {
       throw new Error();
     }
     collection.vertex = vertex._id;
     // console.log(collection);
     try {
-      await this.dataSource.persistAndFlush(collection);
+      this.dataSource.persist(collection);
+      await this.dataSource.flush();
     } catch (e: any) {
       // Delete orphan vertex
-      await this.dataSource.removeAndFlush(vertex);
+      this.dataSource.remove(vertex);
+      await this.dataSource.flush();
       throw e;
     }
 
@@ -1537,5 +1545,94 @@ export class GraphMongoRepository implements GraphRepository {
 
   public reindexCache(): Promise<boolean> {
     throw new Error('Method not implemented.');
+  }
+
+  public async getWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchEntity | null> {
+    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
+    return watchRepo.findOne({
+      vertex: new ObjectId(vertexId),
+      user: new ObjectId(userId),
+    } as any);
+  }
+
+  public async saveWatch(
+    watch: CollectionWatchVertexDto,
+  ): Promise<CollectionWatchEntity> {
+    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
+    let collectionWatch = await watchRepo.findOne({
+      vertex: new ObjectId(watch.vertex),
+      user: new ObjectId(watch.user),
+    } as any);
+
+    if (!collectionWatch) {
+      // Create new watch if it doesn't exist
+      collectionWatch = watchRepo.create({
+        vertex: new ObjectId(watch.vertex),
+        user: new ObjectId(watch.user),
+        watches: watch.watches,
+      } as any);
+      this.dataSource.persist(collectionWatch);
+      await this.dataSource.flush();
+    } else {
+      collectionWatch.watches = watch.watches;
+      this.dataSource.persist(collectionWatch);
+      await this.dataSource.flush();
+    }
+
+    return collectionWatch;
+  }
+
+  public async getWatchers(
+    id: string,
+    channel: string,
+    event: string,
+  ): Promise<ObjectId[]> {
+    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
+
+    const result = await watchRepo.aggregate([
+      {
+        $match: {
+          vertex: new ObjectId(id),
+        },
+      },
+      {
+        $addFields: {
+          matchingWatches: {
+            $filter: {
+              input: '$watches',
+              as: 'watch',
+              cond: {
+                $and: [
+                  { $eq: ['$$watch.channel', channel] },
+                  {
+                    $or: [
+                      { $eq: ['$$watch.event', null] },
+                      { $eq: ['$$watch.event', []] },
+                      { $in: [event, '$$watch.event'] },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          matchingWatches: { $ne: [] },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          user: 1,
+        },
+      },
+    ]);
+
+    return result.map((r) => r.user);
   }
 }

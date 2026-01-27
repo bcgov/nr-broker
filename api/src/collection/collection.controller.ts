@@ -5,7 +5,6 @@ import {
   Get,
   MessageEvent,
   NotFoundException,
-  NotImplementedException,
   Param,
   Post,
   Put,
@@ -47,7 +46,6 @@ import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.in
 import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
 import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
-import { CollectionWatchIdentifierDto } from '../persistence/dto/collection-watch.dto';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
@@ -313,27 +311,6 @@ export class CollectionController {
   @UseGuards(BrokerOidcAuthGuard)
   async getServiceSecureInfo(@Param('id', new ParseObjectIdPipe()) id: string) {
     return this.service.getServiceSecureInfo(id);
-  }
-
-  @Post(':collection/:id/watch')
-  @UseGuards(BrokerOidcAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async watchService(
-    @Request() request: ExpressRequest,
-    @Body() watchIdentifier: CollectionWatchIdentifierDto,
-    @Param('collection') collection: string,
-    @Param('id', new ParseObjectIdPipe()) id: string,
-  ) {
-    const user = await this.userCollectionService.extractUserFromRequest(request);
-    if (collection !== 'service') {
-      throw new NotImplementedException();
-    }
-    return this.service.addWatchToCollectionById(
-      this.parseCollectionApi(collection),
-      id,
-      user.vertex,
-      watchIdentifier,
-    );
   }
 
   @Get('service-instance/:id/details')

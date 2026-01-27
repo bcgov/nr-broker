@@ -189,12 +189,12 @@ export class CommunicationQueueService {
         );
       }
       if (job.notificationIdentifier !== undefined) {
-        const collectionType = 'service';
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const watchers = await this.collectionRepository.getWatchers(
-          collectionType,
+        const watchers = await this.graphRepository.getWatchers(
           job.vertexId,
-          job.notificationIdentifier);
+          job.notificationIdentifier.channel,
+          job.notificationIdentifier.event,
+        );
         // userArr.push(...watchers.map((watcher) => watcher.toDto()));
       }
     }
