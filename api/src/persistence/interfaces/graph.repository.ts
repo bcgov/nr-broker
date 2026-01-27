@@ -22,6 +22,7 @@ import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { ObjectId } from 'mongodb';
+import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -145,4 +146,9 @@ export abstract class GraphRepository {
     channel: string,
     event: string,
   ): Promise<ObjectId[]>;
+
+  public abstract getDefaultWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchConfigEntity[]>;
 }

@@ -24,6 +24,7 @@ import { BrokerAccountEntity } from './entity/broker-account.entity';
 import { CollectionConfigEntity } from './entity/collection-config.entity';
 import { ConnectionConfigEntity } from './entity/connection-config.entity';
 import { CollectionWatchEntity } from './entity/collection-watch.entity';
+import { CollectionWatchConfigEntity } from './entity/collection-watch-config.entity';
 import { EdgeEntity } from './entity/edge.entity';
 import { EnvironmentEntity } from './entity/environment.entity';
 import { JwtAllowEntity } from './entity/jwt-allow.entity';
@@ -79,6 +80,7 @@ const redisFactory = {
       BrokerAccountEntity,
       CollectionConfigEntity,
       CollectionWatchEntity,
+      CollectionWatchConfigEntity,
       ConnectionConfigEntity,
       EdgeEntity,
       EnvironmentEntity,

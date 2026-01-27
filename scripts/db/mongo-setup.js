@@ -5,7 +5,6 @@ db.service.drop();
 db.vertex.drop();
 db.edge.drop();
 db.brokerAccount.drop();
-db.collectionWatch.drop();
 db.project.drop();
 db.environment.drop();
 db.jwtRegistry.drop();
@@ -20,6 +19,8 @@ db.connectionConfig.drop();
 db.repository.drop();
 db.packageBuild.drop();
 db.graphPermission.drop();
+db.collectionWatch.drop();
+db.collectionWatchConfig.drop();
 
 db.jwtAllow.insertOne({});
 

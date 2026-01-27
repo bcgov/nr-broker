@@ -3,6 +3,7 @@ import {
   IsArray,
   IsDefined,
   IsNotEmpty,
+  IsOptional,
   IsString,
   ValidateIf,
   ValidateNested,
@@ -35,6 +36,7 @@ export class CollectionWatchBaseDto {
   @ValidateNested()
   @IsArray()
   @IsDefined()
+  @Type(() => CollectionWatchIdentifierDto)
   watches!: CollectionWatchIdentifierDto[];
 
   @IsString()
@@ -46,6 +48,13 @@ export class CollectionWatchVertexDto extends CollectionWatchBaseDto implements 
   @IsString()
   @IsDefined()
   vertex!: string;
+
+  // Not a column - decoration based on vertex and user's roles
+  @ValidateNested()
+  @IsArray()
+  @IsOptional()
+  @Type(() => CollectionWatchIdentifierDto)
+  defaultWatches?: CollectionWatchIdentifierDto[];
 }
 
 export class CollectionWatchDto extends CollectionWatchVertexDto implements Omit<VertexPointerDto, 'tags'> {

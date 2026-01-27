@@ -385,6 +385,13 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getWatchers(id, channel, event);
   }
 
+  public async getDefaultWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<any[]> {
+    return this.repo.getDefaultWatchesForVertex(vertexId, userId);
+  }
+
   private async getCollectionConfig(
     collection: string,
   ): Promise<CollectionConfigEntity | null> {

@@ -43,6 +43,8 @@ import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
+import { TeamDto } from '../dto/team.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -57,6 +59,8 @@ export class GraphMongoRepository implements GraphRepository {
     private readonly vertexRepository: MongoEntityRepository<VertexEntity>,
     @InjectRepository(GraphPermissionEntity)
     private readonly permissionRepository: MongoEntityRepository<GraphPermissionEntity>,
+    @InjectRepository(CollectionWatchConfigEntity)
+    private readonly watchConfigRepository: MongoEntityRepository<CollectionWatchConfigEntity>,
     private readonly actionUtil: ActionUtil,
     private readonly dataSource: MongoEntityManager,
   ) {}
@@ -565,6 +569,53 @@ export class GraphMongoRepository implements GraphRepository {
       }
     }
     return matches;
+  }
+
+  private async getUserTeamsAndRoles(
+    userId: string,
+  ): Promise<Array<{ teamId: string; role: string }>> {
+    const result = await this.vertexRepository.aggregate([
+      { $match: { _id: new ObjectId(userId) } },
+      {
+        $graphLookup: {
+          from: 'edge',
+          startWith: '$_id',
+          connectFromField: 'target',
+          connectToField: 'source',
+          as: 'paths',
+          depthField: 'depth',
+          restrictSearchWithMatch: {
+            restrict: { $ne: true },
+          },
+          maxDepth: 1,
+        },
+      },
+      {
+        $project: {
+          paths: {
+            $filter: {
+              input: '$paths',
+              as: 'path',
+              cond: {
+                $and: [
+                  { $eq: ['$$path.depth', 0] },
+                  { $eq: ['$$path.it', CollectionNameEnum['team']] },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    if (!result || result.length === 0 || !result[0].paths) {
+      return [];
+    }
+
+    return result[0].paths.map((path: any) => ({
+      teamId: path.target.toString(),
+      role: path.name,
+    }));
   }
 
   private collectionLookup(
@@ -1634,5 +1685,46 @@ export class GraphMongoRepository implements GraphRepository {
     ]);
 
     return result.map((r) => r.user);
+  }
+
+  public async getDefaultWatchesForVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchConfigEntity[]> {
+    // Get user's teams and their roles
+    const teamRoles = await this.getUserTeamsAndRoles(userId);
+    const upstreamTeams = await this.getUpstreamVertex<TeamDto>(
+      vertexId,
+      CollectionNameEnum['team'],
+    );
+    const teamIds = upstreamTeams.map((team) => team.collection.vertex.toString());
+    const filteredTeamRoles = teamRoles.filter((tr) =>
+      teamIds.includes(tr.teamId),
+    );
+
+    // Collect all role names
+    const allRoles = new Set<string>();
+    for (const teamRole of filteredTeamRoles) {
+      allRoles.add(teamRole.role);
+    }
+    if (allRoles.size === 0) {
+      return [];
+    }
+
+    // Get vertex to extract collection name
+    const vertex = await this.vertexRepository.findOne({ _id: new ObjectId(vertexId) });
+    if (!vertex) {
+      return [];
+    }
+
+    // Find watch configs that match the vertex and any of the user's roles
+    const watchConfigs = await this.watchConfigRepository.find({
+      $and: [
+        { collection: vertex.collection },
+        { roles: { $in: Array.from(allRoles) } },
+      ],
+    });
+
+    return watchConfigs;
   }
 }
