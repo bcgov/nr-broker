@@ -184,24 +184,30 @@ export class CommunicationQueueService {
           : [jobUser.value];
         const watchers = await this.graphRepository.getWatches(
           job.vertexId,
-          channels,
         );
-        const configuredUsers = watchers.map((watch) => watch.user.toString());
+        const configuredUsers = new Set<string>();
         for (const watcher of watchers) {
+          // Add all users with configured watches to prevent default notifications
+          configuredUsers.add(watcher.user.toString());
+
+          // Only send notification if their specific watch matches the channel/event
           if (watcher.watches.findIndex(
             (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
-          ) === -1) {
-            continue;
-          }
-          const user = await this.collectionRepository.getCollectionByVertexId('user', watcher.user.toString());
-          if (user) {
-            userArr.push(user as unknown as UserDto);
+          ) !== -1) {
+            const user = await this.collectionRepository.getCollectionByVertexId('user', watcher.user.toString());
+            if (user) {
+              userArr.push(user as unknown as UserDto);
+            }
           }
         }
+        console.log(watchers);
         const watchDefaultConfigs = await this.graphRepository.getDefaultWatchConfigsByVertex(
           job.vertexId,
           jobUser.value,
         );
+        console.log(job.vertexId);
+        console.log(jobUser.value);
+        console.log(watchDefaultConfigs);
         for (const watchConfig of watchDefaultConfigs) {
           if (watchConfig.watches.findIndex(
             (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
@@ -214,7 +220,7 @@ export class CommunicationQueueService {
             watchConfig.roles,
           );
           for (const watchUser of watchUsers) {
-            if (configuredUsers.includes(watchUser.collection.vertex.toString())) {
+            if (configuredUsers.has(watchUser.collection.vertex.toString())) {
               continue; // Skip users with saved configuration watches
             }
             userArr.push(watchUser.collection);

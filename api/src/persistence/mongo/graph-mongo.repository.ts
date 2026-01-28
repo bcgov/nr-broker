@@ -1638,24 +1638,22 @@ export class GraphMongoRepository implements GraphRepository {
 
   public async getDefaultWatchConfigsByVertex(
     vertexId: string,
-    channel: string | string[],
+    channel?: string | string[],
   ): Promise<CollectionWatchConfigEntity[]> {
     const vertex = await this.vertexRepository.findOne({ _id: new ObjectId(vertexId) });
     if (!vertex) {
       return [];
     }
 
-    const channels = Array.isArray(channel) ? channel : [channel];
+    const channels = channel ? (Array.isArray(channel) ? channel : [channel]) : [];
 
-    // Find watch configs that match the vertex and any of the specified channels
-    const watchConfigs = await this.watchConfigRepository.find({
-      $and: [
-        { collection: vertex.collection },
-        { watches: { channel: { $in: channels } } },
-      ],
-    });
+    // Build query conditions
+    const queryConditions: any = { collection: vertex.collection };
+    if (channels.length > 0) {
+      queryConditions['watches.channel'] = { $in: channels };
+    }
 
-    return watchConfigs;
+    return await this.watchConfigRepository.find(queryConditions);
   }
 
   public async getWatches(

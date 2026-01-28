@@ -172,7 +172,7 @@ export abstract class GraphRepository {
    */
   public abstract getDefaultWatchConfigsByVertex(
     vertexId: string,
-    channel: string | string[],
+    channel?: string | string[],
   ): Promise<CollectionWatchConfigEntity[]>;
 
   /**

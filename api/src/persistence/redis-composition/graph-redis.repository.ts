@@ -387,7 +387,7 @@ export class GraphRedisRepository implements GraphRepository {
 
   public async getDefaultWatchConfigsByVertex(
     vertexId: string,
-    channel: string | string[],
+    channel?: string | string[],
   ): Promise<CollectionWatchConfigEntity[]> {
     return this.repo.getDefaultWatchConfigsByVertex(vertexId, channel);
   }
