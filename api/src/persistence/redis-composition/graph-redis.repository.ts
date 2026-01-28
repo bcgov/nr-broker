@@ -36,7 +36,7 @@ import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { MongoEntityRepository, ObjectId } from '@mikro-orm/mongodb';
+import { MongoEntityRepository } from '@mikro-orm/mongodb';
 import {
   CollectionEntityUnion,
   CollectionNames,
@@ -46,6 +46,7 @@ import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -364,32 +365,38 @@ export class GraphRedisRepository implements GraphRepository {
     return true;
   }
 
-  public async saveWatch(
+  public async saveUserWatch(
     watch: CollectionWatchVertexDto,
   ): Promise<CollectionWatchEntity> {
-    return this.repo.saveWatch(watch);
+    return this.repo.saveUserWatch(watch);
   }
 
-  public async getWatchesForVertex(
+  public async getUserWatchesByVertex(
     vertexId: string,
     userId: string,
   ): Promise<CollectionWatchEntity | null> {
-    return this.repo.getWatchesForVertex(vertexId, userId);
+    return this.repo.getUserWatchesByVertex(vertexId, userId);
   }
 
-  public async getWatchers(
-    id: string,
-    channel: string,
-    event: string,
-  ): Promise<ObjectId[]> {
-    return this.repo.getWatchers(id, channel, event);
-  }
-
-  public async getDefaultWatchesForVertex(
+  public async getDefaultUserWatchesByVertex(
     vertexId: string,
     userId: string,
   ): Promise<any[]> {
-    return this.repo.getDefaultWatchesForVertex(vertexId, userId);
+    return this.repo.getDefaultUserWatchesByVertex(vertexId, userId);
+  }
+
+  public async getDefaultWatchConfigsByVertex(
+    vertexId: string,
+    channel: string | string[],
+  ): Promise<CollectionWatchConfigEntity[]> {
+    return this.repo.getDefaultWatchConfigsByVertex(vertexId, channel);
+  }
+
+  public async getWatches(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchEntity[]> {
+    return this.repo.getWatches(vertexId, channel);
   }
 
   private async getCollectionConfig(

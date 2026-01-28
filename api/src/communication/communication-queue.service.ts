@@ -8,22 +8,24 @@ import { RedisService } from '../redis/redis.service';
 import { JobQueueUtil } from '../util/job-queue.util';
 import { AuditService } from '../audit/audit.service';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { UserDto } from '../persistence/dto/user.dto';
 import { CommunicationTaskService } from './communication-task.service';
 import { COMMUNICATION_TASKS } from './communication.constants';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 
-interface CommunicationUserRef {
-  ref: 'upstream';
-  value: string | string[] | null;
-  optional?: boolean;
-}
-
-interface NotificationIdentifier {
-  channel: string;
-  event: string;
-}
+type CommunicationUserRef =
+  | {
+    ref: 'upstream'; // upstream users by role
+    value: string | string[] | null; // role name or names
+    optional?: boolean;
+  }
+  | {
+    ref: 'watch'; // watchers of vertex
+    value: string | string[]; // channel or channels
+    event: string;
+    optional?: boolean;
+  };
 
 interface CommunicationJob {
   uuid: string;
@@ -32,7 +34,6 @@ interface CommunicationJob {
   optionalUsers: CommunicationUserRef[];
   template: string;
   context: ejs.Data;
-  notificationIdentifier?: NotificationIdentifier;
 }
 
 @Injectable()
@@ -43,8 +44,8 @@ export class CommunicationQueueService {
     private readonly auditService: AuditService,
     @Inject(COMMUNICATION_TASKS)
     private readonly communicationTasks: Array<CommunicationTaskService>,
-    private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
+    private readonly graphRepository: GraphRepository,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly redisService: RedisService,
     private readonly jobQueueUtil: JobQueueUtil,
@@ -57,7 +58,6 @@ export class CommunicationQueueService {
     toUsers: CommunicationUserRef[],
     template: string,
     context: ejs.Data,
-    notificationIdentifier?: NotificationIdentifier,
   ): Promise<void> {
     const job = {
       uuid: uuidv4(),
@@ -66,7 +66,6 @@ export class CommunicationQueueService {
       toUsers,
       template,
       context,
-      notificationIdentifier,
     };
     this.auditService.recordCommunications(
       job.uuid,
@@ -168,10 +167,10 @@ export class CommunicationQueueService {
   async getUserArr(job: CommunicationJob): Promise<UserDto[]> {
     const userArr: UserDto[] = [];
     for (const jobUser of job.toUsers) {
+      if (jobUser.optional && userArr.length > 0) {
+        continue; // Skip optional users if we already have users
+      }
       if (jobUser.ref === 'upstream') {
-        if (jobUser.optional && userArr.length > 0) {
-          continue; // Skip optional users if we already have users
-        }
         const users = await this.graphRepository.getUpstreamVertex<UserDto>(
           job.vertexId,
           CollectionNameEnum.user,
@@ -179,6 +178,48 @@ export class CommunicationQueueService {
         );
 
         userArr.push(...users.map((user) => user.collection));
+      } else if (jobUser.ref === 'watch') {
+        const channels = Array.isArray(jobUser.value)
+          ? jobUser.value
+          : [jobUser.value];
+        const watchers = await this.graphRepository.getWatches(
+          job.vertexId,
+          channels,
+        );
+        const configuredUsers = watchers.map((watch) => watch.user.toString());
+        for (const watcher of watchers) {
+          if (watcher.watches.findIndex(
+            (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
+          ) === -1) {
+            continue;
+          }
+          const user = await this.collectionRepository.getCollectionByVertexId('user', watcher.user.toString());
+          if (user) {
+            userArr.push(user as unknown as UserDto);
+          }
+        }
+        const watchDefaultConfigs = await this.graphRepository.getDefaultWatchConfigsByVertex(
+          job.vertexId,
+          jobUser.value,
+        );
+        for (const watchConfig of watchDefaultConfigs) {
+          if (watchConfig.watches.findIndex(
+            (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
+          ) === -1) {
+            continue;
+          }
+          const watchUsers = await this.graphRepository.getUpstreamVertex<UserDto>(
+            job.vertexId,
+            CollectionNameEnum.user,
+            watchConfig.roles,
+          );
+          for (const watchUser of watchUsers) {
+            if (configuredUsers.includes(watchUser.collection.vertex.toString())) {
+              continue; // Skip users with saved configuration watches
+            }
+            userArr.push(watchUser.collection);
+          }
+        }
       } else {
         this.auditService.recordCommunications(
           job.uuid,
@@ -187,15 +228,6 @@ export class CommunicationQueueService {
           'unknown',
           ['communication'],
         );
-      }
-      if (job.notificationIdentifier !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const watchers = await this.graphRepository.getWatchers(
-          job.vertexId,
-          job.notificationIdentifier.channel,
-          job.notificationIdentifier.event,
-        );
-        // userArr.push(...watchers.map((watcher) => watcher.toDto()));
       }
     }
     return userArr;

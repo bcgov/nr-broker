@@ -662,6 +662,14 @@ export class IntentionService {
         );
         intention = await this.intentionRepository.getIntention(intention.id);
       }
+
+      if (action.action === 'package-installation') {
+        this.sendActionLifecycleCommunication(
+          intention,
+          action,
+          outcome,
+        );
+      }
     }
 
     // Must measure time after ending all actions
@@ -691,18 +699,12 @@ export class IntentionService {
     return this.intentionRepository.closeIntention(intention);
   }
 
+  // TODO: Currently only works for package-installation actions
   private async sendActionLifecycleCommunication(
-    // intention: IntentionEntity, //TODO: unused?
+    intention: IntentionEntity,
     action: ActionEmbeddable,
     outcome: string | undefined,
-    type: 'start' | 'end',
   ): Promise<boolean> {
-    // TODO: is this exit logic correct? additional configurations?
-    if (type !== 'end' || action.lifecycle !== 'ended' || action.action !== 'package-installation') {
-      return true;
-    }
-    // TODO: any additional context for the communication?
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const context = {
       title: `Application Deployed: (${outcome})`,
       collectionId: action.service.id ? action.service.id.toString() : '',
@@ -711,25 +713,22 @@ export class IntentionService {
       environmentName: action.service.environment,
       outcome: outcome,
       userName: action.user.full_name,
+      intention: intention.id,
     };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const toUsers = []; // will be looked up via notificationIdentifier
 
     if (action.service.id) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const watchers = await this.graphRepository.getWatchers(action.service.id.toString(), action.action, outcome);
-      // console.log(watchers);
+      await this.communicationQueueService.queue(
+        'intention-event-notification',
+        action.service.id.toString(),
+        [{
+          ref: 'watch',
+          value: 'application-deployed',
+          event: outcome,
+        }],
+        'intention-event-notification',
+        context,
+      );
     }
-    /* //TODO: make 'intention-event-notification' template
-    await this.communicationQueueService.queue(
-      'intention-event-notification',
-      action.service.id.toString(), //TODO: this is undefined on first run?
-      toUsers,
-      'intention-event-notification',
-      'context',
-      notificationIdentifier,
-    );
-   */
     return true;
   }
 
@@ -768,12 +767,6 @@ export class IntentionService {
     }
     await this.intentionRepository.setIntentionActionLifecycle(
       intention,
-      action,
-      outcome,
-      type,
-    );
-    this.sendActionLifecycleCommunication(
-      // intention,
       action,
       outcome,
       type,

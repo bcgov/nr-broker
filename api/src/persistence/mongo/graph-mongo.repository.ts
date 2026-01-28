@@ -1598,7 +1598,7 @@ export class GraphMongoRepository implements GraphRepository {
     throw new Error('Method not implemented.');
   }
 
-  public async getWatchesForVertex(
+  public async getUserWatchesByVertex(
     vertexId: string,
     userId: string,
   ): Promise<CollectionWatchEntity | null> {
@@ -1609,7 +1609,7 @@ export class GraphMongoRepository implements GraphRepository {
     } as any);
   }
 
-  public async saveWatch(
+  public async saveUserWatch(
     watch: CollectionWatchVertexDto,
   ): Promise<CollectionWatchEntity> {
     const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
@@ -1636,17 +1636,48 @@ export class GraphMongoRepository implements GraphRepository {
     return collectionWatch;
   }
 
-  public async getWatchers(
-    id: string,
-    channel: string,
-    event: string,
-  ): Promise<ObjectId[]> {
+  public async getDefaultWatchConfigsByVertex(
+    vertexId: string,
+    channel: string | string[],
+  ): Promise<CollectionWatchConfigEntity[]> {
+    const vertex = await this.vertexRepository.findOne({ _id: new ObjectId(vertexId) });
+    if (!vertex) {
+      return [];
+    }
+
+    const channels = Array.isArray(channel) ? channel : [channel];
+
+    // Find watch configs that match the vertex and any of the specified channels
+    const watchConfigs = await this.watchConfigRepository.find({
+      $and: [
+        { collection: vertex.collection },
+        { watches: { channel: { $in: channels } } },
+      ],
+    });
+
+    return watchConfigs;
+  }
+
+  public async getWatches(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchEntity[]> {
     const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
+
+    if (!channel) {
+      // Return all watches for the vertex
+      return watchRepo.find({
+        vertex: new ObjectId(vertexId),
+      } as any);
+    }
+
+    // Filter by channel(s)
+    const channels = Array.isArray(channel) ? channel : [channel];
 
     const result = await watchRepo.aggregate([
       {
         $match: {
-          vertex: new ObjectId(id),
+          vertex: new ObjectId(vertexId),
         },
       },
       {
@@ -1656,16 +1687,7 @@ export class GraphMongoRepository implements GraphRepository {
               input: '$watches',
               as: 'watch',
               cond: {
-                $and: [
-                  { $eq: ['$$watch.channel', channel] },
-                  {
-                    $or: [
-                      { $eq: ['$$watch.event', null] },
-                      { $eq: ['$$watch.event', []] },
-                      { $in: [event, '$$watch.event'] },
-                    ],
-                  },
-                ],
+                $in: ['$$watch.channel', channels],
               },
             },
           },
@@ -1676,18 +1698,12 @@ export class GraphMongoRepository implements GraphRepository {
           matchingWatches: { $ne: [] },
         },
       },
-      {
-        $project: {
-          _id: 0,
-          user: 1,
-        },
-      },
     ]);
 
-    return result.map((r) => r.user);
+    return result as CollectionWatchEntity[];
   }
 
-  public async getDefaultWatchesForVertex(
+  public async getDefaultUserWatchesByVertex(
     vertexId: string,
     userId: string,
   ): Promise<CollectionWatchConfigEntity[]> {

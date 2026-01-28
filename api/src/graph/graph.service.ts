@@ -846,9 +846,9 @@ export class GraphService {
     }
   }
 
-  async getWatchesForVertex(request: Request, id: string): Promise<CollectionWatchDto | null> {
+  async getUserWatchesByVertex(request: Request, id: string): Promise<CollectionWatchDto | null> {
     const user = await this.authSerivice.getUser(request);
-    let watch = await this.graphRepository.getWatchesForVertex(
+    let watch = await this.graphRepository.getUserWatchesByVertex(
       id,
       user.vertex.toString(),
     );
@@ -864,17 +864,17 @@ export class GraphService {
     watches: CollectionWatchIdentifierDto[],
   ) {
     const user = await this.authSerivice.getUser(request);
-    const watch = await this.graphRepository.saveWatch(
+    const watch = await this.graphRepository.saveUserWatch(
       { vertex: id, watches: watches, user: user.vertex.toString() },
     );
     return await this.convertWatchEntityToDto(watch);
   }
 
-  async getDefaultWatchesForVertex(
+  async getDefaultUserWatchesByVertex(
     user: UserEntity,
     id: string,
   ): Promise<CollectionWatchIdentifierDto[]> {
-    const watchConfigs = await this.graphRepository.getDefaultWatchesForVertex(
+    const watchConfigs = await this.graphRepository.getDefaultUserWatchesByVertex(
       id,
       user.vertex.toString(),
     );
@@ -896,7 +896,7 @@ export class GraphService {
       enableImplicitConversion: true,
       excludeExtraneousValues: false,
     });
-    const defaultWatchConfigs = await this.graphRepository.getDefaultWatchesForVertex(
+    const defaultWatchConfigs = await this.graphRepository.getDefaultUserWatchesByVertex(
       dto.vertex,
       dto.user,
     );

@@ -376,11 +376,11 @@ export class GraphController {
   @Get('vertex/:id/watch')
   @UseGuards(BrokerOidcAuthGuard)
   @ApiBearerAuth()
-  getWatchesForVertex(
+  getUserWatchesByVertex(
     @Req() request: Request,
     @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
-    return this.graph.getWatchesForVertex(request, id);
+    return this.graph.getUserWatchesByVertex(request, id);
   }
 
   @Post('vertex/:id/watch')
