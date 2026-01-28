@@ -705,21 +705,25 @@ export class IntentionService {
     action: ActionEmbeddable,
     outcome: string | undefined,
   ): Promise<boolean> {
-    const context = {
-      title: `Application Deployed: (${outcome})`,
-      collectionId: action.service.id ? action.service.id.toString() : '',
-      serviceName: action.service.name,
-      projectName: action.service.project,
-      environmentName: action.service.environment,
-      outcome: outcome,
-      userName: action.user.full_name,
-      intention: intention.id,
-    };
-
     if (action.service.id) {
+      const context = {
+        title: `Application Deployed: (${outcome})`,
+        collectionId: action.service.id ? action.service.id.toString() : '',
+        serviceName: action.service.name,
+        projectName: action.service.project,
+        environmentName: action.service.environment,
+        outcome: outcome,
+        userName: action.user.full_name,
+        intention: intention.id,
+      };
+
+      const service = await this.collectionRepository.getCollectionById(
+        'service',
+        action.service.id.toString(),
+      );
       await this.communicationQueueService.queue(
         'intention-event-notification',
-        action.service.id.toString(),
+        service.vertex.toString(),
         [{
           ref: 'watch',
           value: 'application-deployed',

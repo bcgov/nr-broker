@@ -499,8 +499,8 @@ db.collectionWatchConfig.insertMany([
     watches: [
       {
         // name: 'Deployments',
-        events: ['created', 'updated', 'deleted'],
-        channel: 'deployment',
+        events: ['success', 'failure', 'unknown'],
+        channel: 'application-deployed',
       },
     ],
     roles: ['owner', 'developer'],
