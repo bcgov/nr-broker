@@ -1,6 +1,6 @@
 # Manage my teams
 
-You can view teams in the Broker by navigating to the browse page (/browse) and selecting the team collection from the dropdown menu. To see only the teams of which you are a member, select  show "connected." For convenience, a direct link is available in the sections tab on the home page.
+You can view teams in the Broker by navigating to the browse page (/browse) and selecting the team collection from the dropdown menu. To see only the teams of which you are a member, select show "connected." For convenience, a direct link is available in the sections tab on the home page.
 
 If you are assigned the owner role, membership management has been delegated to you. Owners can edit team membership by clicking the "Members" button in the top-right corner.
 
@@ -25,7 +25,3 @@ The roles are defined on the Team tab in the browser section. The roles may be u
 ## How to reassign ownership
 
 To assign a new person as the owner of the team, add the new person as an owner of the team. If required, this person can then remove you as an owner of the team.
-
-## Not a member of a team?
-
-Any user can view every team and its membership. If you wish to request access, please reach out to a team owner or use the team's contact details.

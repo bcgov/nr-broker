@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: arial, 'helvetica neue', helvetica, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h2 {
+      margin: 0;
+      color: #003366;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #003366;
+      margin-bottom: 16px;
+    }
+    .alert-box {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .alert-box strong {
+      color: #d32f2f;
+      font-size: 1.1em;
+    }
+    .info-section {
+      background-color: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+    .info-value {
+      font-size: 1.05em;
+      color: #212529;
+      margin-bottom: 15px;
+    }
+    .cta-section {
+      background-color: #e3f2fd;
+      border: 2px solid #1976d2;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #1976d2;
+      color: white !important;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    .cta-button:hover {
+      background-color: #1565c0;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+    .help-text {
+      font-size: 0.95em;
+      color: #495057;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="<%= brokerUrl %>/favicon-email.png" alt="NR Broker Logo" width="60" height="60">
+    <h2>NR Broker</h2>
+  </div>
+
+  <p>Hi <%= user.name %>,</p>
+
+  <p>You're receiving this email because you're an owner of a team that has a Broker account with an expiring access token.</p>
+
+  <div class="alert-box">
+    <p style="margin: 0;">Your team's Broker Account access token will expire in <strong><%= daysUntilExpiration %></strong> day<%= daysUntilExpiration !== 1 ? 's' : '' %>.</p>
+  </div>
+
+  <div class="info-section">
+    <div class="info-label">Broker Account</div>
+    <div class="info-value"><strong><%= accountName %></strong></div>
+
+    <div class="info-label">Client ID</div>
+    <div class="info-value"><code><%= clientId %></code></div>
+
+    <div class="info-label">Expiration date</div>
+    <div class="info-value"><%= expirationDisplay %></div>
+
+    <div class="info-label">Token last used</div>
+    <div class="info-value"><%= lastUsedDisplay %></div>
+  </div>
+
+  <h3>What you need to do</h3>
+
+  <p>Work with your team to determine if this account is still being used.</p>
+
+  <p><strong>If your team is using this account:</strong></p>
+  <ol>
+    <li>Find a team member with the 'lead-developer' role to generate a new token</li>
+    <li>Ensure your team verifies that applications or automation tools have access to and work with the new token</li>
+  </ol>
+
+  <div class="cta-section">
+    <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>/token" class="cta-button">
+      Renew token now
+    </a>
+    <p style="margin: 10px 0; font-size: 0.9em;">Note: You need 'lead-developer' role to generate a new token</p>
+  </div>
+
+  <p><strong>If your team is not using this account:</strong></p>
+  <p>No action needed. The token will expire automatically and can be renewed later if needed.</p>
+
+  <div class="help-text">
+    <h3>Why tokens expire</h3>
+    <p>Access tokens expire regularly as a security measure. This ensures that old, unused tokens don't remain active indefinitely.</p>
+
+    <h3>Need help?</h3>
+    <p>If you're not sure whether your team is using this account, check with your team members or look at the "Token last used" date above. Recent usage indicates the account is active.</p>
+  </div>
+
+  <div class="footer">
+    <p>For more information about Broker accounts and tokens, see the <a href="https://bcgov.github.io/nr-broker/#/ops_broker_account">Broker account documentation</a>.</p>
+    <p>If you have questions, contact the NR Broker support team.</p>
+  </div>
+</body>
+</html>

@@ -619,6 +619,18 @@ export class AccountService {
           'token-expiration-alert',
           context,
         );
+
+        if (daysUntilExpiration === 7) {
+          await this.communicationQueueService.queue(
+            'token-expiration-owner',
+            account.vertex.toString(),
+            [
+              { ref: 'upstream', value: 'owner' },
+            ],
+            'token-expiration-owner',
+            context,
+          );
+        }
       }
     } catch (error) {
       this.logger.error(
