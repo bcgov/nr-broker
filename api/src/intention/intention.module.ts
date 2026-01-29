@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { CollectionModule } from '../collection/collection.module';
+import { CommunicationModule } from '../communication/communication.module';
 import { GraphModule } from '../graph/graph.module';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { UtilModule } from '../util/util.module';
@@ -36,6 +37,7 @@ import {
     AuthModule,
     AuditModule,
     forwardRef(() => CollectionModule),
+    CommunicationModule,
     GraphModule,
     PersistenceModule,
     UtilModule,

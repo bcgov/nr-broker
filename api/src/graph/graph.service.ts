@@ -10,6 +10,7 @@ import { ValidationError, wrap } from '@mikro-orm/core';
 import delve from 'dlv';
 import { dset } from 'dset';
 import { validate } from 'class-validator';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
 
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
@@ -42,6 +43,9 @@ import {
 } from '../persistence/entity/collection-entity-union.type';
 import { ValidatorUtil } from '../util/validator.util';
 import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddable';
+import { CollectionWatchIdentifierDto, CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../persistence/entity/collection-watch.entity';
+import { UserEntity } from '../persistence/entity/user.entity';
 
 @Injectable()
 export class GraphService {
@@ -840,6 +844,72 @@ export class GraphService {
         error: '',
       });
     }
+  }
+
+  async getUserWatchesByVertex(request: Request, id: string): Promise<CollectionWatchDto | null> {
+    const user = await this.authSerivice.getUser(request);
+    let watch = await this.graphRepository.getUserWatchesByVertex(
+      id,
+      user.vertex.toString(),
+    );
+    if (!watch) {
+      watch = new CollectionWatchEntity(id, user.vertex.toString(), []);
+    }
+    return await this.convertWatchEntityToDto(watch);
+  }
+
+  async addWatchToVertex(
+    request: Request,
+    id: string,
+    watches: CollectionWatchIdentifierDto[],
+  ) {
+    const user = await this.authSerivice.getUser(request);
+    const watch = await this.graphRepository.saveUserWatch(
+      { vertex: id, watches: watches, user: user.vertex.toString() },
+    );
+    return await this.convertWatchEntityToDto(watch);
+  }
+
+  async getDefaultUserWatchesByVertex(
+    user: UserEntity,
+    id: string,
+  ): Promise<CollectionWatchIdentifierDto[]> {
+    const watchConfigs = await this.graphRepository.getDefaultUserWatchesByVertex(
+      id,
+      user.vertex.toString(),
+    );
+
+    // Flatten all watches from all matching configs
+    const allWatches: CollectionWatchIdentifierDto[] = [];
+    for (const config of watchConfigs) {
+      allWatches.push(...config.watches);
+    }
+
+    return allWatches;
+  }
+
+  private async convertWatchEntityToDto(watch: CollectionWatchEntity): Promise<CollectionWatchDto> {
+    if (!watch) {
+      return null;
+    }
+    const dto = plainToInstance(CollectionWatchDto, instanceToPlain(watch, { enableImplicitConversion: true }), {
+      enableImplicitConversion: true,
+      excludeExtraneousValues: false,
+    });
+    const defaultWatchConfigs = await this.graphRepository.getDefaultUserWatchesByVertex(
+      dto.vertex,
+      dto.user,
+    );
+    dto.defaultWatches = defaultWatchConfigs.map((config) => {
+      return plainToInstance(
+        CollectionWatchIdentifierDto, instanceToPlain(config.watches, {
+          enableImplicitConversion: true,
+        }), {
+          enableImplicitConversion: true,
+          excludeExtraneousValues: false,
+        });
+    });
+    return dto;
   }
 
   private publishGraphEvent(event: MessageEvent) {

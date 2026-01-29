@@ -9,6 +9,7 @@ import { PackageBuildSearchResult } from './package-build.dto';
 import { ServiceInstanceDetailsResponseDto } from './service-instance.dto';
 import { VaultConfigDto } from './vault-config.dto';
 import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
+import { CollectionWatchDto } from './collection-watch.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 export class ServiceBaseDto extends CollectionBaseDto {
@@ -36,6 +37,11 @@ export class ServiceBaseDto extends CollectionBaseDto {
   @IsOptional()
   @Type(() => VaultConfigDto)
   vaultConfig?: VaultConfigDto;
+
+  @ValidateNested()
+  @IsOptional()
+  @Type(() => CollectionWatchDto)
+  watchers?: CollectionWatchDto[];
 }
 
 export class ServiceDto extends ServiceBaseDto implements VertexPointerDto {

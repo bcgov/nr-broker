@@ -19,6 +19,8 @@ db.connectionConfig.drop();
 db.repository.drop();
 db.packageBuild.drop();
 db.graphPermission.drop();
+db.collectionWatch.drop();
+db.collectionWatchConfig.drop();
 
 db.jwtAllow.insertOne({});
 

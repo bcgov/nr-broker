@@ -12,12 +12,20 @@ import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { UserDto } from '../persistence/dto/user.dto';
 import { CommunicationTaskService } from './communication-task.service';
 import { COMMUNICATION_TASKS } from './communication.constants';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 
-interface CommunicationUserRef {
-  ref: 'upstream';
-  value: string | string[] | null;
-  optional?: boolean;
-}
+type CommunicationUserRef =
+  | {
+    ref: 'upstream'; // upstream users by role
+    value: string | string[] | null; // role name or names
+    optional?: boolean;
+  }
+  | {
+    ref: 'watch'; // watchers of vertex
+    value: string | string[]; // channel or channels
+    event: string;
+    optional?: boolean;
+  };
 
 interface CommunicationJob {
   uuid: string;
@@ -36,6 +44,7 @@ export class CommunicationQueueService {
     private readonly auditService: AuditService,
     @Inject(COMMUNICATION_TASKS)
     private readonly communicationTasks: Array<CommunicationTaskService>,
+    private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly redisService: RedisService,
@@ -158,10 +167,10 @@ export class CommunicationQueueService {
   async getUserArr(job: CommunicationJob): Promise<UserDto[]> {
     const userArr: UserDto[] = [];
     for (const jobUser of job.toUsers) {
+      if (jobUser.optional && userArr.length > 0) {
+        continue; // Skip optional users if we already have users
+      }
       if (jobUser.ref === 'upstream') {
-        if (jobUser.optional && userArr.length > 0) {
-          continue; // Skip optional users if we already have users
-        }
         const users = await this.graphRepository.getUpstreamVertex<UserDto>(
           job.vertexId,
           CollectionNameEnum.user,
@@ -169,6 +178,50 @@ export class CommunicationQueueService {
         );
 
         userArr.push(...users.map((user) => user.collection));
+      } else if (jobUser.ref === 'watch') {
+        const channels = Array.isArray(jobUser.value)
+          ? jobUser.value
+          : [jobUser.value];
+        const watchers = await this.graphRepository.getWatches(
+          job.vertexId,
+        );
+        const configuredUsers = new Set<string>();
+        for (const watcher of watchers) {
+          // Add all users with configured watches to prevent default notifications
+          configuredUsers.add(watcher.user.toString());
+
+          // Only send notification if their specific watch matches the channel/event
+          if (watcher.watches.findIndex(
+            (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
+          ) !== -1) {
+            const user = await this.collectionRepository.getCollectionByVertexId('user', watcher.user.toString());
+            if (user) {
+              userArr.push(user as unknown as UserDto);
+            }
+          }
+        }
+        const watchDefaultConfigs = await this.graphRepository.getDefaultWatchConfigsByVertex(
+          job.vertexId,
+          jobUser.value,
+        );
+        for (const watchConfig of watchDefaultConfigs) {
+          if (watchConfig.watches.findIndex(
+            (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
+          ) === -1) {
+            continue;
+          }
+          const watchUsers = await this.graphRepository.getUpstreamVertex<UserDto>(
+            job.vertexId,
+            CollectionNameEnum.user,
+            watchConfig.roles,
+          );
+          for (const watchUser of watchUsers) {
+            if (configuredUsers.has(watchUser.collection.vertex.toString())) {
+              continue; // Skip users with saved configuration watches
+            }
+            userArr.push(watchUser.collection);
+          }
+        }
       } else {
         this.auditService.recordCommunications(
           job.uuid,

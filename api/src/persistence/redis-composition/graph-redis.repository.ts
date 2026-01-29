@@ -44,6 +44,9 @@ import {
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
+import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -360,6 +363,40 @@ export class GraphRedisRepository implements GraphRepository {
     await this.invalidateCache();
 
     return true;
+  }
+
+  public async saveUserWatch(
+    watch: CollectionWatchVertexDto,
+  ): Promise<CollectionWatchEntity> {
+    return this.repo.saveUserWatch(watch);
+  }
+
+  public async getUserWatchesByVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchEntity | null> {
+    return this.repo.getUserWatchesByVertex(vertexId, userId);
+  }
+
+  public async getDefaultUserWatchesByVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<any[]> {
+    return this.repo.getDefaultUserWatchesByVertex(vertexId, userId);
+  }
+
+  public async getDefaultWatchConfigsByVertex(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchConfigEntity[]> {
+    return this.repo.getDefaultWatchConfigsByVertex(vertexId, channel);
+  }
+
+  public async getWatches(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchEntity[]> {
+    return this.repo.getWatches(vertexId, channel);
   }
 
   private async getCollectionConfig(

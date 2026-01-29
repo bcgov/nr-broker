@@ -19,6 +19,9 @@ import { VertexEntity } from '../entity/vertex.entity';
 import { GraphVertexConnections } from '../dto/collection-combo.dto';
 import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
+import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
+import { CollectionWatchEntity } from '../entity/collection-watch.entity';
+import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -127,4 +130,60 @@ export abstract class GraphRepository {
   ): Promise<GraphTypeaheadResult>;
 
   public abstract reindexCache(): Promise<boolean>;
+
+  /**
+   * Saves a user's watch configuration for a given vertex
+   * @param watch The watch configuration to save
+   */
+  public abstract saveUserWatch(
+    watch: CollectionWatchVertexDto
+  ): Promise<CollectionWatchEntity>;
+
+  /**
+   * Retrieves the user's watch configuration for a given vertex
+   * If the user has no watch configuration for the vertex, null is returned
+   * @param vertexId The vertex to get the watch for
+   * @param userId The user to get the watch for
+   * @returns The CollectionWatchEntity or null if not found
+   */
+  public abstract getUserWatchesByVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchEntity | null>;
+
+  /**
+   * Returns the default watch configurations for a user on a given vertex
+   * The defaults depend on the user's roles and the collection's default watch settings
+   * If the user is not connected to the vertex, an empty array is returned
+   * @param vertexId The vertex to get the default watches for
+   * @param userId The user to get the default watches for
+   * @returns An array of CollectionWatchConfigEntity representing the default watches
+   */
+  public abstract getDefaultUserWatchesByVertex(
+    vertexId: string,
+    userId: string,
+  ): Promise<CollectionWatchConfigEntity[]>;
+
+  /**
+   * Retrieves all default watch configurations for a given vertex and channel
+   * @param vertexId The vertex to get the default watch configs for
+   * @param channel The channel to get the default watch configs for
+   * @returns An array of CollectionWatchConfigEntity matching the criteria
+   */
+  public abstract getDefaultWatchConfigsByVertex(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchConfigEntity[]>;
+
+  /**
+   * Retrieves all saved watch configurations for a given vertex
+   * Note: This does not include default watches
+   * @param vertexId The vertex to get the watches for
+   * @param channel The channel to filter watches by (optional)
+   * @returns An array of CollectionWatchEntity matching the criteria
+   */
+  public abstract getWatches(
+    vertexId: string,
+    channel?: string | string[],
+  ): Promise<CollectionWatchEntity[]>;
 }

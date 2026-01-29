@@ -16,7 +16,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 
 import { GraphService } from './graph.service';
@@ -42,6 +42,7 @@ import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constant
 import { REDIS_PUBSUB } from '../constants';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 import { GraphTeamUserPermissionDto } from './dto/graph-team-user-permision.dto';
+import { CollectionWatchArrayDto } from '../persistence/dto/collection-watch.dto';
 
 @Controller({
   path: 'graph',
@@ -370,5 +371,35 @@ export class GraphController {
     @Query('edgeName') edgeName: string,
   ) {
     return this.graph.getEdgeConfigByVertex(id, targetCollection, edgeName);
+  }
+
+  @Get('vertex/:id/watch')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  getUserWatchesByVertex(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
+    return this.graph.getUserWatchesByVertex(request, id);
+  }
+
+  @Post('vertex/:id/watch')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({
+    type: CollectionWatchArrayDto,
+    description: 'Array of watch identifiers to subscribe to notifications',
+  })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
+  async watchService(
+    @Req() request: Request,
+    @Body() body: CollectionWatchArrayDto,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
+    return this.graph.addWatchToVertex(
+      request,
+      id,
+      body.watches,
+    );
   }
 }

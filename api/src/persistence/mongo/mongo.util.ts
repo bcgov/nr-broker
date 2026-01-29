@@ -6,6 +6,7 @@ import { ServiceInstanceEntity } from '../entity/service-instance.entity';
 import { ServiceEntity } from '../entity/service.entity';
 import { UserEntity } from '../entity/user.entity';
 import { TeamEntity } from '../entity/team.entity';
+// import { CollectionWatchDto } from '../entity/collection-watch.embeddable';
 import {
   MongoEntityManager,
   MongoEntityRepository,

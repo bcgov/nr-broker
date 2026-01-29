@@ -491,3 +491,18 @@ db.collectionConfig.updateOne(
     },
   },
 );
+
+db.collectionWatchConfig.insertMany([
+  {
+    _id: ObjectId('650b8f4f4bc3a44e24cc2a5e'),
+    collection: 'service',
+    watches: [
+      {
+        // name: 'Deployments',
+        events: ['success', 'failure', 'unknown'],
+        channel: 'application-deployed',
+      },
+    ],
+    roles: ['owner', 'developer'],
+  }
+]);
