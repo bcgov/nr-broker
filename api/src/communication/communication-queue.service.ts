@@ -200,14 +200,10 @@ export class CommunicationQueueService {
             }
           }
         }
-        console.log(watchers);
         const watchDefaultConfigs = await this.graphRepository.getDefaultWatchConfigsByVertex(
           job.vertexId,
           jobUser.value,
         );
-        console.log(job.vertexId);
-        console.log(jobUser.value);
-        console.log(watchDefaultConfigs);
         for (const watchConfig of watchDefaultConfigs) {
           if (watchConfig.watches.findIndex(
             (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
