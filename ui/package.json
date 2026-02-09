@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@angular/build": "^21.1.1",
-    "@angular/cli": "^21.1.1",
+    "@angular/cli": "^21.1.3",
     "@angular/compiler-cli": "^21.1.1",
     "@stylistic/eslint-plugin": "^5.7.0",
     "@types/dlv": "^1.1.5",
