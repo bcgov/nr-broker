@@ -1,4 +1,4 @@
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac, createSign, randomUUID } from 'node:crypto';
 import {
   Injectable,
   BadRequestException,
@@ -26,6 +26,7 @@ import {
   REDIS_PUBSUB,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
 } from '../constants';
+import { DAYS_365_IN_SECONDS } from './dto/broker-account-token-generate-query.dto';
 import { AuditService } from '../audit/audit.service';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
 import { OpensearchService } from '../aws/opensearch.service';
@@ -35,6 +36,7 @@ import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
+import { JwtKeyService } from '../auth/jwt-key.service';
 import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
@@ -53,6 +55,7 @@ export class AccountService {
     private readonly communicationQueueService: CommunicationQueueService,
     private readonly opensearchService: OpensearchService,
     private readonly githubSyncService: GithubSyncService,
+    private readonly jwtKeyService: JwtKeyService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
     private readonly graphRepository: GraphRepository,
@@ -191,11 +194,12 @@ export class AccountService {
     creatorGuid: string,
     autoRenew: boolean,
   ): Promise<TokenCreateDTO> {
-    const hmac = createHmac('sha256', process.env['JWT_SECRET']);
-    const header = {
-      alg: 'HS256',
-      typ: 'JWT',
-    };
+    if (expirationInSeconds > DAYS_365_IN_SECONDS) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: `Token expiration must not exceed ${DAYS_365_IN_SECONDS} seconds (365 days)`,
+      });
+    }
     const ISSUED_AT = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
 
     const account = await this.collectionRepository.getCollectionById(
@@ -229,16 +233,37 @@ export class AccountService {
       jti: randomUUID(),
       sub: account.email,
     };
+
+    const signingKey = this.jwtKeyService.getSigningKey();
+    const useRS256 = !!signingKey;
+
+    const header: Record<string, string> = {
+      alg: useRS256 ? 'RS256' : 'HS256',
+      typ: 'JWT',
+    };
+    if (useRS256) {
+      header.kid = signingKey.kid;
+    }
+
     const headerStr = Buffer.from(JSON.stringify(header), 'utf8').toString(
       'base64url',
     );
-
     const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
       'base64url',
     );
-    hmac.update(headerStr + '.' + payloadStr);
 
-    const token = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
+    let signature: string;
+    if (useRS256) {
+      const signer = createSign('RSA-SHA256');
+      signer.update(headerStr + '.' + payloadStr);
+      signature = signer.sign(signingKey.privateKey, 'base64url');
+    } else {
+      const hmac = createHmac('sha256', process.env['JWT_SECRET']);
+      hmac.update(headerStr + '.' + payloadStr);
+      signature = hmac.digest('base64url');
+    }
+
+    const token = `${headerStr}.${payloadStr}.${signature}`;
     await this.systemRepository.addJwtToRegister(id, payload, creatorId);
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);

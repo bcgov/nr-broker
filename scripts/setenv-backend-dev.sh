@@ -23,6 +23,7 @@ if [ -z "$1" ]; then
   export GITHUB_OAUTH_CLIENT_SECRET=$(vault kv get -field=GITHUB_OAUTH_CLIENT_SECRET apps/prod/vault/vsync)
   export GITHUB_SYNC_CLIENT_ID=$(vault kv get -field=GITHUB_SYNC_CLIENT_ID apps/prod/vault/vsync)
   export GITHUB_SYNC_PRIVATE_KEY=$(vault kv get -field=GITHUB_SYNC_PRIVATE_KEY apps/prod/vault/vsync)
+  export JWT_KEYS=$(vault kv get -field=JWT_KEYS apps/prod/vault/vsync)
 fi
 BROKER_ROLE_ID=$(vault read -format json auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/role-id | jq -r '.data.role_id')
 BROKER_SECRET_ID=$(vault write -format json -f auth/$VAULT_APPROLE_PATH/role/$VAULT_BROKER_ROLE/secret-id | jq -r '.data.secret_id')

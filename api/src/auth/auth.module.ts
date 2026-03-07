@@ -5,9 +5,11 @@ import { JwtModule } from '@nestjs/jwt';
 import passport from 'passport';
 
 import { AuditModule } from '../audit/audit.module';
+import { JwtKeyService } from './jwt-key.service';
 import { JwtStrategy } from './jwt.strategy';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { AuthController } from './auth.controller';
+import { JwksController } from './jwks.controller';
 import { OidcStrategy, buildOpenIdClient } from './oidc.strategy';
 import { SessionSerializer } from './session.serializer';
 import { AuthService } from './auth.service';
@@ -41,12 +43,13 @@ const OidcStrategyFactory = {
   providers: [
     BrokerOidcAuthGuard,
     BrokerJwtAuthGuard,
+    JwtKeyService,
     JwtStrategy,
     SessionSerializer,
     OidcStrategyFactory,
     AuthService,
   ],
-  controllers: [AuthController],
-  exports: [AuthService, BrokerOidcAuthGuard, BrokerJwtAuthGuard],
+  controllers: [AuthController, JwksController],
+  exports: [AuthService, BrokerOidcAuthGuard, BrokerJwtAuthGuard, JwtKeyService],
 })
 export class AuthModule {}

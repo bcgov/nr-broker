@@ -39,7 +39,8 @@ See: [Broker Token](/dev_broker_token.md)
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
 | JWT_SKIP_VALIDATION | false |  | Skips validating if token is in allowed or blocked list. If true, allows any valid token generated using secret to work. Token generation API adds all tokens to an allow list which blocks any token not generated through it. |
-| JWT_SECRET |  | Yes | The JWT secret used to create and validate all tokens |
+| JWT_SECRET |  | Yes | The HS256 secret used to validate legacy tokens. Not used for new token creation when JWT_KEYS is set. |
+| JWT_KEYS |  | Yes | JSON array of RSA key objects for RS256 signing and verification. Each entry has `kid`, `private` (PEM), and `public` (PEM) fields. The first key with a private key is used for signing new tokens. All keys are valid for verification, enabling key rotation. Public keys are exposed at `/.well-known/jwks.json`. |
 
 ## OAUTH Client Setup
 
