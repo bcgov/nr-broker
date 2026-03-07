@@ -2,23 +2,32 @@
 
 // See: https://jwt.io
 // Assumes that following environment variables set:
-// - JWT_SECRET
+// - JWT_KEYS (JSON array with RS256 keys) or JWT_SECRET (HS256 legacy)
 // Arguments:
 // 1: JWT sub(ject)
 // 2: JWT client_id (optional -- random one generated if not set)
 
 /* eslint-disable no-undef */
 
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac, createSign, randomUUID } from 'node:crypto';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 
-const hmac = createHmac('sha256', process.env['JWT_SECRET']);
+let signingKey = null;
+const keysJson = process.env['JWT_KEYS'];
+if (keysJson) {
+  const keys = JSON.parse(keysJson);
+  signingKey = keys.find((k) => k.private) ?? null;
+}
+const useRS256 = !!signingKey;
 
 const header = {
-  alg: 'HS256',
+  alg: useRS256 ? 'RS256' : 'HS256',
   typ: 'JWT',
 };
+if (useRS256) {
+  header.kid = signingKey.kid;
+}
 
 const args = process.argv.slice(2);
 const sub = args[0] ?? process.env['JWT_DEFAULT_SUB'] ?? 'unknown';
@@ -44,8 +53,18 @@ const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
   'base64url',
 );
 
-hmac.update(headerStr + '.' + payloadStr);
-const output = `${headerStr}.${payloadStr}.${hmac.digest('base64url')}`;
+let signature;
+if (useRS256) {
+  const signer = createSign('RSA-SHA256');
+  signer.update(headerStr + '.' + payloadStr);
+  signature = signer.sign(signingKey.private, 'base64url');
+} else {
+  const hmac = createHmac('sha256', process.env['JWT_SECRET']);
+  hmac.update(headerStr + '.' + payloadStr);
+  signature = hmac.digest('base64url');
+}
+
+const output = `${headerStr}.${payloadStr}.${signature}`;
 
 spawnSync(
   'mongosh -u mongoadmin -p secret --authenticationDatabase admin brokerDB db/mongo-add-jwt-reg.js',

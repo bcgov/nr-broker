@@ -9,6 +9,7 @@ import { ActionGuardRequest } from '../intention/action-guard-request.interface'
 import {
   ACTION_PROVISION_APPROLE_SECRET_ID,
   ACTION_PROVISION_TOKEN_SELF,
+  ACTION_PROVISION_TOKEN_JWT,
 } from '../intention/dto/constants.dto';
 
 @Controller({
@@ -48,6 +49,19 @@ export class ProvisionController {
       intentionDto,
       actionDto,
       roleId,
+    );
+  }
+
+  @Post('token/jwt')
+  @SetMetadata('roles', ['provision'])
+  @SetMetadata('provision', [ACTION_PROVISION_TOKEN_JWT])
+  @UseGuards(ActionGuard, ProvisionGuard)
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  async provisionIntentionJwt(@Req() request: ActionGuardRequest) {
+    return this.provisionService.generateJwt(
+      request,
+      request.brokerIntention,
+      request.brokerAction,
     );
   }
 }
