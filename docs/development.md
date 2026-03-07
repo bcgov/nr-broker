@@ -14,6 +14,7 @@ Required:
 On macOS, [Homebrew](https://brew.sh) is the suggested way to install and update tools other than node.
 
 ```bash
+brew tap hashicorp/tap
 brew install mongosh podman vault jq
 ```
 
@@ -39,7 +40,7 @@ brew install envconsul
 
 ### Setup setenv-common.sh
 
-The scripts used to run NR Broker rely on `./scripts/setenv-common.sh` to set the environment varibles locally. A template for [setenv-common.sh](https://github.com/bcgov-nr/nr-broker/blob/main/scripts/setenv-common.sh.tmp) is provided. Copy the template to `./scripts/setenv-common.sh` and modify as needed.
+The scripts used to run NR Broker rely on `/scripts/setenv-common.sh` to set the environment varibles locally. A template for [setenv-common.sh](https://github.com/bcgov-nr/nr-broker/blob/main/scripts/setenv-common.sh.tmp) is provided. Copy the template to `/scripts/setenv-common.sh` and modify as needed.
 
 Your team may have a preconfigured environment file. Check with your team.
 

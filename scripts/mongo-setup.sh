@@ -3,6 +3,11 @@
     || this_dir=$(dirname "${BASH_SOURCE[0]:-$0}")
 cd "$this_dir"
 
+if [ ! -f "./setenv-common.sh" ]; then
+    echo "Error: /scripts/setenv-common.sh not found! Have you followed your team's setup instructions?"
+    [ $PS1 ] && return || exit
+fi
+
 source ./setenv-common.sh local
 if [ $? != 0 ]; then [ $PS1 ] && return || exit; fi
 
