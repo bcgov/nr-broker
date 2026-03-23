@@ -1,10 +1,10 @@
+import { BaseEntity } from '@mikro-orm/core';
 import {
-  BaseEntity,
   Entity,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 
 @Entity({ tableName: 'connectionConfig' })

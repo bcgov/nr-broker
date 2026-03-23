@@ -1,4 +1,9 @@
-import { Embeddable, Embedded, Enum, Property } from '@mikro-orm/core';
+import {
+  Embeddable,
+  Embedded,
+  Enum,
+  Property,
+} from '@mikro-orm/decorators/legacy';
 import { ApiProperty } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 import { ServiceTargetEmbeddable } from './service-target.embeddable';

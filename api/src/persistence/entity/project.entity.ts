@@ -4,7 +4,7 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { VertexPointerEntity } from './vertex-pointer.entity';

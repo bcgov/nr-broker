@@ -1,4 +1,9 @@
-import { Embeddable, Embedded, Enum, Property } from '@mikro-orm/core';
+import {
+  Embeddable,
+  Embedded,
+  Enum,
+  Property,
+} from '@mikro-orm/decorators/legacy';
 import { EdgePropEmbeddable } from '../../persistence/entity/edge-prop.embeddable';
 import { CloudObjectDto } from '../dto/cloud-object.dto';
 

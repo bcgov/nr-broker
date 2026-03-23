@@ -4,7 +4,8 @@ import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
 import * as jwt from 'jsonwebtoken';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import {
   GITHUB_SYNC_CLIENT_ID,
   GITHUB_SYNC_PRIVATE_KEY,

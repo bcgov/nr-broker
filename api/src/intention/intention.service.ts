@@ -9,7 +9,7 @@ import {
 import { Request } from 'express';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { MikroORM } from '@mikro-orm/mongodb';
-import { CreateRequestContext } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { validate } from 'class-validator';
 

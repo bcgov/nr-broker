@@ -1,4 +1,4 @@
-import { Entity } from '@mikro-orm/core';
+import { Entity } from '@mikro-orm/decorators/legacy';
 import { JwtEntity } from './jwt.entity';
 
 @Entity({ tableName: 'jwtAllow' })

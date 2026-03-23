@@ -1,3 +1,4 @@
+import { BaseEntity } from '@mikro-orm/core';
 import {
   Entity,
   PrimaryKey,
@@ -5,8 +6,7 @@ import {
   SerializedPrimaryKey,
   Index,
   Embedded,
-  BaseEntity,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 

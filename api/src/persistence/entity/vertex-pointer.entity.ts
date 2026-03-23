@@ -1,4 +1,5 @@
-import { Property, Index, BaseEntity } from '@mikro-orm/core';
+import { BaseEntity } from '@mikro-orm/core';
+import { Property, Index } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';

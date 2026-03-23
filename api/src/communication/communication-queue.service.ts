@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import ejs from 'ejs';
 import { v4 as uuidv4 } from 'uuid';
 import { REDIS_QUEUES, CRON_JOB_SEND_COMS } from '../constants';

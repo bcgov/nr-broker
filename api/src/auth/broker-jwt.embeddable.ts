@@ -1,4 +1,4 @@
-import { Embeddable, Property } from '@mikro-orm/core';
+import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
 import { BrokerJwtDto } from './broker-jwt.dto';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';

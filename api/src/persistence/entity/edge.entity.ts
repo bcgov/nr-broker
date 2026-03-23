@@ -1,13 +1,13 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { BaseEntity } from '@mikro-orm/core';
 import {
-  BaseEntity,
   Embedded,
   Entity,
   Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { EdgeInsertDto, EdgeDto } from '../dto/edge.dto';
 import { TimestampEmbeddable } from './timestamp.embeddable';
