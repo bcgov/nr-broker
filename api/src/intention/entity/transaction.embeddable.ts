@@ -1,4 +1,4 @@
-import { Embeddable, Property } from '@mikro-orm/core';
+import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 

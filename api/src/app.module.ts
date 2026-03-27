@@ -5,6 +5,7 @@ import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { MongoDriver } from '@mikro-orm/mongodb';
+import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 
 import { HealthModule } from './health/health.module';
 import { ProvisionModule } from './provision/provision.module';
@@ -37,6 +38,7 @@ import { CommunicationModule } from './communication/communication.module';
       clientUrl: getMongoDbConnectionUrl(),
       driver: MongoDriver,
       ensureIndexes: true,
+      metadataProvider: ReflectMetadataProvider,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', process.env.NESTJS_UI_ROOT_PATH),

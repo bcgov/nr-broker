@@ -1,5 +1,5 @@
+import { BaseEntity } from '@mikro-orm/core';
 import {
-  BaseEntity,
   Embeddable,
   Embedded,
   Entity,
@@ -7,7 +7,7 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 
 import { TimestampEmbeddable } from './timestamp.embeddable';

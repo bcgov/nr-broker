@@ -7,7 +7,8 @@ import {
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
 import { catchError, map, Observable, switchMap } from 'rxjs';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 import {
   IS_PRIMARY_NODE,
@@ -213,7 +214,7 @@ export class TokenService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   @CreateRequestContext()
-  handleTokenRenewal() {
+  async handleTokenRenewal() {
     try {
       if (
         !this.hasValidToken() ||

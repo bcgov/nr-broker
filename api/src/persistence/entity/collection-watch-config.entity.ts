@@ -6,7 +6,7 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { CollectionWatchIdentifierEmbeddable } from './collection-watch.entity';
 import { CollectionNames, CollectionNameStringEnum } from './collection-entity-union.type';

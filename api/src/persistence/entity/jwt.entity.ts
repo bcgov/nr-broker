@@ -1,9 +1,5 @@
-import {
-  BaseEntity,
-  PrimaryKey,
-  Property,
-  SerializedPrimaryKey,
-} from '@mikro-orm/core';
+import { BaseEntity } from '@mikro-orm/core';
+import { PrimaryKey, Property, SerializedPrimaryKey } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 
 export abstract class JwtEntity extends BaseEntity {

@@ -1,14 +1,14 @@
+import { BaseEntity } from '@mikro-orm/core';
 import {
   Entity,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
   Index,
-  BaseEntity,
   Embeddable,
   Embedded,
   Enum,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import {
   CollectionEdgeConfig,

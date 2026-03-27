@@ -4,7 +4,7 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 import { COLLECTION_COLLATION_LOCALE } from '../../constants';

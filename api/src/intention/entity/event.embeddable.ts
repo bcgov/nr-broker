@@ -1,4 +1,4 @@
-import { Embeddable, Embedded, Property } from '@mikro-orm/core';
+import { Embeddable, Embedded, Property } from '@mikro-orm/decorators/legacy';
 import { EventDto } from '../dto/event.dto';
 import { EventTriggerEmbeddable } from './event-trigger.embeddable';
 

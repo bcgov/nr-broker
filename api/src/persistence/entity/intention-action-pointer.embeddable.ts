@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { Embeddable, Property } from '@mikro-orm/core';
+import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
 import { IntentionDto } from '../../intention/dto/intention.dto';
 import { ActionDto } from '../../intention/dto/action.dto';
 

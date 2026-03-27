@@ -11,7 +11,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';

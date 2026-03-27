@@ -1,4 +1,4 @@
-import { Embeddable } from '@mikro-orm/core';
+import { Embeddable } from '@mikro-orm/decorators/legacy';
 import {
   ACTION_NAMES,
   ActionEmbeddable,

@@ -1,4 +1,4 @@
-import { Embeddable, Embedded, Property } from '@mikro-orm/core';
+import { Embeddable, Embedded, Property } from '@mikro-orm/decorators/legacy';
 import { UserGroupEmbeddable } from './user-group.embeddable';
 import { UserEntity } from '../../persistence/entity/user.entity';
 import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';

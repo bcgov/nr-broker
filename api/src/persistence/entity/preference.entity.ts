@@ -1,12 +1,12 @@
+import { BaseEntity } from '@mikro-orm/core';
 import {
-  BaseEntity,
   Entity,
   Enum,
   Index,
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { PreferenceDto } from '../dto/preference.dto';
 import { CollectionNames } from '../dto/collection-dto-union.type';

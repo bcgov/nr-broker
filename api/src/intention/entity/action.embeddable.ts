@@ -1,4 +1,9 @@
-import { Embeddable, Embedded, Enum, Property } from '@mikro-orm/core';
+import {
+  Embeddable,
+  Embedded,
+  Enum,
+  Property,
+} from '@mikro-orm/decorators/legacy';
 
 import { UserEmbeddable } from './user.embeddable';
 import { IntentionServiceEmbeddable } from './intention-service.embeddable';

@@ -6,7 +6,7 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import { VertexPointerEntity } from './vertex-pointer.entity';
 import { Expose, Transform } from 'class-transformer';

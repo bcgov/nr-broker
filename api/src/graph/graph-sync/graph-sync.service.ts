@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CreateRequestContext, MikroORM } from '@mikro-orm/core';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import { first, get, mapEntries, shake } from 'radash';
 import { v4 as uuidv4 } from 'uuid';
 import { plainToInstance } from 'class-transformer';
