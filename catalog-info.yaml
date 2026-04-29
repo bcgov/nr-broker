@@ -3,7 +3,7 @@ kind: Location
 metadata:
   name: components
   annotations:
-    composer.io.nrs.gov.bc.ca/generators: gh-docs-deploy
+    composer.io.nrs.gov.bc.ca/generators: gh-docs-deploy,nr-repository-composer
 spec:
   targets:
     - api/catalog-info.yaml
