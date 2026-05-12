@@ -13,15 +13,16 @@ import { ActionUtil } from '../util/action.util';
 import { IntentionUtilService } from './intention-util.service';
 import { ValidationRuleEngine } from './validation/validation-rule.engine';
 import {
-  UserSetValidationRule,
-  VaultEnvValidationRule,
   AccountBoundProjectValidationRule,
-  TargetServiceValidationRule,
-  DatabaseAccessValidationRule,
-  PackageBuildValidationRule,
-  EnvironmentPromotionValidationRule,
-  PackageInstallationValidationRule,
   AssistedDeliveryValidationRule,
+  DatabaseAccessValidationRule,
+  DeploymentConfigBuildValidationRule,
+  EnvironmentPromotionValidationRule,
+  UserSetValidationRule,
+  PackageBuildValidationRule,
+  PackageInstallationValidationRule,
+  TargetServiceValidationRule,
+  VaultEnvValidationRule,
 } from './validation/rules';
 import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 import {
@@ -59,6 +60,7 @@ import {
     EnvironmentPromotionValidationRule,
     PackageInstallationValidationRule,
     AssistedDeliveryValidationRule,
+    DeploymentConfigBuildValidationRule,
     // Intention Validation Rule Engine and Rules
     IntentionValidationRuleEngine,
     JwtBlockedValidationRule,

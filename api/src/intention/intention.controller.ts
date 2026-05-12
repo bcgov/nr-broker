@@ -196,7 +196,7 @@ export class IntentionController {
     @Body() actionPatch: ActionPatchRestDto,
   ) {
     if (
-      !['package-build', 'package-installation'].includes(
+      !['deployment-config-build', 'package-build', 'package-installation'].includes(
         request.brokerAction.action,
       )
     ) {
@@ -204,7 +204,7 @@ export class IntentionController {
         statusCode: 400,
         message: 'Illegal action',
         error:
-          'Only package-build or package-installation actions can be patched',
+          'Only deployment-config-build, package-build or package-installation actions can be patched',
       });
     }
 

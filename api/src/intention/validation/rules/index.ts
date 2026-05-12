@@ -7,3 +7,4 @@ export * from './package-build-validation.rule';
 export * from './environment-promotion-validation.rule';
 export * from './package-installation-validation.rule';
 export * from './assisted-delivery-validation.rule';
+export * from './deployment-config-build-validation.rule';

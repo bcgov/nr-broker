@@ -20,6 +20,7 @@ import { ActionRuleViolationDto } from './action-rule-violation.dto';
 export enum ACTION_NAMES {
   BACKUP = 'backup',
   DATABASE_ACCESS = 'database-access',
+  DEPLOYMENT_CONFIG_BUILD = 'deployment-config-build',
   SERVER_ACCESS = 'server-access',
   PACKAGE_BUILD = 'package-build',
   PACKAGE_CONFIGURE = 'package-configure',
@@ -72,6 +73,13 @@ export class ActionDto {
   @Type(() => PackageDto)
   package?: PackageDto;
 
+  @ValidateNested()
+  @IsOptional()
+  @IsArray()
+  @Type(() => ActionSourceDto)
+  references?: ActionSourceDto[];
+
+  // Outdated - source is deprecated in favor of references which can support multiple sources and is more flexible.
   @ValidateNested()
   @IsOptional()
   @Type(() => ActionSourceDto)

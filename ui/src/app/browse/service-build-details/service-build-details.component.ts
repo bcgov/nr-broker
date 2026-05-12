@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +38,7 @@ import { ScreenService } from '../../util/screen.service';
     MatMenuModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    TitleCasePipe,
   ],
   templateUrl: './service-build-details.component.html',
   styleUrl: './service-build-details.component.scss',

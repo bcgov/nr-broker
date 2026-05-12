@@ -18,6 +18,7 @@ import { ActionRuleViolationEmbeddable } from './action-rule-violation.embeddabl
 export enum ACTION_NAMES {
   BACKUP = 'backup',
   DATABASE_ACCESS = 'database-access',
+  DEPLOYMENT_CONFIG_BUILD = 'deployment-config-build',
   SERVER_ACCESS = 'server-access',
   PACKAGE_BUILD = 'package-build',
   PACKAGE_CONFIGURE = 'package-configure',
@@ -86,10 +87,17 @@ export abstract class ActionEmbeddable {
 
   @Embedded({
     entity: () => ActionSourceEmbeddable,
+    array: true,
     nullable: true,
-    object: true,
   })
-  source?: ActionSourceEmbeddable;
+  references?: ActionSourceEmbeddable[];
+
+  // @Embedded({
+  //   entity: () => ActionSourceEmbeddable,
+  //   nullable: true,
+  //   object: true,
+  // })
+  // source?: ActionSourceEmbeddable;
 
   @Embedded({ entity: () => TransactionEmbeddable })
   trace: TransactionEmbeddable;

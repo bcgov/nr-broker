@@ -98,15 +98,60 @@ export class BuildMongoRepository implements BuildRepository {
     hideReplaced: boolean,
     offset: number,
     limit: number,
+    name?: string,
+    latestPerPackage = false,
   ) {
+    const matchStage: any = {
+      service: new ObjectId(serviceId),
+      ...(hideReplaced ? { replaced: false } : {}),
+      ...(name ? { name } : {}),
+    };
+
+    if (latestPerPackage) {
+      return this.packageBuildRepository
+        .getCollection()
+        .aggregate([
+          {
+            $match: matchStage,
+          },
+          {
+            $sort: { 'timestamps.createdAt': -1 },
+          },
+          {
+            $group: {
+              _id: '$name',
+              document: { $first: '$$ROOT' },
+            },
+          },
+          {
+            $replaceRoot: { newRoot: '$document' },
+          },
+          {
+            $facet: {
+              data: [{ $skip: offset }, { $limit: limit }],
+              meta: [{ $count: 'total' }],
+            },
+          },
+        ])
+        .toArray()
+        .then((array) => {
+          if (array[0]) {
+            arrayIdFixer((array[0] as any).data);
+            return array[0] as any;
+          } else {
+            return {
+              data: [],
+              meta: { total: 0 },
+            };
+          }
+        });
+    }
+
     return this.packageBuildRepository
       .getCollection()
       .aggregate([
         {
-          $match: {
-            service: new ObjectId(serviceId),
-            ...(hideReplaced ? { replaced: false } : {}),
-          },
+          $match: matchStage,
         },
         {
           $sort: { _id: -1 },
@@ -135,6 +180,27 @@ export class BuildMongoRepository implements BuildRepository {
           };
         }
       });
+  }
+
+  public async getPackageNames(serviceId: string): Promise<string[]> {
+    return this.packageBuildRepository
+      .getCollection()
+      .aggregate([
+        {
+          $match: {
+            service: new ObjectId(serviceId),
+            replaced: false,
+          },
+        },
+        {
+          $group: { _id: '$name' },
+        },
+        {
+          $sort: { _id: 1 },
+        },
+      ])
+      .toArray()
+      .then((array) => array.map((item) => item._id as string));
   }
 
   public async approvePackage(

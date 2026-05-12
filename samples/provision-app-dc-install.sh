@@ -11,14 +11,14 @@ echo $DC_INTENTION
 
 echo "===> Intention open"
 # Open intention
-RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true \
+RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30 \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $BROKER_JWT" \
-    -d @<(cat provision-app-quick-install.json | \
+    -d @<(cat provision-app-dc-install.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
             (.actions[] | select(.id == \"install\") .source.intention) |= \"$BUILD_INTENTION\" | \
-            (.actions[] | select(.id == \"configure\") .source.intention) |= \"$DC_INTENTION\" \
+            (.actions[].references[].intention) |= \"$DC_INTENTION\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"
@@ -30,7 +30,12 @@ fi
 
 # Save intention token for later
 INTENTION_TOKEN=$(echo $RESPONSE | jq -r '.token')
+ACTIONS_INSTALL_TOKEN=$(echo $RESPONSE | jq -r '.actions.install.token')
 # echo "Hashed transaction.id: $(echo -n $INTENTION_TOKEN | shasum -a 256)"
+
+
+# Start install action
+curl -s -X POST $BROKER_URL/v1/intention/action/start -H 'X-Broker-Token: '"$ACTIONS_INSTALL_TOKEN"''
 
 echo "===> Install"
 

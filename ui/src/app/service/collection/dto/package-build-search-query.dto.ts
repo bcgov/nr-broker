@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from "class-transformer";
+import { IsInt, IsOptional, IsString } from "class-validator";
 
 export class PackageBuildSearchQuery {
   @IsOptional()
@@ -11,6 +11,16 @@ export class PackageBuildSearchQuery {
   @IsString()
   @Type(() => String)
   vertexId?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  latestPerPackage?: string;
 
   @IsOptional()
   @IsString()

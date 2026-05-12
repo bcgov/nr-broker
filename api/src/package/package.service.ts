@@ -9,7 +9,10 @@ import { REDIS_PUBSUB } from '../constants';
 import { RedisService } from '../redis/redis.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { BuildRepository } from '../persistence/interfaces/build.repository';
-import { PackageBuildDto } from '../persistence/dto/package-build.dto';
+import {
+  PackageBuildDto,
+  PackageBuildSearchResult,
+} from '../persistence/dto/package-build.dto';
 import { PackageBuildEntity } from '../persistence/entity/package-build.entity';
 import { ActionUtil } from '../util/action.util';
 
@@ -34,13 +37,21 @@ export class PackageService {
     dir: string | undefined,
     offset: number,
     limit: number,
-  ) {
+    name?: string,
+    latestPerPackage?: string,
+  ): Promise<PackageBuildSearchResult> {
     return this.buildRepository.searchBuild(
       serviceId,
       hideReplaced,
       offset,
       limit,
+      name,
+      latestPerPackage === 'true',
     );
+  }
+
+  async getPackageNames(serviceId: string): Promise<string[]> {
+    return this.buildRepository.getPackageNames(serviceId);
   }
 
   async getServiceBuildByVersion(

@@ -93,7 +93,7 @@ export class IntentionSyncService {
         await this.syncPackageBuild(intention, action, serviceVertex);
       }
 
-      if (action.action === 'package-build') {
+      if (action.action === 'package-build' || action.action === 'deployment-config-build') {
         await this.syncPackageBuild(intention, action, serviceVertex);
       }
     }
@@ -134,7 +134,7 @@ export class IntentionSyncService {
         action.package.name,
         parsedVersion,
       );
-    if (action.action === 'package-build') {
+    if (action.action === 'package-build' || action.action === 'deployment-config-build') {
       if (currentPackageBuild) {
         await this.buildRepository.markBuildAsReplaced(currentPackageBuild);
       }

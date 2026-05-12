@@ -26,6 +26,7 @@ import { ActionContentComponent } from '../action-content/action-content.compone
 import { IntentionUtilService } from '../../util/intention-util.service';
 import { OutcomeIconComponent } from '../../shared/outcome-icon/outcome-icon.component';
 import { ScreenService } from '../../util/screen.service';
+import { IntentionReferenceItemComponent } from '../intention-reference-item/intention-reference-item.component';
 
 @Component({
   selector: 'app-intention-details',
@@ -43,6 +44,7 @@ import { ScreenService } from '../../util/screen.service';
     ActionContentComponent,
     DetailsItemComponent,
     OutcomeIconComponent,
+    IntentionReferenceItemComponent,
   ],
   templateUrl: './intention-details.component.html',
   styleUrl: './intention-details.component.scss',

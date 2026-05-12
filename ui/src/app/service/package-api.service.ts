@@ -30,9 +30,25 @@ export class PackageApiService {
     );
   }
 
-  searchBuilds(id: string, offset = 0, limit = 5) {
+  searchBuilds(id: string, offset = 0, limit = 5, name?: string, latestPerPackage = false) {
+    const params = new URLSearchParams({ serviceId: id, offset: offset.toString(), limit: limit.toString() });
+    if (name) {
+      params.append('name', name);
+    }
+    if (latestPerPackage) {
+      params.append('latestPerPackage', 'true');
+    }
     return this.http.post<PackageBuildSearchResult>(
-      `${environment.apiUrl}/v1/package/search?serviceId=${id}&offset=${offset}&limit=${limit}`,
+      `${environment.apiUrl}/v1/package/search?${params.toString()}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  getPackageNames(serviceId: string) {
+    return this.http.get<string[]>(
+      `${environment.apiUrl}/v1/package/names/${serviceId}`,
       {
         responseType: 'json',
       },

@@ -29,8 +29,8 @@
         @if (curr && curr.intention) {
           <button mat-menu-item (click)="viewIntention(curr.intention)">View Intention</button>
         }
-        @if (curr.source && curr.source.action && curr.source.action.source && curr.source.action.source.intention) {
-          <button mat-menu-item (curr)="viewIntention(curr.source.action.source.intention)">View Build</button>
+        @if (curr.source && curr.source.action && curr.source.action.references && curr.source.action.references[0] && curr.source.action.references[0].intention) {
+          <button mat-menu-item (click)="viewIntention(curr.source.action.references[0].intention)">View Build</button>
         }
         @if (curr.source && curr.source.action && curr.source.action.package && curr.source.action.service.id && curr.source.action.package.id) {
           <button mat-menu-item (click)="openServicePackage(curr.source.action.service.id, curr.source.action.package.id)">View Package</button>

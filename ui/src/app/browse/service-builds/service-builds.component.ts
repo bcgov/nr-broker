@@ -73,9 +73,10 @@ export class ServiceBuildsComponent implements OnInit, OnDestroy {
   public disableApprove = signal<Record<string, boolean>>({});
 
   propDisplayedColumns = signal<string[]>([
-    'version',
-    'date',
     'name',
+    'version',
+    'category',
+    'date',
     'type',
   ]);
 

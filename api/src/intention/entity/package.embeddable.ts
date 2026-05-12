@@ -1,7 +1,15 @@
 import { ObjectId } from 'mongodb';
 import { ApiProperty } from '@nestjs/swagger';
-import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
+import { Embeddable, Enum, Property } from '@mikro-orm/decorators/legacy';
 import { PackageDto } from '../dto/package.dto';
+
+export enum PACKAGE_CATEGORY_NAMES {
+  DATABASE = 'database',
+  INFRASTRUCTURE = 'infrastructure',
+  LIBRARY = 'library',
+  SOFTWARE = 'software',
+  UNKNOWN = 'unknown',
+}
 
 @Embeddable()
 export class PackageEmbeddable {
@@ -12,6 +20,7 @@ export class PackageEmbeddable {
       rval.buildGuid = arg.buildGuid ?? rval.buildGuid;
       rval.buildNumber = arg.buildNumber ?? rval.buildNumber;
       rval.buildVersion = arg.buildVersion ?? rval.buildVersion;
+      rval.category = arg.category ?? rval.category;
       rval.checksum = arg.checksum ?? rval.checksum;
       rval.description = arg.description ?? rval.description;
       rval.installScope = arg.installScope ?? rval.installScope;
@@ -20,8 +29,18 @@ export class PackageEmbeddable {
       rval.path = arg.path ?? rval.path;
       rval.reference = arg.reference ?? rval.reference;
       rval.size = arg.size ?? rval.size;
+      rval.source = arg.source ?? rval.source;
+      rval.tag = arg.tag ?? rval.tag;
       rval.type = arg.type ?? rval.type;
       rval.version = arg.version ?? rval.version;
+    }
+
+    // Extract tag from source for docker/oci types if tag is not set
+    if (!rval.tag && rval.source && (rval.type === 'oci-container' || rval.type === 'oci-archive')) {
+      const lastSegment = rval.source.split('/').pop();
+      if (lastSegment?.includes(':')) {
+        rval.tag = lastSegment.split(':').pop() ?? rval.tag;
+      }
     }
 
     return rval;
@@ -47,6 +66,9 @@ export class PackageEmbeddable {
   @Property({ nullable: true })
   buildVersion?: string;
 
+  @Enum({ items: () => PACKAGE_CATEGORY_NAMES, nullable: true })
+  category?: PACKAGE_CATEGORY_NAMES;
+
   @Property({ nullable: true })
   checksum?: string;
 
@@ -70,6 +92,12 @@ export class PackageEmbeddable {
 
   @Property({ nullable: true })
   size?: number;
+
+  @Property({ nullable: true })
+  source?: string;
+
+  @Property({ nullable: true })
+  tag?: string;
 
   @Property({ nullable: true })
   type?: string;

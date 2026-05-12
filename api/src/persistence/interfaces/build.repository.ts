@@ -34,7 +34,11 @@ export abstract class BuildRepository {
     hideReplaced: boolean,
     offset: number,
     limit: number,
+    name?: string,
+    latestPerPackage?: boolean,
   ): Promise<PackageBuildSearchResult>;
+
+  public abstract getPackageNames(serviceId: string): Promise<string[]>;
 
   public abstract approvePackage(
     packageBuild: PackageBuildEntity,

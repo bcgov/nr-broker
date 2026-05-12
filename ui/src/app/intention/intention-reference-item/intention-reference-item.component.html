@@ -1,0 +1,14 @@
+<div
+  class="reference-item"
+  role="link"
+  tabindex="0"
+  aria-label="View intention {{ label() }}"
+  (click)="viewIntention()"
+  (keydown.enter)="viewIntention()"
+>
+  <!-- <mat-icon fontIcon="link" class="reference-icon"></mat-icon> -->
+  <span>{{ label() }}</span>
+  @if (action()) {
+    <span class="reference-action">{{ action() }}</span>
+  }
+</div>

@@ -60,7 +60,7 @@ export class GanttGraphComponent {
         right: '4%',
         bottom: '3%',
         top: '3%',
-        containLabel: true,
+        containLabel: false,
       },
       yAxis: {
         type: 'category',

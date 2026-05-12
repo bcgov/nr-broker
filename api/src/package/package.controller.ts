@@ -56,6 +56,14 @@ export class PackageController {
     name: 'limit',
     required: false,
   })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'latestPerPackage',
+    required: false,
+  })
   async search(
     @Query() query: PackageBuildSearchQuery,
   ): Promise<PackageBuildSearchResult> {
@@ -66,7 +74,17 @@ export class PackageController {
       query.dir,
       query.offset,
       query.limit,
+      query.name,
+      query.latestPerPackage,
     );
+  }
+
+  @Get('names/:serviceId')
+  @UseGuards(BrokerOidcAuthGuard)
+  async getPackageNames(
+    @Param('serviceId') serviceId: string,
+  ): Promise<string[]> {
+    return this.service.getPackageNames(serviceId);
   }
 
   @Post('service-build')

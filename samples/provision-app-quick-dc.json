@@ -1,13 +1,13 @@
 {
   "event": {
     "provider": "github-action-demo",
-    "reason": "Build",
+    "reason": "Deployment Config Build",
     "url": "JOB_URL"
   },
   "actions": [
     {
-      "action": "package-build",
-      "id": "build",
+      "action": "deployment-config-build",
+      "id": "dcbuild",
       "provision": [],
       "service": {
         "project": "superapp",
@@ -15,9 +15,9 @@
         "environment": "tools"
       },
       "package": {
-        "version": "2.73.2-snapshot",
-        "name": "superapp-backend",
-        "category": "software",
+        "version": "2.73.2",
+        "name": "superapp-backend-deployment-config",
+        "category": "infrastructure",
         "license": "Apache License 2.0"
       }
     }

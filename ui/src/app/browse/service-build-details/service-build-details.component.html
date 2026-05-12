@@ -79,6 +79,12 @@
                   [cdkCopyToClipboard]="data.package.checksum"
                   >Checksum</button>
               }
+              @if (data.package.source) {
+                <button
+                  mat-menu-item
+                  [cdkCopyToClipboard]="data.package.source"
+                  >Source</button>
+              }
             </mat-menu>
           </div>
         </div>
@@ -95,6 +101,17 @@
             @if (data.package.name) {
               <app-details-item item="Name">{{data.package.name}}</app-details-item>
             }
+            @if (data.package.source) {
+              <app-details-item
+                item="Source"
+                clickable="true"
+                matTooltip="Click to copy"
+                aria-label="Copy source URL"
+                [cdkCopyToClipboard]="data.package.source">{{data.package.source}}</app-details-item>
+            }
+            @if (data.package.category) {
+              <app-details-item item="Category">{{ data.package.category | titlecase}}</app-details-item>
+            }
             @if (data.package.architecture) {
               <app-details-item item="Architecture">{{data.package.architecture}}</app-details-item>
             }
@@ -105,10 +122,18 @@
               <app-details-item item="Build Guid">{{data.package.buildGuid}}</app-details-item>
             }
             @if (data.package.buildVersion) {
-              <app-details-item item="Build Version">{{data.package.buildVersion}}</app-details-item>
+              <app-details-item
+                item="Build Version"
+                clickable="true"
+                matTooltip="Click to copy"
+                [cdkCopyToClipboard]="data.package.buildVersion">{{data.package.buildVersion}}</app-details-item>
             }
             @if (data.package.checksum) {
-              <app-details-item item="Checksum">{{data.package.checksum}}</app-details-item>
+              <app-details-item
+                item="Checksum"
+                clickable="true"
+                matTooltip="Click to copy"
+                [cdkCopyToClipboard]="data.package.checksum">{{data.package.checksum}}</app-details-item>
             }
             @if (data.package.installScope) {
               <app-details-item item="Install Scope">{{data.package.installScope}}</app-details-item>
