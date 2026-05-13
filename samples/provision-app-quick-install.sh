@@ -6,9 +6,6 @@ cd "$this_dir"
 BUILD_INTENTION="$(cat provision-app-quick-build.intention.id)"
 echo $BUILD_INTENTION
 
-DC_INTENTION="$(cat provision-app-quick-dc.intention.id)"
-echo $DC_INTENTION
-
 echo "===> Intention open"
 # Open intention
 RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true \
@@ -17,8 +14,7 @@ RESPONSE=$(curl -s -X POST $BROKER_URL/v1/intention/open?ttl=30\&quickstart=true
     -d @<(cat provision-app-quick-install.json | \
         jq ".event.url=\"http://sample.com/job\" | \
             .user.name=\"hgoddard@idp\" | \
-            (.actions[] | select(.id == \"install\") .source.intention) |= \"$BUILD_INTENTION\" | \
-            (.actions[] | select(.id == \"configure\") .source.intention) |= \"$DC_INTENTION\" \
+            (.actions[] | select(.id == \"install\") .source.intention) |= \"$BUILD_INTENTION\" \
         " \
     ))
 echo "$BROKER_URL/v1/intention/open:"

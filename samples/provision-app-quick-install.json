@@ -11,20 +11,6 @@
   },
   "actions": [
     {
-      "action": "package-configure",
-      "id": "configure",
-      "provision": [],
-      "service": {
-        "project": "superapp",
-        "name": "superapp-backend",
-        "environment": "test"
-      },
-      "source": {
-        "action": "deployment-config-build#dcbuild",
-        "intention": "feef-ffwe-343432-42fefds-ffew"
-      }
-    },
-    {
       "action": "package-installation",
       "id": "install",
       "provision": [],
