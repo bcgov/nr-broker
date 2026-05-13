@@ -83,15 +83,6 @@ jobs:
         run: npm run test:cov
         working-directory: ./api
 
-      - name: Report code coverage
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: romeovs/lcov-reporter-action@v0.4.0
-        with:
-          title: Backend coverage report
-          delete-old-comments: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          lcov-file: ./api/coverage/lcov.info
-
   tests-frontend:
     name: Frontend Tests
     runs-on: ubuntu-latest
