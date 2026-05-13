@@ -56,3 +56,6 @@ Thumbs.db
 /scripts/setenv-common.sh
 /samples/provision-app-quick-build.artifact.sha256
 /samples/provision-app-quick-build.intention.id
+/samples/provision-app-quick-dc.artifact.sha256
+/samples/provision-app-quick-dc.intention.id
+
