@@ -593,14 +593,14 @@ export class IntentionService {
     let artifactSearchResult: ArtifactSearchResult;
 
     if (action.references && action.references[0] && action.references[0].intention) {
-      // Get using source -- preferred method
+      // Get using reference -- preferred method
       artifactSearchResult = await this.artifactSearchByQuery({
         intention: action.references[0].intention.toString(),
         action: action.references[0].action,
-        // checksum: action.package?.checksum,
-        // name: action.package?.name,
-        // type: action.package?.type,
-        // version: action.package?.version,
+        checksum: action.package?.checksum,
+        name: action.package?.name,
+        type: action.package?.type,
+        version: action.package?.version,
         serviceId: action.service.id?.toString(),
         service: action.service.name,
         offset: 0,
@@ -617,7 +617,7 @@ export class IntentionService {
     } else if (action.package?.name && action.package?.version) {
       // Find latest artifact for this service with same package name and version
       artifactSearchResult = await this.artifactSearchByQuery({
-        action: action.references?.[0]?.action,
+        action: action.references?.[0]?.action, // remove?
         checksum: action.package?.checksum,
         name: action.package?.name,
         type: action.package?.type,
