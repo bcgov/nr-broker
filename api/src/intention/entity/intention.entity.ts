@@ -24,7 +24,6 @@ import { ProcessEndActionEmbeddable } from './process-end-action.embeddable';
 import { ProcessStartActionEmbeddable } from './process-start-action.embeddable';
 import { ServerAccessActionEmbeddable } from './server-access-action.embeddable';
 import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
-import { DeploymentConfigBuildActionEmbeddable } from './deployment-config-build-action.embeddable';
 
 @Entity({ tableName: 'intention' })
 export class IntentionEntity extends BaseEntity {
@@ -32,7 +31,6 @@ export class IntentionEntity extends BaseEntity {
     actions: (
       | BackupActionEmbeddable
       | DatabaseAccessActionEmbeddable
-      | DeploymentConfigBuildActionEmbeddable
       | ServerAccessActionEmbeddable
       | PackageBuildActionEmbeddable
       | PackageConfigureActionEmbeddable
@@ -86,7 +84,6 @@ export class IntentionEntity extends BaseEntity {
     entity: () => [
       BackupActionEmbeddable,
       DatabaseAccessActionEmbeddable,
-      DeploymentConfigBuildActionEmbeddable,
       ServerAccessActionEmbeddable,
       PackageBuildActionEmbeddable,
       PackageConfigureActionEmbeddable,

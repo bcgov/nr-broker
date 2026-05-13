@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   forwardRef,
@@ -73,7 +74,6 @@ import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
 import { IntentionValidationException, IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
-import { DeploymentConfigBuildActionEmbeddable } from './entity/deployment-config-build-action.embeddable';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -168,6 +168,9 @@ export class IntentionService {
           data: error.data,
         });
       }
+
+      // Unknown error during validation
+      throw new InternalServerErrorException();
     }
 
     const intentionUser = await this.convertUserDtoToEmbed(
@@ -179,7 +182,6 @@ export class IntentionService {
     const actions: (
       | BackupActionEmbeddable
       | DatabaseAccessActionEmbeddable
-      | DeploymentConfigBuildActionEmbeddable
       | ServerAccessActionEmbeddable
       | PackageBuildActionEmbeddable
       | PackageConfigureActionEmbeddable
@@ -222,14 +224,6 @@ export class IntentionService {
             );
           case ACTION_NAMES.DATABASE_ACCESS:
             return new DatabaseAccessActionEmbeddable(
-              action,
-              actionUser,
-              serviceEmbed,
-              vaultEnvironment,
-              trace,
-            );
-          case ACTION_NAMES.DEPLOYMENT_CONFIG_BUILD:
-            return new DeploymentConfigBuildActionEmbeddable(
               action,
               actionUser,
               serviceEmbed,
@@ -667,7 +661,7 @@ export class IntentionService {
       if (
         outcome === 'success' &&
         action.trace?.outcome === 'success' &&
-        (action.action === 'package-build' || action.action === 'deployment-config-build') &&
+        action.action === 'package-build' &&
         action.package &&
         action.package.name
       ) {
@@ -902,7 +896,7 @@ export class IntentionService {
     }
 
     // Patch according to action
-    if (action.action === 'package-build' || action.action === 'deployment-config-build') {
+    if (action.action === 'package-build') {
       if (patchAction?.package) {
         action.package = PackageEmbeddable.merge(
           action.package ?? {},

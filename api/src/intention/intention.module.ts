@@ -16,7 +16,6 @@ import {
   AccountBoundProjectValidationRule,
   AssistedDeliveryValidationRule,
   DatabaseAccessValidationRule,
-  DeploymentConfigBuildValidationRule,
   EnvironmentPromotionValidationRule,
   UserSetValidationRule,
   PackageBuildValidationRule,
@@ -60,7 +59,6 @@ import {
     EnvironmentPromotionValidationRule,
     PackageInstallationValidationRule,
     AssistedDeliveryValidationRule,
-    DeploymentConfigBuildValidationRule,
     // Intention Validation Rule Engine and Rules
     IntentionValidationRuleEngine,
     JwtBlockedValidationRule,

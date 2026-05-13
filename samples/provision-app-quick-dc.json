@@ -6,7 +6,7 @@
   },
   "actions": [
     {
-      "action": "deployment-config-build",
+      "action": "package-build",
       "id": "dcbuild",
       "provision": [],
       "service": {

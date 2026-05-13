@@ -18,7 +18,6 @@ import { ActionRuleViolationEmbeddable } from './action-rule-violation.embeddabl
 export enum ACTION_NAMES {
   BACKUP = 'backup',
   DATABASE_ACCESS = 'database-access',
-  DEPLOYMENT_CONFIG_BUILD = 'deployment-config-build',
   SERVER_ACCESS = 'server-access',
   PACKAGE_BUILD = 'package-build',
   PACKAGE_CONFIGURE = 'package-configure',

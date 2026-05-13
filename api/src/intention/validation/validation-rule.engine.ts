@@ -11,7 +11,6 @@ import {
   PackageBuildValidationRule,
   EnvironmentPromotionValidationRule,
   PackageInstallationValidationRule,
-  DeploymentConfigBuildValidationRule,
 } from './rules';
 
 /**
@@ -37,7 +36,6 @@ export class ValidationRuleEngine {
     // Inject all validation rules
     private readonly accountBoundProjectValidationRule: AccountBoundProjectValidationRule,
     private readonly databaseAccessValidationRule: DatabaseAccessValidationRule,
-    private readonly deploymentConfigBuildValidationRule: DeploymentConfigBuildValidationRule,
     private readonly environmentPromotionValidationRule: EnvironmentPromotionValidationRule,
     private readonly packageBuildValidationRule: PackageBuildValidationRule,
     private readonly packageInstallationValidationRule: PackageInstallationValidationRule,
@@ -49,7 +47,6 @@ export class ValidationRuleEngine {
     this.rules = [
       this.accountBoundProjectValidationRule,
       this.databaseAccessValidationRule,
-      this.deploymentConfigBuildValidationRule,
       this.environmentPromotionValidationRule,
       this.packageBuildValidationRule,
       this.packageInstallationValidationRule,
