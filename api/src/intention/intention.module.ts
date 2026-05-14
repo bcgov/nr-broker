@@ -13,15 +13,15 @@ import { ActionUtil } from '../util/action.util';
 import { IntentionUtilService } from './intention-util.service';
 import { ValidationRuleEngine } from './validation/validation-rule.engine';
 import {
-  UserSetValidationRule,
-  VaultEnvValidationRule,
   AccountBoundProjectValidationRule,
-  TargetServiceValidationRule,
-  DatabaseAccessValidationRule,
-  PackageBuildValidationRule,
-  EnvironmentPromotionValidationRule,
-  PackageInstallationValidationRule,
   AssistedDeliveryValidationRule,
+  DatabaseAccessValidationRule,
+  EnvironmentPromotionValidationRule,
+  UserSetValidationRule,
+  PackageBuildValidationRule,
+  PackageInstallationValidationRule,
+  TargetServiceValidationRule,
+  VaultEnvValidationRule,
 } from './validation/rules';
 import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 import {

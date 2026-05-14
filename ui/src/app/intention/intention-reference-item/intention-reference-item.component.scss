@@ -1,0 +1,44 @@
+.reference-item {
+  display: flex;
+  align-items: center;
+  justify-content:space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--mat-sys-surface-container-high);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.reference-item > * {
+  flex-shrink: 0;
+  flex-grow: 1;
+  width: 32%;
+}
+
+.reference-item > *:last-child {
+  text-align: right;
+}
+
+
+.reference-item:hover {
+  background: var(--mat-sys-surface-container-highest);
+}
+
+.reference-item:focus {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.reference-icon {
+  color: var(--mat-sys-primary);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.reference-action {
+  margin-left: auto;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875em;
+}

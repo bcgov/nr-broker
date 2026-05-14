@@ -48,6 +48,7 @@ tr.element-row:not(.expanded-row):active {
 
 .element-detail {
   overflow: hidden;
+  min-height: 252px;
 }
 
 .mat-icon-status {

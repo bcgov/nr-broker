@@ -15,6 +15,16 @@ export class PackageBuildSearchQuery {
   @IsOptional()
   @IsString()
   @Type(() => String)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  latestPerPackage?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
   sort?: string;
 
   @IsOptional()

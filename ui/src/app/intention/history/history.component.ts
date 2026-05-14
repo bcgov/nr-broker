@@ -404,6 +404,6 @@ export class HistoryComponent implements OnDestroy {
   }
 
   viewIntention(id: string) {
-    this.router.navigate([`/intention/${id}`]);
+    this.router.navigate(['/intention', id]);
   }
 }

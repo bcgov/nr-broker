@@ -20,12 +20,12 @@ export class PackageInstallationActionEmbeddable extends ActionEmbeddable {
     vaultEnvironment: ENVIRONMENT_NAMES | undefined,
     trace: TransactionEmbeddable,
     packageEmbed: PackageEmbeddable,
-    source: ActionSourceEmbeddable,
+    references: ActionSourceEmbeddable[] | undefined,
   ) {
     super(action, actionUser, service, vaultEnvironment, trace);
     this.action = ACTION_NAMES.PACKAGE_INSTALLATION;
     this.package = packageEmbed;
-    this.source = source;
+    this.references = references;
   }
 
   @Embedded({ entity: () => PackageEmbeddable, object: true })

@@ -1,0 +1,14 @@
+<div
+  class="reference-item"
+  role="link"
+  tabindex="0"
+  aria-label="View intention {{ label() }}"
+  (click)="viewIntention()"
+  (keydown.enter)="viewIntention()"
+>
+  <div>{{ label() }}</div>
+  @if (action()) {
+    <div class="reference-action">{{ category() | titlecase }}</div>
+    <div class="reference-action">{{ name() }} v{{ version() }}</div>
+  }
+</div>

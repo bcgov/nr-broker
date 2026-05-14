@@ -86,10 +86,17 @@ export abstract class ActionEmbeddable {
 
   @Embedded({
     entity: () => ActionSourceEmbeddable,
+    array: true,
     nullable: true,
-    object: true,
   })
-  source?: ActionSourceEmbeddable;
+  references?: ActionSourceEmbeddable[];
+
+  // @Embedded({
+  //   entity: () => ActionSourceEmbeddable,
+  //   nullable: true,
+  //   object: true,
+  // })
+  // source?: ActionSourceEmbeddable;
 
   @Embedded({ entity: () => TransactionEmbeddable })
   trace: TransactionEmbeddable;

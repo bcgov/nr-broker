@@ -6,6 +6,24 @@ NR Broker is a deployment business intelligence tool that automates access to Ha
 
 **Core Concept**: Teams use "intentions" (validated action requests) to interact with Broker. An intention contains actions (build, install, provision, etc.) that are validated against business rules before execution. All activity is audited.
 
+---
+
+## Quick Reference
+
+Use this table to find the right section for your task:
+
+| Task | Section | Key Files |
+|------|---------|-----------|
+| Understand core workflow | [Intention-Based Workflow](#intention-based-workflow-system) | `src/intention/intention.service.ts` |
+| Add validation rules | [Validation Architecture](#validation-architecture-rule-based-system) | `src/intention/validation/` |
+| Work with MongoDB | [Repository Pattern](#repository-pattern) | `src/persistence/` |
+| Add new action types | [Adding New Action Types](#adding-new-action-types) | `src/intention/dto/`, `src/intention/entity/` |
+| Fix common issues | [Common Pitfalls](#common-pitfalls) | N/A |
+| Write user-facing text | [Communication Style](#communication-style-bc-gov) | N/A |
+| Add TypeScript interfaces | [TypeScript Conventions](#typescript-conventions) | N/A |
+
+---
+
 ## Architecture
 
 ### Intention-Based Workflow System
@@ -61,44 +79,81 @@ src/
 
 The validation system uses a **rule-based architecture** compatible with DMN (Decision Model and Notation) and Drools rule engines. Business rules are separated into individual, testable classes that evaluate a common decision context.
 
-**Two-Phase Validation:**
-1. **Intention-Level** (`IntentionValidationRuleEngine`): Validates before actions are processed (JWT blocked, account binding, etc.)
-2. **Action-Level** (`ValidationRuleEngine`): Validates individual actions against business rules
+#### Phase 1: Intention-Level Validation
 
-**Architecture Components:**
-- **Decision Contexts**: `DecisionContext` (action-level), `IntentionDecisionContext` (intention-level) - contain all facts for validation
-- **Validation Rules**: Each rule implements `ValidationRule` or `IntentionValidationRule` interface
-- **Rule Engines**: Orchestrate rule execution in priority order, short-circuit on first failure
-- **Base Classes**: `BaseValidationRule` and `BaseIntentionValidationRule` provide helper methods
+Validates the intention as a whole before any actions are processed.
 
-**Key Files:**
-- **Interfaces**: `src/intention/validation/decision-context.interface.ts`, `validation-rule.interface.ts`
-- **Intention Rules**: `src/intention/validation/intention-rules/` (JWT blocked, account binding)
-- **Action Rules**: `src/intention/validation/rules/` (8 rules: user set, vault env, account bound project, target service, database access, package build, package installation, assisted delivery)
-- **Engines**: `validation-rule.engine.ts`, `intention-validation-rule.engine.ts`
-- **Documentation**: `docs/dev_validation_rules.md`
+| Component | Role | Example Rules |
+|-----------|------|---------------|
+| `IntentionDecisionContext` | Holds intention-level facts | JWT blocked status, account binding |
+| `IntentionValidationRule` | Interface for intention rules | Rule contract |
+| `BaseIntentionValidationRule` | Base class with helpers | Common logic |
+| `IntentionValidationRuleEngine` | Orchestrates rules | Priority order, short-circuit on failure |
 
-**Adding New Validation Rules:**
+**Location:** `src/intention/validation/intention-rules/` (2 rules)
+
+**Example: JWT Blocked Check**
+```typescript
+// Evaluates whether the requesting JWT is blocked
+class JwtBlockedRule extends BaseIntentionValidationRule {
+  async evaluate(context: IntentionDecisionContext): Promise<boolean> {
+    const isBlocked = await this.jwtService.isBlocked(context.jwtId);
+    return isBlocked;
+  }
+}
+```
+
+#### Phase 2: Action-Level Validation
+
+Validates each individual action before execution.
+
+| Component | Role | Example Rules |
+|-----------|------|---------------|
+| `DecisionContext` | Holds action-level facts | User, vault env, target service |
+| `ValidationRule` | Interface for action rules | Rule contract |
+| `BaseValidationRule` | Base class with helpers | Common logic |
+| `ValidationRuleEngine` | Orchestrates rules | Priority order, short-circuit on failure |
+
+**Location:** `src/intention/validation/rules/` (8 rules)
+
+**Example: Package Build Exists**
+```typescript
+// Ensures the package build exists in the target environment
+class PackageBuildExistsRule extends BaseValidationRule {
+  async evaluate(context: DecisionContext): Promise<boolean> {
+    const build = await this.buildRepo.findByPackage(context.packageId);
+    return build !== null;
+  }
+}
+```
+
+#### Adding New Validation Rules
+
 1. Create rule class extending `BaseValidationRule` or `BaseIntentionValidationRule`
 2. Implement `getRuleName()`, `evaluate()`, and optionally `getPriority()`
 3. Add to module providers in `intention.module.ts`
 4. Inject into appropriate rule engine constructor
 5. Update documentation
 
-**Migration Path to Drools:**
-- Current TypeScript rules map directly to DRL rules or DMN decision tables
-- `DecisionContext` → Working Memory Facts
-- `ValidationRule` → DRL Rule
-- Rule priority → Salience
-- See `docs/dev_validation_rules.md` for complete migration guide
+#### Migration Path to Drools
 
-**Validation Messages:**
-All validation messages follow **BC Gov Style Guide**:
+| TypeScript Concept | Drools Equivalent |
+|--------------------|-------------------|
+| `DecisionContext` | Working Memory Facts |
+| `ValidationRule` | DRL Rule |
+| Rule priority | Salience |
+
+See `docs/dev_validation_rules.md` for the complete migration guide.
+
+#### Validation Messages
+
+All validation messages follow the **BC Gov Style Guide**:
 - Sentence case (not title case)
 - Plain language (no jargon)
 - Clear actionable resolution steps
 - Front-loaded important information
-- Example: `"Build must be deployed to test environment before deploying to production. Deploy to test first, then retry this installation."`
+
+Example: `"Build must be deployed to test environment before deploying to production. Deploy to test first, then retry this installation."`
 
 ### Repository Pattern
 Three-layer abstraction in `src/persistence/`:
@@ -231,15 +286,13 @@ All user-facing messages (emails, error messages, validation failures) follow BC
 
 Example:
 ```typescript
-// ❌ Bad
+// Bad (violates style guide: uses emoji, title case, jargon)
 return new ActionRuleViolationEmbeddable(
-  '🚫 ERROR: Pre-Deployment Validation Failed - Build Artifact Missing in Staging Environment',
-  'package.version'
+   'ERROR: Pre-Deployment Validation Failed - Build Artifact Missing in Staging Environment',
+   'package.version'
 );
 
-// ✅ Good
-return new ActionRuleViolationEmbeddable(
-  'Build must be deployed to test environment before deploying to production. Deploy to test first, then retry this installation.',
+// Good (follows style guide: sentence case, plain language, actionable)
   'package.version'
 );
 ```

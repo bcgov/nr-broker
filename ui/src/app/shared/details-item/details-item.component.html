@@ -1,6 +1,7 @@
 <div
   class="details-item details-item-clickable"
   [class.details-item-clickable]="clickable()"
+  [class.details-item-invert-background]="invertBackground()"
   matRipple
   [matRippleDisabled]="!clickable()">
   <div class="details-header">{{ item() }}</div>

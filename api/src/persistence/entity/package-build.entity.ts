@@ -28,7 +28,7 @@ export class PackageBuildApprovalEntity {
   @Property()
   user: ObjectId;
 
-  @Property()
+  @Property({ type: 'datetime' })
   at: Date;
 }
 
@@ -63,7 +63,6 @@ export class PackageBuildEntity extends BaseEntity {
   @Embedded({
     entity: () => PackageBuildApprovalEntity,
     array: true,
-    nullable: true,
   })
   approval: PackageBuildApprovalEntity[] = [];
 

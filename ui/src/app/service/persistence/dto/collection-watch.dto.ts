@@ -1,35 +1,64 @@
 import {
-  IsString,
-  IsDefined,
+  ArrayMinSize,
   IsArray,
+  IsDefined,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf,
+  ValidateNested,
 } from 'class-validator';
-import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
+import { Type } from 'class-transformer';
+import { VertexPointerDto } from './vertex-pointer.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-export class CollectionWatchBaseDto extends CollectionBaseDto {
+export class CollectionWatchIdentifierDto {
   @IsString()
-  @IsDefined()
-  userId!: string;
-
-  @IsString()
-  @IsDefined()
-  serviceId!: string;
-
-  @IsString()
-  @IsDefined()
+  @IsNotEmpty()
   channel!: string;
 
+  @ValidateIf((o) => o.events !== undefined)
   @IsArray()
-  @IsDefined()
-  events!: ('success' | 'failure')[];
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  events?: string[];
 }
 
-export class CollectionWatchDto implements VertexPointerDto {
+export class CollectionWatchArrayDto {
+  @ValidateNested({ each: true })
+  @Type(() => CollectionWatchIdentifierDto)
+  @IsArray()
+  watches!: CollectionWatchIdentifierDto[];
+}
+
+export class CollectionWatchBaseDto {
+  @ValidateNested()
+  @IsArray()
+  @IsDefined()
+  @Type(() => CollectionWatchIdentifierDto)
+  watches!: CollectionWatchIdentifierDto[];
+
   @IsString()
   @IsDefined()
-  id!: string;
+  user!: string;
+}
 
+export class CollectionWatchVertexDto extends CollectionWatchBaseDto implements Omit<VertexPointerDto, 'id' | 'tags'> {
   @IsString()
   @IsDefined()
   vertex!: string;
+
+  // Not a column - decoration based on vertex and user's roles
+  @ValidateNested()
+  @IsArray()
+  @IsOptional()
+  @Type(() => CollectionWatchIdentifierDto)
+  defaultWatches?: CollectionWatchIdentifierDto[];
+}
+
+export class CollectionWatchDto extends CollectionWatchVertexDto implements Omit<VertexPointerDto, 'tags'> {
+  @IsString()
+  @IsDefined()
+  id!: string;
 }

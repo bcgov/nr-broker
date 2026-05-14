@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   forwardRef,
@@ -72,7 +73,7 @@ import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
-import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
+import { IntentionValidationException, IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -159,12 +160,17 @@ export class IntentionService {
         account,
       });
     } catch (error) {
-      throw new BadRequestException({
-        statusCode: error.statusCode,
-        message: error.message,
-        error: error.error,
-        data: error.data,
-      });
+      if (error instanceof IntentionValidationException) {
+        throw new BadRequestException({
+          statusCode: error.statusCode,
+          message: error.message,
+          error: error.error,
+          data: error.data,
+        });
+      }
+
+      // Unknown error during validation
+      throw new InternalServerErrorException();
     }
 
     const intentionUser = await this.convertUserDtoToEmbed(
@@ -199,6 +205,14 @@ export class IntentionService {
         }
         const trace = TransactionEmbeddable.create();
         const vaultEnvironment = this.computeVaultEnvironment(action, envMap);
+        // Fix deprecated source field by mapping to references if needed
+        if (action.source && action.source.intention) {
+          if (!action.references) {
+            action.references = [];
+          }
+          // Assume 'source' is the most important reference if it exists and put it first in the list
+          action.references.unshift(action.source);
+        }
         switch (action.action) {
           case ACTION_NAMES.BACKUP:
             return new BackupActionEmbeddable(
@@ -244,7 +258,10 @@ export class IntentionService {
               vaultEnvironment,
               trace,
               packageSource ? packageSource.package : undefined,
-              packageSource ? packageSource.source : undefined,
+              // packageSource ? packageSource.source : undefined,
+              action.references
+                ? action.references.map((ref) => new ActionSourceEmbeddable(ref.action, new ObjectId(ref.intention)))
+                : undefined,
             );
           }
           case ACTION_NAMES.PACKAGE_PROVISION:
@@ -490,6 +507,9 @@ export class IntentionService {
           ...(query.version
             ? { 'actions.package.version': query.version }
             : {}),
+          ...(query.category
+            ? { 'actions.package.category': query.category }
+            : {}),
           ...(query.outcome
             ? { 'transaction.outcome': query.outcome }
             : { 'transaction.outcome': 'success' }),
@@ -566,11 +586,11 @@ export class IntentionService {
     }
     let artifactSearchResult: ArtifactSearchResult;
 
-    if (action.source && action.source.intention) {
-      // Get using source -- preferred method
+    if (action.references && action.references[0] && action.references[0].intention) {
+      // Get using reference -- preferred method
       artifactSearchResult = await this.artifactSearchByQuery({
-        intention: action.source.intention.toString(),
-        action: action.source.action,
+        intention: action.references[0].intention.toString(),
+        action: action.references[0].action,
         checksum: action.package?.checksum,
         name: action.package?.name,
         type: action.package?.type,
@@ -591,7 +611,7 @@ export class IntentionService {
     } else if (action.package?.name && action.package?.version) {
       // Find latest artifact for this service with same package name and version
       artifactSearchResult = await this.artifactSearchByQuery({
-        action: action.source?.action,
+        action: action.references?.[0]?.action, // remove?
         checksum: action.package?.checksum,
         name: action.package?.name,
         type: action.package?.type,
@@ -654,6 +674,9 @@ export class IntentionService {
             name: action.package.name,
             ...(action.package.checksum
               ? { checksum: action.package.checksum }
+              : {}),
+            ...(action.package.source
+              ? { source: action.package.source }
               : {}),
             ...(action.package.size ? { size: action.package.size } : {}),
             ...(action.package.type ? { type: action.package.type } : {}),
@@ -1042,8 +1065,8 @@ export class IntentionService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to handle intention expiry: ${error.message}`,
-        error.stack,
+        `Failed to handle intention expiry: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -1059,8 +1082,8 @@ export class IntentionService {
       await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
     } catch (error) {
       this.logger.error(
-        `Failed to handle transient cleanup: ${error.message}`,
-        error.stack,
+        `Failed to handle transient cleanup: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -1076,8 +1099,8 @@ export class IntentionService {
       await this.intentionRepository.cleanupRejected(INTENTION_REJECTED_TTL_MS);
     } catch (error) {
       this.logger.error(
-        `Failed to handle rejected cleanup: ${error.message}`,
-        error.stack,
+        `Failed to handle rejected cleanup: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

@@ -69,9 +69,9 @@
         <mat-progress-bar mode="determinate" [value]="intentionUtil.normalizedProgress(intention())"></mat-progress-bar>
       }</app-details-item>
 
-  <app-details-item item="Reason">{{ intention().event.reason}}</app-details-item>
+  <app-details-item item="Reason">{{ intention().event.reason }}</app-details-item>
 
-  <app-details-item item="Provider">{{ intention().event.provider}}</app-details-item>
+  <app-details-item item="Provider">{{ intention().event.provider }}</app-details-item>
 
   @let userId = intention().user.id;
   @if (userId) {
@@ -189,6 +189,17 @@
             <mat-card-content>
               <div class="package-info">
                 <div class="package-info-wrap">
+                @if (action.package?.source) {
+                  <div class="package-info-full">
+                  <app-details-item
+                    item="Source"
+                    clickable="true"
+                    invertBackground="true"
+                    matTooltip="Click to copy"
+                    aria-label="Copy source URL"
+                    [cdkCopyToClipboard]="action.package?.source ?? ''">{{action.package?.source ?? ''}}</app-details-item>
+                  </div>
+                }
                 @if (action.package?.version) {
                   <app-details-item item="Version">{{action.package?.version}}</app-details-item>
                 }
@@ -240,6 +251,15 @@
             <mat-card-title>{{action.package.name}}</mat-card-title>
           </mat-card-header>
           <mat-card-content>
+            @if (action.package.source) {
+              <app-details-item
+                item="Source"
+                clickable="true"
+                invertBackground="true"
+                matTooltip="Click to copy"
+                aria-label="Copy source URL"
+                [cdkCopyToClipboard]="action.package.source">{{action.package.source}}</app-details-item>
+            }
             <div class="package-info">
             @if (action.package.size) {
               <app-details-item item="Size">{{action.package.size | filesize}}</app-details-item>
@@ -250,16 +270,38 @@
             @if (action.package.version) {
               <app-details-item item="Version">{{action.package.version}}</app-details-item>
             }
+            @if (action.package.tag) {
+              <app-details-item item="Tag">{{action.package.tag}}</app-details-item>
+            }
+            @if (action.package.type) {
+              <app-details-item item="Type">{{action.package.type}}</app-details-item>
+            }
             </div>
           </mat-card-content>
-          @if (action.source?.intention) {
+          @if (action.references?.[0]?.intention) {
             <mat-card-actions align="end" >
               <button
                 mat-button
-                (click)="viewIntention(action.source?.intention)">View build</button>
+                (click)="viewIntention(action.references?.[0]?.intention)">View build</button>
             </mat-card-actions>
           }
         </mat-card>
+      </div>
+    }
+
+    @if (action.references) {
+      <div class="expanded-header-actions">
+        <h2>References</h2>
+      </div>
+      <div class="references-list">
+         @for (ref of action.references; track ref.intention) {
+          @if (ref.intention) {
+            <app-intention-reference-item
+              [intentionId]="ref.intention"
+              [action]="ref.action"
+              (viewIntentionEvent)="viewIntention($event)"></app-intention-reference-item>
+          }
+        }
       </div>
     }
   }

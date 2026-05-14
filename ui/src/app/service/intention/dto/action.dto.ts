@@ -74,6 +74,13 @@ export class ActionDto {
 
   @ValidateNested()
   @IsOptional()
+  @IsArray()
+  @Type(() => ActionSourceDto)
+  references?: ActionSourceDto[];
+
+  // Outdated - source is deprecated in favor of references which can support multiple sources and is more flexible.
+  @ValidateNested()
+  @IsOptional()
   @Type(() => ActionSourceDto)
   source?: ActionSourceDto;
 

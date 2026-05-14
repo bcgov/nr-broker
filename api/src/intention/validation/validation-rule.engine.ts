@@ -34,25 +34,25 @@ export class ValidationRuleEngine {
 
   constructor(
     // Inject all validation rules
+    private readonly accountBoundProjectValidationRule: AccountBoundProjectValidationRule,
+    private readonly databaseAccessValidationRule: DatabaseAccessValidationRule,
+    private readonly environmentPromotionValidationRule: EnvironmentPromotionValidationRule,
+    private readonly packageBuildValidationRule: PackageBuildValidationRule,
+    private readonly packageInstallationValidationRule: PackageInstallationValidationRule,
+    private readonly targetServiceValidationRule: TargetServiceValidationRule,
     private readonly userSetValidationRule: UserSetValidationRule,
     private readonly vaultEnvValidationRule: VaultEnvValidationRule,
-    private readonly accountBoundProjectValidationRule: AccountBoundProjectValidationRule,
-    private readonly targetServiceValidationRule: TargetServiceValidationRule,
-    private readonly databaseAccessValidationRule: DatabaseAccessValidationRule,
-    private readonly packageBuildValidationRule: PackageBuildValidationRule,
-    private readonly environmentPromotionValidationRule: EnvironmentPromotionValidationRule,
-    private readonly packageInstallationValidationRule: PackageInstallationValidationRule,
   ) {
     // Register all rules and sort by priority
     this.rules = [
+      this.accountBoundProjectValidationRule,
+      this.databaseAccessValidationRule,
+      this.environmentPromotionValidationRule,
+      this.packageBuildValidationRule,
+      this.packageInstallationValidationRule,
+      this.targetServiceValidationRule,
       this.userSetValidationRule,
       this.vaultEnvValidationRule,
-      this.accountBoundProjectValidationRule,
-      this.targetServiceValidationRule,
-      this.databaseAccessValidationRule,
-      this.packageBuildValidationRule,
-      this.environmentPromotionValidationRule,
-      this.packageInstallationValidationRule,
     ].sort((a, b) => {
       const priorityA = a.getPriority?.() ?? 100;
       const priorityB = b.getPriority?.() ?? 100;

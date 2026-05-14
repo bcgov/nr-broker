@@ -11,6 +11,10 @@
   border-radius: 8px;
 }
 
+.details-item-clickable.details-item-invert-background:hover {
+  background: var(--mat-sys-surface-container-low);
+}
+
 .details-line {
   color: var(--mat-sys-on-surface-variant);
   min-width: 100px;

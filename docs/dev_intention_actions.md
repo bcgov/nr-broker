@@ -7,7 +7,7 @@
 | backup | Backing up files, database and other activities like this. |
 | database-access | Access a database for any purpose |
 | server-access | Access a server for any purpose |
-| package-build | Building a package that will later be used by a 'package-installation' action. |
+| package-build | Building artifacts that will be used later. Artifacts can be referenced as the package in a 'package-installation' action. |
 | package-configure | Altering an installed package configuration. This configuration must not be a secret or token used to access resources like the database or another service. |
 | package-installation | Deploying a new version of a service. This includes activities like changing a deployment configuration in OpenShift or running Terraform in AWS as well as copying files to a server. |
 | package-provision | Providing an installed package with tokens or other secrets for it to operate |
