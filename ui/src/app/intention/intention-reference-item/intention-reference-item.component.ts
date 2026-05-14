@@ -1,14 +1,16 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import { MatIconModule } from '@angular/material/icon';
 
 import { IntentionApiService } from '../../service/intention-api.service';
 import { IntentionDto } from '../../service/intention/dto/intention.dto';
 import { IntentionUtilService } from '../../util/intention-util.service';
+import { TitleCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-intention-reference-item',
-  imports: [MatIconModule],
+  imports: [
+    TitleCasePipe,
+  ],
   templateUrl: './intention-reference-item.component.html',
   styleUrl: './intention-reference-item.component.scss',
 })
@@ -39,7 +41,7 @@ export class IntentionReferenceItemComponent {
     const value = this.intentionAction();
     if (value?.service) {
       const svc = value.service;
-      return `${svc.project} / ${svc.name}  #${value.id}`;
+      return `${svc.project} / ${svc.name} #${value.id}`;
     }
     return this.intentionId();
   });
@@ -67,15 +69,6 @@ export class IntentionReferenceItemComponent {
     if (value?.package) {
       const pkg = value.package;
       return pkg.category ?? '';
-    }
-    return '';
-  });
-
-  readonly packageLabel = computed(() => {
-    const value = this.intentionAction();
-    if (value?.package) {
-      const pkg = value.package;
-      return `${pkg.name} v${pkg.version ?? ''} #${value.id}`;
     }
     return '';
   });

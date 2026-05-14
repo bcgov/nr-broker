@@ -65,8 +65,6 @@ export class IntentionPanelComponent {
   }
 
   viewIntention(id: string) {
-    this.router.navigate([`/intention/${id}`], {
-      replaceUrl: true,
-    });
+    this.router.navigate(['/intention', id]);
   }
 }

@@ -6,10 +6,9 @@
   (click)="viewIntention()"
   (keydown.enter)="viewIntention()"
 >
-  <!-- <mat-icon fontIcon="link" class="reference-icon"></mat-icon> -->
   <div>{{ label() }}</div>
   @if (action()) {
-    <div class="reference-action">{{ category() }}</div>
+    <div class="reference-action">{{ category() | titlecase }}</div>
     <div class="reference-action">{{ name() }} v{{ version() }}</div>
   }
 </div>
