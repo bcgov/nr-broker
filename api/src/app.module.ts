@@ -1,4 +1,5 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, OnModuleInit, Logger } from '@nestjs/common';
+import { EntityManager } from '@mikro-orm/mongodb';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
@@ -64,7 +65,22 @@ import { CommunicationModule } from './communication/communication.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {
+export class AppModule implements OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
+  constructor(private readonly em: EntityManager) {}
+
+  async onModuleInit() {
+    // Test the database connection on startup and log the result. MikroORM does not normally establish a
+    // connection until the first database operation is performed. Health checks should be used to monitor
+    // the connection after startup.
+    try {
+      await this.em.getConnection().connect();
+      this.logger.log('MikroORM database connection established.');
+    } catch (err) {
+      this.logger.error('MikroORM database connection failed:', err);
+    }
+  }
+
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AccessLogsMiddleware).forRoutes('*');
   }

@@ -35,6 +35,8 @@ export class HealthController {
           'broker-api',
           'http://localhost:3000/v1/health/ping',
         ),
+      // Note: MikroORM does not establish a database connection until the first query is executed.
+      // This means that the health check may fail on startup if it runs before any database operations have occurred.
       () => this.db.pingCheck('database'),
       () => this.github.isHealthy('github'),
       () => this.communication.isHealthy('communication'),
