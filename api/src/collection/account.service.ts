@@ -259,7 +259,15 @@ export class AccountService {
       signer.update(headerStr + '.' + payloadStr);
       signature = signer.sign(signingKey.privateKey, 'base64url');
     } else {
-      const hmac = createHmac('sha256', process.env['JWT_SECRET']);
+      const jwtSecret = process.env['JWT_SECRET'];
+      if (!jwtSecret) {
+        this.logger.error('JWT_SECRET environment variable not configured for HS256 fallback');
+        throw new ServiceUnavailableException({
+          statusCode: 503,
+          message: 'JWT signing key not configured',
+        });
+      }
+      const hmac = createHmac('sha256', jwtSecret);
       hmac.update(headerStr + '.' + payloadStr);
       signature = hmac.digest('base64url');
     }

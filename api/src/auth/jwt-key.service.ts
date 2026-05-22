@@ -17,7 +17,17 @@ export class JwtKeyService {
   constructor(private readonly configService: ConfigService) {
     const keysJson = this.configService.get<string>('JWT_KEYS');
     if (keysJson) {
-      const parsed = JSON.parse(keysJson);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(keysJson);
+      } catch (e) {
+        this.logger.error('Failed to parse JWT_KEYS configuration, invalid JSON', e);
+        return;
+      }
+      if (!Array.isArray(parsed)) {
+        this.logger.error('JWT_KEYS configuration is not an array');
+        return;
+      }
       for (const entry of parsed) {
         if (!entry.kid || !entry.public) {
           this.logger.warn('Skipping JWT key entry missing kid or public key');

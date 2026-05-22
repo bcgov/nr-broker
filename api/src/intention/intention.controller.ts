@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -51,7 +52,7 @@ export class IntentionController {
     @Req() request: Request,
     @Body(IntentionEntityValidationPipe)
     intentionDto: IntentionDto,
-    @Query('ttl') ttl: number | undefined,
+    @Query('ttl', new ParseIntPipe({ optional: true })) ttl: number | undefined,
     @Query('quickstart') quickStart: boolean | undefined,
   ) {
     if (quickStart) {

@@ -1,5 +1,5 @@
 import { createSign, randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Request } from 'express';
 import { map, tap } from 'rxjs';
 import { ActionUtil } from '../util/action.util';
@@ -140,6 +140,12 @@ export class ProvisionService {
         message: `Token TTL must not exceed ${MINUTE_IN_SECONDS} seconds`,
       });
     }
+    if (ttlSeconds <= 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Token TTL must be greater than 0 seconds',
+      });
+    }
 
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
@@ -151,7 +157,11 @@ export class ProvisionService {
 
     const signingKey = this.jwtKeyService.getSigningKey();
     if (!signingKey) {
-      throw new Error('No signing key configured');
+      this.logger.error('JWT signing key not configured');
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        message: 'JWT signing key not configured',
+      });
     }
 
     const project = actionDto.service.target
