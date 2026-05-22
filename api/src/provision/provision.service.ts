@@ -8,8 +8,7 @@ import { TokenService } from '../token/token.service';
 import { JwtKeyService } from '../auth/jwt-key.service';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
-import { BROKER_URL, MILLISECONDS_IN_SECOND } from '../constants';
-import { DAYS_365_IN_SECONDS } from '../collection/dto/broker-account-token-generate-query.dto';
+import { BROKER_URL, MILLISECONDS_IN_SECOND, MINUTE_IN_SECONDS } from '../constants';
 
 @Injectable()
 export class ProvisionService {
@@ -123,7 +122,8 @@ export class ProvisionService {
   }
 
   /**
-   * Generates a JWT signed by the API for a service to authenticate with Vault.
+   * Generates a JWT signed by the Broker API to authenticate the application. The token is short-lived
+   * and meant to be used immediately, it is not stored or tracked by the system.
    * @param actionDto The action information
    * @param ttlSeconds Token time-to-live in seconds
    * @returns A signed JWT string
@@ -132,12 +132,12 @@ export class ProvisionService {
     req: Request,
     intentionDto: IntentionEntity,
     actionDto: ActionEmbeddable,
-    ttlSeconds: number = 900,
+    ttlSeconds: number = 30,
   ) {
-    if (ttlSeconds > DAYS_365_IN_SECONDS) {
+    if (ttlSeconds > MINUTE_IN_SECONDS) {
       throw new BadRequestException({
         statusCode: 400,
-        message: `Token TTL must not exceed ${DAYS_365_IN_SECONDS} seconds (365 days)`,
+        message: `Token TTL must not exceed ${MINUTE_IN_SECONDS} seconds`,
       });
     }
 

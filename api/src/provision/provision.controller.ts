@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
+import { Controller, Post, UseGuards, SetMetadata, Req, Query } from '@nestjs/common';
 import { ApiHeader } from '@nestjs/swagger';
 import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
 import { ProvisionService } from './provision.service';
@@ -57,11 +57,14 @@ export class ProvisionController {
   @SetMetadata('provision', [ACTION_PROVISION_TOKEN_JWT])
   @UseGuards(ActionGuard, ProvisionGuard)
   @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
-  async provisionIntentionJwt(@Req() request: ActionGuardRequest) {
+  async provisionIntentionJwt(@Req() request: ActionGuardRequest,
+    @Query('ttl') ttl: number | undefined,
+  ) {
     return this.provisionService.generateJwt(
       request,
       request.brokerIntention,
       request.brokerAction,
+      ttl,
     );
   }
 }
