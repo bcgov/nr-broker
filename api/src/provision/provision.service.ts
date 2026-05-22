@@ -12,7 +12,7 @@ import { BROKER_URL, MILLISECONDS_IN_SECOND, MINUTE_IN_SECONDS } from '../consta
 
 @Injectable()
 export class ProvisionService {
-  private readonly logger = new Logger(TokenService.name);
+  private readonly logger = new Logger(ProvisionService.name);
   constructor(
     private readonly actionUtil: ActionUtil,
     private readonly auditService: AuditService,
