@@ -50,4 +50,11 @@ vault audit enable file file_path=/tmp/vault-audit.txt
 vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-db-sync_prod policies=default
 vault write -force auth/$VAULT_APPROLE_PATH/role/superapp_superapp-backend_prod policies=default
 
-vault kv put apps/prod/vault/vsync test=test
+# Generate RSA keypair for JWT signing
+JWT_KEY_PRIVATE=$(openssl genrsa 2048 2>/dev/null)
+JWT_KEY_PUBLIC=$(echo "$JWT_KEY_PRIVATE" | openssl rsa -pubout 2>/dev/null)
+JWT_KID="key-$(date +%Y%m%d)-1"
+JWT_KEYS=$(jq -n --arg kid "$JWT_KID" --arg priv "$JWT_KEY_PRIVATE" --arg pub "$JWT_KEY_PUBLIC" \
+  '[{kid: $kid, private: $priv, public: $pub}]')
+
+vault kv put apps/prod/vault/vsync JWT_KEYS="$JWT_KEYS"

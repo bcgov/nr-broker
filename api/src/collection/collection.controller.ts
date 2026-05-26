@@ -29,6 +29,7 @@ import {
   REDIS_PUBSUB,
   DAYS_10_IN_SECONDS,
 } from '../constants';
+import { DAYS_365_IN_SECONDS } from './dto/broker-account-token-generate-query.dto';
 import { CollectionService } from './collection.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
@@ -283,6 +284,7 @@ export class CollectionController {
     @Query('ttl') ttl: number = DAYS_10_IN_SECONDS,
   ) {
     if (isNaN(ttl)) ttl = DAYS_10_IN_SECONDS;
+    ttl = Math.min(ttl, DAYS_365_IN_SECONDS);
     return this.accountService.renewToken(request, ttl, true);
   }
 

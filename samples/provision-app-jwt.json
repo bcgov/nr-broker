@@ -1,0 +1,22 @@
+{
+  "event": {
+    "provider": "provision-fluentbit-demo",
+    "reason": "Install and provision",
+    "url": "JOB_URL"
+  },
+  "actions": [
+    {
+      "action": "package-provision",
+      "id": "provision",
+      "provision": ["token/jwt"],
+      "service": {
+        "project": "superapp",
+        "name": "superapp-backend",
+        "environment": "production"
+      }
+    }
+  ],
+  "user": {
+    "name": "USER_ID@IDP"
+  }
+}

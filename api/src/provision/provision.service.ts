@@ -1,18 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { createSign, randomUUID } from 'node:crypto';
+import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Request } from 'express';
 import { map, tap } from 'rxjs';
 import { ActionUtil } from '../util/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
+import { JwtKeyService } from '../auth/jwt-key.service';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
+import { BROKER_URL, MILLISECONDS_IN_SECOND, MINUTE_IN_SECONDS } from '../constants';
 
 @Injectable()
 export class ProvisionService {
-  private readonly logger = new Logger(TokenService.name);
+  private readonly logger = new Logger(ProvisionService.name);
   constructor(
     private readonly actionUtil: ActionUtil,
     private readonly auditService: AuditService,
+    private readonly jwtKeyService: JwtKeyService,
     private readonly tokenService: TokenService,
   ) {}
 
@@ -115,5 +119,98 @@ export class ProvisionService {
           return response.wrappedToken;
         }),
       );
+  }
+
+  /**
+   * Generates a JWT signed by the Broker API to authenticate the application. The token is short-lived
+   * and meant to be used immediately, it is not stored or tracked by the system.
+   * @param actionDto The action information
+   * @param ttlSeconds Token time-to-live in seconds
+   * @returns A signed JWT string
+   */
+  public generateJwt(
+    req: Request,
+    intentionDto: IntentionEntity,
+    actionDto: ActionEmbeddable,
+    ttlSeconds: number = 30,
+  ) {
+    if (ttlSeconds > MINUTE_IN_SECONDS) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: `Token TTL must not exceed ${MINUTE_IN_SECONDS} seconds`,
+      });
+    }
+    if (ttlSeconds <= 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Token TTL must be greater than 0 seconds',
+      });
+    }
+
+    this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
+      event: {
+        action: 'generate-vault-jwt',
+        category: 'configuration',
+        type: 'start',
+      },
+    });
+
+    const signingKey = this.jwtKeyService.getSigningKey();
+    if (!signingKey) {
+      this.logger.error('JWT signing key not configured');
+      throw new ServiceUnavailableException({
+        statusCode: 503,
+        message: 'JWT signing key not configured',
+      });
+    }
+
+    const project = actionDto.service.target
+      ? actionDto.service.target.project
+      : actionDto.service.project;
+    const serviceName = actionDto.service.target
+      ? actionDto.service.target.name
+      : actionDto.service.name;
+    const environment = this.actionUtil.resolveVaultEnvironment(actionDto);
+    const now = Math.floor(Date.now() / MILLISECONDS_IN_SECOND);
+
+    const header = {
+      alg: 'RS256',
+      typ: 'JWT',
+      kid: signingKey.kid,
+    };
+
+    const payload = {
+      iss: BROKER_URL,
+      sub: `${project}/${serviceName}`,
+      aud: 'vault',
+      exp: now + ttlSeconds,
+      iat: now,
+      nbf: now,
+      jti: randomUUID(),
+      project,
+      service: serviceName,
+      environment,
+    };
+
+    const headerStr = Buffer.from(JSON.stringify(header), 'utf8').toString(
+      'base64url',
+    );
+    const payloadStr = Buffer.from(JSON.stringify(payload), 'utf8').toString(
+      'base64url',
+    );
+    const signer = createSign('RSA-SHA256');
+    signer.update(headerStr + '.' + payloadStr);
+    const signature = signer.sign(signingKey.privateKey, 'base64url');
+    const token = `${headerStr}.${payloadStr}.${signature}`;
+
+    this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
+      event: {
+        action: 'generate-vault-jwt',
+        category: 'configuration',
+        type: 'creation',
+      },
+    });
+
+    return { token };
   }
 }

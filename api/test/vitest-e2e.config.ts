@@ -3,6 +3,7 @@ import swc from 'unplugin-swc';
 import { resolve } from 'path';
 
 export default defineConfig({
+  oxc: false,
   test: {
     globals: true,
     environment: 'node',

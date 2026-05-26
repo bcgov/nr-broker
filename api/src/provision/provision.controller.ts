@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, SetMetadata, Req } from '@nestjs/common';
+import { Controller, Post, UseGuards, SetMetadata, Req, Query, ParseIntPipe } from '@nestjs/common';
 import { ApiHeader } from '@nestjs/swagger';
 import { HEADER_BROKER_TOKEN, HEADER_VAULT_ROLE_ID } from '../constants';
 import { ProvisionService } from './provision.service';
@@ -9,6 +9,7 @@ import { ActionGuardRequest } from '../intention/action-guard-request.interface'
 import {
   ACTION_PROVISION_APPROLE_SECRET_ID,
   ACTION_PROVISION_TOKEN_SELF,
+  ACTION_PROVISION_TOKEN_JWT,
 } from '../intention/dto/constants.dto';
 
 @Controller({
@@ -48,6 +49,22 @@ export class ProvisionController {
       intentionDto,
       actionDto,
       roleId,
+    );
+  }
+
+  @Post('token/jwt')
+  @SetMetadata('roles', ['provision'])
+  @SetMetadata('provision', [ACTION_PROVISION_TOKEN_JWT])
+  @UseGuards(ActionGuard, ProvisionGuard)
+  @ApiHeader({ name: HEADER_BROKER_TOKEN, required: true })
+  async provisionIntentionJwt(@Req() request: ActionGuardRequest,
+    @Query('ttl', new ParseIntPipe({ optional: true })) ttl: number | undefined,
+  ) {
+    return this.provisionService.generateJwt(
+      request,
+      request.brokerIntention,
+      request.brokerAction,
+      ttl,
     );
   }
 }
