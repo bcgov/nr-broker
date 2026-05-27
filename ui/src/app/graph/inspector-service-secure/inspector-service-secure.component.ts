@@ -31,6 +31,7 @@ export class InspectorServiceSecureComponent implements OnChanges {
 
   readonly service = input.required<ServiceDto>();
   readonly userIndex = input<number | undefined>();
+  readonly showHelp = input(false);
   data = signal<any>(undefined);
 
   ngOnChanges(changes: SimpleChanges) {

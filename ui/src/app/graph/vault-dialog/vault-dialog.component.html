@@ -23,7 +23,22 @@
     </div>
   }
 
-  <h3>Approle</h3>
+  @if (data.showMasked) {
+    <h3>Actor</h3>
+
+    <div class="vault-form">
+      <mat-form-field>
+        <mat-label>Actor definition</mat-label>
+        <textarea
+          matInput
+          [ngModel]="config().actor"
+          (ngModelChange)="updateActor($event)"></textarea>
+        <mat-hint>Actor definition as JSON</mat-hint>
+      </mat-form-field>
+    </div>
+  }
+
+  <h3>AppRole</h3>
 
   <div class="vault-form">
     <mat-checkbox
@@ -70,23 +85,22 @@
           (ngModelChange)="updateApproleAdvanced($event)"></textarea>
         <mat-hint>Any AppRole parameter as JSON</mat-hint>
       </mat-form-field>
+
+      <h3>CIDR by environment</h3>
+
+      @for (env of environments(); track env.id) {
+        <mat-form-field>
+          <mat-label>{{ env.title }}</mat-label>
+          <input
+            matInput
+            type="text"
+            [ngModel]="config().cidr[env.name] ?? ''"
+            (ngModelChange)="updateCidr(env.name, $event)">
+          <mat-hint>Optional CIDR (example: 10.0.0.0/24)</mat-hint>
+        </mat-form-field>
+      }
     }
   </div>
-  @if (data.showMasked) {
-    <h3>Actor</h3>
-
-    <div class="vault-form">
-      <mat-form-field>
-        <mat-label>Actor definition</mat-label>
-        <textarea
-          matInput
-          [ngModel]="config().actor"
-          (ngModelChange)="updateActor($event)"></textarea>
-        <mat-hint>Actor definition as JSON</mat-hint>
-      </mat-form-field>
-    </div>
-  }
-
 
   @if (data.showMasked) {
     <h3>Broker</h3>
@@ -110,6 +124,8 @@
       </mat-form-field>
     </div>
   }
+
+
 
 </mat-dialog-content>
 <mat-dialog-actions align="end">

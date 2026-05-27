@@ -13,38 +13,51 @@
 @let vaultConfig = service().vaultConfig;
 <div class="vault-details">
   <mat-list>
-    <mat-list-item
-      matTooltip="Generate access policies for service"
-      matTooltipShowDelay="500"
-      matTooltipPosition="left">
-      <span matListItemTitle>Enabled
-        <mat-icon
-          class="mat-icon-info"
-          inline="true">info</mat-icon>
-      </span>
+    <mat-list-item>
+      <span matListItemTitle>Enabled</span>
       <span matListItemLine>{{ vaultConfig?.enabled | yesno }}</span>
+      @if (showHelp()) {
+        <span matListItemLine>
+          <small>If enabled, this service will be configured to use Vault. This does not add or remove any secrets.</small>
+        </span>
+      }
+    </mat-list-item>
+    <mat-list-item>
+      <span matListItemTitle>User Access</span>
+      <span matListItemLine>{{ vaultConfig?.enabled | yesno }}</span>
+      @if (showHelp()) {
+        <span matListItemLine>
+          <small>If enabled, organization policies will permit access based on upstream user's role and the environment.</small>
+        </span>
+      }
     </mat-list-item>
     @if (vaultConfig && vaultConfig.approle) {
-      <mat-list-item
-        matTooltip="Allow service to login and access own secrets"
-        matTooltipShowDelay="500"
-        matTooltipPosition="left">
-        <span matListItemTitle>Service Login
-          <mat-icon
-            class="mat-icon-info"
-            inline="true">info</mat-icon>
-        </span>
+      <mat-list-item>
+        <span matListItemTitle>Service Access (AppRole)</span>
         <span matListItemLine>{{ vaultConfig.approle.enabled | yesno }}</span>
-        <span matListItemLine>Period:
+        @if (showHelp()) {
+          <span matListItemLine>
+            <small>If enabled, service accounts are created for each environment. Disabling access will remove these accounts.</small>
+          </span>
+        }
+      </mat-list-item>
+      <mat-list-item>
+        <span matListItemTitle>Access Renewal Period</span>
+        <span matListItemLine>
           @if (vaultConfig.approle && vaultConfig.approle.token_period) {
             {{ totalDuration(vaultConfig.approle.token_period) }}
           } @else {
             @if (vaultConfig.policyOptions && vaultConfig.policyOptions.tokenPeriod) {
               {{ vaultConfig.policyOptions.tokenPeriod }}
             } @else {
-              daily
+              Daily
             }
           }</span>
+        @if (showHelp()) {
+          <span matListItemLine>
+            <small>Defines how often the service must renew access.</small>
+          </span>
+        }
       </mat-list-item>
     }
   </mat-list>

@@ -55,7 +55,7 @@
     "libsodium-wrappers": "^0.8.4",
     "lodash.merge": "^4.6.2",
     "mongodb": "^7.2.0",
-    "nodemailer": "^8.0.8",
+    "nodemailer": "^8.0.9",
     "openid-client": "^6.8.4",
     "passport": "^0.7.0",
     "passport-http": "^0.3.0",
@@ -100,7 +100,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.4",
+    "typescript-eslint": "^8.60.0",
     "unplugin-swc": "^1.5.9",
     "vitest": "^4.1.7"
   }
