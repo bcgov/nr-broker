@@ -78,8 +78,11 @@ export class VaultConfigDto {
   /** Array of databases this application has access to */
   @Property({ nullable: true })
   db?: string[];
-  /** True if this application, policies, groups will be generated. */
+  /** Per-environment CIDR configuration for network access */
+  @Property({ nullable: true })
+  cidr?: Record<string, string | undefined>;
 
+  /** True if this application, policies, groups will be generated. */
   @Property()
   enabled: boolean;
 

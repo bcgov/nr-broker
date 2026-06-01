@@ -13,6 +13,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { VaultConfigDto } from '../../service/persistence/dto/vault-config.dto';
+import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
+import { CollectionApiService } from '../../service/collection-api.service';
 
 @Component({
   selector: 'app-vault-dialog',
@@ -35,7 +37,9 @@ export class VaultDialogComponent implements OnInit {
     showMasked: boolean;
   }>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<VaultDialogComponent>>(MatDialogRef);
+  private readonly collectionApi = inject(CollectionApiService);
 
+  readonly environments = signal<EnvironmentDto[]>([]);
   readonly config = signal({
     actor: '',
     approle: {
@@ -44,6 +48,7 @@ export class VaultDialogComponent implements OnInit {
     },
     brokerGlobal: false,
     brokerFor: '',
+    cidr: {} as Record<string, string | undefined>,
     db: '',
     enabled: false,
     policyOptions: {
@@ -54,47 +59,51 @@ export class VaultDialogComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.config.update((current) => ({
-      ...current,
-      enabled: this.data.service.vaultConfig?.enabled ?? false,
-      approle: {
-        ...current.approle,
-        enabled: this.data.service.vaultConfig?.approle?.enabled ?? false,
-        advanced: (() => {
-          if (this.data.service.vaultConfig?.approle) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { enabled, ...advancedApprole } =
-              this.data.service.vaultConfig.approle;
-            if (Object.keys(advancedApprole).length > 0) {
-              return JSON.stringify(advancedApprole);
+    this.collectionApi.exportCollection('environment').subscribe((envs) => {
+      this.environments.set([...envs].sort((a, b) => a.position - b.position));
+      this.config.update((current) => ({
+        ...current,
+        enabled: this.data.service.vaultConfig?.enabled ?? false,
+        approle: {
+          ...current.approle,
+          enabled: this.data.service.vaultConfig?.approle?.enabled ?? false,
+          advanced: (() => {
+            if (this.data.service.vaultConfig?.approle) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { enabled, ...advancedApprole } =
+                this.data.service.vaultConfig.approle;
+              if (Object.keys(advancedApprole).length > 0) {
+                return JSON.stringify(advancedApprole);
+              }
             }
-          }
-          return current.approle.advanced;
-        })(),
-      },
-      actor: this.data.service.vaultConfig?.actor
-        ? JSON.stringify(this.data.service.vaultConfig.actor)
-        : current.actor,
-      brokerGlobal: this.data.service.vaultConfig?.brokerGlobal ?? current.brokerGlobal,
-      brokerFor: this.data.service.vaultConfig?.brokerFor
-        ? this.data.service.vaultConfig.brokerFor.join()
-        : current.brokerFor,
-      db: this.data.service.vaultConfig?.db
-        ? this.data.service.vaultConfig.db.join()
-        : current.db,
-      policyOptions: {
-        kvReadProject:
-          this.data.service.vaultConfig?.policyOptions?.kvReadProject ??
-          current.policyOptions.kvReadProject,
-        systemPolicies: this.data.service.vaultConfig?.policyOptions
-          ?.systemPolicies
-          ? this.data.service.vaultConfig.policyOptions.systemPolicies.join()
-          : current.policyOptions.systemPolicies,
-        tokenPeriod:
-          this.data.service.vaultConfig?.policyOptions?.tokenPeriod ??
-          current.policyOptions.tokenPeriod,
-      },
-    }));
+            return current.approle.advanced;
+          })(),
+        },
+        actor: this.data.service.vaultConfig?.actor
+          ? JSON.stringify(this.data.service.vaultConfig.actor)
+          : current.actor,
+        brokerGlobal: this.data.service.vaultConfig?.brokerGlobal ?? current.brokerGlobal,
+        brokerFor: this.data.service.vaultConfig?.brokerFor
+          ? this.data.service.vaultConfig.brokerFor.join()
+          : current.brokerFor,
+        cidr: this.data.service.vaultConfig?.cidr ?? {},
+        db: this.data.service.vaultConfig?.db
+          ? this.data.service.vaultConfig.db.join()
+          : current.db,
+        policyOptions: {
+          kvReadProject:
+            this.data.service.vaultConfig?.policyOptions?.kvReadProject ??
+            current.policyOptions.kvReadProject,
+          systemPolicies: this.data.service.vaultConfig?.policyOptions
+            ?.systemPolicies
+            ? this.data.service.vaultConfig.policyOptions.systemPolicies.join()
+            : current.policyOptions.systemPolicies,
+          tokenPeriod:
+            this.data.service.vaultConfig?.policyOptions?.tokenPeriod ??
+            current.policyOptions.tokenPeriod,
+        },
+      }));
+    });
   }
 
   updateEnabled(enabled: boolean) {
@@ -146,6 +155,19 @@ export class VaultDialogComponent implements OnInit {
     this.config.update((c) => ({ ...c, brokerFor }));
   }
 
+  updateCidr(envName: string, cidr: string) {
+    this.config.update((c) => {
+      const next = { ...c.cidr };
+      const normalizedCidr = cidr.trim();
+      if (normalizedCidr) {
+        next[envName] = normalizedCidr;
+      } else {
+        delete next[envName];
+      }
+      return { ...c, cidr: next };
+    });
+  }
+
   isFormInvalid() {
     return false;
   }
@@ -183,6 +205,9 @@ export class VaultDialogComponent implements OnInit {
       }
       if (config.db) {
         configObj.db = config.db.split(',');
+      }
+      if (Object.keys(config.cidr).length > 0) {
+        configObj.cidr = config.cidr;
       }
       configObj.policyOptions = {
         kvReadProject: config.policyOptions.kvReadProject,

@@ -197,6 +197,10 @@ export class VaultConfigDto {
   @IsString({ each: true })
   db?: string[];
 
+  /** Per-environment CIDR configuration for network access */
+  @IsOptional()
+  cidr?: Record<string, string | undefined>;
+
   /** True if this application, policies, groups will be generated. */
   @IsDefined()
   @IsBoolean()

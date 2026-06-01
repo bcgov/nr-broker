@@ -32,6 +32,7 @@ export class InspectorVaultComponent {
 
   readonly service = input.required<ServiceDto>();
   readonly isAdministrator = input.required<boolean>();
+  readonly showHelp = input(false);
 
   readonly refreshData = output();
 

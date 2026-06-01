@@ -1,8 +1,14 @@
 <div class="edge-container">
   <div class="heading">
-    <h3>Vault AppRole</h3>
+    <h3>Service Accounts (AppRole)</h3>
   </div>
 </div>
+
+@if (showHelp()) {
+  <div class="edge-container">
+    <small>Service accounts are created for each environment where there is a downstream service instance. </small>
+  </div>
+}
 
 <div class="chip-container">
 <mat-chip-listbox [selectable]="false">

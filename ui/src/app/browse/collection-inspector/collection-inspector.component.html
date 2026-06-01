@@ -187,11 +187,13 @@
             </div>
             <app-inspector-vault
               [service]="cd.collection"
-              [isAdministrator]="hasSudo()"></app-inspector-vault>
+              [isAdministrator]="hasSudo()"
+              [showHelp]="showHelp()"></app-inspector-vault>
             @if (hasSudo()) {
               <mat-divider></mat-divider>
               <app-inspector-service-secure
-                [service]="cd.collection"></app-inspector-service-secure>
+                [service]="cd.collection"
+                [showHelp]="showHelp()"></app-inspector-service-secure>
             }
           </mat-card-content>
         </mat-card>
