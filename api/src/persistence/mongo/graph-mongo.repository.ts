@@ -36,6 +36,7 @@ import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
 import {
   CollectionEntityUnion,
   CollectionNameEnum,
+  CollectionNames,
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { UserPermissionDto } from '../dto/user-permission.dto';
@@ -45,6 +46,7 @@ import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { TeamDto } from '../dto/team.dto';
+import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -525,6 +527,38 @@ export class GraphMongoRepository implements GraphRepository {
         // downstreamArr[0].paths.map((path => path.i)
         return this.collectPermissions(teamVertexId, configs, paths);
       });
+  }
+
+  public async getTeamRolePermissionRules(
+    roleName?: string,
+  ): Promise<GraphRolePermissionRuleDto[]> {
+    const permissions = await this.permissionRepository.find({ name: 'user' });
+    const collectionByIndex = Object.entries(CollectionNameEnum).reduce(
+      (acc, [name, index]) => {
+        acc[index] = name as CollectionNames;
+        return acc;
+      },
+      {} as Record<number, CollectionNames>,
+    );
+
+    return permissions
+      .map((permission) => permission.data)
+      .filter(
+        (rule) =>
+          rule.length > 0 &&
+          rule[0].index === CollectionNameEnum.team &&
+          (!roleName || rule[0].name === roleName),
+      )
+      .map((rule, index) => ({
+        key: `${rule[0].name}-${index}`,
+        roleName: rule[0].name,
+        steps: rule.map((step) => ({
+          edgeName: step.name,
+          vertexIndex: step.index,
+          vertexCollection: collectionByIndex[step.index],
+          permissions: step.permissions,
+        })),
+      }));
   }
 
   private collectPermissions(
