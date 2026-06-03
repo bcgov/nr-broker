@@ -197,6 +197,9 @@ export class CollectionConfigEntity extends BaseEntity {
   @Property()
   showUserRoles: boolean;
 
+  @Property({ nullable: true })
+  sudoHelp?: string;
+
   @Embedded({
     entity: () => CollectionSyncConfigEmbeddable,
     object: true,

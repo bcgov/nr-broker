@@ -137,6 +137,7 @@ export class CollectionConfigDto {
   permissions!: CollectionConfigPermissions;
   show!: boolean;
   showUserRoles!: boolean;
+  sudoHelp?: string;
 }
 
 export class LinksAltDto {

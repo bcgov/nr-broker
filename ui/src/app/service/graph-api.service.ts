@@ -11,6 +11,7 @@ import { CollectionConfigInstanceDto } from './persistence/dto/collection-config
 import { EdgeInsertDto, EdgeDto } from './persistence/dto/edge.dto';
 import { VertexInsertDto, VertexDto } from './persistence/dto/vertex.dto';
 import { GraphTypeaheadResult } from './graph/dto/graph-typeahead-result.dto';
+import { GraphRolePermissionRuleDto } from './graph/dto/graph-role-permission-rule.dto';
 import { GraphEventDto } from './persistence/dto/graph-event.dto';
 import { UserPermissionDto } from './persistence/dto/user-permission.dto';
 import { GraphUpDownDto } from './persistence/dto/graph-updown.dto';
@@ -253,6 +254,18 @@ export class GraphApiService {
       method: 'GET',
       url: `${environment.apiUrl}/v1/graph/data/user-permissions`,
     };
+  }
+
+  getTeamRolePermissionRules(roleName?: string) {
+    return this.http.get<GraphRolePermissionRuleDto[]>(
+      `${environment.apiUrl}/v1/graph/data/team-role-permission-rules`,
+      {
+        responseType: 'json',
+        params: {
+          ...(roleName ? { roleName } : {}),
+        },
+      },
+    );
   }
 
   doTypeaheadSearch(typeahead: string, collections?: string[]) {

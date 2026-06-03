@@ -345,6 +345,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'title', 'type'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
+  sudoHelp:
+    'Sudo allows updates to protected service settings such as Vault integration fields.',
   color: '5ab1ef',
   permissions: {
     browse: true,
@@ -669,6 +671,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'email', 'clientId', 'website', 'requireRoleId'],
   name: 'Broker Account',
   hint: 'A Broker Account grants programmatic access to the API to teams and allows them to access associated services.',
+  sudoHelp:
+    'Sudo allows elevated management of account-level access links that control downstream authorization.',
   color: '8d98b3',
   permissions: {
     browse: true,
@@ -749,6 +753,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'email', 'website'],
   name: 'Team',
   hint: 'A team is a collection of users with roles that can be granted control of accounts and access to services.',
+  sudoHelp:
+    'Sudo allows owner-level administrative actions on team configuration and ownership controls.',
   color: 'e5cf0d',
   permissions: {
     browse: true,
@@ -938,6 +944,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'type', 'scmUrl'],
   name: 'Repository',
   hint: 'A source control repository tracks, manages, and versions project files and code.',
+  sudoHelp:
+    'Sudo allows elevated repository operations such as secret and user synchronization controls.',
   color: 'eeceda',
   permissions: {
     browse: true,
