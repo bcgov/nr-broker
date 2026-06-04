@@ -86,17 +86,25 @@
         <mat-hint>Any AppRole parameter as JSON</mat-hint>
       </mat-form-field>
 
-      <h3>CIDR by environment</h3>
+      <h3>Environment Constraints</h3>
+
+      <p>Service logins can be restricted to reduce security risks.</p>
 
       @for (env of environments(); track env.id) {
         <mat-form-field>
           <mat-label>{{ env.title }}</mat-label>
           <input
+            #cidrModel="ngModel"
+            appCidrList
             matInput
+            [name]="'cidr-' + env.name"
             type="text"
             [ngModel]="config().cidr[env.name] ?? ''"
             (ngModelChange)="updateCidr(env.name, $event)">
-          <mat-hint>Optional CIDR (example: 10.0.0.0/24)</mat-hint>
+          <mat-hint>Optional comma separated list of CIDRs</mat-hint>
+          @if (cidrModel.invalid && (cidrModel.dirty || cidrModel.touched)) {
+            <mat-error>Enter a valid CIDR such as 10.0.0.0/24. Separate multiple values with commas.</mat-error>
+          }
         </mat-form-field>
       }
     }
@@ -128,9 +136,11 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button
+    type="button"
     mat-button
     mat-dialog-close>Cancel</button>
   <button
+    type="button"
     mat-stroked-button
     [disabled]="isFormInvalid()"
     (click)="update()">Edit</button>

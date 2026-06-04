@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -15,10 +15,15 @@ import { ServiceDto } from '../../service/persistence/dto/service.dto';
 import { VaultConfigDto } from '../../service/persistence/dto/vault-config.dto';
 import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
+import {
+  CidrListValidatorDirective,
+  isValidCidrList,
+} from '../../util/cidr-list-validator.directive';
 
 @Component({
   selector: 'app-vault-dialog',
   imports: [
+    CidrListValidatorDirective,
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
@@ -169,7 +174,9 @@ export class VaultDialogComponent implements OnInit {
   }
 
   isFormInvalid() {
-    return false;
+    return Object.values(this.config().cidr).some(
+      (cidr) => typeof cidr === 'string' && !isValidCidrList(cidr),
+    );
   }
 
   update() {
