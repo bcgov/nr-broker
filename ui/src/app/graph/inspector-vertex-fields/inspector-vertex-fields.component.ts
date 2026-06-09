@@ -3,6 +3,7 @@ import {
   OnChanges,
   SimpleChanges,
   input,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { KeyValuePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -24,6 +25,7 @@ import { InspectorVertexFieldComponent } from '../inspector-vertex-field/inspect
     MatTooltipModule,
   ],
   templateUrl: './inspector-vertex-fields.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-vertex-fields.component.scss',
 })
 export class InspectorVertexFieldsComponent implements OnChanges {

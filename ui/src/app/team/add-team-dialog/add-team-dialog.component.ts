@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, ViewChild, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -26,6 +26,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
     VertexFormBuilderComponent,
   ],
   templateUrl: './add-team-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-team-dialog.component.scss',
 })
 export class AddTeamDialogComponent implements OnInit {

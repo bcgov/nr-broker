@@ -1,4 +1,4 @@
-import { Component, output, input, inject } from '@angular/core';
+import { Component, output, input, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { MemberDialogComponent } from '../../team/member-dialog/member-dialog.co
   selector: 'app-inspector-team',
   imports: [MatButtonModule, MatIconModule],
   templateUrl: './inspector-team.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./inspector-team.component.scss'],
 })
 export class InspectorTeamComponent {

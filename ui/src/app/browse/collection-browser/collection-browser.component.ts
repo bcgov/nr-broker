@@ -1,4 +1,4 @@
-import { Component, input, numberAttribute, inject, signal, computed } from '@angular/core';
+import { Component, input, numberAttribute, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
@@ -41,6 +41,7 @@ interface filterOptions<T> {
     CollectionTableComponent,
   ],
   templateUrl: './collection-browser.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-browser.component.scss',
 })
 export class CollectionBrowserComponent {

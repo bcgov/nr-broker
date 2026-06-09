@@ -1,4 +1,4 @@
-import { Component, ElementRef, input, inject, computed } from '@angular/core';
+import { Component, ElementRef, input, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 
 import { NgxEchartsModule, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
@@ -26,6 +26,7 @@ echarts.use([
   imports: [NgxEchartsModule],
   providers: [provideEchartsCore({ echarts })],
   templateUrl: './gantt-graph.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './gantt-graph.component.scss',
 })
 export class GanttGraphComponent {

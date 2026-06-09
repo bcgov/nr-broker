@@ -1,4 +1,4 @@
-import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
+import { Component, effect, inject, numberAttribute, input, output, computed, OnDestroy, OnInit, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -102,6 +102,7 @@ export interface TableQuery {
     InspectorTeamComponent,
   ],
   templateUrl: './collection-table.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-table.component.scss',
 })
 export class CollectionTableComponent implements OnInit, OnDestroy {

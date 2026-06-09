@@ -46,7 +46,7 @@
     <!-- Category Column -->
     <ng-container matColumnDef="category">
       <th mat-header-cell *matHeaderCellDef> Category </th>
-      <td mat-cell *matCellDef="let element">{{element.package?.category | titlecase}}
+      <td mat-cell *matCellDef="let element">{{$safeNavigationMigration(element.package?.category) | titlecase}}
       </td>
     </ng-container>
 
@@ -63,7 +63,7 @@
       <td mat-cell *matCellDef="let element">
         <button
           mat-stroked-button
-          [cdkCopyToClipboard]="element.package?.checksum"
+          [cdkCopyToClipboard]="$safeNavigationMigration(element.package?.checksum)"
           [disabled]="!element.package?.checksum"><mat-icon>content_copy</mat-icon> Copy</button>
       </td>
     </ng-container>

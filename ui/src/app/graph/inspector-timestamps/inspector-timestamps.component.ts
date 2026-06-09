@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
 import { MatListModule } from '@angular/material/list';
@@ -7,6 +7,7 @@ import { MatListModule } from '@angular/material/list';
   selector: 'app-inspector-timestamps',
   imports: [CommonModule, MatListModule],
   templateUrl: './inspector-timestamps.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-timestamps.component.scss',
 })
 export class InspectorTimestampsComponent {

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -14,6 +14,7 @@ import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
   selector: 'app-vertex-form-field',
   templateUrl: './vertex-form-field.component.html',
   styleUrls: ['./vertex-form-field.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     ReactiveFormsModule,

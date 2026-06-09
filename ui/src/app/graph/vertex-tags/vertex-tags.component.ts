@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
 import { VertexPointerDto } from '../../service/persistence/dto/vertex-pointer.dto';
@@ -9,6 +9,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
   selector: 'app-vertex-tags',
   imports: [RouterModule, MatChipsModule],
   templateUrl: './vertex-tags.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './vertex-tags.component.scss',
 })
 export class VertexTagsComponent {

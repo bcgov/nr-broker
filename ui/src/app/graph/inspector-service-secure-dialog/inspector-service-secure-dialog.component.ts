@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,6 +26,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatTooltipModule,
   ],
   templateUrl: './inspector-service-secure-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-service-secure-dialog.component.scss',
 })
 export class InspectorServiceSecureDialogComponent {

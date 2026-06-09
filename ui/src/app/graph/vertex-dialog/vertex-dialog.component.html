@@ -24,7 +24,7 @@
         [collection]="collectionControl.value.collection"
         [fieldMap]="collectionControl.value.fields"
         [data]="data.data"
-        [graphProperties]="data.vertex?.prop"
+        [graphProperties]="$safeNavigationMigration(data.vertex?.prop)"
         (formSubmitted)="addUpdateVertex()"
         (isFormValid)="isFormValid.set($event)"></app-vertex-dialog-editor>
     }

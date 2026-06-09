@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, output, SimpleChanges, input, inject, signal } from '@angular/core';
+import { Component, OnChanges, OnInit, output, SimpleChanges, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -20,6 +20,7 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
   selector: 'app-vertex-form-builder',
   templateUrl: './vertex-form-builder.component.html',
   styleUrls: ['./vertex-form-builder.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, ReactiveFormsModule, VertexFormFieldComponent],
 })
 export class VertexFormBuilderComponent implements OnInit, OnChanges {

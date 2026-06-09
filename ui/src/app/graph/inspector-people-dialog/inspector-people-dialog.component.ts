@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -12,6 +12,7 @@ import { InspectorPeopleComponent } from '../inspector-people/inspector-people.c
     InspectorPeopleComponent,
   ],
   templateUrl: './inspector-people-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-people-dialog.component.scss',
 })
 export class InspectorPeopleDialogComponent {

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-page-error',
   imports: [MatButtonModule, MatCardModule, RouterModule],
   templateUrl: './page-error.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './page-error.component.scss',
 })
 export class PageErrorComponent {

@@ -1,4 +1,4 @@
-import { Component, input, inject } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   FormControl,
@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
     MatSelectModule,
   ],
   templateUrl: './team-service-request.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-service-request.component.scss',
 })
 export class TeamServiceRequestComponent {

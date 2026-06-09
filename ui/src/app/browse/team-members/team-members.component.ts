@@ -1,4 +1,4 @@
-import { Component, computed, input, inject, signal } from '@angular/core';
+import { Component, computed, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import {
   MatExpansionModule,
@@ -31,6 +31,7 @@ import { MatChipsModule } from '@angular/material/chips';
   ],
   templateUrl: './team-members.component.html',
   styleUrl: './team-members.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   viewProviders: [MatExpansionPanel],
 })
 export class TeamMembersComponent {

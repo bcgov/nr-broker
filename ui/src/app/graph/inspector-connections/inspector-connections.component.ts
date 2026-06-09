@@ -1,4 +1,4 @@
-import { Component, computed, output, input, inject } from '@angular/core';
+import { Component, computed, output, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
@@ -30,6 +30,7 @@ import { CollectionCombo } from '../../service/collection/dto/collection-search-
     InspectorConnectionsDirectionComponent,
   ],
   templateUrl: './inspector-connections.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-connections.component.scss',
 })
 export class InspectorConnectionsComponent {

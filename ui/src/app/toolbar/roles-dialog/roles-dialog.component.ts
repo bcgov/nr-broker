@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
@@ -9,6 +9,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   selector: 'app-roles-dialog',
   templateUrl: './roles-dialog.component.html',
   styleUrls: ['./roles-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MatDialogModule, MatButtonModule, MatListModule],
 })
 export class RolesDialogComponent {

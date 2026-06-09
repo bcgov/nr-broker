@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -26,6 +26,7 @@ import { PreferencesService } from '../preferences.service';
     MatTabsModule,
   ],
   templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {

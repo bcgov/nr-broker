@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -30,6 +30,7 @@ import { CollectionDtoUnion } from '../../service/persistence/dto/collection-dto
     MatIconModule,
   ],
   templateUrl: './tag-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tag-dialog.component.scss',
 })
 export class TagDialogComponent implements OnInit {

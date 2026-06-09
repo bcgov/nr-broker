@@ -40,7 +40,7 @@
     }
   </mat-menu>
 
-  @let intentionStart = intention().transaction?.start;
+  @let intentionStart = $safeNavigationMigration(intention().transaction?.start);
   <app-details-item item="Start">
     @if (intentionStart) {
       {{ intentionStart | date:'medium' }}
@@ -48,7 +48,7 @@
       Unknown
     }</app-details-item>
 
-  @let intentionEnd = intention().transaction?.end;
+  @let intentionEnd = $safeNavigationMigration(intention().transaction?.end);
   @let intentionExpiry = intention().expiry;
   <app-details-item
     item="End"
@@ -60,7 +60,7 @@
     }
   </app-details-item>
 
-  @let outcome = intention().transaction?.outcome;
+  @let outcome = $safeNavigationMigration(intention().transaction?.outcome);
   <app-details-item item="Outcome">@if (outcome) {
     <app-outcome-icon
           [outcome]="outcome"></app-outcome-icon>
@@ -121,7 +121,7 @@
     <div class="expanded-header-container">
       <h3>
       <app-outcome-icon
-        [outcome]="action.trace?.outcome"></app-outcome-icon>
+        [outcome]="$safeNavigationMigration(action.trace?.outcome)"></app-outcome-icon>
         <a
           role="link"
           tabindex="0"
@@ -282,7 +282,7 @@
             <mat-card-actions align="end" >
               <button
                 mat-button
-                (click)="viewIntention(action.references?.[0]?.intention)">View build</button>
+                (click)="viewIntention($safeNavigationMigration(action.references?.[0]?.intention))">View build</button>
             </mat-card-actions>
           }
         </mat-card>

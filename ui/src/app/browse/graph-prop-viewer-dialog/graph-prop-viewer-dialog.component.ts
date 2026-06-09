@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -17,6 +17,7 @@ import { EdgePropDto } from '../../service/persistence/dto/edge-prop.dto';
     InspectorPropertiesComponent,
   ],
   templateUrl: './graph-prop-viewer-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './graph-prop-viewer-dialog.component.scss',
 })
 export class GraphPropViewerDialogComponent {

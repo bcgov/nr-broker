@@ -7,6 +7,7 @@ import {
   OnDestroy,
   computed,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
@@ -72,6 +73,7 @@ export interface HistoryQuery {
     PageErrorComponent,
   ],
   templateUrl: './history.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./history.component.scss'],
 })
 export class HistoryComponent implements OnDestroy {

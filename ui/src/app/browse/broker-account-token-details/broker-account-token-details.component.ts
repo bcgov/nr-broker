@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,6 +32,7 @@ import { InspectorAccountChartComponent } from '../../graph/inspector-account-ch
     InspectorAccountChartComponent,
   ],
   templateUrl: './broker-account-token-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './broker-account-token-details.component.scss',
 })
 export class BrokerAccountTokenDetailsComponent {

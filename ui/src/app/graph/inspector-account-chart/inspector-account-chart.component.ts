@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -41,6 +41,7 @@ echarts.use([
   ],
   providers: [provideEchartsCore({ echarts })],
   templateUrl: './inspector-account-chart.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-account-chart.component.scss',
 })
 export class InspectorAccountChartComponent {

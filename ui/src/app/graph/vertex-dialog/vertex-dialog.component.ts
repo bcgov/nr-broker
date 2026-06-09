@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, viewChild, inject, AfterViewInit, computed, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, viewChild, inject, AfterViewInit, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -24,6 +24,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
   selector: 'app-vertex-dialog',
   templateUrl: './vertex-dialog.component.html',
   styleUrls: ['./vertex-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     MatButtonModule,

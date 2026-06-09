@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, input, signal } from '@angular/core';
+import { Component, OnInit, computed, input, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,6 +22,7 @@ import {
     ReactiveFormsModule,
   ],
   templateUrl: './property-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./property-editor.component.scss'],
 })
 export class PropertyEditorComponent implements OnInit {
