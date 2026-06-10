@@ -15,7 +15,7 @@ import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
 import {
   BrokerRoleMappingDialogComponent,
   BrokerRoleSudoCollection,
-} from './broker-role-mapping-dialog.component';
+} from '../broker-role-mapping-dialog/broker-role-mapping-dialog.component';
 
 interface GitHubRoleInfo {
   role: string;

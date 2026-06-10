@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
@@ -79,6 +79,7 @@ interface PermissionNodeStyle {
   providers: [provideEchartsCore({ echarts })],
   templateUrl: './broker-role-mapping-dialog.component.html',
   styleUrl: './broker-role-mapping-dialog.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BrokerRoleMappingDialogComponent implements OnInit {
   readonly data = inject<BrokerRoleMappingDialogData>(MAT_DIALOG_DATA);
