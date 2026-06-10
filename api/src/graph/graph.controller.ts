@@ -112,6 +112,17 @@ export class GraphController {
     );
   }
 
+  @Get('data/team-role-permission-rules')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'roleName',
+    required: false,
+  })
+  getTeamRolePermissionRules(@Query('roleName') roleName?: string) {
+    return this.graph.getTeamRolePermissionRules(roleName);
+  }
+
   @Sse('events')
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()

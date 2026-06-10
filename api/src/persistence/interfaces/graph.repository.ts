@@ -1,4 +1,5 @@
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
+import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
 import { EdgeInsertDto } from '../dto/edge.dto';
 import { EdgeEntity } from '../entity/edge.entity';
 import {
@@ -48,6 +49,9 @@ export abstract class GraphRepository {
     teamVertexId: string,
     roleName: string,
   ): Promise<UserPermissionDto>;
+  public abstract getTeamRolePermissionRules(
+    roleName?: string,
+  ): Promise<GraphRolePermissionRuleDto[]>;
   // Edge
   public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeEntity>;
   public abstract editEdge(
