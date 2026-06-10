@@ -1,4 +1,4 @@
-import { Component, input, output, inject, computed } from '@angular/core';
+import { Component, input, output, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ import { VertexDto } from '../../service/persistence/dto/vertex.dto';
     MatTooltipModule,
   ],
   templateUrl: './inspector-connections-direction.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-connections-direction.component.scss',
 })
 export class InspectorConnectionsDirectionComponent {

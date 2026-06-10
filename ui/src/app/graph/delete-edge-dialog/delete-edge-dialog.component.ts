@@ -1,4 +1,4 @@
-import { Component, inject, viewChild } from '@angular/core';
+import { Component, inject, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -16,6 +16,7 @@ import { ConnectionMap } from '../../service/graph.types';
   selector: 'app-delete-edge-dialog',
   templateUrl: './delete-edge-dialog.component.html',
   styleUrls: ['./delete-edge-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatDialogModule,
     MatFormFieldModule,

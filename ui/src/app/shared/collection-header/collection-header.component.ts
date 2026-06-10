@@ -1,4 +1,4 @@
-import { Component, input, inject, computed } from '@angular/core';
+import { Component, input, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,6 +13,7 @@ import { GraphDirectedCombo } from '../../service/persistence/dto/collection-com
   selector: 'app-collection-header',
   imports: [MatButtonModule, MatDividerModule, MatIconModule],
   templateUrl: './collection-header.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-header.component.scss',
 })
 export class CollectionHeaderComponent {

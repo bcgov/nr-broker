@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { SystemApiService } from '../../service/system-api.service';
@@ -11,6 +11,7 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
   selector: 'app-user-alias',
   imports: [CommonModule, MatButtonModule, DetailsItemComponent],
   templateUrl: './user-alias.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './user-alias.component.scss',
 })
 export class UserAliasComponent {

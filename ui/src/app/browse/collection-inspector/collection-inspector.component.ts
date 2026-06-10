@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, effect, numberAttribute, viewChild, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, effect, numberAttribute, viewChild, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -95,6 +95,7 @@ import { PreferencesService } from '../../preferences.service';
     ServiceInstanceDetailsComponent,
   ],
   templateUrl: './collection-inspector.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-inspector.component.scss',
 })
 export class CollectionInspectorComponent implements OnInit, OnDestroy {

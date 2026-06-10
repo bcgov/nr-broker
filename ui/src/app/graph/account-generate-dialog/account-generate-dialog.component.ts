@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +32,7 @@ interface ExpiryDay {
     MatTooltipModule,
   ],
   templateUrl: './account-generate-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./account-generate-dialog.component.scss'],
 })
 export class AccountGenerateDialogComponent {

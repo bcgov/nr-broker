@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { InspectorIntentionsComponent } from '../../graph/inspector-intentions/inspector-intentions.component';
@@ -16,6 +16,7 @@ import { httpResource } from '@angular/common/http';
     CollectionHeaderComponent,
   ],
   templateUrl: './collection-history.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-history.component.scss',
 })
 export class CollectionHistoryComponent {

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MatSnackBarAction,
@@ -18,6 +18,7 @@ import { PreferencesService } from '../../preferences.service';
     MatSnackBarAction,
   ],
   templateUrl: './link-snackbar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './link-snackbar.component.scss',
 })
 export class LinkSnackbarComponent {

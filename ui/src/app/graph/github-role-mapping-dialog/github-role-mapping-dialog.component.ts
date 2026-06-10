@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
@@ -10,6 +10,7 @@ import { GitHubEdgeToRoles } from '../../service/persistence/dto/collection-conf
   selector: 'app-github-role-mapping-dialog',
   imports: [MatDialogModule, MatButtonModule, MatTableModule],
   templateUrl: './github-role-mapping-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './github-role-mapping-dialog.component.scss',
 })
 export class GithubRoleMappingDialogComponent implements OnInit {

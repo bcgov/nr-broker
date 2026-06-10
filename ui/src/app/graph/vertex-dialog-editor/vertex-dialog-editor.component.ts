@@ -1,4 +1,4 @@
-import { Component, input, output, viewChild } from '@angular/core';
+import { Component, input, output, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { VertexFormBuilderComponent } from '../vertex-form-builder/vertex-form-builder.component';
@@ -15,6 +15,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
     PropertyEditorComponent,
   ],
   templateUrl: './vertex-dialog-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './vertex-dialog-editor.component.scss',
 })
 export class VertexDialogEditorComponent {

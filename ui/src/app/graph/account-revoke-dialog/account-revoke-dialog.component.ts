@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
   selector: 'app-account-revoke-dialog',
   imports: [MatDialogModule, MatButtonModule],
   templateUrl: './account-revoke-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./account-revoke-dialog.component.scss'],
 })
 export class AccountRevokeDialogComponent {

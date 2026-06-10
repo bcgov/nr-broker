@@ -12,7 +12,7 @@
             Click graph item to view
           }
           @if (target()) {
-            {{target()?.type | titlecase}}
+            {{$safeNavigationMigration(target()?.type) | titlecase}}
           }
           @if (target() && target()?.type === 'vertex') {
             - {{config().name}}

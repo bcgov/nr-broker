@@ -23,7 +23,7 @@
       </a>
       }
 
-      @let actionSource = action()?.source;
+      @let actionSource = $safeNavigationMigration(action()?.source);
       @if (actionSource && actionSource.intention) {
 
       @if (actionSource.action && actionSource.action.package && actionSource.action.package.id) {
@@ -57,7 +57,7 @@
         <app-details-item
           (click)="navigateHistoryById(actionSource.intention.id)"
           item="Installed"
-          clickable="true">{{actionSource.intention.transaction?.start | date:'short'}}</app-details-item>
+          clickable="true">{{$safeNavigationMigration(actionSource.intention.transaction?.start) | date:'short'}}</app-details-item>
       }
       @if (actionSource.intention.user.id) {
         <app-details-item

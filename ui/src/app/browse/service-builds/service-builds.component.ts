@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -48,6 +48,7 @@ interface TablePageQuery {
     CollectionHeaderComponent,
   ],
   templateUrl: './service-builds.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-builds.component.scss',
 })
 export class ServiceBuildsComponent implements OnInit, OnDestroy {

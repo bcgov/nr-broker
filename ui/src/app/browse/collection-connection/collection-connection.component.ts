@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, numberAttribute } from '@angular/core';
+import { Component, computed, inject, input, numberAttribute, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SortDirection } from '@angular/material/sort';
@@ -23,6 +23,7 @@ import { ConnectedTableEdgeInfo } from '../../service/persistence/dto/collection
     MatProgressSpinnerModule,
   ],
   templateUrl: './collection-connection.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './collection-connection.component.scss',
 })
 export class CollectionConnectionComponent {

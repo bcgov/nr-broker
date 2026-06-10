@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
@@ -9,6 +9,7 @@ import { EdgetitlePipe } from '../../util/edgetitle.pipe';
   selector: 'app-team-roles',
   imports: [MatDividerModule, EdgetitlePipe],
   templateUrl: './team-roles.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-roles.component.scss',
 })
 export class TeamRolesComponent {

@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -16,6 +16,7 @@ import { HistoryTableComponent } from '../../intention/history-table/history-tab
     HistoryTableComponent,
   ],
   templateUrl: './inspector-intentions.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./inspector-intentions.component.scss'],
 })
 export class InspectorIntentionsComponent implements OnChanges {

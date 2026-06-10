@@ -1,4 +1,4 @@
-import { Component, input, inject, computed, output } from '@angular/core';
+import { Component, input, inject, computed, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 
@@ -16,6 +16,7 @@ import { UserPermissionDto } from '../../service/persistence/dto/user-permission
     TeamServiceRequestComponent,
   ],
   templateUrl: './team-services.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-services.component.scss',
 })
 export class TeamServicesComponent {

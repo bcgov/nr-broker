@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, output, computed, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, output, computed, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
@@ -24,6 +24,7 @@ import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
   selector: 'app-toolbar',
   templateUrl: './toolbar.component.html',
   styleUrls: ['./toolbar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     RouterModule,

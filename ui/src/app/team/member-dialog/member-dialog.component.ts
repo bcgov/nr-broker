@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal, viewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, viewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
@@ -61,6 +61,7 @@ import { HealthStatusService } from '../../service/health-status.service';
     EdgetitlePipe,
   ],
   templateUrl: './member-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./member-dialog.component.scss'],
 })
 export class MemberDialogComponent implements OnInit, OnDestroy {

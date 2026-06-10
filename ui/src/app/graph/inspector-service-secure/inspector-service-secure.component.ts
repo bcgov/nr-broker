@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -22,6 +22,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     MatTooltipModule,
   ],
   templateUrl: './inspector-service-secure.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-service-secure.component.scss',
 })
 export class InspectorServiceSecureComponent implements OnChanges {

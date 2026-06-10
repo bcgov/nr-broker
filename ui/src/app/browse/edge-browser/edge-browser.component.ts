@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, OnInit, signal, OnDestroy, computed } from '@angular/core';
+import { Component, effect, inject, input, OnInit, signal, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { httpResource } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,6 +41,7 @@ import { UserPermissionDto } from '../../service/persistence/dto/user-permission
     MatProgressSpinnerModule,
   ],
   templateUrl: './edge-browser.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './edge-browser.component.scss',
 })
 export class EdgeBrowserComponent implements OnInit, OnDestroy {

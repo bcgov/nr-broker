@@ -1,4 +1,4 @@
-import { Component, output, input, inject, signal, computed } from '@angular/core';
+import { Component, output, input, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -31,6 +31,7 @@ import { CollectionUtilService } from '../../service/collection-util.service';
     OutcomeIconComponent,
   ],
   templateUrl: './inspector-instances.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-instances.component.scss',
 })
 export class InspectorInstancesComponent {

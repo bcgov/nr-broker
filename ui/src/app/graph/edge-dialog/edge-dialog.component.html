@@ -69,7 +69,7 @@
         </mat-form-field>
       }
       <app-property-editor
-        [graphProperties]="data.edge?.prop"
+        [graphProperties]="$safeNavigationMigration(data.edge?.prop)"
         [prototype]="data.prototype"></app-property-editor>
 
     </form>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, viewChild } from '@angular/core';
+import { Component, OnInit, inject, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -45,6 +45,7 @@ import { VertexDialogComponent } from '../vertex-dialog/vertex-dialog.component'
   selector: 'app-edge-dialog',
   templateUrl: './edge-dialog.component.html',
   styleUrls: ['./edge-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     MatAutocompleteModule,

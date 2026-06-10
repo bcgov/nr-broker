@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
 import { GraphDataVertex } from '../../service/graph.types';
 import { GraphTypeaheadData } from '../../service/graph/dto/graph-typeahead-result.dto';
@@ -10,6 +10,7 @@ import { GraphTypeaheadData } from '../../service/graph/dto/graph-typeahead-resu
     }
     {{ vertex().name }}`,
   styles: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
 export class VertexNameComponent {

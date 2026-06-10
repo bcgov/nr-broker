@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   Observable,
   debounceTime,
@@ -47,6 +47,7 @@ import { CollectionNames } from '../../service/persistence/dto/collection-dto-un
     VertexNameComponent,
   ],
   templateUrl: './search-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './search-input.component.scss',
 })
 export class SearchInputComponent implements OnInit {

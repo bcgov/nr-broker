@@ -1,4 +1,4 @@
-import { Component, input, output, inject } from '@angular/core';
+import { Component, input, output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,6 +23,7 @@ import { PermissionService } from '../../service/permission.service';
     YesNoPipe,
   ],
   templateUrl: './inspector-vault.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-vault.component.scss',
 })
 export class InspectorVaultComponent {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, input, inject, computed, OnInit } from '@angular/core';
+import { Component, OnDestroy, input, inject, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { httpResource } from '@angular/common/http';
@@ -36,6 +36,7 @@ import { InspectorAccountTableComponent } from '../inspector-account-table/inspe
     InspectorAccountTableComponent,
   ],
   templateUrl: './inspector-account.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./inspector-account.component.scss'],
 })
 export class InspectorAccountComponent implements OnInit, OnDestroy {

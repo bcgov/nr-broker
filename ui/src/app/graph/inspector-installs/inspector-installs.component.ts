@@ -1,4 +1,4 @@
-import { Component, input, OnChanges, OnInit, inject, signal } from '@angular/core';
+import { Component, input, OnChanges, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -39,6 +39,7 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
     DetailsItemComponent,
   ],
   templateUrl: './inspector-installs.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./inspector-installs.component.scss'],
 })
 export class InspectorInstallsComponent implements OnInit, OnChanges {

@@ -1,4 +1,4 @@
-import { Component, ElementRef, output, OnInit, input, inject, OnDestroy, signal } from '@angular/core';
+import { Component, ElementRef, output, OnInit, input, inject, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { ECharts, EChartsCoreOption } from 'echarts/core';
 import * as echarts from 'echarts/core';
@@ -29,6 +29,7 @@ echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
   templateUrl: './echarts.component.html',
   styleUrls: ['./echarts.component.scss'],
   imports: [NgxEchartsDirective, AsyncPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [provideEchartsCore({ echarts })],
 })
 export class EchartsComponent implements OnInit, OnDestroy {

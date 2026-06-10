@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TitleCasePipe } from '@angular/common';
@@ -41,6 +41,7 @@ import { ScreenService } from '../../util/screen.service';
     TitleCasePipe,
   ],
   templateUrl: './service-build-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-build-details.component.scss',
 })
 export class ServiceBuildDetailsComponent {

@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CollectionFieldConfig } from '../../service/persistence/dto/collection-config.dto';
 
 @Component({
   selector: 'app-inspector-vertex-field',
   imports: [DatePipe],
   templateUrl: './inspector-vertex-field.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-vertex-field.component.scss',
 })
 export class InspectorVertexFieldComponent {

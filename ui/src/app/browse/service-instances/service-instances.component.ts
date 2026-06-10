@@ -1,4 +1,4 @@
-import { Component, input, inject, signal } from '@angular/core';
+import { Component, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -48,6 +48,7 @@ import { ScreenService } from '../../util/screen.service';
     CollectionHeaderComponent,
   ],
   templateUrl: './service-instances.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-instances.component.scss',
 })
 export class ServiceInstancesComponent {

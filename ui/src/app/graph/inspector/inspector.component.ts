@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, SimpleChanges, computed, inject, input, signal } from '@angular/core';
+import { Component, OnChanges, OnInit, SimpleChanges, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -57,6 +57,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
   selector: 'app-inspector',
   templateUrl: './inspector.component.html',
   styleUrls: ['./inspector.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ClipboardModule,
     MatButtonModule,

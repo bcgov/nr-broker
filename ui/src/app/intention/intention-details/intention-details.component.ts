@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -47,6 +47,7 @@ import { IntentionReferenceItemComponent } from '../intention-reference-item/int
     IntentionReferenceItemComponent,
   ],
   templateUrl: './intention-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './intention-details.component.scss',
 })
 export class IntentionDetailsComponent {

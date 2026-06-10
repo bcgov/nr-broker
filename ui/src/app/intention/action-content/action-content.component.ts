@@ -1,4 +1,4 @@
-import { Component, computed, booleanAttribute, input, inject } from '@angular/core';
+import { Component, computed, booleanAttribute, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { IntentionUtilService } from '../../util/intention-util.service';
@@ -7,6 +7,7 @@ import { IntentionUtilService } from '../../util/intention-util.service';
   selector: 'app-action-content',
   imports: [MatTooltipModule],
   templateUrl: './action-content.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./action-content.component.scss'],
 })
 export class ActionContentComponent {

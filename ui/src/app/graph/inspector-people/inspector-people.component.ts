@@ -1,4 +1,4 @@
-import { Component, OnChanges, computed, input, inject, output, signal } from '@angular/core';
+import { Component, OnChanges, computed, input, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -40,6 +40,7 @@ interface TeamGroup {
     RouterModule,
   ],
   templateUrl: './inspector-people.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-people.component.scss',
 })
 export class InspectorPeopleComponent implements OnChanges {

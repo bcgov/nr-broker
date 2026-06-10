@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 
 import { IntentionApiService } from '../../service/intention-api.service';
@@ -12,6 +12,7 @@ import { TitleCasePipe } from '@angular/common';
     TitleCasePipe,
   ],
   templateUrl: './intention-reference-item.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './intention-reference-item.component.scss',
 })
 export class IntentionReferenceItemComponent {

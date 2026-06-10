@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -34,6 +34,7 @@ import {
     MatSelectModule,
   ],
   templateUrl: './vault-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './vault-dialog.component.scss',
 })
 export class VaultDialogComponent implements OnInit {

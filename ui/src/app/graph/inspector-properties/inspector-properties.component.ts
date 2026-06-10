@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { VertexPropDto } from '../../service/persistence/dto/vertex.dto';
@@ -9,6 +9,7 @@ import { CollectionEdgePrototype } from '../../service/persistence/dto/collectio
   selector: 'app-inspector-properties',
   imports: [CommonModule, MatTableModule],
   templateUrl: './inspector-properties.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-properties.component.scss',
 })
 export class InspectorPropertiesComponent {

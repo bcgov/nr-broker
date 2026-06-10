@@ -1,4 +1,4 @@
-import { Component, input, inject, output } from '@angular/core';
+import { Component, input, inject, output, ChangeDetectionStrategy } from '@angular/core';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,6 +22,7 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
     VertexNameComponent,
   ],
   templateUrl: './inspector-edge.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-edge.component.scss',
 })
 export class InspectorEdgeComponent {

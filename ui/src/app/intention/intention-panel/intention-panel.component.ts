@@ -1,4 +1,4 @@
-import { Component, effect, input, inject } from '@angular/core';
+import { Component, effect, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +30,7 @@ import { ActionContentComponent } from '../action-content/action-content.compone
     ActionContentComponent,
   ],
   templateUrl: './intention-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './intention-panel.component.scss',
 })
 export class IntentionPanelComponent {

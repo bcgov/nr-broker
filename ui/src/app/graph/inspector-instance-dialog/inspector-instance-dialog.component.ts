@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -30,6 +30,7 @@ export interface InspectorInstanceDialogReturnDao {
     MatDialogModule,
   ],
   templateUrl: './inspector-instance-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-instance-dialog.component.scss',
 })
 export class InspectorInstanceDialogComponent implements OnInit {

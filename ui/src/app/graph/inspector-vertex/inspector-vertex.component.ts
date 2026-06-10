@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input, inject, signal } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { InspectorAccountComponent } from '../inspector-account/inspector-account.component';
@@ -31,6 +31,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     MatDividerModule,
   ],
   templateUrl: './inspector-vertex.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-vertex.component.scss',
 })
 export class InspectorVertexComponent implements OnChanges {

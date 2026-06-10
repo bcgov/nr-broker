@@ -1,4 +1,4 @@
-import { Component, input, inject, computed, signal } from '@angular/core';
+import { Component, input, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,6 +25,7 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
     DetailsItemComponent,
   ],
   templateUrl: './service-instance-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-instance-details.component.scss',
 })
 export class ServiceInstanceDetailsComponent {

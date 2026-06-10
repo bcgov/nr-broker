@@ -15,7 +15,7 @@
   <mat-list>
     <mat-list-item>
       <span matListItemTitle>Enabled</span>
-      <span matListItemLine>{{ vaultConfig?.enabled | yesno }}</span>
+      <span matListItemLine>{{ $safeNavigationMigration(vaultConfig?.enabled) | yesno }}</span>
       @if (showHelp()) {
         <span matListItemLine>
           <small>If enabled, this service will be configured to use Vault. This does not add or remove any secrets.</small>
@@ -24,7 +24,7 @@
     </mat-list-item>
     <mat-list-item>
       <span matListItemTitle>User Access</span>
-      <span matListItemLine>{{ vaultConfig?.enabled | yesno }}</span>
+      <span matListItemLine>{{ $safeNavigationMigration(vaultConfig?.enabled) | yesno }}</span>
       @if (showHelp()) {
         <span matListItemLine>
           <small>If enabled, organization policies will permit access based on upstream user's role and the environment.</small>

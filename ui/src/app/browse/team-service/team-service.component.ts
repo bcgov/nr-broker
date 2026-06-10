@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +31,7 @@ import { PermissionService } from '../../service/permission.service';
     MatTooltipModule,
   ],
   templateUrl: './team-service.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-service.component.scss',
 })
 export class TeamServiceComponent {

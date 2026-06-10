@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, inject } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -21,6 +21,7 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
     DetailsItemComponent,
   ],
   templateUrl: './inspector-repository-sync.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-repository-sync.component.scss',
 })
 export class InspectorRepositorySyncComponent {
