@@ -78,10 +78,10 @@ export function IsStringOrStringArray(validationOptions?: ValidationOptions) {
 }
 
 export class VaultActorPoliciesDto {
-  @IsDefined()
-  approle!: Record<string, readonly string[]>;
-  @IsDefined()
-  developer!: Record<string, readonly string[]>;
+  @IsOptional()
+  approle?: Record<string, readonly string[]>;
+  @IsOptional()
+  developer?: Record<string, readonly string[]>;
 }
 
 export class VaultConfigApproleDto {
