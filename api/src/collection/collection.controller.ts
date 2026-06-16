@@ -108,8 +108,10 @@ export class CollectionController {
       res.redirect(`/browse/user/${user.id}`);
     } catch (e) {
       const message = 'Problem linking GitHub account';
+      const errorDetail =
+        e instanceof Error ? encodeURIComponent(e.message) : '';
       res.redirect(
-        `/error?code=400&message=${encodeURIComponent(message)}&error=${encodeURIComponent(e.message)}`,
+        `/error?code=400&message=${encodeURIComponent(message)}${errorDetail ? `&error=${errorDetail}` : ''}`,
       );
     }
   }
@@ -504,11 +506,18 @@ export class CollectionController {
   async exportCollection(
     @Param('collection') collection: string,
     @Query('fields')
-    fields: string[] | undefined,
+    fields: string[] | string | undefined,
   ) {
+    // Normalize fields to always be an array
+    const fieldArray =
+      fields === undefined || fields === null
+        ? undefined
+        : Array.isArray(fields)
+          ? fields
+          : [fields];
     return this.service.exportCollection(
       this.parseCollectionApi(collection),
-      fields,
+      fieldArray,
     );
   }
 

@@ -9,6 +9,7 @@ A suggested deployment strategy is to use [envconsul](https://github.com/hashico
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
 | APP_ENVIRONMENT |  |  | The name of the environment this instance is running in. A local environment should be blank. Required to push audit to AWS. |
+| APP_SESSION_COOKIE_SECURE |  |  | If true, set secure flag on cookie which requires the usage of https. |
 | BROKER_URL |  |  | The external URL that this instance is running on. Used to create redirect urls. |
 | HOSTNAME |  |  | The hostname of the server this instance is running on. Used in logs. The instance with a hostname ending in '-0' is the primary node. It will cause issues if there is no primary node or there are multiple primary nodes'. |
 
