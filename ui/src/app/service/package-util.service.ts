@@ -39,7 +39,7 @@ export class PackageUtilService {
             if (search.meta.total > 0) {
               const respository = search.data[0].collection;
               if (respository && respository.scmUrl) {
-                if (respository.scmUrl.startsWith('https://github.com')) {
+                if (respository.scmUrl.startsWith('https://github.com/')) {
                   window.open(
                     `${respository.scmUrl}/commit/${version}`,
                     '_blank',
