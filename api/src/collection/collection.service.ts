@@ -197,7 +197,12 @@ export class CollectionService {
   }
 
   private sanitizeTag(tag: string): string {
-    return tag.trim();
+    return tag.trim()
+      .replace(/&/g, '')
+      .replace(/</g, '')
+      .replace(/>/g, '')
+      .replace(/"/g, '')
+      .replace(/'/g, '');
   }
 
   async searchCollection<T extends keyof CollectionDtoUnion>(
@@ -248,7 +253,7 @@ export class CollectionService {
 
   async exportCollection<T extends keyof CollectionDtoUnion>(
     type: T,
-    fields: string[],
+    fields?: string[],
   ) {
     const data = await this.collectionRepository.getCollections(type);
     if (!fields) {
