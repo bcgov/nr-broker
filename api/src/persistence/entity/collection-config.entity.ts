@@ -101,6 +101,15 @@ export class GitHubEdgeToRolesEmbeddable {
 
   @Property()
   role!: string;
+
+  @Property()
+  label!: string;
+
+  @Property()
+  description!: string;
+
+  @Property()
+  url!: string;
 }
 
 @Embeddable()

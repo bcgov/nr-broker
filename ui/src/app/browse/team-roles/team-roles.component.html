@@ -1,34 +1,27 @@
-<p>These are the roles available in NR Broker.</p>
+<p>Users are assigned to these roles when they need access to team resources or need to perform actions on behalf of the team.
+  The chips on the right summarize each role's authorizations. Hover over a chip to see a quick description, then click it to view full details.</p>
 
 @for (edge of edges; track edge.id) {
   <mat-divider></mat-divider>
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
     <span class="role-chip-group">
-      @if (getGitHubRole(edge) !== null) {
-        <a
-          class="github-role-chip"
-          [href]="getGitHubRole(edge)!.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          matRipple
-          [matTooltip]="getGitHubRole(edge)!.description"
-        >
-          <img src="assets/github.svg" class="github-role-icon" alt="" aria-hidden="true" />
-          {{ getGitHubRole(edge)!.label }}
+      @if (getGitHubRole(edge); as githubRole) {
+        <a [href]="githubRole.url" target="_blank" rel="noopener noreferrer">
+          <app-team-role-chip
+            [label]="githubRole.label"
+            [iconSrc]="'assets/github.svg'"
+            [tooltip]="githubRole.description"
+          />
         </a>
       }
-      @if (getBrokerChipInfo(edge) !== null) {
-        <button
-          type="button"
-          class="broker-sudo-chip"
-          matRipple
-          [matTooltip]="'View Broker permission details for this role'"
-          (click)="openBrokerRoleDialog(edge, getBrokerChipInfo(edge)!.label)"
-        >
-          <img src="assets/broker-bw.svg" class="broker-role-icon" alt="" aria-hidden="true" />
-          {{ getBrokerChipInfo(edge)!.label }}
-        </button>
+      @if (getBrokerChipInfo(edge); as brokerChipInfo) {
+        <app-team-role-chip
+          [label]="brokerChipInfo.label"
+          [iconSrc]="'assets/broker-bw.svg'"
+          [tooltip]="'View Broker permission details for this role'"
+          (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
+        />
       }
     </span>
   </h3>

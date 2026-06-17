@@ -5,8 +5,6 @@ import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatRippleModule } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -16,13 +14,7 @@ import {
   BrokerRoleMappingDialogComponent,
   BrokerRoleSudoCollection,
 } from '../broker-role-mapping-dialog/broker-role-mapping-dialog.component';
-
-interface GitHubRoleInfo {
-  role: string;
-  label: string;
-  description: string;
-  url: string;
-}
+import { TeamRoleChipComponment } from '../team-role-chip/team-role-chip.component';
 
 interface BrokerRoleInfo {
   label: 'sudo' | 'update' | 'approve';
@@ -38,42 +30,9 @@ interface BrokerChipInfo {
   environmentChanges: string[];
 }
 
-const GITHUB_ROLE_MAP: Record<string, GitHubRoleInfo> = {
-  admin: {
-    role: 'admin',
-    label: 'Admin',
-    description: 'Recommended for people who need full access to the project, including sensitive and destructive actions like managing security or deleting a repository.',
-    url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
-  },
-  maintain: {
-    role: 'maintain',
-    label: 'Maintain',
-    description: 'Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.',
-    url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
-  },
-  write: {
-    role: 'write',
-    label: 'Write',
-    description: 'Recommended for contributors who need to write access to the repository, including pushing code, creating branches, and opening issues and pull requests.',
-    url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
-  },
-  triage: {
-    role: 'triage',
-    label: 'Triage',
-    description: 'Recommended for contributors who need to proactively manage issues, discussions, and pull requests without write access',
-    url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
-  },
-  read: {
-    role: 'read',
-    label: 'Read',
-    description: 'Recommended for people who only need read access to the repository, such as stakeholders or observers.',
-    url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
-  },
-};
-
 @Component({
   selector: 'app-team-roles',
-  imports: [MatChipsModule, MatDividerModule, MatTooltipModule, MatRippleModule, EdgetitlePipe],
+  imports: [MatChipsModule, MatDividerModule, EdgetitlePipe, TeamRoleChipComponment],
   templateUrl: './team-roles.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-roles.component.scss',
@@ -106,14 +65,13 @@ export class TeamRolesComponent {
     });
   }
 
-  getGitHubRole(edge: CollectionEdgeConfig): GitHubRoleInfo | null {
+  getGitHubRole(edge: CollectionEdgeConfig): GitHubEdgeToRoles | null {
     const userConfig = this.configRecord['user'];
     const edgeToRoles: GitHubEdgeToRoles[] = userConfig?.edgeToRoles ?? [];
 
     for (const mapping of edgeToRoles) {
       if (mapping.edge?.includes(edge.name)) {
-        const roleInfo = GITHUB_ROLE_MAP[mapping.role];
-        return roleInfo ?? null;
+        return mapping ?? null;
       }
     }
 

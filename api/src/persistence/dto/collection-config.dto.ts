@@ -99,6 +99,9 @@ export class CollectionFieldDefaultSort {
 export class GitHubEdgeToRoles {
   edge!: string[];
   role!: string;
+  label!: string;
+  description!: string;
+  url!: string;
 }
 
 export class ConnectedTableEdgeInfo {

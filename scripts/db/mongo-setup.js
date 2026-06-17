@@ -447,10 +447,45 @@ result = db.collectionConfig.insertOne({
   ],
   index: 4,
   edgeToRoles: [
-    { edge: ['full-access'], role: 'admin' },
-    { edge: ['lead-developer'], role: 'maintain' },
-    { edge: ['developer'], role: 'write' },
-    { edge: ['owner', 'tester'], role: 'triage' },
+    {
+      edge: ['full-access'],
+      role: 'admin',
+      label: 'Admin',
+      description:
+        'Recommended for people who need full access to the project, including sensitive and destructive actions like managing security or deleting a repository.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['lead-developer'],
+      role: 'maintain',
+      label: 'Maintain',
+      description:
+        'Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['developer'],
+      role: 'write',
+      label: 'Write',
+      description:
+        'Recommended for contributors who need to write access to the repository, including pushing code, creating branches, and opening issues and pull requests.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['owner', 'tester'],
+      role: 'triage',
+      label: 'Triage',
+      description:
+        'Recommended for contributors who need to proactively manage issues, discussions, and pull requests without write access',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      role: 'read',
+      label: 'Read',
+      description:
+        'Recommended for people who only need read access to the repository, such as stakeholders or observers.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
   ],
   edges: [
     {
