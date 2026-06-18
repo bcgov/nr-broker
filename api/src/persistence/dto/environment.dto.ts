@@ -27,6 +27,9 @@ export class EnvironmentBaseDto extends CollectionBaseDto {
   @IsDefined()
   title!: string;
 
+  @IsString()
+  purpose!: string;
+
   @IsNumber()
   @IsDefined()
   position!: number;

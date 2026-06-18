@@ -38,5 +38,8 @@ export class EnvironmentEntity extends VertexPointerEntity {
   title: string;
 
   @Property()
+  purpose: string;
+
+  @Property()
   position: number;
 }

@@ -50,6 +50,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'prod-operator'],
   title: 'Production',
+  purpose:
+     'The live environment accessed by end users.',
   position: 0,
   vertex: result.insertedId,
 });
@@ -60,6 +62,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Test',
+  purpose:
+     'Mirrors production and is used for quality assurance testing.',
   position: 10,
   vertex: result.insertedId,
 });
@@ -73,6 +77,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Development',
+  purpose:
+     'For developers to experiment and test features.',
   position: 20,
   vertex: result.insertedId,
 });
@@ -83,6 +89,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Tools',
+  purpose:
+     'Contains shared resources like CI/CD pipelines, container registries, and automation tools.',
   position: 30,
   vertex: result.insertedId,
 });
@@ -140,6 +148,12 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'string',
       hint: 'A freeform human readable alternative to the name',
+    },
+    purpose: {
+      name: 'Purpose',
+      required: true,
+      type: 'string',
+      hint: 'A short description of what this environment is used for',
     },
     position: {
       name: 'Position',
