@@ -12,22 +12,22 @@ const collections = [
   {
     collection: 'service',
     sudoHelp:
-      'Sudo allows updates to protected service settings such as Vault integration fields.',
+      'Allows viewing and updating protected service settings such as Vault integration fields',
   },
   {
     collection: 'brokerAccount',
     sudoHelp:
-      'Sudo allows elevated management of account-level access links that control downstream authorization.',
+      'Allows management of tokens that control team authorizations',
   },
   {
     collection: 'team',
     sudoHelp:
-      'Sudo allows owner-level administrative actions on team configuration and ownership controls.',
+      'Allows triggering connected objects like repositories to sync',
   },
   {
     collection: 'repository',
     sudoHelp:
-      'Sudo allows elevated repository operations such as secret and user synchronization controls.',
+      'Allows operations such as secret and user synchronization',
   },
 ];
 

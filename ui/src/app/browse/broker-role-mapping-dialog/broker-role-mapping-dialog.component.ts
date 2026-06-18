@@ -12,6 +12,8 @@ import { GraphRolePermissionRuleDto } from '../../service/graph/dto/graph-role-p
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { EdgetitlePipe } from '../../util/edgetitle.pipe';
+import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 
 echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -22,8 +24,8 @@ export interface BrokerRoleSudoCollection {
 }
 
 export interface BrokerRoleMappingDialogData {
-  roleName: string;
-  chipLabel: 'sudo' | 'update' | 'approve' | 'Change';
+  edge: CollectionEdgeConfig;
+  chipLabel: string;
   rules: GraphRolePermissionRuleDto[];
   sudoCollections: BrokerRoleSudoCollection[];
   changeEnvironments: string[];
@@ -74,6 +76,7 @@ interface PermissionNodeStyle {
     MatDialogModule,
     MatButtonModule,
     CommonModule,
+    EdgetitlePipe,
     NgxEchartsDirective,
   ],
   providers: [provideEchartsCore({ echarts })],
@@ -329,7 +332,7 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
 
     return {
       title: {
-        text: `${this.data.roleName}`,
+        text: `${this.data.edge.name}`,
         left: 'center',
       },
       tooltip: {
@@ -366,7 +369,7 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
           draggable: true,
           layout: 'none',
           edgeSymbol: ['none', 'arrow'],
-          edgeSymbolSize: 7,
+          edgeSymbolSize: 15,
           lineStyle: {
             color: 'source',
             curveness: 0.15,

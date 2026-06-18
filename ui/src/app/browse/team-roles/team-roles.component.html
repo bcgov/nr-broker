@@ -15,11 +15,11 @@
           />
         </a>
       }
-      @if (getBrokerChipInfo(edge); as brokerChipInfo) {
+      @if (getBrokerRole(edge); as brokerChipInfo) {
         <app-team-role-chip
           [label]="brokerChipInfo.label"
           [iconSrc]="'assets/broker-bw.svg'"
-          [tooltip]="'View Broker permission details for this role'"
+          [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
           (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
         />
       }

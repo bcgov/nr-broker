@@ -16,18 +16,10 @@ import {
 } from '../broker-role-mapping-dialog/broker-role-mapping-dialog.component';
 import { TeamRoleChipComponment } from '../team-role-chip/team-role-chip.component';
 
-interface BrokerRoleInfo {
-  label: 'sudo' | 'update' | 'approve';
-}
-
-interface EnvironmentChangeRoleInfo {
-  label: string;
-  environments: string[];
-}
-
 interface BrokerChipInfo {
-  label: 'sudo' | 'update' | 'approve' | 'Change';
+  label: string;
   environmentChanges: string[];
+  description?: string;
 }
 
 @Component({
@@ -78,7 +70,7 @@ export class TeamRolesComponent {
     return null;
   }
 
-  getEnvironmentChangeRole(edge: CollectionEdgeConfig): EnvironmentChangeRoleInfo | null {
+  getEnvironmentChangeRole(edge: CollectionEdgeConfig): string[] | null {
     const environments = this.environments
       .filter((environment) => environment.changeRoles?.includes(edge.name))
       .map((environment) => environment.title || environment.name);
@@ -87,10 +79,7 @@ export class TeamRolesComponent {
       return null;
     }
 
-    return {
-      label: 'Change',
-      environments,
-    };
+    return environments;
   }
 
   getEnvironmentChangeRoleTooltip(edge: CollectionEdgeConfig): string {
@@ -98,42 +87,66 @@ export class TeamRolesComponent {
     if (!info) {
       return '';
     }
-    return `Change role environments: ${info.environments.join(', ')}`;
-  }
-
-  getBrokerChipInfo(edge: CollectionEdgeConfig): BrokerChipInfo | null {
-    const brokerRole = this.getBrokerRole(edge);
-    const envChangeRole = this.getEnvironmentChangeRole(edge);
-    if (!brokerRole && !envChangeRole) {
-      return null;
+    if (info.length === 1) {
+      return `change the ${info[0].toLocaleLowerCase()} environment`;
     }
 
-    return {
-      label: brokerRole?.label ?? 'Change',
-      environmentChanges: envChangeRole?.environments ?? [],
-    };
+    if (info.length === this.environments.length) {
+      return ' change all environments';
+    }
+
+    // Find the environment with the highest priority (lowest position number)
+    for (const env of this.environments) {
+      if (info.includes(env.title || env.name)) {
+        return `change up to ${env.title?.toLocaleLowerCase() ?? env.name.toLocaleLowerCase()} environment`;
+      }
+    }
+
+    return 'change some environments';
   }
 
-  getBrokerRole(edge: CollectionEdgeConfig): BrokerRoleInfo | null {
+  getBrokerRole(edge: CollectionEdgeConfig): BrokerChipInfo | null {
     const roleRules = this.rolePermissionRulesByRole[edge.name] ?? [];
     const allPermissions = roleRules.flatMap((rule) =>
       rule.steps.flatMap((step) => step.permissions),
     );
+    const envChangeRole = this.getEnvironmentChangeRole(edge);
+    const envTooltip = this.getEnvironmentChangeRoleTooltip(edge).trim();
 
     if (allPermissions.includes('sudo')) {
-      return { label: 'sudo' };
+      return {
+        label: 'Sudo',
+        description: 'Click to view elevated permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+        environmentChanges: envChangeRole ?? [],
+      };
     }
     if (allPermissions.includes('update')) {
-      return { label: 'update' };
+      return {
+        label: 'Update',
+        description: 'Click to view update permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+        environmentChanges: envChangeRole ?? [],
+      };
     }
     if (allPermissions.includes('approve')) {
-      return { label: 'approve' };
+      return {
+        label: 'Approve',
+        description: 'Click to view approval permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+        environmentChanges: envChangeRole ?? [],
+      };
     }
 
-    return null;
+    if (!envChangeRole) {
+      return null;
+    }
+
+    return {
+      label: 'Change',
+      description: 'Can ' + this.getEnvironmentChangeRoleTooltip(edge),
+      environmentChanges: envChangeRole ?? [],
+    };
   }
 
-  openBrokerRoleDialog(edge: CollectionEdgeConfig, chipLabel: 'sudo' | 'update' | 'approve' | 'Change') {
+  openBrokerRoleDialog(edge: CollectionEdgeConfig, chipLabel: string): void {
     const roleRules = this.rolePermissionRulesByRole[edge.name] ?? [];
     const sudoCollectionsMap: Record<string, BrokerRoleSudoCollection> = {};
     const envChangeRole = this.getEnvironmentChangeRole(edge);
@@ -155,11 +168,12 @@ export class TeamRolesComponent {
       width: '780px',
       maxWidth: '95vw',
       data: {
+        edge,
         roleName: edge.name,
         chipLabel,
         rules: roleRules,
         sudoCollections: Object.values(sudoCollectionsMap),
-        changeEnvironments: envChangeRole?.environments ?? [],
+        changeEnvironments: envChangeRole ?? [],
       },
     });
   }
