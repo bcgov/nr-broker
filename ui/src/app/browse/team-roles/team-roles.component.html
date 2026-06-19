@@ -23,6 +23,14 @@
           (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
         />
       }
+      @for (connectionChip of getConnectionConfigChipsForRole(edge.name); track connectionChip.label) {
+        <app-team-role-chip
+          [label]="connectionChip.label"
+          [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
+          [tooltip]="connectionChip.description ?? 'Click to view details'"
+          (chipClick)="openConnectionConfigDialog(connectionChip)"
+        />
+      }
     </span>
   </h3>
   <p class="user-role-help">{{ edge.help }}</p>
