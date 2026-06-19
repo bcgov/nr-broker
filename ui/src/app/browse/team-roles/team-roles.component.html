@@ -1,8 +1,29 @@
-<p>These are the roles available in NR Broker.</p>
+<p>Users are assigned to these roles when they need access to team resources or need to perform actions on behalf of the team.
+  The chips on the right summarize each role's authorizations. Hover over a chip to see a quick description, then click it to view full details.</p>
 
 @for (edge of edges; track edge.id) {
   <mat-divider></mat-divider>
-  <h3>{{ edge | edgetitle }}</h3>
-
+  <h3 class="role-title">
+    <span>{{ edge | edgetitle }}</span>
+    <span class="role-chip-group">
+      @if (getGitHubRole(edge); as githubRole) {
+        <a [href]="githubRole.url" target="_blank" rel="noopener noreferrer">
+          <app-team-role-chip
+            [label]="githubRole.label"
+            [iconSrc]="'assets/github.svg'"
+            [tooltip]="githubRole.description"
+          />
+        </a>
+      }
+      @if (getBrokerRole(edge); as brokerChipInfo) {
+        <app-team-role-chip
+          [label]="brokerChipInfo.label"
+          [iconSrc]="'assets/broker-bw.svg'"
+          [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
+          (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
+        />
+      }
+    </span>
+  </h3>
   <p class="user-role-help">{{ edge.help }}</p>
 }

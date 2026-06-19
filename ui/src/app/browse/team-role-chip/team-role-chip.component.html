@@ -1,0 +1,12 @@
+<button
+  type="button"
+  class="role-chip role-chip-button"
+  matRipple
+  [matTooltip]="tooltip()"
+  (click)="onClick()"
+>
+  <span class="role-chip-content">
+    <img [src]="iconSrc()" class="role-chip-icon" alt="" aria-hidden="true" />
+    {{ label() }}
+  </span>
+</button>

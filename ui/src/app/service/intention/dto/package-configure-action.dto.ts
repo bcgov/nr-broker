@@ -1,8 +1,8 @@
 import { Equals, IsIn } from 'class-validator';
-import { ACTION_PROVISION_TOKEN_SELF } from './constants.dto';
+import { ACTION_PROVISION_TOKEN_SELF, ACTION_PROVISION_TOKEN_JWT } from './constants.dto';
 import { ACTION_NAMES, ActionDto } from './action.dto';
 
-export const PACKAGE_CONFIGURE_PROVISION_NAMES = [ACTION_PROVISION_TOKEN_SELF];
+export const PACKAGE_CONFIGURE_PROVISION_NAMES = [ACTION_PROVISION_TOKEN_SELF, ACTION_PROVISION_TOKEN_JWT];
 export type PackageConfigureProvisionName =
   (typeof PACKAGE_CONFIGURE_PROVISION_NAMES)[number];
 

@@ -47,6 +47,7 @@ import { VertexPointerDto } from '../dto/vertex-pointer.dto';
 import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
+import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -102,6 +103,12 @@ export class GraphRedisRepository implements GraphRepository {
     roleName: string,
   ): Promise<UserPermissionDto> {
     return this.repo.getTeamUserPermissions(teamVertexId, roleName);
+  }
+
+  public getTeamRolePermissionRules(
+    roleName?: string,
+  ): Promise<GraphRolePermissionRuleDto[]> {
+    return this.repo.getTeamRolePermissionRules(roleName);
   }
 
   public async addEdge(edge: EdgeInsertDto): Promise<EdgeEntity> {

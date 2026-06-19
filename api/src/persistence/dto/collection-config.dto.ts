@@ -99,6 +99,9 @@ export class CollectionFieldDefaultSort {
 export class GitHubEdgeToRoles {
   edge!: string[];
   role!: string;
+  label!: string;
+  description!: string;
+  url!: string;
 }
 
 export class ConnectedTableEdgeInfo {
@@ -137,6 +140,7 @@ export class CollectionConfigDto {
   permissions!: CollectionConfigPermissions;
   show!: boolean;
   showUserRoles!: boolean;
+  sudoHelp?: string;
 }
 
 export class LinksAltDto {

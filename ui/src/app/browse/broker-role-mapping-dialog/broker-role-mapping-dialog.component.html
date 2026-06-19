@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Broker Role Permissions - {{ data.edge | edgetitle }}</h2>
+
+<mat-dialog-content>
+  <p>
+    The following chart shows how this role is granted permissions. Each node represents a collection (vertex) type,
+    and connections (edges) show the type of connection required. If a path matching the required connections exists in Broker, the user will have the corresponding
+    permissions on that collection item. Hover over a node or edge to see more details. Restricted graph edges are never followed.
+  </p>
+  <div class="chart-container">
+    <div echarts [options]="echartsOptions" class="echarts-container"></div>
+  </div>
+
+  <p class="chart-legend">
+    <span class="legend-item">
+      <span class="legend-symbol legend-symbol-default"></span>
+      Browse/default
+    </span>
+    <span class="legend-item">
+      <span class="legend-symbol legend-symbol-update"></span>
+      Update
+    </span>
+    <span class="legend-item">
+      <span class="legend-symbol legend-symbol-delete"></span>
+      Delete
+    </span>
+    <span class="legend-item">
+      <span class="legend-symbol legend-symbol-approve"></span>
+      Approve
+    </span>
+    <span class="legend-item">
+      <span class="legend-symbol legend-symbol-sudo"></span>
+      Sudo
+    </span>
+  </p>
+
+  @if (data.sudoCollections.length > 0) {
+    <p>This role has sudo (elevated permissions) to perform actions on the following collections:</p>
+    <ul class="sudo-collection-list">
+      @for (collection of data.sudoCollections; track collection.collection) {
+        <li>
+          <strong>{{ collection.title }}</strong>
+          @if (collection.sudoHelp) {
+            <span>: {{ collection.sudoHelp }}</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (data.changeEnvironments.length > 0) {
+    <h3>Environment change access</h3>
+    <p>This role can makes changes to the following environments:</p>
+    <ul class="sudo-collection-list">
+      @for (environment of data.changeEnvironments; track environment) {
+        <li>{{ environment }}</li>
+      }
+    </ul>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

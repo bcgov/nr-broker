@@ -50,6 +50,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'prod-operator'],
   title: 'Production',
+  purpose:
+     'The live environment accessed by end users',
   position: 0,
   vertex: result.insertedId,
 });
@@ -60,6 +62,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Test',
+  purpose:
+     'Mirrors production and is used for quality assurance testing',
   position: 10,
   vertex: result.insertedId,
 });
@@ -73,6 +77,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Development',
+  purpose:
+     'For developers to experiment and test features',
   position: 20,
   vertex: result.insertedId,
 });
@@ -83,6 +89,8 @@ db.environment.insertOne({
   aliases: [],
   changeRoles: ['full-access', 'lead-developer', 'developer'],
   title: 'Tools',
+  purpose:
+     'Contains shared resources like CI/CD pipelines, container registries, and automation tools',
   position: 30,
   vertex: result.insertedId,
 });
@@ -140,6 +148,12 @@ result = db.collectionConfig.insertOne({
       required: true,
       type: 'string',
       hint: 'A freeform human readable alternative to the name',
+    },
+    purpose: {
+      name: 'Purpose',
+      required: true,
+      type: 'string',
+      hint: 'A short description of what this environment is used for',
     },
     position: {
       name: 'Position',
@@ -345,6 +359,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'title', 'type'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
+  sudoHelp:
+    'Allows viewing and updating protected service settings such as Vault integration fields',
   color: '5ab1ef',
   permissions: {
     browse: true,
@@ -445,10 +461,45 @@ result = db.collectionConfig.insertOne({
   ],
   index: 4,
   edgeToRoles: [
-    { edge: ['full-access'], role: 'admin' },
-    { edge: ['lead-developer'], role: 'maintain' },
-    { edge: ['developer'], role: 'write' },
-    { edge: ['owner', 'tester'], role: 'triage' },
+    {
+      edge: ['full-access'],
+      role: 'admin',
+      label: 'Admin',
+      description:
+        'Recommended for people who need full access to the project, including sensitive and destructive actions like managing security or deleting a repository.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['lead-developer'],
+      role: 'maintain',
+      label: 'Maintain',
+      description:
+        'Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['developer'],
+      role: 'write',
+      label: 'Write',
+      description:
+        'Recommended for contributors who need to write access to the repository, including pushing code, creating branches, and opening issues and pull requests.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      edge: ['owner', 'tester'],
+      role: 'triage',
+      label: 'Triage',
+      description:
+        'Recommended for contributors who need to proactively manage issues, discussions, and pull requests without write access',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
+    {
+      role: 'read',
+      label: 'Read',
+      description:
+        'Recommended for people who only need read access to the repository, such as stakeholders or observers.',
+      url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
+    },
   ],
   edges: [
     {
@@ -669,6 +720,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'email', 'clientId', 'website', 'requireRoleId'],
   name: 'Broker Account',
   hint: 'A Broker Account grants programmatic access to the API to teams and allows them to access associated services.',
+  sudoHelp:
+    'Allows management of tokens that control team authorizations',
   color: '8d98b3',
   permissions: {
     browse: true,
@@ -749,6 +802,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'email', 'website'],
   name: 'Team',
   hint: 'A team is a collection of users with roles that can be granted control of accounts and access to services.',
+  sudoHelp:
+    'Allows viewing and updating protected service settings such as Vault integration fields',
   color: 'e5cf0d',
   permissions: {
     browse: true,
@@ -938,6 +993,8 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'type', 'scmUrl'],
   name: 'Repository',
   hint: 'A source control repository tracks, manages, and versions project files and code.',
+  sudoHelp:
+    'Allows operations such as secret and user synchronization',
   color: 'eeceda',
   permissions: {
     browse: true,

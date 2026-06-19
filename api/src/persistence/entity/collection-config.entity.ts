@@ -101,6 +101,15 @@ export class GitHubEdgeToRolesEmbeddable {
 
   @Property()
   role!: string;
+
+  @Property()
+  label!: string;
+
+  @Property()
+  description!: string;
+
+  @Property()
+  url!: string;
 }
 
 @Embeddable()
@@ -196,6 +205,9 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property()
   showUserRoles: boolean;
+
+  @Property({ nullable: true })
+  sudoHelp?: string;
 
   @Embedded({
     entity: () => CollectionSyncConfigEmbeddable,
