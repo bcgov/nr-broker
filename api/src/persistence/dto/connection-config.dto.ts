@@ -10,6 +10,7 @@ export class ConnectionConfigDto {
   id!: string;
   collection!: string;
   description!: string;
+  documentationUrl?: string;
   href!: string;
   imageUrl?: string;
   imageEmbedded?: string;

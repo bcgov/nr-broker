@@ -6,6 +6,14 @@
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
     <span class="role-chip-group">
+      @for (connectionChip of getConnectionConfigChipsForRole(edge.name); track connectionChip.label) {
+        <app-team-role-chip
+          [label]="connectionChip.label"
+          [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
+          [tooltip]="connectionChip.description ?? 'Click to view details'"
+          (chipClick)="openConnectionConfigDialog(connectionChip)"
+        />
+      }
       @if (getGitHubRole(edge); as githubRole) {
         <a [href]="githubRole.url" target="_blank" rel="noopener noreferrer">
           <app-team-role-chip
@@ -21,14 +29,6 @@
           [iconSrc]="'assets/broker-bw.svg'"
           [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
           (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
-        />
-      }
-      @for (connectionChip of getConnectionConfigChipsForRole(edge.name); track connectionChip.label) {
-        <app-team-role-chip
-          [label]="connectionChip.label"
-          [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
-          [tooltip]="connectionChip.description ?? 'Click to view details'"
-          (chipClick)="openConnectionConfigDialog(connectionChip)"
         />
       }
     </span>

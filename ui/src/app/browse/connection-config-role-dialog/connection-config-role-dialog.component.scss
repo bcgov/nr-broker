@@ -4,53 +4,7 @@
 }
 
 .config-image {
-  max-width: 200px;
-  max-height: 200px;
+  max-width: 150px;
+  max-height: 150px;
   border-radius: 4px;
-}
-
-.description {
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
-.links-section {
-  margin-top: 16px;
-}
-
-.links-section h3 {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.links-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.links-list li {
-  margin: 0;
-}
-
-.links-list a {
-  color: var(--mat-sys-primary);
-  text-decoration: none;
-  font-size: 14px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-p {
-  font-size: 14px;
-}
-
-h3 {
-  margin: 16px 0 8px;
 }

@@ -6,7 +6,6 @@ import { ConnectionConfigDto } from '../../service/persistence/dto/connection-co
 
 export interface ConnectionConfigRoleDialogData {
   connectionConfig: ConnectionConfigDto;
-  documentationUrl?: string;
 }
 
 @Component({

@@ -25,6 +25,9 @@ export class ConnectionConfigEntity extends BaseEntity {
   description: string;
 
   @Property()
+  documentationUrl?: string;
+
+  @Property()
   href: string;
 
   @Property()
