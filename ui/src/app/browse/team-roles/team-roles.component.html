@@ -6,28 +6,31 @@
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
     <span class="role-chip-group">
-      @for (connectionChip of getConnectionConfigChipsForRole(edge.name); track connectionChip.label) {
+      @for (connectionChip of getConnectionConfigChipsForRole()[edge.name] ?? []; track connectionChip.label) {
         <app-team-role-chip
           [label]="connectionChip.label"
           [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
+          [productName]="connectionChip.connectionConfig.name"
           [tooltip]="connectionChip.description ?? 'Click to view details'"
-          (chipClick)="openConnectionConfigDialog(connectionChip)"
+          (click)="openConnectionConfigDialog(connectionChip)"
         />
       }
-       @if (getGitHubRole(edge); as githubRole) {
+       @if (getGitHubRole()[edge.name]; as githubRole) {
          <app-team-role-chip
            [label]="githubRole.label"
            [iconSrc]="'assets/github.svg'"
+           [productName]="'GitHub'"
            [tooltip]="githubRole.description"
-           (chipClick)="openConnectionConfigDialog(getGitHubConnectionConfigChip(githubRole))"
+           (click)="openConnectionConfigDialog(getGitHubConnectionConfigChip(githubRole))"
          />
       }
-      @if (getBrokerRole(edge); as brokerChipInfo) {
+      @if (getBrokerRole()[edge.name]; as brokerChipInfo) {
         <app-team-role-chip
           [label]="brokerChipInfo.label"
           [iconSrc]="'assets/broker-bw.svg'"
+          [productName]="'Broker'"
           [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
-          (chipClick)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
+          (click)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
         />
       }
     </span>
