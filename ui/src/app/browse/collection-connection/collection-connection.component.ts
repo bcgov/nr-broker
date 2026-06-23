@@ -53,6 +53,11 @@ export class CollectionConnectionComponent {
       return [];
     }
     return [
+      ...(this.config()?.connectedTable?.map((c) => ({
+        collection: c.collection,
+        restrict: false,
+        direction: c.direction,
+      })) ?? []),
       ...(combo.upstream.map((combo) => ({
         collection: combo.vertex.collection,
         restrict: !!combo.edge.restrict,
