@@ -2,8 +2,7 @@
   type="button"
   class="role-chip role-chip-button"
   matRipple
-  [matTooltip]="tooltip()"
-  (click)="onClick()"
+  [matTooltip]="tooltip() ? (productName() || label()) + ': ' + tooltip() : (productName() || label())"
 >
   <span class="role-chip-content">
     <img [src]="iconSrc()" class="role-chip-icon" alt="" aria-hidden="true" />

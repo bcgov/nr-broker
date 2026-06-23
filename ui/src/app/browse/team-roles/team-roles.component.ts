@@ -1,4 +1,5 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
@@ -52,65 +53,122 @@ export class TeamRolesComponent {
     (edge) => edge.collection === 'team',
   );
 
-  private readonly rolePermissionRulesByRole: Record<string, GraphRolePermissionRuleDto[]> = {};
-  private environments: EnvironmentDto[] = [];
-  private connectionConfigs: ConnectionConfigDto[] = [];
+  readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
+    this.graphApi.getTeamRolePermissionRulesArgs(),
+  );
+  readonly environmentResource = httpResource<EnvironmentDto[]>(() =>
+    this.collectionApi.exportCollectionArgs('environment'),
+  );
+  readonly connectionConfigResource = httpResource<ConnectionConfigDto[]>(() =>
+    this.systemApi.getConnectionConfigArgs(),
+  );
+  private readonly rolePermissionRulesByRole = computed<Record<string, GraphRolePermissionRuleDto[]>>(() => {
+    const rulesByRole: Record<string, GraphRolePermissionRuleDto[]> = {};
 
-  constructor() {
-    this.graphApi.getTeamRolePermissionRules().subscribe((rules) => {
-      for (const rule of rules) {
-        if (!this.rolePermissionRulesByRole[rule.roleName]) {
-          this.rolePermissionRulesByRole[rule.roleName] = [];
-        }
-        this.rolePermissionRulesByRole[rule.roleName].push(rule);
+    for (const rule of this.teamRolePermissionRulesResource.value() ?? []) {
+      if (!rulesByRole[rule.roleName]) {
+        rulesByRole[rule.roleName] = [];
       }
-    });
 
-    this.collectionApi.exportCollection('environment').subscribe((environments) => {
-      this.environments = [...environments].sort((a, b) => a.position - b.position);
-    });
+      rulesByRole[rule.roleName].push(rule);
+    }
 
-    this.systemApi.getConnectionConfig().subscribe((configs) => {
-      this.connectionConfigs = configs;
-    });
-  }
+    return rulesByRole;
+  });
+  private readonly environments = computed(() =>
+    [...(this.environmentResource.value() ?? [])].sort((a, b) => a.position - b.position),
+  );
+  private readonly connectionConfigs = computed(() => this.connectionConfigResource.value() ?? []);
 
-  getGitHubRole(edge: CollectionEdgeConfig): GitHubEdgeToRoles | null {
+  readonly getGitHubRole = computed<Record<string, GitHubEdgeToRoles>>(() => {
     const userConfig = this.configRecord['user'];
     const edgeToRoles: GitHubEdgeToRoles[] = userConfig?.edgeToRoles ?? [];
+    const githubRolesByEdge: Record<string, GitHubEdgeToRoles> = {};
 
     for (const mapping of edgeToRoles) {
-      if (mapping.edge?.includes(edge.name)) {
-        return mapping ?? null;
+      for (const edgeName of mapping.edge ?? []) {
+        githubRolesByEdge[edgeName] = mapping;
       }
     }
 
-    return null;
-  }
+    return githubRolesByEdge;
+  });
 
-  getConnectionConfigChipsForRole(roleName: string): ConnectionConfigChipInfo[] {
-    const chips: ConnectionConfigChipInfo[] = [];
+  readonly getConnectionConfigChipsForRole = computed<Record<string, ConnectionConfigChipInfo[]>>(() => {
+    const chipsByRole: Record<string, ConnectionConfigChipInfo[]> = {};
 
-    for (const config of this.connectionConfigs) {
+    for (const config of this.connectionConfigs()) {
       for (const mapping of config.roleChipMappings ?? []) {
-        if (mapping.role === roleName) {
-          chips.push({
-            label: mapping.label,
-            description: mapping.description,
-            connectionConfig: config,
-          });
+        if (!chipsByRole[mapping.role]) {
+          chipsByRole[mapping.role] = [];
         }
+
+        chipsByRole[mapping.role].push({
+          label: mapping.label,
+          description: mapping.description,
+          connectionConfig: config,
+        });
       }
     }
 
-    return chips;
-  }
+    return chipsByRole;
+  });
 
+  readonly getBrokerRole = computed<Record<string, BrokerChipInfo | null>>(() => {
+    const brokerRolesByEdge: Record<string, BrokerChipInfo | null> = {};
+    const rolePermissionRulesByRole = this.rolePermissionRulesByRole();
+
+    for (const edge of this.edges) {
+      const roleRules = rolePermissionRulesByRole[edge.name] ?? [];
+      const allPermissions = roleRules.flatMap((rule) =>
+        rule.steps.flatMap((step) => step.permissions),
+      );
+      const envChangeRole = this.getEnvironmentChangeRole(edge.name);
+      const envTooltip = this.getEnvironmentChangeRoleTooltip(edge.name).trim();
+
+      if (allPermissions.includes('sudo')) {
+        brokerRolesByEdge[edge.name] = {
+          label: 'Sudo',
+          description: 'Click to view elevated permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+          environmentChanges: envChangeRole ?? [],
+        };
+        continue;
+      }
+
+      if (allPermissions.includes('update')) {
+        brokerRolesByEdge[edge.name] = {
+          label: 'Update',
+          description: 'Click to view update permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+          environmentChanges: envChangeRole ?? [],
+        };
+        continue;
+      }
+
+      if (allPermissions.includes('approve')) {
+        brokerRolesByEdge[edge.name] = {
+          label: 'Approve',
+          description: 'Click to view approval permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
+          environmentChanges: envChangeRole ?? [],
+        };
+        continue;
+      }
+
+      brokerRolesByEdge[edge.name] = envChangeRole
+        ? {
+            label: 'Change',
+            description: 'Can ' + this.getEnvironmentChangeRoleTooltip(edge.name),
+            environmentChanges: envChangeRole,
+          }
+        : null;
+    }
+
+    return brokerRolesByEdge;
+  });
   getGitHubConnectionConfigChip(githubRole: GitHubEdgeToRoles): ConnectionConfigChipInfo | null {
     if (!githubRole) return null;
 
     // Find the connection config that has a roleChipMapping for this GitHub role
-    for (const config of this.connectionConfigs) {
+    for (const config of this.connectionConfigs()) {
       for (const mapping of config.roleChipMappings ?? []) {
         if (mapping.role === githubRole.role) {
           return {
@@ -140,51 +198,10 @@ export class TeamRolesComponent {
     };
   }
 
-  getBrokerRole(edge: CollectionEdgeConfig): BrokerChipInfo | null {
-    const roleRules = this.rolePermissionRulesByRole[edge.name] ?? [];
-    const allPermissions = roleRules.flatMap((rule) =>
-      rule.steps.flatMap((step) => step.permissions),
-    );
-    const envChangeRole = this.getEnvironmentChangeRole(edge);
-    const envTooltip = this.getEnvironmentChangeRoleTooltip(edge).trim();
-
-    if (allPermissions.includes('sudo')) {
-      return {
-        label: 'Sudo',
-        description: 'Click to view elevated permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
-        environmentChanges: envChangeRole ?? [],
-      };
-    }
-    if (allPermissions.includes('update')) {
-      return {
-        label: 'Update',
-        description: 'Click to view update permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
-        environmentChanges: envChangeRole ?? [],
-      };
-    }
-    if (allPermissions.includes('approve')) {
-      return {
-        label: 'Approve',
-        description: 'Click to view approval permissions' + (envTooltip ? ', and can ' + envTooltip : ''),
-        environmentChanges: envChangeRole ?? [],
-      };
-    }
-
-    if (!envChangeRole) {
-      return null;
-    }
-
-    return {
-      label: 'Change',
-      description: 'Can ' + this.getEnvironmentChangeRoleTooltip(edge),
-      environmentChanges: envChangeRole ?? [],
-    };
-  }
-
   openBrokerRoleDialog(edge: CollectionEdgeConfig, chipLabel: string): void {
-    const roleRules = this.rolePermissionRulesByRole[edge.name] ?? [];
+    const roleRules = this.rolePermissionRulesByRole()[edge.name] ?? [];
     const sudoCollectionsMap: Record<string, BrokerRoleSudoCollection> = {};
-    const envChangeRole = this.getEnvironmentChangeRole(edge);
+    const envChangeRole = this.getEnvironmentChangeRole(edge.name);
 
     for (const rule of roleRules) {
       for (const step of rule.steps) {
@@ -233,9 +250,9 @@ export class TeamRolesComponent {
     return connectionConfig.imageEmbedded || connectionConfig.imageUrl || 'assets/broker-bw.svg';
   }
 
-  private getEnvironmentChangeRole(edge: CollectionEdgeConfig): string[] | null {
-    const environments = this.environments
-      .filter((environment) => environment.changeRoles?.includes(edge.name))
+  private getEnvironmentChangeRole(roleName: string): string[] | null {
+    const environments = this.environments()
+      .filter((environment) => environment.changeRoles?.includes(roleName))
       .map((environment) => environment.title || environment.name);
 
     if (environments.length === 0) {
@@ -245,8 +262,8 @@ export class TeamRolesComponent {
     return environments;
   }
 
-  private getEnvironmentChangeRoleTooltip(edge: CollectionEdgeConfig): string {
-    const info = this.getEnvironmentChangeRole(edge);
+  private getEnvironmentChangeRoleTooltip(roleName: string): string {
+    const info = this.getEnvironmentChangeRole(roleName);
     if (!info) {
       return '';
     }
@@ -254,12 +271,12 @@ export class TeamRolesComponent {
       return `change the ${info[0].toLocaleLowerCase()} environment`;
     }
 
-    if (info.length === this.environments.length) {
+    if (info.length === this.environments().length) {
       return ' change all environments';
     }
 
     // Find the environment with the highest priority (lowest position number)
-    for (const env of this.environments) {
+    for (const env of this.environments()) {
       if (info.includes(env.title || env.name)) {
         return `change up to ${env.title?.toLocaleLowerCase() ?? env.name.toLocaleLowerCase()} environment`;
       }

@@ -256,16 +256,24 @@ export class GraphApiService {
     };
   }
 
-  getTeamRolePermissionRules(roleName?: string) {
-    return this.http.get<GraphRolePermissionRuleDto[]>(
-      `${environment.apiUrl}/v1/graph/data/team-role-permission-rules`,
-      {
-        responseType: 'json',
-        params: {
-          ...(roleName ? { roleName } : {}),
-        },
+  getTeamRolePermissionRulesArgs(roleName?: string): HttpResourceRequest {
+    return {
+      method: 'GET',
+      url: `${environment.apiUrl}/v1/graph/data/team-role-permission-rules`,
+      params: {
+        ...(roleName ? { roleName } : {}),
       },
-    );
+    };
+  }
+
+  getTeamRolePermissionRules(roleName?: string) {
+    const args = this.getTeamRolePermissionRulesArgs(roleName);
+    return this.http.request<GraphRolePermissionRuleDto[]>(args.method ?? 'GET', args.url, {
+      responseType: 'json',
+      params: args.params,
+      headers: args.headers as any,
+      body: args.body ?? null,
+    });
   }
 
   doTypeaheadSearch(typeahead: string, collections?: string[]) {
