@@ -4,8 +4,10 @@ import {
   PrimaryKey,
   Property,
   SerializedPrimaryKey,
+  Embedded,
 } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
+import { RoleChipMappingEmbeddable } from './role-chip-mapping.embeddable';
 
 @Entity({ tableName: 'connectionConfig' })
 export class ConnectionConfigEntity extends BaseEntity {
@@ -23,11 +25,23 @@ export class ConnectionConfigEntity extends BaseEntity {
   description: string;
 
   @Property()
+  documentationUrl?: string;
+
+  @Property()
   href: string;
+
+  @Property()
+  imageUrl?: string;
+
+  @Property()
+  imageEmbedded?: string;
 
   @Property()
   name: string;
 
   @Property()
   order: number;
+
+  @Embedded(() => RoleChipMappingEmbeddable, { array: true })
+  roleChipMappings: RoleChipMappingEmbeddable[] = [];
 }
