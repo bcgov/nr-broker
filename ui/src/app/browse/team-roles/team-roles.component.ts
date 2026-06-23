@@ -106,6 +106,40 @@ export class TeamRolesComponent {
     return chips;
   }
 
+  getGitHubConnectionConfigChip(githubRole: GitHubEdgeToRoles): ConnectionConfigChipInfo | null {
+    if (!githubRole) return null;
+
+    // Find the connection config that has a roleChipMapping for this GitHub role
+    for (const config of this.connectionConfigs) {
+      for (const mapping of config.roleChipMappings ?? []) {
+        if (mapping.role === githubRole.role) {
+          return {
+            label: githubRole.label,
+            description: githubRole.description,
+            connectionConfig: config,
+          };
+        }
+      }
+    }
+
+    // If no matching connection config found, create one from the GitHub role info
+    return {
+      label: 'GitHub',
+      description: githubRole.description,
+      connectionConfig: {
+        id: githubRole.role,
+        collection: 'github',
+        description: 'GitHub is a code hosting platform for version control and collaboration. Broker syncs team roles to GitHub and can sync secrets from Vault.',
+        href: 'https://github.com',
+        documentationUrl: githubRole.url,
+        imageUrl: 'assets/github.svg',
+        name: 'GitHub',
+        order: 0,
+        roleChipMappings: [{ role: githubRole.role, label: githubRole.label, description: githubRole.description }],
+      },
+    };
+  }
+
   getBrokerRole(edge: CollectionEdgeConfig): BrokerChipInfo | null {
     const roleRules = this.rolePermissionRulesByRole[edge.name] ?? [];
     const allPermissions = roleRules.flatMap((rule) =>
@@ -179,7 +213,11 @@ export class TeamRolesComponent {
     });
   }
 
-  openConnectionConfigDialog(chipInfo: ConnectionConfigChipInfo): void {
+  openConnectionConfigDialog(chipInfo: ConnectionConfigChipInfo | null): void {
+    if (!chipInfo) {
+      return;
+    }
+
     const data: ConnectionConfigRoleDialogData = {
       connectionConfig: chipInfo.connectionConfig,
     };
