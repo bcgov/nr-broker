@@ -166,3 +166,29 @@ All developers can share the localhost OAuth app. For an actual deployment, you 
 | --- | --- | --- | --- |
 | GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
 | GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
+
+## Feature Flags
+
+Feature flags control optional or experimental UI and backend behaviour. Set a flag's environment variable to `'true'` to enable it; any other value (including unset) disables it.
+
+The current flag values are exposed to the UI at `GET /v1/system/feature-flags` and loaded during application initialisation. Use the `FeatureFlagService` in Angular components to check whether a flag is enabled:
+
+```typescript
+import { FeatureFlagService } from '../../service/feature-flag.service';
+
+readonly featureFlagService = inject(FeatureFlagService);
+readonly myFlagEnabled = this.featureFlagService.isEnabled('myFlag');
+```
+
+Adding a new feature flag requires three steps:
+
+1. Add a constant to `api/src/constants.ts` reading the environment variable.
+2. Add the flag property to `FeatureFlagsDto` in both `api/src/persistence/dto/feature-flags.dto.ts` and `ui/src/app/service/persistence/dto/feature-flags.dto.ts` (these must stay in sync).
+3. Return the flag value from `SystemService.getFeatureFlags()` in `api/src/system/system.service.ts`.
+
+### Available flags
+
+| Env Var | Default | Description |
+| --- | --- | --- |
+| FEATURE_FLAG_GITHUB_ENVIRNOMENT_SYNC | false | Enables GitHub environment synchronisation (backend only). |
+| FEATURE_FLAG_TEAM_ROLE_CHIPS | false | Shows role authorisation chips on the team roles page. |

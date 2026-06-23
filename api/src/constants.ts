@@ -132,4 +132,7 @@ export const NOTIFICATION_EMAIL_SECURE =
   process.env.NOTIFICATION_EMAIL_SECURE === 'true';
 
 export const FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC =
-  process.env.FEATURE_FLAG_GITHUB_ENVIRNOMENT_SYNC === 'true';
+  process.env.FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC === 'true';
+
+export const FEATURE_FLAG_TEAM_ROLE_CHIPS =
+  process.env.FEATURE_FLAG_TEAM_ROLE_CHIPS === 'true';

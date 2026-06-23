@@ -23,6 +23,7 @@ import {
   appInitializePrefFactory,
   appInitializeUserFactory,
   appInitializeConfigFactory,
+  appInitializeFeatureFlagsFactory,
 } from './app-initialize.factory';
 import { AuthInterceptor } from './auth.interceptor';
 
@@ -40,6 +41,10 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const http = inject(HttpClient);
       return appInitializeConfigFactory(http);
+    }),
+    provideAppInitializer(() => {
+      const http = inject(HttpClient);
+      return appInitializeFeatureFlagsFactory(http);
     }),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     {

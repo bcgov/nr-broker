@@ -9,11 +9,13 @@ import {
 import { CollectionConfigDto } from './service/persistence/dto/collection-config.dto';
 import { UserSelfDto } from './service/persistence/dto/user.dto';
 import { PreferenceDto } from './service/persistence/dto/preference.dto';
+import { FeatureFlagsDto } from './service/persistence/dto/feature-flags.dto';
 import { CollectionUtilService } from './service/collection-util.service';
 import { GraphUtilService } from './service/graph-util.service';
 
 let userInfo: UserSelfDto;
 let preferencesInit: PreferenceDto;
+let featureFlagsInit: FeatureFlagsDto;
 let configArr: CollectionConfigDto[];
 let configRecord: CollectionConfigNameRecord;
 let configSrcTarRecord: CollectionConfigStringRecord;
@@ -28,6 +30,14 @@ export const INITIAL_PREFERENCES = new InjectionToken<PreferenceDto>(
   {
     providedIn: 'root',
     factory: () => preferencesInit,
+  },
+);
+
+export const FEATURE_FLAGS = new InjectionToken<FeatureFlagsDto>(
+  'FEATURE_FLAGS',
+  {
+    providedIn: 'root',
+    factory: () => featureFlagsInit,
   },
 );
 
@@ -98,6 +108,23 @@ export function appInitializeConfigFactory(http: HttpClient): Observable<any> {
           configArr,
           configRecord,
         );
+      }),
+      catchError((e) => {
+        if (e.status === 401) {
+          window.location.href = `${environment.apiUrl}/auth/login`;
+        }
+        // Create obserable that never completes to stall start up
+        return new Observable();
+      }),
+    );
+}
+
+export function appInitializeFeatureFlagsFactory(http: HttpClient): Observable<any> {
+  return http
+    .get<FeatureFlagsDto>(`${environment.apiUrl}/v1/system/feature-flags`)
+    .pipe(
+      tap((flags) => {
+        featureFlagsInit = flags;
       }),
       catchError((e) => {
         if (e.status === 401) {

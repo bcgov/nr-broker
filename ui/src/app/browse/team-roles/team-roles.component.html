@@ -5,6 +5,7 @@
   <mat-divider></mat-divider>
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
+    @if (teamRoleChipsEnabled) {
     <span class="role-chip-group">
       @for (connectionChip of getConnectionConfigChipsForRole()[edge.name] ?? []; track connectionChip.label) {
         <app-team-role-chip
@@ -34,6 +35,7 @@
         />
       }
     </span>
+    }
   </h3>
   <p class="user-role-help">{{ edge.help }}</p>
 }
