@@ -16,6 +16,12 @@ export class SystemController {
     return this.systemService.getConnections();
   }
 
+  @Get('feature-flags')
+  @UseGuards(BrokerOidcAuthGuard)
+  getFeatureFlags() {
+    return this.systemService.getFeatureFlags();
+  }
+
   @Post('user-link/github')
   @UseGuards(BrokerOidcAuthGuard)
   async getGitHubLink(@Req() request: Request) {

@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { SystemApiService } from '../../service/system-api.service';
+import { FeatureFlagService } from '../../service/feature-flag.service';
 import { GraphRolePermissionRuleDto } from '../../service/graph/dto/graph-role-permission-rule.dto';
 import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
 import { ConnectionConfigDto } from '../../service/persistence/dto/connection-config.dto';
@@ -47,11 +48,14 @@ export class TeamRolesComponent {
   private readonly graphApi = inject(GraphApiService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly systemApi = inject(SystemApiService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly dialog = inject(MatDialog);
 
   edges: CollectionEdgeConfig[] = this.configRecord['user'].edges.filter(
     (edge) => edge.collection === 'team',
   );
+
+  readonly teamRoleChipsEnabled = this.featureFlagService.isEnabled('teamRoleChips');
 
   readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
     this.graphApi.getTeamRolePermissionRulesArgs(),
