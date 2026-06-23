@@ -55,6 +55,11 @@ export class InspectorConnectionsComponent {
   connectedTable = computed<ConnectedTableOptions[]>(() => {
     return this.collectionUtil.computeConnectedTables(this.collection(),
       [
+        ...(this.config()?.connectedTable?.map((c) => ({
+          collection: c.collection,
+          restrict: false,
+          direction: c.direction,
+        })) ?? []),
         ...(this.upstream().map((combo) => ({
           collection: combo.vertex.collection,
           restrict: !!combo.edge.restrict,
