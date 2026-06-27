@@ -29,6 +29,7 @@ export class PreferenceEntity extends BaseEntity {
     this.graphEdgeSrcTarVisibility = preference.graphEdgeSrcTarVisibility;
     this.homeSectionTab = preference.homeSectionTab;
     this.ignoreGitHubLink = preference.ignoreGitHubLink;
+    this.teamGroupBy = preference.teamGroupBy;
   }
 
   @PrimaryKey()
@@ -75,6 +76,9 @@ export class PreferenceEntity extends BaseEntity {
 
   @Property()
   ignoreGitHubLink: boolean = false;
+
+  @Property()
+  teamGroupBy: 'user' | 'role' = 'role';
 
   // public toRestDto(): PreferenceDto {
   //   return {

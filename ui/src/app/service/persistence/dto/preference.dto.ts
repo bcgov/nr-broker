@@ -11,4 +11,5 @@ export interface PreferenceDto {
   graphEdgeSrcTarVisibility?: Record<string, boolean>;
   homeSectionTab: number;
   ignoreGitHubLink: boolean;
+  teamGroupBy: 'user' | 'role';
 }
