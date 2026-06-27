@@ -190,4 +190,14 @@ export abstract class GraphRepository {
     vertexId: string,
     channel?: string | string[],
   ): Promise<CollectionWatchEntity[]>;
+
+  /**
+   * Deletes a user's watch configuration for a given vertex
+   * @param vertexId The vertex to delete the watch for
+   * @param userId The user to delete the watch for
+   */
+  public abstract deleteUserWatch(
+    vertexId: string,
+    userId: string,
+  ): Promise<void>;
 }

@@ -1775,4 +1775,15 @@ export class GraphMongoRepository implements GraphRepository {
 
     return watchConfigs;
   }
+
+  public async deleteUserWatch(
+    vertexId: string,
+    userId: string,
+  ): Promise<void> {
+    const watchRepo = this.dataSource.getRepository(CollectionWatchEntity);
+    await watchRepo.nativeDelete({
+      vertex: new ObjectId(vertexId),
+      user: new ObjectId(userId),
+    });
+  }
 }
