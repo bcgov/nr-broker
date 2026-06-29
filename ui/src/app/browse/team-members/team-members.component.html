@@ -1,33 +1,63 @@
 @if (!loading()) {
   @if (userCount() === 0) {
     <h4>None</h4>
-  } @else {
-
-    <mat-accordion>
-    @for (edge of edges; track edge.id) {
-      @if (users()[edge.name].length > 0) {
+  } @else if (groupByUser()) {
+    <!-- Group by user -->
+    <mat-accordion class="member-role-accordian">
+      @for (user of users(); track user.id) {
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
+            <mat-panel-title>{{ user.name }}</mat-panel-title>
             <mat-panel-description>
-              <mat-chip-set aria-label="Users" class="disable-mouse">
-                <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users()[edge.name].length}}</mat-chip>
+              <mat-chip-set aria-label="Roles" class="disable-mouse">
+                <mat-chip>
+                  <mat-icon matChipTrailingIcon>format_list_bulleted</mat-icon>
+                  {{ user.roles.length }}
+                </mat-chip>
               </mat-chip-set>
             </mat-panel-description>
           </mat-expansion-panel-header>
-              <!-- @if (edge.help) {
-                <div class="user-role-help">{{ edge.help }}</div>
-              } -->
+          <mat-list role="list">
+            @for (role of user.roles; track role.edgeId) {
+              <mat-list-item role="listitem">
+                {{ getEdgeByName(role.role) | edgetitle }}
+              </mat-list-item>
+            }
+          </mat-list>
+          <div class="clone-roles-row">
+            <button
+              mat-button
+              (click)="openCloneDialog(user)"
+              aria-label="Clone roles">Clone roles
+            </button>
+          </div>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  } @else {
+    <!-- Group by role (default) -->
+    <mat-accordion class="member-role-accordian">
+      @for (edge of edges; track edge.id) {
+        @if (usersByRole()[edge.name].length > 0) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
+              <mat-panel-description>
+                <mat-chip-set aria-label="Users" class="disable-mouse">
+                  <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ usersByRole()[edge.name].length}}</mat-chip>
+                </mat-chip-set>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
           <mat-action-list role="list">
-            @for (member of users()[edge.name]; track member.id) {
+            @for (member of usersByRole()[edge.name]; track member.id) {
               <mat-list-item role="listitem" (click)="navigateUser(member.vertex)">
                 {{ member.name }}
               </mat-list-item>
             }
           </mat-action-list>
-        </mat-expansion-panel>
+          </mat-expansion-panel>
+        }
       }
-    }
     </mat-accordion>
   }
 } @else {

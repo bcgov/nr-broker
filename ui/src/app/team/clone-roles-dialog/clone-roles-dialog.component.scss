@@ -1,0 +1,23 @@
+.form-panel {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.roles-section {
+  margin-top: 16px;
+
+  p {
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+}
+
+.no-roles {
+  color: var(--mat-sys-on-surface-variant);
+}

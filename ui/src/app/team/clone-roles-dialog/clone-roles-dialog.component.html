@@ -1,0 +1,69 @@
+<h2 mat-dialog-title>Clone Roles</h2>
+
+<mat-dialog-content>
+  <p>
+    Clone roles from {{ data.sourceUserName }} to another user on this team.
+    Only roles that the target user does not already have will be added.
+  </p>
+
+  @if (loading()) {
+    <mat-spinner></mat-spinner>
+  } @else {
+    <div class="form-panel">
+      <mat-form-field>
+        <mat-label>Select user</mat-label>
+        <input
+          type="text"
+          placeholder="Search and pick one"
+          aria-label="User"
+          spellcheck="false"
+          matInput
+          [formControl]="userControl"
+          [matAutocomplete]="auto"
+
+        >
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          [displayWith]="displayFn"
+          (optionSelected)="onUserSelected($event)"
+        >
+          @for (option of (filteredOptions | async)?.data; track option) {
+            <mat-option [value]="option">
+              {{ option.name }}
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    @if (selectedTargetUser()) {
+      <div class="roles-section">
+         <p>Roles to add to {{ selectedTargetUser()!.name }}:</p>
+
+         @if (hasMissingRoles) {
+           <mat-list role="list">
+             @for (roleObj of targetUserRoles(); track $index) {
+               <mat-list-item role="listitem">
+                 <mat-icon matListItemIcon>add_circle_outline</mat-icon>
+                 {{ getEdgeByName(roleObj.role) | edgetitle }}
+               </mat-list-item>
+             }
+           </mat-list>
+         } @else {
+           <p class="no-roles">This user already has all the same roles.</p>
+         }
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="closeDialog()">Cancel</button>
+  <button
+    mat-stroked-button
+    [disabled]="!canClone"
+    (click)="cloneRoles()"
+  >
+    Clone
+  </button>
+</mat-dialog-actions>

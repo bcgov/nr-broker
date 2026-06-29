@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatRadioModule } from '@angular/material/radio';
 import {
   MatSnackBar,
   MatSnackBarConfig,
@@ -72,6 +73,7 @@ import { PreferencesService } from '../../preferences.service';
     MatGridListModule,
     MatIconModule,
     MatMenuModule,
+    MatRadioModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -162,6 +164,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   // UI state
   showHelp = signal(false);
   hideRestricted = signal(this.preferences.get('graphHideRestricted'));
+  groupByUser = signal(this.preferences.get('teamGroupBy') === 'user');
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -238,6 +241,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.navigationFollows.set(this.preferences.get('graphFollows'));
+    this.preferences.onSet
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((pref) => {
+        if (pref.key === 'teamGroupBy') {
+          this.groupByUser.set(pref.value === 'user');
+        }
+      });
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
@@ -432,6 +442,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
+  }
+
+  onGroupChange(value: string) {
+    this.preferences.set('teamGroupBy', value as 'user' | 'role');
+    this.groupByUser.set(value === 'user');
   }
 
   openUserRolesDialog() {

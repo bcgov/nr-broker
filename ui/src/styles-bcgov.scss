@@ -156,3 +156,6 @@ body { margin: 0; font-family: $typography-family; }
     margin:0 0 64px
 }
 
+.member-role-accordian .mat-expansion-panel-header-description {
+  flex-grow: .5;
+}
