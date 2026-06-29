@@ -46,6 +46,7 @@ export class TeamMembersComponent {
 
   readonly teamId = input.required<string>();
   readonly groupByUser = input<boolean>(false);
+  readonly canManageMembers = input<boolean>(false);
   readonly refresh = signal<number>(0);
   readonly collectionSearchResult = toSignal(
     combineLatest([toObservable(this.teamId), toObservable(this.refresh)]).pipe(

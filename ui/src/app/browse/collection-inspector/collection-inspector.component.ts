@@ -24,7 +24,7 @@ import { Subject, startWith, takeUntil } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PermissionService } from '../../service/permission.service';
-import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -61,6 +61,7 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
 import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
 import { PreferencesService } from '../../preferences.service';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -109,6 +110,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly graphUtil = inject(GraphUtilService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
+  private readonly user = inject<UserSelfDto>(CURRENT_USER);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
@@ -145,6 +147,21 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   public vertexProperties = computed(() => {
     return this.comboData()?.vertex.prop;
+  });
+
+  readonly isOwner = computed(() => {
+    const comboData = this.comboData();
+    if (this.collection() !== 'team' || !comboData) {
+      return false;
+    }
+
+    return comboData.upstream.some(
+      ({ edge }) => edge.name === 'owner' && edge.source === this.user.vertex,
+    );
+  });
+
+  readonly canManageMembers = computed(() => {
+    return this.permission.hasAdmin() || this.isOwner();
   });
 
   // Permissions

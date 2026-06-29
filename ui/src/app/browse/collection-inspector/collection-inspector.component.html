@@ -204,12 +204,14 @@
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Members</mat-card-title>
+              @if (canManageMembers()) {
                 <button
                   mat-button
                   (click)="openMemberDialog()"
                   class="card-team-member-button">
                   Edit
                 </button>
+              }
 
               <button mat-icon-button [matMenuTriggerFor]="teamMenu">
                 <mat-icon>more_vert</mat-icon>
@@ -241,6 +243,7 @@
               <app-team-members
                 [teamId]="cd.collection.id"
                 [groupByUser]="groupByUser()"
+                [canManageMembers]="canManageMembers()"
                 ></app-team-members>
             </div>
           </mat-card-content>

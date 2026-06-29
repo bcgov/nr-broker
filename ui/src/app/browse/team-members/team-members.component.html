@@ -24,13 +24,15 @@
               </mat-list-item>
             }
           </mat-list>
-          <div class="clone-roles-row">
-            <button
-              mat-button
-              (click)="openCloneDialog(user)"
-              aria-label="Clone roles">Clone roles
-            </button>
-          </div>
+          @if (canManageMembers()) {
+            <div class="clone-roles-row">
+              <button
+                mat-button
+                (click)="openCloneDialog(user)"
+                aria-label="Clone roles">Clone roles
+              </button>
+            </div>
+          }
         </mat-expansion-panel>
       }
     </mat-accordion>
