@@ -62,6 +62,7 @@ import { UserPermissionDto } from '../../service/persistence/dto/user-permission
 import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
 import { PreferencesService } from '../../preferences.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -95,6 +96,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     UserAliasComponent,
     VertexTagsComponent,
     InspectorInstancesComponent,
+    WatchButtonComponent,
     ServiceInstanceDetailsComponent,
   ],
   templateUrl: './collection-inspector.component.html',

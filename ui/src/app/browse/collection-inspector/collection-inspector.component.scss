@@ -97,10 +97,24 @@
   gap: 16px;
 }
 
+.inspector-controls-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
 .slide-toggle-section {
   display: flex;
   align-content: center;
   align-items: center;
   height: 52px;
   gap: 8px;
+}
+
+.watch-help-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }

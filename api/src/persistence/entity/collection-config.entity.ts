@@ -121,6 +121,36 @@ export class ConnectedTableConfigEmbeddable {
   direction!: string;
 }
 
+@Embeddable()
+export class CollectionWatchConfigEmbeddable {
+  @Property()
+  channel!: string;
+
+  @Property()
+  title!: string;
+
+  @Property()
+  description!: string;
+
+  @Embedded({
+    entity: () => CollectionWatchEventConfigEmbeddable,
+    array: true,
+  })
+  events!: CollectionWatchEventConfigEmbeddable[];
+}
+
+@Embeddable()
+export class CollectionWatchEventConfigEmbeddable {
+  @Property()
+  event!: string;
+
+  @Property()
+  title!: string;
+
+  @Property()
+  description!: string;
+}
+
 @Entity({ tableName: 'collectionConfig' })
 export class CollectionConfigEntity extends BaseEntity {
   @PrimaryKey()
@@ -205,6 +235,13 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property()
   showUserRoles: boolean;
+
+  @Embedded({
+    entity: () => CollectionWatchConfigEmbeddable,
+    array: true,
+    nullable: true,
+  })
+  watches?: CollectionWatchConfigEmbeddable[];
 
   @Property({ nullable: true })
   sudoHelp?: string;

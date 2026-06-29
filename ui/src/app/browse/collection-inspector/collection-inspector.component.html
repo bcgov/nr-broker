@@ -41,7 +41,7 @@
       mat-button
       extended
       class="collection-btn"
-      [disabled]="!hasUpdate"
+      [disabled]="!hasUpdate()"
       (click)="editTags()">
       Tags
     </button>
@@ -50,7 +50,7 @@
         mat-stroked-button
         extended
         class="collection-btn"
-        [disabled]="!hasUpdate"
+        [disabled]="!hasUpdate()"
         (click)="openAccessToken()">
         Access Token
       </button>
@@ -66,7 +66,7 @@
       mat-button
       extended
       class="collection-btn"
-      [disabled]="!hasUpdate || !config().permissions.update"
+      [disabled]="!hasUpdate() || !config().permissions.update"
       (click)="edit()">
       Edit
     </button>
@@ -80,7 +80,7 @@
     <button
       mat-icon-button
       class="collection-btn"
-      [disabled]="!hasUpdate"
+      [disabled]="!hasUpdate()"
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
@@ -88,7 +88,7 @@
       <button
         mat-icon-button
         class="collection-btn"
-        [disabled]="!hasUpdate"
+        [disabled]="!hasUpdate()"
         (click)="openAccessToken()">
         <mat-icon>account_box</mat-icon>
       </button>
@@ -103,7 +103,7 @@
     <button
       mat-icon-button
       class="collection-btn"
-      [disabled]="!hasUpdate || !config().permissions.update"
+      [disabled]="!hasUpdate() || !config().permissions.update"
       (click)="edit()">
       <mat-icon>edit</mat-icon>
     </button>
@@ -118,8 +118,17 @@
         <app-vertex-tags
           [collection]="collection()"
           [collectionData]="cd.collection"></app-vertex-tags>
-          <div class="slide-toggle-section">
-            Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+        <div class="inspector-controls-section">
+           <div class="watch-help-row">
+            @if (config().watches?.length) {
+               <app-watch-button
+                 [vertexId]="cd.collection.vertex"
+                 [watchConfigs]="config().watches"></app-watch-button>
+             }
+             <div class="slide-toggle-section">
+               Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+             </div>
+          </div>
         </div>
       </div>
 
