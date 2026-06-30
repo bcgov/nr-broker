@@ -27,7 +27,7 @@ export default tseslint.config(
           style: "camelCase",
         },
       ],
-      "@angular-eslint/prefer-on-push-component-change-detection": "warn",
+      "@angular-eslint/prefer-on-push-component-change-detection": "off",
       "@angular-eslint/component-selector": [
         "error",
         {
