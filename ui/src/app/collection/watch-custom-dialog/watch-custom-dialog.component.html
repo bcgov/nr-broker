@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>Subscribe to events</h2>
+
+<mat-dialog-content class="mat-typography">
+  @for (channelConfig of channelConfigs; track channelConfig.channel) {
+    <section class="channel-section">
+      <h3
+        class="channel-title"
+        matTooltipPosition="above">
+        {{ channelConfig.title || channelConfig.channel }}
+      </h3>
+
+      <p>{{ channelConfig.description || 'Choose which events you want to be notified about for this channel.' }}</p>
+
+      <div class="event-list" role="list">
+      @for (eventConfig of channelConfig.eventConfigs; track eventConfig.event) {
+        <div
+          class="event-item"
+          role="button"
+          tabindex="0"
+          (click)="toggleEvent(channelConfig.channel, eventConfig.event)"
+          (keydown.enter)="toggleEvent(channelConfig.channel, eventConfig.event)"
+          (keydown.space)="onEventKeydown($event, channelConfig.channel, eventConfig.event)"
+          [attr.aria-label]="'Toggle ' + eventConfig.event + ' notifications for ' + (channelConfig.title || channelConfig.channel)">
+          <mat-checkbox
+            class="event-checkbox"
+            [checked]="isSelected(channelConfig.channel, eventConfig.event)"
+            (click)="$event.stopPropagation()"
+            (change)="toggleEvent(channelConfig.channel, eventConfig.event)"
+            [matTooltip]="eventConfig.description"
+            matTooltipPosition="right">
+            {{ eventConfig.title }}
+          </mat-checkbox>
+        </div>
+      }
+      </div>
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-stroked-button color="primary" (click)="save()" mat-dialog-close>
+    Apply
+  </button>
+</mat-dialog-actions>

@@ -359,6 +359,30 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'title', 'type'],
   name: 'Service',
   hint: 'A service is a software component that runs in an environment.',
+  watches: [
+    {
+      channel: 'application-deployed',
+      title: 'Deployment',
+      description: 'Deployment notifications for this service.',
+      events: [
+        {
+          event: 'success',
+          title: 'Success',
+          description: 'The deployment completed successfully.',
+        },
+        {
+          event: 'failure',
+          title: 'Failure',
+          description: 'The deployment failed and needs attention.',
+        },
+        {
+          event: 'unknown',
+          title: 'Unknown',
+          description: 'The deployment finished with an unknown outcome.',
+        },
+      ],
+    },
+  ],
   sudoHelp:
     'Allows viewing and updating protected service settings such as Vault integration fields',
   color: '5ab1ef',

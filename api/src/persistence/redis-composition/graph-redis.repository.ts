@@ -406,6 +406,13 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getWatches(vertexId, channel);
   }
 
+  public async deleteUserWatch(
+    vertexId: string,
+    userId: string,
+  ): Promise<void> {
+    return this.repo.deleteUserWatch(vertexId, userId);
+  }
+
   private async getCollectionConfig(
     collection: string,
   ): Promise<CollectionConfigEntity | null> {

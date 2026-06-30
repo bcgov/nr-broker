@@ -63,3 +63,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     @include mat.icon-color($theme: $theme, $color-variant: 'error');
   }
 }
+
+.member-role-accordian .mat-expansion-panel-header-description {
+  flex-grow: .5;
+}

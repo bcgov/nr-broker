@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal, viewChild, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, signal, viewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
@@ -17,6 +17,7 @@ import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   Observable,
   Subject,
@@ -40,6 +41,7 @@ import { PermissionService } from '../../service/permission.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { HealthStatusService } from '../../service/health-status.service';
+import { PreferencesService } from '../../preferences.service';
 
 @Component({
   selector: 'app-member-dialog',
@@ -55,6 +57,7 @@ import { HealthStatusService } from '../../service/health-status.service';
     MatIconModule,
     MatInputModule,
     MatListModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     ReactiveFormsModule,
@@ -77,6 +80,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   private readonly collectionApi = inject(CollectionApiService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly healthStatus = inject(HealthStatusService);
+  private readonly preferences = inject(PreferencesService);
 
   readonly edges = signal<CollectionEdgeConfig[] | undefined>(undefined);
   readonly users = signal<any>({});
@@ -91,13 +95,65 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   isOwner = signal(false);
   modified = signal(false);
 
+  groupByUser = signal(this.preferences.get('teamGroupBy') === 'user');
+
   accordion = viewChild.required(MatAccordion);
+
+  readonly usersByUser = computed(() => {
+    const data = this.collectionSearchResult();
+    if (!data || !data.data[0]) {
+      return [];
+    }
+
+    // Build user map from upstream vertices
+    const userMap: Record<string, any> = {};
+    for (const v of data.data[0].upstream) {
+      userMap[v.vertex.id] = { id: v.vertex.id, name: v.vertex.name };
+    }
+
+    // Group edges by source user vertex
+    const grouped: Record<string, { role: string; edgeId: string }[]> = {};
+    for (const { edge } of data.data[0].upstream) {
+      const userId = edge.source;
+      if (!grouped[userId]) {
+        grouped[userId] = [];
+      }
+      grouped[userId].push({ role: edge.name, edgeId: edge.id });
+    }
+
+    // Sort roles within each user and build final array sorted by name
+    return Object.entries(grouped)
+      .map(([userId, roles]) => ({
+        id: userId,
+        name: userMap[userId].name,
+        vertex: userId,
+        roles: roles.sort((a, b) => a.role.localeCompare(b.role)),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  readonly collectionSearchResult = computed(() => {
+    // We need to return the raw search data for usersByUser computation
+    // This is a placeholder - we'll store the raw data in a signal
+    return this.searchResult();
+  });
+
+  private searchResult = signal<any>(null);
 
   onUserRoleChange(name: string) {
     if (this.userRoleSelected() === name) {
       return;
     }
     this.userRoleSelected.set(name);
+  }
+
+  onGroupChange(value: string) {
+    this.preferences.set('teamGroupBy', value as 'user' | 'role');
+    this.groupByUser.set(value === 'user');
+  }
+
+  getEdgeByName(name: string): CollectionEdgeConfig | undefined {
+    return this.edges()?.find((e) => e.name === name);
   }
 
   ngOnInit() {
@@ -144,6 +200,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
         }
 
         this.users.set(users);
+        this.searchResult.set(data);
         this.loading.set(false);
         this.isOwner.set(this.users()['owner'].find(
           (user: any) => this.user.vertex == user.vertex,
@@ -235,6 +292,16 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     for (const datum of data) {
       const user = datum.value;
       this.graphApi.deleteEdge(user.id).subscribe(() => {
+        this.modified.set(true);
+        this.triggerRefresh.next();
+      });
+    }
+  }
+
+  removeRoles(data: any) {
+    for (const datum of data) {
+      const role = datum.value;
+      this.graphApi.deleteEdge(role.edgeId).subscribe(() => {
         this.modified.set(true);
         this.triggerRefresh.next();
       });

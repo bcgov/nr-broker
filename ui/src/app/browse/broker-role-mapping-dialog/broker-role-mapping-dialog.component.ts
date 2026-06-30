@@ -14,6 +14,8 @@ import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
 
 echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -73,8 +75,10 @@ interface PermissionNodeStyle {
 @Component({
   selector: 'app-broker-role-mapping-dialog',
   imports: [
-    MatDialogModule,
     MatButtonModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatCardModule,
     CommonModule,
     EdgetitlePipe,
     NgxEchartsDirective,
@@ -369,9 +373,10 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
           draggable: true,
           layout: 'none',
           edgeSymbol: ['none', 'arrow'],
-          edgeSymbolSize: 15,
+          edgeSymbolSize: 12,
           lineStyle: {
-            color: 'source',
+            color: '#010101',
+            width: 3,
             curveness: 0.15,
           },
           label: {

@@ -2,8 +2,8 @@ import { beforeEach, describe, it, expect, vi, Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunicationEmailService } from './communication-email.service';
 import nodemailer from 'nodemailer';
-import * as fs from 'fs';
 import ejs from 'ejs';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 vi.mock('nodemailer', () => ({
   default: {
@@ -19,20 +19,18 @@ vi.mock('ejs', () => ({
   },
 }));
 
-(fs.promises.readFile as unknown as Mock) = vi.fn();
-
 describe('EmailService', () => {
   let service: CommunicationEmailService;
   let sendMailMock: Mock;
   let useMock: Mock;
-  let readFileMock: Mock;
   let ejsRenderMock: Mock;
+  let getCommunicationTemplateMock: Mock;
 
   beforeEach(async () => {
     sendMailMock = vi.fn();
     useMock = vi.fn();
-    readFileMock = fs.promises.readFile as Mock;
     ejsRenderMock = ejs.render as Mock;
+    getCommunicationTemplateMock = vi.fn();
 
     (nodemailer.createTransport as Mock).mockReturnValue({
       sendMail: sendMailMock,
@@ -50,6 +48,12 @@ describe('EmailService', () => {
           },
         },
         CommunicationEmailService,
+        {
+          provide: SystemRepository,
+          useValue: {
+            getCommunicationTemplate: getCommunicationTemplateMock,
+          },
+        },
       ],
     })
       .useMocker(() => {
@@ -72,7 +76,10 @@ describe('EmailService', () => {
       daysUntilExpiration: 1,
     };
 
-    readFileMock.mockResolvedValue('<ejs template>');
+    getCommunicationTemplateMock.mockResolvedValue({
+      email: '<email ejs template>',
+      subject: '<subject ejs template>',
+    });
     ejsRenderMock.mockReturnValue('<html>Rendered Email</html>');
     const userObj = {
       email: 'test@example.com',
@@ -85,8 +92,13 @@ describe('EmailService', () => {
     };
     await service.send(userObj, 'test', context);
 
-    expect(readFileMock).toHaveBeenCalled();
-    expect(ejsRenderMock).toHaveBeenCalledWith('<ejs template>', {
+    expect(getCommunicationTemplateMock).toHaveBeenCalledWith('test');
+    expect(ejsRenderMock).toHaveBeenCalledWith('<email ejs template>', {
+      brokerUrl: '',
+      user: userObj,
+      ...context,
+    });
+    expect(ejsRenderMock).toHaveBeenCalledWith('<subject ejs template>', {
       brokerUrl: '',
       user: userObj,
       ...context,
@@ -100,7 +112,10 @@ describe('EmailService', () => {
   });
 
   it('should log an error if sendMail fails', async () => {
-    readFileMock.mockResolvedValue('<ejs template>');
+    getCommunicationTemplateMock.mockResolvedValue({
+      email: '<email ejs template>',
+      subject: '<subject ejs template>',
+    });
     ejsRenderMock.mockReturnValue('<html>Rendered Email</html>');
     const error = new Error('Failed to send email');
     sendMailMock.mockRejectedValueOnce(error);
@@ -129,7 +144,7 @@ describe('EmailService', () => {
       );
     } catch (e) {
       expect(e).toBeInstanceOf(Error);
-      expect(e.message).toBe('Failed to send email');
+      expect(String(e)).toContain('Failed to send email');
     }
 
     consoleErrorSpy.mockRestore();

@@ -13,6 +13,7 @@ import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto'
 import { UserAliasRequestEntity } from '../entity/user-alias-request.entity';
 import { JwtBlockEntity } from '../entity/jwt-block.entity';
 import { JwtAllowEntity } from '../entity/jwt-allow.entity';
+import { CommunicationTemplateEntity } from '../entity/communication-template.entity';
 
 export class SystemMongoRepository implements SystemRepository {
   constructor(
@@ -29,6 +30,8 @@ export class SystemMongoRepository implements SystemRepository {
     private readonly userAliasRequestRepository: MongoEntityRepository<UserAliasRequestEntity>,
     @InjectRepository(PreferenceEntity)
     private readonly preferenceRepository: MongoEntityRepository<PreferenceEntity>,
+    @InjectRepository(CommunicationTemplateEntity)
+    private readonly communicationTemplateRepository: MongoEntityRepository<CommunicationTemplateEntity>,
   ) {}
 
   public async jwtMatchesAllowed(jwt: JwtDto): Promise<boolean> {
@@ -183,6 +186,12 @@ export class SystemMongoRepository implements SystemRepository {
 
   public getConnectionConfigs(): Promise<ConnectionConfigEntity[]> {
     return this.connectionConfigRepository.findAll();
+  }
+
+  public getCommunicationTemplate(
+    key: string,
+  ): Promise<CommunicationTemplateEntity | null> {
+    return this.communicationTemplateRepository.findOne({ key });
   }
 
   public async generateUserAliasRequestState(

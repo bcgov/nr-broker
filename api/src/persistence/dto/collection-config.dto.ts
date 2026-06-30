@@ -121,6 +121,19 @@ export class ConnectedTableConfig {
   direction!: 'upstream' | 'downstream';
 }
 
+export class CollectionWatchConfig {
+  channel!: string;
+  title!: string;
+  description!: string;
+  events!: CollectionWatchEventConfig[];
+}
+
+export class CollectionWatchEventConfig {
+  event!: string;
+  title!: string;
+  description!: string;
+}
+
 export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
@@ -140,6 +153,7 @@ export class CollectionConfigDto {
   permissions!: CollectionConfigPermissions;
   show!: boolean;
   showUserRoles!: boolean;
+  watches?: CollectionWatchConfig[];
   sudoHelp?: string;
 }
 

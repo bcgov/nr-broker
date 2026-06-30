@@ -1,115 +1,185 @@
 <h2 mat-dialog-title>Members - {{ data.name }}</h2>
 
 <mat-dialog-content>
-  @if (permission.hasAdmin() || isOwner()) {
-    <p>Add a user to role</p>
-    <div class="form-panel">
-      <mat-form-field>
-        <mat-label>User</mat-label>
-        <input
-          type="text"
-          placeholder="Search and pick one"
-          aria-label="User"
-          spellcheck="false"
-          matInput
-          [formControl]="userControl"
-          [matAutocomplete]="auto">
-        <mat-autocomplete
-          #auto="matAutocomplete"
-          [displayWith]="displayFn">
-          @for (option of (filteredOptions | async)?.data; track option) {
-            <mat-option [value]="option">
-              {{ option.name }}
-            </mat-option>
-          }
-        </mat-autocomplete>
-      </mat-form-field>
+ @if (permission.hasAdmin() || isOwner()) {
+   <p>Add a user to role</p>
+   <div class="form-panel">
+     <mat-form-field>
+       <mat-label>User</mat-label>
+       <input
+        type="text"
+        placeholder="Search and pick one"
+        aria-label="User"
+        spellcheck="false"
+        matInput
+         [formControl]="userControl"
+         [matAutocomplete]="auto">
+       <mat-autocomplete
+         #auto="matAutocomplete"
+         [displayWith]="displayFn">
+         @for (option of (filteredOptions | async)?.data; track option) {
+           <mat-option [value]="option">
+             {{ option.name }}
+           </mat-option>
+         }
+       </mat-autocomplete>
+     </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Role</mat-label>
-        <mat-select
-          [value]="userRoleSelected()"
-          (selectionChange)="onUserRoleChange($event.value)">
-          @for (edge of edges(); track edge.id) {
-            <mat-option
-              value="{{ edge.name }}">
-              {{ edge | edgetitle }}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+     <mat-form-field>
+       <mat-label>Role</mat-label>
+       <mat-select
+        [value]="userRoleSelected()"
+        (selectionChange)="onUserRoleChange($event.value)">
+         @for (edge of edges(); track edge.id) {
+           <mat-option
+            value="{{ edge.name }}">
+             {{ edge | edgetitle }}
+           </mat-option>
+         }
+       </mat-select>
+     </mat-form-field>
 
-      <button
-        mat-stroked-button
-        (click)="addUser()"
-        [disabled]="!isUserSelected()">Add</button>
-    </div>
-  }
-  @if (loading()) {
-    <mat-spinner></mat-spinner>
-  } @else {
-    @if (userCount() === 0) {
-      <h2 class="no-members">No members</h2>
-    } @else {
-      <p>Review member roles</p>
-      <div class="member-role-accordian">
-      <mat-accordion>
-      @for (edge of edges(); track edge.id) {
-        @if (users()[edge.name].length > 0 || userRoleSelected() === edge.name) {
-          <mat-expansion-panel
-            [expanded]="userRoleSelected() === edge.name"
-            (opened)="onUserRoleChange(edge.name)">
-            <mat-expansion-panel-header>
-              <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
-              <mat-panel-description>
-              <mat-chip-set aria-label="Users" class="disable-mouse">
-                <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users()[edge.name].length}}</mat-chip>
-              </mat-chip-set>
-            </mat-panel-description>
-            </mat-expansion-panel-header>
-            @if (edge.help) {
-              <div class="user-role-help">{{ edge.help }}</div>
-            }
-          @if (permission.hasAdmin() || isOwner()) {
-            <mat-selection-list
-              #userList
+     <button
+      mat-stroked-button
+       (click)="addUser()"
+       [disabled]="!isUserSelected()">Add</button>
+   </div>
+ }
+ @if (loading()) {
+   <mat-spinner></mat-spinner>
+ } @else {
+   @if (userCount() === 0) {
+     <h2 class="no-members">No members</h2>
+   } @else {
+     <div class="member-header">
+       <p>Review member roles</p>
+       @if (permission.hasAdmin() || isOwner()) {
+         <button mat-icon-button [matMenuTriggerFor]="groupMenu">
+           <mat-icon>more_vert</mat-icon>
+         </button>
+         <mat-menu #groupMenu="matMenu">
+           <button mat-menu-item (click)="onGroupChange('role')">
+             <mat-icon>{{groupByUser() ? 'radio_button_unchecked' : 'radio_button_checked'}}</mat-icon>
+             <span>Group by role</span>
+           </button>
+           <button mat-menu-item (click)="onGroupChange('user')">
+             <mat-icon>{{groupByUser() ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+             <span>Group by user</span>
+           </button>
+         </mat-menu>
+       }
+     </div>
+     @if (groupByUser()) {
+       <!-- Group by user -->
+       <div class="member-role-accordian">
+       <mat-accordion>
+         @for (groupedUser of usersByUser(); track groupedUser.id) {
+           <mat-expansion-panel>
+             <mat-expansion-panel-header>
+               <mat-panel-title>{{ groupedUser.name }}</mat-panel-title>
+               <mat-panel-description>
+                 <mat-chip-set aria-label="Roles" class="disable-mouse">
+                   <mat-chip>
+                     <mat-icon matChipTrailingIcon>format_list_bulleted</mat-icon>
+                     {{ groupedUser.roles.length }}
+                   </mat-chip>
+                 </mat-chip-set>
+               </mat-panel-description>
+             </mat-expansion-panel-header>
+             @if (permission.hasAdmin() || isOwner()) {
+               <mat-selection-list
+                #userList
+               class="user-list">
+                 @for (role of groupedUser.roles; track role.edgeId) {
+                   <mat-list-option
+                    class="user-list-item"
+                    [value]="role"
+                    [disabled]="user.vertex === groupedUser.vertex">
+                    <span matListItemTitle>{{ getEdgeByName(role.role) | edgetitle }}</span>
+                   </mat-list-option>
+                 }
+               </mat-selection-list>
+               <div class="remove-panel">
+                 <button
+                  mat-stroked-button
+                  color="warn"
+                  [disabled]="userList.selectedOptions.selected.length === 0"
+                  (click)="removeRoles(userList.selectedOptions.selected)">Remove</button>
+               </div>
+             } @else {
+               <mat-list role="list">
+                 @for (role of groupedUser.roles; track role.edgeId) {
+                   <mat-list-item role="listitem">
+                     {{ getEdgeByName(role.role) | edgetitle }}
+                   </mat-list-item>
+                 }
+               </mat-list>
+             }
+           </mat-expansion-panel>
+         }
+       </mat-accordion>
+       </div>
+     } @else {
+       <!-- Group by role (default) -->
+       <div class="member-role-accordian">
+       <mat-accordion>
+       @for (edge of edges(); track edge.id) {
+         @if (users()[edge.name].length > 0 || userRoleSelected() === edge.name) {
+           <mat-expansion-panel
+             [expanded]="userRoleSelected() === edge.name"
+             (opened)="onUserRoleChange(edge.name)">
+             <mat-expansion-panel-header>
+               <mat-panel-title>{{ edge | edgetitle }}</mat-panel-title>
+               <mat-panel-description>
+               <mat-chip-set aria-label="Users" class="disable-mouse">
+                 <mat-chip><mat-icon matChipTrailingIcon>person</mat-icon>{{ users()[edge.name].length}}</mat-chip>
+               </mat-chip-set>
+             </mat-panel-description>
+             </mat-expansion-panel-header>
+             @if (edge.help) {
+               <div class="user-role-help">{{ edge.help }}</div>
+             }
+           @if (permission.hasAdmin() || isOwner()) {
+             <mat-selection-list
+               #userList
               class="user-list">
-              @for (member of users()[edge.name]; track member.id) {
-                <mat-list-option
+               @for (member of users()[edge.name]; track member.id) {
+                 <mat-list-option
                   class="user-list-item"
                   [value]="member"
                   [disabled]="user.vertex === member.vertex">
                   <span matListItemTitle>{{ member.name }}</span>
-                </mat-list-option>
-              }
-            </mat-selection-list>
-            <div class="remove-panel">
-              <button
+                 </mat-list-option>
+               }
+             </mat-selection-list>
+             <div class="remove-panel">
+               <button
                 mat-stroked-button
                 color="warn"
                 [disabled]="userList.selectedOptions.selected.length === 0"
                 (click)="removeUsers(userList.selectedOptions.selected)">Remove</button>
-            </div>
-          } @else {
-            <mat-list
+             </div>
+           } @else {
+             <mat-list
               class="user-list"
               role="list">
-              @for (member of users()[edge.name]; track member.id) {
-                <mat-list-item
+               @for (member of users()[edge.name]; track member.id) {
+                 <mat-list-item
                   class="user-list-item"
                   role="listitem">
-                  {{ member.name }}
-                </mat-list-item>
-              }
-            </mat-list>
-          }
-          </mat-expansion-panel>
-        }
-      }
-      </mat-accordion>
-      </div>
-    }
-  }
+                   {{ member.name }}
+                 </mat-list-item>
+               }
+             </mat-list>
+           }
+           </mat-expansion-panel>
+         }
+       }
+       </mat-accordion>
+       </div>
+     }
+   }
+ }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

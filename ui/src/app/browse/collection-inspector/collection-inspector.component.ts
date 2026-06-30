@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatRadioModule } from '@angular/material/radio';
 import {
   MatSnackBar,
   MatSnackBarConfig,
@@ -23,7 +24,7 @@ import { Subject, startWith, takeUntil } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PermissionService } from '../../service/permission.service';
-import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -60,6 +61,8 @@ import { ServiceInstanceDetailsComponent } from '../service-instance-details/ser
 import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dialog/inspector-people-dialog.component';
 import { PreferencesService } from '../../preferences.service';
+import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -72,6 +75,7 @@ import { PreferencesService } from '../../preferences.service';
     MatGridListModule,
     MatIconModule,
     MatMenuModule,
+    MatRadioModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -92,6 +96,7 @@ import { PreferencesService } from '../../preferences.service';
     UserAliasComponent,
     VertexTagsComponent,
     InspectorInstancesComponent,
+    WatchButtonComponent,
     ServiceInstanceDetailsComponent,
   ],
   templateUrl: './collection-inspector.component.html',
@@ -107,6 +112,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly graphUtil = inject(GraphUtilService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly permission = inject(PermissionService);
+  private readonly user = inject<UserSelfDto>(CURRENT_USER);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
@@ -145,6 +151,21 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
     return this.comboData()?.vertex.prop;
   });
 
+  readonly isOwner = computed(() => {
+    const comboData = this.comboData();
+    if (this.collection() !== 'team' || !comboData) {
+      return false;
+    }
+
+    return comboData.upstream.some(
+      ({ edge }) => edge.name === 'owner' && edge.source === this.user.vertex,
+    );
+  });
+
+  readonly canManageMembers = computed(() => {
+    return this.permission.hasAdmin() || this.isOwner();
+  });
+
   // Permissions
   hasAdmin = signal(false);
   hasDelete = signal(false);
@@ -162,6 +183,7 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   // UI state
   showHelp = signal(false);
   hideRestricted = signal(this.preferences.get('graphHideRestricted'));
+  groupByUser = signal(this.preferences.get('teamGroupBy') === 'user');
 
   connectedTableCollection = signal<CollectionNames>('project');
   connectedTableCollectionOptions = computed(() => {
@@ -238,6 +260,13 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.navigationFollows.set(this.preferences.get('graphFollows'));
+    this.preferences.onSet
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((pref) => {
+        if (pref.key === 'teamGroupBy') {
+          this.groupByUser.set(pref.value === 'user');
+        }
+      });
     this.graphApi
       .createEventSource()
       .pipe(takeUntil(this.ngUnsubscribe), startWith(null))
@@ -432,6 +461,11 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
+  }
+
+  onGroupChange(value: string) {
+    this.preferences.set('teamGroupBy', value as 'user' | 'role');
+    this.groupByUser.set(value === 'user');
   }
 
   openUserRolesDialog() {

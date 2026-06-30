@@ -52,14 +52,16 @@
 }
 
 .card-title-container {
-  margin: 0 0 0 16px;
+  margin: 0 24px 0 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .card-title-container > *:first-child {
   line-height: 48px;
+  flex-grow: 1;
 }
 
 .card-title-container > * {
@@ -95,10 +97,24 @@
   gap: 16px;
 }
 
+.inspector-controls-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
 .slide-toggle-section {
   display: flex;
   align-content: center;
   align-items: center;
   height: 52px;
   gap: 8px;
+}
+
+.watch-help-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }

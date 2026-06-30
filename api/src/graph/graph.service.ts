@@ -874,6 +874,11 @@ export class GraphService {
     return await this.convertWatchEntityToDto(watch);
   }
 
+  async deleteUserWatch(request: Request, id: string): Promise<void> {
+    const user = await this.authSerivice.getUser(request);
+    return await this.graphRepository.deleteUserWatch(id, user.vertex.toString());
+  }
+
   async getDefaultUserWatchesByVertex(
     user: UserEntity,
     id: string,

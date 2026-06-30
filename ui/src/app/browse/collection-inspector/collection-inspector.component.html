@@ -41,7 +41,7 @@
       mat-button
       extended
       class="collection-btn"
-      [disabled]="!hasUpdate"
+      [disabled]="!hasUpdate()"
       (click)="editTags()">
       Tags
     </button>
@@ -50,7 +50,7 @@
         mat-stroked-button
         extended
         class="collection-btn"
-        [disabled]="!hasUpdate"
+        [disabled]="!hasUpdate()"
         (click)="openAccessToken()">
         Access Token
       </button>
@@ -66,7 +66,7 @@
       mat-button
       extended
       class="collection-btn"
-      [disabled]="!hasUpdate || !config().permissions.update"
+      [disabled]="!hasUpdate() || !config().permissions.update"
       (click)="edit()">
       Edit
     </button>
@@ -80,7 +80,7 @@
     <button
       mat-icon-button
       class="collection-btn"
-      [disabled]="!hasUpdate"
+      [disabled]="!hasUpdate()"
       (click)="editTags()">
       <mat-icon>label</mat-icon>
     </button>
@@ -88,7 +88,7 @@
       <button
         mat-icon-button
         class="collection-btn"
-        [disabled]="!hasUpdate"
+        [disabled]="!hasUpdate()"
         (click)="openAccessToken()">
         <mat-icon>account_box</mat-icon>
       </button>
@@ -103,14 +103,14 @@
     <button
       mat-icon-button
       class="collection-btn"
-      [disabled]="!hasUpdate || !config().permissions.update"
+      [disabled]="!hasUpdate() || !config().permissions.update"
       (click)="edit()">
       <mat-icon>edit</mat-icon>
     </button>
   }
 
 </app-collection-header>
-      @let localCollection = collection();
+    @let localCollection = collection();
     <div
       class="inspector-card-layout inspector-tab-margin"
       [class]="screen.screenSize()">
@@ -118,8 +118,17 @@
         <app-vertex-tags
           [collection]="collection()"
           [collectionData]="cd.collection"></app-vertex-tags>
-        <div class="slide-toggle-section">
-          Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+        <div class="inspector-controls-section">
+           <div class="watch-help-row">
+            @if (config().watches?.length) {
+               <app-watch-button
+                 [vertexId]="cd.collection.vertex"
+                 [watchConfigs]="config().watches"></app-watch-button>
+             }
+             <div class="slide-toggle-section">
+               Show Help <mat-slide-toggle [checked]="showHelp()" (change)="showHelp.set(!showHelp())"></mat-slide-toggle>
+             </div>
+          </div>
         </div>
       </div>
 
@@ -204,18 +213,46 @@
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Members</mat-card-title>
-              <div>
+              @if (canManageMembers()) {
                 <button
                   mat-button
                   (click)="openMemberDialog()"
                   class="card-team-member-button">
                   Edit
                 </button>
-              </div>
+              }
+
+              <button mat-icon-button [matMenuTriggerFor]="teamMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #teamMenu="matMenu">
+
+                <button mat-menu-item (click)="onGroupChange('role')">
+                  <mat-icon>{{groupByUser() ? 'radio_button_unchecked' : 'radio_button_checked'}}</mat-icon>
+                  <span>Group by role</span>
+                </button>
+
+                <button mat-menu-item (click)="onGroupChange('user')">
+                  <mat-icon>{{groupByUser() ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+                  <span>Group by user</span>
+                </button>
+              </mat-menu>
             </div>
             <div class="card-team-members-margin">
+             @if (showHelp()) {
+                 <p><small>
+                  @if (groupByUser()) {
+                    Team membership is shown grouped by user. Click to a user to see their roles.
+                  } @else {
+                    Team membership is shown grouped by role. Click a role to see all members in that role.
+                  }
+                   Use the menu above to change grouping.
+                 </small></p>
+             }
               <app-team-members
                 [teamId]="cd.collection.id"
+                [groupByUser]="groupByUser()"
+                [canManageMembers]="canManageMembers()"
                 ></app-team-members>
             </div>
           </mat-card-content>

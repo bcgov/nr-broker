@@ -1,0 +1,36 @@
+<div class="watch-button-container">
+  <button
+    mat-button
+    [matMenuTriggerFor]="watchMenu"
+    [disabled]="saving()">
+    <mat-icon>{{ mode() === 'ignore' ? 'notifications_off' : 'notifications_active' }}</mat-icon>
+    Watch: {{ summary() }}
+  </button>
+
+  <mat-menu #watchMenu="matMenu">
+
+    <button mat-menu-item (click)="selectDefault()">
+      <mat-icon>{{ isModeSelected('default') ? 'check' : '' }}</mat-icon>
+      <span>Default</span><br />
+      <small>Notifications based on your role.</small>
+    </button>
+
+    <button mat-menu-item (click)="selectAllActivity()">
+      <mat-icon>{{ isModeSelected('all') ? 'check' : '' }}</mat-icon>
+      <span>All activity</span><br />
+      <small>All notifications for this item.</small>
+    </button>
+
+    <button mat-menu-item (click)="selectIgnore()">
+      <mat-icon>{{ isModeSelected('ignore') ? 'check' : '' }}</mat-icon>
+      <span>Ignore</span><br />
+      <small>Never be notified for this item.</small>
+    </button>
+
+     <button mat-menu-item (click)="enableCustom()">
+       <mat-icon>{{ isModeSelected('custom') ? 'check' : '' }}</mat-icon>
+       <span>Custom</span><br />
+       <small>Choose specific notification events.</small>
+     </button>
+  </mat-menu>
+</div>

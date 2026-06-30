@@ -28,3 +28,8 @@ h4 {
 .disable-mouse {
   pointer-events: none;
 }
+
+.clone-roles-row {
+  display: flex;
+  justify-content: flex-end;
+}

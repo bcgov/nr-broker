@@ -23,6 +23,7 @@ import { IntentionEntity } from '../intention/entity/intention.entity';
 import { BrokerAccountEntity } from './entity/broker-account.entity';
 import { CollectionConfigEntity } from './entity/collection-config.entity';
 import { ConnectionConfigEntity } from './entity/connection-config.entity';
+import { CommunicationTemplateEntity } from './entity/communication-template.entity';
 import { CollectionWatchEntity } from './entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from './entity/collection-watch-config.entity';
 import { EdgeEntity } from './entity/edge.entity';
@@ -81,6 +82,7 @@ const redisFactory = {
       CollectionConfigEntity,
       CollectionWatchEntity,
       CollectionWatchConfigEntity,
+      CommunicationTemplateEntity,
       ConnectionConfigEntity,
       EdgeEntity,
       EnvironmentEntity,

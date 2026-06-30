@@ -16,6 +16,7 @@ import { CURRENT_USER } from '../../app-initialize.factory';
 import { CollectionCombo } from '../../service/collection/dto/collection-search-result.dto';
 import { CollectionUtilService } from '../../service/collection-util.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
 
 @Component({
   selector: 'app-inspector-vertex',
@@ -28,6 +29,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     InspectorVaultComponent,
     InspectorVertexFieldsComponent,
     VertexTagsComponent,
+    WatchButtonComponent,
     MatDividerModule,
   ],
   templateUrl: './inspector-vertex.component.html',

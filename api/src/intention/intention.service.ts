@@ -729,6 +729,31 @@ export class IntentionService {
     outcome: string | undefined,
   ): Promise<boolean> {
     if (action.service.id) {
+      const service = await this.collectionRepository.getCollectionById(
+        'service',
+        action.service.id.toString(),
+      );
+
+      let serviceInstanceUrl: string | undefined;
+      const instanceName = this.actionUtil.instanceName(action);
+      if (service?.vertex && instanceName) {
+        const serviceInstanceVertex =
+          await this.graphRepository.getVertexByParentIdAndName(
+            'serviceInstance',
+            service.vertex.toString(),
+            instanceName,
+          );
+
+        if (serviceInstanceVertex) {
+          const serviceInstance =
+            await this.collectionRepository.getCollectionByVertexId(
+              'serviceInstance',
+              serviceInstanceVertex.id,
+            );
+          serviceInstanceUrl = serviceInstance?.url;
+        }
+      }
+
       const context = {
         title: `Application Deployed: (${outcome})`,
         collectionId: action.service.id ? action.service.id.toString() : '',
@@ -738,12 +763,9 @@ export class IntentionService {
         outcome: outcome,
         userName: action.user.full_name,
         intention: intention.id,
+        serviceInstanceUrl,
       };
 
-      const service = await this.collectionRepository.getCollectionById(
-        'service',
-        action.service.id.toString(),
-      );
       await this.communicationQueueService.queue(
         'intention-event-notification',
         service.vertex.toString(),

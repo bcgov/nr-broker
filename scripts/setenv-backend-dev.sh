@@ -51,3 +51,6 @@ export OAUTH2_CLIENT_SESSION_SECRET=super+secret+session+key
 export MONGODB_URL="mongodb://{{username}}:{{password}}@localhost:27017/brokerDB?authSource=admin"
 export MONGODB_USERNAME=$(echo $MONGODB_AUTH | jq -r '.data.username')
 export MONGODB_PASSWORD=$(echo $MONGODB_AUTH | jq -r '.data.password')
+
+# Feature flags
+export FEATURE_FLAG_TEAM_ROLE_CHIPS=true

@@ -413,4 +413,14 @@ export class GraphController {
       body.watches,
     );
   }
+
+  @Delete('vertex/:id/watch')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  async deleteWatch(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ) {
+    return this.graph.deleteUserWatch(request, id);
+  }
 }
