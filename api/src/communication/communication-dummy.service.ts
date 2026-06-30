@@ -1,10 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CommunicationTaskService } from './communication-task.service';
 import { UserDto } from '../persistence/dto/user.dto';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 @Injectable()
 export class CommunicationDummyService extends CommunicationTaskService {
   private readonly logger = new Logger(CommunicationDummyService.name);
+
+  constructor(systemRepository: SystemRepository) {
+    super(systemRepository);
+  }
 
   public type(): string {
     return 'dummy';

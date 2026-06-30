@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: arial, 'helvetica neue', helvetica, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h2 {
+      margin: 0;
+      color: #003366;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px solid #003366;
+      margin-bottom: 16px;
+    }
+    .alert-box {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .alert-box strong {
+      color: #d32f2f;
+      font-size: 1.1em;
+    }
+    .info-section {
+      background-color: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+    .info-value {
+      font-size: 1.05em;
+      color: #212529;
+      margin-bottom: 15px;
+    }
+    .cta-section {
+      background-color: #e3f2fd;
+      border: 2px solid #1976d2;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #1976d2;
+      color: white !important;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    .cta-button:hover {
+      background-color: #1565c0;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+    .help-text {
+      font-size: 0.95em;
+      color: #495057;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJzdmcxIiB3aWR0aD0iMTAyNCIgaGVpZ2h0PSIxMDI0IiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0IiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcyBpZD0iZGVmczEiPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyR3JhZGllbnQyIj48c3RvcCBzdHlsZT0ic3RvcC1jb2xvcjojMDEzMzY2O3N0b3Atb3BhY2l0eToxOyIgb2Zmc2V0PSIwIiBpZD0ic3RvcDEiIC8+PHN0b3Agc3R5bGU9InN0b3AtY29sb3I6IzM0NzBiMTtzdG9wLW9wYWNpdHk6MTsiIG9mZnNldD0iMSIgaWQ9InN0b3AyIiAvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXJHcmFkaWVudDYiPjxzdG9wIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjA7IiBvZmZzZXQ9IjAiIGlkPSJzdG9wNiIgLz48c3RvcCBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowOyIgb2Zmc2V0PSIxIiBpZD0ic3RvcDciIC8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgeGxpbms6aHJlZj0iI2xpbmVhckdyYWRpZW50NiIgaWQ9ImxpbmVhckdyYWRpZW50NyIgeDE9IjcxLjUiIHkxPSI1MTIiIHgyPSI5NTIuNSIgeTI9IjUxMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIC8+PGxpbmVhckdyYWRpZW50IHhsaW5rOmhyZWY9IiNsaW5lYXJHcmFkaWVudDIiIGlkPSJsaW5lYXJHcmFkaWVudDkiIHgxPSI1MTIiIHkxPSI5NTIuNSIgeDI9IjUxMiIgeTI9IjcxLjUiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiAvPjxmaWx0ZXIgc3R5bGU9ImNvbG9yLWludGVycG9sYXRpb24tZmlsdGVyczpzUkdCIiBpZD0iZmlsdGVyMTgiIHg9Ii0wLjAyMjM4NjM2NCIgeT0iLTAuMDIyMzg2MzY0IiB3aWR0aD0iMS4wNDQ3NzI3IiBoZWlnaHQ9IjEuMDQ0NzcyNyI+PGZlRmxvb2QgcmVzdWx0PSJmbG9vZCIgaW49IlNvdXJjZUdyYXBoaWMiIGZsb29kLW9wYWNpdHk9IjEuMDAwMDAwIiBmbG9vZC1jb2xvcj0icmdiKDAsMCwwKSIgaWQ9ImZlRmxvb2QxNyIgLz48ZmVHYXVzc2lhbkJsdXIgcmVzdWx0PSJibHVyIiBpbj0iU291cmNlR3JhcGhpYyIgc3RkRGV2aWF0aW9uPSI4LjAwMDAwMCIgaWQ9ImZlR2F1c3NpYW5CbHVyMTciIC8+PGZlT2Zmc2V0IHJlc3VsdD0ib2Zmc2V0IiBpbj0iYmx1ciIgZHg9IjAuMDAwMDAwIiBkeT0iMC4wMDAwMDAiIGlkPSJmZU9mZnNldDE3IiAvPjxmZUNvbXBvc2l0ZSByZXN1bHQ9ImNvbXAxIiBvcGVyYXRvcj0iaW4iIGluPSJmbG9vZCIgaW4yPSJvZmZzZXQiIGlkPSJmZUNvbXBvc2l0ZTE3IiAvPjxmZUNvbXBvc2l0ZSByZXN1bHQ9ImNvbXAyIiBvcGVyYXRvcj0ib3ZlciIgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iY29tcDEiIGlkPSJmZUNvbXBvc2l0ZTE4IiAvPjwvZmlsdGVyPjxmaWx0ZXIgc3R5bGU9ImNvbG9yLWludGVycG9sYXRpb24tZmlsdGVyczpzUkdCIiBpZD0iZmlsdGVyMTA0IiB4PSItMC4wNTMwMzgxMTMiIHk9Ii0wLjA1MzEyOTUyOSIgd2lkdGg9IjEuMTA1ODA2NyIgaGVpZ2h0PSIxLjEwMzg4NjUiPjxmZUdhdXNzaWFuQmx1ciBpbj0iU291cmNlQWxwaGEiIHN0ZERldmlhdGlvbj0iNy43Mzk5MDA0IiByZXN1bHQ9ImJsdXIiIGlkPSJmZUdhdXNzaWFuQmx1cjEwMyIgLz48ZmVDb21wb3NpdGUgaW49InNwZWN1bGFyIiBpbjI9IlNvdXJjZUdyYXBoaWMiIGszPSIxIiBrMj0iMSIgb3BlcmF0b3I9ImFyaXRobWV0aWMiIHJlc3VsdD0iY29tcG9zaXRlMSIgaWQ9ImZlQ29tcG9zaXRlMTAzIiBrMT0iMCIgazQ9IjAiIC8+PC9maWx0ZXI+PC9kZWZzPjxnIGlkPSJsYXllcjEiIHN0eWxlPSJkaXNwbGF5OmlubGluZSI+PHJlY3Qgc3R5bGU9ImRpc3BsYXk6aW5saW5lO2ZpbGw6dXJsKCNsaW5lYXJHcmFkaWVudDkpO3N0cm9rZTp1cmwoI2xpbmVhckdyYWRpZW50Nyk7ZmlsdGVyOnVybCgjZmlsdGVyMTgpIiBpZD0icmVjdDEiIHdpZHRoPSI4ODAiIGhlaWdodD0iODgwIiB4PSI3MiIgeT0iNzIiIHJ4PSIxODAiIHJ5PSIxODAiIC8+PC9nPjxwYXRoIHN0eWxlPSJkaXNwbGF5OmlubGluZTttaXgtYmxlbmQtbW9kZTpub3JtYWw7ZmlsbDojZmNiYTE5O2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojZjE4YjNjO3N0cm9rZS13aWR0aDozOS45OTk5O3N0cm9rZS1saW5lY2FwOnNxdWFyZTtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLW9wYWNpdHk6MTtwYWludC1vcmRlcjpmaWxsIG1hcmtlcnMgc3Ryb2tlO2ZpbHRlcjp1cmwoI2ZpbHRlcjEwNCkiIGQ9Ik0gNTEyLDEzMy42ODU2NyAxNDYuOTcxMDgsMjkyLjc4Nzk2IEMgMTUyLDUxMiAyNzIuMzkwNDQsODkyLjU5NTQ3IDUxMy4zODk3Nyw4OTMuNjkxIDc1NC4zODkxLDg5NC43ODY1MyA4NzguNDkzOTMsNDgxLjQ5MDkxIDg4MCwyOTIuNzg3OTYgWiIgaWQ9InBhdGg5NCIgdHJhbnNmb3JtPSJtYXRyaXgoMC44NDM2MjcsMCwwLDAuODQzNjI3LDgwLjI3OTgyNSw4MC4xODYxNzEpIiAvPjxwYXRoIHN0eWxlPSJmb250LXdlaWdodDo5MDA7Zm9udC1zaXplOjUyNXB4O2ZvbnQtZmFtaWx5OlZlcmRhbmEsIEFyaWFsLCBzYW5zLXNlcmlmOy1pbmtzY2FwZS1mb250LXNwZWNpZmljYXRpb246J1ZlcmRhbmEsIEFyaWFsLCBzYW5zLXNlcmlmJzt0ZXh0LWFsaWduOmNlbnRlcjtsZXR0ZXItc3BhY2luZzowcHg7dGV4dC1hbmNob3I6bWlkZGxlO2Rpc3BsYXk6aW5saW5lO2ZpbGw6I2ZjZmZmZjtmaWxsLW9wYWNpdHk6MC43O3N0cm9rZS13aWR0aDowO3N0cm9rZS1saW5lY2FwOnNxdWFyZTtwYWludC1vcmRlcjpmaWxsIG1hcmtlcnMgc3Ryb2tlIiBkPSJtIDY5My4zNTc1OCw1NzQuOTYwNjggcSAwLDI3LjY4NTU0IC0xMS4yNzkzLDQ5LjQ3NTA5IC0xMS4wMjI5NSwyMS43ODk1NSAtMzAuNTA1MzcsMzYuMTQ1MDIgLTIyLjU1ODU5LDE2LjkxODk1IC00OS43MzE0NSwyNC4wOTY2OCAtMjYuOTE2NSw3LjE3Nzc0IC02OC40NDQ4Miw3LjE3Nzc0IEggMzY2Ljc3MDY2IFYgMzEwLjE1MzU1IGggMTQ4LjE2ODk1IHEgNDYuMTQyNTgsMCA2Ny40MTk0MywzLjA3NjE3IDIxLjUzMzIsMy4wNzYxNyA0Mi41NTM3MSwxMy41ODY0MyAyMS43ODk1NSwxMS4wMjI5NCAzMi4yOTk4MSwyOS43MzYzMiAxMC43NjY2LDE4LjQ1NzAzIDEwLjc2NjYsNDIuMjk3MzcgMCwyNy42ODU1NCAtMTQuNjExODIsNDguOTYyNCAtMTQuNjExODEsMjEuMDIwNTEgLTQxLjI3MTk3LDMyLjgxMjUgdiAyLjA1MDc4IHEgMzcuNDI2NzYsNy40MzQwOCA1OS4yMTYzMSwzMC43NjE3MiAyMi4wNDU5LDIzLjMyNzY0IDIyLjA0NTksNjEuNTIzNDQgeiBNIDU2Ny4yMzQ1Myw0MTguMDc1OTEgcSAwLC05LjQ4NDg2IC00Ljg3MDYxLC0xOC45Njk3MyAtNC42MTQyNSwtOS40ODQ4NiAtMTYuNjYyNTksLTE0LjA5OTEyIC0xMC43NjY2LC00LjEwMTU2IC0yNi45MTY1MSwtNC4zNTc5MSAtMTUuODkzNTUsLTAuNTEyNjkgLTQ0Ljg2MDg0LC0wLjUxMjY5IGggLTkuMjI4NTEgdiA4MC43NDk1MSBoIDE1LjM4MDg2IHEgMjMuMzI3NjMsMCAzOS43MzM4OCwtMC43NjkwNCAxNi40MDYyNSwtMC43NjkwNSAyNS44OTExMiwtNS4xMjY5NiAxMy4zMzAwNywtNS44OTU5OSAxNy40MzE2NCwtMTUuMTI0NTEgNC4xMDE1NiwtOS40ODQ4NiA0LjEwMTU2LC0yMS43ODk1NSB6IG0gMjQuMDk2NjgsMTU1LjM0NjY4IHEgMCwtMTguMjAwNjggLTcuMTc3NzMsLTI3Ljk0MTg5IC02LjkyMTM5LC05Ljk5NzU2IC0yMy44NDAzNCwtMTQuODY4MTcgLTExLjUzNTY0LC0zLjMzMjUyIC0zMS43ODcxMSwtMy41ODg4NyAtMjAuMjUxNDYsLTAuMjU2MzQgLTQyLjI5NzM2LC0wLjI1NjM0IGggLTIxLjUzMzIgdiA5NS4xMDQ5OCBoIDcuMTc3NzMgcSA0MS41MjgzMiwwIDU5LjQ3MjY2LC0wLjI1NjM1IDE3Ljk0NDMzLC0wLjI1NjM1IDMzLjA2ODg1LC02LjY2NTA0IDE1LjM4MDg2LC02LjQwODY5IDIxLjAyMDUsLTE2LjkxODk0IDUuODk2LC0xMC43NjY2MSA1Ljg5NiwtMjQuNjA5MzggeiIgaWQ9InRleHQ2IiBhcmlhLWxhYmVsPSJCIiAvPjwvc3ZnPg==" alt="NR Broker Logo" width="60" height="60">
+    <h2>NR Broker</h2>
+  </div>
+
+  <p>Hi <%= user.name %>,</p>
+
+  <p>You're receiving this email because you're an owner of a team that has a Broker account with an expiring access token.</p>
+
+  <div class="alert-box">
+    <p style="margin: 0;">Your team's Broker Account access token will expire in <strong><%= daysUntilExpiration %></strong> day<%= daysUntilExpiration !== 1 ? 's' : '' %>.</p>
+  </div>
+
+  <div class="info-section">
+    <div class="info-label">Broker Account</div>
+    <div class="info-value"><strong><%= accountName %></strong></div>
+
+    <div class="info-label">Client ID</div>
+    <div class="info-value"><code><%= clientId %></code></div>
+
+    <div class="info-label">Expiration date</div>
+    <div class="info-value"><%= expirationDisplay %></div>
+
+    <div class="info-label">Token last used</div>
+    <div class="info-value"><%= lastUsedDisplay %></div>
+  </div>
+
+  <h3>What you need to do</h3>
+
+  <p>Work with your team to determine if this account is still being used.</p>
+
+  <p><strong>If your team is using this account:</strong></p>
+  <ol>
+    <li>Find a team member with the 'lead-developer' role to generate a new token</li>
+    <li>Ensure your team verifies that applications or automation tools have access to and work with the new token</li>
+  </ol>
+
+  <div class="cta-section">
+    <a href="<%= brokerUrl %>/browse/brokerAccount/<%= collectionId %>/token" class="cta-button">
+      Renew token now
+    </a>
+    <p style="margin: 10px 0; font-size: 0.9em;">Note: You need 'lead-developer' role to generate a new token</p>
+  </div>
+
+  <p><strong>If your team is not using this account:</strong></p>
+  <p>No action needed. The token will expire automatically and can be renewed later if needed.</p>
+
+  <div class="help-text">
+    <h3>Why tokens expire</h3>
+    <p>Access tokens expire regularly as a security measure. This ensures that old, unused tokens don't remain active indefinitely.</p>
+
+    <h3>Need help?</h3>
+    <p>If you're not sure whether your team is using this account, check with your team members or look at the "Token last used" date above. Recent usage indicates the account is active.</p>
+  </div>
+
+  <div class="footer">
+    <p>For more information about Broker accounts and tokens, see the <a href="https://bcgov.github.io/nr-broker/#/ops_broker_account">Broker account documentation</a>.</p>
+    <p>If you have questions, contact the NR Broker support team.</p>
+  </div>
+</body>
+</html>

@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { join } from 'path';
 import ejs from 'ejs';
-import { promises as fs } from 'fs';
 import { BROKER_URL } from '../constants';
 import { UserDto } from '../persistence/dto/user.dto';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 @Injectable()
 export abstract class CommunicationTaskService {
+  constructor(protected readonly systemRepository: SystemRepository) {}
+
   abstract type(): string;
 
   abstract send(
@@ -21,12 +22,15 @@ export abstract class CommunicationTaskService {
     to: UserDto,
     context: ejs.Data,
   ): Promise<string> {
-    const TEMPLATE_PATH = join(
-      __dirname,
-      'templates',
-      `${template}-${type}.ejs`,
+    const dbTemplate = await this.systemRepository.getCommunicationTemplate(
+      template,
     );
-    const templateContent = await fs.readFile(TEMPLATE_PATH, 'utf-8');
+    if (!dbTemplate) {
+      throw new Error(`Communication template not found: ${template}`);
+    }
+
+    const templateContent = type === 'email' ? dbTemplate.email : dbTemplate.subject;
+
     return ejs.render(templateContent, {
       user: to,
       brokerUrl: BROKER_URL,

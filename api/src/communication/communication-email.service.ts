@@ -5,6 +5,7 @@ import { NOTIFICATION_EMAIL_FROM } from '../constants';
 import { COMMUNICATION_EMAIL_TRANSPORT } from './communication.constants';
 import { CommunicationTaskService } from './communication-task.service';
 import { UserDto } from '../persistence/dto/user.dto';
+import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 @Injectable()
 export class CommunicationEmailService extends CommunicationTaskService {
@@ -13,8 +14,9 @@ export class CommunicationEmailService extends CommunicationTaskService {
   constructor(
     @Inject(COMMUNICATION_EMAIL_TRANSPORT)
     private readonly emailTransport: nodemailer.TransportOptions,
+    systemRepository: SystemRepository,
   ) {
-    super();
+    super(systemRepository);
     this.transporter = nodemailer.createTransport(this.emailTransport);
   }
 

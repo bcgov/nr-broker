@@ -3,6 +3,7 @@ import { GroupRegistryByAccountDto } from '../dto/group-registry-by-account.dto'
 import { JwtRegistryEntity } from '../entity/jwt-registry.entity';
 import { PreferenceEntity } from '../entity/preference.entity';
 import { JwtDto } from '../dto/jwt.dto';
+import { CommunicationTemplateEntity } from '../entity/communication-template.entity';
 
 export abstract class SystemRepository {
   public abstract jwtMatchesAllowed(jwt: JwtDto): Promise<boolean>;
@@ -31,6 +32,9 @@ export abstract class SystemRepository {
   public abstract setPreferences(preference: PreferenceEntity): Promise<void>;
 
   public abstract getConnectionConfigs(): Promise<ConnectionConfigEntity[]>;
+  public abstract getCommunicationTemplate(
+    key: string,
+  ): Promise<CommunicationTemplateEntity | null>;
   public abstract generateUserAliasRequestState(
     accountId: string,
     domain: string,
