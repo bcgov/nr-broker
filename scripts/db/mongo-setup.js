@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unused-vars
 
 /* eslint-disable no-undef */
+const fs = require('fs');
 db.service.drop();
 db.vertex.drop();
 db.edge.drop();
@@ -16,6 +17,7 @@ db.user.drop();
 db.collectionConfig.drop();
 db.intention.drop();
 db.connectionConfig.drop();
+db.communicationTemplate.drop();
 db.repository.drop();
 db.packageBuild.drop();
 db.graphPermission.drop();
@@ -23,6 +25,52 @@ db.collectionWatch.drop();
 db.collectionWatchConfig.drop();
 
 db.jwtAllow.insertOne({});
+
+const communicationTemplateBasePaths = [
+  'templates',
+  'db/templates',
+  'scripts/db/templates',
+];
+
+function readCommunicationTemplate(fileName) {
+  for (const basePath of communicationTemplateBasePaths) {
+    try {
+      const filePath = `${basePath}/${fileName}`;
+      if (fs.existsSync(filePath)) {
+        return fs.readFileSync(filePath, 'utf8');
+      }
+    } catch (error) {
+      // Continue searching alternate paths.
+    }
+  }
+
+  throw new Error(`Unable to load communication template file: ${fileName}`);
+}
+
+db.communicationTemplate.insertMany([
+  {
+    key: 'test',
+    email: readCommunicationTemplate('test-email.ejs'),
+    subject: readCommunicationTemplate('test-subject.ejs'),
+  },
+  {
+    key: 'token-expiration-alert',
+    email: readCommunicationTemplate('token-expiration-alert-email.ejs'),
+    subject: readCommunicationTemplate('token-expiration-alert-subject.ejs'),
+  },
+  {
+    key: 'token-expiration-owner',
+    email: readCommunicationTemplate('token-expiration-owner-email.ejs'),
+    subject: readCommunicationTemplate('token-expiration-owner-subject.ejs'),
+  },
+  {
+    key: 'intention-event-notification',
+    email: readCommunicationTemplate('intention-event-notification-email.ejs'),
+    subject: readCommunicationTemplate('intention-event-notification-subject.ejs'),
+  },
+]);
+
+db.communicationTemplate.createIndex({ key: 1 }, { unique: true });
 
 db.connectionConfig.insertOne({
   collection: 'documentation',
