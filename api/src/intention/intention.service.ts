@@ -734,7 +734,7 @@ export class IntentionService {
         action.service.id.toString(),
       );
 
-      let serviceInstanceUrl: string | undefined;
+      let serviceInstanceUrl: string;
       const instanceName = this.actionUtil.instanceName(action);
       if (service?.vertex && instanceName) {
         const serviceInstanceVertex =
@@ -750,7 +750,7 @@ export class IntentionService {
               'serviceInstance',
               serviceInstanceVertex.id,
             );
-          serviceInstanceUrl = serviceInstance?.url;
+          serviceInstanceUrl = serviceInstance?.url ?? '';
         }
       }
 
