@@ -21,6 +21,7 @@
     "test:e2e": "vitest run --config ./test/vitest-e2e.config.ts"
   },
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
     "@aws-sdk/client-kinesis": "^3.1076.0",
     "@aws-sdk/client-sts": "^3.1076.0",
     "@aws-sdk/credential-provider-node": "^3.972.59",

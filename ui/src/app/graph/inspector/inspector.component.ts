@@ -52,6 +52,7 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
 
 @Component({
   selector: 'app-inspector',
@@ -74,6 +75,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TitleCasePipe,
+    WatchButtonComponent,
   ],
 })
 export class InspectorComponent implements OnChanges, OnInit {

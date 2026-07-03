@@ -1,12 +1,4 @@
 <div>
-  @if (collectionConfig().watches?.length) {
-    <div class="component-spacer watch-button-row">
-      <app-watch-button
-        [vertexId]="comboData().collection.vertex"
-        [watchConfigs]="collectionConfig().watches"></app-watch-button>
-    </div>
-  }
-
   @if (comboData().collection.tags && comboData().collection.tags.length > 0) {
     <div class="component-spacer"></div>
 
