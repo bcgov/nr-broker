@@ -1,11 +1,21 @@
 <div class="watch-button-container">
-  <button
-    mat-button
-    [matMenuTriggerFor]="watchMenu"
-    [disabled]="saving()">
-    <mat-icon>{{ mode() === 'ignore' ? 'notifications_off' : 'notifications_active' }}</mat-icon>
-    Watch: {{ summary() }}
-  </button>
+  @if (asMenuItem()) {
+    <button
+      mat-menu-item
+      [matMenuTriggerFor]="watchMenu"
+      [disabled]="saving()">
+      <mat-icon>{{ mode() === 'ignore' ? 'notifications_off' : 'notifications_active' }}</mat-icon>
+      <span>Watch: {{ summary() }}</span>
+    </button>
+  } @else {
+    <button
+      mat-button
+      [matMenuTriggerFor]="watchMenu"
+      [disabled]="saving()">
+      <mat-icon>{{ mode() === 'ignore' ? 'notifications_off' : 'notifications_active' }}</mat-icon>
+      Watch: {{ summary() }}
+    </button>
+  }
 
   <mat-menu #watchMenu="matMenu">
 

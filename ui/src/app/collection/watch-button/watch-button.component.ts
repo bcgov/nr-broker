@@ -52,6 +52,7 @@ export class WatchButtonComponent {
 
   readonly vertexId = input.required<string>();
   readonly watchConfigs = input<CollectionWatchConfig[] | undefined>();
+  readonly asMenuItem = input<boolean>(false);
 
   readonly configuredWatches = computed<CollectionWatchConfig[]>(() => {
     return (this.watchConfigs() ?? []).filter((watchConfig) => {
