@@ -22,9 +22,9 @@
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",
-    "@aws-sdk/client-kinesis": "^3.1076.0",
-    "@aws-sdk/client-sts": "^3.1076.0",
-    "@aws-sdk/credential-provider-node": "^3.972.59",
+    "@aws-sdk/client-kinesis": "^3.1079.0",
+    "@aws-sdk/client-sts": "^3.1079.0",
+    "@aws-sdk/credential-provider-node": "^3.972.62",
     "@mikro-orm/core": "^7.1.5",
     "@mikro-orm/decorators": "^7.1.5",
     "@mikro-orm/mongodb": "^7.1.5",
@@ -41,7 +41,7 @@
     "@nestjs/serve-static": "^5.0.5",
     "@nestjs/swagger": "^11.4.5",
     "@nestjs/terminus": "^11.1.1",
-    "@smithy/protocol-http": "^5.5.4",
+    "@smithy/protocol-http": "^5.5.6",
     "@types/lodash.merge": "^4.6.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -93,7 +93,7 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.61.1",
     "@typescript-eslint/parser": "^8.61.1",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.6.0",
     "source-map-support": "^0.5.20",
     "supertest": "^7.2.2",
@@ -103,6 +103,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1",
     "unplugin-swc": "^1.5.9",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
