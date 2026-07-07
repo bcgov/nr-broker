@@ -193,7 +193,7 @@ export class CommunicationQueueService {
 
           // Only send notification if their specific watch matches the channel/event
           if (watcher.watches.findIndex(
-            (watch) => channels.includes(watch.channel) && (!watch.events || watch.events.includes(jobUser.event)),
+            (watch) => !!watch.events && channels.includes(watch.channel) && watch.events.includes(jobUser.event),
           ) !== -1) {
             const user = await this.collectionRepository.getCollectionByVertexId('user', watcher.user.toString());
             if (user) {
