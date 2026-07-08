@@ -102,6 +102,14 @@ Broker, by default, uses Helmet's default content security policy directives.
 | --- | --- | --- | --- |
 | NESTJS_HELMET_HSTS |  |  | If HSTS (HTTP Strict Transport Security) is set to 'off', insecure requests are not upgraded. This option is primarily for local development. This deletes 'upgrade-insecure-requests' from the policy directives. |
 
+## SSE (Server-Sent Events) Configuration
+
+SSE is used for real-time graph event streaming. The heartbeat keeps connections alive through proxy/load balancer idle timeouts.
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| SSE_HEARTBEAT_INTERVAL_MS | 15000 |  | Heartbeat interval in milliseconds. Set to a value under 5000 (e.g., 0) to disable heartbeats entirely. In production behind proxies (OpenShift router, HAProxy, etc.), keep this below the proxy idle timeout to prevent connection drops. |
+
 ## MongoDB Connection
 
 The MongoDB environment variables used to setup the connection.

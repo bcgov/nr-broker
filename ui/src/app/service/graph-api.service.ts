@@ -47,6 +47,13 @@ export class GraphApiService {
           return JSON.parse(messageEvent.data);
         }
       }),
+      filter((data: GraphEventDto) => {
+        // Silently drop server heartbeat events used to keep the connection alive
+        if (data && typeof data === 'object' && 'event' in data && data.event === 'heartbeat') {
+          return false;
+        }
+        return true;
+      }),
     );
   }
 

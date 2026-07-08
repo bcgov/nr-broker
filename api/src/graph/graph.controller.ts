@@ -17,7 +17,8 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiBearerAuth, ApiBody, ApiQuery } from '@nestjs/swagger';
-import { Observable } from 'rxjs';
+import { interval, merge, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { GraphService } from './graph.service';
 import { GraphSyncService } from './graph-sync/graph-sync.service';
@@ -39,7 +40,7 @@ import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decora
 import { PersistenceCacheSuffix } from '../persistence/persistence-cache-suffix.decorator';
 import { GraphTypeaheadQuery } from './dto/graph-typeahead-query.dto';
 import { PERSISTENCE_CACHE_KEY_GRAPH } from '../persistence/persistence.constants';
-import { REDIS_PUBSUB } from '../constants';
+import { REDIS_PUBSUB, SSE_HEARTBEAT_INTERVAL_MS } from '../constants';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 import { GraphTeamUserPermissionDto } from './dto/graph-team-user-permision.dto';
 import { CollectionWatchArrayDto } from '../persistence/dto/collection-watch.dto';
@@ -127,7 +128,15 @@ export class GraphController {
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   events(): Observable<MessageEvent> {
-    return this.redis.getEventSource(REDIS_PUBSUB.GRAPH);
+    // Disable heartbeat when interval is under 5 seconds (e.g., SSE_HEARTBEAT_INTERVAL_MS=0)
+    if (SSE_HEARTBEAT_INTERVAL_MS < 5000) {
+      return this.redis.getEventSource(REDIS_PUBSUB.GRAPH);
+    }
+
+    const heartbeat$ = interval(SSE_HEARTBEAT_INTERVAL_MS).pipe(
+      map(() => ({ data: JSON.stringify({ event: 'heartbeat' }) })),
+    );
+    return merge(this.redis.getEventSource(REDIS_PUBSUB.GRAPH), heartbeat$);
   }
 
   @Post('typeahead')
