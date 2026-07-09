@@ -9,7 +9,8 @@ export type GraphEventDto =
   | GraphCollectionEventDto
   | GraphEdgeEventDto
   | GraphVertexEventDto
-  | GraphDeleteEventDto;
+  | GraphDeleteEventDto
+  | GraphHeartbeatEventDto;
 
 export class GraphCollectionEventDto {
   event!: 'collection-edit';
@@ -28,4 +29,8 @@ export class GraphVertexEventDto {
 
 export class GraphDeleteEventDto extends GraphDeleteResponseDto {
   event!: 'edge-delete' | 'vertex-delete';
+}
+
+export class GraphHeartbeatEventDto {
+  event!: 'heartbeat';
 }

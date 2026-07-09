@@ -136,3 +136,7 @@ export const FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC =
 
 export const FEATURE_FLAG_TEAM_ROLE_CHIPS =
   process.env.FEATURE_FLAG_TEAM_ROLE_CHIPS === 'true';
+
+// SSE heartbeat interval in milliseconds. Set to a value under 5000 to disable.
+export const SSE_HEARTBEAT_INTERVAL_MS =
+  Number.parseInt(process.env.SSE_HEARTBEAT_INTERVAL_MS ?? '15000', 10);
