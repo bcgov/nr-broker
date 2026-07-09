@@ -31,7 +31,15 @@
   <span class="spacer"></span>
 
   <button
-    mat-stroked-button
+    mat-button
+    aria-label="Show Help"
+    (click)="showHelp()"
+    class="help-button">
+    Show Help
+  </button>
+
+  <button
+    mat-button
     aria-label="Add Vertex"
     (click)="addVertex()"
     [disabled]="!((collection() === 'team' || permission.hasAdmin()) && !disableAdd())">

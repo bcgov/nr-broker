@@ -1,0 +1,25 @@
+section {
+  margin-bottom: 24px;
+}
+
+h3 {
+  font-weight: 600;
+}
+
+.example {
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.text-symbol {
+  list-style-type: none;
+  padding-left: 22px;
+
+  li span {
+    width: 16px;
+    display: inline-block;
+  }
+}

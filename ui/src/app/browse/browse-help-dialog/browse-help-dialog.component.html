@@ -1,0 +1,125 @@
+<h2 mat-dialog-title>Browse Help</h2>
+
+<mat-dialog-content>
+  <mat-accordion>
+
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Overview</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <p>The browse table allows you to view and interact with items in a collection.
+        A collection is a group of related items, such as projects, services, environments, or teams.</p>
+
+      <section>
+        <h3>Collection drop-down</h3>
+
+        <div class="example">
+          <mat-form-field class="example-select">
+            <mat-label>Collection</mat-label>
+            <mat-select [value]="data.collection">
+              <mat-option [value]="data.collection">{{data.config.name}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <p>Use this drop-down to select which collection to browse.</p>
+      </section>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Collection Details</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      @for (cfg of configs; track cfg.id) {
+        <app-details-item item="{{cfg.name}}" wrapValue="true">{{cfg.hint}}</app-details-item>
+      }
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Filtering</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <section>
+        <p>By filtering, you can narrow down the items displayed in the table based on specific criteria.
+          Some options may not be available for all collections.</p>
+
+        <h3>Text</h3>
+        <div class="example">
+          <mat-form-field class="example-input">
+            <mat-label>Filter</mat-label>
+            <input matInput placeholder="Filter" value="my-project" />
+          </mat-form-field>
+        </div>
+
+        <p>Type at least three characters to search across fields.</p>
+      </section>
+
+      @if (data.canFilterConnected) {
+        <section>
+          <h3>Show (by connection)</h3>
+
+          <div class="example">
+            <mat-form-field class="example-select-small">
+              <mat-label>Show</mat-label>
+              <mat-select value="connected">
+                <mat-option [value]="true">All</mat-option>
+                <mat-option [value]="false">Connected</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <p>Controls which items are displayed:</p>
+          <ul>
+            <li><strong>All</strong>: every item in the collection</li>
+            <li><strong>Connected</strong>: only items in the collection that are connected to you</li>
+          </ul>
+        </section>
+      }
+
+      <section>
+        <h3>Tags</h3>
+        <p>Use the tags drop-down to filter by one or more values.</p>
+      </section>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Table</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <section>
+
+        <p>The table displays the items in the selected collection. Click anywhere on a row to open the item details.</p>
+
+        <h3>Collection columns</h3>
+
+        <p>Each collection has its own set of data fields, some of which are shown as columns in the collection table.</p>
+
+        <h3>Connections column</h3>
+        <p>Shows the number of upstream and downstream connections for each item:</p>
+        <ul class="text-symbol">
+          <li><strong><span>↑</span>Upstream</strong>: connections that target this item</li>
+          <li><strong><span>↓</span>Downstream</strong>: connections that originate from this item</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Action buttons</h3>
+        <p>Each row has buttons to interact with the item:</p>
+        <ul>
+          <li><strong>View</strong>: opens the item details</li>
+          <li><strong>View on Graph</strong>: opens the graph with this item selected</li>
+          <li><strong>Members</strong>: available for teams only, shows users assigned to the team</li>
+        </ul>
+      </section>
+    </mat-expansion-panel>
+
+  </mat-accordion>
+  <br />
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="close()">Close</button>
+</mat-dialog-actions>

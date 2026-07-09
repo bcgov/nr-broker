@@ -22,6 +22,7 @@ import {
 } from '../collection-table/collection-table.component';
 import { CONFIG_ARR, CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
+import { BrowseHelpDialogComponent } from '../browse-help-dialog/browse-help-dialog.component';
 
 interface filterOptions<T> {
   value: T;
@@ -74,6 +75,10 @@ export class CollectionBrowserComponent {
 
   disableAdd = computed(() => {
     return !this.config().permissions.create;
+  });
+
+  canFilterConnected = computed(() => {
+    return this.config().permissions.filter ?? false;
   });
 
   private readonly configArrBrowse = this.configArr.filter((config) => config.permissions.browse);
@@ -172,5 +177,17 @@ export class CollectionBrowserComponent {
           );
         }
       });
+  }
+
+  showHelp() {
+    this.dialog.open(BrowseHelpDialogComponent, {
+      width: '780px',
+      maxWidth: '95vw',
+      data: {
+        collection: this.collection(),
+        config: this.config(),
+        canFilterConnected: this.canFilterConnected(),
+      },
+    });
   }
 }
