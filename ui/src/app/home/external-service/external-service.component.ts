@@ -1,61 +1,131 @@
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { map } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+
 import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
+import { ExternalServiceViewComponent } from '../../shared/external-service-view/external-service-view.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
-import { MatDialog } from '@angular/material/dialog';
-import { GraphApiService } from '../../service/graph-api.service';
-import { CollectionApiService } from '../../service/collection-api.service';
 import { SystemApiService } from '../../service/system-api.service';
 import { FeatureFlagService } from '../../service/feature-flag.service';
+import { ConnectionConfigDto } from '../../service/persistence/dto/connection-config.dto';
+import { GraphApiService } from '../../service/graph-api.service';
+import { CollectionApiService } from '../../service/collection-api.service';
 import { GraphRolePermissionRuleDto } from '../../service/graph/dto/graph-role-permission-rule.dto';
 import { EnvironmentDto } from '../../service/persistence/dto/environment.dto';
-import { ConnectionConfigDto } from '../../service/persistence/dto/connection-config.dto';
 import {
-  BrokerRoleMappingDialogComponent,
-  BrokerRoleSudoCollection,
-} from '../broker-role-mapping-dialog/broker-role-mapping-dialog.component';
+  BrokerRolesByEdge,
+  BrokerChipClickEvent,
+  ConnectionConfigChipInfo,
+  ConnectionConfigChipsByRole,
+} from '../../browse/team-roles/team-role-types';
 import {
   ConnectionConfigRoleDialogComponent,
   ConnectionConfigRoleDialogData,
-} from '../connection-config-role-dialog/connection-config-role-dialog.component';
-import { TeamRoleEdgesComponent } from '../team-role-edges/team-role-edges.component';
+} from '../../browse/connection-config-role-dialog/connection-config-role-dialog.component';
 import {
-  BrokerChipInfo,
-  BrokerChipClickEvent,
-  ConnectionConfigChipInfo,
-} from './team-role-types';
+  BrokerRoleMappingDialogComponent,
+  BrokerRoleSudoCollection,
+} from '../../browse/broker-role-mapping-dialog/broker-role-mapping-dialog.component';
+import { PageErrorComponent } from '../../page-error/page-error.component';
 
 @Component({
-  selector: 'app-team-roles',
-  imports: [TeamRoleEdgesComponent],
-  templateUrl: './team-roles.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './team-roles.component.scss',
+  selector: 'app-external-service',
+  imports: [
+    RouterModule,
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    CollectionHeaderComponent,
+    ExternalServiceViewComponent,
+    PageErrorComponent,
+  ],
+  templateUrl: './external-service.component.html',
+  styleUrl: './external-service.component.scss',
 })
-export class TeamRolesComponent {
+export class ExternalServiceComponent {
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly systemApiService = inject(SystemApiService);
   private readonly graphApi = inject(GraphApiService);
   private readonly collectionApi = inject(CollectionApiService);
-  private readonly systemApi = inject(SystemApiService);
   private readonly featureFlagService = inject(FeatureFlagService);
   private readonly dialog = inject(MatDialog);
+  private readonly route = inject(ActivatedRoute);
 
-  edges: CollectionEdgeConfig[] = this.configRecord['user'].edges.filter(
-    (edge) => edge.collection === 'team',
+  private readonly serviceId = toSignal(
+    this.route.paramMap.pipe(map((params) => params.get('id'))),
+    { initialValue: this.route.snapshot.paramMap.get('id') },
   );
 
+  readonly connectionConfigResource = httpResource<ConnectionConfigDto[]>(() =>
+    this.systemApiService.getConnectionConfigArgs(),
+  );
+  readonly loading = computed(() => this.connectionConfigResource.isLoading());
+  readonly service = computed<ConnectionConfigDto | null>(() => {
+    const services = (this.connectionConfigResource.value() ?? []).filter(
+      (d) => d.collection === 'service',
+    );
+    return services.find((s) => s.id === this.serviceId()) ?? null;
+  });
+  private readonly connectionConfigs = computed(() => this.connectionConfigResource.value() ?? []);
   readonly teamRoleChipsEnabled = this.featureFlagService.isEnabled('teamRoleChips');
-
   readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
     this.graphApi.getTeamRolePermissionRulesArgs(),
   );
   readonly environmentResource = httpResource<EnvironmentDto[]>(() =>
     this.collectionApi.exportCollectionArgs('environment'),
   );
-  readonly connectionConfigResource = httpResource<ConnectionConfigDto[]>(() =>
-    this.systemApi.getConnectionConfigArgs(),
-  );
+  readonly edges = computed<CollectionEdgeConfig[]>(() => {
+    const mappedRoles = new Set(
+      (this.service()?.roleChipMappings ?? []).map((mapping) => mapping.role),
+    );
+
+    return this.configRecord['user'].edges.filter(
+      (edge) => edge.collection === 'team' && mappedRoles.has(edge.name),
+    );
+  });
+  readonly allServiceChipsByRole = computed<ConnectionConfigChipsByRole>(() => {
+    const chipsByRole: ConnectionConfigChipsByRole = {};
+    const services = (this.connectionConfigResource.value() ?? []).filter(
+      (d) => d.collection === 'service',
+    );
+
+    for (const service of services) {
+      for (const mapping of service.roleChipMappings ?? []) {
+        if (!chipsByRole[mapping.role]) {
+          chipsByRole[mapping.role] = [];
+        }
+
+        chipsByRole[mapping.role].push({
+          label: mapping.label,
+          description: mapping.description,
+          connectionConfig: service,
+        });
+      }
+    }
+
+    return chipsByRole;
+  });
+  readonly gitHubRolesByEdge = computed<Record<string, GitHubEdgeToRoles>>(() => {
+    const userConfig = this.configRecord['user'];
+    const edgeToRoles: GitHubEdgeToRoles[] = userConfig?.edgeToRoles ?? [];
+    const githubRolesByEdge: Record<string, GitHubEdgeToRoles> = {};
+
+    for (const mapping of edgeToRoles) {
+      for (const edgeName of mapping.edge ?? []) {
+        githubRolesByEdge[edgeName] = mapping;
+      }
+    }
+
+    return githubRolesByEdge;
+  });
   private readonly rolePermissionRulesByRole = computed<Record<string, GraphRolePermissionRuleDto[]>>(() => {
     const rulesByRole: Record<string, GraphRolePermissionRuleDto[]> = {};
 
@@ -72,47 +142,11 @@ export class TeamRolesComponent {
   private readonly environments = computed(() =>
     [...(this.environmentResource.value() ?? [])].sort((a, b) => a.position - b.position),
   );
-  private readonly connectionConfigs = computed(() => this.connectionConfigResource.value() ?? []);
-
-  readonly getGitHubRole = computed<Record<string, GitHubEdgeToRoles>>(() => {
-    const userConfig = this.configRecord['user'];
-    const edgeToRoles: GitHubEdgeToRoles[] = userConfig?.edgeToRoles ?? [];
-    const githubRolesByEdge: Record<string, GitHubEdgeToRoles> = {};
-
-    for (const mapping of edgeToRoles) {
-      for (const edgeName of mapping.edge ?? []) {
-        githubRolesByEdge[edgeName] = mapping;
-      }
-    }
-
-    return githubRolesByEdge;
-  });
-
-  readonly getConnectionConfigChipsForRole = computed<Record<string, ConnectionConfigChipInfo[]>>(() => {
-    const chipsByRole: Record<string, ConnectionConfigChipInfo[]> = {};
-
-    for (const config of this.connectionConfigs()) {
-      for (const mapping of config.roleChipMappings ?? []) {
-        if (!chipsByRole[mapping.role]) {
-          chipsByRole[mapping.role] = [];
-        }
-
-        chipsByRole[mapping.role].push({
-          label: mapping.label,
-          description: mapping.description,
-          connectionConfig: config,
-        });
-      }
-    }
-
-    return chipsByRole;
-  });
-
-  readonly getBrokerRole = computed<Record<string, BrokerChipInfo | null>>(() => {
-    const brokerRolesByEdge: Record<string, BrokerChipInfo | null> = {};
+  readonly brokerRolesByEdge = computed<BrokerRolesByEdge>(() => {
+    const brokerRolesByEdge: BrokerRolesByEdge = {};
     const rolePermissionRulesByRole = this.rolePermissionRulesByRole();
 
-    for (const edge of this.edges) {
+    for (const edge of this.edges()) {
       const roleRules = rolePermissionRulesByRole[edge.name] ?? [];
       const allPermissions = roleRules.flatMap((rule) =>
         rule.steps.flatMap((step) => step.permissions),
@@ -158,10 +192,10 @@ export class TeamRolesComponent {
 
     return brokerRolesByEdge;
   });
+
   getGitHubConnectionConfigChip(githubRole: GitHubEdgeToRoles): ConnectionConfigChipInfo | null {
     if (!githubRole) return null;
 
-    // Find the connection config that has a roleChipMapping for this GitHub role
     for (const config of this.connectionConfigs()) {
       for (const mapping of config.roleChipMappings ?? []) {
         if (mapping.role === githubRole.role) {
@@ -174,7 +208,6 @@ export class TeamRolesComponent {
       }
     }
 
-    // If no matching connection config found, create one from the GitHub role info
     return {
       label: 'GitHub',
       description: githubRole.description,
@@ -190,6 +223,22 @@ export class TeamRolesComponent {
         roleChipMappings: [{ role: githubRole.role, label: githubRole.label, description: githubRole.description }],
       },
     };
+  }
+
+  openConnectionConfigDialog(chipInfo: ConnectionConfigChipInfo | null): void {
+    if (!chipInfo) {
+      return;
+    }
+
+    const data: ConnectionConfigRoleDialogData = {
+      connectionConfig: chipInfo.connectionConfig,
+    };
+
+    this.dialog.open(ConnectionConfigRoleDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      data,
+    });
   }
 
   openBrokerRoleDialog(edge: CollectionEdgeConfig, chipLabel: string): void {
@@ -224,22 +273,6 @@ export class TeamRolesComponent {
     });
   }
 
-  openConnectionConfigDialog(chipInfo: ConnectionConfigChipInfo | null): void {
-    if (!chipInfo) {
-      return;
-    }
-
-    const data: ConnectionConfigRoleDialogData = {
-      connectionConfig: chipInfo.connectionConfig,
-    };
-
-    this.dialog.open(ConnectionConfigRoleDialogComponent, {
-      width: '600px',
-      maxWidth: '95vw',
-      data,
-    });
-  }
-
   handleBrokerChipClick(event: BrokerChipClickEvent): void {
     this.openBrokerRoleDialog(event.edge, event.chipLabel);
   }
@@ -269,7 +302,6 @@ export class TeamRolesComponent {
       return ' change all environments';
     }
 
-    // Find the environment with the highest priority (lowest position number)
     for (const env of this.environments()) {
       if (info.includes(env.title || env.name)) {
         return `change up to ${env.title?.toLocaleLowerCase() ?? env.name.toLocaleLowerCase()} environment`;

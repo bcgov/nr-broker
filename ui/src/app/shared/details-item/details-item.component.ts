@@ -13,4 +13,5 @@ export class DetailsItemComponent {
   readonly value = input<string>('');
   readonly clickable = input(false, { transform: booleanAttribute });
   readonly invertBackground = input(false, { transform: booleanAttribute });
+  readonly wrapValue = input(false, { transform: booleanAttribute });
 }

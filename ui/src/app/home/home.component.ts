@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRipple } from '@angular/material/core';
 import { MatRippleModule } from '@angular/material/core';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { SystemApiService } from '../service/system-api.service';
 import { ConnectionConfigDto } from '../service/persistence/dto/connection-config.dto';
@@ -24,6 +25,7 @@ import { PreferencesService } from '../preferences.service';
     MatProgressSpinnerModule,
     MatRippleModule,
     MatTabsModule,
+    MatTooltipModule,
   ],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

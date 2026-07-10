@@ -1,0 +1,41 @@
+<div
+  class="service-card-layout"
+  [class.wide]="screen.screenSizeXLarge() === 'wide'"
+  [class.narrow]="screen.screenSizeXLarge() !== 'wide'"
+>
+  <app-external-service-card [connectionConfig]="connectionConfig()" />
+
+  <mat-card appearance="outlined" class="permissions-card">
+    <mat-card-header>
+      <mat-card-title>Permissions granted by roles</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (permissionGroups().length > 0) {
+        <p class="help-text">Permissions are grouped below with all associated roles.</p>
+        <div class="permission-groups">
+          @for (group of permissionGroups(); track group.label + group.description) {
+            <section class="permission-group">
+              <h4 class="permission-label">{{ group.label }}</h4>
+              @if (group.description) {
+                <p class="permission-description">{{ group.description }}</p>
+              }
+              <app-team-role-edges
+                [edges]="getEdgesForRoles(group.roles)"
+                [teamRoleChipsEnabled]="teamRoleChipsEnabled()"
+                [connectionConfigChipsForRole]="connectionConfigChipsForRole()"
+                [gitHubRoleByEdge]="gitHubRoleByEdge()"
+                [brokerRoleByEdge]="brokerRoleByEdge()"
+                [currentConnectionConfigId]="currentConnectionConfigId()"
+                (connectionChipClick)="onConnectionChipClick($event)"
+                (githubChipClick)="onGitHubChipClick($event)"
+                (brokerChipClick)="onBrokerChipClick($event)"
+              />
+            </section>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">No roles are configured for this service.</p>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

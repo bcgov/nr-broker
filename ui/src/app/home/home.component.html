@@ -143,20 +143,39 @@
         <h4>None configured</h4>
       }
       @for (item of services; track item.id) {
-        <a href="{{item.href}}" target="_blank">
-          <mat-card appearance="outlined">
-            <mat-card-header>
-              <mat-card-title>{{item.name}}</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-              <p>
-                {{item.description}}
-              </p>
-            </mat-card-content>
-          </mat-card>
-        </a>
+        <div class="service-panel">
+          <a [routerLink]="['/home/external-service', item.id]" class="service-panel-link">
+            <mat-card appearance="outlined">
+              <mat-card-header>
+                <mat-card-title>
+                  @if (item.imageEmbedded) {
+                    <img [src]="item.imageEmbedded" alt="{{item.name}} icon" class="service-icon" />
+                  } @else if (item.imageUrl) {
+                    <img [src]="item.imageUrl" alt="{{item.name}} icon" class="service-icon" />
+                  }
+                  {{item.name}}
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p>
+                  {{item.description}}
+                </p>
+              </mat-card-content>
+            </mat-card>
+          </a>
+          <div class="service-links">
+
+            <a [href]="item.href" target="_blank" rel="noopener noreferrer">
+              <button mat-stroked-button
+                matTooltip="{{item.href}}"
+                matTooltipShowDelay="500">
+                Open service
+                <mat-icon iconPositionEnd fontIcon="open_in_new"></mat-icon></button>
+            </a>
+          </div>
+        </div>
+      }
     }
-  }
   </div>
 
   <h2>Documentation</h2>

@@ -70,6 +70,29 @@ mat-card-content {
   color: var(--mat-sys-on-primary-container);
 }
 
+.service-links {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+
+  a {
+    color: var(--mat-sys-primary);
+    text-decoration: underline;
+  }
+}
+
+.service-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.service-panel-link {
+  display: block;
+}
+
 @media only screen and (min-width: 600px) {
   .content .cards {
     flex-direction: row;
@@ -108,4 +131,12 @@ a {
     foreground-color: var(--mat-sys-primary-container),
     container-shape: 400px,
   ));
+}
+
+.service-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
 }

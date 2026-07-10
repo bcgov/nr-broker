@@ -1,0 +1,51 @@
+@for (edge of edges(); track edge.id) {
+  <mat-divider></mat-divider>
+  <h3 class="role-title">
+    <span>{{ edge | edgetitle }}</span>
+    @if (teamRoleChipsEnabled()) {
+      <span class="role-chip-group">
+        @for (connectionChip of connectionConfigChipsForRole()[edge.name] ?? []; track connectionChip.label + connectionChip.connectionConfig.id) {
+          @if (isCurrentConnectionChip(connectionChip)) {
+            <span class="disabled-chip" title="Currently viewing this service">
+              <app-team-role-chip
+                [label]="connectionChip.label"
+                [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
+                [productName]="connectionChip.connectionConfig.name"
+                [tooltip]="'Currently viewing this service'"
+              />
+            </span>
+          } @else {
+            <app-team-role-chip
+              [label]="connectionChip.label"
+              [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
+              [productName]="connectionChip.connectionConfig.name"
+              [tooltip]="connectionChip.description ?? 'Click to view details'"
+              (click)="onConnectionChipClick(connectionChip)"
+            />
+          }
+        }
+
+        @if (gitHubRoleByEdge()[edge.name]; as githubRole) {
+          <app-team-role-chip
+            [label]="githubRole.label"
+            [iconSrc]="'assets/github.svg'"
+            [productName]="'GitHub'"
+            [tooltip]="githubRole.description"
+            (click)="onGitHubChipClick(githubRole)"
+          />
+        }
+
+        @if (brokerRoleByEdge()[edge.name]; as brokerChipInfo) {
+          <app-team-role-chip
+            [label]="brokerChipInfo.label"
+            [iconSrc]="'assets/broker-bw.svg'"
+            [productName]="'Broker'"
+            [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
+            (click)="onBrokerChipClick(edge, brokerChipInfo.label)"
+          />
+        }
+      </span>
+    }
+  </h3>
+  <p class="user-role-help">{{ edge.help }}</p>
+}
