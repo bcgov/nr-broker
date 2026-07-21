@@ -1,0 +1,88 @@
+<h2 mat-dialog-title>Connections Help</h2>
+
+<mat-dialog-content>
+  <app-connections-help-intro [collectionName]="data.collectionName"></app-connections-help-intro>
+
+  <h3 class="mat-title-small">Inbound connections (↑ upstream)</h3>
+  @if (data.inboundEdges.length > 0) {
+    <div class="connections-list">
+      @for (item of data.inboundEdges; track item.sourceCollectionName + ':' + item.edge.id; let last = $last) {
+        <div class="connection-item">
+          <div class="connection-header">
+            <span class="mat-body-small connection-collection">{{item.sourceCollectionName}} →</span>
+            <span class="mat-body-medium">{{item.edge.titleInbound || item.edge.title || (item.edge.name | titlecase)}}</span>
+            <mat-chip-set class="connection-badges" aria-label="Connection badges">
+              @if (item.edge.restrict) {
+                <mat-chip disableRipple matTooltip="Not followed in graph lookups">
+                  <mat-icon class="icon-restricted" inline="true">link_off</mat-icon>Restricted
+                </mat-chip>
+              }
+              <mat-chip disableRipple>
+                {{item.edge.relation === 'oneToOne' ? 'One-to-one' : 'One-to-many'}}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+          @if (item.edge.help) {
+            <p class="mat-body-small connection-help">{{item.edge.help}}</p>
+          }
+        </div>
+        @if (!last) {
+          <mat-divider></mat-divider>
+        }
+      }
+    </div>
+  } @else {
+    <p>No inbound connections configured for this collection.</p>
+  }
+
+  <h3 class="mat-title-small">Outbound connections (↓ downstream)</h3>
+  @if (data.outboundEdges.length > 0) {
+    <div class="connections-list">
+      @for (item of data.outboundEdges; track item.edge.id; let last = $last) {
+        <div class="connection-item">
+          <div class="connection-header">
+            <span class="mat-body-medium">{{item.edge.title || (item.edge.name | titlecase)}}</span>
+            <span class="mat-body-small connection-collection">→ {{item.targetCollectionName}}</span>
+            <mat-chip-set class="connection-badges" aria-label="Connection badges">
+              @if (item.edge.restrict) {
+                <mat-chip disableRipple matTooltip="Not followed in graph lookups">
+                  <mat-icon matChipAvatar>link_off</mat-icon> Restricted
+                </mat-chip>
+              }
+              <mat-chip disableRipple>
+                {{item.edge.relation === 'oneToOne' ? 'One-to-one' : 'One-to-many'}}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+          @if (item.edge.help) {
+            <p class="mat-body-small connection-help">{{item.edge.help}}</p>
+          }
+        </div>
+        @if (!last) {
+          <mat-divider></mat-divider>
+        }
+      }
+    </div>
+  } @else {
+    <p>No outbound connections configured for this collection.</p>
+  }
+
+  <h3 class="mat-title-small">Navigating connections</h3>
+  @if (data.navigationFollows === 'vertex') {
+    <p>
+      Clicking a chip currently <strong>follows the vertex</strong> — navigating to the connected item.
+      Hold <kbd>Alt</kbd> while clicking to temporarily follow the edge instead.
+      To change the default, open the menu and select <strong>Follow Edge</strong>.
+    </p>
+  } @else {
+    <p>
+      Clicking a chip currently <strong>follows the edge</strong> — opening the edge details.
+      Hold <kbd>Alt</kbd> while clicking to temporarily follow the vertex instead.
+      To change the default, open the menu and select <strong>Follow Vertex</strong>.
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

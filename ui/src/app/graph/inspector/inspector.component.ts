@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TitleCasePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -53,6 +54,7 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
+import { ConnectionsHelpDialogComponent } from '../connections-help-dialog/connections-help-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -75,6 +77,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TitleCasePipe,
+    MatTooltipModule,
     WatchButtonComponent,
   ],
 })
@@ -340,6 +343,33 @@ export class InspectorComponent implements OnChanges, OnInit {
   toggleHideRestricted() {
     this.hideRestricted.set(!this.hideRestricted());
     this.preferences.set('graphHideRestricted', this.hideRestricted());
+  }
+
+  showConnectionsHelp() {
+    const config = this.config();
+    const currentCollection = config.collection;
+    const outboundEdges = config.edges.map((e) => ({
+      targetCollectionName: this.configMap[e.collection]?.name ?? e.collection,
+      edge: e,
+    }));
+    const inboundEdges = Object.values(this.configMap).flatMap((c) =>
+      c.edges
+        .filter((e) => e.collection === currentCollection)
+        .map((e) => ({ sourceCollectionName: c.name, edge: e })),
+    );
+    this.dialog
+      .open(ConnectionsHelpDialogComponent, {
+        width: '600px',
+        data: {
+          outboundEdges,
+          inboundEdges,
+          collectionName: config.name,
+          navigationFollows: this.navigationFollows(),
+        },
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   getVertexTargetData(target: InspectorTargetVertex) {

@@ -23,6 +23,8 @@ db.packageBuild.drop();
 db.graphPermission.drop();
 db.collectionWatch.drop();
 db.collectionWatchConfig.drop();
+db.cloud.drop();
+db.openshiftProject.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -477,6 +479,15 @@ result = db.collectionConfig.insertOne({
       restrict: true,
       show: true,
     },
+    {
+      id: 'b4056650',
+      collection: 'openshiftProject',
+      name: 'installation',
+      titleInbound: 'Installs',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
   ],
   fieldDefaultSort: {
     field: 'name',
@@ -815,6 +826,7 @@ result = db.collectionConfig.insertOne({
     { collection: 'service', direction: 'downstream' },
     { collection: 'brokerAccount', direction: 'downstream' },
     { collection: 'repository', direction: 'downstream' },
+    { collection: 'cloud', direction: 'downstream' },
     { collection: 'user', direction: 'upstream' },
   ],
   index: 6,
@@ -835,6 +847,14 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       restrict: true,
       show: false,
+    },
+    {
+      id: 'c9b7a6e5',
+      collection: 'cloud',
+      name: 'operates',
+      titleInbound: 'Operated by',
+      relation: 'oneToMany',
+      show: true,
     },
   ],
   fieldDefaultSort: {
@@ -1079,6 +1099,172 @@ result = db.collectionConfig.insertOne({
   showUserRoles: true,
 });
 
+// ==> Cloud Collection Config
+result = db.collectionConfig.insertOne({
+  collection: 'cloud',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  index: 9,
+  edges: [
+    {
+      id: 'c1o2u3d4',
+      collection: 'openshiftProject',
+      name: 'project',
+      relation: 'oneToMany',
+      show: true,
+    },
+    {
+      id: 'd7f8a9b0',
+      collection: 'server',
+      name: 'server',
+      relation: 'oneToMany',
+      show: true,
+    },
+  ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'A unique name for the cloud provider instance',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the cloud instance',
+    },
+    type: {
+      name: 'Type',
+      required: true,
+      type: 'select',
+      options: [
+        { value: 'openshift', label: 'OpenShift' },
+        { value: 'aws', label: 'AWS' },
+        { value: 'azure', label: 'Azure' },
+        { value: 'gcp', label: 'GCP' },
+      ],
+      hint: 'The type of cloud provider',
+    },
+    consoleUrl: {
+      name: 'Console URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL to the cloud provider console',
+    },
+    clusterName: {
+      name: 'Cluster Name',
+      required: false,
+      type: 'string',
+      hint: 'The name of the cluster within the cloud provider',
+    },
+    apiUrl: {
+      name: 'API URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL of the API server',
+    },
+  },
+  browseFields: ['name', 'type', 'clusterName'],
+  name: 'Cloud',
+  hint: 'A grouping of cloud resources used by teams to deploy and manage services.',
+  color: '7c6aad',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
+  showUserRoles: false,
+});
+
+// ==> OpenShift Project Collection Config
+result = db.collectionConfig.insertOne({
+  collection: 'openshiftProject',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'serviceInstance', direction: 'downstream' },
+  ],
+  index: 10,
+  edges: [],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'The lowercase name of the OpenShift project',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the project',
+    },
+    apiServerUrl: {
+      name: 'API Server URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL of the OpenShift API server',
+    },
+    enableSyncSecrets: {
+      name: 'Enable secret sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of secrets to project (if supported)',
+      value: false,
+    },
+    enableSyncUsers: {
+      name: 'Enable user sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of users to project (if supported)',
+      value: false,
+    },
+    syncSecretsStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
+    syncUsersStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
+  },
+  browseFields: ['name'],
+  name: 'OpenShift Project',
+  hint: 'An OpenShift project is a logical isolation boundary for resources within an OpenShift cluster.',
+  color: '45b08f',
+  sudoHelp:
+    'Allows operations such as secret and user synchronization',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
+  showUserRoles: true,
+});
+
 // ==> Graph Permission Setup
 result = db.graphPermission.insertOne({
   name: 'user',
@@ -1199,6 +1385,28 @@ result = db.graphPermission.insertOne({
     { name: 'source', index: 8, permissions: ['sudo', 'update'] },
   ],
   key: 'fullacc-service-source-additions',
+});
+
+// ==> Cloud Graph Permissions (through team edge)
+// These extend team roles to cloud through the team->operates edge
+// Similar to how repository access is granted through project->service->source edges
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'operates', index: 9, permissions: ['sudo', 'update'] },
+  ],
+  key: 'leaddev-team-cloud',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'full-access', index: 6, permissions: [] },
+    { name: 'operates', index: 9, permissions: ['sudo', 'update'] },
+  ],
+  key: 'fullacc-team-cloud',
 });
 
 // ==> User setup

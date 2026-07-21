@@ -21,6 +21,9 @@ import { UtilModule } from '../util/util.module';
 import { PackageBuildEntity } from './entity/package-build.entity';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { BrokerAccountEntity } from './entity/broker-account.entity';
+import { CloudEntity } from './entity/cloud.entity';
+import { CloudOnPremiseEntity } from './entity/cloud-on-premise.entity';
+import { CloudOpenShiftEntity } from './entity/cloud-openshift.entity';
 import { CollectionConfigEntity } from './entity/collection-config.entity';
 import { ConnectionConfigEntity } from './entity/connection-config.entity';
 import { CommunicationTemplateEntity } from './entity/communication-template.entity';
@@ -31,6 +34,7 @@ import { EnvironmentEntity } from './entity/environment.entity';
 import { JwtAllowEntity } from './entity/jwt-allow.entity';
 import { JwtBlockEntity } from './entity/jwt-block.entity';
 import { JwtRegistryEntity } from './entity/jwt-registry.entity';
+import { OpenShiftProjectEntity } from './entity/openshift-project.entity';
 import { PreferenceEntity } from './entity/preference.entity';
 import { ProjectEntity } from './entity/project.entity';
 import { ServerEntity } from './entity/server.entity';
@@ -79,6 +83,9 @@ const redisFactory = {
   imports: [
     MikroOrmModule.forFeature([
       BrokerAccountEntity,
+      CloudEntity,
+      CloudOnPremiseEntity,
+      CloudOpenShiftEntity,
       CollectionConfigEntity,
       CollectionWatchEntity,
       CollectionWatchConfigEntity,
@@ -91,6 +98,7 @@ const redisFactory = {
       JwtAllowEntity,
       JwtBlockEntity,
       JwtRegistryEntity,
+      OpenShiftProjectEntity,
       ServiceEntity,
       ServiceInstanceEntity,
       PackageBuildEntity,

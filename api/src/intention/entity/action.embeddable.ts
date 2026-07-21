@@ -9,6 +9,7 @@ import { UserEmbeddable } from './user.embeddable';
 import { IntentionServiceEmbeddable } from './intention-service.embeddable';
 import { TransactionEmbeddable } from './transaction.embeddable';
 import { CloudEmbeddable } from './cloud.embeddable';
+import { CloudDto } from '../dto/cloud.dto';
 import { PackageEmbeddable } from './package.embeddable';
 import { ArtifactEmbeddable } from './artifact.embeddable';
 import { ActionSourceEmbeddable } from './action-source.embeddable';
@@ -54,6 +55,9 @@ export abstract class ActionEmbeddable {
     this.trace = trace;
     this.vaultEnvironment = vaultEnvironment;
     this.service = service;
+    if (action.cloud) {
+      this.cloud = CloudEmbeddable.fromDto(action.cloud as CloudDto);
+    }
   }
 
   @Enum(() => ACTION_NAMES)

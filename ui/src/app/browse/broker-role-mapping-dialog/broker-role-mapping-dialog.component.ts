@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { EChartsCoreOption } from 'echarts/core';
 import * as echarts from 'echarts/core';
 import { GraphChart } from 'echarts/charts';
@@ -31,6 +32,11 @@ export interface BrokerRoleMappingDialogData {
   rules: GraphRolePermissionRuleDto[];
   sudoCollections: BrokerRoleSudoCollection[];
   changeEnvironments: string[];
+}
+
+export interface BrokerRoleMappingDialogResult {
+  action: 'navigate';
+  path: string;
 }
 
 interface PathNode {
@@ -89,12 +95,15 @@ interface PermissionNodeStyle {
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BrokerRoleMappingDialogComponent implements OnInit {
+  readonly dialogRef = inject<MatDialogRef<BrokerRoleMappingDialogComponent>>(MatDialogRef);
+  readonly router = inject(Router);
   readonly data = inject<BrokerRoleMappingDialogData>(MAT_DIALOG_DATA);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
 
   echartsOptions!: EChartsCoreOption;
   dedupedRules: GraphRolePermissionRuleDto[] = [];
   collectionLegend: CollectionLegendItem[] = [];
+  hasAdditionalPermissions = false;
 
   ngOnInit() {
     this.dedupedRules = this.deduplicatePaths(this.data.rules);
@@ -271,6 +280,10 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
       };
     }
 
+    // Additional permissions exist if there are graph links (paths beyond user)
+    this.hasAdditionalPermissions =
+      links.length > 0;
+
     const outgoingByCollection = new Map<CollectionNames, Set<CollectionNames>>();
     const incomingCountByCollection = new Map<CollectionNames, number>();
     for (const link of links) {
@@ -335,10 +348,6 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
     }
 
     return {
-      title: {
-        text: `${this.data.edge.name}`,
-        left: 'center',
-      },
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {
@@ -349,14 +358,14 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
               return `${params.data.source} -> ${params.data.target}`;
             }
             const edgeNames = Array.from(meta.edgeNames).join(', ');
-            const permissions = Array.from(meta.permissions).join(', ') || 'none';
+            const permissions = Array.from(meta.permissions).join(', ') || 'Browse/default';
             return `Edge: ${edgeNames}<br/>Permissions: ${permissions}`;
           }
           const collection = params.data.id as CollectionNames;
           const title = this.configRecord[collection]?.name ?? params.data.name;
           const permissions = Array.from(
             collectionPermissionMap.get(collection) ?? [],
-          ).join(', ') || 'none';
+          ).join(', ') || 'Browse/default';
           return `${title}<br/>Permissions: ${permissions}`;
         },
       },
@@ -392,5 +401,9 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
         },
       ],
     };
+  }
+
+  navigateToBrowseEnvironments(): void {
+    this.dialogRef.close({ action: 'navigate', path: '/browse/environment' } as BrokerRoleMappingDialogResult);
   }
 }

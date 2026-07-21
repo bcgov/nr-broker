@@ -1,5 +1,7 @@
 import { BrokerAccountEntity } from './broker-account.entity';
+import { CloudEntity } from './cloud.entity';
 import { EnvironmentEntity } from './environment.entity';
+import { OpenShiftProjectEntity } from './openshift-project.entity';
 import { ProjectEntity } from './project.entity';
 import { RepositoryEntity } from './repository.entity';
 import { ServerEntity } from './server.entity';
@@ -10,7 +12,9 @@ import { UserEntity } from './user.entity';
 
 export type CollectionEntityUnion = {
   brokerAccount: BrokerAccountEntity;
+  cloud: CloudEntity;
   environment: EnvironmentEntity;
+  openshiftProject: OpenShiftProjectEntity;
   project: ProjectEntity;
   repository: RepositoryEntity;
   server: ServerEntity;
@@ -35,6 +39,8 @@ export const CollectionNameEnum: {
   team: 6,
   server: 7,
   repository: 8,
+  cloud: 9,
+  openshiftProject: 10,
 } as const;
 
 export enum CollectionNameStringEnum {
@@ -47,4 +53,6 @@ export enum CollectionNameStringEnum {
   team = 'team',
   server = 'server',
   repository = 'repository',
+  cloud = 'cloud',
+  openshiftProject = 'openshiftProject',
 }

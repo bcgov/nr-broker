@@ -1,5 +1,7 @@
-@for (edge of edges(); track edge.id) {
-  <mat-divider></mat-divider>
+@for (edge of edges(); track edge.id; let isFirst = $first) {
+  @if (!isFirst) {
+    <mat-divider></mat-divider>
+  }
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
     @if (teamRoleChipsEnabled()) {

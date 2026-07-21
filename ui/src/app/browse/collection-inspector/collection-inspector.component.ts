@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   MatSnackBar,
   MatSnackBarConfig,
@@ -63,6 +64,8 @@ import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dia
 import { PreferencesService } from '../../preferences.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
+import { ConnectionsHelpDialogComponent } from '../../graph/connections-help-dialog/connections-help-dialog.component';
+import { ConnectionsHelpIntroComponent } from '../../graph/connections-help-intro/connections-help-intro.component';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -76,6 +79,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     MatIconModule,
     MatMenuModule,
     MatRadioModule,
+    MatTooltipModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -98,6 +102,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     InspectorInstancesComponent,
     WatchButtonComponent,
     ServiceInstanceDetailsComponent,
+    ConnectionsHelpIntroComponent,
   ],
   templateUrl: './collection-inspector.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -488,6 +493,33 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
     );
     this.preferences.set('graphFollows', this.navigationFollows());
+  }
+
+  showConnectionsHelp() {
+    const config = this.config();
+    const currentCollection = config.collection;
+    const outboundEdges = config.edges.map((e) => ({
+      targetCollectionName: this.configRecord[e.collection]?.name ?? e.collection,
+      edge: e,
+    }));
+    const inboundEdges = Object.values(this.configRecord).flatMap((c) =>
+      c.edges
+        .filter((e) => e.collection === currentCollection)
+        .map((e) => ({ sourceCollectionName: c.name, edge: e })),
+    );
+    this.dialog
+      .open(ConnectionsHelpDialogComponent, {
+        width: '600px',
+        data: {
+          outboundEdges,
+          inboundEdges,
+          collectionName: config.name,
+          navigationFollows: this.navigationFollows(),
+        },
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   toggleHideRestricted() {

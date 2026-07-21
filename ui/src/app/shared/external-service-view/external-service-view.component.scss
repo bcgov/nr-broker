@@ -20,7 +20,6 @@
 }
 
 .help-text {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .permission-groups {
@@ -36,14 +35,15 @@
   background: var(--mat-sys-surface-container-low);
 }
 
-.permission-label {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 600;
-}
 
 .permission-description {
-  margin: 0 0 8px;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 13px;
+
+}
+
+.service-card-content {
+  margin-top: 16px;
+}
+
+.permission-label {
+  margin-bottom: 0;
 }

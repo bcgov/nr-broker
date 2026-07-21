@@ -1,5 +1,10 @@
 import { BrokerAccountBaseDto, BrokerAccountDto } from './broker-account.dto';
+import { CloudBaseDto, CloudDto } from './cloud.dto';
 import { EnvironmentBaseDto, EnvironmentDto } from './environment.dto';
+import {
+  OpenShiftProjectBaseDto,
+  OpenShiftProjectDto,
+} from './openshift-project.dto';
 import { ProjectBaseDto, ProjectDto } from './project.dto';
 import { RepositoryBaseDto, RepositoryDto } from './repository.dto';
 import { ServerBaseDto, ServerDto } from './server.dto';
@@ -13,7 +18,9 @@ import { UserBaseDto, UserDto } from './user.dto';
 
 export const CollectionBaseDtoUnionObject = {
   brokerAccount: BrokerAccountBaseDto,
+  cloud: CloudBaseDto,
   environment: EnvironmentBaseDto,
+  openshiftProject: OpenShiftProjectBaseDto,
   project: ProjectBaseDto,
   repository: RepositoryBaseDto,
   server: ServerBaseDto,
@@ -24,7 +31,9 @@ export const CollectionBaseDtoUnionObject = {
 };
 export const CollectionDtoUnionObject = {
   brokerAccount: BrokerAccountDto,
+  cloud: CloudDto,
   environment: EnvironmentDto,
+  openshiftProject: OpenShiftProjectDto,
   project: ProjectDto,
   repository: RepositoryDto,
   server: ServerDto,
@@ -35,7 +44,9 @@ export const CollectionDtoUnionObject = {
 };
 export interface CollectionBaseDtoUnion {
   brokerAccount: BrokerAccountBaseDto;
+  cloud: CloudBaseDto;
   environment: EnvironmentBaseDto;
+  openshiftProject: OpenShiftProjectBaseDto;
   project: ProjectBaseDto;
   repository: RepositoryBaseDto;
   server: ServerBaseDto;
@@ -46,7 +57,9 @@ export interface CollectionBaseDtoUnion {
 }
 export interface CollectionDtoUnion {
   brokerAccount: BrokerAccountDto;
+  cloud: CloudDto;
   environment: EnvironmentDto;
+  openshiftProject: OpenShiftProjectDto;
   project: ProjectDto;
   repository: RepositoryDto;
   server: ServerDto;
@@ -76,4 +89,6 @@ export const CollectionNameEnum: Record<CollectionNames, number> = {
   team: 6,
   server: 7,
   repository: 8,
+  cloud: 9,
+  openshiftProject: 10,
 } as const;

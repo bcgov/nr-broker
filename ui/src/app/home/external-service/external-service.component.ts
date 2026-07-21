@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -58,6 +58,7 @@ export class ExternalServiceComponent {
   private readonly featureFlagService = inject(FeatureFlagService);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   private readonly serviceId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id'))),
@@ -259,7 +260,7 @@ export class ExternalServiceComponent {
       }
     }
 
-    this.dialog.open(BrokerRoleMappingDialogComponent, {
+    const dialogRef = this.dialog.open(BrokerRoleMappingDialogComponent, {
       width: '780px',
       maxWidth: '95vw',
       data: {
@@ -270,6 +271,12 @@ export class ExternalServiceComponent {
         sudoCollections: Object.values(sudoCollectionsMap),
         changeEnvironments: envChangeRole ?? [],
       },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.action === 'navigate') {
+        this.router.navigate([result.path]);
+      }
     });
   }
 

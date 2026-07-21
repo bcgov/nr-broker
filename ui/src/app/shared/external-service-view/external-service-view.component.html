@@ -7,35 +7,39 @@
 
   <mat-card appearance="outlined" class="permissions-card">
     <mat-card-header>
-      <mat-card-title>Permissions granted by roles</mat-card-title>
+      <mat-card-title>Service Authorization</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      @if (permissionGroups().length > 0) {
-        <p class="help-text">Permissions are grouped below with all associated roles.</p>
-        <div class="permission-groups">
-          @for (group of permissionGroups(); track group.label + group.description) {
-            <section class="permission-group">
-              <h4 class="permission-label">{{ group.label }}</h4>
-              @if (group.description) {
-                <p class="permission-description">{{ group.description }}</p>
-              }
-              <app-team-role-edges
-                [edges]="getEdgesForRoles(group.roles)"
-                [teamRoleChipsEnabled]="teamRoleChipsEnabled()"
-                [connectionConfigChipsForRole]="connectionConfigChipsForRole()"
-                [gitHubRoleByEdge]="gitHubRoleByEdge()"
-                [brokerRoleByEdge]="brokerRoleByEdge()"
-                [currentConnectionConfigId]="currentConnectionConfigId()"
-                (connectionChipClick)="onConnectionChipClick($event)"
-                (githubChipClick)="onGitHubChipClick($event)"
-                (brokerChipClick)="onBrokerChipClick($event)"
-              />
-            </section>
-          }
-        </div>
-      } @else {
-        <p class="empty-state">No roles are configured for this service.</p>
-      }
+      <div class="service-card-content">
+        <p>The user's roles on a team may grant them specific permissions within this service. Access may be provided to all users or through grants to the entire team.</p>
+        @if (permissionGroups().length > 0) {
+          <p class="help-text">Permissions are grouped below with all associated roles that grant them.</p>
+          <div class="permission-groups">
+            @for (group of permissionGroups(); track group.label + group.description) {
+              <section class="permission-group">
+                <h2 class="permission-label">{{ group.label }}</h2>
+                @if (group.description) {
+                  <p class="permission-description">{{ group.description }}</p>
+                }
+                <p>Granted by the following team roles:</p>
+                <app-team-role-edges
+                  [edges]="getEdgesForRoles(group.roles)"
+                  [teamRoleChipsEnabled]="teamRoleChipsEnabled()"
+                  [connectionConfigChipsForRole]="connectionConfigChipsForRole()"
+                  [gitHubRoleByEdge]="gitHubRoleByEdge()"
+                  [brokerRoleByEdge]="brokerRoleByEdge()"
+                  [currentConnectionConfigId]="currentConnectionConfigId()"
+                  (connectionChipClick)="onConnectionChipClick($event)"
+                  (githubChipClick)="onGitHubChipClick($event)"
+                  (brokerChipClick)="onBrokerChipClick($event)"
+                />
+              </section>
+            }
+          </div>
+        } @else {
+          <p class="empty-state">No roles are configured for this service.</p>
+        }
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

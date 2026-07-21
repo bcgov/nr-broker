@@ -545,11 +545,14 @@ export class CollectionController {
       case 'repository':
       case 'team':
       case 'user':
+      case 'cloud':
         return collection;
       case 'broker-account':
         return 'brokerAccount';
       case 'service-instance':
         return 'serviceInstance';
+      case 'openshift-project':
+        return 'openshiftProject';
       default:
         throw new NotFoundException();
     }

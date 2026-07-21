@@ -388,6 +388,12 @@
           <mat-card-content>
             <div class="card-title-container">
               <mat-card-title>Connections</mat-card-title>
+              <button
+                mat-icon-button
+                matTooltip="Learn about connections"
+                (click)="showConnectionsHelp()">
+                <mat-icon>help_outline</mat-icon>
+              </button>
               <button mat-icon-button [matMenuTriggerFor]="connectionsMenu">
                 <mat-icon>more_vert</mat-icon>
               </button>
@@ -412,17 +418,7 @@
             </div>
             @if (showHelp()) {
               <div class="card-content-container">
-                <p><small>
-                  On the graph, a collection object is a vertex with directed edges that form ↓ (downstream)
-                  and ↑ (upstream) connections. Downstream connections originate from this vertex. Upstream
-                  connections target this vertex.
-                </small></p>
-
-                <p><small>
-                  Restricted edges (<mat-icon inline="true" style="margin-bottom: -6px;">link_off</mat-icon>) add supplemental
-                  information to the vertex. Restricted edges are not directly followed as part of
-                  graph lookups. In other words, they are metadata about the vertex, not part of its core relationships.
-                </small></p>
+                <app-connections-help-intro [collectionName]="config().name"></app-connections-help-intro>
               </div>
             }
             <app-inspector-connections

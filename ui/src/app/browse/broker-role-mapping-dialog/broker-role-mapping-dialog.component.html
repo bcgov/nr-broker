@@ -3,47 +3,52 @@
 <mat-dialog-content>
 
   <h3>Permission Flow Chart</h3>
-  <p>Mouse over the chart to see details. If a path matching the required connections exists, the user will have the corresponding
-    permissions on that collection item. Restricted graph edges are never followed.
-  </p>
-  <div class="chart-container">
-    <div echarts [options]="echartsOptions" class="echarts-container"></div>
-  </div>
 
-  <div class="chart-legend">
-    <div class="legend-section-label">Fill (collection type)</div>
-    <div class="legend-items">
-      @for (item of collectionLegend; track item.collection) {
+  @if (hasAdditionalPermissions) {
+    <p>Mouse over the chart to see details. If a path matching the required connections exists, the user will have the corresponding
+      permissions on that collection item. Restricted graph edges are never followed.
+    </p>
+    <div class="chart-container">
+      <div echarts [options]="echartsOptions" class="echarts-container"></div>
+    </div>
+
+    <div class="chart-legend">
+      <div class="legend-section-label">Fill (collection type)</div>
+      <div class="legend-items">
+        @for (item of collectionLegend; track item.collection) {
+          <span class="legend-item">
+            <span class="legend-symbol legend-symbol-fill" [ngStyle]="{ 'background-color': item.color }"></span>
+            {{ item.title }}
+          </span>
+        }
+      </div>
+      <div class="legend-section-label">Outline (permission level)</div>
+      <div class="legend-items">
         <span class="legend-item">
-          <span class="legend-symbol legend-symbol-fill" [ngStyle]="{ 'background-color': item.color }"></span>
-          {{ item.title }}
+          <span class="legend-symbol legend-symbol-sudo"></span>
+          Sudo
         </span>
-      }
+        <span class="legend-item">
+          <span class="legend-symbol legend-symbol-delete"></span>
+          Delete
+        </span>
+        <span class="legend-item">
+          <span class="legend-symbol legend-symbol-update"></span>
+          Update
+        </span>
+        <span class="legend-item">
+          <span class="legend-symbol legend-symbol-approve"></span>
+          Approve
+        </span>
+        <span class="legend-item">
+          <span class="legend-symbol legend-symbol-default"></span>
+          Browse/default
+        </span>
+      </div>
     </div>
-    <div class="legend-section-label">Outline (permission level)</div>
-    <div class="legend-items">
-      <span class="legend-item">
-        <span class="legend-symbol legend-symbol-sudo"></span>
-        Sudo
-      </span>
-      <span class="legend-item">
-        <span class="legend-symbol legend-symbol-delete"></span>
-        Delete
-      </span>
-      <span class="legend-item">
-        <span class="legend-symbol legend-symbol-update"></span>
-        Update
-      </span>
-      <span class="legend-item">
-        <span class="legend-symbol legend-symbol-approve"></span>
-        Approve
-      </span>
-      <span class="legend-item">
-        <span class="legend-symbol legend-symbol-default"></span>
-        Browse/default
-      </span>
-    </div>
-  </div>
+  } @else {
+    <p>This role does not provide additional path-based permissions in Broker.</p>
+  }
 
   @if (data.sudoCollections.length > 0) {
     <h3>Sudo Access</h3>
@@ -62,7 +67,7 @@
 
   @if (data.changeEnvironments.length > 0) {
     <h3>Environment change access</h3>
-    <p>This role can makes changes to the following environments:</p>
+    <p>This role can make changes to the following <a href="#" (click)="navigateToBrowseEnvironments()" (mousedown)="$event.preventDefault()">environments</a>:</p>
     <ul class="sudo-collection-list">
       @for (environment of data.changeEnvironments; track environment) {
         <li>{{ environment }}</li>

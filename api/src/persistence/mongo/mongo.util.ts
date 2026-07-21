@@ -1,5 +1,7 @@
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { CloudEntity } from '../entity/cloud.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
+import { OpenShiftProjectEntity } from '../entity/openshift-project.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { ServerEntity } from '../entity/server.entity';
 import { ServiceInstanceEntity } from '../entity/service-instance.entity';
@@ -33,9 +35,17 @@ export function getRepositoryFromCollectionName<
       return dataSource.getRepository(
         BrokerAccountEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
+    case 'cloud':
+      return dataSource.getRepository(
+        CloudEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'environment':
       return dataSource.getRepository(
         EnvironmentEntity,
+      ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
+    case 'openshiftProject':
+      return dataSource.getRepository(
+        OpenShiftProjectEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'project':
       return dataSource.getRepository(

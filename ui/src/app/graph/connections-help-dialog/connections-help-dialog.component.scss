@@ -1,0 +1,39 @@
+.connections-list {
+  margin: 8px 0 16px;
+}
+
+.connection-item {
+  padding: 8px 0;
+}
+
+.connection-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.connection-collection {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.connection-badges {
+  margin-left: auto;
+}
+
+.connection-help {
+  margin: 4px 0 0;
+}
+
+kbd {
+  background-color: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+.icon-restricted {
+  font-size: 16px;
+  vertical-align: bottom;
+}

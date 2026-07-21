@@ -16,7 +16,11 @@ import {
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { CloudEntity } from '../entity/cloud.entity';
+import { CloudOnPremiseEntity } from '../entity/cloud-on-premise.entity';
+import { CloudOpenShiftEntity } from '../entity/cloud-openshift.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
+import { OpenShiftProjectEntity } from '../entity/openshift-project.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
 import { ServerEntity } from '../entity/server.entity';
@@ -43,7 +47,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     collection: CollectionNames,
     data: any,
   ): CollectionEntityUnion[typeof collection] {
-    const entity = this.constructCollection(collection);
+    const entity = this.constructCollection(collection, data);
     wrap(entity).assign(this.upgradeDtoToEntityAssignable(collection, data), {
       em: this.dataSource,
     });
@@ -62,7 +66,9 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): any {
     switch (collection) {
       case 'brokerAccount':
+      case 'cloud':
       case 'environment':
+      case 'openshiftProject':
       case 'project':
       case 'repository':
       case 'server':
@@ -95,12 +101,24 @@ export class CollectionMongoRepository implements CollectionRepository {
     }
   }
 
-  private constructCollection(collection: CollectionNames) {
+  private constructCloudEntity(type?: string) {
+    switch (type) {
+      case 'openshift': return new CloudOpenShiftEntity();
+      case 'on-premise': return new CloudOnPremiseEntity();
+      default: return new CloudEntity();
+    }
+  }
+
+  private constructCollection(collection: CollectionNames, data?: any) {
     switch (collection) {
       case 'brokerAccount':
         return new BrokerAccountEntity();
+      case 'cloud':
+        return this.constructCloudEntity(data?.type);
       case 'environment':
         return new EnvironmentEntity();
+      case 'openshiftProject':
+        return new OpenShiftProjectEntity();
       case 'project':
         return new ProjectEntity();
       case 'repository':
