@@ -297,9 +297,10 @@
                 [showHelp]="showHelp()"></app-inspector-account>
             }
 
-            @if (hasSudo() && localCollection === 'repository' && cd.vertex.collection === localCollection) {
+            @if ((localCollection === 'repository' || localCollection === 'openshiftProject') && cd.vertex.collection === localCollection) {
               <app-inspector-repository-sync
-                [repository]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
+                [collection]="localCollection"
+                [data]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
                 [hasSudo]="hasSudo()"
                 [header]="'large'"></app-inspector-repository-sync>
             }

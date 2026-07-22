@@ -27,6 +27,19 @@
         }
       </mat-select>
     </mat-form-field>
+
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Show collection details"
+      matTooltip="Collection Descriptions"
+      matTooltipShowDelay="500"
+      matTooltipPosition="right"
+      (click)="showCollectionDetails()"
+      class="collection-details-button">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+
   </form>
 
   <span class="spacer"></span>

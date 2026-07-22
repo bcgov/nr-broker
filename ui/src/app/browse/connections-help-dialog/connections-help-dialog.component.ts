@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,9 +23,8 @@ import { ConnectionConfigDto, RoleChipMappingDto } from '../../service/persisten
   styleUrl: './connections-help-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
 })
-export class ConnectionsHelpDialogComponent {
+export class ConnectionsHelpDialogComponent implements OnInit {
   private readonly systemApi = inject(SystemApiService);
-  private readonly dialogRef = inject<MatDialogRef<ConnectionsHelpDialogComponent>>(MatDialogRef);
 
   readonly connectionConfigResource = httpResource<ConnectionConfigDto[]>(() =>
     this.systemApi.getConnectionConfigArgs(),

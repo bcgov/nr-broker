@@ -235,7 +235,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
     if (this.modified() && (this.permission.hasAdmin() || this.isOwner())) {
       this.healthStatus.health$.pipe(take(1)).subscribe((health) => {
         if (health?.details?.['github']?.['alias']) {
-          this.collectionApi.teamRefreshUsers(this.data.vertex).subscribe();
+          this.collectionApi.refreshCollectionUsers('team', this.data.vertex).subscribe();
         } else {
           // Skip user refresh
         }

@@ -207,15 +207,27 @@ export class CollectionApiService {
     );
   }
 
-  public teamRefreshUsers(id: string) {
+  public refreshCollectionUsers(
+    name: keyof CollectionDtoUnion, id: string,
+  ) {
     return this.http.post<string[]>(
-      `${environment.apiUrl}/v1/collection/team/${id}/refresh`,
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/refresh`,
       null,
       {
         responseType: 'json',
         params: {
           syncUsers: 'true',
         },
+      },
+    );
+  }
+
+  public cloudRefresh(id: string) {
+    return this.http.post(
+      `${environment.apiUrl}/v1/collection/cloud/${id}/refresh`,
+      null,
+      {
+        responseType: 'json',
       },
     );
   }

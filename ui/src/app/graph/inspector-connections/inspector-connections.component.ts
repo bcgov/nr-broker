@@ -132,11 +132,7 @@ export class InspectorConnectionsComponent {
       });
   }
 
-  getVisibleTextColor(backgroundColor: string) {
-    return this.colorUtil.calculateLuminance(
-      this.colorUtil.hexToRgb(backgroundColor),
-    ) > 0.5
-      ? '#000000'
-      : '#FFFFFF';
+  getVisibleTextColor(backgroundColor: string): string {
+    return this.colorUtil.getSurfaceColor(backgroundColor);
   }
 }

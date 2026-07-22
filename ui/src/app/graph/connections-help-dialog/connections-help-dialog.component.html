@@ -9,7 +9,10 @@
       @for (item of data.inboundEdges; track item.sourceCollectionName + ':' + item.edge.id; let last = $last) {
         <div class="connection-item">
           <div class="connection-header">
-            <span class="mat-body-small connection-collection">{{item.sourceCollectionName}} →</span>
+            <mat-chip disableRipple
+              [ngStyle]="{'background-color': '#' + configRecord[item.sourceCollection].color, 'color': getVisibleTextColor(configRecord[item.sourceCollection].color)}">
+              {{item.sourceCollectionName}}
+            </mat-chip> →
             <span class="mat-body-medium">{{item.edge.titleInbound || item.edge.title || (item.edge.name | titlecase)}}</span>
             <mat-chip-set class="connection-badges" aria-label="Connection badges">
               @if (item.edge.restrict) {
@@ -41,8 +44,11 @@
       @for (item of data.outboundEdges; track item.edge.id; let last = $last) {
         <div class="connection-item">
           <div class="connection-header">
-            <span class="mat-body-medium">{{item.edge.title || (item.edge.name | titlecase)}}</span>
-            <span class="mat-body-small connection-collection">→ {{item.targetCollectionName}}</span>
+            <span class="mat-body-medium">{{item.edge.title || (item.edge.name | titlecase)}}</span> →
+            <mat-chip disableRipple
+              [ngStyle]="{'background-color': '#' + configRecord[item.edge.collection].color, 'color': getVisibleTextColor(configRecord[item.edge.collection].color)}">
+              {{item.targetCollectionName}}
+            </mat-chip>
             <mat-chip-set class="connection-badges" aria-label="Connection badges">
               @if (item.edge.restrict) {
                 <mat-chip disableRipple matTooltip="Not followed in graph lookups">

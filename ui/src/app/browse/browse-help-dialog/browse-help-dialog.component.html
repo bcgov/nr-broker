@@ -29,16 +29,6 @@
 
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>Collection Details</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      @for (cfg of configs; track cfg.id) {
-        <app-details-item item="{{cfg.name}}" wrapValue="true">{{cfg.hint}}</app-details-item>
-      }
-    </mat-expansion-panel>
-
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
         <mat-panel-title>Filtering</mat-panel-title>
       </mat-expansion-panel-header>
 

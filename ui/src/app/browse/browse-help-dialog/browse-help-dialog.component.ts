@@ -11,8 +11,6 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CONFIG_ARR } from '../../app-initialize.factory';
-import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 
 export interface BrowseHelpDialogData {
   collection: string;
@@ -30,7 +28,6 @@ export interface BrowseHelpDialogData {
     MatInputModule,
     MatSelectModule,
     FormsModule,
-    DetailsItemComponent,
   ],
   templateUrl: './browse-help-dialog.component.html',
   styleUrl: './browse-help-dialog.component.scss',
@@ -38,7 +35,6 @@ export interface BrowseHelpDialogData {
 export class BrowseHelpDialogComponent {
   readonly data = inject<BrowseHelpDialogData>(MAT_DIALOG_DATA);
   readonly dialogRef = inject<MatDialogRef<BrowseHelpDialogComponent>>(MatDialogRef);
-  readonly configs = inject<CollectionConfigDto[]>(CONFIG_ARR);
 
   close(): void {
     this.dialogRef.close();

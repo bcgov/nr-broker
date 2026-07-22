@@ -13,11 +13,13 @@ import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
 import { RedisService } from '../redis/redis.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
-import { ServiceDto } from '../persistence/dto/service.dto';
-import { ProjectDto } from '../persistence/dto/project.dto';
+import { CloudDto } from '../persistence/dto/cloud.dto';
+import { OpenShiftProjectDto } from '../persistence/dto/openshift-project.dto';
+import { OpenShiftProjectEntity } from '../persistence/entity/openshift-project.entity';
 import { JobQueueUtil } from '../util/job-queue.util';
+import { GraphService } from '../graph/graph.service';
 
 export interface KubernetesSecretMapping {
   sourceMount: string;
@@ -44,6 +46,8 @@ export class KubernetesSyncService {
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
     private readonly graphRepository: GraphRepository,
+    private readonly collectionRepository: CollectionRepository,
+    private readonly graphService: GraphService,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly jobQueueUtil: JobQueueUtil,
     // used by: @CreateRequestContext()
@@ -57,83 +61,50 @@ export class KubernetesSyncService {
   }
 
   /**
-   * Queue all unique projects (from downstream services of an account) for Kubernetes secret sync.
+   * Queue all OpenShift projects under the clouds operated by a team for Kubernetes secret sync.
    */
-  public async refreshByAccount(account: BrokerAccountEntity): Promise<void> {
-    const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceDto>(
-        account.vertex.toString(),
-        CollectionNameEnum.service,
+  public async refreshByTeam(teamVertexId: string): Promise<void> {
+    const clouds = await this.graphRepository.getDownstreamVertex<CloudDto>(
+      teamVertexId,
+      CollectionNameEnum.cloud,
+      8,
+    );
+    for (const cloudUpDown of clouds) {
+      await this.refreshByCloud(cloudUpDown.collection.vertex.toString());
+    }
+  }
+
+  /**
+   * Queue all OpenShift projects under a cloud for Kubernetes secret sync.
+   */
+  public async refreshByCloud(cloudVertexId: string): Promise<void> {
+    const openshiftProjects =
+      await this.graphRepository.getDownstreamVertex<OpenShiftProjectDto>(
+        cloudVertexId,
+        CollectionNameEnum.openshiftProject,
         4,
       );
-
-    if (downstreamServices) {
-      const projectMap = new Map<string, ProjectDto>();
-
-      for (const serviceUpDown of downstreamServices) {
-        const service = serviceUpDown.collection;
-        const projectDtoArr =
-          await this.graphRepository.getUpstreamVertex<ProjectDto>(
-            service.vertex.toString(),
-            CollectionNameEnum.project,
-            ['component'],
-          );
-
-        if (projectDtoArr.length === 1) {
-          const project = projectDtoArr[0].collection;
-          if (!projectMap.has(project.vertex.toString())) {
-            projectMap.set(project.vertex.toString(), project);
-          }
-        }
-      }
-
-      for (const project of projectMap.values()) {
-        await this.queueSync(project);
+    for (const ospUpDown of openshiftProjects) {
+      const osp = ospUpDown.collection;
+      if (osp.enableSyncSecrets) {
+        await this.queueSync(osp.id);
       }
     }
   }
 
   /**
-   * Queue a service's project for Kubernetes secret sync.
+   * Queue a single OpenShift project for Kubernetes sync.
    */
-  public async refreshByService(service: ServiceDto): Promise<void> {
-    const projectDtoArr =
-      await this.graphRepository.getUpstreamVertex<ProjectDto>(
-        service.vertex.toString(),
-        CollectionNameEnum.project,
-        ['component'],
-      );
-
-    if (projectDtoArr.length !== 1) {
-      this.auditService.recordToolsSync(
-        'info',
-        'unknown',
-        `Skip Kubernetes sync: could not resolve project for ${service.name}`,
-        'Unknown',
-        service.name,
-      );
-      return;
-    }
-
-    const project = projectDtoArr[0].collection;
-    await this.queueSync(project);
-  }
-
-  /**
-   * Queue a single project for Kubernetes sync.
-   */
-  private async queueSync(project: ProjectDto): Promise<void> {
-    const jobData = JSON.stringify({
-      projectVertexId: project.vertex.toString(),
-    });
-
-    this.redisService.queue(REDIS_QUEUES.KUBERNETES_SYNC_SECRETS, jobData);
+  private async queueSync(openshiftProjectId: string): Promise<void> {
+    this.redisService.queue(
+      REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
+      openshiftProjectId,
+    );
 
     this.auditService.recordToolsSync(
       'info',
       'unknown',
-      `Queued Kubernetes sync for ${project.name}`,
-      project.name,
+      `Queued Kubernetes sync for OpenShift project (${openshiftProjectId})`,
     );
   }
 
@@ -154,9 +125,8 @@ export class KubernetesSyncService {
           this.redisService.dequeue(
             REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
           ) as Promise<string | null>,
-        async (jobData: string) => {
-          const { projectVertexId } = JSON.parse(jobData);
-          await this.runSync(projectVertexId);
+        async (openshiftProjectId: string) => {
+          await this.runSync(openshiftProjectId);
         },
       );
     } catch (error) {
@@ -171,43 +141,39 @@ export class KubernetesSyncService {
   /**
    * Process a single Kubernetes sync job.
    */
-  private async runSync(projectVertexId: string): Promise<void> {
-    // Resolve project via graph lookup
-    const projectDtoArr = await this.graphRepository.getDownstreamVertex<ProjectDto>(
-      projectVertexId,
-      CollectionNameEnum.project,
-      1,
+  private async runSync(openshiftProjectId: string): Promise<void> {
+    const openshiftProject = await this.collectionRepository.getCollectionById(
+      'openshiftProject',
+      openshiftProjectId,
     );
 
-    if (!projectDtoArr || projectDtoArr.length === 0) {
+    if (!openshiftProject) {
       this.auditService.recordToolsSync(
         'info',
         'failure',
-        `Kubernetes sync: project not found (${projectVertexId})`,
-        'Unknown',
+        `Kubernetes sync: OpenShift project not found (${openshiftProjectId})`,
       );
       return;
     }
 
-    const project = projectDtoArr[0].collection;
-    await this.syncSecrets(project);
+    await this.syncSecrets(openshiftProject);
   }
 
   /**
    * Read Kubernetes sync configuration from Vault and apply secrets to the cluster.
    */
   public async syncSecrets(
-    project: ProjectDto,
+    openshiftProject: OpenShiftProjectEntity,
   ): Promise<void> {
     this.auditService.recordToolsSync(
       'start',
       'unknown',
-      `Start Kubernetes secret sync: ${project.name}`,
-      project.name,
+      `Start Kubernetes secret sync: ${openshiftProject.name}`,
+      openshiftProject.name,
     );
 
     // Read sync configuration from Vault
-    const configPath = `tools/${project.name}/infrastructure/nr-broker-sync`;
+    const configPath = `tools/openshift/${openshiftProject.name}/nr-broker-sync`;
     let config: KubernetesSyncConfig;
 
     try {
@@ -220,7 +186,7 @@ export class KubernetesSyncService {
         'end',
         'failure',
         `Kubernetes sync failed: no configuration at ${configPath}`,
-        project.name,
+        openshiftProject.name,
       );
       return;
     }
@@ -231,7 +197,7 @@ export class KubernetesSyncService {
         'end',
         'failure',
         'Kubernetes sync failed: missing server, namespace, or serviceAccountToken',
-        project.name,
+        openshiftProject.name,
       );
       return;
     }
@@ -241,7 +207,7 @@ export class KubernetesSyncService {
         'end',
         'unknown',
         'Kubernetes sync: no secret mappings configured',
-        project.name,
+        openshiftProject.name,
       );
       return;
     }
@@ -259,17 +225,23 @@ export class KubernetesSyncService {
           'end',
           'failure',
           `Kubernetes sync failed for secret ${secretMapping.destinationSecretName}: ${err.message}`,
-          project.name,
+          openshiftProject.name,
         );
         return;
       }
     }
 
+    await this.graphService.updateSyncStatus(
+      openshiftProject,
+      'syncSecretsStatus',
+      'syncAt',
+    );
+
     this.auditService.recordToolsSync(
       'end',
       'success',
-      `End Kubernetes secret sync: ${project.name}`,
-      project.name,
+      `End Kubernetes secret sync: ${openshiftProject.name}`,
+      openshiftProject.name,
     );
   }
 

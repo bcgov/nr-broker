@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 import { RepositoryDto } from '../../service/persistence/dto/repository.dto';
+import { OpenShiftProjectDto } from '../../service/persistence/dto/openshift-project.dto';
 import { SystemApiService } from '../../service/system-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
 import { GithubRoleMappingDialogComponent } from '../github-role-mapping-dialog/github-role-mapping-dialog.component';
 import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-secrets-dialog.component';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
+import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
 @Component({
   selector: 'app-inspector-repository-sync',
@@ -28,15 +30,21 @@ export class InspectorRepositorySyncComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly systemApi = inject(SystemApiService);
-  readonly healthStatus = inject(HealthStatusService);
+  private readonly healthStatus = inject(HealthStatusService);
 
-  readonly repository = input.required<RepositoryDto>();
+  readonly collection = input.required<CollectionNames>();
+  readonly data = input.required<RepositoryDto | OpenShiftProjectDto>();
   readonly hasSudo = input(false);
   readonly header = input<'small' | 'large'>('small');
 
+  readonly syncAvailable = computed(() => {
+    const isRepository = this.collection() === 'repository';
+    if (!isRepository) return true;
+    return this.healthStatus.healthSignal()?.['details']?.['github']?.['sync'] ?? false;
+  });
   syncSecrets() {
     this.systemApi
-      .repositoryRefresh(this.repository().id, true, false)
+      .repositoryRefresh(this.data().id, true, false)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of secrets queued');
@@ -51,7 +59,7 @@ export class InspectorRepositorySyncComponent {
 
   syncUsers() {
     this.systemApi
-      .repositoryRefresh(this.repository().id, false, true)
+      .repositoryRefresh(this.data().id, false, true)
       .subscribe({
         next: () => {
           this.openSnackBar('Sync of users queued');
@@ -65,7 +73,7 @@ export class InspectorRepositorySyncComponent {
   }
 
   showSecretsQueued() {
-    const status = this.repository().syncSecretsStatus;
+    const status = this.data().syncSecretsStatus;
     return !!(
       status?.queuedAt &&
       (!status?.syncAt ||
@@ -75,7 +83,7 @@ export class InspectorRepositorySyncComponent {
   }
 
   showUsersQueued() {
-    const status = this.repository().syncUsersStatus;
+    const status = this.data().syncUsersStatus;
     return !!(
       status?.queuedAt &&
       (!status?.syncAt ||

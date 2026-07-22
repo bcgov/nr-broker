@@ -497,15 +497,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   showConnectionsHelp() {
     const config = this.config();
-    const currentCollection = config.collection;
-    const outboundEdges = config.edges.map((e) => ({
-      targetCollectionName: this.configRecord[e.collection]?.name ?? e.collection,
-      edge: e,
-    }));
-    const inboundEdges = Object.values(this.configRecord).flatMap((c) =>
-      c.edges
-        .filter((e) => e.collection === currentCollection)
-        .map((e) => ({ sourceCollectionName: c.name, edge: e })),
+    const { outboundEdges, inboundEdges } = this.graphUtil.buildConnectionsHelpData(
+      config,
+      this.configRecord,
     );
     this.dialog
       .open(ConnectionsHelpDialogComponent, {

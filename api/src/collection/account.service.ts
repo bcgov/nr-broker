@@ -39,7 +39,6 @@ import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 import { JwtKeyService } from '../auth/jwt-key.service';
 import { GithubSyncService } from '../github/github-sync.service';
-import { KubernetesSyncService } from '../kubernetes/kubernetes-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { HistogramSeriesDto } from './dto/histogram-series.dto';
@@ -57,7 +56,6 @@ export class AccountService {
     private readonly communicationQueueService: CommunicationQueueService,
     private readonly opensearchService: OpensearchService,
     private readonly githubSyncService: GithubSyncService,
-    private readonly kubernetesSyncService: KubernetesSyncService,
     private readonly jwtKeyService: JwtKeyService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
@@ -492,15 +490,6 @@ export class AccountService {
 
     // Queue the sync -- Github
     this.githubSyncService.refreshByAccount(account);
-
-    // Queue the sync -- Kubernetes
-    if (this.kubernetesSyncService.isEnabled()) {
-      try {
-        await this.kubernetesSyncService.refreshByAccount(account);
-      } catch (error) {
-        // Continue - this.kubernetesSyncService.refreshByAccount() audit failures
-      }
-    }
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

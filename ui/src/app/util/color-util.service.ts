@@ -42,4 +42,15 @@ export class ColorUtilService {
     // Calculate luminance
     return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
   }
+
+  /**
+   * Returns a readable text color (black or white) for the given hex background color.
+   * @param backgroundColor Hex color string (e.g., 'ff5733').
+   * @returns '#000000' for light backgrounds, '#FFFFFF' for dark backgrounds.
+   */
+  getSurfaceColor(backgroundColor: string): string {
+    return this.calculateLuminance(this.hexToRgb(backgroundColor)) > 0.5
+      ? '#000000'
+      : '#FFFFFF';
+  }
 }

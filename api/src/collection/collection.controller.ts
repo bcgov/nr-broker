@@ -50,6 +50,7 @@ import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
 import { TeamCollectionService } from './team-collection.service';
+import { CloudCollectionService } from './cloud-collection.service';
 import { SyncRepositoryQuery } from './dto/sync-repository-query.dto';
 import { RepositoryCollectionService } from './repository-collection.service';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
@@ -63,6 +64,7 @@ export class CollectionController {
     private readonly accountService: AccountService,
     private readonly service: CollectionService,
     private readonly redis: RedisService,
+    private readonly cloudCollectionService: CloudCollectionService,
     private readonly repositoryCollectionService: RepositoryCollectionService,
     private readonly teamCollectionService: TeamCollectionService,
     private readonly userCollectionService: UserCollectionService,
@@ -208,6 +210,21 @@ export class CollectionController {
       syncQuery.syncSecrets,
       syncQuery.syncUsers,
     );
+  }
+
+  @Post('cloud/:id/refresh')
+  @Roles('admin')
+  @AllowOwner({
+    graphObjectType: 'collection',
+    graphObjectCollection: 'cloud',
+    graphIdFromParamKey: 'id',
+    permission: 'sudo',
+  })
+  @UseGuards(BrokerOidcAuthGuard)
+  async cloudRefresh(
+    @Param('id', new ParseObjectIdPipe()) id: string,
+  ): Promise<void> {
+    return await this.cloudCollectionService.refresh(id);
   }
 
   @Post('broker-account/:id/token')

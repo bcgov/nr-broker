@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, startWith, switchMap } from 'rxjs';
 
@@ -15,6 +16,7 @@ export class HealthStatusService {
     HealthCheckDto | null | undefined
   >(undefined);
   public health$ = this.healthSubject.asObservable();
+  public healthSignal = toSignal(this.health$, { initialValue: undefined });
 
   constructor() {
     this.startPolling();

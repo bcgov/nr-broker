@@ -3,11 +3,13 @@ import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionIndex } from '../graph/graph.constants';
 import { RepositoryDto } from '../persistence/dto/repository.dto';
 import { GithubSyncService } from '../github/github-sync.service';
+import { KubernetesSyncService } from '../kubernetes/kubernetes-sync.service';
 
 @Injectable()
 export class TeamCollectionService {
   constructor(
     private readonly githubSyncService: GithubSyncService,
+    private readonly kubernetesSyncService: KubernetesSyncService,
     private readonly graphRepository: GraphRepository,
   ) {}
 
@@ -25,5 +27,6 @@ export class TeamCollectionService {
         syncUsers,
       );
     }
+    await this.kubernetesSyncService.refreshByTeam(id);
   }
 }

@@ -9,11 +9,15 @@
 .collection-flex-container form {
   display: flex;
   column-gap: 8px;
-  align-items: baseline;
+  align-items: flex-end;
 }
 
 .collection-select {
   min-width: 280px;
+}
+
+.collection-details-button {
+  margin-bottom: 22px;
 }
 
 .spacer {
