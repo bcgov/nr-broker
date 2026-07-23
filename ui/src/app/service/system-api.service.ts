@@ -11,6 +11,8 @@ import {
 } from './persistence/dto/jwt-registry.dto';
 import { ConnectionConfigDto } from './persistence/dto/connection-config.dto';
 import { HistogramSeriesDto } from './collection/dto/histogram-series.dto';
+import { CollectionNames } from './persistence/dto/collection-dto-union.type';
+import { SyncCollectionQuery } from './collection/dto/sync-collection-query.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -150,30 +152,12 @@ export class SystemApiService {
     };
   }
 
-  brokerAccountRefresh(accountId: string) {
-    const args = this.brokerAccountRefreshArgs(accountId);
-    return this.http.request(args.method ?? 'POST', args.url, {
-      responseType: 'json',
-      body: args.body,
-      params: args.params,
-      headers: args.headers as any,
-    });
-  }
-
-  brokerAccountRefreshArgs(accountId: string) {
-    return {
-      method: 'POST',
-      url: `${environment.apiUrl}/v1/collection/broker-account/${accountId}/refresh`,
-      body: {},
-    } as HttpResourceRequest;
-  }
-
-  repositoryRefresh(
-    repositoryId: string,
-    syncSecrets: boolean,
-    syncUsers: boolean,
+  syncCollection(
+    collection: CollectionNames,
+    id: string,
+    syncQuery: SyncCollectionQuery,
   ) {
-    const args = this.repositoryRefreshArgs(repositoryId, syncSecrets, syncUsers);
+    const args = this.syncCollectionArgs(collection, id, syncQuery);
     return this.http.request(args.method ?? 'POST', args.url, {
       responseType: 'json',
       body: args.body,
@@ -182,16 +166,38 @@ export class SystemApiService {
     });
   }
 
-  repositoryRefreshArgs(repositoryId: string, syncSecrets: boolean, syncUsers: boolean): HttpResourceRequest {
+  syncCollectionArgs(
+    collection: CollectionNames,
+    id: string,
+    syncQuery: SyncCollectionQuery,
+  ): HttpResourceRequest {
+    const params: Record<string, string> = {};
+    if (syncQuery.syncSecrets !== undefined) {
+      params['syncSecrets'] = String(syncQuery.syncSecrets);
+    }
+    if (syncQuery.syncUsers !== undefined) {
+      params['syncUsers'] = String(syncQuery.syncUsers);
+    }
+
     return {
       method: 'POST',
-      url: `${environment.apiUrl}/v1/collection/repository/${repositoryId}/refresh`,
+      url: `${environment.apiUrl}/v1/collection/${this.toApiCollectionName(collection)}/${id}/sync`,
       body: {},
-      params: {
-        syncSecrets,
-        syncUsers,
-      },
+      params,
     };
+  }
+
+  private toApiCollectionName(collection: CollectionNames): string {
+    switch (collection) {
+      case 'brokerAccount':
+        return 'broker-account';
+      case 'serviceInstance':
+        return 'service-instance';
+      case 'openshiftProject':
+        return 'openshift-project';
+      default:
+        return collection;
+    }
   }
 
   userLinkGithub() {

@@ -14,11 +14,9 @@ import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 import { RedisModule } from '../redis/redis.module';
 import { VaultModule } from '../vault/vault.module';
-import { TeamCollectionService } from './team-collection.service';
-import { CloudCollectionService } from './cloud-collection.service';
-import { RepositoryCollectionService } from './repository-collection.service';
 import { CommunicationModule } from '../communication/communication.module';
 import { KubernetesModule } from '../kubernetes/kubernetes.module';
+import { CollectionSyncService } from './collection-sync.service';
 
 /**
  * The collection module enables the viewing and manipulation of the objects
@@ -43,11 +41,9 @@ import { KubernetesModule } from '../kubernetes/kubernetes.module';
   controllers: [CollectionController],
   providers: [
     AccountService,
-    CloudCollectionService,
     CollectionService,
-    RepositoryCollectionService,
-    TeamCollectionService,
     UserCollectionService,
+    CollectionSyncService,
   ],
   exports: [CollectionService, UserCollectionService],
 })

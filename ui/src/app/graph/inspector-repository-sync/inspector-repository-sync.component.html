@@ -9,59 +9,35 @@
     </div>
   </div>
   <div class="edge-body">
+    @for (action of syncActions(); track action.key) {
+      <div>
+        <div class="details-section">{{ action.label }}</div>
 
-    <div>
-
-    <div class="details-section">Secrets</div>
-
-    @if (showSecretsQueued()) {
-      <app-details-item item="Queued">{{$safeNavigationMigration(data().syncSecretsStatus?.queuedAt) | date: 'medium'}}</app-details-item>
-    } @else {
-      <app-details-item item="Last sync">@if(data().syncSecretsStatus?.syncAt) {
-          {{$safeNavigationMigration(data().syncSecretsStatus?.syncAt) | date: 'medium'}}
+        @if (showQueued(action.statusKey)) {
+          <app-details-item item="Queued">{{$safeNavigationMigration(data()[action.statusKey]?.queuedAt) | date: 'medium'}}</app-details-item>
         } @else {
-          Never
-        }</app-details-item>
+          <app-details-item item="Last sync">@if(lastSyncAt(action.statusKey)) {
+              {{$safeNavigationMigration(lastSyncAt(action.statusKey)) | date: 'medium'}}
+            } @else {
+              Never
+            }</app-details-item>
+        }
+
+        <div class="details-buttons">
+          <button
+            mat-stroked-button
+            (click)="sync(action)"
+            [disabled]="!isEnabled(action.enabledKey)">Sync</button>
+
+          @if (action.help) {
+            <button
+              mat-button
+              (click)="openHelp(action.help)">Help</button>
+          }
+        </div>
+      </div>
     }
-
-    <div class="details-buttons">
-      <button
-        mat-stroked-button
-        (click)="syncSecrets()"
-        [disabled]="!data().enableSyncSecrets">Sync</button>
-
-      <button
-        mat-button
-        (click)="showGitHubSecrets()">Help</button>
-    </div>
   </div>
-
-  <div>
-    <div class="details-section">User Access</div>
-
-    @if(showUsersQueued()) {
-      <app-details-item item="Queued">{{$safeNavigationMigration(data().syncUsersStatus?.queuedAt) | date: 'medium'}}</app-details-item>
-    } @else {
-      <app-details-item item="Last sync">@if(data().syncUsersStatus?.syncAt) {
-          {{$safeNavigationMigration(data().syncUsersStatus?.syncAt) | date: 'medium'}}
-        } @else {
-          Never
-        }</app-details-item>
-    }
-
-    <div class="details-buttons">
-      <button
-        mat-stroked-button
-        (click)="syncUsers()"
-        [disabled]="!data().enableSyncUsers">Sync</button>
-
-      <button
-        mat-button
-        (click)="showGitHubRoleMappings()">Help</button>
-    </div>
-  </div>
-
-</div>
 
 } @else {
   <p class="edge-container">Sync services are currently not available.</p>

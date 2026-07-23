@@ -49,11 +49,10 @@ import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-gene
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
-import { TeamCollectionService } from './team-collection.service';
-import { CloudCollectionService } from './cloud-collection.service';
-import { SyncRepositoryQuery } from './dto/sync-repository-query.dto';
-import { RepositoryCollectionService } from './repository-collection.service';
+import { SyncCollectionQuery } from './dto/sync-collection-query.dto';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
+import { CollectionSyncService } from './collection-sync.service';
+import { normalizeCollectionName } from '../persistence/dto/collection-name.util';
 
 @Controller({
   path: 'collection',
@@ -64,9 +63,7 @@ export class CollectionController {
     private readonly accountService: AccountService,
     private readonly service: CollectionService,
     private readonly redis: RedisService,
-    private readonly cloudCollectionService: CloudCollectionService,
-    private readonly repositoryCollectionService: RepositoryCollectionService,
-    private readonly teamCollectionService: TeamCollectionService,
+    private readonly collectionSyncService: CollectionSyncService,
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
@@ -155,76 +152,26 @@ export class CollectionController {
     >;
   }
 
-  @Post('broker-account/:id/refresh')
+  @Post(':collection/:id/sync')
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'collection',
-    graphObjectCollection: 'brokerAccount',
-    graphIdFromParamKey: 'id',
-    permission: 'sudo',
-  })
-  @UseGuards(BrokerOidcAuthGuard)
-  async refresh(
-    @Param('id', new ParseObjectIdPipe()) id: string,
-  ): Promise<void> {
-    return await this.accountService.refresh(id);
-  }
-
-  @Post('team/:id/refresh')
-  @Roles('admin')
-  @AllowOwner({
-    graphObjectType: 'collection',
-    graphObjectCollection: 'team',
+    graphObjectCollectionFromParamKey: 'collection',
     graphIdFromParamKey: 'id',
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async teamRefresh(
+  async syncCollection(
+    @Param('collection') collection: string,
     @Param('id', new ParseObjectIdPipe()) id: string,
-    @Query() syncQuery: SyncRepositoryQuery,
+    @Query() syncQuery: SyncCollectionQuery,
   ): Promise<void> {
-    return await this.teamCollectionService.refresh(
+    return await this.collectionSyncService.refresh(
+      this.parseCollectionApi(collection),
       id,
-      syncQuery.syncSecrets,
-      syncQuery.syncUsers,
+      syncQuery,
     );
-  }
-
-  @Post('repository/:id/refresh')
-  @Roles('admin')
-  @AllowOwner({
-    graphObjectType: 'collection',
-    graphObjectCollection: 'repository',
-    graphIdFromParamKey: 'id',
-    permission: 'sudo',
-  })
-  @UseGuards(BrokerOidcAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async repositoryRefresh(
-    @Param('id', new ParseObjectIdPipe()) id: string,
-    @Query() syncQuery: SyncRepositoryQuery,
-  ): Promise<void> {
-    return await this.repositoryCollectionService.refresh(
-      id,
-      syncQuery.syncSecrets,
-      syncQuery.syncUsers,
-    );
-  }
-
-  @Post('cloud/:id/refresh')
-  @Roles('admin')
-  @AllowOwner({
-    graphObjectType: 'collection',
-    graphObjectCollection: 'cloud',
-    graphIdFromParamKey: 'id',
-    permission: 'sudo',
-  })
-  @UseGuards(BrokerOidcAuthGuard)
-  async cloudRefresh(
-    @Param('id', new ParseObjectIdPipe()) id: string,
-  ): Promise<void> {
-    return await this.cloudCollectionService.refresh(id);
   }
 
   @Post('broker-account/:id/token')
@@ -554,24 +501,10 @@ export class CollectionController {
   }
 
   private parseCollectionApi(collection: string): CollectionNames {
-    switch (collection) {
-      case 'environment':
-      case 'project':
-      case 'server':
-      case 'service':
-      case 'repository':
-      case 'team':
-      case 'user':
-      case 'cloud':
-        return collection;
-      case 'broker-account':
-        return 'brokerAccount';
-      case 'service-instance':
-        return 'serviceInstance';
-      case 'openshift-project':
-        return 'openshiftProject';
-      default:
-        throw new NotFoundException();
+    const collectionName = normalizeCollectionName(collection);
+    if (!collectionName) {
+      throw new NotFoundException();
     }
+    return collectionName;
   }
 }

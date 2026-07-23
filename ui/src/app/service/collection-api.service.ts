@@ -13,6 +13,7 @@ import {
 import { ServiceInstanceDetailsResponseDto } from './persistence/dto/service-instance.dto';
 import { ServiceDetailsResponseDto } from './persistence/dto/service.dto';
 import { StringUtilService } from '../util/string-util.service';
+import { SyncCollectionQuery } from './collection/dto/sync-collection-query.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -210,24 +211,28 @@ export class CollectionApiService {
   public refreshCollectionUsers(
     name: keyof CollectionDtoUnion, id: string,
   ) {
-    return this.http.post<string[]>(
-      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/refresh`,
-      null,
-      {
-        responseType: 'json',
-        params: {
-          syncUsers: 'true',
-        },
-      },
-    );
+    return this.syncCollection(name, id, { syncUsers: true });
   }
 
-  public cloudRefresh(id: string) {
-    return this.http.post(
-      `${environment.apiUrl}/v1/collection/cloud/${id}/refresh`,
+  public syncCollection(
+    name: CollectionNames,
+    id: string,
+    syncQuery: SyncCollectionQuery,
+  ) {
+    const params: Record<string, string> = {};
+    if (syncQuery.syncSecrets !== undefined) {
+      params['syncSecrets'] = String(syncQuery.syncSecrets);
+    }
+    if (syncQuery.syncUsers !== undefined) {
+      params['syncUsers'] = String(syncQuery.syncUsers);
+    }
+
+    return this.http.post<void>(
+      `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/sync`,
       null,
       {
         responseType: 'json',
+        params,
       },
     );
   }

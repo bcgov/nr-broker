@@ -300,6 +300,7 @@
             @if ((localCollection === 'repository' || localCollection === 'openshiftProject') && cd.vertex.collection === localCollection) {
               <app-inspector-repository-sync
                 [collection]="localCollection"
+                [collectionConfig]="config()"
                 [data]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
                 [hasSudo]="hasSudo()"
                 [header]="'large'"></app-inspector-repository-sync>

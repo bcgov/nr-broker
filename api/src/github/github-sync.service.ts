@@ -1,4 +1,4 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
@@ -20,15 +20,13 @@ import {
 import { ENVIRONMENT_NAMES } from '../intention/dto/constants.dto';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
-import { CollectionIndex } from '../graph/graph.constants';
 import { RedisService } from '../redis/redis.service';
+import { CollectionIndex } from '../graph/graph.constants';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { UserDto } from '../persistence/dto/user.dto';
-import { RepositoryDto } from '../persistence/dto/repository.dto';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphService } from '../graph/graph.service';
@@ -71,81 +69,6 @@ export class GithubSyncService {
     return this.brokerManagedRegex.test(scmUrl);
   }
 
-  public async refreshByAccount(account: BrokerAccountEntity) {
-    const downstreamServices =
-      await this.graphRepository.getDownstreamVertex<ServiceDto>(
-        account.vertex.toString(),
-        CollectionNameEnum.service,
-        4,
-      );
-    if (downstreamServices) {
-      for (const serviceUpDown of downstreamServices) {
-        const service = serviceUpDown.collection;
-        this.refreshByService(service, true, false);
-      }
-    }
-  }
-
-  public async refreshByService(
-    service: ServiceDto,
-    syncSecrets: boolean,
-    syncUsers: boolean,
-  ) {
-    // console.log(`Syncing ${service.name} : ${service.vertex.toString()}`);
-
-    const repositories =
-      await this.graphRepository.getDownstreamVertex<RepositoryDto>(
-        service.vertex.toString(),
-        CollectionIndex.Repository,
-        1,
-      );
-    for (const repositoryUpDown of repositories) {
-      const repository = repositoryUpDown.collection;
-      await this.refresh(repository, syncSecrets, syncUsers);
-    }
-  }
-
-  async refresh(
-    repository: RepositoryDto,
-    syncSecrets: boolean,
-    syncUsers: boolean,
-  ): Promise<void> {
-    if (!this.isEnabled()) {
-      this.auditService.recordToolsSync(
-        'info',
-        'failure',
-        'Github is not setup',
-      );
-      throw new ServiceUnavailableException();
-    }
-    const entity = await this.collectionRepository.getCollectionById(
-      'repository',
-      repository.id,
-    );
-
-    // Queue the sync
-    if (syncSecrets) {
-      // console.log(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
-      this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, repository.id);
-
-      await this.graphService.updateSyncStatus(
-        entity,
-        'syncSecretsStatus',
-        'queuedAt',
-      );
-    }
-    if (syncUsers) {
-      // console.log(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
-      this.redisService.queue(REDIS_QUEUES.GITHUB_SYNC_USERS, repository.id);
-
-      await this.graphService.updateSyncStatus(
-        entity,
-        'syncUsersStatus',
-        'queuedAt',
-      );
-    }
-  }
-
   @Cron(CronExpression.EVERY_30_SECONDS, {
     name: CRON_JOB_SYNC_SECRETS,
   })
@@ -165,9 +88,10 @@ export class GithubSyncService {
         },
       );
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
-        `Failed to poll refresh cron secrets: ${error.message}`,
-        error.stack,
+        `Failed to poll refresh cron secrets: ${err.message}`,
+        err.stack,
       );
     }
   }
@@ -191,9 +115,10 @@ export class GithubSyncService {
         },
       );
     } catch (error) {
+      const err = error as Error;
       this.logger.error(
-        `Failed to poll refresh cron users: ${error.message}`,
-        error.stack,
+        `Failed to poll refresh cron users: ${err.message}`,
+        err.stack,
       );
     }
   }

@@ -20,6 +20,7 @@ import {
 } from '../allow-body-value.decorator';
 import { ROLES_METADATA_KEY } from '../roles.decorator';
 import { ALLOW_EMPTY_EDGE_METADATA_KEY } from '../allow-empty-edges.decorator';
+import { normalizeCollectionName } from '../persistence/dto/collection-name.util';
 
 /**
  * This guard will issue a HTTP unauthorized if the request is not authenticated.
@@ -122,11 +123,14 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     );
     // console.log(`mask: ${request.user.mask}`);
     if (userUpstreamData.graphObjectType === 'collection') {
-      const collection = userUpstreamData.graphObjectCollectionFromParamKey
+      const collectionRaw = userUpstreamData.graphObjectCollectionFromParamKey
         ? request.params[userUpstreamData.graphObjectCollectionFromParamKey]
         : userUpstreamData.graphObjectCollection;
-      const targetCollection =
-        await this.collectionRepository.getCollectionById(collection, graphId);
+
+      const collection = normalizeCollectionName(collectionRaw);
+      const targetCollection = collection
+        ? await this.collectionRepository.getCollectionById(collection, graphId)
+        : null;
       if (!targetCollection) {
         return false;
       }

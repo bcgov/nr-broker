@@ -183,7 +183,7 @@ export class InspectorAccountComponent implements OnInit, OnDestroy {
   sync(): void {
     const account = this.account();
     if (account) {
-      this.systemApi.brokerAccountRefresh(account.id).subscribe({
+      this.systemApi.syncCollection('brokerAccount', account.id, {}).subscribe({
         next: () => {
           this.openSnackBar('Sync of secrets queued');
         },

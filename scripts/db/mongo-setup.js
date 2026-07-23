@@ -805,6 +805,21 @@ result = db.collectionConfig.insertOne({
   hint: 'A Broker Account grants programmatic access to the API to teams and allows them to access associated services.',
   sudoHelp:
     'Allows management of tokens that control team authorizations',
+  syncQueues: [
+    {
+      queue: 'GITHUB_SYNC_SECRETS',
+      targetCollection: 'repository',
+      traversal: {
+        collection: 'repository',
+        direction: 'downstream',
+        maxDepth: 8,
+      },
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: true,
+      queuedStatusProperty: 'syncSecretsStatus',
+      requiresGithubEnabled: true,
+    },
+  ],
   color: '8d98b3',
   permissions: {
     browse: true,
@@ -896,6 +911,47 @@ result = db.collectionConfig.insertOne({
   hint: 'A team is a collection of users with roles that can be granted control of accounts and access to services.',
   sudoHelp:
     'Allows viewing and updating protected service settings such as Vault integration fields',
+  syncQueues: [
+    {
+      queue: 'GITHUB_SYNC_SECRETS',
+      targetCollection: 'repository',
+      traversal: {
+        collection: 'repository',
+        direction: 'downstream',
+        maxDepth: 8,
+      },
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: false,
+      queuedStatusProperty: 'syncSecretsStatus',
+      requiresGithubEnabled: true,
+    },
+    {
+      queue: 'GITHUB_SYNC_USERS',
+      targetCollection: 'repository',
+      traversal: {
+        collection: 'repository',
+        direction: 'downstream',
+        maxDepth: 8,
+      },
+      queryOption: 'syncUsers',
+      defaultWhenOptionMissing: false,
+      queuedStatusProperty: 'syncUsersStatus',
+      requiresGithubEnabled: true,
+    },
+    {
+      queue: 'KUBERNETES_SYNC_SECRETS',
+      targetCollection: 'openshiftProject',
+      traversal: {
+        collection: 'openshiftProject',
+        direction: 'downstream',
+        maxDepth: 8,
+      },
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: true,
+      requiredEnabledProperty: 'enableSyncSecrets',
+      queuedStatusProperty: 'syncSecretsStatus',
+    },
+  ],
   color: 'e5cf0d',
   permissions: {
     browse: true,
@@ -1087,6 +1143,24 @@ result = db.collectionConfig.insertOne({
   hint: 'A source control repository tracks, manages, and versions project files and code.',
   sudoHelp:
     'Allows operations such as secret and user synchronization',
+  syncQueues: [
+    {
+      queue: 'GITHUB_SYNC_SECRETS',
+      targetCollection: 'repository',
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: false,
+      queuedStatusProperty: 'syncSecretsStatus',
+      requiresGithubEnabled: true,
+    },
+    {
+      queue: 'GITHUB_SYNC_USERS',
+      targetCollection: 'repository',
+      queryOption: 'syncUsers',
+      defaultWhenOptionMissing: false,
+      queuedStatusProperty: 'syncUsersStatus',
+      requiresGithubEnabled: true,
+    },
+  ],
   color: 'eeceda',
   permissions: {
     browse: true,
@@ -1173,6 +1247,21 @@ result = db.collectionConfig.insertOne({
   browseFields: ['name', 'type', 'clusterName'],
   name: 'Cloud',
   hint: 'A grouping of cloud resources used by teams to deploy and manage services.',
+  syncQueues: [
+    {
+      queue: 'KUBERNETES_SYNC_SECRETS',
+      targetCollection: 'openshiftProject',
+      traversal: {
+        collection: 'openshiftProject',
+        direction: 'downstream',
+        maxDepth: 4,
+      },
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: true,
+      requiredEnabledProperty: 'enableSyncSecrets',
+      queuedStatusProperty: 'syncSecretsStatus',
+    },
+  ],
   color: '7c6aad',
   permissions: {
     browse: true,
@@ -1254,6 +1343,16 @@ result = db.collectionConfig.insertOne({
   color: '45b08f',
   sudoHelp:
     'Allows operations such as secret and user synchronization',
+  syncQueues: [
+    {
+      queue: 'KUBERNETES_SYNC_SECRETS',
+      targetCollection: 'openshiftProject',
+      queryOption: 'syncSecrets',
+      defaultWhenOptionMissing: true,
+      requiredEnabledProperty: 'enableSyncSecrets',
+      queuedStatusProperty: 'syncSecretsStatus',
+    },
+  ],
   permissions: {
     browse: true,
     create: true,

@@ -13,6 +13,7 @@ import { ObjectId } from 'mongodb';
 import {
   CollectionEdgeConfig,
   CollectionFieldConfigMap,
+  CollectionSyncQueueRule,
 } from '../dto/collection-config.dto';
 import { CollectionNameStringEnum } from './collection-entity-union.type';
 
@@ -245,6 +246,12 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property({ nullable: true })
   sudoHelp?: string;
+
+  @Property({
+    type: 'json',
+    nullable: true,
+  })
+  syncQueues?: CollectionSyncQueueRule[];
 
   @Embedded({
     entity: () => CollectionSyncConfigEmbeddable,

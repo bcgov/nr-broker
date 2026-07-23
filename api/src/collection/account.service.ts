@@ -42,6 +42,7 @@ import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { HistogramSeriesDto } from './dto/histogram-series.dto';
+import { CollectionSyncService } from './collection-sync.service';
 
 export class TokenCreateDTO {
   token: string;
@@ -63,6 +64,7 @@ export class AccountService {
     private readonly collectionRepository: CollectionRepository,
     private readonly systemRepository: SystemRepository,
     private readonly dateUtil: DateUtil,
+    private readonly collectionSyncService: CollectionSyncService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -466,7 +468,7 @@ export class AccountService {
    * @param id The account id (for logging purposes)
    * @param account The account entity
    */
-  private async doSyncPreflight(id: string, account: BrokerAccountEntity) {
+  private doSyncPreflight(id: string, account: BrokerAccountEntity) {
     if (!account) {
       const message = `Account with ID ${id} not found`;
       this.auditService.recordToolsSync('info', 'failure', message);
@@ -488,8 +490,10 @@ export class AccountService {
     const account = await this.getBrokerAccount(id);
     this.doSyncPreflight(id, account);
 
-    // Queue the sync -- Github
-    this.githubSyncService.refreshByAccount(account);
+    // Queue sync via the generic collection sync orchestrator
+    await this.collectionSyncService.refresh('brokerAccount', id, {
+      syncSecrets: true,
+    });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

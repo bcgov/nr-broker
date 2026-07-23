@@ -135,6 +135,24 @@ export class CollectionWatchEventConfig {
   description!: string;
 }
 
+export class CollectionSyncTraversalRule {
+  collection!: CollectionNames;
+  direction!: 'downstream' | 'upstream';
+  maxDepth?: number;
+  edgeNames?: string[];
+}
+
+export class CollectionSyncQueueRule {
+  queue!: string;
+  targetCollection!: CollectionNames;
+  traversal?: CollectionSyncTraversalRule;
+  queryOption?: 'syncSecrets' | 'syncUsers';
+  defaultWhenOptionMissing!: boolean;
+  requiredEnabledProperty?: 'enableSyncSecrets' | 'enableSyncUsers';
+  queuedStatusProperty?: 'syncSecretsStatus' | 'syncUsersStatus';
+  requiresGithubEnabled?: boolean;
+}
+
 export class CollectionConfigDto {
   id!: string;
   browseFields!: string[];
@@ -156,6 +174,7 @@ export class CollectionConfigDto {
   showUserRoles!: boolean;
   watches?: CollectionWatchConfig[];
   sudoHelp?: string;
+  syncQueues?: CollectionSyncQueueRule[];
 }
 
 export class LinksAltDto {

@@ -12,11 +12,7 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
 import { RedisService } from '../redis/redis.service';
-import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
-import { CloudDto } from '../persistence/dto/cloud.dto';
-import { OpenShiftProjectDto } from '../persistence/dto/openshift-project.dto';
 import { OpenShiftProjectEntity } from '../persistence/entity/openshift-project.entity';
 import { JobQueueUtil } from '../util/job-queue.util';
 import { GraphService } from '../graph/graph.service';
@@ -45,7 +41,6 @@ export class KubernetesSyncService {
     private readonly auditService: AuditService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
-    private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly schedulerRegistry: SchedulerRegistry,
@@ -58,54 +53,6 @@ export class KubernetesSyncService {
 
   public isEnabled(): boolean {
     return true;
-  }
-
-  /**
-   * Queue all OpenShift projects under the clouds operated by a team for Kubernetes secret sync.
-   */
-  public async refreshByTeam(teamVertexId: string): Promise<void> {
-    const clouds = await this.graphRepository.getDownstreamVertex<CloudDto>(
-      teamVertexId,
-      CollectionNameEnum.cloud,
-      8,
-    );
-    for (const cloudUpDown of clouds) {
-      await this.refreshByCloud(cloudUpDown.collection.vertex.toString());
-    }
-  }
-
-  /**
-   * Queue all OpenShift projects under a cloud for Kubernetes secret sync.
-   */
-  public async refreshByCloud(cloudVertexId: string): Promise<void> {
-    const openshiftProjects =
-      await this.graphRepository.getDownstreamVertex<OpenShiftProjectDto>(
-        cloudVertexId,
-        CollectionNameEnum.openshiftProject,
-        4,
-      );
-    for (const ospUpDown of openshiftProjects) {
-      const osp = ospUpDown.collection;
-      if (osp.enableSyncSecrets) {
-        await this.queueSync(osp.id);
-      }
-    }
-  }
-
-  /**
-   * Queue a single OpenShift project for Kubernetes sync.
-   */
-  private async queueSync(openshiftProjectId: string): Promise<void> {
-    this.redisService.queue(
-      REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
-      openshiftProjectId,
-    );
-
-    this.auditService.recordToolsSync(
-      'info',
-      'unknown',
-      `Queued Kubernetes sync for OpenShift project (${openshiftProjectId})`,
-    );
   }
 
   /**
