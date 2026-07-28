@@ -4,38 +4,31 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import dlv from 'dlv';
 
-import { RepositoryDto } from '../../service/persistence/dto/repository.dto';
-import { OpenShiftProjectDto } from '../../service/persistence/dto/openshift-project.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
-import { GithubRoleMappingDialogComponent } from '../github-role-mapping-dialog/github-role-mapping-dialog.component';
-import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-secrets-dialog.component';
+import { SYNC_QUEUE_CONFIG_RECORD } from '../../app-initialize.factory';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
-import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
+import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
 import { SyncStatusDto } from '../../service/persistence/dto/sync-status.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionSyncQueueRuleDto } from '../../service/persistence/dto/collection-sync-queue-rule.dto';
 import {
-  CollectionConfigDto,
-  CollectionSyncQueueRule,
-} from '../../service/persistence/dto/collection-config.dto';
+  CollectionSyncRequirement,
+} from '../../service/persistence/dto/sync-queue-config.dto';
+import {
+  SyncQueueHelpDialogComponent,
+} from '../sync-queue-help-dialog/sync-queue-help-dialog.component';
 
-type SyncFlagKey = 'syncSecrets' | 'syncUsers';
-type SyncEnabledKey = 'enableSyncSecrets' | 'enableSyncUsers';
-type SyncStatusKey = 'syncSecretsStatus' | 'syncUsersStatus';
-type SyncHelp = 'githubSecrets' | 'githubRoleMappings' | null;
-
-interface SyncActionConfig {
-  key: SyncFlagKey;
+interface ResolvedSyncQueueAction {
+  queue: string;
   label: string;
-  enabledKey: SyncEnabledKey;
-  statusKey: SyncStatusKey;
-  successMessage: string;
-  failureMessage: string;
-  help: SyncHelp;
-  requiresGithubEnabled: boolean;
+  summary: string;
+  requiredEnabledProperty?: string;
+  queuedStatusProperty?: string;
+  requires?: CollectionSyncRequirement;
 }
-
-const GITHUB_SYNC_HEALTH_PATH = ['github', 'sync'];
 
 @Component({
   selector: 'app-inspector-repository-sync',
@@ -54,102 +47,123 @@ export class InspectorRepositorySyncComponent {
   private readonly dialog = inject(MatDialog);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly healthStatus = inject(HealthStatusService);
+  private readonly syncQueueConfigRecord = inject(SYNC_QUEUE_CONFIG_RECORD);
 
   readonly collection = input.required<CollectionNames>();
-  readonly data = input.required<RepositoryDto | OpenShiftProjectDto>();
+  readonly data = input.required<CollectionValues>();
   readonly collectionConfig = input.required<CollectionConfigDto>();
   readonly hasSudo = input(false);
+  readonly hasAdmin = input(false);
   readonly header = input<'small' | 'large'>('small');
   readonly syncActions = computed(() => {
     const rules = this.collectionConfig().syncQueues ?? [];
     return rules
-      .filter((rule) => this.isDirectRule(rule))
-      .map((rule) => this.toSyncActionConfig(rule))
-      .filter((action): action is SyncActionConfig => action !== null);
+      .flatMap((rule) => this.toSyncActions(rule))
+      .filter((action): action is ResolvedSyncQueueAction => action !== null);
+  });
+
+  readonly hasSyncQueues = computed(() => {
+    const rules = this.collectionConfig().syncQueues ?? [];
+    return rules.length > 0;
   });
 
   readonly syncAvailable = computed(() => {
-    const actions = this.syncActions();
-    if (!actions.some((action) => action.requiresGithubEnabled)) {
+    const requirements = this.syncActions()
+      .map((action) => action.requires)
+      .filter((requirement): requirement is CollectionSyncRequirement =>
+        Boolean(requirement),
+      );
+
+    if (requirements.length === 0) {
       return true;
     }
 
-    const details = this.healthStatus.healthSignal()?.['details'] as
+    const health = this.healthStatus.healthSignal() as
       | Record<string, unknown>
+      | null
       | undefined;
-    if (!details) {
+    if (!health) {
       return false;
     }
 
-    let healthValue: unknown = details;
-    for (const segment of GITHUB_SYNC_HEALTH_PATH) {
-      healthValue = (healthValue as Record<string, unknown> | undefined)?.[
-        segment
-      ];
-    }
-
-    return healthValue === true;
+    return requirements.every((requirement) =>
+      this.matchesRequirement(health, requirement),
+    );
   });
 
-  sync(action: SyncActionConfig) {
+  sync(action: ResolvedSyncQueueAction, dryRun = false) {
+    if (dryRun) {
+      return this.callSync(action, true, {
+        next: (result) => {
+          if (Array.isArray(result)) {
+            const count = result.length;
+            this.openSnackBar(
+              `${action.label} dry run completed (${count} target${count === 1 ? '' : 's'})`,
+            );
+          }
+        },
+      });
+    }
+
+    return this.callSync(action, true, {
+      next: (precheck) => {
+        if (Array.isArray(precheck) && precheck.length === 0) {
+          this.openSnackBar(`${action.label} sync skipped: no targets found`);
+          return;
+        }
+
+        this.callSync(action, false, 'sync queued');
+      },
+    });
+  }
+
+  private callSync(
+    action: ResolvedSyncQueueAction,
+    dryRun: boolean,
+    handler: { next?: (result: unknown) => void; error?: (err: any) => void } | string,
+  ): void {
     this.collectionApi
       .syncCollection(this.collection(), this.data().id, {
-        syncSecrets: action.key === 'syncSecrets' ? true : undefined,
-        syncUsers: action.key === 'syncUsers' ? true : undefined,
+        queue: action.queue,
+        dryRun,
       })
       .subscribe({
-        next: () => {
-          this.openSnackBar(action.successMessage);
+        next: (result) => {
+          if (typeof handler === 'string') {
+            this.openSnackBar(`${action.label} ${handler}`);
+          } else {
+            handler.next?.(result);
+          }
         },
         error: (err: any) => {
-          this.openSnackBar(`${action.failureMessage}: ${err?.statusText ?? 'unknown'}`);
+          if (typeof handler === 'string') {
+            this.openSnackBar(`${action.label} sync failed: ${err?.statusText ?? 'unknown'}`);
+          } else {
+            handler.error?.(err);
+          }
         },
       });
   }
 
-  isEnabled(enabledKey: SyncEnabledKey) {
-    return Boolean(this.data()[enabledKey]);
+  isEnabled(requiredEnabledProperty?: string) {
+    if (!requiredEnabledProperty) {
+      return true;
+    }
+
+    return this.getDataValue(requiredEnabledProperty) === true;
   }
 
-  showQueued(statusKey: SyncStatusKey) {
-    const status = this.data()[statusKey];
+  showQueued(statusKey?: string) {
+    const status = this.getSyncStatus(statusKey);
     return Boolean(status?.queuedAt && (!status?.syncAt || status?.queuedAt > status?.syncAt));
   }
 
-  lastSyncAt(statusKey: SyncStatusKey): SyncStatusDto['syncAt'] {
-    return this.data()[statusKey]?.syncAt;
+  lastSyncAt(statusKey?: string): SyncStatusDto['syncAt'] {
+    return this.getSyncStatus(statusKey)?.syncAt;
   }
 
-  openHelp(help: SyncHelp) {
-    if (help === 'githubSecrets') {
-      this.showGitHubSecrets();
-      return;
-    }
-    if (help === 'githubRoleMappings') {
-      this.showGitHubRoleMappings();
-    }
-  }
-
-  showGitHubRoleMappings() {
-    this.dialog
-      .open(GithubRoleMappingDialogComponent, {
-        width: '600px',
-        data: {},
-      })
-      .afterClosed()
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      .subscribe(() => {});
-  }
-
-  showGitHubSecrets() {
-    this.dialog
-      .open(GithubSecretsDialogComponent, {
-        width: '600px',
-        data: {},
-      })
-      .afterClosed()
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      .subscribe(() => {});
+  queuedAt(statusKey?: string): SyncStatusDto['queuedAt'] {
+    return this.getSyncStatus(statusKey)?.queuedAt;
   }
 
   private openSnackBar(message: string) {
@@ -159,39 +173,97 @@ export class InspectorRepositorySyncComponent {
     this.snackBar.open(message, 'Dismiss', config);
   }
 
-  private isDirectRule(rule: CollectionSyncQueueRule): boolean {
-    return !rule.traversal && rule.targetCollection === this.collection();
+  private toSyncActions(rule: CollectionSyncQueueRuleDto): (ResolvedSyncQueueAction | null)[] {
+    const actions: (ResolvedSyncQueueAction | null)[] = [];
+
+    // Handle direct queue rule
+    if (rule.queue?.queue) {
+      const queueConfig = rule.queue;
+      const queueName = queueConfig.queue;
+      const label = this.syncQueueConfigRecord[queueName]?.label || queueName;
+
+      actions.push({
+        queue: queueName,
+        label,
+        summary: this.queueSummary(queueName),
+        requiredEnabledProperty: queueConfig.requiredEnabledProperty,
+        queuedStatusProperty: queueConfig.queuedStatusProperty,
+        requires: this.syncQueueConfigRecord[queueName]?.requires,
+      });
+    }
+
+    // Handle indirect traverse rule
+    if (rule.traverse?.queues && rule.traverse.queues.length > 0) {
+      const traverseQueues = rule.traverse.queues;
+
+      traverseQueues.forEach((queueName) => {
+        const label = this.syncQueueConfigRecord[queueName]?.label || queueName;
+
+        actions.push({
+          queue: queueName,
+          label,
+          summary: this.queueSummary(queueName),
+          requires: this.syncQueueConfigRecord[queueName]?.requires,
+        });
+      });
+    }
+
+    return actions;
   }
 
-  private toSyncActionConfig(rule: CollectionSyncQueueRule): SyncActionConfig | null {
-    const key = rule.queryOption;
-    if (key !== 'syncSecrets' && key !== 'syncUsers') {
-      return null;
-    }
-
-    const label = key === 'syncSecrets' ? 'Secrets' : 'User Access';
-    const enabledKey = key === 'syncSecrets' ? 'enableSyncSecrets' : 'enableSyncUsers';
-    const statusKey = key === 'syncSecrets' ? 'syncSecretsStatus' : 'syncUsersStatus';
-
-    return {
-      key,
-      label,
-      enabledKey,
-      statusKey,
-      successMessage: key === 'syncSecrets' ? 'Sync of secrets queued' : 'Sync of users queued',
-      failureMessage: key === 'syncSecrets' ? 'Syncing secrets failed' : 'Syncing users failed',
-      help: this.helpForQueue(rule.queue),
-      requiresGithubEnabled: Boolean(rule.requiresGithubEnabled),
-    };
+  queueSummary(queue: string): string {
+    return this.syncQueueConfigRecord[queue]?.summary ?? '';
   }
 
-  private helpForQueue(queue: string): SyncHelp {
-    if (queue === 'GITHUB_SYNC_SECRETS') {
-      return 'githubSecrets';
+  queueDescriptionLines(queue: string): string[] {
+    return this.syncQueueConfigRecord[queue]?.description ?? [];
+  }
+
+  openQueueHelp(action: ResolvedSyncQueueAction): void {
+    this.dialog.open(SyncQueueHelpDialogComponent, {
+      width: '600px',
+      data: {
+        name: action.queue,
+        label: action.label,
+        summary: action.summary,
+        description:
+          this.queueDescriptionLines(action.queue).length > 0
+            ? this.queueDescriptionLines(action.queue)
+            : ['No description is configured for this queue.'],
+      },
+    });
+  }
+
+  private matchesRequirement(
+    health: Record<string, unknown>,
+    requirement: CollectionSyncRequirement,
+  ): boolean {
+    const actualValue = dlv(health, requirement.health);
+    if (actualValue === undefined) {
+      return false;
     }
-    if (queue === 'GITHUB_SYNC_USERS') {
-      return 'githubRoleMappings';
+
+    if (typeof requirement.value === 'boolean') {
+      return actualValue === requirement.value;
     }
-    return null;
+
+    return String(actualValue) === requirement.value;
+  }
+
+  private getDataValue(property: string): unknown {
+    return (this.data() as unknown as Record<string, unknown>)[property];
+  }
+
+  private getSyncStatus(property?: string): SyncStatusDto | undefined {
+    if (!property) {
+      return undefined;
+    }
+
+    const value = this.getDataValue(property);
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    return value as SyncStatusDto;
   }
 }

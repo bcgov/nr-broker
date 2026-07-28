@@ -158,7 +158,7 @@ export class SystemApiService {
     syncQuery: SyncCollectionQuery,
   ) {
     const args = this.syncCollectionArgs(collection, id, syncQuery);
-    return this.http.request(args.method ?? 'POST', args.url, {
+    return this.http.request<unknown[] | void>(args.method ?? 'POST', args.url, {
       responseType: 'json',
       body: args.body,
       params: args.params,
@@ -172,11 +172,9 @@ export class SystemApiService {
     syncQuery: SyncCollectionQuery,
   ): HttpResourceRequest {
     const params: Record<string, string> = {};
-    if (syncQuery.syncSecrets !== undefined) {
-      params['syncSecrets'] = String(syncQuery.syncSecrets);
-    }
-    if (syncQuery.syncUsers !== undefined) {
-      params['syncUsers'] = String(syncQuery.syncUsers);
+    params['queue'] = syncQuery.queue;
+    if (syncQuery.dryRun !== undefined) {
+      params['dryRun'] = String(syncQuery.dryRun);
     }
 
     return {

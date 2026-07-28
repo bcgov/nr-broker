@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Sync Tool - {{ data.label }}</h2>
+
+<mat-dialog-content>
+
+  <p class="queue-summary">{{ data.summary }}</p>
+
+  @for (line of data.description; track line) {
+    <p>{{ line }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

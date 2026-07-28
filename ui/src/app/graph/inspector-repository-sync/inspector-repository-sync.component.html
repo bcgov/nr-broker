@@ -1,23 +1,24 @@
-@if (syncAvailable()) {
-  <div class="edge-container">
-    <div class="fields-wrapper">
-      @if (header() === 'small') {
-        <h3 class="heading">Sync Status</h3>
-      } @else {
-        <h2 class="heading">Sync Status</h2>
-      }
-    </div>
-  </div>
-  <div class="edge-body">
-    @for (action of syncActions(); track action.key) {
-      <div>
-        <div class="details-section">{{ action.label }}</div>
-
-        @if (showQueued(action.statusKey)) {
-          <app-details-item item="Queued">{{$safeNavigationMigration(data()[action.statusKey]?.queuedAt) | date: 'medium'}}</app-details-item>
+@if (hasSyncQueues()) {
+  @if (syncAvailable()) {
+    <div class="edge-container">
+      <div class="fields-wrapper">
+        @if (header() === 'small') {
+          <h3 class="heading">Sync Tools</h3>
         } @else {
-          <app-details-item item="Last sync">@if(lastSyncAt(action.statusKey)) {
-              {{$safeNavigationMigration(lastSyncAt(action.statusKey)) | date: 'medium'}}
+          <h2 class="heading">Sync Tools</h2>
+        }
+      </div>
+    </div>
+    <div class="edge-body">
+      @for (action of syncActions(); track action.queue) {
+      <div>
+        <app-details-item item="{{ action.label }}">{{ action.summary || action.queue }}</app-details-item>
+
+        @if (showQueued(action.queuedStatusProperty)) {
+          <app-details-item item="Queued">{{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}</app-details-item>
+        } @else {
+          <app-details-item item="Last sync">@if(lastSyncAt(action.queuedStatusProperty)) {
+              {{$safeNavigationMigration(lastSyncAt(action.queuedStatusProperty)) | date: 'medium'}}
             } @else {
               Never
             }</app-details-item>
@@ -27,18 +28,25 @@
           <button
             mat-stroked-button
             (click)="sync(action)"
-            [disabled]="!isEnabled(action.enabledKey)">Sync</button>
+            [disabled]="!hasSudo() || !isEnabled(action.requiredEnabledProperty)">Sync</button>
 
-          @if (action.help) {
+          @if (hasAdmin()) {
+            <button
+              mat-stroked-button
+              (click)="sync(action, true)"
+                [disabled]="!isEnabled(action.requiredEnabledProperty)">Dry run</button>
+          }
+
+          @if (queueDescriptionLines(action.queue).length > 0) {
             <button
               mat-button
-              (click)="openHelp(action.help)">Help</button>
+              (click)="openQueueHelp(action)">Help</button>
           }
         </div>
       </div>
     }
   </div>
-
-} @else {
-  <p class="edge-container">Sync services are currently not available.</p>
+  } @else {
+    <p class="edge-container">Sync services are currently not available.</p>
+  }
 }

@@ -491,9 +491,11 @@ export class AccountService {
     this.doSyncPreflight(id, account);
 
     // Queue sync via the generic collection sync orchestrator
-    await this.collectionSyncService.refresh('brokerAccount', id, {
-      syncSecrets: true,
-    });
+    await this.collectionSyncService.refresh(
+      'brokerAccount',
+      id,
+      'GITHUB_SYNC_SECRETS',
+    );
   }
 
   @Cron(CronExpression.EVERY_MINUTE)

@@ -211,7 +211,7 @@ export class CollectionApiService {
   public refreshCollectionUsers(
     name: keyof CollectionDtoUnion, id: string,
   ) {
-    return this.syncCollection(name, id, { syncUsers: true });
+    return this.syncCollection(name, id, { queue: 'GITHUB_SYNC_USERS' });
   }
 
   public syncCollection(
@@ -220,14 +220,12 @@ export class CollectionApiService {
     syncQuery: SyncCollectionQuery,
   ) {
     const params: Record<string, string> = {};
-    if (syncQuery.syncSecrets !== undefined) {
-      params['syncSecrets'] = String(syncQuery.syncSecrets);
-    }
-    if (syncQuery.syncUsers !== undefined) {
-      params['syncUsers'] = String(syncQuery.syncUsers);
+    params['queue'] = syncQuery.queue;
+    if (syncQuery.dryRun !== undefined) {
+      params['dryRun'] = String(syncQuery.dryRun);
     }
 
-    return this.http.post<void>(
+    return this.http.post<unknown[] | void>(
       `${environment.apiUrl}/v1/collection/${this.stringUtil.snakecase(name)}/${id}/sync`,
       null,
       {

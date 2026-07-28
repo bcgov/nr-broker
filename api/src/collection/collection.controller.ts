@@ -44,7 +44,10 @@ import { UserCollectionService } from './user-collection.service';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
-import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
+import {
+  PERSISTENCE_CACHE_KEY_CONFIG,
+  PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG,
+} from '../persistence/persistence.constants';
 import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
@@ -53,6 +56,7 @@ import { SyncCollectionQuery } from './dto/sync-collection-query.dto';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
 import { CollectionSyncService } from './collection-sync.service';
 import { normalizeCollectionName } from '../persistence/dto/collection-name.util';
+import { CollectionValues } from '../persistence/entity/collection-entity-union.type';
 
 @Controller({
   path: 'collection',
@@ -135,13 +139,22 @@ export class CollectionController {
     await this.userCollectionService.upsertUser(req, userDto);
   }
 
-  @Get('config')
+  @Get(['config', 'config/entities'])
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_CONFIG)
   @UseInterceptors(PersistenceCacheInterceptor)
   getCollectionConfig() {
     return this.service.getCollectionConfig();
+  }
+
+  @Get('config/sync-queue')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG)
+  @UseInterceptors(PersistenceCacheInterceptor)
+  getSyncQueueConfig() {
+    return this.service.getSyncQueueConfig();
   }
 
   @Get('broker-account/:id/token')
@@ -166,11 +179,12 @@ export class CollectionController {
     @Param('collection') collection: string,
     @Param('id', new ParseObjectIdPipe()) id: string,
     @Query() syncQuery: SyncCollectionQuery,
-  ): Promise<void> {
+  ): Promise<CollectionValues[] | void> {
     return await this.collectionSyncService.refresh(
       this.parseCollectionApi(collection),
       id,
-      syncQuery,
+      syncQuery.queue,
+      syncQuery.dryRun ?? false,
     );
   }
 

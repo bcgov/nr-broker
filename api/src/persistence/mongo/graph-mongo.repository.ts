@@ -1346,6 +1346,7 @@ export class GraphMongoRepository implements GraphRepository {
     index: number,
     matchEdgeNames: string[] | null = null,
     allowRestrictedEdges: boolean = false,
+    maxDepth: number = 8,
   ): Promise<GraphUpDownDto<T>[]> {
     const config = await this.collectionConfigRepository.findOne({
       index,
@@ -1364,6 +1365,7 @@ export class GraphMongoRepository implements GraphRepository {
             connectToField: 'target',
             ...(allowRestrictedEdges ? {} : { restrictSearchWithMatch: { restrict: { $ne: true } } }),
             as: 'edge',
+            maxDepth,
           },
         },
         { $unwind: '$edge' },

@@ -34,12 +34,15 @@ import {
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { SyncQueueConfigEntity } from '../entity/sync-queue-config.entity';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
   constructor(
     @InjectRepository(CollectionConfigEntity)
     private readonly collectionConfigRepository: MongoEntityRepository<CollectionConfigEntity>,
+    @InjectRepository(SyncQueueConfigEntity)
+    private readonly syncQueueConfigRepository: MongoEntityRepository<SyncQueueConfigEntity>,
     private readonly dataSource: MongoEntityManager,
   ) {}
 
@@ -143,6 +146,16 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public getCollectionConfigs(): Promise<CollectionConfigEntity[]> {
     return this.collectionConfigRepository.find({});
+  }
+
+  public getSyncQueueConfigs(): Promise<SyncQueueConfigEntity[]> {
+    return this.syncQueueConfigRepository.find({});
+  }
+
+  public async getSyncQueueConfigByQueue(
+    queue: string,
+  ): Promise<SyncQueueConfigEntity | null> {
+    return this.syncQueueConfigRepository.findOne({ queue });
   }
 
   public async getCollectionConfigByName(

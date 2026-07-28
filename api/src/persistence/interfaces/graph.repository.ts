@@ -112,6 +112,7 @@ export abstract class GraphRepository {
     index: number,
     matchEdgeNames?: string[] | null,
     allowRestrictedEdges?: boolean,
+    maxDepth?: number,
   ): Promise<GraphUpDownDto<T>[]>;
   public abstract getDownstreamVertex<T extends VertexPointerDto>(
     id: string,

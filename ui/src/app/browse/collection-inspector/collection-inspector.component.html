@@ -297,12 +297,13 @@
                 [showHelp]="showHelp()"></app-inspector-account>
             }
 
-            @if ((localCollection === 'repository' || localCollection === 'openshiftProject') && cd.vertex.collection === localCollection) {
+            @if (cd.vertex.collection === localCollection) {
               <app-inspector-repository-sync
                 [collection]="localCollection"
                 [collectionConfig]="config()"
                 [data]="collectionUtil.narrowCollectionType(localCollection, cd.vertex, cd.collection)"
                 [hasSudo]="hasSudo()"
+                [hasAdmin]="hasAdmin()"
                 [header]="'large'"></app-inspector-repository-sync>
             }
             @if (localCollection === 'team') {

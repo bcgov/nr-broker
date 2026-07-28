@@ -25,6 +25,7 @@ db.collectionWatch.drop();
 db.collectionWatchConfig.drop();
 db.cloud.drop();
 db.openshiftProject.drop();
+db.syncQueueConfig.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -91,6 +92,42 @@ db.connectionConfig.insertOne({
   name: 'Swagger Documentation',
   order: 20,
 });
+
+db.syncQueueConfig.insertMany([
+  {
+    queue: 'GITHUB_SYNC_SECRETS',
+    label: 'GitHub secrets',
+    summary: 'Sync repository secrets to GitHub repository settings.',
+    description: [
+      'Sync repository secrets from Broker to GitHub repository settings.',
+      'Secrets are transferred with the same names as in Vault. They may be adjusted to satisfy GitHub naming restrictions.',
+      'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
+    ],
+    requires: { health: 'info.github.sync', value: true },
+  },
+  {
+    queue: 'GITHUB_SYNC_USERS',
+    label: 'User access',
+    summary: 'Sync repository user access to GitHub repository roles.',
+    description: [
+      'Sync repository user access from Broker role assignments to GitHub.',
+      'Broker maps team roles to GitHub repository roles so the right users get the right access.',
+      'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
+    ],
+    requires: { health: 'info.github.sync', value: true },
+  },
+  {
+    queue: 'KUBERNETES_SYNC_SECRETS',
+    label: 'OpenShift secrets',
+    summary: 'Sync tools secrets from deployed service secrets to OpenShift secrets.',
+    description: [
+      'This enables the use of tools secrets in OpenShift projects without having to manually copy them.',
+      'A typical use case is syncing CI/CD tool secrets. The graph must be configured to connect the project to a service instance.',
+      'Secrets are copied into the target OpenShift project with the same names used in Broker.',
+    ],
+  },
+]);
+db.syncQueueConfig.createIndex({ queue: 1 }, { unique: true });
 
 // ==> Environments
 result = db.vertex.insertOne({ collection: 'environment', name: 'production' });
@@ -807,17 +844,12 @@ result = db.collectionConfig.insertOne({
     'Allows management of tokens that control team authorizations',
   syncQueues: [
     {
-      queue: 'GITHUB_SYNC_SECRETS',
-      targetCollection: 'repository',
-      traversal: {
+      traverse: {
         collection: 'repository',
         direction: 'downstream',
         maxDepth: 8,
+        queues: ['GITHUB_SYNC_SECRETS'],
       },
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: true,
-      queuedStatusProperty: 'syncSecretsStatus',
-      requiresGithubEnabled: true,
     },
   ],
   color: '8d98b3',
@@ -913,43 +945,20 @@ result = db.collectionConfig.insertOne({
     'Allows viewing and updating protected service settings such as Vault integration fields',
   syncQueues: [
     {
-      queue: 'GITHUB_SYNC_SECRETS',
-      targetCollection: 'repository',
-      traversal: {
+      traverse: {
         collection: 'repository',
         direction: 'downstream',
         maxDepth: 8,
+        queues: ['GITHUB_SYNC_SECRETS', 'GITHUB_SYNC_USERS'],
       },
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: false,
-      queuedStatusProperty: 'syncSecretsStatus',
-      requiresGithubEnabled: true,
     },
     {
-      queue: 'GITHUB_SYNC_USERS',
-      targetCollection: 'repository',
-      traversal: {
-        collection: 'repository',
-        direction: 'downstream',
-        maxDepth: 8,
-      },
-      queryOption: 'syncUsers',
-      defaultWhenOptionMissing: false,
-      queuedStatusProperty: 'syncUsersStatus',
-      requiresGithubEnabled: true,
-    },
-    {
-      queue: 'KUBERNETES_SYNC_SECRETS',
-      targetCollection: 'openshiftProject',
-      traversal: {
+      traverse: {
         collection: 'openshiftProject',
         direction: 'downstream',
         maxDepth: 8,
+        queues: ['KUBERNETES_SYNC_SECRETS'],
       },
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: true,
-      requiredEnabledProperty: 'enableSyncSecrets',
-      queuedStatusProperty: 'syncSecretsStatus',
     },
   ],
   color: 'e5cf0d',
@@ -1145,20 +1154,16 @@ result = db.collectionConfig.insertOne({
     'Allows operations such as secret and user synchronization',
   syncQueues: [
     {
-      queue: 'GITHUB_SYNC_SECRETS',
-      targetCollection: 'repository',
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: false,
-      queuedStatusProperty: 'syncSecretsStatus',
-      requiresGithubEnabled: true,
+      queue: {
+        queue: 'GITHUB_SYNC_SECRETS',
+        queuedStatusProperty: 'syncSecretsStatus',
+      },
     },
     {
-      queue: 'GITHUB_SYNC_USERS',
-      targetCollection: 'repository',
-      queryOption: 'syncUsers',
-      defaultWhenOptionMissing: false,
-      queuedStatusProperty: 'syncUsersStatus',
-      requiresGithubEnabled: true,
+      queue: {
+        queue: 'GITHUB_SYNC_USERS',
+        queuedStatusProperty: 'syncUsersStatus',
+      },
     },
   ],
   color: 'eeceda',
@@ -1249,17 +1254,12 @@ result = db.collectionConfig.insertOne({
   hint: 'A grouping of cloud resources used by teams to deploy and manage services.',
   syncQueues: [
     {
-      queue: 'KUBERNETES_SYNC_SECRETS',
-      targetCollection: 'openshiftProject',
-      traversal: {
+      traverse: {
         collection: 'openshiftProject',
         direction: 'downstream',
         maxDepth: 4,
+        queues: ['KUBERNETES_SYNC_SECRETS'],
       },
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: true,
-      requiredEnabledProperty: 'enableSyncSecrets',
-      queuedStatusProperty: 'syncSecretsStatus',
     },
   ],
   color: '7c6aad',
@@ -1345,12 +1345,11 @@ result = db.collectionConfig.insertOne({
     'Allows operations such as secret and user synchronization',
   syncQueues: [
     {
-      queue: 'KUBERNETES_SYNC_SECRETS',
-      targetCollection: 'openshiftProject',
-      queryOption: 'syncSecrets',
-      defaultWhenOptionMissing: true,
-      requiredEnabledProperty: 'enableSyncSecrets',
-      queuedStatusProperty: 'syncSecretsStatus',
+      queue: {
+        queue: 'KUBERNETES_SYNC_SECRETS',
+        requiredEnabledProperty: 'enableSyncSecrets',
+        queuedStatusProperty: 'syncSecretsStatus',
+      },
     },
   ],
   permissions: {

@@ -1,14 +1,13 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class SyncCollectionQuery {
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true')
-  syncSecrets?: boolean;
+  @IsString()
+  @IsNotEmpty()
+  queue!: string;
 
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => value === 'true')
-  syncUsers?: boolean;
+  dryRun?: boolean;
 }
