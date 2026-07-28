@@ -7,12 +7,16 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 import { CollectionApiService } from '../../service/collection-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
-import { SYNC_QUEUE_CONFIG_RECORD } from '../../app-initialize.factory';
+import { CONFIG_RECORD, SYNC_QUEUE_CONFIG_RECORD } from '../../app-initialize.factory';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
 import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
 import { SyncStatusDto } from '../../service/persistence/dto/sync-status.dto';
 import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
-import { CollectionSyncQueueRuleDto } from '../../service/persistence/dto/collection-sync-queue-rule.dto';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import {
+  CollectionSyncQueueRuleDto,
+  CollectionSyncTraversalRule,
+} from '../../service/persistence/dto/collection-sync-queue-rule.dto';
 import {
   CollectionSyncRequirement,
 } from '../../service/persistence/dto/sync-queue-config.dto';
@@ -24,6 +28,8 @@ interface ResolvedSyncQueueAction {
   queue: string;
   label: string;
   summary: string;
+  source: 'queue' | 'traverse';
+  traverseSummary?: string;
   requiredEnabledProperty?: string;
   queuedStatusProperty?: string;
   requires?: CollectionSyncRequirement;
@@ -46,6 +52,7 @@ export class InspectorRepositorySyncComponent {
   private readonly dialog = inject(MatDialog);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly healthStatus = inject(HealthStatusService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
   private readonly syncQueueConfigRecord = inject(SYNC_QUEUE_CONFIG_RECORD);
 
   readonly collection = input.required<CollectionNames>();
@@ -61,34 +68,37 @@ export class InspectorRepositorySyncComponent {
       .filter((action): action is ResolvedSyncQueueAction => action !== null);
   });
 
-  readonly hasSyncQueues = computed(() => {
-    const rules = this.collectionConfig().syncQueues ?? [];
-    return rules.length > 0;
-  });
-
-  readonly syncAvailable = computed(() => {
+  readonly healthySyncActions = computed(() => {
     const actions = this.syncActions();
     if (actions.length === 0) {
-      return true;
+      return actions;
     }
 
     const health = this.healthStatus.healthSignal();
     if (!health) {
-      return false;
+      return [] as ResolvedSyncQueueAction[];
     }
 
     const syncQueueHealth = health.details?.['syncQueue']?.['queues'] as
       | Record<string, { enabled?: boolean }>
       | undefined;
 
-    // Preferred path: use the generic queue health published by the API.
-    if (syncQueueHealth) {
-      return actions.every(
-        (action) => syncQueueHealth[action.queue]?.enabled === true,
-      );
+    if (!syncQueueHealth) {
+      return [] as ResolvedSyncQueueAction[];
     }
 
-    return false;
+    return actions.filter(
+      (action) => syncQueueHealth[action.queue]?.enabled === true,
+    );
+  });
+
+  readonly hasSyncQueues = computed(() => {
+    const rules = this.collectionConfig().syncQueues ?? [];
+    return rules.length > 0;
+  });
+
+  readonly syncAvailable = computed(() => {
+    return this.healthySyncActions().length > 0;
   });
 
   sync(action: ResolvedSyncQueueAction, dryRun = false) {
@@ -186,6 +196,7 @@ export class InspectorRepositorySyncComponent {
         queue: queueName,
         label,
         summary: this.queueSummary(queueName),
+        source: 'queue',
         requiredEnabledProperty: queueConfig.requiredEnabledProperty,
         queuedStatusProperty: queueConfig.queuedStatusProperty,
         requires: this.syncQueueConfigRecord[queueName]?.requires,
@@ -203,6 +214,8 @@ export class InspectorRepositorySyncComponent {
           queue: queueName,
           label,
           summary: this.queueSummary(queueName),
+          source: 'traverse',
+          traverseSummary: this.summarizeTraverseRule(rule.traverse),
           requires: this.syncQueueConfigRecord[queueName]?.requires,
         });
       });
@@ -217,6 +230,21 @@ export class InspectorRepositorySyncComponent {
 
   queueDescriptionLines(queue: string): string[] {
     return this.syncQueueConfigRecord[queue]?.description ?? [];
+  }
+
+  private summarizeTraverseRule(
+    traverse?: CollectionSyncTraversalRule,
+  ): string {
+    if (!traverse) {
+      return '';
+    }
+
+    const direction = traverse.direction;
+    const targetCollection = traverse.collection;
+    const targetCollectionName =
+      this.configRecord[targetCollection]?.name ?? targetCollection;
+
+    return `${targetCollectionName} (${direction})`;
   }
 
   openQueueHelp(action: ResolvedSyncQueueAction): void {

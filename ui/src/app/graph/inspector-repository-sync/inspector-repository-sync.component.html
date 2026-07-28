@@ -10,18 +10,22 @@
       </div>
     </div>
     <div class="edge-body">
-      @for (action of syncActions(); track action.queue) {
+      @for (action of healthySyncActions(); track action.queue) {
       <div>
         <app-details-item item="{{ action.label }}">{{ action.summary || action.queue }}</app-details-item>
 
-        @if (showQueued(action.queuedStatusProperty)) {
-          <app-details-item item="Queued">{{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}</app-details-item>
+        @if (action.source === 'traverse') {
+          <app-details-item item="Queued via Collection">{{ action.traverseSummary }}</app-details-item>
         } @else {
-          <app-details-item item="Last sync">@if(lastSyncAt(action.queuedStatusProperty)) {
+          @if (showQueued(action.queuedStatusProperty)) {
+            <app-details-item item="Queued">{{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}</app-details-item>
+          } @else {
+            <app-details-item item="Last sync">@if(lastSyncAt(action.queuedStatusProperty)) {
               {{$safeNavigationMigration(lastSyncAt(action.queuedStatusProperty)) | date: 'medium'}}
             } @else {
               Never
             }</app-details-item>
+          }
         }
 
         <div class="details-buttons">
