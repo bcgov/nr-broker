@@ -1,5 +1,6 @@
 import { BaseEntity } from '@mikro-orm/core';
 import {
+  Embedded,
   Entity,
   PrimaryKey,
   Property,
@@ -8,9 +9,9 @@ import {
 } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
 import {
-  CollectionSyncRequirement,
-  SyncQueueSetupDto,
-} from '../dto/sync-queue-config.dto';
+  SyncQueueRequirementEmbeddable,
+  SyncQueueSetupEmbeddable,
+} from './sync-queue-config.embeddable';
 
 @Entity({ tableName: 'syncQueueConfig' })
 export class SyncQueueConfigEntity extends BaseEntity {
@@ -31,15 +32,19 @@ export class SyncQueueConfigEntity extends BaseEntity {
   @Property()
   summary!: string;
 
-  @Property({ type: 'json' })
+  @Property()
   description!: string[];
 
-  @Property({ type: 'json' })
+  @Property()
   types!: string[];
 
-  @Property({ type: 'json', nullable: true })
-  setup?: SyncQueueSetupDto;
+  @Embedded({ entity: () => SyncQueueSetupEmbeddable, object: true, nullable: true })
+  setup?: SyncQueueSetupEmbeddable;
 
-  @Property({ type: 'json', nullable: true })
-  requires?: CollectionSyncRequirement;
+  @Embedded({
+    entity: () => SyncQueueRequirementEmbeddable,
+    object: true,
+    nullable: true,
+  })
+  requires?: SyncQueueRequirementEmbeddable;
 }
