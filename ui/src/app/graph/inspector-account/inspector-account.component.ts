@@ -188,14 +188,14 @@ export class InspectorAccountComponent implements OnInit, OnDestroy {
           queue: 'GITHUB_SYNC_SECRETS',
         })
         .subscribe({
-        next: () => {
-          this.openSnackBar('Sync of secrets queued');
-        },
-        error: (err: any) => {
-          this.openSnackBar(
-            'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
-          );
-        },
+          next: () => {
+            this.openSnackBar('Sync of secrets queued');
+          },
+          error: (err: any) => {
+            this.openSnackBar(
+              'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
+            );
+          },
         });
     } else {
       this.openSnackBar('The account does not exist!');
