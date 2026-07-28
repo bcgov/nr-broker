@@ -1,3 +1,4 @@
+// Shared DTO: Copy in back-end and front-end should be identical
 export class CollectionSyncRequirement {
   health!: string;
   value!: boolean | string;

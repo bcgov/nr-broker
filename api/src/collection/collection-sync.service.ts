@@ -67,7 +67,7 @@ export class CollectionSyncService {
     }
 
     const rootRule = this.findRuleByQueue(rules, queueName, collection);
-    console.log(rootRule);
+    // console.log(rootRule);
     const tasks = await this.resolveQueueTargets(
       collection,
       id,
@@ -75,7 +75,7 @@ export class CollectionSyncService {
       queueName,
       new Set(),
     );
-    console.log(tasks);
+    // console.log(tasks);
 
     const dryRunTargets: CollectionValues[] = [];
 
@@ -89,7 +89,7 @@ export class CollectionSyncService {
         continue;
       }
 
-      console.log(task);
+      // console.log(task);
 
       if (dryRun) {
         dryRunTargets.push(task.target);
@@ -226,8 +226,8 @@ export class CollectionSyncService {
             false,
             traverse.maxDepth ?? 8,
           );
-    console.log(`Found ${vertices.length} vertices for collection ${traverse.collection} from source ${sourceVertexId}:${targetIndex}`);
-    console.log(vertices);
+    // console.log(`${vertices.length} vertices collection ${traverse.collection}:${sourceVertexId}:${targetIndex}`);
+    // console.log(vertices);
     const targets = new Map<string, VertexPointerDto>();
     const resolvedTargets = vertices.map((vertex) => {
       return vertex.collection;
