@@ -4,7 +4,6 @@ import { CollectionSyncService } from './collection-sync.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { RedisService } from '../redis/redis.service';
-import { GithubSyncService } from '../github/github-sync.service';
 import { GraphService } from '../graph/graph.service';
 
 describe('CollectionSyncService', () => {
@@ -12,7 +11,6 @@ describe('CollectionSyncService', () => {
   let collectionRepository: any;
   let graphRepository: any;
   let redisService: any;
-  let githubSyncService: any;
   let graphService: any;
 
   beforeEach(async () => {
@@ -96,10 +94,6 @@ describe('CollectionSyncService', () => {
       queue: vi.fn(),
     } as unknown as RedisService;
 
-    githubSyncService = {
-      isEnabled: vi.fn().mockReturnValue(true),
-    } as unknown as GithubSyncService;
-
     graphService = {
       updateSyncStatus: vi.fn(),
     } as unknown as GraphService;
@@ -110,7 +104,6 @@ describe('CollectionSyncService', () => {
         { provide: CollectionRepository, useValue: collectionRepository },
         { provide: GraphRepository, useValue: graphRepository },
         { provide: RedisService, useValue: redisService },
-        { provide: GithubSyncService, useValue: githubSyncService },
         { provide: GraphService, useValue: graphService },
       ],
     }).compile();

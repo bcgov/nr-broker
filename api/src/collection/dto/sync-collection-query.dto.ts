@@ -1,10 +1,23 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { SyncType } from '../../persistence/dto/sync-queue-config.dto';
 
 export class SyncCollectionQuery {
   @IsString()
   @IsNotEmpty()
-  queue!: string;
+  @IsOptional()
+  queue?: string;
+
+  @IsEnum(SyncType)
+  @IsNotEmpty()
+  @IsOptional()
+  type?: SyncType;
 
   @IsBoolean()
   @IsOptional()

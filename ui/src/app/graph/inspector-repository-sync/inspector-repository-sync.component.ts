@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
-import dlv from 'dlv';
 
 import { CollectionApiService } from '../../service/collection-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
@@ -68,27 +67,28 @@ export class InspectorRepositorySyncComponent {
   });
 
   readonly syncAvailable = computed(() => {
-    const requirements = this.syncActions()
-      .map((action) => action.requires)
-      .filter((requirement): requirement is CollectionSyncRequirement =>
-        Boolean(requirement),
-      );
-
-    if (requirements.length === 0) {
+    const actions = this.syncActions();
+    if (actions.length === 0) {
       return true;
     }
 
-    const health = this.healthStatus.healthSignal() as
-      | Record<string, unknown>
-      | null
-      | undefined;
+    const health = this.healthStatus.healthSignal();
     if (!health) {
       return false;
     }
 
-    return requirements.every((requirement) =>
-      this.matchesRequirement(health, requirement),
-    );
+    const syncQueueHealth = health.details?.['syncQueue']?.['queues'] as
+      | Record<string, { enabled?: boolean }>
+      | undefined;
+
+    // Preferred path: use the generic queue health published by the API.
+    if (syncQueueHealth) {
+      return actions.every(
+        (action) => syncQueueHealth[action.queue]?.enabled === true,
+      );
+    }
+
+    return false;
   });
 
   sync(action: ResolvedSyncQueueAction, dryRun = false) {
@@ -232,22 +232,6 @@ export class InspectorRepositorySyncComponent {
             : ['No description is configured for this queue.'],
       },
     });
-  }
-
-  private matchesRequirement(
-    health: Record<string, unknown>,
-    requirement: CollectionSyncRequirement,
-  ): boolean {
-    const actualValue = dlv(health, requirement.health);
-    if (actualValue === undefined) {
-      return false;
-    }
-
-    if (typeof requirement.value === 'boolean') {
-      return actualValue === requirement.value;
-    }
-
-    return String(actualValue) === requirement.value;
   }
 
   private getDataValue(property: string): unknown {

@@ -98,28 +98,38 @@ db.syncQueueConfig.insertMany([
     queue: 'GITHUB_SYNC_SECRETS',
     label: 'GitHub secrets',
     summary: 'Sync repository secrets to GitHub repository settings.',
+    types: ['secrets'],
     description: [
       'Sync repository secrets from Broker to GitHub repository settings.',
       'Secrets are transferred with the same names as in Vault. They may be adjusted to satisfy GitHub naming restrictions.',
       'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
     ],
-    requires: { health: 'info.github.sync', value: true },
+    requires: {
+      envAll: ['GITHUB_SYNC_CLIENT_ID', 'GITHUB_SYNC_PRIVATE_KEY'],
+    },
   },
   {
     queue: 'GITHUB_SYNC_USERS',
     label: 'User access',
     summary: 'Sync repository user access to GitHub repository roles.',
+    types: ['users'],
+    setup: {
+      gitHubUserLink: true,
+    },
     description: [
       'Sync repository user access from Broker role assignments to GitHub.',
       'Broker maps team roles to GitHub repository roles so the right users get the right access.',
       'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
     ],
-    requires: { health: 'info.github.sync', value: true },
+    requires: {
+      envAll: ['GITHUB_SYNC_CLIENT_ID', 'GITHUB_SYNC_PRIVATE_KEY'],
+    },
   },
   {
     queue: 'KUBERNETES_SYNC_SECRETS',
     label: 'OpenShift secrets',
     summary: 'Sync tools secrets from deployed service secrets to OpenShift secrets.',
+    types: ['secrets'],
     description: [
       'This enables the use of tools secrets in OpenShift projects without having to manually copy them.',
       'A typical use case is syncing CI/CD tool secrets. The graph must be configured to connect the project to a service instance.',

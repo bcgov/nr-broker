@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -180,6 +181,21 @@ export class CollectionController {
     @Param('id', new ParseObjectIdPipe()) id: string,
     @Query() syncQuery: SyncCollectionQuery,
   ): Promise<CollectionValues[] | void> {
+    if (!syncQuery.queue && !syncQuery.type) {
+      throw new BadRequestException(
+        'Sync query requires either queue or type',
+      );
+    }
+
+    if (syncQuery.type) {
+      return await this.collectionSyncService.refreshByType(
+        this.parseCollectionApi(collection),
+        id,
+        syncQuery.type,
+        syncQuery.dryRun ?? false,
+      );
+    }
+
     return await this.collectionSyncService.refresh(
       this.parseCollectionApi(collection),
       id,

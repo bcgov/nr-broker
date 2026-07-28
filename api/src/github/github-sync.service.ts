@@ -58,10 +58,6 @@ export class GithubSyncService {
     });
   }
 
-  public isEnabled() {
-    return GITHUB_SYNC_CLIENT_ID !== '' && GITHUB_SYNC_PRIVATE_KEY !== '';
-  }
-
   public isBrokerManagedScmUrl(scmUrl: string) {
     if (!scmUrl) {
       return false;
@@ -281,9 +277,6 @@ export class GithubSyncService {
   }
 
   public async syncUsers(repository: RepositoryEntity) {
-    if (!this.isEnabled()) {
-      throw new Error('Not enabled');
-    }
     if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
       throw new Error('Service does not have GitHub repo URL to update');
     }

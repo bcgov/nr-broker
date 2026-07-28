@@ -35,6 +35,7 @@ import {
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { SyncQueueConfigEntity } from '../entity/sync-queue-config.entity';
+import { SyncType } from '../dto/sync-queue-config.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
@@ -150,6 +151,12 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public getSyncQueueConfigs(): Promise<SyncQueueConfigEntity[]> {
     return this.syncQueueConfigRepository.find({});
+  }
+
+  public getSyncQueueConfigsBySyncType(
+    syncType: SyncType,
+  ): Promise<SyncQueueConfigEntity[]> {
+    return this.syncQueueConfigRepository.find({ types: syncType });
   }
 
   public async getSyncQueueConfigByQueue(

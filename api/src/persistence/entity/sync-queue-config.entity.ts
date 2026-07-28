@@ -9,6 +9,7 @@ import {
 import { ObjectId } from 'mongodb';
 import {
   CollectionSyncRequirement,
+  SyncQueueSetupDto,
 } from '../dto/sync-queue-config.dto';
 
 @Entity({ tableName: 'syncQueueConfig' })
@@ -32,6 +33,12 @@ export class SyncQueueConfigEntity extends BaseEntity {
 
   @Property({ type: 'json' })
   description!: string[];
+
+  @Property({ type: 'json' })
+  types!: string[];
+
+  @Property({ type: 'json', nullable: true })
+  setup?: SyncQueueSetupDto;
 
   @Property({ type: 'json', nullable: true })
   requires?: CollectionSyncRequirement;

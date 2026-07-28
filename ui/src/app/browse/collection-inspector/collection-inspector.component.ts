@@ -25,7 +25,11 @@ import { Subject, startWith, takeUntil } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PermissionService } from '../../service/permission.service';
-import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
+import {
+  CONFIG_RECORD,
+  CURRENT_USER,
+  SYNC_QUEUE_CONFIG_RECORD,
+} from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -66,6 +70,7 @@ import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
 import { ConnectionsHelpDialogComponent } from '../../graph/connections-help-dialog/connections-help-dialog.component';
 import { ConnectionsHelpIntroComponent } from '../../graph/connections-help-intro/connections-help-intro.component';
+import { SyncQueueConfigDto } from '../../service/persistence/dto/sync-queue-config.dto';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -119,6 +124,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly permission = inject(PermissionService);
   private readonly user = inject<UserSelfDto>(CURRENT_USER);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly syncQueueConfigRecord = inject<Record<string, SyncQueueConfigDto>>(
+    SYNC_QUEUE_CONFIG_RECORD,
+  );
   private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
@@ -466,6 +474,24 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .afterClosed()
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       .subscribe(() => {});
+  }
+
+  shouldShowGitHubAccessHelp(health: unknown): boolean {
+    const syncQueueHealth = (health as {
+      details?: { syncQueue?: { queues?: Record<string, { enabled?: boolean }> } };
+    })?.details?.syncQueue?.queues;
+
+    if (!syncQueueHealth) {
+      return false;
+    }
+
+    return Object.entries(syncQueueHealth).some(([queueName, queueHealth]) => {
+      if (queueHealth?.enabled !== true) {
+        return false;
+      }
+
+      return this.syncQueueConfigRecord[queueName]?.setup?.gitHubUserLink === true;
+    });
   }
 
   onGroupChange(value: string) {

@@ -4,7 +4,13 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class SyncCollectionQuery {
   @IsString()
   @IsNotEmpty()
-  queue!: string;
+  @IsOptional()
+  queue?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  type?: string;
 
   @IsBoolean()
   @IsOptional()

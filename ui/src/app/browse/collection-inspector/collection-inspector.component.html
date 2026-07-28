@@ -312,7 +312,7 @@
               <mat-card-title>Roles</mat-card-title>
             </div>
               @if(healthStatus.health$ | async; as health) {
-                @if(health.details['github']['sync']) {
+                @if(shouldShowGitHubAccessHelp(health)) {
                   <div>
                     <button
                       mat-stroked-button

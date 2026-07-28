@@ -185,7 +185,7 @@ export class InspectorAccountComponent implements OnInit, OnDestroy {
     if (account) {
       this.systemApi
         .syncCollection('brokerAccount', account.id, {
-          queue: 'GITHUB_SYNC_SECRETS',
+          type: 'secrets',
         })
         .subscribe({
           next: () => {

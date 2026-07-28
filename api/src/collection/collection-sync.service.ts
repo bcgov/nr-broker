@@ -10,7 +10,6 @@ import { CollectionNameEnum } from '../persistence/entity/collection-entity-unio
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { RedisService } from '../redis/redis.service';
-import { GithubSyncService } from '../github/github-sync.service';
 import { GraphService } from '../graph/graph.service';
 import { CollectionValues } from '../persistence/entity/collection-entity-union.type';
 import {
@@ -18,6 +17,8 @@ import {
   CollectionSyncTraversalRule,
 } from '../persistence/dto/collection-sync-queue-rule.dto';
 import {
+  SyncQueueConfigDto,
+  SyncType,
   CollectionSyncRequirement,
 } from '../persistence/dto/sync-queue-config.dto';
 import { VertexPointerDto } from 'src/persistence/dto/vertex-pointer.dto';
@@ -35,9 +36,117 @@ export class CollectionSyncService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly redisService: RedisService,
-    private readonly githubSyncService: GithubSyncService,
     private readonly graphService: GraphService,
   ) {}
+
+  async getSyncQueuesByType(
+    syncType: SyncType,
+  ): Promise<SyncQueueConfigDto[]> {
+    return this.collectionRepository.getSyncQueueConfigsBySyncType(syncType);
+  }
+
+  async getSyncQueuesByTypeForCollection(
+    collection: CollectionNames,
+    syncType: SyncType,
+  ): Promise<SyncQueueConfigDto[]> {
+    const collectionConfig = await this.collectionRepository
+      .getCollectionConfigByName(collection)
+      .catch(() => null);
+    const rules = collectionConfig?.syncQueues ?? [];
+    const allowedQueues = new Set(this.collectQueueNamesFromRules(rules));
+
+    if (allowedQueues.size === 0) {
+      return [];
+    }
+
+    const queueConfigs =
+      await this.collectionRepository.getSyncQueueConfigsBySyncType(syncType);
+    return queueConfigs.filter((queueConfig) =>
+      allowedQueues.has(queueConfig.queue),
+    );
+  }
+
+  async isSyncTypeEnabled(syncType: SyncType): Promise<boolean> {
+    const matchingQueueConfigs = await this.getSyncQueuesByType(syncType);
+
+    return matchingQueueConfigs.some((queueConfig) =>
+      this.isSyncQueueEnabled(queueConfig),
+    );
+  }
+
+  async isSyncTypeEnabledForCollection(
+    collection: CollectionNames,
+    syncType: SyncType,
+  ): Promise<boolean> {
+    const matchingQueueConfigs = await this.getSyncQueuesByTypeForCollection(
+      collection,
+      syncType,
+    );
+
+    return matchingQueueConfigs.some((queueConfig) =>
+      this.isSyncQueueEnabled(queueConfig),
+    );
+  }
+
+  async refreshByType(
+    collection: CollectionNames,
+    id: string,
+    syncType: SyncType,
+    dryRun = false,
+  ): Promise<CollectionValues[] | void> {
+    const queueConfigs = await this.getSyncQueuesByTypeForCollection(
+      collection,
+      syncType,
+    );
+    if (queueConfigs.length === 0) {
+      throw new NotFoundException(
+        `Sync queue config is not defined for type ${syncType} in collection ${collection}`,
+      );
+    }
+
+    if (!dryRun) {
+      for (const queueConfig of queueConfigs) {
+        await this.refresh(collection, id, queueConfig.queue, false);
+      }
+      return;
+    }
+
+    const dryRunTargets: CollectionValues[] = [];
+    for (const queueConfig of queueConfigs) {
+      const targets = await this.refresh(collection, id, queueConfig.queue, true);
+      if (targets) {
+        dryRunTargets.push(...targets);
+      }
+    }
+
+    return this.dedupeTargets(dryRunTargets);
+  }
+
+  private collectQueueNamesFromRules(
+    rules: CollectionSyncQueueRuleDto[],
+  ): string[] {
+    const queueNames = new Set<string>();
+
+    for (const rule of rules) {
+      if (rule.queue?.queue) {
+        queueNames.add(rule.queue.queue);
+      }
+      if (rule.traverse?.queues) {
+        for (const queueName of rule.traverse.queues) {
+          queueNames.add(queueName);
+        }
+      }
+    }
+
+    return Array.from(queueNames);
+  }
+
+  isSyncQueueEnabled(queueConfig?: SyncQueueConfigDto | null): boolean {
+    if (!queueConfig) {
+      return false;
+    }
+    return this.getRequirementStatus(queueConfig.requires).met;
+  }
 
   async refresh(
     collection: CollectionNames,
@@ -58,7 +167,7 @@ export class CollectionSyncService {
         `Sync queue config is not defined for queue ${queueName}`,
       );
     }
-    if (queueConfig.requires && !this.isRequirementMet(queueConfig.requires)) {
+    if (!this.isSyncQueueEnabled(queueConfig)) {
       throw new ServiceUnavailableException(
         `Sync queue ${queueName} is not available due to unmet requirement: ${JSON.stringify(
           queueConfig.requires,
@@ -265,26 +374,41 @@ export class CollectionSyncService {
   }
 
   private isRequirementMet(requirement: CollectionSyncRequirement): boolean {
-    const actualValue = this.getRequirementHealthValue(requirement.health);
-    if (actualValue === undefined) {
-      return false;
-    }
-
-    if (typeof requirement.value === 'boolean') {
-      return actualValue === requirement.value;
-    }
-
-    return String(actualValue) === requirement.value;
+    return this.getRequirementStatus(requirement).met;
   }
 
-  private getRequirementHealthValue(healthPath: string): boolean | string | undefined {
-    switch (healthPath) {
-      case 'info.github.sync':
-      case 'details.github.sync':
-        return this.githubSyncService.isEnabled();
-      default:
-        return undefined;
+  private getRequirementStatus(requirement?: CollectionSyncRequirement): {
+    met: boolean;
+    unmetRequirements: string[];
+  } {
+    if (!requirement) {
+      return { met: true, unmetRequirements: [] };
     }
+
+    const unmetRequirements: string[] = [];
+
+    if (requirement.envAll && requirement.envAll.length > 0) {
+      for (const envName of requirement.envAll) {
+        if (!this.isEnvironmentVariableSet(envName)) {
+          unmetRequirements.push(`env:${envName}`);
+        }
+      }
+    }
+
+    // Requirements are evaluated from DB-configured env keys only.
+    if (requirement.health) {
+      unmetRequirements.push(`unsupported:health:${requirement.health}`);
+    }
+
+    return {
+      met: unmetRequirements.length === 0,
+      unmetRequirements,
+    };
+  }
+
+  private isEnvironmentVariableSet(name: string): boolean {
+    const value = process.env[name];
+    return typeof value === 'string' && value.trim().length > 0;
   }
 
   private isQueueTargetEnabled(

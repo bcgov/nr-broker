@@ -2,6 +2,7 @@ import { CollectionSearchResult } from '../../collection/dto/collection-search-r
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
 import { CollectionConfigEntity } from '../entity/collection-config.entity';
 import { SyncQueueConfigEntity } from '../entity/sync-queue-config.entity';
+import { SyncType } from '../dto/sync-queue-config.dto';
 import {
   CollectionEntityUnion,
   CollectionNames,
@@ -16,6 +17,10 @@ export abstract class CollectionRepository {
   public abstract getCollectionConfigs(): Promise<CollectionConfigEntity[]>;
 
   public abstract getSyncQueueConfigs(): Promise<SyncQueueConfigEntity[]>;
+
+  public abstract getSyncQueueConfigsBySyncType(
+    syncType: SyncType,
+  ): Promise<SyncQueueConfigEntity[]>;
 
   public abstract getSyncQueueConfigByQueue(
     queue: string,

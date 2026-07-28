@@ -172,7 +172,12 @@ export class SystemApiService {
     syncQuery: SyncCollectionQuery,
   ): HttpResourceRequest {
     const params: Record<string, string> = {};
-    params['queue'] = syncQuery.queue;
+    if (syncQuery.queue) {
+      params['queue'] = syncQuery.queue;
+    }
+    if (syncQuery.type) {
+      params['type'] = syncQuery.type;
+    }
     if (syncQuery.dryRun !== undefined) {
       params['dryRun'] = String(syncQuery.dryRun);
     }

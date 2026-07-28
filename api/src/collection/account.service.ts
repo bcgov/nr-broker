@@ -38,9 +38,9 @@ import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type
 import { RedisService } from '../redis/redis.service';
 import { VaultService } from '../vault/vault.service';
 import { JwtKeyService } from '../auth/jwt-key.service';
-import { GithubSyncService } from '../github/github-sync.service';
 import { ServiceDto } from '../persistence/dto/service.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
+import { SyncType } from '../persistence/dto/sync-queue-config.dto';
 import { HistogramSeriesDto } from './dto/histogram-series.dto';
 import { CollectionSyncService } from './collection-sync.service';
 
@@ -56,7 +56,6 @@ export class AccountService {
     private readonly auditService: AuditService,
     private readonly communicationQueueService: CommunicationQueueService,
     private readonly opensearchService: OpensearchService,
-    private readonly githubSyncService: GithubSyncService,
     private readonly jwtKeyService: JwtKeyService,
     private readonly vaultService: VaultService,
     private readonly redisService: RedisService,
@@ -279,7 +278,13 @@ export class AccountService {
     if (patchVault) {
       await this.addTokenToAccountServices(token, account);
     }
-    if (syncSecrets && this.githubSyncService.isEnabled()) {
+    if (
+      syncSecrets &&
+      (await this.collectionSyncService.isSyncTypeEnabledForCollection(
+        'brokerAccount',
+        SyncType.SECRETS,
+      ))
+    ) {
       try {
         await this.refresh(account.id.toString());
       } catch (error) {
@@ -468,18 +473,23 @@ export class AccountService {
    * @param id The account id (for logging purposes)
    * @param account The account entity
    */
-  private doSyncPreflight(id: string, account: BrokerAccountEntity) {
+  private async doSyncPreflight(id: string, account: BrokerAccountEntity) {
     if (!account) {
       const message = `Account with ID ${id} not found`;
       this.auditService.recordToolsSync('info', 'failure', message);
       throw new NotFoundException(message);
     }
 
-    if (!this.githubSyncService.isEnabled()) {
+    const queueEnabled =
+      await this.collectionSyncService.isSyncTypeEnabledForCollection(
+        'brokerAccount',
+        SyncType.SECRETS,
+      );
+    if (!queueEnabled) {
       this.auditService.recordToolsSync(
         'info',
         'failure',
-        'GitHub is not setup',
+        'Broker account secret sync type is not enabled',
       );
       throw new ServiceUnavailableException();
     }
@@ -488,13 +498,13 @@ export class AccountService {
   async refresh(id: string): Promise<void> {
     // Do pre-checks to ensure the account exists
     const account = await this.getBrokerAccount(id);
-    this.doSyncPreflight(id, account);
+    await this.doSyncPreflight(id, account);
 
     // Queue sync via the generic collection sync orchestrator
-    await this.collectionSyncService.refresh(
+    await this.collectionSyncService.refreshByType(
       'brokerAccount',
       id,
-      'GITHUB_SYNC_SECRETS',
+      SyncType.SECRETS,
     );
   }
 

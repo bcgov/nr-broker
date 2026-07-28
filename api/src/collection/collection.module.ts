@@ -45,6 +45,6 @@ import { CollectionSyncService } from './collection-sync.service';
     UserCollectionService,
     CollectionSyncService,
   ],
-  exports: [CollectionService, UserCollectionService],
+  exports: [CollectionService, UserCollectionService, CollectionSyncService],
 })
 export class CollectionModule {}
