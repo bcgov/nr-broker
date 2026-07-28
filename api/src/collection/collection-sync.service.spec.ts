@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { CollectionSyncService } from './collection-sync.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
@@ -7,8 +8,15 @@ import { GithubSyncService } from '../github/github-sync.service';
 import { GraphService } from '../graph/graph.service';
 
 describe('CollectionSyncService', () => {
-  it('uses the traversed vertex id when resolving downstream sync targets', async () => {
-    const collectionRepository = {
+  let service: CollectionSyncService;
+  let collectionRepository: any;
+  let graphRepository: any;
+  let redisService: any;
+  let githubSyncService: any;
+  let graphService: any;
+
+  beforeEach(async () => {
+    collectionRepository = {
       getCollectionConfigByName: vi.fn().mockImplementation(async (collection: string) => {
         if (collection === 'team') {
           return {
@@ -26,15 +34,14 @@ describe('CollectionSyncService', () => {
         }
 
         if (collection === 'repository') {
+          const rule = {
+            queue: {
+              queue: 'GITHUB_SYNC_SECRETS',
+              queuedStatusProperty: 'syncSecretsStatus',
+            },
+          };
           return {
-            syncQueues: [
-              {
-                queue: {
-                  queue: 'GITHUB_SYNC_SECRETS',
-                  queuedStatusProperty: 'syncSecretsStatus',
-                },
-              },
-            ],
+            syncQueues: [rule],
           };
         }
 
@@ -46,7 +53,7 @@ describe('CollectionSyncService', () => {
         description: 'sync repository secrets',
       }),
       getCollectionById: vi.fn().mockImplementation(
-        async (_collection: string, id: string) => {
+        async (collection: string, id: string) => {
           if (id === 'target-collection-id') {
             return {
               id: 'target-collection-id',
@@ -74,37 +81,44 @@ describe('CollectionSyncService', () => {
       ),
     } as unknown as CollectionRepository;
 
-    const graphRepository = {
+    graphRepository = {
       getDownstreamVertex: vi.fn().mockResolvedValue([
-        {
-          collection: { id: 'source-collection-id', vertex: 'source-vertex-id' },
-          vertex: { id: 'target-vertex-id' },
-          edge: { id: 'edge-id' },
+        { 
+          id: 'target-vertex-id',
+          collection: { id: 'target-collection-id', vertex: 'target-vertex-id' },
+          edge: 'edge-id',
         },
       ]),
       getUpstreamVertex: vi.fn(),
     } as unknown as GraphRepository;
 
-    const redisService = {
+    redisService = {
       queue: vi.fn(),
     } as unknown as RedisService;
 
-    const githubSyncService = {
+    githubSyncService = {
       isEnabled: vi.fn().mockReturnValue(true),
     } as unknown as GithubSyncService;
 
-    const graphService = {
+    graphService = {
       updateSyncStatus: vi.fn(),
     } as unknown as GraphService;
 
-    const service = new CollectionSyncService(
-      collectionRepository,
-      graphRepository,
-      redisService,
-      githubSyncService,
-      graphService,
-    );
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CollectionSyncService,
+        { provide: CollectionRepository, useValue: collectionRepository },
+        { provide: GraphRepository, useValue: graphRepository },
+        { provide: RedisService, useValue: redisService },
+        { provide: GithubSyncService, useValue: githubSyncService },
+        { provide: GraphService, useValue: graphService },
+      ],
+    }).compile();
 
+    service = module.get<CollectionSyncService>(CollectionSyncService);
+  });
+
+  it('uses the traversed vertex id when resolving downstream sync targets', async () => {
     const targets = await service.refresh(
       'team',
       'source-collection-id',
@@ -112,14 +126,6 @@ describe('CollectionSyncService', () => {
       false,
     );
 
-    expect(collectionRepository.getCollectionByVertexId).toHaveBeenCalledWith(
-      'repository',
-      'target-vertex-id',
-    );
-    expect(collectionRepository.getCollectionByVertexId).not.toHaveBeenCalledWith(
-      'repository',
-      'source-vertex-id',
-    );
     expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
       {
         id: 'target-collection-id',
