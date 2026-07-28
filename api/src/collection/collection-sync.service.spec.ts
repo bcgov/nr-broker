@@ -83,7 +83,7 @@ describe('CollectionSyncService', () => {
 
     graphRepository = {
       getDownstreamVertex: vi.fn().mockResolvedValue([
-        { 
+        {
           id: 'target-vertex-id',
           collection: { id: 'target-collection-id', vertex: 'target-vertex-id' },
           edge: 'edge-id',
