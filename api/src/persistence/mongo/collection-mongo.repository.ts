@@ -18,9 +18,9 @@ import {
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
 import { CloudEntity } from '../entity/cloud.entity';
 import { CloudOnPremiseEntity } from '../entity/cloud-on-premise.entity';
-import { CloudOpenShiftEntity } from '../entity/cloud-openshift.entity';
+import { CloudOpenshiftEntity } from '../entity/cloud-openshift.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
-import { OpenShiftProjectEntity } from '../entity/openshift-project.entity';
+import { OpenshiftProjectEntity } from '../entity/openshift-project.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
 import { ServerEntity } from '../entity/server.entity';
@@ -107,7 +107,7 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   private constructCloudEntity(type?: string) {
     switch (type) {
-      case 'openshift': return new CloudOpenShiftEntity();
+      case 'openshift': return new CloudOpenshiftEntity();
       case 'on-premise': return new CloudOnPremiseEntity();
       default: return new CloudEntity();
     }
@@ -122,7 +122,7 @@ export class CollectionMongoRepository implements CollectionRepository {
       case 'environment':
         return new EnvironmentEntity();
       case 'openshiftProject':
-        return new OpenShiftProjectEntity();
+        return new OpenshiftProjectEntity();
       case 'project':
         return new ProjectEntity();
       case 'repository':

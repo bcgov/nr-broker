@@ -10,7 +10,7 @@ import { SyncStatusDto } from './sync-status.dto';
 import { Type } from 'class-transformer';
 
 // Shared DTO: Copy in back-end and front-end should be identical
-export class OpenShiftProjectBaseDto extends CollectionBaseDto {
+export class OpenshiftProjectBaseDto extends CollectionBaseDto {
   @IsString()
   @IsDefined()
   name!: string;
@@ -36,8 +36,8 @@ export class OpenShiftProjectBaseDto extends CollectionBaseDto {
   syncUsersStatus?: SyncStatusDto;
 }
 
-export class OpenShiftProjectDto
-  extends OpenShiftProjectBaseDto
+export class OpenshiftProjectDto
+  extends OpenshiftProjectBaseDto
   implements VertexPointerDto {
   @IsString()
   @IsDefined()

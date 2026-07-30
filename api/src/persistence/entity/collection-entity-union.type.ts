@@ -1,7 +1,7 @@
 import { BrokerAccountEntity } from './broker-account.entity';
 import { CloudEntity } from './cloud.entity';
 import { EnvironmentEntity } from './environment.entity';
-import { OpenShiftProjectEntity } from './openshift-project.entity';
+import { OpenshiftProjectEntity } from './openshift-project.entity';
 import { ProjectEntity } from './project.entity';
 import { RepositoryEntity } from './repository.entity';
 import { ServerEntity } from './server.entity';
@@ -14,7 +14,7 @@ export type CollectionEntityUnion = {
   brokerAccount: BrokerAccountEntity;
   cloud: CloudEntity;
   environment: EnvironmentEntity;
-  openshiftProject: OpenShiftProjectEntity;
+  openshiftProject: OpenshiftProjectEntity;
   project: ProjectEntity;
   repository: RepositoryEntity;
   server: ServerEntity;

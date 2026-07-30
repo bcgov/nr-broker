@@ -2,7 +2,7 @@ import { Entity, Property } from '@mikro-orm/decorators/legacy';
 import { CloudEntity } from './cloud.entity';
 
 @Entity({ discriminatorValue: 'openshift' })
-export class CloudOpenShiftEntity extends CloudEntity {
+export class CloudOpenshiftEntity extends CloudEntity {
   @Property({ nullable: true })
   consoleUrl?: string;
 

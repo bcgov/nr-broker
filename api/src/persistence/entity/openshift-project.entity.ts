@@ -13,7 +13,7 @@ import { COLLECTION_COLLATION_LOCALE } from '../../constants';
 import { SyncStatusEmbeddable } from './sync-status.embeddable';
 
 @Entity({ tableName: 'openshiftProject' })
-export class OpenShiftProjectEntity extends VertexPointerEntity {
+export class OpenshiftProjectEntity extends VertexPointerEntity {
   @ApiHideProperty()
   @PrimaryKey()
   @Property()

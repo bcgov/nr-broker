@@ -46,6 +46,7 @@ import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddab
 import { CollectionWatchIdentifierDto, CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../persistence/entity/collection-watch.entity';
 import { UserEntity } from '../persistence/entity/user.entity';
+import { VertexPointerDto } from '../persistence/dto/vertex-pointer.dto';
 
 @Injectable()
 export class GraphService {
@@ -747,12 +748,23 @@ export class GraphService {
     }
   }
 
-  async getUpstreamVertex(
+  async getUpstreamVertex<T extends VertexPointerDto>(
     id: string,
     index: number,
     matchEdgeNames: string[] | null,
+    allowRestrictedEdges?: boolean,
+    maxDepth?: number,
   ) {
-    return this.graphRepository.getUpstreamVertex(id, index, matchEdgeNames);
+    return this.graphRepository.getUpstreamVertex<T>(id, index, matchEdgeNames, allowRestrictedEdges, maxDepth);
+  }
+
+  async getDownstreamVertex<T extends VertexPointerDto>(
+    id: string,
+    index: number,
+    maxDepth: number,
+    allowRestrictedEdges?: boolean,
+  ) {
+    return this.graphRepository.getDownstreamVertex<T>(id, index, maxDepth, allowRestrictedEdges);
   }
 
   public async vertexTypeahead(

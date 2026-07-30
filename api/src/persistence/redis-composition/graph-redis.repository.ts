@@ -363,9 +363,11 @@ export class GraphRedisRepository implements GraphRepository {
       },
     );
     const data = await this.getData(false);
-    for (const vertex of data.vertices) {
-      await this.upsertVertexTypeaheadIndex(vertex as unknown as VertexEntity);
-    }
+    await Promise.all(
+      data.vertices.map((vertex) =>
+        this.upsertVertexTypeaheadIndex(vertex as unknown as VertexEntity),
+      ),
+    );
 
     // Invalidate cached data as well
     await this.invalidateCache();

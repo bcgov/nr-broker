@@ -76,6 +76,7 @@ export class GraphComponent implements OnInit, OnDestroy {
 
   public data!: Observable<GraphDataConfig>;
   public selected = signal<InspectorTarget | undefined>(undefined);
+  public permissions = signal<UserPermissionDto | undefined>(undefined);
   public showFilter = signal(
     this.preferences.get('browseConnectionFilter') ?? 'connected',
   );
@@ -174,11 +175,12 @@ export class GraphComponent implements OnInit, OnDestroy {
             categories: [...data.categories],
           } as GraphDataResponseDto;
           if (showFilter === 'connected') {
+            const connectedSet = new Set(connected);
             data.vertices = data.vertices.filter(
-              (vertex) => connected.indexOf(vertex.id) !== -1,
+              (vertex) => connectedSet.has(vertex.id),
             );
             data.edges = data.edges.filter(
-              (edge) => connected.indexOf(edge.target) !== -1,
+              (edge) => connectedSet.has(edge.target),
             );
           }
           const configSrcTarMap = GraphUtilService.configArrToSrcTarRecord(
@@ -228,6 +230,7 @@ export class GraphComponent implements OnInit, OnDestroy {
       tap((graphData) => {
         // console.log(graphData.es);
         // console.log(this.selected);
+        this.permissions.set(graphData.permissions);
         if (graphData.es === null) {
           return;
         }
