@@ -22,7 +22,7 @@
 }
 @for (group of (connections() | keyvalue); track group.key) {
   <div class="vertex-edge-type-container">
-    <h5>{{group.key | titlecase}}</h5>
+    <h5>{{ direction() === 'inbound' ? (getEdgeConfig(group.key, group.value) | edgeinboundtitle) : (getEdgeConfig(group.key, group.value) | edgetitle) }}</h5>
     <mat-chip-listbox [selectable]="false">
       @for (item of group.value; track item.vertex.id) {
         <mat-chip-option

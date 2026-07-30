@@ -8,7 +8,10 @@ import { TitleCasePipe } from '@angular/common';
 export class EdgeinboundtitlePipe implements PipeTransform {
   private titleCase = new TitleCasePipe();
 
-  transform(edge: CollectionEdgeConfig): unknown {
+  transform(edge: CollectionEdgeConfig | undefined): unknown {
+    if (!edge) {
+      return '';
+    }
     return (
       edge.titleInbound || edge.title || this.titleCase.transform(edge.name)
     );

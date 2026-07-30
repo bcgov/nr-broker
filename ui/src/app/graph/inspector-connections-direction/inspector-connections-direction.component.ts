@@ -4,11 +4,13 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionConfigDto, CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { GraphDirectedCombo, GraphDirectedComboMap } from '../../service/persistence/dto/collection-combo.dto';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
+import { EdgeinboundtitlePipe } from '../../util/edgeinboundtitle.pipe';
+import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { PreferencesService } from '../../preferences.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
@@ -17,6 +19,8 @@ import { VertexDto } from '../../service/persistence/dto/vertex.dto';
   selector: 'app-inspector-connections-direction',
   imports: [
     CommonModule,
+    EdgeinboundtitlePipe,
+    EdgetitlePipe,
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
@@ -67,6 +71,13 @@ export class InspectorConnectionsDirectionComponent {
       map[combo.edge.name].push(combo);
     }
     return map;
+  }
+
+  getEdgeConfig(name: string, combos: GraphDirectedCombo[]): CollectionEdgeConfig | undefined {
+    if (this.direction() === 'inbound' && combos.length > 0) {
+      return this.configRecord[combos[0].vertex.collection]?.edges.find((e) => e.name === name);
+    }
+    return this.config().edges.find((e) => e.name === name);
   }
 
   navigateConnection($event: MouseEvent, item: GraphDirectedCombo) {
