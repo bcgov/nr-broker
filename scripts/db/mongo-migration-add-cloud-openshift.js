@@ -26,17 +26,26 @@ db.collectionConfig.updateOne(
         {
           id: 'c1o2u3d4',
           collection: 'openshiftProject',
-          name: 'project',
-          titleInbound: 'Cloud',
+          name: 'host',
+          titleInbound: 'Hosted on',
           relation: 'oneToMany',
           show: true,
         },
         {
           id: 'd7f8a9b0',
           collection: 'server',
-          name: 'server',
-          titleInbound: 'Cloud',
+          name: 'host',
+          titleInbound: 'Hosted on',
           relation: 'oneToMany',
+          show: true,
+        },
+        {
+          id: 'c3d4e5f6',
+          collection: 'service',
+          name: 'deploys',
+          titleInbound: 'Deployed on',
+          relation: 'oneToMany',
+          restrict: true,
           show: true,
         },
       ],
@@ -301,6 +310,39 @@ if (serviceInstanceConfig) {
     migrated = true;
   } else {
     print('serviceInstance already has openshiftProject installation edge, skipping...');
+  }
+}
+
+// Add deploys→service edge to cloud, server, and openshiftProject collection configs
+const deploysEdge = (id) => ({
+  id,
+  collection: 'service',
+  name: 'deploys',
+  titleInbound: 'Deployed on',
+  relation: 'oneToMany',
+  restrict: true,
+  show: true,
+});
+
+for (const [collectionName, edgeId] of [
+  ['cloud', 'c3d4e5f6'],
+  ['server', 'd4e5f6a7'],
+  ['openshiftProject', 'e5f6a7b8'],
+]) {
+  const config = db.collectionConfig.findOne({ collection: collectionName });
+  if (config) {
+    const hasDeploysEdge = Array.isArray(config.edges) &&
+      config.edges.some((e) => e.name === 'deploys' && e.collection === 'service');
+    if (!hasDeploysEdge) {
+      print(`Adding deploys edge to ${collectionName} collection configuration...`);
+      db.collectionConfig.updateOne(
+        { collection: collectionName },
+        { $push: { edges: deploysEdge(edgeId) } },
+      );
+      migrated = true;
+    } else {
+      print(`${collectionName} already has deploys edge, skipping...`);
+    }
   }
 }
 

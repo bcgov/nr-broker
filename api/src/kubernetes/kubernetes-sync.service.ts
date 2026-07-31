@@ -8,6 +8,7 @@ import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import {
   REDIS_QUEUES,
   CRON_JOB_KUBERNETES_SYNC_SECRETS,
+  VAULT_KV_APPS_MOUNT,
   VAULT_KV_CLOUDS_MOUNT,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
@@ -18,11 +19,13 @@ import { OpenshiftProjectEntity } from '../persistence/entity/openshift-project.
 import { JobQueueUtil } from '../util/job-queue.util';
 import { GraphService } from '../graph/graph.service';
 import { CloudDto } from '../persistence/dto/cloud.dto';
+import { ProjectDto } from '../persistence/dto/project.dto';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
+import { OpenshiftProjectDto } from 'src/persistence/dto/openshift-project.dto';
 
 export interface KubernetesSecretMapping {
-  sourceMount: string;
-  sourcePath: string;
+  service: string;
+  path?: string;
   destinationSecretName: string;
   keyMapping?: Record<string, string>;
 }
@@ -185,7 +188,7 @@ export class KubernetesSyncService {
     for (const secretMapping of config.secrets) {
       console.log(secretMapping);
       try {
-        await this.applySecretMapping(config, secretMapping);
+        await this.applySecretMapping(config, cloud, openshiftProject, secretMapping);
       } catch (error) {
         const err = error as Error;
         this.logger.error(
@@ -226,11 +229,90 @@ export class KubernetesSyncService {
       serviceAccountToken: kvData['serviceAccountToken'] as string,
       caData: kvData['caData'] as string | undefined,
       secrets: (JSON.parse(kvData['secrets']) as any[])?.map((s) => ({
-        sourceMount: s.sourceMount as string,
-        sourcePath: s.sourcePath as string,
+        service: s.service as string,
+        path: s.path as string | undefined,
         destinationSecretName: s.destinationSecretName as string,
         keyMapping: s.keyMapping as Record<string, string> | undefined,
       })),
+    };
+  }
+
+  /**
+   * Resolve the Vault mount and path for a secret mapping.
+   *
+   * The service is looked up by name and authorized via the `deploys` restricted
+   * edge from the openshiftProject or its parent cloud. The Vault path is built
+   * as `tools/<project>/<service>[/<path>]` on the apps mount.
+   */
+  private async resolveSecretSource(
+    cloud: CloudDto,
+    openshiftProject: OpenshiftProjectEntity,
+    mapping: KubernetesSecretMapping,
+  ): Promise<{ mount: string; path: string } | null> {
+    const service = await this.collectionRepository.getCollectionByKeyValue(
+      'service',
+      'name',
+      mapping.service,
+    );
+    if (!service) {
+      this.logger.warn(`Kubernetes sync: service not found: ${mapping.service}`);
+      return null;
+    }
+
+    const projectDtos = await this.graphService.getUpstreamVertex<ProjectDto>(
+      service.vertex.toString(),
+      CollectionNameEnum.project,
+      ['component'],
+    );
+    if (projectDtos.length !== 1) {
+      this.logger.warn(
+        `Kubernetes sync: service ${mapping.service} does not belong to exactly one project`,
+      );
+      return null;
+    }
+    const project = projectDtos[0].collection;
+
+    const [deployedCloud, deployedOpenshiftProject] = await Promise.all([
+      this.graphService.getUpstreamVertex<CloudDto>(
+        service.vertex.toString(),
+        CollectionNameEnum.cloud,
+        ['deploys'],
+        true,
+        1,
+      ),
+      this.graphService.getUpstreamVertex<OpenshiftProjectDto>(
+        service.vertex.toString(),
+        CollectionNameEnum.openshiftProject,
+        ['deploys'],
+        true,
+        1,
+      ),
+    ]);
+
+    // console.log(deployedCloud);
+    // console.log(deployedOpenshiftProject);
+    // console.log(cloud);
+    // console.log(openshiftProject);
+
+    const isAuthorized =
+      deployedCloud.some(
+        (dto) => dto.collection.vertex.toString() === cloud.vertex.toString(),
+      ) ||
+      deployedOpenshiftProject.some(
+        (dto) => dto.collection.vertex.toString() === openshiftProject.vertex.toString(),
+      );
+
+    if (!isAuthorized) {
+      this.logger.warn(
+        `Kubernetes sync: service ${mapping.service} is not authorized for ${openshiftProject.name}`,
+      );
+      return null;
+    }
+
+    const basePath = `tools/${project.name}/${service.name}`;
+    return {
+      mount: VAULT_KV_APPS_MOUNT,
+      path: mapping.path ? `${basePath}/${mapping.path}` : basePath,
     };
   }
 
@@ -239,11 +321,19 @@ export class KubernetesSyncService {
    */
   private async applySecretMapping(
     config: KubernetesSyncConfig,
+    cloud: CloudDto,
+    openshiftProject: OpenshiftProjectEntity,
     secretMapping: KubernetesSecretMapping,
   ): Promise<void> {
+    const source = await this.resolveSecretSource(cloud, openshiftProject, secretMapping);
+    if (!source) {
+      throw new Error(
+        `Could not resolve secret source for ${secretMapping.destinationSecretName}`,
+      );
+    }
     // Read source secrets from Vault
     const sourceData = await lastValueFrom(
-      this.vaultService.getKv(secretMapping.sourceMount, secretMapping.sourcePath),
+      this.vaultService.getKv(source.mount, source.path),
     );
 
     // Build the secret data with key mapping applied
