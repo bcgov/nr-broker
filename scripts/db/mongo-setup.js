@@ -128,12 +128,12 @@ db.syncQueueConfig.insertMany([
   {
     queue: 'KUBERNETES_SYNC_SECRETS',
     label: 'OpenShift secrets',
-    summary: 'Sync tools secrets from deployed service secrets to OpenShift secrets.',
+    summary: 'Sync Vault tool secrets from authorized services to OpenShift project secrets.',
     types: ['secrets'],
     description: [
-      'This enables the use of tools secrets in OpenShift projects without having to manually copy them.',
-      'A typical use case is syncing CI/CD tool secrets. The graph must be configured to connect the project to a service instance.',
-      'Secrets are copied into the target OpenShift project with the same names used in Broker.',
+      'This enables the use of tools secrets in OpenShift projects without having to manually copy them. A typical use case is syncing CI/CD secrets.',
+      'Sync configuration is read from Vault at the path clouds/<cloud>/<project>/nr-broker-sync and must include a service account token, a secrets mapping array, and optionally a CA certificate.',
+      'Each mapping references a service by name that must have a deploys edge to the target cloud or OpenShift project. Secrets are read from the tools/<project>/<service> path in Vault and written as an OpenShift secret. An optional key mapping can rename keys on the way.',
     ],
   },
 ]);
