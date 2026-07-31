@@ -150,10 +150,8 @@ export class KubernetesSyncService {
       const kvData = await lastValueFrom(
         this.vaultService.getKv(VAULT_KV_CLOUDS_MOUNT, configPath),
       );
-      console.log('Kubernetes sync config from Vault:', kvData);
       config = this.parseConfig(cloud, openshiftProject, kvData);
     } catch (error) {
-      console.log(error);
       this.auditService.recordToolsSync(
         'end',
         'failure',
@@ -186,7 +184,6 @@ export class KubernetesSyncService {
 
     // Process each secret mapping
     for (const secretMapping of config.secrets) {
-      console.log(secretMapping);
       try {
         await this.applySecretMapping(config, cloud, openshiftProject, secretMapping);
       } catch (error) {
@@ -273,26 +270,19 @@ export class KubernetesSyncService {
     const project = projectDtos[0].collection;
 
     const [deployedCloud, deployedOpenshiftProject] = await Promise.all([
-      this.graphService.getUpstreamVertex<CloudDto>(
+      this.graphService.getDownstreamVertex<CloudDto>(
         service.vertex.toString(),
         CollectionNameEnum.cloud,
-        ['deploys'],
-        true,
         1,
+        true,
       ),
-      this.graphService.getUpstreamVertex<OpenshiftProjectDto>(
+      this.graphService.getDownstreamVertex<OpenshiftProjectDto>(
         service.vertex.toString(),
         CollectionNameEnum.openshiftProject,
-        ['deploys'],
-        true,
         1,
+        true,
       ),
     ]);
-
-    // console.log(deployedCloud);
-    // console.log(deployedOpenshiftProject);
-    // console.log(cloud);
-    // console.log(openshiftProject);
 
     const isAuthorized =
       deployedCloud.some(

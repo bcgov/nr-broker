@@ -39,15 +39,6 @@ db.collectionConfig.updateOne(
           relation: 'oneToMany',
           show: true,
         },
-        {
-          id: 'c3d4e5f6',
-          collection: 'service',
-          name: 'deploys',
-          titleInbound: 'Deployed on',
-          relation: 'oneToMany',
-          restrict: true,
-          show: true,
-        },
       ],
       fieldDefaultSort: {
         field: 'name',
@@ -313,37 +304,89 @@ if (serviceInstanceConfig) {
   }
 }
 
-// Add deploys→service edge to cloud, server, and openshiftProject collection configs
-const deploysEdge = (id) => ({
+// Invert deploys edge: move from cloud/server/openshiftProject→service to service→cloud/server/openshiftProject
+const deploysEdge = (id, collection) => ({
   id,
-  collection: 'service',
+  collection,
   name: 'deploys',
-  titleInbound: 'Deployed on',
+  title: 'Deployed on',
+  titleInbound: 'Host for',
   relation: 'oneToMany',
   restrict: true,
   show: true,
 });
 
-for (const [collectionName, edgeId] of [
+// Remove old deploys→service edges from cloud, server, openshiftProject
+for (const collectionName of ['cloud', 'server', 'openshiftProject']) {
+  const config = db.collectionConfig.findOne({ collection: collectionName });
+  if (config) {
+    const hasOldDeploysEdge = Array.isArray(config.edges) &&
+      config.edges.some((e) => e.name === 'deploys' && e.collection === 'service');
+    if (hasOldDeploysEdge) {
+      print(`Removing old deploys→service edge from ${collectionName} collection configuration...`);
+      db.collectionConfig.updateOne(
+        { collection: collectionName },
+        { $pull: { edges: { name: 'deploys', collection: 'service' } } },
+      );
+      migrated = true;
+    } else {
+      print(`${collectionName} does not have old deploys→service edge, skipping removal...`);
+    }
+  }
+}
+
+// Add service→deploys edges to service collection config
+for (const [targetCollection, edgeId] of [
   ['cloud', 'c3d4e5f6'],
   ['server', 'd4e5f6a7'],
   ['openshiftProject', 'e5f6a7b8'],
 ]) {
-  const config = db.collectionConfig.findOne({ collection: collectionName });
+  const config = db.collectionConfig.findOne({ collection: 'service' });
   if (config) {
     const hasDeploysEdge = Array.isArray(config.edges) &&
-      config.edges.some((e) => e.name === 'deploys' && e.collection === 'service');
+      config.edges.some((e) => e.name === 'deploys' && e.collection === targetCollection);
     if (!hasDeploysEdge) {
-      print(`Adding deploys edge to ${collectionName} collection configuration...`);
+      print(`Adding deploys edge to service→${targetCollection} collection configuration...`);
       db.collectionConfig.updateOne(
-        { collection: collectionName },
-        { $push: { edges: deploysEdge(edgeId) } },
+        { collection: 'service' },
+        { $push: { edges: deploysEdge(edgeId, targetCollection) } },
       );
       migrated = true;
     } else {
-      print(`${collectionName} already has deploys edge, skipping...`);
+      print(`Updating existing deploys→${targetCollection} edge on service collection configuration...`);
+      db.collectionConfig.updateOne(
+        { collection: 'service' },
+        { $set: { 'edges.$[edge]': deploysEdge(edgeId, targetCollection) } },
+        { arrayFilters: [{ 'edge.name': 'deploys', 'edge.collection': targetCollection }] },
+      );
+      migrated = true;
     }
   }
+}
+
+// Invert existing deploys edge documents: swap source/target and is/it
+// is=cloud(9)/server(7)/openshiftProject(10) → service(2) becomes service(2) → cloud/server/openshiftProject
+const deploysEdgeCursor = db.edge.find({ name: 'deploys', it: 2, is: { $in: [7, 9, 10] } });
+let invertedCount = 0;
+deploysEdgeCursor.forEach((edge) => {
+  db.edge.updateOne(
+    { _id: edge._id },
+    {
+      $set: {
+        source: edge.target,
+        target: edge.source,
+        is: edge.it,
+        it: edge.is,
+      },
+    },
+  );
+  invertedCount++;
+});
+if (invertedCount > 0) {
+  print(`Inverted ${invertedCount} deploys edge document(s)...`);
+  migrated = true;
+} else {
+  print('No deploys edge documents needed inversion, skipping...');
 }
 
 // Replace graph permissions to grant cloud access through team edges

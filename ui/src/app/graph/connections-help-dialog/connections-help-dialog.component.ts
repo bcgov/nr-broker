@@ -5,6 +5,7 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { NgStyle, TitleCasePipe } from '@angular/common';
+
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { ConnectionsHelpIntroComponent } from '../connections-help-intro/connections-help-intro.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
