@@ -107,7 +107,7 @@ export class CloudObjectEmbeddable {
     return rval;
   }
 
-  static fromDto(dto: CloudObjectEmbeddable) {
+  static fromDto(dto: CloudObjectDto | CloudObjectEmbeddable) {
     return CloudObjectEmbeddable.merge(dto);
   }
 

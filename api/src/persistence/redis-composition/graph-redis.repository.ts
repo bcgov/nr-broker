@@ -26,6 +26,7 @@ import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import {
   PERSISTENCE_CACHE_KEY_CONFIG,
   PERSISTENCE_CACHE_KEY_GRAPH,
+  PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG,
 } from '../persistence.constants';
 import { PersistenceRedisUtilService } from '../persistence-redis-util.service';
 import { GraphTypeaheadResult } from '../../graph/dto/graph-typeahead-result.dto';
@@ -362,9 +363,11 @@ export class GraphRedisRepository implements GraphRepository {
       },
     );
     const data = await this.getData(false);
-    for (const vertex of data.vertices) {
-      await this.upsertVertexTypeaheadIndex(vertex as unknown as VertexEntity);
-    }
+    await Promise.all(
+      data.vertices.map((vertex) =>
+        this.upsertVertexTypeaheadIndex(vertex as unknown as VertexEntity),
+      ),
+    );
 
     // Invalidate cached data as well
     await this.invalidateCache();
@@ -500,6 +503,7 @@ export class GraphRedisRepository implements GraphRepository {
       ...suffixDelArr,
       this.client.del(PERSISTENCE_CACHE_KEY_GRAPH),
       this.client.del(PERSISTENCE_CACHE_KEY_CONFIG),
+      this.client.del(PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG),
     ]);
   }
 }

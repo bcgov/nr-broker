@@ -1,4 +1,5 @@
 import { Component, OnChanges, OnInit, SimpleChanges, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,12 +9,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TitleCasePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
   BehaviorSubject,
   Observable,
   combineLatest,
+  filter,
   map,
   of,
   switchMap,
@@ -52,7 +55,9 @@ import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
+import { ConnectionsHelpDialogComponent } from '../connections-help-dialog/connections-help-dialog.component';
 
 @Component({
   selector: 'app-inspector',
@@ -75,6 +80,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
     TitleCasePipe,
+    MatTooltipModule,
     WatchButtonComponent,
   ],
 })
@@ -93,6 +99,8 @@ export class InspectorComponent implements OnChanges, OnInit {
   //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
   //  and migrating would break narrowing currently.
   target = input<InspectorTarget | undefined>();
+  permissions = input<UserPermissionDto | undefined>();
+  private readonly permissions$ = toObservable(this.permissions);
   targetSubject = new BehaviorSubject<InspectorTarget | undefined>(undefined);
   config = computed(() => {
     const target = this.target();
@@ -141,7 +149,7 @@ export class InspectorComponent implements OnChanges, OnInit {
 
     combineLatest([
       this.targetSubject,
-      this.graphApi.getUserPermissions(),
+      this.permissions$.pipe(filter(Boolean)),
     ]).subscribe(([target, permissions]) => {
       if (!target) {
         return;
@@ -340,6 +348,27 @@ export class InspectorComponent implements OnChanges, OnInit {
   toggleHideRestricted() {
     this.hideRestricted.set(!this.hideRestricted());
     this.preferences.set('graphHideRestricted', this.hideRestricted());
+  }
+
+  showConnectionsHelp() {
+    const config = this.config();
+    const { outboundEdges, inboundEdges } = this.graphUtil.buildConnectionsHelpData(
+      config,
+      this.configMap,
+    );
+    this.dialog
+      .open(ConnectionsHelpDialogComponent, {
+        width: '600px',
+        data: {
+          outboundEdges,
+          inboundEdges,
+          collectionName: config.name,
+          navigationFollows: this.navigationFollows(),
+        },
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   getVertexTargetData(target: InspectorTargetVertex) {

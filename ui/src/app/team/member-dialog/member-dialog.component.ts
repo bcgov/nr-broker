@@ -33,15 +33,27 @@ import {
 import { GraphApiService } from '../../service/graph-api.service';
 import { VertexSearchDto } from '../../service/persistence/dto/vertex.dto';
 import { CollectionApiService } from '../../service/collection-api.service';
-import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
+import {
+  CONFIG_RECORD,
+  CURRENT_USER,
+  SYNC_QUEUE_CONFIG_RECORD,
+} from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { GraphTypeaheadResult } from '../../service/graph/dto/graph-typeahead-result.dto';
 import { PermissionService } from '../../service/permission.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
+import {
+  SyncQueueConfigDto,
+  SyncType,
+} from '../../service/persistence/dto/sync-queue-config.dto';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { HealthStatusService } from '../../service/health-status.service';
 import { PreferencesService } from '../../preferences.service';
+import {
+  hasEnabledQueueForSyncType,
+  SyncQueueHealthRecord,
+} from '../../util/sync-queue-health.util';
 
 @Component({
   selector: 'app-member-dialog',
@@ -76,6 +88,9 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   }>(MAT_DIALOG_DATA);
   readonly user = inject<UserSelfDto>(CURRENT_USER);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly syncQueueConfigRecord = inject<Record<string, SyncQueueConfigDto>>(
+    SYNC_QUEUE_CONFIG_RECORD,
+  );
   private readonly graphApi = inject(GraphApiService);
   private readonly collectionApi = inject(CollectionApiService);
   private readonly snackBar = inject(MatSnackBar);
@@ -234,8 +249,17 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.modified() && (this.permission.hasAdmin() || this.isOwner())) {
       this.healthStatus.health$.pipe(take(1)).subscribe((health) => {
-        if (health?.details?.['github']?.['alias']) {
-          this.collectionApi.teamRefreshUsers(this.data.vertex).subscribe();
+        const queues = health?.details?.['syncQueue']?.['queues'] as
+          | SyncQueueHealthRecord
+          | undefined;
+        const userSyncQueueEnabled = hasEnabledQueueForSyncType(
+          queues,
+          this.syncQueueConfigRecord,
+          SyncType.USERS,
+        );
+
+        if (userSyncQueueEnabled) {
+          this.collectionApi.refreshCollectionUsers('team', this.data.vertex).subscribe();
         } else {
           // Skip user refresh
         }

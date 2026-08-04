@@ -1,0 +1,30 @@
+@if (connectionConfig(); as service) {
+  <mat-card appearance="outlined" class="service-card">
+    <mat-card-header>
+      <img [src]="getServiceIcon()" alt="{{service.name}} icon" class="service-icon-large" />
+      <div class="service-header-text">
+        <mat-card-title>{{service.name}}</mat-card-title>
+        <mat-card-subtitle>External service</mat-card-subtitle>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="service-card-content">
+        <p class="description-text">{{service.description}}</p>
+        <div class="links-row">
+          @if (service.href) {
+            <a [href]="service.href" target="_blank" rel="noopener noreferrer" mat-stroked-button>
+              Open service
+              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            </a>
+          }
+          @if (service.documentationUrl) {
+            <a [href]="service.documentationUrl" target="_blank" rel="noopener noreferrer" mat-stroked-button>
+              Documentation
+              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            </a>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

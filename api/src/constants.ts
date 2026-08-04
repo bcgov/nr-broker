@@ -66,6 +66,7 @@ export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
   'tools',
 ]);
 export const VAULT_KV_APPS_MOUNT = 'apps';
+export const VAULT_KV_CLOUDS_MOUNT = 'clouds';
 export const VAULT_KV_APPS_TOOLS_PATH_TPL =
   process.env.VAULT_KV_APPS_TOOLS_PATH_TPL ??
   'tools/<%= projectName %>/<%= serviceName %>';
@@ -96,10 +97,12 @@ export const OAUTH2_CLIENT_MAP_USERNAME =
 export const CRON_JOB_SYNC_SECRETS = 'cron-job-sync-secrets';
 export const CRON_JOB_SYNC_USERS = 'cron-job-sync-users';
 export const CRON_JOB_SEND_COMS = 'cron-job-send-coms';
+export const CRON_JOB_KUBERNETES_SYNC_SECRETS = 'cron-job-kubernetes-sync-secrets';
 
 export const REDIS_QUEUES = {
   GITHUB_SYNC_SECRETS: 'github-sync-secrets',
   GITHUB_SYNC_USERS: 'github-sync-users',
+  KUBERNETES_SYNC_SECRETS: 'kubernetes-sync-secrets',
   NOTIFICATION_COMS: 'notification-coms',
 } as const;
 

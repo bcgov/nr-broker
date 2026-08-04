@@ -1,16 +1,39 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
-import { RepositoryDto } from '../../service/persistence/dto/repository.dto';
-import { SystemApiService } from '../../service/system-api.service';
+import { CollectionApiService } from '../../service/collection-api.service';
 import { HealthStatusService } from '../../service/health-status.service';
-import { GithubRoleMappingDialogComponent } from '../github-role-mapping-dialog/github-role-mapping-dialog.component';
-import { GithubSecretsDialogComponent } from '../github-secrets-dialog/github-secrets-dialog.component';
+import { CONFIG_RECORD, SYNC_QUEUE_CONFIG_RECORD } from '../../app-initialize.factory';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
+import { CollectionNames, CollectionValues } from '../../service/persistence/dto/collection-dto-union.type';
+import { SyncStatusDto } from '../../service/persistence/dto/sync-status.dto';
+import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionConfigNameRecord } from '../../service/graph.types';
+import {
+  CollectionSyncQueueRuleDto,
+  CollectionSyncTraversalRule,
+} from '../../service/persistence/dto/collection-sync-queue-rule.dto';
+import {
+  CollectionSyncRequirement,
+} from '../../service/persistence/dto/sync-queue-config.dto';
+import {
+  SyncQueueHelpDialogComponent,
+} from '../sync-queue-help-dialog/sync-queue-help-dialog.component';
+
+interface ResolvedSyncQueueAction {
+  queue: string;
+  label: string;
+  summary: string;
+  source: 'queue' | 'traverse';
+  traverseSummary?: string;
+  requiredEnabledProperty?: string;
+  queuedStatusProperty?: string;
+  requires?: CollectionSyncRequirement;
+}
 
 @Component({
   selector: 'app-inspector-repository-sync',
@@ -27,83 +50,130 @@ import { DetailsItemComponent } from '../../shared/details-item/details-item.com
 export class InspectorRepositorySyncComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly systemApi = inject(SystemApiService);
-  readonly healthStatus = inject(HealthStatusService);
+  private readonly collectionApi = inject(CollectionApiService);
+  private readonly healthStatus = inject(HealthStatusService);
+  private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly syncQueueConfigRecord = inject(SYNC_QUEUE_CONFIG_RECORD);
 
-  readonly repository = input.required<RepositoryDto>();
+  readonly collection = input.required<CollectionNames>();
+  readonly data = input.required<CollectionValues>();
+  readonly collectionConfig = input.required<CollectionConfigDto>();
   readonly hasSudo = input(false);
+  readonly hasAdmin = input(false);
   readonly header = input<'small' | 'large'>('small');
+  readonly syncActions = computed(() => {
+    const rules = this.collectionConfig().syncQueues ?? [];
+    return rules
+      .flatMap((rule) => this.toSyncActions(rule))
+      .filter((action): action is ResolvedSyncQueueAction => action !== null);
+  });
 
-  syncSecrets() {
-    this.systemApi
-      .repositoryRefresh(this.repository().id, true, false)
+  readonly healthySyncActions = computed(() => {
+    const actions = this.syncActions();
+    if (actions.length === 0) {
+      return actions;
+    }
+
+    const health = this.healthStatus.healthSignal();
+    if (!health) {
+      return [] as ResolvedSyncQueueAction[];
+    }
+
+    const syncQueueHealth = health.details?.['syncQueue']?.['queues'] as
+      | Record<string, { enabled?: boolean }>
+      | undefined;
+
+    if (!syncQueueHealth) {
+      return [] as ResolvedSyncQueueAction[];
+    }
+
+    return actions.filter(
+      (action) => syncQueueHealth[action.queue]?.enabled === true,
+    );
+  });
+
+  readonly hasSyncQueues = computed(() => {
+    const rules = this.collectionConfig().syncQueues ?? [];
+    return rules.length > 0;
+  });
+
+  readonly syncAvailable = computed(() => {
+    return this.healthySyncActions().length > 0;
+  });
+
+  sync(action: ResolvedSyncQueueAction, dryRun = false) {
+    if (dryRun) {
+      return this.callSync(action, true, {
+        next: (result) => {
+          if (Array.isArray(result)) {
+            const count = result.length;
+            this.openSnackBar(
+              `${action.label} dry run completed (${count} target${count === 1 ? '' : 's'})`,
+            );
+          }
+        },
+      });
+    }
+
+    return this.callSync(action, true, {
+      next: (precheck) => {
+        if (Array.isArray(precheck) && precheck.length === 0) {
+          this.openSnackBar(`${action.label} sync skipped: no targets found`);
+          return;
+        }
+
+        this.callSync(action, false, 'sync queued');
+      },
+    });
+  }
+
+  private callSync(
+    action: ResolvedSyncQueueAction,
+    dryRun: boolean,
+    handler: { next?: (result: unknown) => void; error?: (err: any) => void } | string,
+  ): void {
+    this.collectionApi
+      .syncCollection(this.collection(), this.data().id, {
+        queue: action.queue,
+        dryRun,
+      })
       .subscribe({
-        next: () => {
-          this.openSnackBar('Sync of secrets queued');
+        next: (result) => {
+          if (typeof handler === 'string') {
+            this.openSnackBar(`${action.label} ${handler}`);
+          } else {
+            handler.next?.(result);
+          }
         },
         error: (err: any) => {
-          this.openSnackBar(
-            'Syncing secrets failed: ' + (err?.statusText ?? 'unknown'),
-          );
+          if (typeof handler === 'string') {
+            this.openSnackBar(`${action.label} sync failed: ${err?.statusText ?? 'unknown'}`);
+          } else {
+            handler.error?.(err);
+          }
         },
       });
   }
 
-  syncUsers() {
-    this.systemApi
-      .repositoryRefresh(this.repository().id, false, true)
-      .subscribe({
-        next: () => {
-          this.openSnackBar('Sync of users queued');
-        },
-        error: (err: any) => {
-          this.openSnackBar(
-            'Syncing users failed: ' + (err?.statusText ?? 'unknown'),
-          );
-        },
-      });
+  isEnabled(requiredEnabledProperty?: string) {
+    if (!requiredEnabledProperty) {
+      return true;
+    }
+
+    return this.getDataValue(requiredEnabledProperty) === true;
   }
 
-  showSecretsQueued() {
-    const status = this.repository().syncSecretsStatus;
-    return !!(
-      status?.queuedAt &&
-      (!status?.syncAt ||
-        status?.queuedAt >
-        status?.syncAt)
-    );
+  showQueued(statusKey?: string) {
+    const status = this.getSyncStatus(statusKey);
+    return Boolean(status?.queuedAt && (!status?.syncAt || status?.queuedAt > status?.syncAt));
   }
 
-  showUsersQueued() {
-    const status = this.repository().syncUsersStatus;
-    return !!(
-      status?.queuedAt &&
-      (!status?.syncAt ||
-        status?.queuedAt >
-        status?.syncAt)
-    );
+  lastSyncAt(statusKey?: string): SyncStatusDto['syncAt'] {
+    return this.getSyncStatus(statusKey)?.syncAt;
   }
 
-  showGitHubRoleMappings() {
-    this.dialog
-      .open(GithubRoleMappingDialogComponent, {
-        width: '600px',
-        data: {},
-      })
-      .afterClosed()
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      .subscribe(() => {});
-  }
-
-  showGitHubSecrets() {
-    this.dialog
-      .open(GithubSecretsDialogComponent, {
-        width: '600px',
-        data: {},
-      })
-      .afterClosed()
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      .subscribe(() => {});
+  queuedAt(statusKey?: string): SyncStatusDto['queuedAt'] {
+    return this.getSyncStatus(statusKey)?.queuedAt;
   }
 
   private openSnackBar(message: string) {
@@ -111,5 +181,101 @@ export class InspectorRepositorySyncComponent {
     config.duration = 5000;
     config.verticalPosition = 'bottom';
     this.snackBar.open(message, 'Dismiss', config);
+  }
+
+  private toSyncActions(rule: CollectionSyncQueueRuleDto): (ResolvedSyncQueueAction | null)[] {
+    const actions: (ResolvedSyncQueueAction | null)[] = [];
+
+    // Handle direct queue rule
+    if (rule.queue?.queue) {
+      const queueConfig = rule.queue;
+      const queueName = queueConfig.queue;
+      const label = this.syncQueueConfigRecord[queueName]?.label || queueName;
+
+      actions.push({
+        queue: queueName,
+        label,
+        summary: this.queueSummary(queueName),
+        source: 'queue',
+        requiredEnabledProperty: queueConfig.requiredEnabledProperty,
+        queuedStatusProperty: queueConfig.queuedStatusProperty,
+        requires: this.syncQueueConfigRecord[queueName]?.requires,
+      });
+    }
+
+    // Handle indirect traverse rule
+    if (rule.traverse?.queues && rule.traverse.queues.length > 0) {
+      const traverseQueues = rule.traverse.queues;
+
+      traverseQueues.forEach((queueName) => {
+        const label = this.syncQueueConfigRecord[queueName]?.label || queueName;
+
+        actions.push({
+          queue: queueName,
+          label,
+          summary: this.queueSummary(queueName),
+          source: 'traverse',
+          traverseSummary: this.summarizeTraverseRule(rule.traverse),
+          requires: this.syncQueueConfigRecord[queueName]?.requires,
+        });
+      });
+    }
+
+    return actions;
+  }
+
+  queueSummary(queue: string): string {
+    return this.syncQueueConfigRecord[queue]?.summary ?? '';
+  }
+
+  queueDescriptionLines(queue: string): string[] {
+    return this.syncQueueConfigRecord[queue]?.description ?? [];
+  }
+
+  private summarizeTraverseRule(
+    traverse?: CollectionSyncTraversalRule,
+  ): string {
+    if (!traverse) {
+      return '';
+    }
+
+    const direction = traverse.direction;
+    const targetCollection = traverse.collection;
+    const targetCollectionName =
+      this.configRecord[targetCollection]?.name ?? targetCollection;
+
+    return `${targetCollectionName} (${direction})`;
+  }
+
+  openQueueHelp(action: ResolvedSyncQueueAction): void {
+    this.dialog.open(SyncQueueHelpDialogComponent, {
+      width: '600px',
+      data: {
+        name: action.queue,
+        label: action.label,
+        summary: action.summary,
+        description:
+          this.queueDescriptionLines(action.queue).length > 0
+            ? this.queueDescriptionLines(action.queue)
+            : ['No description is configured for this queue.'],
+      },
+    });
+  }
+
+  private getDataValue(property: string): unknown {
+    return (this.data() as unknown as Record<string, unknown>)[property];
+  }
+
+  private getSyncStatus(property?: string): SyncStatusDto | undefined {
+    if (!property) {
+      return undefined;
+    }
+
+    const value = this.getDataValue(property);
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    return value as SyncStatusDto;
   }
 }

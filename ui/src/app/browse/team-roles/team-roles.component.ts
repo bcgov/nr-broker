@@ -1,11 +1,9 @@
 import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
+import { Router } from '@angular/router';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionEdgeConfig, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
-import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { MatDialog } from '@angular/material/dialog';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
@@ -22,23 +20,16 @@ import {
   ConnectionConfigRoleDialogComponent,
   ConnectionConfigRoleDialogData,
 } from '../connection-config-role-dialog/connection-config-role-dialog.component';
-import { TeamRoleChipComponment } from '../team-role-chip/team-role-chip.component';
-
-interface BrokerChipInfo {
-  label: string;
-  environmentChanges: string[];
-  description?: string;
-}
-
-interface ConnectionConfigChipInfo {
-  label: string;
-  description: string;
-  connectionConfig: ConnectionConfigDto;
-}
+import { TeamRoleEdgesComponent } from '../team-role-edges/team-role-edges.component';
+import {
+  BrokerChipInfo,
+  BrokerChipClickEvent,
+  ConnectionConfigChipInfo,
+} from './team-role-types';
 
 @Component({
   selector: 'app-team-roles',
-  imports: [MatChipsModule, MatDividerModule, EdgetitlePipe, TeamRoleChipComponment],
+  imports: [TeamRoleEdgesComponent],
   templateUrl: './team-roles.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-roles.component.scss',
@@ -50,6 +41,7 @@ export class TeamRolesComponent {
   private readonly systemApi = inject(SystemApiService);
   private readonly featureFlagService = inject(FeatureFlagService);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
 
   edges: CollectionEdgeConfig[] = this.configRecord['user'].edges.filter(
     (edge) => edge.collection === 'team',
@@ -220,7 +212,7 @@ export class TeamRolesComponent {
       }
     }
 
-    this.dialog.open(BrokerRoleMappingDialogComponent, {
+    const dialogRef = this.dialog.open(BrokerRoleMappingDialogComponent, {
       width: '780px',
       maxWidth: '95vw',
       data: {
@@ -231,6 +223,12 @@ export class TeamRolesComponent {
         sudoCollections: Object.values(sudoCollectionsMap),
         changeEnvironments: envChangeRole ?? [],
       },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.action === 'navigate') {
+        this.router.navigate([result.path]);
+      }
     });
   }
 
@@ -250,8 +248,8 @@ export class TeamRolesComponent {
     });
   }
 
-  getConnectionChipIcon(connectionConfig: ConnectionConfigDto): string {
-    return connectionConfig.imageEmbedded || connectionConfig.imageUrl || 'assets/broker-bw.svg';
+  handleBrokerChipClick(event: BrokerChipClickEvent): void {
+    this.openBrokerRoleDialog(event.edge, event.chipLabel);
   }
 
   private getEnvironmentChangeRole(roleName: string): string[] | null {

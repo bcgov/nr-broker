@@ -62,6 +62,9 @@ export class InspectorVertexFieldsComponent implements OnChanges {
         if (value.type === 'embeddedDoc' || value.type === 'embeddedDocArray') {
           delete filteredCollectionData[key];
         }
+        if (value.subclass && value.subclass !== filteredCollectionData['type']) {
+          delete filteredCollectionData[key];
+        }
       }
 
       delete filteredCollectionData.id;

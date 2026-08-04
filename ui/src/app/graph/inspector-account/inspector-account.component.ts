@@ -183,16 +183,20 @@ export class InspectorAccountComponent implements OnInit, OnDestroy {
   sync(): void {
     const account = this.account();
     if (account) {
-      this.systemApi.brokerAccountRefresh(account.id).subscribe({
-        next: () => {
-          this.openSnackBar('Sync of secrets queued');
-        },
-        error: (err: any) => {
-          this.openSnackBar(
-            'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
-          );
-        },
-      });
+      this.systemApi
+        .syncCollection('brokerAccount', account.id, {
+          type: 'secrets',
+        })
+        .subscribe({
+          next: () => {
+            this.openSnackBar('Sync of secrets queued');
+          },
+          error: (err: any) => {
+            this.openSnackBar(
+              'Syncing token failed: ' + (err?.statusText ?? 'unknown'),
+            );
+          },
+        });
     } else {
       this.openSnackBar('The account does not exist!');
     }

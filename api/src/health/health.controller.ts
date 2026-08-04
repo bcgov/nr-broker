@@ -7,8 +7,8 @@ import {
 } from '@nestjs/terminus';
 import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { HealthService } from './health.service';
-import { GithubHealthIndicator } from '../github/github.health';
 import { CommunicationHealthIndicator } from '../communication/communication.health';
+import { SyncQueueHealthIndicator } from './sync-queue.health';
 
 @Controller({
   path: 'health',
@@ -19,7 +19,7 @@ export class HealthController {
     private readonly communication: CommunicationHealthIndicator,
     private readonly health: HealthCheckService,
     private readonly http: HttpHealthIndicator,
-    private readonly github: GithubHealthIndicator,
+    private readonly syncQueue: SyncQueueHealthIndicator,
     private readonly healthService: HealthService,
     private readonly db: MikroOrmHealthIndicator,
   ) {}
@@ -38,7 +38,7 @@ export class HealthController {
       // Note: MikroORM does not establish a database connection until the first query is executed.
       // This means that the health check may fail on startup if it runs before any database operations have occurred.
       () => this.db.pingCheck('database'),
-      () => this.github.isHealthy('github'),
+      () => this.syncQueue.isHealthy('syncQueue'),
       () => this.communication.isHealthy('communication'),
     ]);
   }

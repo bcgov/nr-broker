@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   MatSnackBar,
   MatSnackBarConfig,
@@ -24,7 +25,11 @@ import { Subject, startWith, takeUntil } from 'rxjs';
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
 import { PermissionService } from '../../service/permission.service';
-import { CONFIG_RECORD, CURRENT_USER } from '../../app-initialize.factory';
+import {
+  CONFIG_RECORD,
+  CURRENT_USER,
+  SYNC_QUEUE_CONFIG_RECORD,
+} from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
@@ -63,6 +68,9 @@ import { InspectorPeopleDialogComponent } from '../../graph/inspector-people-dia
 import { PreferencesService } from '../../preferences.service';
 import { UserSelfDto } from '../../service/persistence/dto/user.dto';
 import { WatchButtonComponent } from '../../collection/watch-button/watch-button.component';
+import { ConnectionsHelpDialogComponent } from '../../graph/connections-help-dialog/connections-help-dialog.component';
+import { ConnectionsHelpIntroComponent } from '../../graph/connections-help-intro/connections-help-intro.component';
+import { SyncQueueConfigDto } from '../../service/persistence/dto/sync-queue-config.dto';
 
 @Component({
   selector: 'app-collection-inspector',
@@ -76,6 +84,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     MatIconModule,
     MatMenuModule,
     MatRadioModule,
+    MatTooltipModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
@@ -98,6 +107,7 @@ import { WatchButtonComponent } from '../../collection/watch-button/watch-button
     InspectorInstancesComponent,
     WatchButtonComponent,
     ServiceInstanceDetailsComponent,
+    ConnectionsHelpIntroComponent,
   ],
   templateUrl: './collection-inspector.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -114,6 +124,9 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
   private readonly permission = inject(PermissionService);
   private readonly user = inject<UserSelfDto>(CURRENT_USER);
   private readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  private readonly syncQueueConfigRecord = inject<Record<string, SyncQueueConfigDto>>(
+    SYNC_QUEUE_CONFIG_RECORD,
+  );
   private readonly preferences = inject(PreferencesService);
   readonly collectionUtil = inject(CollectionUtilService);
   readonly healthStatus = inject(HealthStatusService);
@@ -463,6 +476,24 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       .subscribe(() => {});
   }
 
+  shouldShowGitHubAccessHelp(health: unknown): boolean {
+    const syncQueueHealth = (health as {
+      details?: { syncQueue?: { queues?: Record<string, { enabled?: boolean }> } };
+    })?.details?.syncQueue?.queues;
+
+    if (!syncQueueHealth) {
+      return false;
+    }
+
+    return Object.entries(syncQueueHealth).some(([queueName, queueHealth]) => {
+      if (queueHealth?.enabled !== true) {
+        return false;
+      }
+
+      return this.syncQueueConfigRecord[queueName]?.setup?.gitHubUserLink === true;
+    });
+  }
+
   onGroupChange(value: string) {
     this.preferences.set('teamGroupBy', value as 'user' | 'role');
     this.groupByUser.set(value === 'user');
@@ -488,6 +519,27 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
       this.navigationFollows() === 'vertex' ? 'edge' : 'vertex',
     );
     this.preferences.set('graphFollows', this.navigationFollows());
+  }
+
+  showConnectionsHelp() {
+    const config = this.config();
+    const { outboundEdges, inboundEdges } = this.graphUtil.buildConnectionsHelpData(
+      config,
+      this.configRecord,
+    );
+    this.dialog
+      .open(ConnectionsHelpDialogComponent, {
+        width: '600px',
+        data: {
+          outboundEdges,
+          inboundEdges,
+          collectionName: config.name,
+          navigationFollows: this.navigationFollows(),
+        },
+      })
+      .afterClosed()
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      .subscribe(() => {});
   }
 
   toggleHideRestricted() {

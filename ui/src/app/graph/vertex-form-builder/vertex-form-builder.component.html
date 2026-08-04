@@ -2,7 +2,7 @@
   (ngSubmit)="formSubmitted.emit(this.form.value)"
   (submit)="formSubmitted.emit(this.form.value)"
   [formGroup]="form">
-  @for (field of fieldConfigs; track field.key) {
+  @for (field of fieldConfigs(); track field.key) {
     <div class="vertex-form" [class]="field.type">
       <app-vertex-form-field
         [field]="field"

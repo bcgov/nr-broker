@@ -1,4 +1,5 @@
 import { CollectionNames } from './collection-dto-union.type';
+import { CollectionSyncQueueRuleDto } from './collection-sync-queue-rule.dto';
 import { EdgeDto } from './edge.dto';
 import { UserPermissionNames } from './user-permission.dto';
 
@@ -52,6 +53,7 @@ export class CollectionFieldConfig {
   placeholder?: string;
   required!: boolean;
   sort?: boolean;
+  subclass?: string;
   type!:
     | 'boolean'
     | 'date'
@@ -155,6 +157,7 @@ export class CollectionConfigDto {
   showUserRoles!: boolean;
   watches?: CollectionWatchConfig[];
   sudoHelp?: string;
+  syncQueues?: CollectionSyncQueueRuleDto[];
 }
 
 export class LinksAltDto {

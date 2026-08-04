@@ -4,5 +4,6 @@ export const PERSISTENCE_CACHE_METADATA_SUFFIX = 'PERSISTENCE_CACHE_SUFFIX';
 
 export const PERSISTENCE_CACHE_KEY_GRAPH = 'graph-data';
 export const PERSISTENCE_CACHE_KEY_CONFIG = 'collection-config';
+export const PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG = 'sync-queue-config';
 
 export const PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT = 30;

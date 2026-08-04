@@ -17,6 +17,53 @@ import {
 import { CollectionNameStringEnum } from './collection-entity-union.type';
 
 @Embeddable()
+export class CollectionSyncTraversalRuleEmbeddable {
+  @Enum(() => CollectionNameStringEnum)
+  collection!: CollectionNameStringEnum;
+
+  @Property()
+  direction!: 'downstream' | 'upstream';
+
+  @Property({ nullable: true })
+  maxDepth?: number;
+
+  @Property({ type: 'json', nullable: true })
+  edgeNames?: string[];
+
+  @Property({ type: 'json' })
+  queues!: string[];
+}
+
+@Embeddable()
+export class CollectionSyncQueueConfigEmbeddable {
+  @Property()
+  queue!: string;
+
+  @Property({ nullable: true })
+  requiredEnabledProperty?: string;
+
+  @Property({ nullable: true })
+  queuedStatusProperty?: string;
+}
+
+@Embeddable()
+export class CollectionSyncQueueRuleEmbeddable {
+  @Embedded({
+    entity: () => CollectionSyncQueueConfigEmbeddable,
+    object: true,
+    nullable: true,
+  })
+  queue?: CollectionSyncQueueConfigEmbeddable;
+
+  @Embedded({
+    entity: () => CollectionSyncTraversalRuleEmbeddable,
+    object: true,
+    nullable: true,
+  })
+  traverse?: CollectionSyncTraversalRuleEmbeddable;
+}
+
+@Embeddable()
 export class CollectionConfigPermissionsEmbeddable {
   @Property()
   browse: boolean;
@@ -245,6 +292,13 @@ export class CollectionConfigEntity extends BaseEntity {
 
   @Property({ nullable: true })
   sudoHelp?: string;
+
+  @Embedded({
+    entity: () => CollectionSyncQueueRuleEmbeddable,
+    array: true,
+    nullable: true,
+  })
+  syncQueues?: CollectionSyncQueueRuleEmbeddable[];
 
   @Embedded({
     entity: () => CollectionSyncConfigEmbeddable,

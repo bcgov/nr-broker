@@ -3,7 +3,7 @@
     <h4>None</h4>
   } @else if (groupByUser()) {
     <!-- Group by user -->
-    <mat-accordion class="member-role-accordian">
+    <mat-accordion>
       @for (user of users(); track user.id) {
         <mat-expansion-panel>
           <mat-expansion-panel-header>
@@ -23,22 +23,20 @@
                 {{ getEdgeByName(role.role) | edgetitle }}
               </mat-list-item>
             }
-          </mat-list>
-          @if (canManageMembers()) {
-            <div class="clone-roles-row">
+            <mat-list-item role="listitem" class="clone-roles-container">
               <button
                 mat-button
                 (click)="openCloneDialog(user)"
                 aria-label="Clone roles">Clone roles
               </button>
-            </div>
-          }
+            </mat-list-item>
+          </mat-list>
         </mat-expansion-panel>
       }
     </mat-accordion>
   } @else {
     <!-- Group by role (default) -->
-    <mat-accordion class="member-role-accordian">
+    <mat-accordion>
       @for (edge of edges; track edge.id) {
         @if (usersByRole()[edge.name].length > 0) {
           <mat-expansion-panel>

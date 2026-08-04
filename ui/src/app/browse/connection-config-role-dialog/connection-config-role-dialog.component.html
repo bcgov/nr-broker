@@ -1,52 +1,14 @@
-<h2 mat-dialog-title>External Service - {{ data.connectionConfig.name }}</h2>
+<h2 mat-dialog-title>External Service</h2>
 
 <mat-dialog-content>
-  @if (data.connectionConfig.imageEmbedded || data.connectionConfig.imageUrl) {
-    <div class="config-image-container">
-        <a
-          [href]="data.connectionConfig.href"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-      <img
-        [src]="data.connectionConfig.imageEmbedded || data.connectionConfig.imageUrl"
-        [alt]="data.connectionConfig.name"
-        class="config-image"
-      />
-        <br />{{ data.connectionConfig.name }}
-        </a>
-    </div>
-  }
-
-  <p class="description">{{ data.connectionConfig.description }}</p>
-
-  <div class="links-section">
-    <h3>Resources</h3>
-    <ul class="links-list">
-      <li>
-        <a
-          [href]="data.connectionConfig.href"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ data.connectionConfig.name }}
-        </a>
-      </li>
-      @if (data.connectionConfig.documentationUrl) {
-        <li>
-          <a
-            [href]="data.connectionConfig.documentationUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </li>
-      }
-    </ul>
-  </div>
+  <app-external-service-card [connectionConfig]="data.connectionConfig" />
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  @if (canViewDetails) {
+    <button mat-button (click)="goToDetails()">
+      View details
+    </button>
+  }
   <button mat-button mat-dialog-close>Close</button>
 </mat-dialog-actions>

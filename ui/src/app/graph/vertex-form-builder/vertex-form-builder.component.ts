@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, output, SimpleChanges, input, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnChanges, OnInit, output, SimpleChanges, input, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -8,6 +8,7 @@ import {
   ReactiveFormsModule,
   AsyncValidatorFn,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionFieldConfigNameMapped } from '../../service/graph.types';
 import { CollectionFieldConfigMap } from '../../service/persistence/dto/collection-config.dto';
@@ -33,9 +34,17 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
   readonly data = input<any>();
   readonly formData = signal<any>({});
   form!: FormGroup;
-  fieldConfigs!: CollectionFieldConfigNameMapped[];
+  private allFieldConfigs: CollectionFieldConfigNameMapped[] = [];
+  private typeSubscription?: Subscription;
+  private readonly activeType = signal<string>('');
+  readonly fieldConfigs = computed(() =>
+    this.allFieldConfigs.filter(
+      (f) => !f.subclass || f.subclass === this.activeType(),
+    ),
+  );
 
   ngOnInit() {
+    this.typeSubscription?.unsubscribe();
     const fieldCtrls: Record<string, FormGroup | FormControl> = {};
     const fieldConfigs: CollectionFieldConfigNameMapped[] = [];
     if (this.data()) {
@@ -164,8 +173,11 @@ export class VertexFormBuilderComponent implements OnInit, OnChanges {
       //   fieldCtrls[f.key] = new FormGroup(opts);
       // }
     }
-    this.fieldConfigs = fieldConfigs;
+    this.allFieldConfigs = fieldConfigs;
+    this.activeType.set(this.formData()?.['type'] ?? '');
     this.form = new FormGroup(fieldCtrls);
+    this.typeSubscription = this.form.get('type')?.valueChanges
+      .subscribe((type) => this.activeType.set(type ?? ''));
     this.form.statusChanges.subscribe(() => {
       this.isFormValid.emit(this.form.valid);
     });

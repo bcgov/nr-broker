@@ -12,10 +12,11 @@
   margin-bottom: 16px;
   justify-content: flex-start;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .edge-body > * {
-  width: 50%;
+  width: calc(50% - 8px);
 }
 
 .heading {
@@ -25,17 +26,6 @@
 .fields-wrapper {
   display: inline-flex;
   flex-wrap: wrap;
-}
-
-.details-section {
-  display: block;
-  border-bottom-style: solid;
-  border-bottom-color: var(--mat-sys-outline);
-  border-bottom-width: 1px;
-  font-size: 14px;
-  line-height: 40px;
-  font-weight: 500;
-  margin-bottom: 12px;
 }
 
 .details-buttons {

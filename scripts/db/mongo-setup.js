@@ -23,6 +23,9 @@ db.packageBuild.drop();
 db.graphPermission.drop();
 db.collectionWatch.drop();
 db.collectionWatchConfig.drop();
+db.cloud.drop();
+db.openshiftProject.drop();
+db.syncQueueConfig.drop();
 
 db.jwtAllow.insertOne({});
 
@@ -89,6 +92,52 @@ db.connectionConfig.insertOne({
   name: 'Swagger Documentation',
   order: 20,
 });
+
+db.syncQueueConfig.insertMany([
+  {
+    queue: 'GITHUB_SYNC_SECRETS',
+    label: 'GitHub secrets',
+    summary: 'Sync repository secrets to GitHub repository settings.',
+    types: ['secrets'],
+    description: [
+      'Sync repository secrets from Broker to GitHub repository settings.',
+      'Secrets are transferred with the same names as in Vault. They may be adjusted to satisfy GitHub naming restrictions.',
+      'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
+    ],
+    requires: {
+      envAll: ['GITHUB_SYNC_CLIENT_ID', 'GITHUB_SYNC_PRIVATE_KEY'],
+    },
+  },
+  {
+    queue: 'GITHUB_SYNC_USERS',
+    label: 'User access',
+    summary: 'Sync repository user access to GitHub repository roles.',
+    types: ['users'],
+    setup: {
+      gitHubUserLink: true,
+    },
+    description: [
+      'Sync repository user access from Broker role assignments to GitHub.',
+      'Broker maps team roles to GitHub repository roles so the right users get the right access.',
+      'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
+    ],
+    requires: {
+      envAll: ['GITHUB_SYNC_CLIENT_ID', 'GITHUB_SYNC_PRIVATE_KEY'],
+    },
+  },
+  {
+    queue: 'KUBERNETES_SYNC_SECRETS',
+    label: 'OpenShift secrets',
+    summary: 'Sync Vault tool secrets from authorized services to OpenShift project secrets.',
+    types: ['secrets'],
+    description: [
+      'This enables the use of tools secrets in OpenShift projects without having to manually copy them. A typical use case is syncing CI/CD secrets.',
+      'Sync configuration is read from Vault at the path clouds/<cloud>/<project>/nr-broker-sync and must include a service account token, a secrets mapping array, and optionally a CA certificate.',
+      'Each mapping references a service by name that must have a deploys edge to the target cloud or OpenShift project. Secrets are read from the tools/<project>/<service> path in Vault and written as an OpenShift secret. An optional key mapping can rename keys on the way.',
+    ],
+  },
+]);
+db.syncQueueConfig.createIndex({ queue: 1 }, { unique: true });
 
 // ==> Environments
 result = db.vertex.insertOne({ collection: 'environment', name: 'production' });
@@ -337,6 +386,36 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
     },
+    {
+      id: 'c3d4e5f6',
+      collection: 'cloud',
+      name: 'deploys',
+      title: 'Deployed on',
+      titleInbound: 'Host for',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: 'd4e5f6a7',
+      collection: 'server',
+      name: 'deploys',
+      title: 'Deployed on',
+      titleInbound: 'Host for',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: 'e5f6a7b8',
+      collection: 'openshiftProject',
+      name: 'deploys',
+      title: 'Deployed on',
+      titleInbound: 'Host for',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
   ],
   fieldDefaultSort: {
     field: 'name',
@@ -454,6 +533,7 @@ result = db.collectionConfig.insertOne({
       id: '48fb4f9f',
       collection: 'environment',
       name: 'deploy-type',
+      title: 'Deploy Type',
       titleInbound: 'Instance',
       relation: 'oneToOne',
       restrict: true,
@@ -471,6 +551,15 @@ result = db.collectionConfig.insertOne({
     {
       id: 'a4056650',
       collection: 'server',
+      name: 'installation',
+      titleInbound: 'Installs',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: 'b4056650',
+      collection: 'openshiftProject',
       name: 'installation',
       titleInbound: 'Installs',
       relation: 'oneToMany',
@@ -794,6 +883,16 @@ result = db.collectionConfig.insertOne({
   hint: 'A Broker Account grants programmatic access to the API to teams and allows them to access associated services.',
   sudoHelp:
     'Allows management of tokens that control team authorizations',
+  syncQueues: [
+    {
+      traverse: {
+        collection: 'repository',
+        direction: 'downstream',
+        maxDepth: 8,
+        queues: ['GITHUB_SYNC_SECRETS'],
+      },
+    },
+  ],
   color: '8d98b3',
   permissions: {
     browse: true,
@@ -815,6 +914,7 @@ result = db.collectionConfig.insertOne({
     { collection: 'service', direction: 'downstream' },
     { collection: 'brokerAccount', direction: 'downstream' },
     { collection: 'repository', direction: 'downstream' },
+    { collection: 'cloud', direction: 'downstream' },
     { collection: 'user', direction: 'upstream' },
   ],
   index: 6,
@@ -835,6 +935,14 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       restrict: true,
       show: false,
+    },
+    {
+      id: 'c9b7a6e5',
+      collection: 'cloud',
+      name: 'operates',
+      titleInbound: 'Operated by',
+      relation: 'oneToMany',
+      show: true,
     },
   ],
   fieldDefaultSort: {
@@ -876,6 +984,24 @@ result = db.collectionConfig.insertOne({
   hint: 'A team is a collection of users with roles that can be granted control of accounts and access to services.',
   sudoHelp:
     'Allows viewing and updating protected service settings such as Vault integration fields',
+  syncQueues: [
+    {
+      traverse: {
+        collection: 'repository',
+        direction: 'downstream',
+        maxDepth: 8,
+        queues: ['GITHUB_SYNC_SECRETS', 'GITHUB_SYNC_USERS'],
+      },
+    },
+    {
+      traverse: {
+        collection: 'openshiftProject',
+        direction: 'downstream',
+        maxDepth: 8,
+        queues: ['KUBERNETES_SYNC_SECRETS'],
+      },
+    },
+  ],
   color: 'e5cf0d',
   permissions: {
     browse: true,
@@ -1067,7 +1193,208 @@ result = db.collectionConfig.insertOne({
   hint: 'A source control repository tracks, manages, and versions project files and code.',
   sudoHelp:
     'Allows operations such as secret and user synchronization',
+  syncQueues: [
+    {
+      queue: {
+        queue: 'GITHUB_SYNC_SECRETS',
+        queuedStatusProperty: 'syncSecretsStatus',
+      },
+    },
+    {
+      queue: {
+        queue: 'GITHUB_SYNC_USERS',
+        queuedStatusProperty: 'syncUsersStatus',
+      },
+    },
+  ],
   color: 'eeceda',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
+  showUserRoles: true,
+});
+
+// ==> Cloud Collection Config
+result = db.collectionConfig.insertOne({
+  collection: 'cloud',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  index: 9,
+  edges: [
+    {
+      id: 'c1o2u3d4',
+      collection: 'openshiftProject',
+      name: 'host',
+      titleInbound: 'Hosted on',
+      relation: 'oneToMany',
+      show: true,
+    },
+    {
+      id: 'd7f8a9b0',
+      collection: 'server',
+      name: 'host',
+      titleInbound: 'Hosted on',
+      relation: 'oneToMany',
+      show: true,
+    },
+  ],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'A unique name for the cloud provider instance',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the cloud instance',
+    },
+    type: {
+      name: 'Type',
+      required: true,
+      type: 'select',
+      options: [
+        { value: 'openshift', label: 'OpenShift' },
+        { value: 'aws', label: 'AWS' },
+        { value: 'azure', label: 'Azure' },
+        { value: 'gcp', label: 'GCP' },
+      ],
+      hint: 'The type of cloud provider',
+    },
+    consoleUrl: {
+      name: 'Console URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL to the cloud provider console',
+    },
+    clusterName: {
+      name: 'Cluster Name',
+      required: false,
+      type: 'string',
+      hint: 'The name of the cluster within the cloud provider',
+    },
+    apiUrl: {
+      name: 'API URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL of the API server',
+    },
+  },
+  browseFields: ['name', 'type', 'clusterName'],
+  name: 'Cloud',
+  hint: 'A grouping of cloud resources used by teams to deploy and manage services.',
+  syncQueues: [
+    {
+      traverse: {
+        collection: 'openshiftProject',
+        direction: 'downstream',
+        maxDepth: 4,
+        queues: ['KUBERNETES_SYNC_SECRETS'],
+      },
+    },
+  ],
+  color: '7c6aad',
+  permissions: {
+    browse: true,
+    create: true,
+    filter: true,
+    update: true,
+    delete: true,
+  },
+  show: false,
+  showUserRoles: false,
+});
+
+// ==> OpenShift Project Collection Config
+result = db.collectionConfig.insertOne({
+  collection: 'openshiftProject',
+  collectionMapper: [{ getPath: 'name', setPath: 'name' }],
+  collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'serviceInstance', direction: 'downstream' },
+  ],
+  index: 10,
+  edges: [],
+  fieldDefaultSort: {
+    field: 'name',
+    dir: 1,
+  },
+  fields: {
+    name: {
+      name: 'Name',
+      required: true,
+      type: 'string',
+      unique: true,
+      hint: 'The lowercase name of the OpenShift project',
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short human readable description of the project',
+    },
+    apiServerUrl: {
+      name: 'API Server URL',
+      required: false,
+      type: 'url',
+      hint: 'The URL of the OpenShift API server',
+    },
+    enableSyncSecrets: {
+      name: 'Enable secret sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of secrets to project (if supported)',
+      value: false,
+    },
+    enableSyncUsers: {
+      name: 'Enable user sync',
+      required: true,
+      type: 'boolean',
+      hint: 'Enable sync of users to project (if supported)',
+      value: false,
+    },
+    syncSecretsStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
+    syncUsersStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
+  },
+  browseFields: ['name'],
+  name: 'OpenShift Project',
+  hint: 'An OpenShift project is a logical isolation boundary for resources within an OpenShift cluster.',
+  color: '45b08f',
+  sudoHelp:
+    'Allows operations such as secret and user synchronization',
+  syncQueues: [
+    {
+      queue: {
+        queue: 'KUBERNETES_SYNC_SECRETS',
+        requiredEnabledProperty: 'enableSyncSecrets',
+        queuedStatusProperty: 'syncSecretsStatus',
+      },
+    },
+  ],
   permissions: {
     browse: true,
     create: true,
@@ -1199,6 +1526,28 @@ result = db.graphPermission.insertOne({
     { name: 'source', index: 8, permissions: ['sudo', 'update'] },
   ],
   key: 'fullacc-service-source-additions',
+});
+
+// ==> Cloud Graph Permissions (through team edge)
+// These extend team roles to cloud through the team->operates edge
+// Similar to how repository access is granted through project->service->source edges
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'lead-developer', index: 6, permissions: [] },
+    { name: 'operates', index: 9, permissions: ['sudo', 'update'] },
+  ],
+  key: 'leaddev-team-cloud',
+});
+
+result = db.graphPermission.insertOne({
+  name: 'user',
+  data: [
+    { name: 'full-access', index: 6, permissions: [] },
+    { name: 'operates', index: 9, permissions: ['sudo', 'update'] },
+  ],
+  key: 'fullacc-team-cloud',
 });
 
 // ==> User setup

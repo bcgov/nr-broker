@@ -28,6 +28,7 @@
 ** [Communication Setup](/operations_communication.md)
 ** [Customize Homepage](/dev_customize_connections.md)
 ** [Tools Secret Syncronization](/operations_secret_sync.md)
+** [Kubernetes / OpenShift Secret Sync](/operations_kubernetes_sync.md)
 
 * Developing NR Broker
 ** [Local Dev Setup](/development.md)

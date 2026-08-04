@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -44,15 +45,19 @@ import { UserCollectionService } from './user-collection.service';
 import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
-import { PERSISTENCE_CACHE_KEY_CONFIG } from '../persistence/persistence.constants';
+import {
+  PERSISTENCE_CACHE_KEY_CONFIG,
+  PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG,
+} from '../persistence/persistence.constants';
 import { BrokerAccountTokenGenerateQuery } from './dto/broker-account-token-generate-query.dto';
 import { RedisService } from '../redis/redis.service';
 import { JwtRegistryDto } from '../persistence/dto/jwt-registry.dto';
 import { UserBaseDto } from '../persistence/dto/user.dto';
-import { TeamCollectionService } from './team-collection.service';
-import { SyncRepositoryQuery } from './dto/sync-repository-query.dto';
-import { RepositoryCollectionService } from './repository-collection.service';
+import { SyncCollectionQuery } from './dto/sync-collection-query.dto';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
+import { CollectionSyncService } from './collection-sync.service';
+import { normalizeCollectionName } from '../persistence/dto/collection-name.util';
+import { CollectionValues } from '../persistence/entity/collection-entity-union.type';
 
 @Controller({
   path: 'collection',
@@ -63,8 +68,7 @@ export class CollectionController {
     private readonly accountService: AccountService,
     private readonly service: CollectionService,
     private readonly redis: RedisService,
-    private readonly repositoryCollectionService: RepositoryCollectionService,
-    private readonly teamCollectionService: TeamCollectionService,
+    private readonly collectionSyncService: CollectionSyncService,
     private readonly userCollectionService: UserCollectionService,
   ) {}
 
@@ -136,13 +140,22 @@ export class CollectionController {
     await this.userCollectionService.upsertUser(req, userDto);
   }
 
-  @Get('config')
+  @Get(['config', 'config/entities'])
   @UseGuards(BrokerCombinedAuthGuard)
   @ApiBearerAuth()
   @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_CONFIG)
   @UseInterceptors(PersistenceCacheInterceptor)
   getCollectionConfig() {
     return this.service.getCollectionConfig();
+  }
+
+  @Get('config/sync-queue')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @PersistenceCacheKey(PERSISTENCE_CACHE_KEY_SYNC_QUEUE_CONFIG)
+  @UseInterceptors(PersistenceCacheInterceptor)
+  getSyncQueueConfig() {
+    return this.service.getSyncQueueConfig();
   }
 
   @Get('broker-account/:id/token')
@@ -153,60 +166,41 @@ export class CollectionController {
     >;
   }
 
-  @Post('broker-account/:id/refresh')
+  @Post(':collection/:id/sync')
   @Roles('admin')
   @AllowOwner({
     graphObjectType: 'collection',
-    graphObjectCollection: 'brokerAccount',
-    graphIdFromParamKey: 'id',
-    permission: 'sudo',
-  })
-  @UseGuards(BrokerOidcAuthGuard)
-  async refresh(
-    @Param('id', new ParseObjectIdPipe()) id: string,
-  ): Promise<void> {
-    return await this.accountService.refresh(id);
-  }
-
-  @Post('team/:id/refresh')
-  @Roles('admin')
-  @AllowOwner({
-    graphObjectType: 'collection',
-    graphObjectCollection: 'team',
+    graphObjectCollectionFromParamKey: 'collection',
     graphIdFromParamKey: 'id',
     permission: 'sudo',
   })
   @UseGuards(BrokerOidcAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async teamRefresh(
+  async syncCollection(
+    @Param('collection') collection: string,
     @Param('id', new ParseObjectIdPipe()) id: string,
-    @Query() syncQuery: SyncRepositoryQuery,
-  ): Promise<void> {
-    return await this.teamCollectionService.refresh(
-      id,
-      syncQuery.syncSecrets,
-      syncQuery.syncUsers,
-    );
-  }
+    @Query() syncQuery: SyncCollectionQuery,
+  ): Promise<CollectionValues[] | void> {
+    if (!syncQuery.queue && !syncQuery.type) {
+      throw new BadRequestException(
+        'Sync query requires either queue or type',
+      );
+    }
 
-  @Post('repository/:id/refresh')
-  @Roles('admin')
-  @AllowOwner({
-    graphObjectType: 'collection',
-    graphObjectCollection: 'repository',
-    graphIdFromParamKey: 'id',
-    permission: 'sudo',
-  })
-  @UseGuards(BrokerOidcAuthGuard)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async repositoryRefresh(
-    @Param('id', new ParseObjectIdPipe()) id: string,
-    @Query() syncQuery: SyncRepositoryQuery,
-  ): Promise<void> {
-    return await this.repositoryCollectionService.refresh(
+    if (syncQuery.type) {
+      return await this.collectionSyncService.refreshByType(
+        this.parseCollectionApi(collection),
+        id,
+        syncQuery.type,
+        syncQuery.dryRun ?? false,
+      );
+    }
+
+    return await this.collectionSyncService.refresh(
+      this.parseCollectionApi(collection),
       id,
-      syncQuery.syncSecrets,
-      syncQuery.syncUsers,
+      syncQuery.queue,
+      syncQuery.dryRun ?? false,
     );
   }
 
@@ -537,21 +531,10 @@ export class CollectionController {
   }
 
   private parseCollectionApi(collection: string): CollectionNames {
-    switch (collection) {
-      case 'environment':
-      case 'project':
-      case 'server':
-      case 'service':
-      case 'repository':
-      case 'team':
-      case 'user':
-        return collection;
-      case 'broker-account':
-        return 'brokerAccount';
-      case 'service-instance':
-        return 'serviceInstance';
-      default:
-        throw new NotFoundException();
+    const collectionName = normalizeCollectionName(collection);
+    if (!collectionName) {
+      throw new NotFoundException();
     }
+    return collectionName;
   }
 }

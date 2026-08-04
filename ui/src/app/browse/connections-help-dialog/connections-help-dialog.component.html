@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>Connections Help</h2>
+
+<mat-dialog-content class="mat-typography">
+  <p>
+    Connections show how this item relates to other items on the graph, and which external services
+    are configured for team roles.
+  </p>
+
+  @if (loading()) {
+    <p>Loading connections...</p>
+  } @else {
+    @for (config of connectionConfigs(); track config.id) {
+      <mat-card appearance="outlined" class="connection-card">
+        <mat-card-header>
+          <img
+            [src]="getServiceIcon(config)"
+            [alt]="config.name + ' icon'"
+            class="connection-icon"
+          />
+          <div class="connection-header-text">
+            <mat-card-title>{{ config.name }}</mat-card-title>
+            <mat-card-subtitle>External service</mat-card-subtitle>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="connection-description">{{ config.description }}</p>
+
+          <div class="connection-links">
+            @if (config.href) {
+              <a [href]="config.href" target="_blank" rel="noopener noreferrer" mat-stroked-button>
+                Open service
+                <mat-icon iconPositionEnd>open_in_new</mat-icon>
+              </a>
+            }
+            @if (config.documentationUrl) {
+              <a [href]="config.documentationUrl" target="_blank" rel="noopener noreferrer" mat-stroked-button>
+                Documentation
+                <mat-icon iconPositionEnd>open_in_new</mat-icon>
+              </a>
+            }
+          </div>
+
+          @if (hasRoleMappings(config)) {
+            <mat-divider class="role-mappings-divider"></mat-divider>
+            <h4>Role mappings</h4>
+            <p class="role-mappings-intro">
+              Team roles are mapped to permissions in this service:
+            </p>
+            <table class="role-mappings-table">
+              <thead>
+                <tr>
+                  <th scope="col">Team role</th>
+                  <th scope="col">Service permission</th>
+                  <th scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (mapping of getRoleMappings(config); track mapping.role) {
+                  <tr>
+                    <td><code>{{ mapping.role }}</code></td>
+                    <td><strong>{{ mapping.label }}</strong></td>
+                    <td>{{ mapping.description }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (connectionConfigs().length === 0) {
+      <p>No external service connections are configured.</p>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

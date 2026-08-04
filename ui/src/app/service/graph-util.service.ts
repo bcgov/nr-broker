@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { CollectionConfigDto } from './persistence/dto/collection-config.dto';
 import { EdgeDto } from './persistence/dto/edge.dto';
+import { CollectionNames } from './persistence/dto/collection-dto-union.type';
 import {
   CollectionConfigNameRecord,
   CollectionConfigStringRecord,
@@ -90,5 +91,26 @@ export class GraphUtilService {
       }
     }
     return vertexData;
+  }
+
+  buildConnectionsHelpData(
+    config: CollectionConfigDto,
+    configRecord: CollectionConfigNameRecord,
+  ) {
+    const currentCollection = config.collection;
+    const outboundEdges = config.edges.map((e) => ({
+      targetCollectionName: configRecord[e.collection]?.name ?? e.collection,
+      edge: e,
+    }));
+    const inboundEdges = Object.entries(configRecord).flatMap(([key, c]) =>
+      c.edges
+        .filter((e) => e.collection === currentCollection)
+        .map((e) => ({
+          sourceCollectionName: c.name,
+          sourceCollection: key as CollectionNames,
+          edge: e,
+        })),
+    );
+    return { outboundEdges, inboundEdges };
   }
 }

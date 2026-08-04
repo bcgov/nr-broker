@@ -1,41 +1,14 @@
 <p>Users are assigned to these roles when they need access to team resources or need to perform actions on behalf of the team.
   The chips on the right summarize each role's authorizations. Hover over a chip to see a quick description, then click it to view full details.</p>
 
-@for (edge of edges; track edge.id) {
-  <mat-divider></mat-divider>
-  <h3 class="role-title">
-    <span>{{ edge | edgetitle }}</span>
-    @if (teamRoleChipsEnabled) {
-    <span class="role-chip-group">
-      @for (connectionChip of getConnectionConfigChipsForRole()[edge.name] ?? []; track connectionChip.label) {
-        <app-team-role-chip
-          [label]="connectionChip.label"
-          [iconSrc]="getConnectionChipIcon(connectionChip.connectionConfig)"
-          [productName]="connectionChip.connectionConfig.name"
-          [tooltip]="connectionChip.description ?? 'Click to view details'"
-          (click)="openConnectionConfigDialog(connectionChip)"
-        />
-      }
-       @if (getGitHubRole()[edge.name]; as githubRole) {
-         <app-team-role-chip
-           [label]="githubRole.label"
-           [iconSrc]="'assets/github.svg'"
-           [productName]="'GitHub'"
-           [tooltip]="githubRole.description"
-           (click)="openConnectionConfigDialog(getGitHubConnectionConfigChip(githubRole))"
-         />
-      }
-      @if (getBrokerRole()[edge.name]; as brokerChipInfo) {
-        <app-team-role-chip
-          [label]="brokerChipInfo.label"
-          [iconSrc]="'assets/broker-bw.svg'"
-          [productName]="'Broker'"
-          [tooltip]="brokerChipInfo.description ?? 'Click to view details'"
-          (click)="openBrokerRoleDialog(edge, brokerChipInfo.label)"
-        />
-      }
-    </span>
-    }
-  </h3>
-  <p class="user-role-help">{{ edge.help }}</p>
-}
+
+<app-team-role-edges
+  [edges]="edges"
+  [teamRoleChipsEnabled]="teamRoleChipsEnabled"
+  [connectionConfigChipsForRole]="getConnectionConfigChipsForRole()"
+  [gitHubRoleByEdge]="getGitHubRole()"
+  [brokerRoleByEdge]="getBrokerRole()"
+  (connectionChipClick)="openConnectionConfigDialog($event)"
+  (githubChipClick)="openConnectionConfigDialog(getGitHubConnectionConfigChip($event))"
+  (brokerChipClick)="handleBrokerChipClick($event)"
+/>

@@ -16,7 +16,11 @@ import {
   GRAPH_MAX_DOWNSTREAM_LOOKUP_DEPTH,
 } from '../../constants';
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
+import { CloudEntity } from '../entity/cloud.entity';
+import { CloudOnPremiseEntity } from '../entity/cloud-on-premise.entity';
+import { CloudOpenshiftEntity } from '../entity/cloud-openshift.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
+import { OpenshiftProjectEntity } from '../entity/openshift-project.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { RepositoryEntity } from '../entity/repository.entity';
 import { ServerEntity } from '../entity/server.entity';
@@ -30,12 +34,16 @@ import {
   CollectionNameStringEnum,
 } from '../entity/collection-entity-union.type';
 import { CollectionDtoUnion } from '../dto/collection-dto-union.type';
+import { SyncQueueConfigEntity } from '../entity/sync-queue-config.entity';
+import { SyncType } from '../dto/sync-queue-config.dto';
 
 @Injectable()
 export class CollectionMongoRepository implements CollectionRepository {
   constructor(
     @InjectRepository(CollectionConfigEntity)
     private readonly collectionConfigRepository: MongoEntityRepository<CollectionConfigEntity>,
+    @InjectRepository(SyncQueueConfigEntity)
+    private readonly syncQueueConfigRepository: MongoEntityRepository<SyncQueueConfigEntity>,
     private readonly dataSource: MongoEntityManager,
   ) {}
 
@@ -43,7 +51,7 @@ export class CollectionMongoRepository implements CollectionRepository {
     collection: CollectionNames,
     data: any,
   ): CollectionEntityUnion[typeof collection] {
-    const entity = this.constructCollection(collection);
+    const entity = this.constructCollection(collection, data);
     wrap(entity).assign(this.upgradeDtoToEntityAssignable(collection, data), {
       em: this.dataSource,
     });
@@ -62,7 +70,9 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): any {
     switch (collection) {
       case 'brokerAccount':
+      case 'cloud':
       case 'environment':
+      case 'openshiftProject':
       case 'project':
       case 'repository':
       case 'server':
@@ -95,12 +105,24 @@ export class CollectionMongoRepository implements CollectionRepository {
     }
   }
 
-  private constructCollection(collection: CollectionNames) {
+  private constructCloudEntity(type?: string) {
+    switch (type) {
+      case 'openshift': return new CloudOpenshiftEntity();
+      case 'on-premise': return new CloudOnPremiseEntity();
+      default: return new CloudEntity();
+    }
+  }
+
+  private constructCollection(collection: CollectionNames, data?: any) {
     switch (collection) {
       case 'brokerAccount':
         return new BrokerAccountEntity();
+      case 'cloud':
+        return this.constructCloudEntity(data?.type);
       case 'environment':
         return new EnvironmentEntity();
+      case 'openshiftProject':
+        return new OpenshiftProjectEntity();
       case 'project':
         return new ProjectEntity();
       case 'repository':
@@ -125,6 +147,22 @@ export class CollectionMongoRepository implements CollectionRepository {
 
   public getCollectionConfigs(): Promise<CollectionConfigEntity[]> {
     return this.collectionConfigRepository.find({});
+  }
+
+  public getSyncQueueConfigs(): Promise<SyncQueueConfigEntity[]> {
+    return this.syncQueueConfigRepository.find({});
+  }
+
+  public getSyncQueueConfigsBySyncType(
+    syncType: SyncType,
+  ): Promise<SyncQueueConfigEntity[]> {
+    return this.syncQueueConfigRepository.find({ types: syncType });
+  }
+
+  public async getSyncQueueConfigByQueue(
+    queue: string,
+  ): Promise<SyncQueueConfigEntity | null> {
+    return this.syncQueueConfigRepository.findOne({ queue });
   }
 
   public async getCollectionConfigByName(

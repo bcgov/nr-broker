@@ -21,6 +21,9 @@ import { UtilModule } from '../util/util.module';
 import { PackageBuildEntity } from './entity/package-build.entity';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { BrokerAccountEntity } from './entity/broker-account.entity';
+import { CloudEntity } from './entity/cloud.entity';
+import { CloudOnPremiseEntity } from './entity/cloud-on-premise.entity';
+import { CloudOpenshiftEntity } from './entity/cloud-openshift.entity';
 import { CollectionConfigEntity } from './entity/collection-config.entity';
 import { ConnectionConfigEntity } from './entity/connection-config.entity';
 import { CommunicationTemplateEntity } from './entity/communication-template.entity';
@@ -31,6 +34,7 @@ import { EnvironmentEntity } from './entity/environment.entity';
 import { JwtAllowEntity } from './entity/jwt-allow.entity';
 import { JwtBlockEntity } from './entity/jwt-block.entity';
 import { JwtRegistryEntity } from './entity/jwt-registry.entity';
+import { OpenshiftProjectEntity } from './entity/openshift-project.entity';
 import { PreferenceEntity } from './entity/preference.entity';
 import { ProjectEntity } from './entity/project.entity';
 import { ServerEntity } from './entity/server.entity';
@@ -42,6 +46,7 @@ import { VertexEntity } from './entity/vertex.entity';
 import { GraphPermissionEntity } from './entity/graph-permission.entity';
 import { UserAliasRequestEntity } from './entity/user-alias-request.entity';
 import { RepositoryEntity } from './entity/repository.entity';
+import { SyncQueueConfigEntity } from './entity/sync-queue-config.entity';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',
@@ -79,6 +84,9 @@ const redisFactory = {
   imports: [
     MikroOrmModule.forFeature([
       BrokerAccountEntity,
+      CloudEntity,
+      CloudOnPremiseEntity,
+      CloudOpenshiftEntity,
       CollectionConfigEntity,
       CollectionWatchEntity,
       CollectionWatchConfigEntity,
@@ -91,8 +99,10 @@ const redisFactory = {
       JwtAllowEntity,
       JwtBlockEntity,
       JwtRegistryEntity,
+      OpenshiftProjectEntity,
       ServiceEntity,
       ServiceInstanceEntity,
+      SyncQueueConfigEntity,
       PackageBuildEntity,
       PreferenceEntity,
       ProjectEntity,

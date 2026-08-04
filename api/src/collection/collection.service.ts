@@ -9,6 +9,7 @@ import { REDIS_PUBSUB, VAULT_ADDR } from '../constants';
 import { ServiceInstanceEntity } from '../persistence/entity/service-instance.entity';
 import { ActionUtil } from '../util/action.util';
 import { CollectionConfigDto } from '../persistence/dto/collection-config.dto';
+import { SyncQueueConfigDto } from '../persistence/dto/sync-queue-config.dto';
 import { IntentionService } from '../intention/intention.service';
 import { PERSISTENCE_TYPEAHEAD_SUBQUERY_LIMIT } from '../persistence/persistence.constants';
 import { RedisService } from '../redis/redis.service';
@@ -32,6 +33,13 @@ export class CollectionService {
     return this.collectionRepository.getCollectionConfigs() as unknown as Promise<
       CollectionConfigDto[]
     >;
+  }
+
+  public async getSyncQueueConfig(): Promise<{ queues: SyncQueueConfigDto[] }> {
+    const queues = await this.collectionRepository.getSyncQueueConfigs();
+    return {
+      queues,
+    };
   }
 
   public async getCollectionConfigByName(

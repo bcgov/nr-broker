@@ -1,69 +1,55 @@
-<div class="edge-container">
-  <div class="fields-wrapper">
-    @if (header() === 'small') {
-      <h3 class="heading">Sync Status</h3>
-    } @else {
-      <h2 class="heading">Sync Status</h2>
+@if (hasSyncQueues()) {
+  @if (syncAvailable()) {
+    <div class="edge-container">
+      <div class="fields-wrapper">
+        @if (header() === 'small') {
+          <h3 class="heading">Sync Tools</h3>
+        } @else {
+          <h2 class="heading">Sync Tools</h2>
+        }
+      </div>
+    </div>
+    <div class="edge-body">
+      @for (action of healthySyncActions(); track action.queue) {
+      <div>
+        <app-details-item item="{{ action.label }}">{{ action.summary || action.queue }}</app-details-item>
+
+        @if (action.source === 'traverse') {
+          <app-details-item item="Queued via Collection">{{ action.traverseSummary }}</app-details-item>
+        } @else {
+          @if (showQueued(action.queuedStatusProperty)) {
+            <app-details-item item="Queued">{{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}</app-details-item>
+          } @else {
+            <app-details-item item="Last sync">@if(lastSyncAt(action.queuedStatusProperty)) {
+              {{$safeNavigationMigration(lastSyncAt(action.queuedStatusProperty)) | date: 'medium'}}
+            } @else {
+              Never
+            }</app-details-item>
+          }
+        }
+
+        <div class="details-buttons">
+          <button
+            mat-stroked-button
+            (click)="sync(action)"
+            [disabled]="!hasSudo() || !isEnabled(action.requiredEnabledProperty)">Sync</button>
+
+          @if (hasAdmin()) {
+            <button
+              mat-stroked-button
+              (click)="sync(action, true)"
+                [disabled]="!isEnabled(action.requiredEnabledProperty)">Dry run</button>
+          }
+
+          @if (queueDescriptionLines(action.queue).length > 0) {
+            <button
+              mat-button
+              (click)="openQueueHelp(action)">Help</button>
+          }
+        </div>
+      </div>
     }
   </div>
-</div>
-@if (healthStatus.health$ | async; as health) {
-  @if (health.details['github']['sync']) {
-    <div class="edge-body">
-
-      <div>
-
-      <div class="details-section">Secrets</div>
-
-      @if (showSecretsQueued()) {
-        <app-details-item item="Queued">{{$safeNavigationMigration(repository().syncSecretsStatus?.queuedAt) | date: 'medium'}}</app-details-item>
-      } @else {
-        <app-details-item item="Last sync">@if(repository().syncSecretsStatus?.syncAt) {
-            {{$safeNavigationMigration(repository().syncSecretsStatus?.syncAt) | date: 'medium'}}
-          } @else {
-            Never
-          }</app-details-item>
-      }
-
-      <div class="details-buttons">
-        <button
-          mat-stroked-button
-          (click)="syncSecrets()"
-          [disabled]="!repository().enableSyncSecrets">Sync</button>
-
-        <button
-          mat-button
-          (click)="showGitHubSecrets()">Help</button>
-      </div>
-    </div>
-
-    <div>
-      <div class="details-section">User Access</div>
-
-      @if(showUsersQueued()) {
-        <app-details-item item="Queued">{{$safeNavigationMigration(repository().syncUsersStatus?.queuedAt) | date: 'medium'}}</app-details-item>
-      } @else {
-        <app-details-item item="Last sync">@if(repository().syncUsersStatus?.syncAt) {
-            {{$safeNavigationMigration(repository().syncUsersStatus?.syncAt) | date: 'medium'}}
-          } @else {
-            Never
-          }</app-details-item>
-      }
-
-      <div class="details-buttons">
-        <button
-          mat-stroked-button
-          (click)="syncUsers()"
-          [disabled]="!repository().enableSyncUsers">Sync</button>
-
-        <button
-          mat-button
-          (click)="showGitHubRoleMappings()">Help</button>
-      </div>
-    </div>
-
-  </div>
-
   } @else {
     <p class="edge-container">Sync services are currently not available.</p>
   }

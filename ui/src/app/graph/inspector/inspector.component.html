@@ -136,6 +136,12 @@
           <div class="wrapper vertex-edge-container">
             <div class="fields-wrapper">
               <h3 class="vertex-heading">Connections</h3>
+              <button
+                mat-icon-button
+                matTooltip="Learn about connections"
+                (click)="showConnectionsHelp()">
+                <mat-icon>help_outline</mat-icon>
+              </button>
             </div>
           </div>
           <app-inspector-connections

@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Collection Descriptions</h2>
+
+<mat-dialog-content>
+  @for (cfg of data.configs; track cfg.id) {
+    <app-details-item [item]="cfg.name" wrapValue="true">{{cfg.hint}}</app-details-item>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="close()">Close</button>
+</mat-dialog-actions>

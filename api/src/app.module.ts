@@ -27,6 +27,7 @@ import { PackageModule } from './package/package.module';
 import { VaultModule } from './vault/vault.module';
 import { GithubModule } from './github/github.module';
 import { CommunicationModule } from './communication/communication.module';
+import { KubernetesModule } from './kubernetes/kubernetes.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { CommunicationModule } from './communication/communication.module';
     VaultModule,
     GithubModule,
     CommunicationModule,
+    KubernetesModule,
   ],
   controllers: [],
   providers: [],

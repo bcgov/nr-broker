@@ -1,12 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { InjectionToken } from '@angular/core';
-import { Observable, catchError, tap } from 'rxjs';
+import { Observable, catchError, forkJoin, tap } from 'rxjs';
 import { environment } from '../environments/environment';
 import {
   CollectionConfigNameRecord,
   CollectionConfigStringRecord,
 } from './service/graph.types';
 import { CollectionConfigDto } from './service/persistence/dto/collection-config.dto';
+import {
+  SyncQueueConfigResponseDto,
+  SyncQueueConfigDto,
+} from './service/persistence/dto/sync-queue-config.dto';
 import { UserSelfDto } from './service/persistence/dto/user.dto';
 import { PreferenceDto } from './service/persistence/dto/preference.dto';
 import { FeatureFlagsDto } from './service/persistence/dto/feature-flags.dto';
@@ -19,6 +23,7 @@ let featureFlagsInit: FeatureFlagsDto;
 let configArr: CollectionConfigDto[];
 let configRecord: CollectionConfigNameRecord;
 let configSrcTarRecord: CollectionConfigStringRecord;
+let syncQueueConfigRecord: Record<string, SyncQueueConfigDto>;
 
 export const CURRENT_USER = new InjectionToken<UserSelfDto>('CURRENT_USER', {
   providedIn: 'root',
@@ -63,6 +68,13 @@ export const CONFIG_EDGE_CONFIG_MAP =
     factory: () => configSrcTarRecord,
   });
 
+export const SYNC_QUEUE_CONFIG_RECORD = new InjectionToken<
+  Record<string, SyncQueueConfigDto>
+>('SYNC_QUEUE_CONFIG_RECORD', {
+  providedIn: 'root',
+  factory: () => syncQueueConfigRecord,
+});
+
 export function appInitializeUserFactory(http: HttpClient): Observable<any> {
   return http
     .get<UserSelfDto>(`${environment.apiUrl}/v1/collection/user/self`)
@@ -98,15 +110,28 @@ export function appInitializePrefFactory(http: HttpClient): Observable<any> {
 }
 
 export function appInitializeConfigFactory(http: HttpClient): Observable<any> {
-  return http
-    .get<CollectionConfigDto[]>(`${environment.apiUrl}/v1/collection/config`)
+  return forkJoin({
+    collectionConfigResponse: http.get<CollectionConfigDto[]>(
+      `${environment.apiUrl}/v1/collection/config/entities`,
+    ),
+    syncQueueConfigResponse: http.get<SyncQueueConfigResponseDto>(
+      `${environment.apiUrl}/v1/collection/config/sync-queue`,
+    ),
+  })
     .pipe(
-      tap((configArrInner) => {
+      tap(({ collectionConfigResponse, syncQueueConfigResponse }) => {
+        const configArrInner = collectionConfigResponse;
         configArr = configArrInner;
         configRecord = CollectionUtilService.configArrToMap(configArrInner);
         configSrcTarRecord = GraphUtilService.configArrToSrcTarRecord(
           configArr,
           configRecord,
+        );
+        syncQueueConfigRecord = Object.fromEntries(
+          (syncQueueConfigResponse.queues ?? []).map((queueConfig) => [
+            queueConfig.queue,
+            queueConfig,
+          ]),
         );
       }),
       catchError((e) => {

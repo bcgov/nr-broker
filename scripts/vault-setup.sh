@@ -20,6 +20,7 @@ echo "Setting up: $VAULT_ADDR"
 
 # Setup kv mounts
 vault secrets enable -path=apps -version=2 kv
+vault secrets enable -path=clouds -version=2 kv
 vault secrets enable -path=groups -version=2 kv
 # Setup auth mounts
 vault auth enable oidc

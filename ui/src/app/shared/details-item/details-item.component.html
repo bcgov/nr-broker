@@ -5,5 +5,5 @@
   matRipple
   [matRippleDisabled]="!clickable()">
   <div class="details-header">{{ item() }}</div>
-  <div class="details-line"><ng-content>{{ value() }}</ng-content></div>
+  <div class="details-line" [class.details-line-wrap]="wrapValue()"><ng-content>{{ value() }}</ng-content></div>
 </div>
