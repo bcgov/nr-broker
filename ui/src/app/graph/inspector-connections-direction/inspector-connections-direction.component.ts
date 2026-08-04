@@ -4,19 +4,24 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CollectionConfigDto } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionConfigDto, CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { GraphDirectedCombo, GraphDirectedComboMap } from '../../service/persistence/dto/collection-combo.dto';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
-import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CONFIG_ARR, CONFIG_RECORD } from '../../app-initialize.factory';
 import { ColorUtilService } from '../../util/color-util.service';
+import { EdgetitleinboundPipe } from '../../util/edgetitleinbound.pipe';
+import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { PreferencesService } from '../../preferences.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { GraphUtilService } from '../../service/graph-util.service';
 
 @Component({
   selector: 'app-inspector-connections-direction',
   imports: [
     CommonModule,
+    EdgetitleinboundPipe,
+    EdgetitlePipe,
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
@@ -30,6 +35,8 @@ export class InspectorConnectionsDirectionComponent {
   private readonly preferences = inject(PreferencesService);
   private readonly colorUtil = inject(ColorUtilService);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly configArr = inject<CollectionConfigDto[]>(CONFIG_ARR);
+  readonly graphUtilService = inject(GraphUtilService);
 
   readonly direction = input.required<'inbound' | 'outbound'>();
   readonly config = input.required<CollectionConfigDto>();
@@ -67,6 +74,14 @@ export class InspectorConnectionsDirectionComponent {
       map[combo.edge.name].push(combo);
     }
     return map;
+  }
+
+  findEdgeConfigByCombo(combo: GraphDirectedCombo): CollectionEdgeConfig | undefined {
+    const sourceCollection = this.configArr[combo.edge.is];
+    const it = combo.edge.it;
+    return sourceCollection?.edges.find(
+      (e) => this.configRecord[e.collection].index === it && e.name === combo.edge.name,
+    );
   }
 
   navigateConnection($event: MouseEvent, item: GraphDirectedCombo) {

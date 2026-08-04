@@ -66,6 +66,7 @@ export const VAULT_ENVIRONMENTS_SHORT = Object.freeze([
   'tools',
 ]);
 export const VAULT_KV_APPS_MOUNT = 'apps';
+export const VAULT_KV_CLOUDS_MOUNT = 'clouds';
 export const VAULT_KV_APPS_TOOLS_PATH_TPL =
   process.env.VAULT_KV_APPS_TOOLS_PATH_TPL ??
   'tools/<%= projectName %>/<%= serviceName %>';

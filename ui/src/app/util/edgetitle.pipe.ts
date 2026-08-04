@@ -12,6 +12,6 @@ export class EdgetitlePipe implements PipeTransform {
     if (!edge) {
       return '';
     }
-    return edge.title || this.titleCase.transform(edge.name);
+    return edge.title ?? this.titleCase.transform(edge.name);
   }
 }

@@ -1,7 +1,7 @@
 import { BrokerAccountEntity } from '../entity/broker-account.entity';
 import { CloudEntity } from '../entity/cloud.entity';
 import { EnvironmentEntity } from '../entity/environment.entity';
-import { OpenShiftProjectEntity } from '../entity/openshift-project.entity';
+import { OpenshiftProjectEntity } from '../entity/openshift-project.entity';
 import { ProjectEntity } from '../entity/project.entity';
 import { ServerEntity } from '../entity/server.entity';
 import { ServiceInstanceEntity } from '../entity/service-instance.entity';
@@ -45,7 +45,7 @@ export function getRepositoryFromCollectionName<
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'openshiftProject':
       return dataSource.getRepository(
-        OpenShiftProjectEntity,
+        OpenshiftProjectEntity,
       ) as unknown as MongoEntityRepository<CollectionEntityUnion[T]>;
     case 'project':
       return dataSource.getRepository(

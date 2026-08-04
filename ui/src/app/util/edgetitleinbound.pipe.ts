@@ -3,14 +3,17 @@ import { CollectionEdgeConfig } from '../service/persistence/dto/collection-conf
 import { TitleCasePipe } from '@angular/common';
 
 @Pipe({
-  name: 'edgeinboundtitle',
+  name: 'edgetitleinbound',
 })
-export class EdgeinboundtitlePipe implements PipeTransform {
+export class EdgetitleinboundPipe implements PipeTransform {
   private titleCase = new TitleCasePipe();
 
-  transform(edge: CollectionEdgeConfig): unknown {
+  transform(edge: CollectionEdgeConfig | undefined): unknown {
+    if (!edge) {
+      return '';
+    }
     return (
-      edge.titleInbound || edge.title || this.titleCase.transform(edge.name)
+      edge.titleInbound ?? edge.title ?? this.titleCase.transform(edge.name)
     );
   }
 }
