@@ -70,7 +70,7 @@ const collectionSyncQueuesByCollection = {
     },
     {
       traverse: {
-        collection: 'openShiftProject',
+        collection: 'openshiftProject',
         direction: 'downstream',
         maxDepth: 8,
         queues: ['KUBERNETES_SYNC_SECRETS'],
@@ -94,14 +94,14 @@ const collectionSyncQueuesByCollection = {
   cloud: [
     {
       traverse: {
-        collection: 'openShiftProject',
+        collection: 'openshiftProject',
         direction: 'downstream',
         maxDepth: 4,
         queues: ['KUBERNETES_SYNC_SECRETS'],
       },
     },
   ],
-  openShiftProject: [
+  openshiftProject: [
     {
       queue: {
         queue: 'KUBERNETES_SYNC_SECRETS',
