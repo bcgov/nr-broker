@@ -1,22 +1,23 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
 import { EChartsCoreOption } from 'echarts/core';
 import * as echarts from 'echarts/core';
+import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import { GraphChart } from 'echarts/charts';
 import { LegendComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
+
 import { GraphRolePermissionRuleDto } from '../../service/graph/dto/graph-role-permission-rule.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 import { EdgetitlePipe } from '../../util/edgetitle.pipe';
 import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatCardModule } from '@angular/material/card';
 
 echarts.use([GraphChart, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -401,9 +402,5 @@ export class BrokerRoleMappingDialogComponent implements OnInit {
         },
       ],
     };
-  }
-
-  navigateToBrowseEnvironments(): void {
-    this.dialogRef.close({ action: 'navigate', path: '/browse/environment' } as BrokerRoleMappingDialogResult);
   }
 }
