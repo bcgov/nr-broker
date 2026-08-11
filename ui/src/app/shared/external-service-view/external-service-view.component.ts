@@ -3,7 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 
 import { TeamRoleEdgesComponent } from '../../browse/team-role-edges/team-role-edges.component';
 import { ConnectionConfigDto } from '../../service/persistence/dto/connection-config.dto';
-import { CollectionEdgeConfig, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionEdgeConfig, CollectionEdgePrototype, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
 import {
   BrokerChipClickEvent,
   BrokerRolesByEdge,
@@ -13,6 +13,7 @@ import {
 } from '../../browse/team-roles/team-role-types';
 import { ExternalServiceCardComponent } from '../external-service-card/external-service-card.component';
 import { ScreenService } from '../../util/screen.service';
+import { DetailsItemComponent } from '../details-item/details-item.component';
 
 interface PermissionGroup {
   label: string;
@@ -22,7 +23,7 @@ interface PermissionGroup {
 
 @Component({
   selector: 'app-external-service-view',
-  imports: [MatCardModule, ExternalServiceCardComponent, TeamRoleEdgesComponent],
+  imports: [MatCardModule, ExternalServiceCardComponent, DetailsItemComponent, TeamRoleEdgesComponent],
   templateUrl: './external-service-view.component.html',
   styleUrl: './external-service-view.component.scss',
 })
@@ -35,6 +36,7 @@ export class ExternalServiceViewComponent {
   readonly gitHubRoleByEdge = input<GitHubRolesByEdge>({});
   readonly brokerRoleByEdge = input<BrokerRolesByEdge>({});
   readonly currentConnectionConfigId = input<string | null>(null);
+  readonly servicePrototypes = input<CollectionEdgePrototype[]>([]);
   readonly permissionGroups = computed<PermissionGroup[]>(() => {
     const groups = new Map<string, PermissionGroup>();
 

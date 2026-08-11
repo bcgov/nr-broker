@@ -44,4 +44,7 @@ export class ConnectionConfigEntity extends BaseEntity {
 
   @Embedded(() => RoleChipMappingEmbeddable, { array: true })
   roleChipMappings: RoleChipMappingEmbeddable[] = [];
+
+  @Property({ nullable: true })
+  vertexId?: string;
 }

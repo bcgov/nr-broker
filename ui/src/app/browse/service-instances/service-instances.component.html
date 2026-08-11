@@ -21,7 +21,7 @@
 
     <p>{{ configMap['serviceInstance'].hint }}</p>
 
-  @if (details.serviceInstance.length === 0) {
+  @if (!details.serviceInstance?.length) {
     <p class="no-instances">No instances found</p>
   }
 

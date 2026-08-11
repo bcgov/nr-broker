@@ -1426,7 +1426,7 @@ export class GraphMongoRepository implements GraphRepository {
       index,
     });
     if (config === null) {
-      throw new Error();
+      throw new Error(`Unable to locate collection config for index ${index}`);
     }
     return this.vertexRepository
       .aggregate([

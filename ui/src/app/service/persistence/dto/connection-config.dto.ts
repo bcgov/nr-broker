@@ -17,4 +17,5 @@ export class ConnectionConfigDto {
   name!: string;
   order!: number;
   roleChipMappings!: RoleChipMappingDto[];
+  vertexId?: string;
 }

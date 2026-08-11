@@ -12,16 +12,34 @@
         <p class="description-text">{{service.description}}</p>
         <div class="links-row">
           @if (service.href) {
-            <a [href]="service.href" target="_blank" rel="noopener noreferrer" mat-stroked-button>
-              Open service
-              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            <a [href]="service.href" target="_blank" rel="noopener noreferrer">
+              <button mat-stroked-button
+                [matTooltip]="service.href"
+                matTooltipShowDelay="500">
+                Open service
+                <mat-icon iconPositionEnd>open_in_new</mat-icon>
+              </button>
             </a>
           }
           @if (service.documentationUrl) {
-            <a [href]="service.documentationUrl" target="_blank" rel="noopener noreferrer" mat-stroked-button>
-              Documentation
-              <mat-icon iconPositionEnd>open_in_new</mat-icon>
+            <a [href]="service.documentationUrl" target="_blank" rel="noopener noreferrer">
+              <button mat-stroked-button
+                matTooltip="{{service.documentationUrl}}"
+                matTooltipShowDelay="500">
+                Documentation
+                <mat-icon iconPositionEnd>open_in_new</mat-icon>
+              </button>
             </a>
+          }
+          @if (service.vertexId) {
+            <button mat-stroked-button
+              (click)="openInBrowser()">
+              View
+            </button>
+            <button mat-stroked-button
+              (click)="openInGraph()">
+              View on Graph
+            </button>
           }
         </div>
       </div>
