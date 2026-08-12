@@ -12,7 +12,7 @@
     <div class="edge-body">
       @for (action of healthySyncActions(); track action.queue) {
       <div>
-        <app-details-item item="{{ action.label }}">{{ action.summary || action.queue }}</app-details-item>
+        <app-details-item item="{{ action.label }}" wrapValue="true">{{ action.summary || action.queue }}</app-details-item>
 
         @if (action.source === 'traverse') {
           <app-details-item item="Queued via Collection">{{ action.traverseSummary }}</app-details-item>

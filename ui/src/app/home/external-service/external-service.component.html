@@ -18,6 +18,7 @@
         [gitHubRoleByEdge]="gitHubRolesByEdge()"
         [brokerRoleByEdge]="brokerRolesByEdge()"
         [currentConnectionConfigId]="currentService.id"
+        [servicePrototypes]="servicePrototypes()"
         (connectionChipClick)="openConnectionConfigDialog($event)"
         (githubChipClick)="openConnectionConfigDialog(getGitHubConnectionConfigChip($event))"
         (brokerChipClick)="handleBrokerChipClick($event)"

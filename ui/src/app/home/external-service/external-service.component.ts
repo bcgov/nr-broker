@@ -12,7 +12,7 @@ import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionHeaderComponent } from '../../shared/collection-header/collection-header.component';
 import { ExternalServiceViewComponent } from '../../shared/external-service-view/external-service-view.component';
 import { CollectionConfigNameRecord } from '../../service/graph.types';
-import { CollectionEdgeConfig, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
+import { CollectionEdgeConfig, CollectionEdgePrototype, GitHubEdgeToRoles } from '../../service/persistence/dto/collection-config.dto';
 import { SystemApiService } from '../../service/system-api.service';
 import { FeatureFlagService } from '../../service/feature-flag.service';
 import { ConnectionConfigDto } from '../../service/persistence/dto/connection-config.dto';
@@ -76,6 +76,14 @@ export class ExternalServiceComponent {
     return services.find((s) => s.id === this.serviceId()) ?? null;
   });
   private readonly connectionConfigs = computed(() => this.connectionConfigResource.value() ?? []);
+  readonly servicePrototypes = computed<CollectionEdgePrototype[]>(() => {
+    const vertexId = this.service()?.vertexId;
+    if (!vertexId) return [];
+    return (this.configRecord['team']?.edges ?? [])
+      .filter((edge) => edge.collection === 'service' && edge.prototypes?.length)
+      .flatMap((edge) => edge.prototypes ?? [])
+      .filter((proto) => proto.target === vertexId);
+  });
   readonly teamRoleChipsEnabled = this.featureFlagService.isEnabled('teamRoleChips');
   readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
     this.graphApi.getTeamRolePermissionRulesArgs(),

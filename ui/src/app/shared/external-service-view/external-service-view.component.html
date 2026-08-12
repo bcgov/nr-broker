@@ -1,9 +1,9 @@
 <div
   class="service-card-layout"
-  [class.wide]="screen.screenSizeXLarge() === 'wide'"
-  [class.narrow]="screen.screenSizeXLarge() !== 'wide'"
+   [class.wide]="screen.screenSizeXLarge() === 'wide'"
+   [class.narrow]="screen.screenSizeXLarge() !== 'wide'"
 >
-  <app-external-service-card [connectionConfig]="connectionConfig()" />
+   <app-external-service-card [connectionConfig]="connectionConfig()" />
 
   <mat-card appearance="outlined" class="permissions-card">
     <mat-card-header>
@@ -11,7 +11,11 @@
     </mat-card-header>
     <mat-card-content>
       <div class="service-card-content">
-        <p>The user's roles on a team may grant them specific permissions within this service. Access may be provided to all users or through grants to the entire team.</p>
+        <p>
+          Authorization is typically based on the user's role(s) on a team. All team members may have access, or it may be role specific.
+          Services may also grant all users basic access. Please refer to the service documentation for more information.
+        </p>
+
         @if (permissionGroups().length > 0) {
           <p class="help-text">Permissions are grouped below with all associated roles that grant them.</p>
           <div class="permission-groups">
@@ -37,7 +41,16 @@
             }
           </div>
         } @else {
-          <p class="empty-state">No roles are configured for this service.</p>
+          <p class="empty-state">No role authorizations are configured for this service.</p>
+        }
+
+        @if (servicePrototypes().length > 0) {
+          <div class="connection-types">
+            <p class="connection-types-label">Teams can request the following:</p>
+            @for (prototype of servicePrototypes(); track prototype.name) {
+              <app-details-item item="{{ prototype.name }}">{{ prototype.description }}</app-details-item>
+            }
+          </div>
         }
       </div>
     </mat-card-content>
