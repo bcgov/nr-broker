@@ -1,56 +1,54 @@
 # What is a Broker account?
 
-A Broker account connects your team to the projects and services you work with. It's the identity your applications use when they need to access secrets, deploy software, or perform other automated tasks through Broker.
+A Broker account is the identity your applications use when they need to access secrets, deploy software, or perform other automated tasks through Broker. Think of it like a service account or API key for your team.
 
-Please contact your organization's Broker administrator to have a new Broker account created or modified.
+If you need a new Broker account created or modified, contact your organization's Broker administrator.
 
-## How Broker accounts work
+## Why your team needs Broker accounts
 
-Think of a Broker account like a service account or API key for your team. This is different from your personal identity in Broker.
+When your applications need to do things like:
 
-When you use a Broker account, Broker knows:
-- Which projects, services, secrets, and repositories the account can access
-- What actions the account is allowed to perform
-- How to track and audit those actions
+- **Access secrets** — Retrieve passwords, API keys, and other sensitive configuration from HashiCorp Vault
+- **Deploy software** — Record deployment activities so Broker can validate business rules
+- **Build software** — Record build artifacts to help validate future deployments
+- **Automate tasks** — Perform routine operations without manual intervention
 
-## Broker accounts and teams
+...they use a Broker account to do it. This is separate from your personal login to Broker.
 
-Each Broker account is connected to upstream teams and downstream projects or services. The upstream teams determine the individuals that have access to the downstream objects.
+## How accounts connect to your work
 
-For example, if your team has a project called "Customer Portal" with multiple services (web frontend, API backend, database), you might create separate Broker accounts for each service. Each account would have access only to the secrets and resources that specific service needs. Another popular approach is to create a single account for the project. Broker is very flexible in how you connect accounts.
+Each Broker account is linked to your team (upstream) and to projects or services (downstream). This connection tells Broker:
 
-## Using Broker accounts
+- Which secrets the account can access
+- What actions the account can perform
+- Who on your team can manage the account
 
-Your applications use Broker accounts to:
-- **Access secrets** - Get passwords, API keys, and other sensitive configuration from HashiCorp Vault
-- **Build software** - Record build activities to assist with validating business rules
-- **Deploy software** - Record deployment activities and validate business rules
-- **Automate tasks** - Perform routine operations without manual intervention
+For example, if your team has a project called "Customer Portal" with multiple services (web frontend, API backend, database), you might create separate Broker accounts for each service. Each account would only have access to the secrets that specific service needs. Alternatively, you could create a single account for the entire project. Broker is flexible in how you set this up.
 
-All activity performed with a Broker account is tracked in the audit log, making it easy to see what happened and when.
+## Keeping track of activity
 
-## Broker account tokens
+Everything your applications do with a Broker account is recorded in the audit log. This makes it easy to see what happened, when, and which service was involved — useful for troubleshooting or compliance reviews.
 
-To use a Broker account, you use an account token. This token authorizes you to make requests on behalf of the account. The token must be periodically rotated to prevent stale tokens from existing forever.
+## Managing account tokens
 
-Teams will be contacted to renew their token prior to expiry.
+To use a Broker account, you need an account token. This token authorizes requests on behalf of the account and must be rotated periodically.
 
-### Managing access to tokens
+### Who can manage tokens?
 
-Team members with 'lead-developer' permissions can:
-- Generate tokens for those accounts
-- Revoke accounts that are no longer needed
+Team members with "lead-developer" permissions can:
+- Generate new tokens for accounts
+- Revoke tokens that are no longer needed
 
-The team owner should ensure there is always a team member with access to manage tokens. To create or manage team roles, see [Manage my team](/ops_manage_team.md).
+As a team owner, make sure there's always at least one team member who can manage tokens. To assign roles, see [Manage My Team](/ops_manage_team.md).
 
-### Generating a token
+### Getting a token
 
-For details on generating tokens, see [Generating tokens](/dev_account_token.md).
+For step-by-step instructions, see [Broker Account Tokens](/dev_account_token.md).
 
 ### Security best practices
 
 To keep your Broker access secure:
-- Store account tokens securely (use secret managers, not source code)
+- Store account tokens in secret managers, not in source code
 - Rotate tokens regularly or when team members leave
 - Revoke accounts that are no longer in use
-- Monitor the audit log for unexpected activity
+- Check the audit log if you see unexpected activity

@@ -10,7 +10,7 @@ Before requesting service secrets, you are required to open an intention that de
 
 The purpose of some actions is to audit (like describing built artifacts) instead of gaining access to secrets. This audit information may be used to allow or deny future actions. See: [Intention Action Reference](/dev_intention_actions.md)
 
-Broker Accounts can be associated with multiple teams and removed from teams if that team's responsiblities change. Team owners are responsible for setting up and maintaining the user membership.
+Broker Accounts can be associated with multiple teams and removed from teams if that team's responsibilities change. Team owners are responsible for setting up and maintaining the user membership.
 
 ## Determining my Accounts
 
@@ -20,6 +20,6 @@ If you click on a row on the "Teams" page, it will show a listing of all your ac
 
 ## Next steps
 
-* [Generate Account Token](/dev_account_token.md)
+* [Broker Account Tokens](/dev_account_token.md)
 * [Intention Lifecycle](/dev_intention_lifecycle.md)
 * [Using Intentions to Access Vault](/dev_intention_usage.md)

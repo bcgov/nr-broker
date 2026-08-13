@@ -1,6 +1,10 @@
 # Kubernetes / OpenShift Secret Sync
 
-NR Broker can synchronize secrets from Vault into Kubernetes (OpenShift) project secrets. This removes the need to manually copy secrets and keeps them up to date whenever they change in Vault.
+NR Broker can synchronize **tools (CI/CD) secrets** from Vault into Kubernetes (OpenShift) project secrets. This is intended for secrets that CI/CD pipelines and build tooling need — such as Broker account tokens and other infrastructure credentials — not for runtime application secrets.
+
+For runtime service secrets, applications should authenticate using their [service AppRole](/dev_vault_for_developers.md) to read secrets directly from Vault.
+
+For general information about how the collection sync system works, see [Collection Sync Queues](/dev_customize_collection_sync.md).
 
 ## How it works
 
@@ -23,7 +27,9 @@ Each secret mapping in the sync configuration can reference a **service** by nam
 
 This edge must be added in the NR Broker UI (or via the API) before the sync will succeed. The `deploys` edge is a restricted edge and is not followed in graph lookups by default.
 
-When authorized, the Vault path is built automatically as `tools/<project>/<service>` on the `apps` mount, matching the path convention used for all NR Broker–managed services. An optional `path` suffix can be added to read a sub-key within that secret.
+When authorized, the Vault path is built automatically as `tools/<project>/<service>` on the `apps` mount — the path convention for tools (CI/CD) secrets in NR Broker. An optional `path` suffix can be added to read a sub-key within that secret.
+
+> **Note:** Service runtime secrets live under a different path and are accessed by the service's AppRole directly, not via this sync mechanism.
 
 ## Testing locally with minikube
 
@@ -291,19 +297,3 @@ The `syncSecretsStatus` field on the OpenShift Project record tracks:
 These are visible in the NR Broker UI on the OpenShift Project detail page (requires `sudo` access).
 
 Sync activity is recorded in the audit log with the `tools.sync` dataset. See: [Understanding the Audit Log](/operations_audit.md)
-
-## Upgrading an existing installation
-
-If you are adding Kubernetes sync to an existing NR Broker installation that did not have Cloud and OpenShift Project collections, run the following migration scripts in order:
-
-```bash
-# Add Cloud and OpenShift Project collection configs
-mongosh -u <user> -p <password> --authenticationDatabase admin brokerDB \
-  ./scripts/db/mongo-migration-add-cloud-openshift.js
-
-# Add KUBERNETES_SYNC_SECRETS sync queue config and update collection sync rules
-mongosh -u <user> -p <password> --authenticationDatabase admin brokerDB \
-  ./scripts/db/mongo-migration-add-sync-queues-to-collection-config.js
-```
-
-Both scripts are idempotent and safe to run on an already-migrated database.

@@ -83,7 +83,7 @@ AWS configuration used to push the audit log to a Kinesis end point. Consuming t
 
 ## Log redirection
 
-The logs are normally split into different datasets by the field `event.dataset`. See: [Understanding the Audit Log](/audit.md)
+The logs are normally split into different datasets by the field `event.dataset`. See: [Understanding the Audit Log](/operations_audit.md)
 
 If you are testing, the `@metadata.index` field can be used by what processes the logs to override the destination index. Log processing is deployment specific.
 
@@ -198,5 +198,4 @@ Adding a new feature flag requires three steps:
 
 | Env Var | Default | Description |
 | --- | --- | --- |
-| FEATURE_FLAG_GITHUB_ENVIRNOMENT_SYNC | false | Enables GitHub environment synchronisation (backend only). |
 | FEATURE_FLAG_TEAM_ROLE_CHIPS | false | Shows role authorisation chips on the team roles page. |

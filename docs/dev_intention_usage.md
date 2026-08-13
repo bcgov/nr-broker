@@ -13,13 +13,13 @@ The first step is to determine if you are provisioning an application or just ac
 * Provision: Start an OpenShift pod, Run a server application on premise and other continuous activities
 * Access: Run Liquibase, GitHub Action, other one-off or scheduled activities
 
-It is not recommended to use the "access" pattern to simply copy the secrets and then do a continuous activity. The source of truth for the secrets should always be Vault. Tools like envconsul and consul-template should be used to manage the provisioned Vault token and keep the secrets that your application is using up-to-date.
+It is not recommended to use the "access" pattern to simply copy the secrets and then do a continuous activity. The source of truth for the secrets should always be Vault. Use Vault Agent (process supervisor mode or file templating), a Vault API library, or similar tooling to manage the provisioned token and keep secrets up to date. See: [Understanding Vault](/dev_vault_for_developers.md#what-happens-when-secrets-change)
 
 ## Provisioning action
 
 **Examples:** Start an OpenShift pod, Run a server application on premise and other continuous activities
 
-The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Token](dev_account_token.md)
+The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Tokens](/dev_account_token.md)
 
 **Call  1.** POST /v1/intention/open
 
@@ -104,7 +104,7 @@ There is no body to send. Two headers can be sent:
 
 This is the wrapped response to calling the Vault API: https://developer.hashicorp.com/vault/api-docs/auth/approle#generate-new-secret-id
 
-The Vault API (not the Broker API) should be used with this response. This response is wrapped. It is possible to use the REST API to unwrap the response. However, you must use the unwrap API (POST /sys/wrapping/unwrap) and then fallback on the cubbyhole API (GET /cubbyhole/response) if that fails with the not found status code (404). The later API is deprecated and at some point Vault may switch to the former API. The vault cli handles checking both APIs. See: Vault cli code
+The Vault API (not the Broker API) should be used with this response. This response is wrapped. It is possible to use the REST API to unwrap the response. However, you must use the unwrap API (POST /sys/wrapping/unwrap) and then fallback on the cubbyhole API (GET /cubbyhole/response) if that fails with the not found status code (404). The cubbyhole API is deprecated and at some point Vault may switch to the former API. The `vault` CLI handles checking both APIs automatically.
 
 ```
 WRAPPED_VAULT_TOKEN=$(echo $VAULT_TOKEN_WRAP | jq -r '.wrap_info.token')
@@ -125,8 +125,9 @@ You're done! Pass in '.token' from the open response as the 'x-broker-token' hea
 
 ### Related tools
 
-* Consul Template
-* Envconsul
+* [Vault Agent process supervisor](https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent/process-supervisor) — inject secrets as environment variables and auto-restart on rotation
+* [Vault Agent file templating](https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent/template) — render secrets into config files
+* Consul Template / Envconsul — alternative sidecar tools for managing secrets
 
 ## Accessing Action
 
@@ -134,7 +135,7 @@ You're done! Pass in '.token' from the open response as the 'x-broker-token' hea
 
 If you are following the access workflow, you'll be using the role id (provided) to retrieve a wrapped token with access to Vault. The token will have policies that are identical to a provisioned token. The 'provision/token/self' API allows you to skip sending a request to Vault to do the login yourself. The main difference is that the token cannot be renewed. The example here assumes some kind of database upgrade is going on.
 
-The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Token](dev_account_token.md)
+The first step is to open an intention with the Broker API. The open API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. See: [Broker Account Tokens](/dev_account_token.md)
 
 You must modify the event, service and user fields in this example. In particular, the user id (<username>@idir or <username>@github) must be a member of your team (even if this sent by an automated process). Jq is an excellent tool for doing this modification.
 
@@ -190,11 +191,6 @@ After finishing your activity, be sure to revoke the token and then close the in
 **Call  3.** POST /v1/intention/close
 
 You're done! Pass in '.token' from the open response as the 'x-broker-token' header to authenticate this call.
-
-### Related tools
-
-* Consul Template
-* Envconsul
 
 ### Broker Examples
 
