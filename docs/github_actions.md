@@ -60,7 +60,7 @@ A periodic process that is accessing secrets may be transient. This means there 
 
 **Step 2.** [Intention open](https://github.com/bcgov-nr/action-broker-intention-open)
 
-NR Broker's API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. If your Broker and repository is configured, generated tokens will be automatically sync to your GitHub secrets. See: [Broker Account Token](dev_account_token.md)
+NR Broker's API is authenticated using a Broker Account that is connected to the project/service(s) in the actions. Your team can generate a Broker Token for Broker Accounts that your team is connected to. If your Broker and repository is configured, generated tokens will be automatically sync to your GitHub secrets. See: [Broker Account Tokens](/dev_account_token.md)
 
 The [Intention open](https://github.com/bcgov-nr/action-broker-intention-open) Action assists with sending the intention.
 
@@ -70,7 +70,7 @@ The **start Action** is not needed as the **Intention open** can be configured t
 - name: Open intention
   uses: bcgov-nr/action-broker-intention-open@v2
   with:
-    broker_jwt: ${{ secrets.<%= brokerJwt %> }}
+    broker_jwt: ${{ secrets.BROKER_JWT }}
     intention_path: intention.json
     quickstart: true
 ```

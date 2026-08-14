@@ -107,6 +107,7 @@ The `ValidationRuleEngine` orchestrates action rule execution:
 | `TargetServiceValidationRule` | 40 | Verify target service configuration |
 | `DatabaseAccessValidationRule` | 50 | Database access authorization |
 | `PackageBuildValidationRule` | 60 | Package build business rules |
+| `EnvironmentPromotionValidationRule` | 65 | Enforce environment promotion path |
 | `PackageInstallationValidationRule` | 70 | Package installation requirements |
 | `AssistedDeliveryValidationRule` | 80 | User authorization for environment changes |
 
