@@ -1,10 +1,10 @@
 # Collection Sync Queues
 
-The collection sync system enables Broker to enqueue work items into Redis queues that external jobs can consume. This decouples long-running or specialized synchronization tasks from the core API, allowing independent scaling and technology choices for downstream consumers.
+The collection sync system enables Broker to enqueue work items into Redis queues that external jobs can consume. This decouples long-running or specialized synchronization tasks from the core API, allowing independent scaling and technology choices for queue processors.
 
 ## How it works
 
-When a sync is triggered (via the API or a cron job), Broker performs the following steps:
+When a sync is triggered, Broker performs the following steps:
 
 1. Looks up `syncQueues` rules configured on the target collection
 2. Resolves which entities should be queued using either direct queue rules or graph traversal rules
@@ -12,6 +12,8 @@ When a sync is triggered (via the API or a cron job), Broker performs the follow
 4. External jobs dequeue items and perform the actual synchronization work
 
 By syncing, it smooths out spikes in processing and, optionally, deduplicates already queued identical requests.
+
+> A sync can be triggered [using the sync API](#triggering-sync) directly, or some operations will trigger a sync automatically. The later allows updating the members of a team to trigger ["user-type"](#fields) syncs.
 
 ## Configuration overview
 

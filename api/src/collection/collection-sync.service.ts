@@ -373,10 +373,6 @@ export class CollectionSyncService {
     }
   }
 
-  private isRequirementMet(requirement: CollectionSyncRequirement): boolean {
-    return this.getRequirementStatus(requirement).met;
-  }
-
   private getRequirementStatus(requirement?: CollectionSyncRequirement): {
     met: boolean;
     unmetRequirements: string[];
