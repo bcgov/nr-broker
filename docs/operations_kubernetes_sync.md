@@ -9,27 +9,77 @@ For general information about how the collection sync system works, see [Collect
 ## How it works
 
 1. A sync job is enqueued in the Redis queue `kubernetes-sync-secrets` when:
-   - Secrets are manually refreshed for an OpenShift project with **Enable secret sync** turned on, or
-   - A team, cloud, or broker account that is upstream of an OpenShift project triggers a sync.
+  - Secrets are manually refreshed for an OpenShift project with **Enable secret sync** turned on, or
+  - A team, cloud, or broker account (configured collections may vary) that is upstream of an OpenShift project triggers a sync.
 2. A cron job runs every 30 seconds and polls the queue. For each dequeued job it:
-   - Looks up the OpenShift project record and finds the cloud it belongs to.
-   - Reads the sync configuration from the Vault `clouds` KV mount at `<cloud-name>/<project-name>/nr-broker-sync`.
-   - Reads each source secret from Vault and writes it into the target namespace.
-   - Creates or updates the corresponding Kubernetes `Opaque` Secret in the target namespace using the Kubernetes API.
+  - Looks up the OpenShift project record and finds the cloud it belongs to.
+  - Reads the sync configuration from the Vault `clouds` KV mount at `<cloud-name>/<project-name>/nr-broker-sync`.
+  - Reads each source secret from Vault and writes it into the target namespace.
+  - Creates or updates the corresponding Kubernetes `Opaque` Secret in the target namespace using the Kubernetes API.
 3. The sync status is recorded on the OpenShift project (`syncSecretsStatus`).
 
 ## Authorization via the graph
 
 Each secret mapping in the sync configuration can reference a **service** by name. Before reading secrets from Vault, Broker verifies that the service is authorized for the target OpenShift project by checking for a `deploys` edge in the graph:
 
-- The OpenShift project has a direct `deploys` edge to the service, **or**
-- The parent cloud has a `deploys` edge to the service.
+- The OpenShift project has a direct `deploys` edge from the service to it, **or**
+- The parent cloud has a `deploys` edge from the service to it.
 
 This edge must be added in the NR Broker UI (or via the API) before the sync will succeed. The `deploys` edge is a restricted edge and is not followed in graph lookups by default.
 
 When authorized, the Vault path is built automatically as `tools/<project>/<service>` on the `apps` mount — the path convention for tools (CI/CD) secrets in NR Broker. An optional `path` suffix can be added to read a sub-key within that secret.
 
 > **Note:** Service runtime secrets live under a different path and are accessed by the service's AppRole directly, not via this sync mechanism.
+
+## Configuring sync
+
+This section describes how to set up secret sync for a project. The sync configuration is stored in Vault at `clouds/<cloud-name>/<project-name>/nr-broker-sync`. Broker reads this configuration each time a sync job runs.
+
+### Writing the configuration
+
+Broker resolves the Vault path from the graph and verifies the `deploys` edge:
+
+```bash
+vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
+  serviceAccountToken="<service-account-token>" \
+  caData="<base64-ca-cert>" \
+  secrets='[{
+     "service": "<service-name>",
+     "destinationSecretName": "<secret-name>"
+   }]'
+```
+
+#### `nr-broker-sync` configuration fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `serviceAccountToken` | Yes | Bearer token for the Kubernetes service account with `secrets` permissions. |
+| `caData` | No | Base64-encoded CA certificate for the API server. Required for clusters with a self-signed cert (such as minikube). |
+| `secrets` | Yes | JSON array of secret mapping objects (see below) |
+
+#### Secret mapping fields
+
+Each entry in the `secrets` array maps one Vault path to one Kubernetes Secret:
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `service` | Yes | Name of the service in the graph. Broker verifies a `deploys` edge exists from the OpenShift project or cloud to this service and builds the path `tools/<project>/<service>` automatically. |
+| `path` | No | Sub-path appended to `tools/<project>/<service>/` when using the `service` field. |
+| `destinationSecretName` | Yes | Name of the Kubernetes Secret to create or update in the namespace. |
+| `keyMapping` | No | Object mapping source key names to destination key names. Keys not listed are copied unchanged. |
+
+**Example with service and optional sub-path:**
+
+```json
+{
+   "service": "my-app",
+   "path": "credentials",
+   "destinationSecretName": "my-app-credentials",
+   "keyMapping": {
+     "DB_PASSWORD": "DATABASE_PASSWORD"
+   }
+}
+```
 
 ## Testing locally with minikube
 
@@ -155,78 +205,14 @@ See step 6 and 7 below for the Cloud and OpenShift Project setup.
 
 ### 6. Write the sync configuration to Vault
 
-The sync config lives at `clouds/<cloud-name>/<project-name>/nr-broker-sync`. This walkthrough uses cloud name `local-minikube`:
-
-**Service-based (recommended)** — Broker resolves the Vault path from the graph and verifies the `deploys` edge:
+Write the configuration for the `local-minikube` cloud and `test-project` project, following the field definitions in [Configuring sync](#configuring-sync):
 
 ```bash
 vault kv put clouds/local-minikube/test-project/nr-broker-sync \
   serviceAccountToken="$SA_TOKEN" \
   caData="$CA_DATA" \
   secrets='[{
-    "service": "my-app",
-    "destinationSecretName": "my-app-secret"
-  }]'
-```
-
-**Direct path (legacy)** — Specify the Vault mount and path explicitly:
-
-```bash
-vault kv put clouds/local-minikube/test-project/nr-broker-sync \
-  serviceAccountToken="$SA_TOKEN" \
-  caData="$CA_DATA" \
-  secrets='[{
-    "sourceMount": "apps",
-    "sourcePath": "tools/my-project/my-app",
-    "destinationSecretName": "my-app-secret"
-  }]'
-```
-
-#### `nr-broker-sync` configuration fields
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `serviceAccountToken` | Yes | Bearer token for the service account created in step 3 |
-| `caData` | No | Base64-encoded CA certificate for the API server. Required for minikube's self-signed cert. |
-| `secrets` | Yes | JSON array of secret mapping objects (see below) |
-
-#### Secret mapping fields
-
-Each entry in the `secrets` array maps one Vault path to one Kubernetes Secret. Use either the service-based fields or the legacy direct-path fields:
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `service` | One of `service` or `sourceMount`+`sourcePath` | Name of the service in the graph. Broker verifies a `deploys` edge exists from the OpenShift project or cloud to this service and builds the path `tools/<project>/<service>` automatically. |
-| `path` | No | Sub-path appended to `tools/<project>/<service>/` when using the `service` field. |
-| `sourceMount` | One of `service` or `sourceMount`+`sourcePath` | Vault KV mount for the source secret (e.g. `apps`). |
-| `sourcePath` | One of `service` or `sourceMount`+`sourcePath` | Path within the mount (e.g. `tools/my-project/my-app`). |
-| `destinationSecretName` | Yes | Name of the Kubernetes Secret to create or update in the namespace. |
-| `keyMapping` | No | Object mapping source key names to destination key names. Keys not listed are copied unchanged. |
-
-**Example with service and optional sub-path:**
-
-```json
-{
-  "service": "my-app",
-  "path": "credentials",
-  "destinationSecretName": "my-app-credentials",
-  "keyMapping": {
-    "DB_PASSWORD": "DATABASE_PASSWORD"
-  }
-}
-```
-
-**Example with key mapping (legacy):**
-
-```json
-{
-  "sourceMount": "apps",
-  "sourcePath": "tools/my-project/my-app",
-  "destinationSecretName": "my-app-secret",
-  "keyMapping": {
-    "MY_SECRET_KEY": "APP_SECRET"
-  }
-}
+      "service": "my-app",
 ```
 
 ### 7. Register a Cloud record in NR Broker
@@ -255,21 +241,7 @@ Create an **OpenShift Project** record linked to the `local-minikube` cloud via 
 
 ### 9. Grant the local Broker Token access to the `clouds` mount
 
-The local Vault is in dev mode so the root token has all access — no policy changes are needed for local testing.
-
-For a non-dev Vault, add a policy to the Broker Token:
-
-```hcl
-path "clouds/data/+/+/nr-broker-sync" {
-  capabilities = ["read"]
-}
-
-path "apps/data/tools/+/+" {
-  capabilities = ["read"]
-}
-```
-
-See: [Broker Token](/dev_broker_token.md)
+The local Vault is in dev mode so the root token has all access — no policy changes are needed for local testing. For a non-dev Vault, add the policy described in [Granting the Broker Token access to the `clouds` mount](#granting-the-broker-token-access-to-the-clouds-mount).
 
 ### 10. Trigger and verify the sync
 
@@ -287,13 +259,16 @@ kubectl get secret my-app-secret -n test-project \
 
 The sync runs automatically every 30 seconds once queued, so the secret will also appear on the next cron cycle without a manual trigger.
 
-## Monitoring sync status
+### Granting the Broker Token access to the `clouds` mount
 
-The `syncSecretsStatus` field on the OpenShift Project record tracks:
+Broker Vault Token needs read access to both the `clouds` mount (where the sync config lives) and the source secret path. Add this policy to the Broker Vault Token:
 
-- `queuedAt` — when the job was last enqueued
-- `syncAt` — when the last sync completed successfully
+```hcl
+path "clouds/data/+/+/nr-broker-sync" {
+  capabilities = ["read"]
+}
 
-These are visible in the NR Broker UI on the OpenShift Project detail page (requires `sudo` access).
-
-Sync activity is recorded in the audit log with the `tools.sync` dataset. See: [Understanding the Audit Log](/operations_audit.md)
+path "apps/data/tools/+/+" {
+  capabilities = ["read"]
+}
+```
