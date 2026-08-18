@@ -10,6 +10,8 @@ import {
   CRON_JOB_KUBERNETES_SYNC_SECRETS,
   VAULT_KV_APPS_MOUNT,
   VAULT_KV_CLOUDS_MOUNT,
+  KUBERNETES_SYNC_SECRET_LABEL_KEY,
+  KUBERNETES_SYNC_SECRET_LABEL_VALUE,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
@@ -36,6 +38,13 @@ export interface KubernetesSyncConfig {
   serviceAccountToken: string;
   caData?: string;
   secrets: KubernetesSecretMapping[];
+  /**
+   * When true, sync fails if any source or mapped key cannot be made
+   * DNS-1123 compliant (see `sanitizeSecretKey`). When false or omitted
+   * (the default), non-compliant keys are automatically rewritten to a
+   * DNS-1123 compliant form.
+   */
+  rejectNonCompliantKeys?: boolean;
 }
 
 @Injectable()
@@ -225,6 +234,9 @@ export class KubernetesSyncService {
       namespace: openshiftProject.name,
       serviceAccountToken: kvData['serviceAccountToken'] as string,
       caData: kvData['caData'] as string | undefined,
+      rejectNonCompliantKeys:
+        kvData['rejectNonCompliantKeys'] === true ||
+        kvData['rejectNonCompliantKeys'] === 'true',
       secrets: (JSON.parse(kvData['secrets']) as any[])?.map((s) => ({
         service: s.service as string,
         path: s.path as string | undefined,
@@ -307,6 +319,24 @@ export class KubernetesSyncService {
   }
 
   /**
+   * Rewrite a secret key so it is compliant with DNS-1123, the rule Kubernetes
+   * enforces on Secret data keys. Uppercase letters are lowercased, disallowed
+   * characters are replaced with `-`, leading and trailing hyphens are trimmed,
+   * and the result is truncated to 63 characters.
+   *
+   * It is used both to sanitize keys (the default) and to detect non-compliance
+   * by comparing `sanitizeSecretKey(key)` against the original key.
+   */
+  private sanitizeSecretKey(key: string): string {
+    return key
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '')
+      .slice(0, 63);
+  }
+
+  /**
    * Read secrets from the source Vault path and apply them to Kubernetes.
    */
   private async applySecretMapping(
@@ -326,12 +356,41 @@ export class KubernetesSyncService {
       this.vaultService.getKv(source.mount, source.path),
     );
 
-    // Build the secret data with key mapping applied
+    // Build the secret data with key mapping applied. Keys are normalized to be
+    // DNS-1123 compliant by default so the Kubernetes API accepts them.
+    const reject = config.rejectNonCompliantKeys ?? false;
     const secretData: Record<string, string> = {};
     for (const [sourceKey, sourceValue] of Object.entries(sourceData)) {
-      const destKey = secretMapping.keyMapping
+      let destKey = secretMapping.keyMapping
         ? secretMapping.keyMapping[sourceKey] ?? sourceKey
         : sourceKey;
+
+      if (reject) {
+        // Detect non-compliant keys and fail instead of rewriting them.
+        const compliant = this.sanitizeSecretKey(destKey);
+        if (compliant !== destKey) {
+          throw new Error(
+            `Kubernetes sync: key "${destKey}" is not DNS-1123 compliant and ` +
+            `rejectNonCompliantKeys is set for secret ${secretMapping.destinationSecretName}`,
+          );
+        }
+      } else {
+        destKey = this.sanitizeSecretKey(destKey);
+        if (!destKey) {
+          // Key collapsed to an empty string; skip it rather than emit an empty key.
+          const message =
+            `Kubernetes sync: key "${sourceKey}" for secret ` +
+            `${secretMapping.destinationSecretName} is empty after DNS-1123 sanitization; skipping`;
+          this.auditService.recordToolsSync(
+            'info',
+            'unknown',
+            message,
+            openshiftProject.name,
+          );
+          continue;
+        }
+      }
+
       secretData[destKey] = sourceValue.toString();
     }
 
@@ -345,6 +404,11 @@ export class KubernetesSyncService {
 
   /**
    * Create or update a Kubernetes Secret using the API.
+   *
+   * The secret is labeled so it can be identified as managed by NR Broker.
+   * When the secret already exists it is replaced in full (PUT) with the
+   * freshly computed data - this is the desired behaviour so the managed
+   * secret always reflects the current source. On 404 the secret is created.
    */
   private async applySecretToKubernetes(
     config: KubernetesSyncConfig,
@@ -366,6 +430,9 @@ export class KubernetesSyncService {
       metadata: {
         name: secretName,
         namespace: config.namespace,
+        labels: {
+          [KUBERNETES_SYNC_SECRET_LABEL_KEY]: KUBERNETES_SYNC_SECRET_LABEL_VALUE,
+        },
       },
       type: 'Opaque',
       data: encodedData,
@@ -386,7 +453,7 @@ export class KubernetesSyncService {
     try {
       // Try to GET the existing secret
       await this.axiosInstance.get(url, requestConfig);
-      // Secret exists, PATCH it
+      // Secret exists; replace it in full with the current source data.
       await this.axiosInstance.put(url, k8sSecret, requestConfig);
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -395,7 +462,16 @@ export class KubernetesSyncService {
         const createUrl = `${baseUrl}/api/v1/namespaces/${config.namespace}/secrets`;
         await this.axiosInstance.post(createUrl, k8sSecret, requestConfig);
       } else {
-        throw error;
+        // Assume the error came from Kubernetes and extract the API error
+        // message (response.data.message / reason) for audit logging; fall
+        // back to the axios message when the response body has none.
+        const response = axiosError.response?.data as
+          | { message?: string; reason?: string }
+          | undefined;
+        const k8sMessage =
+          (response && (response.message || response.reason)) ||
+          axiosError.message;
+        throw new Error(k8sMessage, { cause: error });
       }
     }
   }

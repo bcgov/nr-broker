@@ -99,6 +99,11 @@ export const CRON_JOB_SYNC_USERS = 'cron-job-sync-users';
 export const CRON_JOB_SEND_COMS = 'cron-job-send-coms';
 export const CRON_JOB_KUBERNETES_SYNC_SECRETS = 'cron-job-kubernetes-sync-secrets';
 
+// Label applied to Kubernetes secrets created or updated by the sync service,
+// so they can be identified as originating from NR Broker.
+export const KUBERNETES_SYNC_SECRET_LABEL_KEY = 'nr-broker.io/managed-by';
+export const KUBERNETES_SYNC_SECRET_LABEL_VALUE = 'nr-broker';
+
 export const REDIS_QUEUES = {
   GITHUB_SYNC_SECRETS: 'github-sync-secrets',
   GITHUB_SYNC_USERS: 'github-sync-users',
