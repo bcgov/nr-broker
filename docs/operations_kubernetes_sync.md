@@ -15,7 +15,7 @@ For general information about how the collection sync system works, see [Collect
   - Looks up the OpenShift project record and finds the cloud it belongs to.
   - Reads the sync configuration from the Vault `clouds` KV mount at `<cloud-name>/<project-name>/nr-broker-sync`.
   - Reads each source secret from Vault and writes it into the target namespace.
-  - Creates or updates the corresponding Kubernetes `Opaque` Secret in the target namespace using the Kubernetes API.
+   - Creates or fully replaces the corresponding Kubernetes `Opaque` Secret in the target namespace using the Kubernetes API, and labels it as managed by NR Broker.
 3. The sync status is recorded on the OpenShift project (`syncSecretsStatus`).
 
 ## Authorization via the graph
@@ -55,6 +55,7 @@ vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
 | --- | --- | --- |
 | `serviceAccountToken` | Yes | Bearer token for the Kubernetes service account with `secrets` permissions. |
 | `caData` | No | Base64-encoded CA certificate for the API server. Required for clusters with a self-signed cert (such as minikube). |
+| `rejectNonCompliantKeys` | No | When `true`, sync fails if any source or mapped key cannot be made DNS-1123 compliant. When omitted or `false` (the default), non-compliant keys are automatically rewritten to a DNS-1123 compliant form. See [Secret key normalization](#secret-key-normalization). |
 | `secrets` | Yes | JSON array of secret mapping objects (see below) |
 
 #### Secret mapping fields
@@ -80,6 +81,32 @@ Each entry in the `secrets` array maps one Vault path to one Kubernetes Secret:
    }
 }
 ```
+
+## Secret key normalization
+
+Kubernetes `Secret` data keys must be a valid DNS-1123 label: lowercase letters, digits, `.`, `-`, and `_`, no more than 63 characters. By default Broker rewrites every source key (after any `keyMapping`) into a compliant form so the Kubernetes API accepts the secret:
+
+- uppercase letters are lowercased,
+- any run of disallowed characters is replaced with a single `-`,
+- leading and trailing `-` are trimmed,
+- the result is truncated to 63 characters.
+
+A key that collapses to an empty string after normalization is skipped (and logged) rather than written as an empty key.
+
+To prevent silent rewriting, set `rejectNonCompliantKeys: true` in the `nr-broker-sync` configuration. With this option the sync fails the affected mapping when a key is not already DNS-1123 compliant, instead of rewriting it. This is useful when the consuming application expects exact key names.
+
+```bash
+vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
+  serviceAccountToken="<service-account-token>" \
+  rejectNonCompliantKeys="true" \
+  secrets='[{"service": "my-app", "destinationSecretName": "my-app-credentials"}]'
+```
+
+## Managed secrets label
+
+Every secret that Broker creates or updates is labeled `nr-broker.io/managed-by=nr-broker`, so managed secrets can be identified and selected (for example with `kubectl get secrets -l nr-broker.io/managed-by=nr-broker`).
+
+When a managed secret already exists, Broker **replaces it in full** with the freshly computed data on each sync. This is the intended behaviour: the managed secret always reflects the current source in Vault. Keys that are no longer present in the source are removed, and keys that are no longer managed by Broker are not touched.
 
 ## Testing locally with minikube
 
@@ -249,12 +276,17 @@ Trigger a sync from the NR Broker UI on the OpenShift Project page using the **S
 
 ```bash
 kubectl get secret my-app-secret -n test-project -o jsonpath='{.data}' | jq .
-# {"MY_SECRET_KEY":"aGVsbG8tZnJvbS12YXVsdA=="}
+# {"my_secret_key":"aGVsbG8tZnJvbS12YXVsdA=="}
 
-# Decode a value
+# Decode a value. Note the source key MY_SECRET_KEY is normalized to my_secret_key.
 kubectl get secret my-app-secret -n test-project \
-  -o jsonpath='{.data.MY_SECRET_KEY}' | base64 --decode
+  -o jsonpath='{.data.my_secret_key}' | base64 --decode
 # hello-from-vault
+
+# Confirm the managed-by label was applied
+kubectl get secret my-app-secret -n test-project \
+  -o jsonpath='{.metadata.labels}' | jq .
+# {"nr-broker.io/managed-by":"nr-broker"}
 ```
 
 The sync runs automatically every 30 seconds once queued, so the secret will also appear on the next cron cycle without a manual trigger.
