@@ -19,7 +19,7 @@ describe('InspectorAccountChartComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('account', {} as any);
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController).match(() => true).forEach(r => r.flush(null));
+    TestBed.inject(HttpTestingController).match(() => true).forEach((r) => r.flush(null));
   });
 
   it('should create', () => {

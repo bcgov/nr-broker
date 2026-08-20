@@ -19,7 +19,7 @@ describe('BrokerAccountTokenDetailsComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('id', '1');
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController).match(() => true).forEach(r => r.flush(null));
+    TestBed.inject(HttpTestingController).match(() => true).forEach((r) => r.flush(null));
   });
 
   it('should create', () => {

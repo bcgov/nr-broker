@@ -28,7 +28,7 @@ describe('TeamMembersComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('teamId', '1');
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController).match(() => true).forEach(r => r.flush(null));
+    TestBed.inject(HttpTestingController).match(() => true).forEach((r) => r.flush(null));
   });
 
   it('should create', () => {
