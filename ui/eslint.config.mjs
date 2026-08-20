@@ -1,10 +1,11 @@
 // @ts-check
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import * as angular from "angular-eslint";
 import stylistic from '@stylistic/eslint-plugin';
 
-export default tseslint.config(
+export default defineConfig(
   {
     files: ["**/*.ts"],
     extends: [
