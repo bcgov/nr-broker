@@ -12,6 +12,9 @@ describe('InspectorTeamComponent', () => {
     });
     fixture = TestBed.createComponent(InspectorTeamComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('vertex', null);
+    fixture.componentRef.setInput('name', null);
+    fixture.componentRef.setInput('screenSize', 'md');
     fixture.detectChanges();
   });
 

@@ -9,11 +9,11 @@ describe('TeamServiceRequestComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TeamServiceRequestComponent],
-    })
-      .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TeamServiceRequestComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('serviceSearch', []);
     fixture.detectChanges();
   });
 

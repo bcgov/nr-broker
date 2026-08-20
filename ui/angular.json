@@ -139,7 +139,7 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "browsers": ["chrome"]
+            "setupFiles": ["src/test-setup.ts"]
           }
         },
         "lint": {

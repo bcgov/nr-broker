@@ -13,12 +13,17 @@
     "watch-env": "source ../scripts/setenv-backend-dev.sh; VAULT_TOKEN=myroot envconsul -config=env.hcl nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "typecheck": "tsc --noEmit",
+    "typecheck:src": "tsc --noEmit -p tsconfig.build.json",
     "lint": "eslint \"{src,test}/**/*.ts\" eslint.config.mjs",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" eslint.config.mjs --fix",
+    "check": "npm run lint && npm run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./test/vitest-e2e.config.ts"
+    "test:e2e": "vitest run --config ./test/vitest-e2e.config.ts",
+    "test:e2e:watch": "vitest --config ./test/vitest-e2e.config.ts"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",

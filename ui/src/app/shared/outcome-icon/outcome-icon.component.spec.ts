@@ -14,6 +14,7 @@ describe('OutcomeIconComponent', () => {
 
     fixture = TestBed.createComponent(OutcomeIconComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('outcome', 'success');
     fixture.detectChanges();
   });
 

@@ -13,6 +13,9 @@ describe('InspectorEdgeComponent', () => {
 
     fixture = TestBed.createComponent(InspectorEdgeComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('edge', {} as any);
+    fixture.componentRef.setInput('sourceVertex', {} as any);
+    fixture.componentRef.setInput('targetVertex', {} as any);
     fixture.detectChanges();
   });
 

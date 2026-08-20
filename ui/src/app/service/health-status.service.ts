@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, startWith, switchMap } from 'rxjs';
 
@@ -32,6 +32,7 @@ export class HealthStatusService {
       .pipe(
         startWith(0),
         switchMap(() => this.healthCheck()),
+        takeUntilDestroyed(),
       )
       .subscribe({
         next: (data) => {

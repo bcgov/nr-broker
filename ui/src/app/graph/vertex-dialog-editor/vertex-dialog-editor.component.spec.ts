@@ -14,7 +14,9 @@ describe('VertexDialogEditorComponent', () => {
 
     fixture = TestBed.createComponent(VertexDialogEditorComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.componentRef.setInput('collection', 'service');
+    fixture.componentRef.setInput('fieldMap', {});
+    fixture.detectChanges();
   });
 
   it('should create', () => {

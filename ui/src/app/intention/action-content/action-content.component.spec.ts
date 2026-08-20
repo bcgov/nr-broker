@@ -12,6 +12,7 @@ describe('ActionContentComponent', () => {
     });
     fixture = TestBed.createComponent(ActionContentComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('key', '');
     fixture.detectChanges();
   });
 

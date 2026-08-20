@@ -7,8 +7,12 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration local",
     "watch:bcgov": "ng build --watch --configuration local,bcgov",
+    "lint": "ng lint",
+    "lint:fix": "ng lint --fix",
     "test": "ng test",
-    "lint": "ng lint"
+    "test:watch": "ng test --watch",
+    "test:cov": "ng test --coverage",
+    "test:debug": "ng test --debug"
   },
   "private": true,
   "license": "Apache-2.0",
@@ -48,6 +52,7 @@
     "@types/url-regex-safe": "^1.0.2",
     "@types/uuid": "^10.0.0",
     "@vitest/browser-webdriverio": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
     "angular-eslint": "^22.1.0",
     "baseline-browser-mapping": "^2.11.13",
     "eslint": "^10.8.1",

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { InspectorTimestampsComponent } from './inspector-timestamps.component';
 
@@ -9,8 +10,8 @@ describe('InspectorTimestampsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [InspectorTimestampsComponent],
-    })
-      .compileComponents();
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(InspectorTimestampsComponent);
     component = fixture.componentInstance;
