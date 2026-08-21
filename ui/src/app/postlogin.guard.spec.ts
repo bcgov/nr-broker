@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CanActivateFn } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { postloginGuard } from './postlogin.guard';
 
@@ -8,7 +9,9 @@ describe('postloginGuard', () => {
     TestBed.runInInjectionContext(() => postloginGuard(...guardParameters));
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideRouter([])],
+    });
   });
 
   it('should be created', () => {

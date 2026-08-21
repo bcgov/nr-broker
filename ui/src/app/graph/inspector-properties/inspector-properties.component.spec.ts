@@ -13,6 +13,7 @@ describe('InspectorPropertiesComponent', () => {
 
     fixture = TestBed.createComponent(InspectorPropertiesComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('prop', {});
     fixture.detectChanges();
   });
 

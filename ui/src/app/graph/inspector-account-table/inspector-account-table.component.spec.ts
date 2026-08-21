@@ -14,7 +14,10 @@ describe('InspectorAccountTableComponent', () => {
 
     fixture = TestBed.createComponent(InspectorAccountTableComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.componentRef.setInput('display', 'table');
+    fixture.componentRef.setInput('tokenData', []);
+    fixture.componentRef.setInput('showHelp', false);
+    fixture.detectChanges();
   });
 
   it('should create', () => {

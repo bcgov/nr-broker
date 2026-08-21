@@ -13,6 +13,7 @@ describe('VertexNameComponent', () => {
 
     fixture = TestBed.createComponent(VertexNameComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('vertex', { name: 'test', parentName: undefined });
     fixture.detectChanges();
   });
 

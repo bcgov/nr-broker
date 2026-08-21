@@ -13,6 +13,7 @@ describe('DetailsItemComponent', () => {
 
     fixture = TestBed.createComponent(DetailsItemComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('item', 'test');
     fixture.detectChanges();
   });
 

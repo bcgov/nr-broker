@@ -13,6 +13,7 @@ describe('GanttGraphComponent', () => {
 
     fixture = TestBed.createComponent(GanttGraphComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('intention', { actions: [], transaction: {} });
     fixture.detectChanges();
   });
 

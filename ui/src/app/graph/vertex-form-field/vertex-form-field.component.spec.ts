@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormGroup } from '@angular/forms';
 
 import { VertexFormFieldComponent } from './vertex-form-field.component';
-import { FormGroup } from '@angular/forms';
 
 describe('VertexFormFieldComponent', () => {
   let component: VertexFormFieldComponent;
@@ -10,11 +10,12 @@ describe('VertexFormFieldComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VertexFormFieldComponent],
-      providers: [{ provide: FormGroup, useValue: new FormGroup([]) }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(VertexFormFieldComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('field', {} as any);
+    fixture.componentRef.setInput('form', new FormGroup({}));
     fixture.detectChanges();
   });
 
