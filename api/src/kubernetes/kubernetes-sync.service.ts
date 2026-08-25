@@ -15,6 +15,7 @@ import {
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
+import { TokenService } from '../token/token.service';
 import { RedisService } from '../redis/redis.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { OpenshiftProjectEntity } from '../persistence/entity/openshift-project.entity';
@@ -24,15 +25,19 @@ import { CloudDto } from '../persistence/dto/cloud.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
 import { OpenshiftProjectDto } from 'src/persistence/dto/openshift-project.dto';
+import { BrokerTokenUtil } from '../util/broker-token.util';
 
 export interface KubernetesSecretMapping {
   service: string;
   path?: string;
+  environment?: string;
+  brokerTokenClientId?: string;
   destinationSecretName: string;
   keyMapping?: Record<string, string>;
 }
 
 export interface KubernetesSyncConfig {
+  version?: string | number;
   server: string;
   namespace: string;
   serviceAccountToken: string;
@@ -55,6 +60,8 @@ export class KubernetesSyncService {
   constructor(
     private readonly auditService: AuditService,
     private readonly vaultService: VaultService,
+    private readonly tokenService: TokenService,
+    private readonly brokerTokenUtil: BrokerTokenUtil,
     private readonly redisService: RedisService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
@@ -230,6 +237,7 @@ export class KubernetesSyncService {
   private parseConfig(
     cloud: CloudDto, openshiftProject: OpenshiftProjectEntity, kvData: Record<string, any>): KubernetesSyncConfig {
     return {
+      version: kvData['version'] as string | undefined,
       server: cloud.apiUrl,
       namespace: openshiftProject.name,
       serviceAccountToken: kvData['serviceAccountToken'] as string,
@@ -240,6 +248,8 @@ export class KubernetesSyncService {
       secrets: (JSON.parse(kvData['secrets']) as any[])?.map((s) => ({
         service: s.service as string,
         path: s.path as string | undefined,
+        environment: s.environment as string | undefined,
+        brokerTokenClientId: s.brokerTokenClientId as string | undefined,
         destinationSecretName: s.destinationSecretName as string,
         keyMapping: s.keyMapping as Record<string, string> | undefined,
       })),
@@ -257,7 +267,7 @@ export class KubernetesSyncService {
     cloud: CloudDto,
     openshiftProject: OpenshiftProjectEntity,
     mapping: KubernetesSecretMapping,
-  ): Promise<{ mount: string; path: string } | null> {
+  ): Promise<{ mount: string; path: string; projectName: string } | null> {
     const service = await this.collectionRepository.getCollectionByKeyValue(
       'service',
       'name',
@@ -315,6 +325,7 @@ export class KubernetesSyncService {
     return {
       mount: VAULT_KV_APPS_MOUNT,
       path: mapping.path ? `${basePath}/${mapping.path}` : basePath,
+      projectName: project.name,
     };
   }
 
@@ -392,6 +403,30 @@ export class KubernetesSyncService {
       }
 
       secretData[destKey] = sourceValue.toString();
+    }
+
+    if (secretMapping.environment) {
+      const roleInfo = await lastValueFrom(
+        this.tokenService.getAppRoleInfoForApplication(
+          source.projectName,
+          secretMapping.service,
+          secretMapping.environment,
+        ),
+      );
+      secretData.role_id = roleInfo.id;
+    }
+
+    if (secretMapping.brokerTokenClientId) {
+      const tokenKey = this.brokerTokenUtil.getVaultKey(
+        secretMapping.brokerTokenClientId,
+      );
+      const brokerToken = sourceData[tokenKey];
+      if (brokerToken === undefined || brokerToken === null) {
+        throw new Error(
+          `Broker token ${secretMapping.brokerTokenClientId} not found in source secret`,
+        );
+      }
+      secretData.token = brokerToken.toString();
     }
 
     // Apply to Kubernetes

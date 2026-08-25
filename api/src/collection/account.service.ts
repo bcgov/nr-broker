@@ -43,6 +43,7 @@ import { ProjectDto } from '../persistence/dto/project.dto';
 import { SyncType } from '../persistence/dto/sync-queue-config.dto';
 import { HistogramSeriesDto } from './dto/histogram-series.dto';
 import { CollectionSyncService } from './collection-sync.service';
+import { BrokerTokenUtil } from '../util/broker-token.util';
 
 export class TokenCreateDTO {
   token: string;
@@ -64,6 +65,7 @@ export class AccountService {
     private readonly systemRepository: SystemRepository,
     private readonly dateUtil: DateUtil,
     private readonly collectionSyncService: CollectionSyncService,
+    private readonly brokerTokenUtil: BrokerTokenUtil,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -419,7 +421,7 @@ export class AccountService {
       const projectName = projectDtoArr[0].collection.name;
       try {
         await this.addTokenToServiceTools(projectName, serviceName, {
-          [`broker-jwt:${account.clientId}`]: token,
+          [this.brokerTokenUtil.getVaultKey(account.clientId)]: token,
         });
       } catch (err) {
         // Log?
