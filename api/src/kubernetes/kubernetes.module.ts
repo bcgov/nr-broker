@@ -5,6 +5,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { RedisModule } from '../redis/redis.module';
 import { GraphModule } from '../graph/graph.module';
 import { VaultModule } from '../vault/vault.module';
+import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { UtilModule } from '../util/util.module';
     GraphModule,
     PersistenceModule,
     RedisModule,
+    TokenModule,
     VaultModule,
     UtilModule,
   ],

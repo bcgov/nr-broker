@@ -43,9 +43,12 @@ Broker resolves the Vault path from the graph and verifies the `deploys` edge:
 vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
   serviceAccountToken="<service-account-token>" \
   caData="<base64-ca-cert>" \
+  version="1" \
   secrets='[{
-     "service": "<service-name>",
-     "destinationSecretName": "<secret-name>"
+    "service": "<service-name>",
+    "environment": "<environment>",
+    "brokerTokenClientId": "<broker-account-client-id>",
+    "destinationSecretName": "<secret-name>"
    }]'
 ```
 
@@ -55,6 +58,7 @@ vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
 | --- | --- | --- |
 | `serviceAccountToken` | Yes | Bearer token for the Kubernetes service account with `secrets` permissions. |
 | `caData` | No | Base64-encoded CA certificate for the API server. Required for clusters with a self-signed cert (such as minikube). |
+| `version` | No | Configuration version carried by Broker for forward compatibility. It does not change sync behavior. |
 | `rejectNonCompliantKeys` | No | When `true`, sync fails if any source or mapped key cannot be made DNS-1123 compliant. When omitted or `false` (the default), non-compliant keys are automatically rewritten to a DNS-1123 compliant form. See [Secret key normalization](#secret-key-normalization). |
 | `secrets` | Yes | JSON array of secret mapping objects (see below) |
 
@@ -66,6 +70,8 @@ Each entry in the `secrets` array maps one Vault path to one Kubernetes Secret:
 | --- | --- | --- |
 | `service` | Yes | Name of the service in the graph. Broker verifies a `deploys` edge exists from the OpenShift project or cloud to this service and builds the path `tools/<project>/<service>` automatically. |
 | `path` | No | Sub-path appended to `tools/<project>/<service>/` when using the `service` field. |
+| `environment` | No | Environment used to resolve the service AppRole. When set, the AppRole role id is added to the destination Secret as `role_id`. |
+| `brokerTokenClientId` | No | Broker account client id. When set, Broker reads `broker-jwt:<clientId>` from the source tools secret and adds its value to the destination Secret as `token`. |
 | `destinationSecretName` | Yes | Name of the Kubernetes Secret to create or update in the namespace. |
 | `keyMapping` | No | Object mapping source key names to destination key names. Keys not listed are copied unchanged. |
 
