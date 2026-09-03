@@ -52,8 +52,8 @@ export class AwsKinesisService extends KinesisService {
             }
           } catch (error) {
             this.logger.error(
-              `Failed to send records to Kinesis: ${error.message}`,
-              error.stack,
+              `Failed to send records to Kinesis: ${error instanceof Error ? error.message : String(error)}`,
+              error instanceof Error ? error.stack : undefined,
             );
           }
         },

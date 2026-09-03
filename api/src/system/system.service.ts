@@ -5,9 +5,6 @@ import { ConnectionConfigDto } from '../persistence/dto/connection-config.dto';
 import { FeatureFlagsDto } from '../persistence/dto/feature-flags.dto';
 import { GithubService } from '../github/github.service';
 import { AuthService } from '../auth/auth.service';
-import {
-  FEATURE_FLAG_TEAM_ROLE_CHIPS,
-} from '../constants';
 
 @Injectable()
 export class SystemService {
@@ -24,9 +21,7 @@ export class SystemService {
   }
 
   getFeatureFlags(): FeatureFlagsDto {
-    return {
-      teamRoleChips: FEATURE_FLAG_TEAM_ROLE_CHIPS,
-    };
+    return {};
   }
 
   async generateGitHubAuthorizeUrl(request: Request) {

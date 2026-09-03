@@ -3,14 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CollectionSyncService } from './collection-sync.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { RedisService } from '../redis/redis.service';
+import { BullService } from '../bull/bull.service';
 import { GraphService } from '../graph/graph.service';
 
 describe('CollectionSyncService', () => {
   let service: CollectionSyncService;
   let collectionRepository: any;
   let graphRepository: any;
-  let redisService: any;
+  let bullService: any;
   let graphService: any;
 
   beforeEach(async () => {
@@ -90,9 +90,9 @@ describe('CollectionSyncService', () => {
       getUpstreamVertex: vi.fn(),
     } as unknown as GraphRepository;
 
-    redisService = {
-      queue: vi.fn(),
-    } as unknown as RedisService;
+    bullService = {
+      enqueue: vi.fn(),
+    } as unknown as BullService;
 
     graphService = {
       updateSyncStatus: vi.fn(),
@@ -103,7 +103,7 @@ describe('CollectionSyncService', () => {
         CollectionSyncService,
         { provide: CollectionRepository, useValue: collectionRepository },
         { provide: GraphRepository, useValue: graphRepository },
-        { provide: RedisService, useValue: redisService },
+        { provide: BullService, useValue: bullService },
         { provide: GraphService, useValue: graphService },
       ],
     }).compile();
@@ -127,7 +127,7 @@ describe('CollectionSyncService', () => {
       'syncSecretsStatus',
       'queuedAt',
     );
-    expect(redisService.queue).toHaveBeenCalledWith(
+    expect(bullService.enqueue).toHaveBeenCalledWith(
       'github-sync-secrets',
       'target-collection-id',
     );

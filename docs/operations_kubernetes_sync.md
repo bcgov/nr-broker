@@ -49,7 +49,7 @@ vault kv put clouds/<cloud-name>/<project-name>/nr-broker-sync \
     "environment": "<environment>",
     "brokerTokenClientId": "<broker-account-client-id>",
     "destinationSecretName": "<secret-name>"
-   }]'
+  }]'
 ```
 
 #### `nr-broker-sync` configuration fields

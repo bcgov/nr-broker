@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
+import { CronExpression } from '@nestjs/schedule';
 import { first, get, mapEntries, shake } from 'radash';
 import { v4 as uuidv4 } from 'uuid';
 import { plainToInstance } from 'class-transformer';
@@ -13,28 +13,33 @@ import { CollectionDtoUnion } from '../../persistence/dto/collection-dto-union.t
 import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
 import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
-import { IS_PRIMARY_NODE } from '../../constants';
+import { BULL_LEADER_JOBS } from '../../constants';
+import { BullService } from '../../bull/bull.service';
 
 @Injectable()
-export class GraphSyncService {
+export class GraphSyncService implements OnModuleInit {
   private readonly logger = new Logger(GraphSyncService.name);
   constructor(
     private readonly graphService: GraphService,
     private readonly opensearchService: OpensearchService,
     private readonly collectionRepository: CollectionRepository,
     private readonly dateUtil: DateUtil,
+    private readonly bullService: BullService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  onModuleInit(): void {
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.COLLECTION_SYNC,
+      CronExpression.EVERY_DAY_AT_6AM,
+      () => this.runCollectionSync(),
+    );
+  }
+
   @CreateRequestContext()
   async runCollectionSync() {
     try {
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not run sync
-        return;
-      }
       const configs = await this.collectionRepository.getCollectionConfigs();
       for (const config of configs) {
         try {
@@ -45,8 +50,8 @@ export class GraphSyncService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to run collection sync: ${error.message}`,
-        error.stack,
+        `Failed to run collection sync: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

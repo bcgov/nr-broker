@@ -4,6 +4,7 @@ import { CommunicationQueueService } from './communication-queue.service';
 import { UtilModule } from '../util/util.module';
 import { RedisModule } from '../redis/redis.module';
 import { AuditModule } from '../audit/audit.module';
+import { BullModule } from '../bull/bull.module';
 
 import {
   NOTIFICATION_EMAIL_HOST,
@@ -49,6 +50,7 @@ const communicationServiceProvider = {
     AuditModule,
     PersistenceModule,
     RedisModule,
+    BullModule,
     TerminusModule,
     UtilModule,
   ],

@@ -3,7 +3,6 @@ import { ValidatorUtil } from './validator.util';
 import { DateUtil } from './date.util';
 import { ActionUtil } from './action.util';
 import { UserUtil } from './user.util';
-import { JobQueueUtil } from './job-queue.util';
 import { BrokerTokenUtil } from './broker-token.util';
 
 /**
@@ -17,7 +16,6 @@ import { BrokerTokenUtil } from './broker-token.util';
     DateUtil,
     UserUtil,
     ValidatorUtil,
-    JobQueueUtil,
     BrokerTokenUtil,
   ],
   exports: [
@@ -25,7 +23,6 @@ import { BrokerTokenUtil } from './broker-token.util';
     DateUtil,
     UserUtil,
     ValidatorUtil,
-    JobQueueUtil,
     BrokerTokenUtil,
   ],
 })

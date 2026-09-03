@@ -1,26 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
 import * as jwt from 'jsonwebtoken';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { Job } from 'bullmq';
 import { MikroORM } from '@mikro-orm/core';
-import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import {
   GITHUB_SYNC_CLIENT_ID,
   GITHUB_SYNC_PRIVATE_KEY,
   GITHUB_MANAGED_URL_REGEX,
   VAULT_KV_APPS_MOUNT,
   REDIS_QUEUES,
-  CRON_JOB_SYNC_USERS,
-  CRON_JOB_SYNC_SECRETS,
   FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC,
   USER_ALIAS_DOMAIN_GITHUB,
 } from '../constants';
 import { ENVIRONMENT_NAMES } from '../intention/dto/constants.dto';
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
-import { RedisService } from '../redis/redis.service';
 import { CollectionIndex } from '../graph/graph.constants';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { ServiceDto } from '../persistence/dto/service.dto';
@@ -30,10 +26,10 @@ import { CollectionRepository } from '../persistence/interfaces/collection.repos
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphService } from '../graph/graph.service';
-import { JobQueueUtil } from '../util/job-queue.util';
+import { BullService } from '../bull/bull.service';
 
 @Injectable()
-export class GithubSyncService {
+export class GithubSyncService implements OnModuleInit {
   private readonly logger = new Logger(GithubSyncService.name);
   private readonly axiosInstance: AxiosInstance;
   private brokerManagedRegex = new RegExp(GITHUB_MANAGED_URL_REGEX);
@@ -41,12 +37,10 @@ export class GithubSyncService {
   constructor(
     private readonly auditService: AuditService,
     private readonly vaultService: VaultService,
-    private readonly redisService: RedisService,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
-    private readonly schedulerRegistry: SchedulerRegistry,
-    private readonly jobQueueUtil: JobQueueUtil,
+    private readonly bullService: BullService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {
@@ -65,58 +59,25 @@ export class GithubSyncService {
     return this.brokerManagedRegex.test(scmUrl);
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS, {
-    name: CRON_JOB_SYNC_SECRETS,
-  })
-  @CreateRequestContext()
-  async pollRefreshCronSecrets(): Promise<void> {
-    try {
-      await this.jobQueueUtil.refreshJobWrap(
-        this.schedulerRegistry,
-        CRON_JOB_SYNC_SECRETS,
-        REDIS_QUEUES.GITHUB_SYNC_SECRETS,
-        () =>
-          this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_SECRETS) as Promise<
-            string | null
-          >,
-        async (id: string) => {
-          return this.runRefresh(id, true, false);
-        },
-      );
-    } catch (error) {
-      const err = error as Error;
-      this.logger.error(
-        `Failed to poll refresh cron secrets: ${err.message}`,
-        err.stack,
-      );
-    }
-  }
-
-  @Cron(CronExpression.EVERY_30_SECONDS, {
-    name: CRON_JOB_SYNC_USERS,
-  })
-  @CreateRequestContext()
-  async pollRefreshCronUsers(): Promise<void> {
-    try {
-      await this.jobQueueUtil.refreshJobWrap(
-        this.schedulerRegistry,
-        CRON_JOB_SYNC_USERS,
-        REDIS_QUEUES.GITHUB_SYNC_USERS,
-        () =>
-          this.redisService.dequeue(REDIS_QUEUES.GITHUB_SYNC_USERS) as Promise<
-            string | null
-          >,
-        async (id: string) => {
-          return this.runRefresh(id, false, true);
-        },
-      );
-    } catch (error) {
-      const err = error as Error;
-      this.logger.error(
-        `Failed to poll refresh cron users: ${err.message}`,
-        err.stack,
-      );
-    }
+  /**
+   * Register BullMQ workers for the GitHub sync queues. Each worker is
+   * gated by `QUEUE_PROCESSING` via {@link BullService}, so a dedicated
+   * worker consumes only its assigned queue. The job payload is the
+   * repository id.
+   */
+  onModuleInit(): void {
+    this.bullService.registerWorker(
+      REDIS_QUEUES.GITHUB_SYNC_SECRETS,
+      async (job: Job) => {
+        await this.runRefresh(job.data as string, true, false);
+      },
+    );
+    this.bullService.registerWorker(
+      REDIS_QUEUES.GITHUB_SYNC_USERS,
+      async (job: Job) => {
+        await this.runRefresh(job.data as string, false, true);
+      },
+    );
   }
 
   async runRefresh(

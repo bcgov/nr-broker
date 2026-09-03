@@ -7,6 +7,7 @@ import { GraphService } from './graph.service';
 import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from '../redis/redis.module';
 import { AwsModule } from '../aws/aws.module';
+import { BullModule } from '../bull/bull.module';
 import { IntentionSyncService } from './intention-sync.service';
 import { GraphSyncService } from './graph-sync/graph-sync.service';
 
@@ -21,6 +22,7 @@ import { GraphSyncService } from './graph-sync/graph-sync.service';
     PersistenceModule,
     RedisModule,
     UtilModule,
+    BullModule,
   ],
   controllers: [GraphController],
   providers: [GraphService, IntentionSyncService, GraphSyncService],

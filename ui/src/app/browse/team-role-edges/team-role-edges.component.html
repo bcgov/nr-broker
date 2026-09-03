@@ -4,7 +4,6 @@
   }
   <h3 class="role-title">
     <span>{{ edge | edgetitle }}</span>
-    @if (teamRoleChipsEnabled()) {
       <span class="role-chip-group">
         @for (connectionChip of connectionConfigChipsForRole()[edge.name] ?? []; track connectionChip.label + connectionChip.connectionConfig.id) {
           @if (isCurrentConnectionChip(connectionChip)) {
@@ -47,7 +46,6 @@
           />
         }
       </span>
-    }
   </h3>
   <p class="user-role-help">{{ edge.help }}</p>
 }

@@ -173,8 +173,63 @@ All developers can share the localhost OAuth app. For an actual deployment, you 
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
 | GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
-| GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
+| GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |## Queue Processing
 
+Broker consumes BullMQ data queues with workers that run inside every API
+process. The `QUEUE_PROCESSING` environment variable controls which workers a
+given process starts, which makes it possible to run a dedicated worker process
+for a single queue or to disable data-queue processing entirely. This enables
+independent scaling of queue work.
+
+The four queues are the values of `REDIS_QUEUES` in `api/src/constants.ts`:
+
+| Queue | Purpose |
+| --- | --- |
+| `github-sync-secrets` | Syncs secrets from GitHub repositories |
+| `github-sync-users` | Syncs users from GitHub repositories |
+| `kubernetes-sync-secrets` | Syncs secrets into Kubernetes/OpenShift |
+| `notification-coms` | Sends communication (email) jobs |
+
+| Env Var | Default | Secret | Description |
+| --- | --- | --- | --- |
+| QUEUE_PROCESSING | 'all' |  | Comma-separated list of queue identifiers this process should consume. Use one of the queue names above, the literal `all`, or leave it empty. See the examples below. |
+
+Behaviour:
+
+- **Unset or `all`** (the default): the process consumes every queue. This
+  preserves the historical behaviour, where all API replicas compete for work and
+  BullMQ claims each job for exactly one worker.
+- **A single queue** (e.g. `notification-coms`): the process consumes only that
+  queue. Start a separate process with this set to run a dedicated worker that
+  improves responsiveness for that queue by removing contention with the others.
+- **A comma-separated list** (e.g. `github-sync-secrets,github-sync-users`): the
+  process consumes only the listed queues.
+- **Empty** (e.g. `QUEUE_PROCESSING=""`): the process consumes no queue. This is
+  useful for an HTTP-only instance that should not do any background work.
+
+Unknown queue identifiers are ignored with a warning.
+
+Examples:
+
+```bash
+# HTTP-only instance, no background queue work
+export QUEUE_PROCESSING=""
+
+# Dedicated worker that only processes notification jobs
+export QUEUE_PROCESSING="notification-coms"
+
+# A process that handles both GitHub queues
+export QUEUE_PROCESSING="github-sync-secrets,github-sync-users"
+
+# Consume every queue (default)
+export QUEUE_PROCESSING="all"
+```
+
+To scale a busy queue independently, run a second API process with
+`QUEUE_PROCESSING` set to just that queue, and (optionally) exclude it from the
+other instances. Each item is still dequeued atomically, so multiple consumers of
+the same queue do not process the same item twice. See
+[External Queue Consumer Guide](/dev_queue_consumers.md).
 ## Feature Flags
 
 Feature flags control optional or experimental UI and backend behaviour. Set a flag's environment variable to `'true'` to enable it; any other value (including unset) disables it.
@@ -198,4 +253,4 @@ Adding a new feature flag requires three steps:
 
 | Env Var | Default | Description |
 | --- | --- | --- |
-| FEATURE_FLAG_TEAM_ROLE_CHIPS | false | Shows role authorisation chips on the team roles page. |
+| none |  |  |

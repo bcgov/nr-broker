@@ -62,3 +62,10 @@ export OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER=https://doman.com/path/to/.wellknown/r
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_ID=REPLACE_WITH_CLIENT_ID
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_CLIENT_SECRET=REPLACE_WITH_CLIENT_SECRET
 export OAUTH2_CLIENT_REGISTRATION_LOGIN_SCOPE="openid profile"
+
+# Controls which Redis work queues this API process consumes. Comma-separated
+# queue names, the literal "all", or empty to disable processing.
+# Unset or "all" consumes every queue (default). Set to a single queue (e.g.
+# "notification-coms") to run a dedicated worker that improves responsiveness for
+# that queue by removing contention with the others.
+# export QUEUE_PROCESSING="all"

@@ -5,12 +5,13 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  OnModuleInit,
   forwardRef,
 } from '@nestjs/common';
-import { Request } from 'express';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { MikroORM } from '@mikro-orm/mongodb';
+import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
+import { Request } from 'express';
+import { CronExpression } from '@nestjs/schedule';
 import { ObjectId } from 'mongodb';
 import { validate } from 'class-validator';
 
@@ -21,12 +22,13 @@ import {
   INTENTION_MIN_TTL_SECONDS,
   INTENTION_REJECTED_TTL_MS,
   INTENTION_TRANSIENT_TTL_MS,
-  IS_PRIMARY_NODE,
+  BULL_LEADER_JOBS,
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
+import { BullService } from '../bull/bull.service';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { IntentionSyncService } from '../graph/intention-sync.service';
 import { ACTION_NAMES, ActionDto } from './dto/action.dto';
@@ -92,7 +94,7 @@ export interface IntentionOpenResponse {
 type FindArtifactArtifactOptions = Partial<ArtifactDto>;
 
 @Injectable()
-export class IntentionService {
+export class IntentionService implements OnModuleInit {
   private readonly logger = new Logger(IntentionService.name);
 
   constructor(
@@ -110,6 +112,7 @@ export class IntentionService {
     private readonly intentionUtilService: IntentionUtilService,
     private readonly validatorUtil: ValidatorUtil,
     private readonly intentionValidationRuleEngine: IntentionValidationRuleEngine,
+    private readonly bullService: BullService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -1071,15 +1074,27 @@ export class IntentionService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  @CreateRequestContext()
-  async handleIntentionExpiry() {
-    try {
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not do expiry
-        return;
-      }
+  onModuleInit(): void {
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.INTENTION_EXPIRY,
+      CronExpression.EVERY_MINUTE,
+      () => this.handleIntentionExpiry(),
+    );
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.TRANSIENT_CLEANUP,
+      CronExpression.EVERY_HOUR,
+      () => this.handleTransientCleanup(),
+    );
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.REJECTED_CLEANUP,
+      CronExpression.EVERY_HOUR,
+      () => this.handleRejectedCleanup(),
+    );
+  }
 
+  @CreateRequestContext()
+  private async handleIntentionExpiry() {
+    try {
       const expiredIntentionArr =
         await this.intentionRepository.findExpiredIntentions();
       for (const intention of expiredIntentionArr) {
@@ -1093,14 +1108,9 @@ export class IntentionService {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
-  async handleTransientCleanup() {
+  private async handleTransientCleanup() {
     try {
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not do cleanup
-        return;
-      }
       await this.intentionRepository.cleanupTransient(INTENTION_TRANSIENT_TTL_MS);
     } catch (error) {
       this.logger.error(
@@ -1110,14 +1120,9 @@ export class IntentionService {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
-  async handleRejectedCleanup() {
+  private async handleRejectedCleanup() {
     try {
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not do cleanup
-        return;
-      }
       await this.intentionRepository.cleanupRejected(INTENTION_REJECTED_TTL_MS);
     } catch (error) {
       this.logger.error(

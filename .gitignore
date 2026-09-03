@@ -61,3 +61,5 @@ Thumbs.db
 
 __screenshots__
 .vitest-attachments
+tsconfig.build.tsbuildinfo
+tsconfig.tsbuildinfo

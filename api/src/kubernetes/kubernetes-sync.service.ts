@@ -1,13 +1,12 @@
 import * as https from 'https';
-import { Injectable, Logger } from '@nestjs/common';
-import axios, { AxiosError, AxiosInstance } from 'axios';
-import { lastValueFrom } from 'rxjs';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
+import axios, { AxiosError, AxiosInstance } from 'axios';
+import { lastValueFrom } from 'rxjs';
+import { Job } from 'bullmq';
 import {
   REDIS_QUEUES,
-  CRON_JOB_KUBERNETES_SYNC_SECRETS,
   VAULT_KV_APPS_MOUNT,
   VAULT_KV_CLOUDS_MOUNT,
   KUBERNETES_SYNC_SECRET_LABEL_KEY,
@@ -16,16 +15,15 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { VaultService } from '../vault/vault.service';
 import { TokenService } from '../token/token.service';
-import { RedisService } from '../redis/redis.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { OpenshiftProjectEntity } from '../persistence/entity/openshift-project.entity';
-import { JobQueueUtil } from '../util/job-queue.util';
 import { GraphService } from '../graph/graph.service';
 import { CloudDto } from '../persistence/dto/cloud.dto';
 import { ProjectDto } from '../persistence/dto/project.dto';
 import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type';
-import { OpenshiftProjectDto } from 'src/persistence/dto/openshift-project.dto';
+import { OpenshiftProjectDto } from '../persistence/dto/openshift-project.dto';
 import { BrokerTokenUtil } from '../util/broker-token.util';
+import { BullService } from '../bull/bull.service';
 
 export interface KubernetesSecretMapping {
   service: string;
@@ -53,7 +51,7 @@ export interface KubernetesSyncConfig {
 }
 
 @Injectable()
-export class KubernetesSyncService {
+export class KubernetesSyncService implements OnModuleInit {
   private readonly logger = new Logger(KubernetesSyncService.name);
   private readonly axiosInstance: AxiosInstance;
 
@@ -62,11 +60,9 @@ export class KubernetesSyncService {
     private readonly vaultService: VaultService,
     private readonly tokenService: TokenService,
     private readonly brokerTokenUtil: BrokerTokenUtil,
-    private readonly redisService: RedisService,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
-    private readonly schedulerRegistry: SchedulerRegistry,
-    private readonly jobQueueUtil: JobQueueUtil,
+    private readonly bullService: BullService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {
@@ -77,39 +73,19 @@ export class KubernetesSyncService {
     return true;
   }
 
-  /**
-   * Cron job that polls the Redis queue for Kubernetes sync jobs.
-   */
-  @Cron(CronExpression.EVERY_30_SECONDS, {
-    name: CRON_JOB_KUBERNETES_SYNC_SECRETS,
-  })
-  @CreateRequestContext()
-  async pollKubernetesSyncCron(): Promise<void> {
-    try {
-      await this.jobQueueUtil.refreshJobWrap(
-        this.schedulerRegistry,
-        CRON_JOB_KUBERNETES_SYNC_SECRETS,
-        REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
-        () =>
-          this.redisService.dequeue(
-            REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
-          ) as Promise<string | null>,
-        async (openshiftProjectId: string) => {
-          await this.runSync(openshiftProjectId);
-        },
-      );
-    } catch (error) {
-      const err = error as Error;
-      this.logger.error(
-        `Failed to poll Kubernetes sync cron: ${err.message}`,
-        err.stack,
-      );
-    }
+  onModuleInit(): void {
+    this.bullService.registerWorker(
+      REDIS_QUEUES.KUBERNETES_SYNC_SECRETS,
+      async (job: Job) => {
+        await this.runSync(job.data as string);
+      },
+    );
   }
 
   /**
    * Process a single Kubernetes sync job.
    */
+  @CreateRequestContext()
   private async runSync(openshiftProjectId: string): Promise<void> {
     const openshiftProject = await this.collectionRepository.getCollectionById(
       'openshiftProject',

@@ -47,8 +47,6 @@ export class TeamRolesComponent {
     (edge) => edge.collection === 'team',
   );
 
-  readonly teamRoleChipsEnabled = this.featureFlagService.isEnabled('teamRoleChips');
-
   readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
     this.graphApi.getTeamRolePermissionRulesArgs(),
   );
