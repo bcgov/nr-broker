@@ -534,7 +534,7 @@ export class AccountService implements OnModuleInit {
   private async runJwtLifecycle() {
     try {
       const CURRENT_TIME_MS = Date.now();
-      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / 1000);
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
       const expiredJwtArr =
         await this.systemRepository.findExpiredRegistryJwts(CURRENT_TIME_S);
@@ -584,7 +584,7 @@ export class AccountService implements OnModuleInit {
   private async runJwtExpirationNotification() {
     try {
       const CURRENT_TIME_MS = Date.now();
-      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / 1000);
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
       const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
         CURRENT_TIME_S + 60 * 60 * 24 * 7,
@@ -620,7 +620,7 @@ export class AccountService implements OnModuleInit {
   private async sendJwtExpirationNotification() {
     try {
       const CURRENT_TIME_MS = Date.now();
-      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / 1000);
+      const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
 
       const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
         CURRENT_TIME_S + 60 * 60 * 24 * 7,
