@@ -329,6 +329,30 @@ describe('BullService.enqueue', () => {
     expect(queueInstances).toHaveLength(1);
     expect(queueInstances[0].add).toHaveBeenCalledTimes(2);
   });
+
+  it('passes BullMQ deduplication options to the queue', async () => {
+    await service.enqueue(REDIS_QUEUES.GITHUB_SYNC_SECRETS, 'repository-1', {
+      delay: 5_000,
+      deduplication: {
+        id: 'github-sync-secrets:repository-1',
+        extend: true,
+        replace: true,
+      },
+    });
+
+    expect(queueInstances[0].add).toHaveBeenCalledWith(
+      REDIS_QUEUES.GITHUB_SYNC_SECRETS,
+      'repository-1',
+      expect.objectContaining({
+        delay: 5_000,
+        deduplication: {
+          id: 'github-sync-secrets:repository-1',
+          extend: true,
+          replace: true,
+        },
+      }),
+    );
+  });
 });
 
 describe('BullService.registerLeaderJob', () => {

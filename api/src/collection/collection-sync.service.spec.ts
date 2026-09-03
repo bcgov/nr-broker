@@ -130,6 +130,14 @@ describe('CollectionSyncService', () => {
     expect(bullService.enqueue).toHaveBeenCalledWith(
       'github-sync-secrets',
       'target-collection-id',
+      {
+        delay: 5_000,
+        deduplication: {
+          id: 'github-sync-secrets:target-collection-id',
+          extend: true,
+          replace: true,
+        },
+      },
     );
     expect(targets).toBeUndefined();
   });

@@ -24,6 +24,7 @@ import {
 import { VertexPointerDto } from '../persistence/dto/vertex-pointer.dto';
 
 type QueueRuleConfig = NonNullable<CollectionSyncQueueRuleDto['queue']>;
+const COLLECTION_SYNC_DEBOUNCE_MS = 5_000;
 
 interface QueueTargetTask {
   queueRule: QueueRuleConfig;
@@ -362,7 +363,14 @@ export class CollectionSyncService {
       return;
     }
 
-    await this.bullService.enqueue(queueName, target.id);
+    await this.bullService.enqueue(queueName, target.id, {
+      delay: COLLECTION_SYNC_DEBOUNCE_MS,
+      deduplication: {
+        id: `${queueName}:${target.id}`,
+        extend: true,
+        replace: true,
+      },
+    });
 
     if (queueRule.queuedStatusProperty) {
       await this.graphService.updateSyncStatus(

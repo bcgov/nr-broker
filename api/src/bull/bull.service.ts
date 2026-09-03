@@ -8,6 +8,7 @@ import {
 import {
   ConnectionOptions,
   Job,
+  JobsOptions,
   Queue,
   QueueEvents,
   Worker,
@@ -223,7 +224,7 @@ implements OnModuleInit, OnModuleDestroy {
   public async enqueue<T = unknown>(
     queueName: BullQueueName,
     data: T,
-    opts?: { jobId?: string; delay?: number; attempts?: number },
+    opts?: JobsOptions,
   ): Promise<void> {
     const queue = this.dataQueues.get(queueName) ??
       new Queue(queueName, { connection: this.connection });
