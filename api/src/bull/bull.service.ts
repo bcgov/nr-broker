@@ -28,8 +28,7 @@ export type BullJobHandler = (job: Job) => Promise<void> | void;
 
 /**
  * Handler for a BullMQ *leader* job. Leader jobs are repeatable, single-node
- * scheduled jobs (the former `@Cron` methods that were gated by
- * `IS_PRIMARY_NODE`). The handler ignores the payload; only the schedule
+ * scheduled jobs. The handler ignores the payload; only the schedule
  * matters.
  */
 export type BullLeaderHandler = () => Promise<void> | void;
@@ -50,8 +49,7 @@ export type BullLeaderHandler = () => Promise<void> | void;
  * 2. **Leader jobs** (e.g. `intention-expiry`, `jwt-lifecycle`). Each
  *    single-node scheduled service registers a repeatable job via
  *    {@link registerLeaderJob}. BullMQ's repeat mechanism fires each job once
- *    per schedule tick across *all* replicas and the standalone worker, which
- *    replaces the static `IS_PRIMARY_NODE` leader election.
+ *    per schedule tick across *all* replicas and the standalone worker.
  */
 @Injectable()
 export class BullService

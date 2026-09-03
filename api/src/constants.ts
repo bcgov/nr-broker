@@ -43,23 +43,6 @@ export const SHORT_ENV_CONVERSION = {
   development: 'dev',
 } as const;
 
-// On Kubernetes, only the first StatefulSet pod (HOSTNAME ends in `-0`) is the
-// leader that renews the broker's own Vault token, so replicas do not renew in
-// parallel. Outside Kubernetes (local dev, the standalone queue worker, or a
-// single replica) there is no `-0` pod, so the lone instance is the primary and
-// must renew on its own. Set BROKER_PRIMARY_NODE to `0`/`false` to force a
-// non-renewing replica, or `1`/`true` to force renewal.
-export const IS_PRIMARY_NODE: boolean = (() => {
-  const override = process.env.BROKER_PRIMARY_NODE;
-  if (override !== undefined) {
-    return override === '1' || override.toLowerCase() === 'true';
-  }
-  const hostname = process.env.HOSTNAME;
-  // No HOSTNAME => a single instance (local / standalone worker): it is the
-  // primary. With a HOSTNAME => Kubernetes: only the `-0` pod is the primary.
-  return hostname ? hostname.endsWith('-0') : true;
-})();
-
 export const AUDIT_LOGSTREAM_DIR = process.env.AUDIT_LOGSTREAM_DIR ?? '/tmp';
 export const AUDIT_LOGSTREAM_SIZE = process.env.AUDIT_LOGSTREAM_SIZE ?? '50M';
 export const AUDIT_LOGSTREAM_MAX_LOGS =
