@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import { Logger } from '@nestjs/common';
 import { BullService, buildBullConnection } from './bull.service';
 import {
   BULL_REDIS,
@@ -107,6 +108,16 @@ const fakeConnection = {
   host: 'localhost',
   port: 6379,
 } as unknown as import('bullmq').ConnectionOptions;
+
+beforeEach(() => {
+  vi.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+  vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+  vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('buildBullConnection', () => {
   it('returns ioredis options mirroring BULL_REDIS with null maxRetriesPerRequest', () => {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { MikroORM } from '@mikro-orm/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { IntentionService } from './intention.service';
 import { BullService } from '../bull/bull.service';
@@ -103,6 +104,7 @@ describe('IntentionService', () => {
         { provide: ValidatorUtil, useValue: validatorUtil },
         { provide: IntentionValidationRuleEngine, useValue: intentionValidationRuleEngine },
         { provide: BullService, useValue: bullService },
+        { provide: MikroORM, useValue: {} },
       ],
     }).compile();
 
