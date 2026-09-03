@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { MikroORM } from '@mikro-orm/core';
 import { BullService, buildBullConnection } from './bull.service';
 import { QUEUE_PROCESSING } from '../constants';
 
@@ -19,8 +20,9 @@ import { QUEUE_PROCESSING } from '../constants';
     },
     {
       provide: BullService,
-      useFactory: (connection) => new BullService(connection, QUEUE_PROCESSING),
-      inject: ['BULL_REDIS_CONNECTION'],
+      useFactory: (connection, orm) =>
+        new BullService(connection, orm, QUEUE_PROCESSING),
+      inject: ['BULL_REDIS_CONNECTION', MikroORM],
     },
   ],
   exports: [BullService],

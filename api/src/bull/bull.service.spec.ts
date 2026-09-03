@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { Logger } from '@nestjs/common';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import { BullService, buildBullConnection } from './bull.service';
 import {
   BULL_REDIS,
@@ -108,6 +109,13 @@ const fakeConnection = {
   host: 'localhost',
   port: 6379,
 } as unknown as import('bullmq').ConnectionOptions;
+const forkedEntityManager = {};
+const fakeOrm = {
+  em: {
+    name: 'default',
+    fork: vi.fn(() => forkedEntityManager),
+  },
+} as unknown as MikroORM;
 
 beforeEach(() => {
   vi.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
@@ -146,7 +154,7 @@ describe('BullService.registerWorker', () => {
   });
 
   it('skips creating a worker when the queue is not enabled by QUEUE_PROCESSING', () => {
-    service = new BullService(fakeConnection, '');
+    service = new BullService(fakeConnection, fakeOrm, '');
     const log = vi
       .spyOn(service['logger'] as import('@nestjs/common').Logger, 'log');
 
@@ -162,6 +170,7 @@ describe('BullService.registerWorker', () => {
   it('creates a queue and a worker for an enabled queue', () => {
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       REDIS_QUEUES.NOTIFICATION_COMS,
     );
 
@@ -178,7 +187,7 @@ describe('BullService.registerWorker', () => {
   });
 
   it('creates workers for every queue when processing is set to all', () => {
-    service = new BullService(fakeConnection, 'all');
+    service = new BullService(fakeConnection, fakeOrm, 'all');
 
     service.registerWorker(REDIS_QUEUES.NOTIFICATION_COMS, async () => undefined);
     service.registerWorker(REDIS_QUEUES.GITHUB_SYNC_SECRETS, async () => undefined);
@@ -189,6 +198,7 @@ describe('BullService.registerWorker', () => {
   it('creates workers only for queues listed in the processing configuration', () => {
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       `${REDIS_QUEUES.NOTIFICATION_COMS}, ${REDIS_QUEUES.KUBERNETES_SYNC_SECRETS}`,
     );
 
@@ -203,7 +213,7 @@ describe('BullService.registerWorker', () => {
   });
 
   it('does not create workers for unknown queue identifiers', () => {
-    service = new BullService(fakeConnection, 'does-not-exist');
+    service = new BullService(fakeConnection, fakeOrm, 'does-not-exist');
 
     service.registerWorker(REDIS_QUEUES.NOTIFICATION_COMS, async () => undefined);
 
@@ -213,6 +223,7 @@ describe('BullService.registerWorker', () => {
   it('does not create a second worker for the same queue', () => {
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       REDIS_QUEUES.NOTIFICATION_COMS,
     );
 
@@ -227,6 +238,7 @@ describe('BullService.registerWorker', () => {
   it('swallows a handler error so a single failed job does not stop the worker', async () => {
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       REDIS_QUEUES.NOTIFICATION_COMS,
     );
     const error = vi
@@ -246,9 +258,27 @@ describe('BullService.registerWorker', () => {
     );
   });
 
+  it('runs the handler in a MikroORM request context', async () => {
+    service = new BullService(
+      fakeConnection,
+      fakeOrm,
+      REDIS_QUEUES.NOTIFICATION_COMS,
+    );
+    let handlerEntityManager: unknown;
+
+    service.registerWorker(REDIS_QUEUES.NOTIFICATION_COMS, async () => {
+      handlerEntityManager = RequestContext.getEntityManager();
+    });
+
+    await workerInstances[0].processor({ id: '1' });
+
+    expect(handlerEntityManager).toBe(forkedEntityManager);
+  });
+
   it('registers a failed listener that logs when a job is moved to failed', () => {
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       REDIS_QUEUES.NOTIFICATION_COMS,
     );
     const error = vi
@@ -273,7 +303,7 @@ describe('BullService.enqueue', () => {
     queueInstances.length = 0;
     workerInstances.length = 0;
     queueEventsInstances.length = 0;
-    service = new BullService(fakeConnection, '');
+    service = new BullService(fakeConnection, fakeOrm, '');
   });
 
   it('lazily creates a queue and adds the job with the given options', async () => {
@@ -308,7 +338,7 @@ describe('BullService.registerLeaderJob', () => {
     queueInstances.length = 0;
     workerInstances.length = 0;
     queueEventsInstances.length = 0;
-    service = new BullService(fakeConnection, '');
+    service = new BullService(fakeConnection, fakeOrm, '');
   });
 
   it('schedules the repeatable job and invokes the handler once', async () => {
@@ -354,7 +384,7 @@ describe('BullService leader worker', () => {
     queueInstances.length = 0;
     workerInstances.length = 0;
     queueEventsInstances.length = 0;
-    service = new BullService(fakeConnection, '');
+    service = new BullService(fakeConnection, fakeOrm, '');
   });
 
   const leaderWorker = () =>
@@ -371,7 +401,10 @@ describe('BullService leader worker', () => {
   });
 
   it('dispatches a fired leader job to its registered handler', async () => {
-    const handler = vi.fn(async () => undefined);
+    let handlerEntityManager: unknown;
+    const handler = vi.fn(async () => {
+      handlerEntityManager = RequestContext.getEntityManager();
+    });
     await service.registerLeaderJob(BULL_LEADER_JOBS.COLLECTION_SYNC, '* * * * *', handler);
 
     // reset the call from scheduling so we only count the worker dispatch
@@ -381,6 +414,7 @@ describe('BullService leader worker', () => {
     await worker!.processor({ name: BULL_LEADER_JOBS.COLLECTION_SYNC });
 
     expect(handler).toHaveBeenCalledOnce();
+    expect(handlerEntityManager).toBe(forkedEntityManager);
   });
 
   it('logs a warning when a fired leader job has no registered handler', async () => {
@@ -407,6 +441,7 @@ describe('BullService.onModuleDestroy', () => {
     queueEventsInstances.length = 0;
     service = new BullService(
       fakeConnection,
+      fakeOrm,
       REDIS_QUEUES.NOTIFICATION_COMS,
     );
   });

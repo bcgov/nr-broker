@@ -12,6 +12,7 @@ import {
   QueueEvents,
   Worker,
 } from 'bullmq';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import {
   BULL_REDIS,
   BULL_STALLED_INTERVAL_MS,
@@ -68,6 +69,7 @@ implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject('BULL_REDIS_CONNECTION')
     private readonly connection: ConnectionOptions,
+    private readonly orm: MikroORM,
     rawQueueProcessing: string = QUEUE_PROCESSING,
   ) {
     this.enabledQueues = this.parseQueueProcessing(rawQueueProcessing);
@@ -127,7 +129,7 @@ implements OnModuleInit, OnModuleDestroy {
           );
           return;
         }
-        await handler();
+        await RequestContext.create(this.orm.em, handler);
       },
       {
         connection: this.connection,
@@ -184,7 +186,7 @@ implements OnModuleInit, OnModuleDestroy {
         // failed job neither retries nor stops the worker. This mirrors the
         // prior poller behaviour where errors were logged and swallowed.
         try {
-          await handler(job);
+          await RequestContext.create(this.orm.em, () => handler(job));
         } catch (error) {
           this.logger.error(
             `Job ${job.id} on "${queueName}" failed: ${
