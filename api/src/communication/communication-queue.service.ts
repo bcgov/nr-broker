@@ -15,6 +15,8 @@ import { UserDto } from '../persistence/dto/user.dto';
 import { CommunicationTaskService } from './communication-task.service';
 import { COMMUNICATION_TASKS } from './communication.constants';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 type CommunicationUserRef =
   | {
@@ -57,6 +59,7 @@ export class CommunicationQueueService implements OnModuleInit {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
     private readonly bullService: BullService,
+    private readonly orm: MikroORM,
   ) {}
 
   onModuleInit(): void {
@@ -116,6 +119,7 @@ export class CommunicationQueueService implements OnModuleInit {
    * Process a single notification job: resolve the recipient users and send each
    * communication. Per-user errors are logged but do not fail the job.
    */
+  @CreateRequestContext()
   private async processJob(job: CommunicationJob): Promise<void> {
     let userCount = 0;
     let failCount = 0;

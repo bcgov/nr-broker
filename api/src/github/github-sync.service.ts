@@ -27,6 +27,7 @@ import { CollectionNameEnum } from '../persistence/entity/collection-entity-unio
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphService } from '../graph/graph.service';
 import { BullService } from '../bull/bull.service';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 @Injectable()
 export class GithubSyncService implements OnModuleInit {
@@ -80,6 +81,7 @@ export class GithubSyncService implements OnModuleInit {
     );
   }
 
+  @CreateRequestContext()
   async runRefresh(
     repositoryId: string,
     syncSecrets: boolean,
