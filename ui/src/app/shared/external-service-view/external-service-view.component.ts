@@ -31,7 +31,6 @@ export class ExternalServiceViewComponent {
   readonly screen = inject(ScreenService);
   readonly connectionConfig = input<ConnectionConfigDto | null>(null);
   readonly edges = input<CollectionEdgeConfig[]>([]);
-  readonly teamRoleChipsEnabled = input(false);
   readonly connectionConfigChipsForRole = input<ConnectionConfigChipsByRole>({});
   readonly gitHubRoleByEdge = input<GitHubRolesByEdge>({});
   readonly brokerRoleByEdge = input<BrokerRolesByEdge>({});

@@ -1,6 +1,8 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { MikroORM } from '@mikro-orm/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { IntentionService } from './intention.service';
+import { BullService } from '../bull/bull.service';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { ActionUtil } from '../util/action.util';
@@ -14,7 +16,6 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { IntentionUtilService } from './intention-util.service';
 import { ValidatorUtil } from '../util/validator.util';
 import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
-import { MikroORM } from '@mikro-orm/mongodb';
 import { BadRequestException } from '@nestjs/common';
 import { IntentionDto } from './dto/intention.dto';
 
@@ -80,9 +81,11 @@ describe('IntentionService', () => {
       validate: vi.fn(),
       getRules: vi.fn(),
     } as unknown as IntentionValidationRuleEngine;
-    const orm = {
-      getConnection: vi.fn(() => ({ connect: vi.fn() })),
-    } as unknown as MikroORM;
+    const bullService = {
+      registerWorker: vi.fn(),
+      registerLeaderJob: vi.fn(),
+      enqueue: vi.fn(),
+    } as unknown as BullService;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -100,7 +103,8 @@ describe('IntentionService', () => {
         { provide: IntentionUtilService, useValue: intentionUtilService },
         { provide: ValidatorUtil, useValue: validatorUtil },
         { provide: IntentionValidationRuleEngine, useValue: intentionValidationRuleEngine },
-        { provide: MikroORM, useValue: orm },
+        { provide: BullService, useValue: bullService },
+        { provide: MikroORM, useValue: {} },
       ],
     }).compile();
 

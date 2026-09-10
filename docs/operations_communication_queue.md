@@ -1,10 +1,10 @@
 # Communication Queue
 
-The communication queue is an internal consumer that processes notification events from Redis and delivers them to users via configured channels (e.g., email). Unlike collection sync queues, the communication queue does not use `syncQueues` rules — it is triggered directly by backend services when events occur.
+The communication queue is an internal BullMQ consumer that processes notification events and delivers them to users via configured channels (e.g., email). Unlike collection sync queues, the communication queue does not use `syncQueues` rules — it is triggered directly by backend services when events occur.
 
 ## How it works
 
-When an event occurs on a collection object (e.g., a deployment completes), the Broker backend queues a communication job to the `notification-coms` Redis list. A cron job polls this queue every 30 seconds, resolves the target users, and dispatches notifications through available channels.
+When an event occurs on a collection object (e.g., a deployment completes), the Broker backend adds a job to the `notification-coms` BullMQ queue. A BullMQ worker claims the job, resolves the target users, and dispatches notifications through available channels.
 
 ### Job Structure
 
@@ -22,7 +22,7 @@ Each queued job contains:
 
 ### Processing Flow
 
-1. The cron job dequeues a job from `notification-coms` using `RPOP`
+1. A BullMQ worker claims a job from `notification-coms`
 2. For each user reference in `toUsers`, it resolves actual users:
    - **Upstream references**: Finds users connected to the vertex via team roles
    - **Watch references**: Finds users with explicit watch subscriptions or matching default configs
@@ -102,7 +102,10 @@ This queues a test notification for users with the specified role connected to t
 
 ## Health Monitoring
 
-The communication queue exposes a health check endpoint that reports on queue status and processing metrics. The cron job is registered with NestJS's `SchedulerRegistry` and can be dynamically enabled or disabled at runtime.
+Set `QUEUE_PROCESSING=notification-coms` on a dedicated queue-worker process to
+run only the communication worker. Set `QUEUE_PROCESSING=""` on an API process
+to make it HTTP-only. BullMQ claims each job for one worker, so multiple enabled
+processes can safely consume the queue.
 
 ## Related
 

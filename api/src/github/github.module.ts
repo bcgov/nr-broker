@@ -8,6 +8,7 @@ import { RedisModule } from '../redis/redis.module';
 import { GraphModule } from '../graph/graph.module';
 import { VaultModule } from '../vault/vault.module';
 import { UtilModule } from '../util/util.module';
+import { BullModule } from '../bull/bull.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UtilModule } from '../util/util.module';
     TerminusModule,
     VaultModule,
     UtilModule,
+    BullModule,
   ],
   providers: [GithubService, GithubSyncService],
   exports: [GithubService, GithubSyncService],

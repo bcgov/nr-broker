@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
@@ -11,7 +12,7 @@ import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 import {
-  IS_PRIMARY_NODE,
+  BULL_LEADER_JOBS,
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   VAULT_SYNC_APP_AUTH_MOUNT,
@@ -19,6 +20,7 @@ import {
   VAULT_KV_APPS_MOUNT,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
+import { BullService } from '../bull/bull.service';
 
 interface VaultTokenLookupDto {
   data: {
@@ -44,17 +46,31 @@ interface VaultTokenLookupDto {
 }
 
 @Injectable()
-export class TokenService {
+export class TokenService implements OnModuleInit {
   private readonly logger = new Logger(TokenService.name);
   private tokenLookup: VaultTokenLookupDto | undefined;
   private renewAt: number | undefined;
 
   constructor(
+    private readonly bullService: BullService,
     private readonly vaultService: VaultService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
-  ) {
-    this.lookupSelf();
+  ) {}
+
+  /**
+   * Schedule the recurring token refresh on the BullMQ leader queue and kick off
+   * the initial lookup once the module is initialized, after dependency injection
+   * and before the server starts listening. BullMQ claims the repeatable job for
+   * exactly one node per tick, so renewal runs on a single node regardless of
+   * how many replicas or the standalone worker are running.
+   */
+  onModuleInit(): void {
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.TOKEN_RENEWAL,
+      CronExpression.EVERY_MINUTE,
+      () => this.handleTokenRenewal(),
+    );
   }
 
   public hasValidToken() {
@@ -188,13 +204,19 @@ export class TokenService {
       );
   }
 
+  @Cron(CronExpression.EVERY_MINUTE)
   lookupSelf() {
     if (!this.hasValidToken()) {
       return;
     }
+    if (this.renewAt !== undefined && Date.now() < this.renewAt) {
+      // Do not need to lookup the token if it is not yet time to renew.
+      // This avoids unnecessary Vault calls and log spam.
+      return;
+    }
     this.vaultService.getAuthTokenLookupSelf().subscribe({
-      error: () => {
-        this.logger.error('Lookup: fail');
+      error: (err) => {
+        this.logger.error(`Lookup: fail ${this.describeVaultError(err)}`);
       },
       next: (val: AxiosResponse<VaultTokenLookupDto, any>) => {
         this.logger.log('Lookup: success');
@@ -202,36 +224,46 @@ export class TokenService {
         const baseTime = this.tokenLookup.data.last_renewal_time
           ? this.tokenLookup.data.last_renewal_time
           : this.tokenLookup.data.creation_time;
-        this.renewAt =
-          (baseTime +
-            Math.round(
-              this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
-            )) *
-            1000;
+        const renewAt = (baseTime +
+          Math.round(
+            this.tokenLookup.data.creation_ttl * TOKEN_RENEW_RATIO,
+          )) *
+          1000;
+        if (this.renewAt !== renewAt) {
+          this.logger.log(
+            `Renewal deadline updated: ${new Date(renewAt).toISOString()}`,
+          );
+        }
+        this.renewAt = renewAt;
       },
     });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  /**
+   * Leader-queue handler for the recurring Vault token refresh. BullMQ fires
+   * this once per minute on a single node.
+   */
   @CreateRequestContext()
-  async handleTokenRenewal() {
+  private async handleTokenRenewal() {
     try {
-      if (
-        !this.hasValidToken() ||
-        this.renewAt === undefined ||
-        Date.now() < this.renewAt
-      ) {
+      if (!this.hasValidToken()) {
         return;
       }
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not renew
+      if (this.renewAt === undefined) {
+        // The renewal deadline has not been computed yet, e.g. the initial
+        // lookup at startup failed or raced Vault. Recompute it this tick so
+        // the next tick can renew, instead of giving up forever.
         this.lookupSelf();
         return;
       }
+      if (Date.now() < this.renewAt) {
+        return;
+      }
+
       this.logger.debug('Renew: start');
       this.vaultService.postAuthTokenRenewSelf().subscribe({
-        error: () => {
-          this.logger.error('Renew: fail');
+        error: (err) => {
+          this.logger.error(`Renew: fail ${this.describeVaultError(err)}`);
         },
         next: (val: AxiosResponse<any, any>) => {
           this.logger.log(
@@ -242,10 +274,34 @@ export class TokenService {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to handle token renewal: ${error.message}`,
-        error.stack,
+        `Failed to handle token renewal: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
+  }
+
+  /**
+    * Summarize a Vault HTTP error for logging. The observable error handlers
+    * previously logged only "fail", hiding the actual status, message and
+    * response body and making the renewal failure undiagnosable.
+    */
+  private describeVaultError(err: any): string {
+    const parts: string[] = [];
+    const status = err?.response?.status;
+    if (status) {
+      parts.push(`status ${status}`);
+    }
+    const message = err?.response?.data?.message ?? err?.message;
+    if (message) {
+      parts.push(`message "${message}"`);
+    }
+    if (err?.code) {
+      parts.push(`code ${err.code}`);
+    }
+    if (parts.length === 0) {
+      return String(err);
+    }
+    return parts.join(', ');
   }
 
   private convertUnderscoreToDash(str: string) {

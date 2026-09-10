@@ -13,6 +13,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { TokenModule } from '../token/token.module';
 import { UtilModule } from '../util/util.module';
 import { RedisModule } from '../redis/redis.module';
+import { BullModule } from '../bull/bull.module';
 import { VaultModule } from '../vault/vault.module';
 import { CommunicationModule } from '../communication/communication.module';
 import { KubernetesModule } from '../kubernetes/kubernetes.module';
@@ -32,6 +33,7 @@ import { CollectionSyncService } from './collection-sync.service';
     GraphModule,
     forwardRef(() => IntentionModule),
     RedisModule,
+    BullModule,
     TokenModule,
     UtilModule,
     VaultModule,

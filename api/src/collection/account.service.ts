@@ -4,15 +4,16 @@ import {
   BadRequestException,
   Logger,
   NotFoundException,
+  OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 import { Request } from 'express';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { CronExpression } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { catchError, lastValueFrom, of, switchMap } from 'rxjs';
 import ejs from 'ejs';
-import { MikroORM } from '@mikro-orm/core';
-import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
@@ -20,12 +21,12 @@ import { JwtRegistryEntity } from '../persistence/entity/jwt-registry.entity';
 import { BrokerJwtDto } from '../auth/broker-jwt.dto';
 import {
   OPENSEARCH_INDEX_BROKER_AUDIT,
-  IS_PRIMARY_NODE,
   JWT_GENERATE_BLOCK_GRACE_PERIOD,
   MILLISECONDS_IN_SECOND,
   VAULT_KV_APPS_MOUNT,
   REDIS_PUBSUB,
   VAULT_KV_APPS_TOOLS_PATH_TPL,
+  BULL_LEADER_JOBS,
 } from '../constants';
 import { DAYS_365_IN_SECONDS } from './dto/broker-account-token-generate-query.dto';
 import { AuditService } from '../audit/audit.service';
@@ -44,13 +45,14 @@ import { SyncType } from '../persistence/dto/sync-queue-config.dto';
 import { HistogramSeriesDto } from './dto/histogram-series.dto';
 import { CollectionSyncService } from './collection-sync.service';
 import { BrokerTokenUtil } from '../util/broker-token.util';
+import { BullService } from '../bull/bull.service';
 
 export class TokenCreateDTO {
   token: string;
 }
 
 @Injectable()
-export class AccountService {
+export class AccountService implements OnModuleInit {
   private readonly logger = new Logger(AccountService.name);
 
   constructor(
@@ -66,7 +68,7 @@ export class AccountService {
     private readonly dateUtil: DateUtil,
     private readonly collectionSyncService: CollectionSyncService,
     private readonly brokerTokenUtil: BrokerTokenUtil,
-    // used by: @CreateRequestContext()
+    private readonly bullService: BullService,
     private readonly orm: MikroORM,
   ) {}
 
@@ -510,17 +512,29 @@ export class AccountService {
     );
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  onModuleInit(): void {
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.JWT_LIFECYCLE,
+      CronExpression.EVERY_MINUTE,
+      () => this.runJwtLifecycle(),
+    );
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.JWT_EXPIRATION_NOTIFICATION,
+      CronExpression.EVERY_HOUR,
+      () => this.runJwtExpirationNotification(),
+    );
+    this.bullService.registerLeaderJob(
+      BULL_LEADER_JOBS.SEND_JWT_EXPIRATION_NOTIFICATION,
+      CronExpression.EVERY_DAY_AT_1AM,
+      () => this.sendJwtExpirationNotification(),
+    );
+  }
+
   @CreateRequestContext()
-  async runJwtLifecycle() {
+  private async runJwtLifecycle() {
     try {
       const CURRENT_TIME_MS = Date.now();
       const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
-
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not run lifecycle
-        return;
-      }
 
       const expiredJwtArr =
         await this.systemRepository.findExpiredRegistryJwts(CURRENT_TIME_S);
@@ -547,7 +561,6 @@ export class AccountService {
           }
 
           if (!accountCollection) {
-            // Block all if the account was deleted.
             await this.systemRepository.blockJwtByJti(account.jti[i]);
             continue;
           }
@@ -561,23 +574,17 @@ export class AccountService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to run JWT lifecycle: ${error.message}`,
-        error.stack,
+        `Failed to run JWT lifecycle: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
   @CreateRequestContext()
-  async runJwtExpirationNotification() {
+  private async runJwtExpirationNotification() {
     try {
       const CURRENT_TIME_MS = Date.now();
       const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
-
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not run lifecycle
-        return;
-      }
 
       const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
         CURRENT_TIME_S + 60 * 60 * 24 * 7,
@@ -603,23 +610,17 @@ export class AccountService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to run JWT expiration notification: ${error.message}`,
-        error.stack,
+        `Failed to run JWT expiration notification: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @CreateRequestContext()
-  async sendJwtExpirationNotification() {
+  private async sendJwtExpirationNotification() {
     try {
       const CURRENT_TIME_MS = Date.now();
       const CURRENT_TIME_S = Math.floor(CURRENT_TIME_MS / MILLISECONDS_IN_SECOND);
-
-      if (!IS_PRIMARY_NODE) {
-        // Nodes that are not the primary one should not run lifecycle
-        return;
-      }
 
       const expiredJwtArr = await this.systemRepository.findExpiredRegistryJwts(
         CURRENT_TIME_S + 60 * 60 * 24 * 7,
@@ -644,7 +645,6 @@ export class AccountService {
           continue;
         }
 
-        // Get last used timestamp from the JWT registry
         const lastUsedAt = expiredJwt.lastUsedAt;
         const expirationDate = new Date(expiredJwt.claims.exp * 1000);
 
@@ -660,7 +660,6 @@ export class AccountService {
             : 'Never used',
         };
 
-        // Queue the notification
         await this.communicationQueueService.queue(
           'token-expiration-alert',
           account.vertex.toString(),
@@ -686,8 +685,8 @@ export class AccountService {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to send JWT expiration notification: ${error.message}`,
-        error.stack,
+        `Failed to send JWT expiration notification: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }

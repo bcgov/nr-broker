@@ -9,7 +9,7 @@ import { REDIS_QUEUES } from '../constants';
 import { CollectionNameEnum } from '../persistence/entity/collection-entity-union.type';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { RedisService } from '../redis/redis.service';
+import { BullService } from '../bull/bull.service';
 import { GraphService } from '../graph/graph.service';
 import { CollectionValues } from '../persistence/entity/collection-entity-union.type';
 import {
@@ -21,9 +21,10 @@ import {
   SyncType,
   CollectionSyncRequirement,
 } from '../persistence/dto/sync-queue-config.dto';
-import { VertexPointerDto } from 'src/persistence/dto/vertex-pointer.dto';
+import { VertexPointerDto } from '../persistence/dto/vertex-pointer.dto';
 
 type QueueRuleConfig = NonNullable<CollectionSyncQueueRuleDto['queue']>;
+const COLLECTION_SYNC_DEBOUNCE_MS = 5_000;
 
 interface QueueTargetTask {
   queueRule: QueueRuleConfig;
@@ -35,7 +36,7 @@ export class CollectionSyncService {
   constructor(
     private readonly collectionRepository: CollectionRepository,
     private readonly graphRepository: GraphRepository,
-    private readonly redisService: RedisService,
+    private readonly bullService: BullService,
     private readonly graphService: GraphService,
   ) {}
 
@@ -362,7 +363,14 @@ export class CollectionSyncService {
       return;
     }
 
-    this.redisService.queue(queueName, target.id);
+    await this.bullService.enqueue(queueName, target.id, {
+      delay: COLLECTION_SYNC_DEBOUNCE_MS,
+      deduplication: {
+        id: `${queueName}:${target.id}`,
+        extend: true,
+        replace: true,
+      },
+    });
 
     if (queueRule.queuedStatusProperty) {
       await this.graphService.updateSyncStatus(

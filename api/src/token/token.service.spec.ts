@@ -5,9 +5,11 @@ import { MikroORM } from '@mikro-orm/core';
 
 import { TokenService } from './token.service';
 import { VaultService } from '../vault/vault.service';
+import { BullService } from '../bull/bull.service';
 
 describe('TokenService', () => {
   let service: TokenService;
+  let bullService: { registerLeaderJob: ReturnType<typeof vi.fn> };
   let vaultService: {
     hasValidToken: ReturnType<typeof vi.fn>;
     postAuthMountRoleNameSecretId: ReturnType<typeof vi.fn>;
@@ -31,19 +33,20 @@ describe('TokenService', () => {
       getAuthMountRoleNameRoleId: vi.fn(),
     };
 
+    bullService = {
+      registerLeaderJob: vi.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TokenService,
         { provide: VaultService, useValue: vaultService },
+        { provide: BullService, useValue: bullService },
         { provide: MikroORM, useValue: {} },
       ],
     }).compile();
 
     service = module.get<TokenService>(TokenService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
   });
 
   it('hasValidToken should proxy Vault token state', () => {

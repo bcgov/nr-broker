@@ -84,7 +84,6 @@ export class ExternalServiceComponent {
       .flatMap((edge) => edge.prototypes ?? [])
       .filter((proto) => proto.target === vertexId);
   });
-  readonly teamRoleChipsEnabled = this.featureFlagService.isEnabled('teamRoleChips');
   readonly teamRolePermissionRulesResource = httpResource<GraphRolePermissionRuleDto[]>(() =>
     this.graphApi.getTeamRolePermissionRulesArgs(),
   );

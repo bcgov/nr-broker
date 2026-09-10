@@ -21,7 +21,6 @@ import {
 })
 export class TeamRoleEdgesComponent {
   readonly edges = input.required<CollectionEdgeConfig[]>();
-  readonly teamRoleChipsEnabled = input(false);
   readonly connectionConfigChipsForRole = input<ConnectionConfigChipsByRole>({});
   readonly gitHubRoleByEdge = input<GitHubRolesByEdge>({});
   readonly brokerRoleByEdge = input<BrokerRolesByEdge>({});

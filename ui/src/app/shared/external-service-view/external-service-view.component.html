@@ -28,7 +28,6 @@
                 <p>Granted by the following team roles:</p>
                 <app-team-role-edges
                   [edges]="getEdgesForRoles(group.roles)"
-                  [teamRoleChipsEnabled]="teamRoleChipsEnabled()"
                   [connectionConfigChipsForRole]="connectionConfigChipsForRole()"
                   [gitHubRoleByEdge]="gitHubRoleByEdge()"
                   [brokerRoleByEdge]="brokerRoleByEdge()"
@@ -46,7 +45,7 @@
 
         @if (servicePrototypes().length > 0) {
           <div class="connection-types">
-            <p class="connection-types-label">Teams can request the following:</p>
+            <h3 class="connection-types-label">Teams can request the following:</h3>
             @for (prototype of servicePrototypes(); track prototype.name) {
               <app-details-item item="{{ prototype.name }}">{{ prototype.description }}</app-details-item>
             }

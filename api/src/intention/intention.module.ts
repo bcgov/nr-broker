@@ -6,6 +6,7 @@ import { CommunicationModule } from '../communication/communication.module';
 import { GraphModule } from '../graph/graph.module';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { UtilModule } from '../util/util.module';
+import { BullModule } from '../bull/bull.module';
 import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
@@ -41,6 +42,7 @@ import {
     GraphModule,
     PersistenceModule,
     UtilModule,
+    BullModule,
   ],
   controllers: [IntentionController],
   providers: [
