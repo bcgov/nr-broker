@@ -3,6 +3,7 @@ import { BadRequestException, Injectable, Logger, OnModuleInit, ServiceUnavailab
 import { Request } from 'express';
 import { from, lastValueFrom, map, switchMap, tap } from 'rxjs';
 import { Job } from 'bullmq';
+import { AxiosError } from 'axios';
 import { ActionUtil } from '../util/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
@@ -34,12 +35,32 @@ export class ProvisionService implements OnModuleInit {
       REDIS_QUEUES.VAULT_SECRET_IDS,
       async (job: Job) => {
         const cleanup = job.data as { roleName: string; accessor: string };
-        await lastValueFrom(
-          this.vaultService.postAuthMountRoleNameSecretIdAccessorDestroy(
-            VAULT_SYNC_APP_AUTH_MOUNT,
-            cleanup.roleName,
-            cleanup.accessor,
-          ),
+        try {
+          await lastValueFrom(
+            this.vaultService.postAuthMountRoleNameSecretIdAccessorDestroy(
+              VAULT_SYNC_APP_AUTH_MOUNT,
+              cleanup.roleName,
+              cleanup.accessor,
+            ),
+          );
+        } catch (error) {
+          this.auditService.recordAccountTokenLifecycle(
+            undefined,
+            { sub: cleanup.roleName },
+            `Failed to destroy superseded Vault secret id for role ${cleanup.roleName}`,
+            'deletion',
+            'failure',
+            ['vault', 'secret-id', 'cleanup'],
+          );
+          throw error;
+        }
+        this.auditService.recordAccountTokenLifecycle(
+          undefined,
+          { sub: cleanup.roleName },
+          `Destroyed superseded Vault secret id for role ${cleanup.roleName}`,
+          'deletion',
+          'success',
+          ['vault', 'secret-id', 'cleanup'],
         );
       },
     );
@@ -195,20 +216,41 @@ export class ProvisionService implements OnModuleInit {
   ): Promise<void> {
     const env = ({ production: 'prod', development: 'dev' } as Record<string, string>)[environment] ?? environment;
     const roleName = `${projectName.replace('_', '-')}_${appName.replace('_', '-')}_${env}`;
-    const response = await lastValueFrom(
-      this.vaultService.listAuthMountRoleNameSecretIds(
-        VAULT_SYNC_APP_AUTH_MOUNT,
-        roleName,
-      ),
-    );
-    for (const secretId of response.data?.data?.keys ?? []) {
-      const lookup = await lastValueFrom(
-        this.vaultService.postAuthMountRoleNameSecretIdAccessorLookup(
+    let response: { data?: { data?: { keys?: string[] } } };
+    try {
+      response = await lastValueFrom(
+        this.vaultService.listAuthMountRoleNameSecretIds(
           VAULT_SYNC_APP_AUTH_MOUNT,
           roleName,
-          secretId,
         ),
       );
+    } catch (error) {
+      if ((error as AxiosError)?.response?.status === 404) {
+        // Vault returns 404 on LIST when the role has no secret ids yet; this is
+        // an expected state (e.g. first provision), not a cleanup failure.
+        return;
+      }
+      this.logger.error(
+        `Failed to list Vault secret ids for role ${roleName}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return;
+    }
+    for (const secretId of response.data?.data?.keys ?? []) {
+      let lookup: { data?: { data?: { metadata?: string | Record<string, any>; secret_id_accessor?: string } } };
+      try {
+        lookup = await lastValueFrom(
+          this.vaultService.postAuthMountRoleNameSecretIdAccessorLookup(
+            VAULT_SYNC_APP_AUTH_MOUNT,
+            roleName,
+            secretId,
+          ),
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to look up Vault secret id accessor for role ${roleName}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        continue;
+      }
       const metadata = lookup.data?.data?.metadata;
       let action: unknown;
       if (typeof metadata === 'string') {
@@ -227,7 +269,7 @@ export class ProvisionService implements OnModuleInit {
         REDIS_QUEUES.VAULT_SECRET_IDS,
         { roleName, accessor: lookup.data.data.secret_id_accessor },
         {
-          delay: 30 * 60 * 1000,
+          delay: 3 * 1000,
           jobId: `vault-secret-id:${roleName}:${lookup.data.data.secret_id_accessor}`,
         },
       );
