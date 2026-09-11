@@ -269,7 +269,7 @@ export class ProvisionService implements OnModuleInit {
         REDIS_QUEUES.VAULT_SECRET_IDS,
         { roleName, accessor: lookup.data.data.secret_id_accessor },
         {
-          delay: 3 * 1000,
+          delay: 30 * 60 * 1000,
           jobId: `vault-secret-id:${roleName}:${lookup.data.data.secret_id_accessor}`,
         },
       );
