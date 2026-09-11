@@ -1,24 +1,49 @@
 import { createSign, randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 import { Request } from 'express';
-import { map, tap } from 'rxjs';
+import { from, lastValueFrom, map, switchMap, tap } from 'rxjs';
+import { Job } from 'bullmq';
 import { ActionUtil } from '../util/action.util';
 import { AuditService } from '../audit/audit.service';
 import { TokenService } from '../token/token.service';
 import { JwtKeyService } from '../auth/jwt-key.service';
 import { IntentionEntity } from '../intention/entity/intention.entity';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
-import { BROKER_URL, MILLISECONDS_IN_SECOND, MINUTE_IN_SECONDS } from '../constants';
+import { IntentionRepository } from '../persistence/interfaces/intention.repository';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
+import { VaultService } from '../vault/vault.service';
+import { BullService } from '../bull/bull.service';
+import { BROKER_URL, MILLISECONDS_IN_SECOND, MINUTE_IN_SECONDS, REDIS_QUEUES, VAULT_APPROLE_META_ACTIONS, VAULT_SYNC_APP_AUTH_MOUNT } from '../constants';
 
 @Injectable()
-export class ProvisionService {
+export class ProvisionService implements OnModuleInit {
   private readonly logger = new Logger(ProvisionService.name);
   constructor(
     private readonly actionUtil: ActionUtil,
     private readonly auditService: AuditService,
     private readonly jwtKeyService: JwtKeyService,
     private readonly tokenService: TokenService,
+    private readonly intentionRepository: IntentionRepository,
+    private readonly collectionRepository: CollectionRepository,
+    private readonly vaultService: VaultService,
+    private readonly bullService: BullService,
   ) {}
+
+  onModuleInit(): void {
+    this.bullService.registerWorker(
+      REDIS_QUEUES.VAULT_SECRET_IDS,
+      async (job: Job) => {
+        const cleanup = job.data as { roleName: string; accessor: string };
+        await lastValueFrom(
+          this.vaultService.postAuthMountRoleNameSecretIdAccessorDestroy(
+            VAULT_SYNC_APP_AUTH_MOUNT,
+            cleanup.roleName,
+            cleanup.accessor,
+          ),
+        );
+      },
+    );
+  }
 
   /**
    * Generates and returns a wrapped secret id to provision an application with
@@ -30,18 +55,42 @@ export class ProvisionService {
     intentionDto: IntentionEntity,
     actionDto: ActionEmbeddable,
   ) {
+    const service = actionDto.service.target?.name ?? actionDto.service.name;
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
-        action: 'generate-secret-id',
+        action: VAULT_APPROLE_META_ACTIONS.GENERATE_SECRET_ID,
         category: 'configuration',
         type: 'start',
       },
     });
-    return this.tokenService
-      .provisionSecretId(
-        actionDto.service.project,
-        actionDto.service.name,
-        this.actionUtil.resolveVaultEnvironment(actionDto),
+    const serviceLookup = actionDto.service.id
+      ? this.collectionRepository.getCollectionById(
+          'service',
+          actionDto.service.id.toString(),
+        )
+      : this.collectionRepository.getCollectionByKeyValue(
+          'service',
+          'name',
+          service,
+        );
+    return from(serviceLookup)
+      .pipe(
+        switchMap(async (serviceEntity) => {
+          if (serviceEntity?.vaultConfig?.approle?.exclusiveSecretIds) {
+            await this.scheduleExistingSecretIdCleanup(
+              actionDto.service.project,
+              actionDto.service.name,
+              this.actionUtil.resolveVaultEnvironment(actionDto),
+            );
+          }
+          return this.tokenService.provisionSecretId(
+            actionDto.service.project,
+            actionDto.service.name,
+            this.actionUtil.resolveVaultEnvironment(actionDto),
+            { intention: intentionDto.id },
+          );
+        }),
+        switchMap((provisionSecretId) => provisionSecretId),
       )
       .pipe(
         tap((response) => {
@@ -54,7 +103,7 @@ export class ProvisionService {
                 client_token: response.audit.clientToken,
               },
               event: {
-                action: 'generate-secret-id',
+                action: VAULT_APPROLE_META_ACTIONS.GENERATE_SECRET_ID,
                 category: 'configuration',
                 type: 'creation',
               },
@@ -81,7 +130,7 @@ export class ProvisionService {
   ) {
     this.auditService.recordIntentionActionUsage(req, intentionDto, actionDto, {
       event: {
-        action: 'generate-token',
+        action: VAULT_APPROLE_META_ACTIONS.GENERATE_TOKEN,
         category: 'configuration',
         type: 'start',
       },
@@ -96,6 +145,7 @@ export class ProvisionService {
           : actionDto.service.name,
         this.actionUtil.resolveVaultEnvironment(actionDto),
         roleId,
+        { intention: intentionDto.id },
       )
       .pipe(
         tap((response) => {
@@ -108,17 +158,80 @@ export class ProvisionService {
                 client_token: response.audit.clientToken,
               },
               event: {
-                action: 'generate-token',
+                action: VAULT_APPROLE_META_ACTIONS.GENERATE_TOKEN,
                 category: 'configuration',
                 type: 'creation',
               },
             },
           );
         }),
+        tap((response) => {
+          if (response.audit.tokenAccessor) {
+            // Tracked in a dedicated collection so the token can be revoked when
+            // the intention closes, without being serialized back to clients.
+            this.intentionRepository
+              .addVaultTokenAccessor(
+                intentionDto.id,
+                actionDto.trace.token,
+                response.audit.tokenAccessor,
+              )
+              .catch((error) => {
+                this.logger.error(
+                  `Failed to record Vault token accessor: ${error instanceof Error ? error.message : String(error)}`,
+                );
+              });
+          }
+        }),
         map((response) => {
           return response.wrappedToken;
         }),
       );
+  }
+
+  private async scheduleExistingSecretIdCleanup(
+    projectName: string,
+    appName: string,
+    environment: string,
+  ): Promise<void> {
+    const env = ({ production: 'prod', development: 'dev' } as Record<string, string>)[environment] ?? environment;
+    const roleName = `${projectName.replace('_', '-')}_${appName.replace('_', '-')}_${env}`;
+    const response = await lastValueFrom(
+      this.vaultService.listAuthMountRoleNameSecretIds(
+        VAULT_SYNC_APP_AUTH_MOUNT,
+        roleName,
+      ),
+    );
+    for (const secretId of response.data?.data?.keys ?? []) {
+      const lookup = await lastValueFrom(
+        this.vaultService.postAuthMountRoleNameSecretIdAccessorLookup(
+          VAULT_SYNC_APP_AUTH_MOUNT,
+          roleName,
+          secretId,
+        ),
+      );
+      const metadata = lookup.data?.data?.metadata;
+      let action: unknown;
+      if (typeof metadata === 'string') {
+        try {
+          action = JSON.parse(metadata).action;
+        } catch {
+          action = undefined;
+        }
+      } else {
+        action = metadata?.action;
+      }
+      if (action !== VAULT_APPROLE_META_ACTIONS.GENERATE_SECRET_ID) {
+        continue;
+      }
+      await this.bullService.enqueue(
+        REDIS_QUEUES.VAULT_SECRET_IDS,
+        { roleName, accessor: lookup.data.data.secret_id_accessor },
+        {
+          delay: 30 * 60 * 1000,
+          jobId: `vault-secret-id:${roleName}:${lookup.data.data.secret_id_accessor}`,
+        },
+      );
+    }
   }
 
   /**

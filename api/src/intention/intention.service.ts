@@ -14,6 +14,7 @@ import { Request } from 'express';
 import { CronExpression } from '@nestjs/schedule';
 import { ObjectId } from 'mongodb';
 import { validate } from 'class-validator';
+import { lastValueFrom } from 'rxjs';
 
 import { IntentionEntity } from './entity/intention.entity';
 import {
@@ -76,6 +77,7 @@ import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
 import { IntentionValidationException, IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
+import { VaultService } from '../vault/vault.service';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -113,6 +115,7 @@ export class IntentionService implements OnModuleInit {
     private readonly validatorUtil: ValidatorUtil,
     private readonly intentionValidationRuleEngine: IntentionValidationRuleEngine,
     private readonly bullService: BullService,
+    private readonly vaultService: VaultService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -646,6 +649,31 @@ export class IntentionService implements OnModuleInit {
     };
   }
 
+  /**
+   * Revokes any Vault login tokens issued for the intention's actions
+   * (via token/self provisioning) so they can not be used after the
+   * intention closes, even if the client never revoked them itself.
+   */
+  private async revokeIntentionVaultTokens(
+    intention: IntentionEntity,
+  ): Promise<void> {
+    // Accessors are stored in a dedicated collection (never serialized back to
+    // clients). Revoke each, then drop the records so the closed intention does
+    // not retain the sensitive value.
+    const accessors =
+      await this.intentionRepository.getVaultTokenAccessors(intention.id);
+    for (const accessor of accessors) {
+      try {
+        await lastValueFrom(this.vaultService.postAuthTokenRevokeAccessor(accessor));
+      } catch (error) {
+        this.logger.error(
+          `Failed to revoke Vault token accessor for intention ${intention.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+    await this.intentionRepository.removeVaultTokenAccessors(intention.id);
+  }
+
   private async finalizeIntention(
     intention: IntentionEntity,
     outcome: 'failure' | 'success' | 'rejected' | 'unknown',
@@ -659,6 +687,8 @@ export class IntentionService implements OnModuleInit {
         intention = await this.intentionRepository.getIntention(intention.id);
       }
     }
+
+    await this.revokeIntentionVaultTokens(intention);
 
     for (const action of intention.actions) {
       if (

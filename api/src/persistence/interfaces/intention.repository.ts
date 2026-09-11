@@ -39,6 +39,38 @@ export abstract class IntentionRepository {
     artifact: ArtifactEmbeddable,
   ): Promise<ActionEmbeddable>;
 
+  /**
+   * Records a Vault login token accessor issued for an action so it can be
+   * revoked when the intention closes. Stored in a dedicated collection, not on
+   * the intention document, so it is never serialized back to clients.
+   * @param intentionId The owning intention id
+   * @param actionToken The action trace token the accessor belongs to
+   * @param accessor The Vault wrapped token accessor
+   */
+  public abstract addVaultTokenAccessor(
+    intentionId: string,
+    actionToken: string,
+    accessor: string,
+  ): Promise<void>;
+
+  /**
+   * Returns the recorded Vault token accessors for an intention.
+   * @param intentionId The intention id
+   * @returns The accessors recorded for the intention, or an empty array
+   */
+  public abstract getVaultTokenAccessors(
+    intentionId: string,
+  ): Promise<string[]>;
+
+  /**
+   * Removes the recorded Vault token accessors for an intention after they have
+   * been revoked, when the intention closes.
+   * @param intentionId The intention id
+   */
+  public abstract removeVaultTokenAccessors(
+    intentionId: string,
+  ): Promise<void>;
+
   public abstract closeIntentionByToken(token: string): Promise<boolean>;
 
   public abstract closeIntention(intention: IntentionEntity): Promise<boolean>;
