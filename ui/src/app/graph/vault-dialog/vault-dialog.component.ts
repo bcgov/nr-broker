@@ -50,6 +50,7 @@ export class VaultDialogComponent implements OnInit {
     actor: '',
     approle: {
       enabled: false,
+      exclusiveSecretIds: false,
       advanced: '',
     },
     brokerGlobal: false,
@@ -73,10 +74,11 @@ export class VaultDialogComponent implements OnInit {
         approle: {
           ...current.approle,
           enabled: this.data.service.vaultConfig?.approle?.enabled ?? false,
+          exclusiveSecretIds: this.data.service.vaultConfig?.approle?.exclusiveSecretIds ?? false,
           advanced: (() => {
             if (this.data.service.vaultConfig?.approle) {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { enabled, ...advancedApprole } =
+              const { enabled, exclusiveSecretIds, ...advancedApprole } =
                 this.data.service.vaultConfig.approle;
               if (Object.keys(advancedApprole).length > 0) {
                 return JSON.stringify(advancedApprole);
@@ -122,6 +124,13 @@ export class VaultDialogComponent implements OnInit {
 
   updateApproleEnabled(enabled: boolean) {
     this.config.update((c) => ({ ...c, approle: { ...c.approle, enabled } }));
+  }
+
+  updateExclusiveSecretIds(exclusiveSecretIds: boolean) {
+    this.config.update((c) => ({
+      ...c,
+      approle: { ...c.approle, exclusiveSecretIds },
+    }));
   }
 
   updateApproleAdvanced(advanced: string) {
@@ -199,6 +208,7 @@ export class VaultDialogComponent implements OnInit {
       }
       configObj.approle = {
         enabled: config.approle.enabled,
+        exclusiveSecretIds: config.approle.exclusiveSecretIds,
         ...JSON.parse(
           config.approle.advanced && config.approle.advanced !== ''
             ? config.approle.advanced

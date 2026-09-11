@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 
 import { LIFECYCLE_NAMES } from '../../intention/dto/action.dto';
 import { IntentionEntity } from '../../intention/entity/intention.entity';
+import { VaultTokenAccessorEntity } from '../entity/vault-token-accessor.entity';
 import { IntentionRepository } from '../interfaces/intention.repository';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
@@ -17,7 +18,8 @@ export class IntentionMongoRepository implements IntentionRepository {
     private readonly em: EntityManager,
     @InjectRepository(IntentionEntity)
     private readonly intentionRepository: MongoEntityRepository<IntentionEntity>,
-  ) {}
+    @InjectRepository(VaultTokenAccessorEntity)
+    private readonly vaultTokenAccessorRepository: MongoEntityRepository<VaultTokenAccessorEntity>) {}
 
   public async addIntention(intention: IntentionEntity): Promise<void> {
     await this.em.persist(intention).flush();
@@ -130,9 +132,40 @@ export class IntentionMongoRepository implements IntentionRepository {
     return action;
   }
 
+  public async addVaultTokenAccessor(
+    intentionId: string,
+    actionToken: string,
+    accessor: string,
+  ): Promise<void> {
+    await this.em
+      .persist(
+        new VaultTokenAccessorEntity(intentionId, actionToken, accessor),
+      )
+      .flush();
+  }
+
+  public async getVaultTokenAccessors(
+    intentionId: string,
+  ): Promise<{ actionToken: string; accessor: string }[]> {
+    const records =
+      await this.vaultTokenAccessorRepository.find({
+        intentionId: intentionId,
+      });
+    return records.map((record) => ({
+      actionToken: record.actionToken,
+      accessor: record.accessor,
+    }));
+  }
+
+  public async removeVaultTokenAccessors(intentionId: string,
+  ): Promise<void> {
+    await this.vaultTokenAccessorRepository
+      .getCollection()
+      .deleteMany({ intentionId });
+  }
+
   public async closeIntentionByToken(token: string): Promise<boolean> {
-    const intention = await this.getIntentionByToken(token);
-    return this.closeIntention(intention);
+    return this.closeIntention(await this.getIntentionByToken(token));
   }
 
   public async closeIntention(intention: IntentionEntity): Promise<boolean> {

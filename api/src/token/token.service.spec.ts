@@ -9,7 +9,11 @@ import { BullService } from '../bull/bull.service';
 
 describe('TokenService', () => {
   let service: TokenService;
-  let bullService: { registerLeaderJob: ReturnType<typeof vi.fn> };
+  let bullService: {
+    registerLeaderJob: ReturnType<typeof vi.fn>;
+    registerWorker: ReturnType<typeof vi.fn>;
+    enqueue: ReturnType<typeof vi.fn>;
+  };
   let vaultService: {
     hasValidToken: ReturnType<typeof vi.fn>;
     postAuthMountRoleNameSecretId: ReturnType<typeof vi.fn>;
@@ -29,12 +33,17 @@ describe('TokenService', () => {
       postAuthMountRoleNameSecretId: vi.fn(),
       postSysAuditHash: vi.fn(),
       postAuthLogin: vi.fn(),
+      listAuthMountRoleNameSecretIds: vi.fn(),
+      postAuthMountRoleNameSecretIdAccessorLookup: vi.fn(),
+      postAuthMountRoleNameSecretIdAccessorDestroy: vi.fn(),
       getAuthTokenLookupSelf: vi.fn(() => of({ data: { data: { creation_time: 1, creation_ttl: 60 } } })),
       getAuthMountRoleNameRoleId: vi.fn(),
     };
 
     bullService = {
       registerLeaderJob: vi.fn(),
+      registerWorker: vi.fn(),
+      enqueue: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -72,7 +81,14 @@ describe('TokenService', () => {
     expect(vaultService.postAuthMountRoleNameSecretId).toHaveBeenCalledWith(
       'vs_apps_approle',
       'my-project_my-app_prod',
-      { wrapResponse: true },
+      {
+        metadata: {
+          action: 'generate-secret-id',
+          env: 'production',
+          service: 'my_app',
+        },
+        wrapResponse: true,
+      },
     );
     expect(result).toEqual({
       audit: { clientToken: 'audit-hash' },
@@ -98,6 +114,16 @@ describe('TokenService', () => {
     expect(vaultService.postAuthMountRoleNameSecretId).toHaveBeenCalledWith(
       'vs_apps_approle',
       'my-project_my-app_test',
+      {
+        metadata: {
+          action: 'generate-token',
+          env: 'test',
+          service: 'my_app',
+        },
+        secretIdNumUses: 1,
+        secretIdTtl: 60,
+        tokenExplicitMaxTtl: 5,
+      },
     );
     expect(vaultService.postAuthLogin).toHaveBeenCalledWith(
       'vs_apps_approle',
