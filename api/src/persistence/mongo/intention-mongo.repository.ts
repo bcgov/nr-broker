@@ -146,12 +146,15 @@ export class IntentionMongoRepository implements IntentionRepository {
 
   public async getVaultTokenAccessors(
     intentionId: string,
-  ): Promise<string[]> {
+  ): Promise<{ actionToken: string; accessor: string }[]> {
     const records =
       await this.vaultTokenAccessorRepository.find({
         intentionId: intentionId,
       });
-    return records.map((record) => record.accessor);
+    return records.map((record) => ({
+      actionToken: record.actionToken,
+      accessor: record.accessor,
+    }));
   }
 
   public async removeVaultTokenAccessors(intentionId: string,

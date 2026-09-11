@@ -14,7 +14,8 @@ import { Request } from 'express';
 import { CronExpression } from '@nestjs/schedule';
 import { ObjectId } from 'mongodb';
 import { validate } from 'class-validator';
-import { lastValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
+import { AxiosError } from 'axios';
 
 import { IntentionEntity } from './entity/intention.entity';
 import {
@@ -656,19 +657,40 @@ export class IntentionService implements OnModuleInit {
    */
   private async revokeIntentionVaultTokens(
     intention: IntentionEntity,
+    req: Request = undefined,
   ): Promise<void> {
     // Accessors are stored in a dedicated collection (never serialized back to
-    // clients). Revoke each, then drop the records so the closed intention does
-    // not retain the sensitive value.
+    // clients). Revoke each, then drop the records.
     const accessors =
       await this.intentionRepository.getVaultTokenAccessors(intention.id);
-    for (const accessor of accessors) {
+    for (const { actionToken, accessor } of accessors) {
       try {
-        await lastValueFrom(this.vaultService.postAuthTokenRevokeAccessor(accessor));
+        const val = await firstValueFrom(this.vaultService.postAuthTokenRevokeAccessor(accessor).pipe(
+          // Axios errors/responses contain circular refs (request/config), so
+          // avoid JSON.stringify on them here to prevent masking the real error.
+          catchError((error: AxiosError) => {
+            this.logger.error(`Error revoking Vault token accessor: ${error.message}`);
+            return of(null);
+          }),
+        ));
+        if (val?.status === 204) {
+          // A 204 means the token was still active, so the caller closed the
+          // intention without revoking its own Vault token first.
+          const action = IntentionEntity.projectAction(intention, actionToken);
+          if (action) {
+            this.auditService.recordIntentionActionUsage(req, intention, action, {
+              event: {
+                action: 'vault-token-revoke',
+                category: 'iam',
+                type: 'deletion',
+                outcome: 'success',
+                reason: 'Caller did not revoke Vault token before closing intention',
+              },
+            });
+          }
+        }
       } catch (error) {
-        this.logger.error(
-          `Failed to revoke Vault token accessor for intention ${intention.id}: ${error instanceof Error ? error.message : String(error)}`,
-        );
+        this.logger.error(`Vault token accessor revoke unexpected error for intention: ${intention.id}`);
       }
     }
     await this.intentionRepository.removeVaultTokenAccessors(intention.id);
@@ -688,7 +710,7 @@ export class IntentionService implements OnModuleInit {
       }
     }
 
-    await this.revokeIntentionVaultTokens(intention);
+    await this.revokeIntentionVaultTokens(intention, req);
 
     for (const action of intention.actions) {
       if (

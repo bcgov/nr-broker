@@ -56,11 +56,11 @@ export abstract class IntentionRepository {
   /**
    * Returns the recorded Vault token accessors for an intention.
    * @param intentionId The intention id
-   * @returns The accessors recorded for the intention, or an empty array
+   * @returns The action token/accessor pairs recorded for the intention, or an empty array
    */
   public abstract getVaultTokenAccessors(
     intentionId: string,
-  ): Promise<string[]>;
+  ): Promise<{ actionToken: string; accessor: string }[]>;
 
   /**
    * Removes the recorded Vault token accessors for an intention after they have
