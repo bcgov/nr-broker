@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import nodemailer, { TransportOptions, Transporter } from 'nodemailer';
+import nodemailer from 'nodemailer';
+import type { TransportOptions, Transporter } from 'nodemailer';
 import ejs from 'ejs';
 import { NOTIFICATION_EMAIL_FROM } from '../constants';
 import { COMMUNICATION_EMAIL_TRANSPORT } from './communication.constants';
