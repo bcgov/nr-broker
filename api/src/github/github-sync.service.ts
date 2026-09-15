@@ -247,182 +247,217 @@ export class GithubSyncService implements OnModuleInit {
       throw new Error('Service does not have user sync enabled');
     }
 
-    this.auditService.recordToolsSync(
-      'start',
-      'unknown',
-      `Start user sync: ${repository.scmUrl}`,
-    );
-
-    const { owner, repo } = this.getOwnerAndRepoFromUrl(repository.scmUrl);
-    const token = await this.getInstallationAccessToken(owner, repo);
-
-    if (!token) {
-      throw new Error('GitHub access token is null!');
-    }
-
-    const userConfig =
-      await this.collectionRepository.getCollectionConfigByName('user');
-    const edgeToRoles = userConfig.edgeToRoles;
-
-    // Get collaborators
-    const collaborators = await this.listRepoCollaborators(owner, repo, token);
-    const currCollabRoleMap = new Map<string, string>();
-    for (const collaborator of collaborators) {
-      currCollabRoleMap.set(collaborator.login, collaborator.role_name);
-    }
-    const touchedCollaborators = new Set<string>();
-
-    for (const edgeRole of edgeToRoles) {
-      const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-        repository.vertex.toString(),
-        CollectionIndex.User,
-        edgeRole.edge,
+    try {
+      this.auditService.recordToolsSync(
+        'start',
+        'unknown',
+        `Start user sync: ${repository.scmUrl}`,
       );
-      for (const user of users) {
-        if (!user.collection?.alias || user.collection.alias.length !== 1) {
-          continue;
-        }
-        const username = user.collection.alias[0].username;
-        // Skip users in higher roles
-        // console.log(`Checking ${username} for ${edgeRole.role}`);
-        if (touchedCollaborators.has(username)) {
-          // console.log(`Skipping touched ${username}`);
-          continue;
-        }
-        touchedCollaborators.add(username);
-        if (
-          currCollabRoleMap.has(username) &&
-          currCollabRoleMap.get(username) === edgeRole.role
-        ) {
-          // console.log(`Skipping ${username} (already in role)`);
-          continue;
-        }
-        // console.log(`Adding ${username} as ${edgeRole.role}`);
 
-        await this.addRepoCollaborator(
-          owner,
-          repo,
-          username,
-          edgeRole.role,
-          token,
-        );
+      const { owner, repo } = this.getOwnerAndRepoFromUrl(repository.scmUrl);
+      const token = await this.getInstallationAccessToken(owner, repo);
+
+      if (!token) {
+        throw new Error('GitHub access token is null!');
       }
-    }
 
-    const removeCollaborators = [...currCollabRoleMap.keys()].filter(
-      (x) => !touchedCollaborators.has(x),
-    );
+      const userConfig =
+        await this.collectionRepository.getCollectionConfigByName('user');
+      const edgeToRoles = userConfig.edgeToRoles;
 
-    for (const user of removeCollaborators) {
-      await this.removeRepoCollaborator(owner, repo, user, token);
-    }
+      // Get collaborators
+      let collaborators: any[];
+      try {
+        collaborators = await this.listRepoCollaborators(owner, repo, token);
+      } catch (error) {
+        this.auditService.recordToolsSync(
+          'end',
+          'failure',
+          `Failed to list GitHub collaborators for ${owner}/${repo}`,
+        );
+        return;
+      }
+      const currCollabRoleMap = new Map<string, string>();
+      for (const collaborator of collaborators) {
+        currCollabRoleMap.set(collaborator.login, collaborator.role_name);
+      }
+      const touchedCollaborators = new Set<string>();
 
-    // sync environments
-    if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
-      const syncableEnvironments = [
-        ENVIRONMENT_NAMES.DEVELOPMENT,
-        ENVIRONMENT_NAMES.TEST,
-        ENVIRONMENT_NAMES.PRODUCTION,
-      ];
+      for (const edgeRole of edgeToRoles) {
+        const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+          repository.vertex.toString(),
+          CollectionIndex.User,
+          edgeRole.edge,
+        );
+        for (const user of users) {
+          if (!user.collection?.alias || user.collection.alias.length !== 1) {
+            continue;
+          }
+          const username = user.collection.alias[0].username;
+          // Skip users in higher roles
+          // console.log(`Checking ${username} for ${edgeRole.role}`);
+          if (touchedCollaborators.has(username)) {
+            // console.log(`Skipping touched ${username}`);
+            continue;
+          }
+          touchedCollaborators.add(username);
+          if (
+            currCollabRoleMap.has(username) &&
+            currCollabRoleMap.get(username) === edgeRole.role
+          ) {
+            // console.log(`Skipping ${username} (already in role)`);
+            continue;
+          }
+          // console.log(`Adding ${username} as ${edgeRole.role}`);
 
-      const environmentCollection =
-        await this.collectionRepository.getCollections('environment');
-      const filteredEnvironmentCollection = environmentCollection.filter(
-        (env) => {
-          return syncableEnvironments.some(
-            (syncableEnvironment) => syncableEnvironment === env.name,
-          );
-        },
+          try {
+            await this.addRepoCollaborator(
+              owner,
+              repo,
+              username,
+              edgeRole.role,
+              token,
+            );
+          } catch (error) {
+            this.auditService.recordToolsSync(
+              'end',
+              'failure',
+              `Failed to add ${username} as ${edgeRole.role} to ${owner}/${repo}`,
+            );
+            continue;
+          }
+        }
+      }
+
+      const removeCollaborators = [...currCollabRoleMap.keys()].filter(
+        (x) => !touchedCollaborators.has(x),
       );
 
-      for (const index in filteredEnvironmentCollection) {
-        const environmentName = filteredEnvironmentCollection[index].name;
+      for (const user of removeCollaborators) {
+        try {
+          await this.removeRepoCollaborator(owner, repo, user, token);
+        } catch (error) {
+          this.auditService.recordToolsSync(
+            'end',
+            'failure',
+            `Failed to remove ${user} from ${owner}/${repo}`,
+          );
+        }
+      }
 
-        await this.removeRepoEnvironmentIfExists(
-          owner,
-          repo,
-          environmentName,
-          token,
+      // sync environments
+      if (FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC) {
+        const syncableEnvironments = [
+          ENVIRONMENT_NAMES.DEVELOPMENT,
+          ENVIRONMENT_NAMES.TEST,
+          ENVIRONMENT_NAMES.PRODUCTION,
+        ];
+
+        const environmentCollection =
+          await this.collectionRepository.getCollections('environment');
+        const filteredEnvironmentCollection = environmentCollection.filter(
+          (env) => {
+            return syncableEnvironments.some(
+              (syncableEnvironment) => syncableEnvironment === env.name,
+            );
+          },
         );
 
-        let reviewerIds = [];
-        if (
-          [ENVIRONMENT_NAMES.TEST, ENVIRONMENT_NAMES.PRODUCTION].includes(
+        for (const index in filteredEnvironmentCollection) {
+          const environmentName = filteredEnvironmentCollection[index].name;
+
+          await this.removeRepoEnvironmentIfExists(
+            owner,
+            repo,
             environmentName,
-          )
-        ) {
-          const users = await this.graphRepository.getUpstreamVertex<UserDto>(
-            repository.vertex.toString(),
-            CollectionIndex.User,
-            filteredEnvironmentCollection[index].changeRoles,
+            token,
           );
-          reviewerIds = users
-            .filter((user) => {
-              return user.collection.alias?.some(
-                (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
-              );
-            })
-            .map((user) => {
-              return parseInt(
-                user.collection.alias.find(
+
+          let reviewerIds = [];
+          if (
+            [ENVIRONMENT_NAMES.TEST, ENVIRONMENT_NAMES.PRODUCTION].includes(
+              environmentName,
+            )
+          ) {
+            const users = await this.graphRepository.getUpstreamVertex<UserDto>(
+              repository.vertex.toString(),
+              CollectionIndex.User,
+              filteredEnvironmentCollection[index].changeRoles,
+            );
+            reviewerIds = users
+              .filter((user) => {
+                return user.collection.alias?.some(
                   (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
-                ).guid,
-              );
-            })
-            .slice(0, 5); // todo: handle >6 reviewers (github limit)
-        }
+                );
+              })
+              .map((user) => {
+                return parseInt(
+                  user.collection.alias.find(
+                    (alias) => alias.domain === USER_ALIAS_DOMAIN_GITHUB,
+                  ).guid,
+                );
+              })
+              .slice(0, 5); // todo: handle >6 reviewers (github limit)
+          }
 
-        const can_admins_bypass = false;
-        await this.updateRepoEnvironment(
-          owner,
-          repo,
-          environmentName,
-          reviewerIds.map((userId: number) => {
-            return { type: 'User', id: userId };
-          }),
-          environmentName === ENVIRONMENT_NAMES.PRODUCTION
-            ? {
-                protected_branches: false,
-                custom_branch_policies: true,
-              }
-            : null,
-          can_admins_bypass,
-          token,
-        );
-
-        if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
-          await this.addRepoEnvironmentBranchPolicy(
+          const can_admins_bypass = false;
+          await this.updateRepoEnvironment(
             owner,
             repo,
             environmentName,
-            'main',
-            'branch',
+            reviewerIds.map((userId: number) => {
+              return { type: 'User', id: userId };
+            }),
+            environmentName === ENVIRONMENT_NAMES.PRODUCTION
+              ? {
+                  protected_branches: false,
+                  custom_branch_policies: true,
+                }
+              : null,
+            can_admins_bypass,
             token,
           );
 
-          await this.addRepoEnvironmentBranchPolicy(
-            owner,
-            repo,
-            environmentName,
-            'v*',
-            'tag',
-            token,
-          );
+          if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
+            await this.addRepoEnvironmentBranchPolicy(
+              owner,
+              repo,
+              environmentName,
+              'main',
+              'branch',
+              token,
+            );
+
+            await this.addRepoEnvironmentBranchPolicy(
+              owner,
+              repo,
+              environmentName,
+              'v*',
+              'tag',
+              token,
+            );
+          }
         }
-      }
-    } // FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
+      } // FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
 
-    await this.graphService.updateSyncStatus(
-      repository,
-      'syncUsersStatus',
-      'syncAt',
-    );
+      await this.graphService.updateSyncStatus(
+        repository,
+        'syncUsersStatus',
+        'syncAt',
+      );
 
-    this.auditService.recordToolsSync(
-      'end',
-      'success',
-      `End user sync: ${repository.scmUrl}`,
-    );
+      this.auditService.recordToolsSync(
+        'end',
+        'success',
+        `End user sync: ${repository.scmUrl}`,
+      );
+    } catch (error) {
+      this.auditService.recordToolsSync(
+        'end',
+        'failure',
+        `End user sync: ${repository.scmUrl}`,
+      );
+    }
   }
 
   // Generate JWT
