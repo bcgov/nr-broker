@@ -7,6 +7,11 @@ import { VAULT_ADDR, VAULT_SERVICE_WRAP_TTL } from '../constants';
 
 export interface VaultServiceOptions {
   wrapResponse?: boolean;
+  secretIdNumUses?: number;
+  secretIdTtl?: number;
+  tokenMaxTtl?: number;
+  tokenExplicitMaxTtl?: number;
+  metadata?: Record<string, string | number | boolean>;
 }
 
 @Injectable()
@@ -94,10 +99,48 @@ export class VaultService {
   ) {
     return this.httpService.post(
       `${this.vaultAddr}/v1/auth/${mount}/role/${roleName}/secret-id`,
-      null,
+      {
+        ...{ num_uses: options?.secretIdNumUses },
+        ...{ ttl: options?.secretIdTtl },
+        ...{ token_max_ttl: options?.tokenMaxTtl },
+        ...{ token_explicit_max_ttl: options?.tokenExplicitMaxTtl },
+        metadata: JSON.stringify(options?.metadata ?? {}),
+      },
       options?.wrapResponse
         ? this.prepareWrappedResponseConfig()
         : this.prepareConfig(),
+    );
+  }
+
+  public listAuthMountRoleNameSecretIds(mount: string, roleName: string) {
+    return this.httpService.request<{ data?: { keys?: string[] } }>({
+      method: 'LIST',
+      url: `${this.vaultAddr}/v1/auth/${mount}/role/${roleName}/secret-id`,
+      ...this.prepareConfig(),
+    });
+  }
+
+  public postAuthMountRoleNameSecretIdAccessorLookup(
+    mount: string,
+    roleName: string,
+    accessor: string,
+  ) {
+    return this.httpService.post(
+      `${this.vaultAddr}/v1/auth/${mount}/role/${roleName}/secret-id-accessor/lookup`,
+      { secret_id_accessor: accessor },
+      this.prepareConfig(),
+    );
+  }
+
+  public postAuthMountRoleNameSecretIdAccessorDestroy(
+    mount: string,
+    roleName: string,
+    accessor: string,
+  ) {
+    return this.httpService.post(
+      `${this.vaultAddr}/v1/auth/${mount}/role/${roleName}/secret-id-accessor/destroy`,
+      { secret_id_accessor: accessor },
+      this.prepareConfig(),
     );
   }
 
@@ -134,6 +177,16 @@ export class VaultService {
           throw err;
         }),
       );
+  }
+
+  public postAuthTokenRevokeAccessor(
+    accessor: string,
+  ): Observable<AxiosResponse<any>> {
+    return this.httpService.post(
+      `${this.vaultAddr}/v1/auth/token/revoke-accessor`,
+      { accessor },
+      this.prepareConfig(),
+    );
   }
 
   public postAuthTokenRenewSelf() {

@@ -14,6 +14,8 @@ import { Request } from 'express';
 import { CronExpression } from '@nestjs/schedule';
 import { ObjectId } from 'mongodb';
 import { validate } from 'class-validator';
+import { catchError, firstValueFrom, of } from 'rxjs';
+import { AxiosError } from 'axios';
 
 import { IntentionEntity } from './entity/intention.entity';
 import {
@@ -76,6 +78,7 @@ import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
 import { IntentionValidationException, IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
+import { VaultService } from '../vault/vault.service';
 
 export interface IntentionOpenResponse {
   actions: {
@@ -113,6 +116,7 @@ export class IntentionService implements OnModuleInit {
     private readonly validatorUtil: ValidatorUtil,
     private readonly intentionValidationRuleEngine: IntentionValidationRuleEngine,
     private readonly bullService: BullService,
+    private readonly vaultService: VaultService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -646,6 +650,52 @@ export class IntentionService implements OnModuleInit {
     };
   }
 
+  /**
+   * Revokes any Vault login tokens issued for the intention's actions
+   * (via token/self provisioning) so they can not be used after the
+   * intention closes, even if the client never revoked them itself.
+   */
+  private async revokeIntentionVaultTokens(
+    intention: IntentionEntity,
+    req: Request = undefined,
+  ): Promise<void> {
+    // Accessors are stored in a dedicated collection (never serialized back to
+    // clients). Revoke each, then drop the records.
+    const accessors =
+      await this.intentionRepository.getVaultTokenAccessors(intention.id);
+    for (const { actionToken, accessor } of accessors) {
+      try {
+        const val = await firstValueFrom(this.vaultService.postAuthTokenRevokeAccessor(accessor).pipe(
+          // Axios errors/responses contain circular refs (request/config), so
+          // avoid JSON.stringify on them here to prevent masking the real error.
+          catchError((error: AxiosError) => {
+            this.logger.error(`Error revoking Vault token accessor: ${error.message}`);
+            return of(null);
+          }),
+        ));
+        if (val?.status === 204) {
+          // A 204 means the token was still active, so the caller closed the
+          // intention without revoking its own Vault token first.
+          const action = IntentionEntity.projectAction(intention, actionToken);
+          if (action) {
+            this.auditService.recordIntentionActionUsage(req, intention, action, {
+              event: {
+                action: 'vault-token-revoke',
+                category: 'iam',
+                type: 'deletion',
+                outcome: 'success',
+                reason: 'Caller did not revoke Vault token before closing intention',
+              },
+            });
+          }
+        }
+      } catch (error) {
+        this.logger.error(`Vault token accessor revoke unexpected error for intention: ${intention.id}`);
+      }
+    }
+    await this.intentionRepository.removeVaultTokenAccessors(intention.id);
+  }
+
   private async finalizeIntention(
     intention: IntentionEntity,
     outcome: 'failure' | 'success' | 'rejected' | 'unknown',
@@ -659,6 +709,8 @@ export class IntentionService implements OnModuleInit {
         intention = await this.intentionRepository.getIntention(intention.id);
       }
     }
+
+    await this.revokeIntentionVaultTokens(intention, req);
 
     for (const action of intention.actions) {
       if (

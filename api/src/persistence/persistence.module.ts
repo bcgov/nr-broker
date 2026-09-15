@@ -47,6 +47,7 @@ import { GraphPermissionEntity } from './entity/graph-permission.entity';
 import { UserAliasRequestEntity } from './entity/user-alias-request.entity';
 import { RepositoryEntity } from './entity/repository.entity';
 import { SyncQueueConfigEntity } from './entity/sync-queue-config.entity';
+import { VaultTokenAccessorEntity } from './entity/vault-token-accessor.entity';
 
 const redisFactory = {
   provide: 'REDIS_CLIENT',
@@ -111,6 +112,7 @@ const redisFactory = {
       TeamEntity,
       UserAliasRequestEntity,
       UserEntity,
+      VaultTokenAccessorEntity,
       VertexEntity,
     ]),
     UtilModule,

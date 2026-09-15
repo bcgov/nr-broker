@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { MikroORM } from '@mikro-orm/core';
+import { of } from 'rxjs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { IntentionService } from './intention.service';
 import { BullService } from '../bull/bull.service';
@@ -16,6 +17,7 @@ import { PersistenceUtilService } from '../persistence/persistence-util.service'
 import { IntentionUtilService } from './intention-util.service';
 import { ValidatorUtil } from '../util/validator.util';
 import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
+import { VaultService } from '../vault/vault.service';
 import { BadRequestException } from '@nestjs/common';
 import { IntentionDto } from './dto/intention.dto';
 
@@ -86,7 +88,8 @@ describe('IntentionService', () => {
       registerLeaderJob: vi.fn(),
       enqueue: vi.fn(),
     } as unknown as BullService;
-
+    const vaultService = {
+      postAuthTokenRevokeAccessor: vi.fn().mockReturnValue(of({})) } as unknown as VaultService;
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IntentionService,
@@ -104,6 +107,7 @@ describe('IntentionService', () => {
         { provide: ValidatorUtil, useValue: validatorUtil },
         { provide: IntentionValidationRuleEngine, useValue: intentionValidationRuleEngine },
         { provide: BullService, useValue: bullService },
+        { provide: VaultService, useValue: vaultService },
         { provide: MikroORM, useValue: {} },
       ],
     }).compile();

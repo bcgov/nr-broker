@@ -90,6 +90,10 @@ export class VaultConfigApproleDto {
   @IsDefined()
   enabled!: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  exclusiveSecretIds?: boolean;
+
   // standard
   @IsBoolean()
   @IsOptional()

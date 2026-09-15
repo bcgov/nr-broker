@@ -70,6 +70,10 @@ export const VAULT_KV_APPS_TOOLS_PATH_TPL =
   'tools/<%= projectName %>/<%= serviceName %>';
 export const VAULT_SYNC_APP_AUTH_MOUNT =
   process.env.VAULT_APPROLE_PATH ?? 'vs_apps_approle';
+export const VAULT_APPROLE_META_ACTIONS = {
+  GENERATE_SECRET_ID: 'generate-secret-id',
+  GENERATE_TOKEN: 'generate-token',
+} as const;
 
 export const JWT_MAX_AGE = '365d';
 export const JWT_GENERATE_BLOCK_GRACE_PERIOD = 60000;
@@ -105,6 +109,7 @@ export const REDIS_QUEUES = {
   GITHUB_SYNC_USERS: 'github-sync-users',
   KUBERNETES_SYNC_SECRETS: 'kubernetes-sync-secrets',
   NOTIFICATION_COMS: 'notification-coms',
+  VAULT_SECRET_IDS: 'vault-secret-ids',
 } as const;
 
 export type BullQueueName =

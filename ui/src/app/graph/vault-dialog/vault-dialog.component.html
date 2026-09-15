@@ -54,6 +54,12 @@
         Enable access to project secrets
       </mat-checkbox>
 
+      <mat-checkbox
+        [ngModel]="config().approle.exclusiveSecretIds"
+        (ngModelChange)="updateExclusiveSecretIds($event)">
+        Remove existing secret IDs after AppRole provision
+      </mat-checkbox>
+
       <mat-form-field>
         <mat-label>Policies</mat-label>
         <input

@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import nodemailer from 'nodemailer';
+import type { TransportOptions, Transporter } from 'nodemailer';
 import ejs from 'ejs';
 import { NOTIFICATION_EMAIL_FROM } from '../constants';
 import { COMMUNICATION_EMAIL_TRANSPORT } from './communication.constants';
@@ -9,11 +10,11 @@ import { SystemRepository } from '../persistence/interfaces/system.repository';
 
 @Injectable()
 export class CommunicationEmailService extends CommunicationTaskService {
-  private transporter: nodemailer.Transporter;
+  private transporter: Transporter;
 
   constructor(
     @Inject(COMMUNICATION_EMAIL_TRANSPORT)
-    private readonly emailTransport: nodemailer.TransportOptions,
+    private readonly emailTransport: TransportOptions,
     systemRepository: SystemRepository,
   ) {
     super(systemRepository);

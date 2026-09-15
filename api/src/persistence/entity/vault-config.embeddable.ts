@@ -17,6 +17,8 @@ export class VaultConfigApproleDto {
   // non-standard
   @Property()
   enabled: boolean;
+  @Property({ nullable: true })
+  exclusiveSecretIds?: boolean;
   // standard
   @Property({ nullable: true })
   bind_secret_id?: boolean;

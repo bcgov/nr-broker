@@ -16,8 +16,10 @@ import {
   SHORT_ENV_CONVERSION,
   TOKEN_RENEW_RATIO,
   VAULT_SYNC_APP_AUTH_MOUNT,
+  VAULT_APPROLE_META_ACTIONS,
   VAULT_AUDIT_DEVICE_NAME,
   VAULT_KV_APPS_MOUNT,
+  VAULT_SERVICE_WRAP_TTL,
 } from '../constants';
 import { VaultService } from '../vault/vault.service';
 import { BullService } from '../bull/bull.service';
@@ -81,6 +83,7 @@ export class TokenService implements OnModuleInit {
     projectName: string,
     appName: string,
     environment: string,
+    metadata: Record<string, string | number | boolean> = {},
   ): Observable<any> {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
@@ -89,7 +92,15 @@ export class TokenService implements OnModuleInit {
       .postAuthMountRoleNameSecretId(
         VAULT_SYNC_APP_AUTH_MOUNT,
         `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
-        { wrapResponse: true },
+        {
+          wrapResponse: true,
+          metadata: {
+            action: VAULT_APPROLE_META_ACTIONS.GENERATE_SECRET_ID,
+            service: appName,
+            env: environment,
+            ...metadata,
+          },
+        },
       )
       .pipe(
         map((response) => {
@@ -120,6 +131,7 @@ export class TokenService implements OnModuleInit {
     appName: string,
     environment: string,
     roleId: string,
+    metadata: Record<string, string | number | boolean> = {},
   ): Observable<any> {
     const env = SHORT_ENV_CONVERSION[environment]
       ? SHORT_ENV_CONVERSION[environment]
@@ -128,6 +140,17 @@ export class TokenService implements OnModuleInit {
       .postAuthMountRoleNameSecretId(
         VAULT_SYNC_APP_AUTH_MOUNT,
         `${this.convertUnderscoreToDash(projectName)}_${this.convertUnderscoreToDash(appName)}_${env}`,
+        {
+          secretIdNumUses: 1,
+          secretIdTtl: VAULT_SERVICE_WRAP_TTL,
+          tokenExplicitMaxTtl: 5,
+          metadata: {
+            action: VAULT_APPROLE_META_ACTIONS.GENERATE_TOKEN,
+            service: appName,
+            env: environment,
+            ...metadata,
+          },
+        },
       )
       .pipe(
         map((response) => {
@@ -153,6 +176,9 @@ export class TokenService implements OnModuleInit {
                 return {
                   audit: {
                     clientToken: auditResponse.data.data.hash,
+                    // Accessor for the wrapped login token; lets Broker revoke the
+                    // token later (e.g. on intention close) without ever seeing it.
+                    tokenAccessor: wrappedToken.wrap_info.wrapped_accessor,
                   },
                   wrappedToken,
                 };
