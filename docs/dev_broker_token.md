@@ -40,9 +40,9 @@ path "auth/vs_apps_approle/role/vault_nr-broker_*" {
 }
 ```
 
-If you are enabling secret synchronization through NR Broker, the token must be able to read the tools path for services. See: [GitHub Sync](/operations_github_sync.md) and [Kubernetes / OpenShift Secret Sync](/operations_kubernetes_sync.md)
+If you are enabling secret synchronization through NR Broker, the token must be able to read the tools path for services. See: [GitHub Sync](/operations_github_sync.md) and [Kubernetes / OpenShift Secret Sync Development](/dev_kubernetes_sync.md)
 
-If you are enabling Kubernetes / OpenShift secret sync, the token must also be able to read from the `clouds` KV mount. See: [Kubernetes / OpenShift Secret Sync](/operations_kubernetes_sync.md)
+If you are enabling Kubernetes / OpenShift secret sync, the token must also be able to read from the `clouds` KV mount. See: [Kubernetes / OpenShift Secret Sync Development](/dev_kubernetes_sync.md)
 
 See also: [Environment Variables](/dev_env_vars.md)
 

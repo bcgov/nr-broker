@@ -43,6 +43,8 @@
 
 - **Developing NR Broker**
   - [Local Dev Setup](/development.md)
+  - [GitHub Sync Development](/dev_github_sync.md)
+  - [Kubernetes / OpenShift Secret Sync Development](/dev_kubernetes_sync.md)
   - [Data Transfer Objects](/dev_dto_entities.md)
   - [Document Site](/dev_docsite.md)
   - [MongoDB](/dev_mongodb.md)
