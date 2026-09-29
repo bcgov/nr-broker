@@ -1,6 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 
-import { IsString, IsDefined, IsBoolean } from 'class-validator';
+import { IsString, IsDefined, IsBoolean, IsOptional } from 'class-validator';
 import { CollectionBaseDto, VertexPointerDto } from './vertex-pointer.dto';
 
 export class BrokerAccountBaseDto extends CollectionBaseDto {
@@ -19,6 +19,11 @@ export class BrokerAccountBaseDto extends CollectionBaseDto {
   @IsBoolean()
   @IsDefined()
   enableUserImport!: boolean;
+
+  /** Allows this account's tokens to call the onboarding API (POST /v1/onboarding). */
+  @IsBoolean()
+  @IsOptional()
+  enableOnboarding?: boolean;
 
   @IsBoolean()
   @IsDefined()

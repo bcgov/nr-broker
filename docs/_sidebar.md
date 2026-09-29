@@ -10,6 +10,7 @@
 - **For Developers**
   - [Developer Quick Start](/ops_quick_start.md)
   - [Broker Account Tokens](/dev_account_token.md)
+  - [Onboarding an Application](/dev_onboarding.md)
   - [Understanding Vault](/dev_vault_for_developers.md)
   - [Integrating Overview](/dev_integrate_overview.md)
   - [Intention Lifecycle](/dev_intention_lifecycle.md)

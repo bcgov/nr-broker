@@ -408,6 +408,7 @@ db.brokerAccount.insertMany([
     clientId: '33098695-4a5a-497c-a36a-61691785845c',
     name: 'localhost',
     enableUserImport: false,
+    enableOnboarding: false,
     requireRoleId: false,
     requireProjectExists: false,
     requireServiceExists: false,

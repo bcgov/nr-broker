@@ -29,6 +29,7 @@ import { GithubModule } from './github/github.module';
 import { CommunicationModule } from './communication/communication.module';
 import { KubernetesModule } from './kubernetes/kubernetes.module';
 import { BullModule } from './bull/bull.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { BullModule } from './bull/bull.module';
     CommunicationModule,
     KubernetesModule,
     BullModule,
+    OnboardingModule,
   ],
   controllers: [],
   providers: [],

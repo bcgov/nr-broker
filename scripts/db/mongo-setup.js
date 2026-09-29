@@ -836,6 +836,13 @@ result = db.collectionConfig.insertOne({
       hint: 'Enable account to import users',
       value: false,
     },
+    enableOnboarding: {
+      name: 'Enable onboarding',
+      required: false,
+      type: 'boolean',
+      hint: 'Enable account tokens to onboard new applications (POST /v1/onboarding)',
+      value: false,
+    },
     requireRoleId: {
       name: 'Require RoleId',
       required: true,

@@ -34,6 +34,9 @@ export class BrokerAccountEntity extends VertexPointerEntity {
   @Property()
   enableUserImport: boolean;
 
+  @Property({ nullable: true })
+  enableOnboarding?: boolean;
+
   @Property()
   requireRoleId: boolean;
 
