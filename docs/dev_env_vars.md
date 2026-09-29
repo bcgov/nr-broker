@@ -173,7 +173,11 @@ All developers can share the localhost OAuth app. For an actual deployment, you 
 | Env Var | Default | Secret | Description |
 | --- | --- | --- | --- |
 | GITHUB_SYNC_CLIENT_ID |  |  | The client id of the GitHub App |
-| GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |## Queue Processing
+| GITHUB_SYNC_PRIVATE_KEY |  |  | The private key of the GitHub App |
+| GITHUB_CATALOG_ORGS |  |  | Comma-separated GitHub organizations to scan for `catalog-info.yaml` files. Scanning is disabled when empty. |
+| GITHUB_CATALOG_SCAN_CRON | '0 5 * * *' |  | Cron schedule for the catalog scan |
+
+## Queue Processing
 
 Broker consumes BullMQ data queues with workers that run inside every API
 process. The `QUEUE_PROCESSING` environment variable controls which workers a
@@ -181,10 +185,11 @@ given process starts, which makes it possible to run a dedicated worker process
 for a single queue or to disable data-queue processing entirely. This enables
 independent scaling of queue work.
 
-The four queues are the values of `REDIS_QUEUES` in `api/src/constants.ts`:
+The queues are the values of `REDIS_QUEUES` in `api/src/constants.ts`:
 
 | Queue | Purpose |
 | --- | --- |
+| `github-catalog-scan` | Scans GitHub organizations for Backstage catalog files |
 | `github-sync-secrets` | Syncs secrets from GitHub repositories |
 | `github-sync-users` | Syncs users from GitHub repositories |
 | `kubernetes-sync-secrets` | Syncs secrets into Kubernetes/OpenShift |
