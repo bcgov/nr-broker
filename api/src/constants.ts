@@ -105,6 +105,7 @@ export const OAUTH2_CLIENT_MAP_USERNAME =
  * existing consumer/producer call sites.
  */
 export const REDIS_QUEUES = {
+  GITHUB_CATALOG_SCAN: 'github-catalog-scan',
   GITHUB_SYNC_SECRETS: 'github-sync-secrets',
   GITHUB_SYNC_USERS: 'github-sync-users',
   KUBERNETES_SYNC_SECRETS: 'kubernetes-sync-secrets',
@@ -130,6 +131,7 @@ export const BULL_LEADER_JOBS = {
   JWT_EXPIRATION_NOTIFICATION: 'jwt-expiration-notification',
   SEND_JWT_EXPIRATION_NOTIFICATION: 'send-jwt-expiration-notification',
   COLLECTION_SYNC: 'collection-sync',
+  GITHUB_CATALOG_SCAN: 'github-catalog-scan',
   TOKEN_RENEWAL: 'token-renewal',
 } as const;
 
@@ -209,6 +211,15 @@ export const GITHUB_OAUTH_CLIENT_SECRET =
 export const GITHUB_SYNC_CLIENT_ID = process.env.GITHUB_SYNC_CLIENT_ID ?? '';
 export const GITHUB_SYNC_PRIVATE_KEY =
   process.env.GITHUB_SYNC_PRIVATE_KEY ?? '';
+
+// Comma-separated GitHub organizations scanned for Backstage catalog files
+export const GITHUB_CATALOG_ORGS = (process.env.GITHUB_CATALOG_ORGS ?? '')
+  .split(',')
+  .map((org) => org.trim())
+  .filter((org) => org.length > 0);
+export const GITHUB_CATALOG_SCAN_CRON =
+  process.env.GITHUB_CATALOG_SCAN_CRON ?? '0 5 * * *';
+export const GITHUB_CATALOG_MAX_FILES = 50;
 
 export const GITHUB_MANAGED_URL_REGEX =
   process.env.GITHUB_MANAGED_URL_REGEX ??

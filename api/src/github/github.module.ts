@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { GithubService } from './github.service';
 import { GithubSyncService } from './github-sync.service';
+import { GithubCatalogService } from './github-catalog.service';
 import { AuditModule } from '../audit/audit.module';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { RedisModule } from '../redis/redis.module';
@@ -21,7 +22,7 @@ import { BullModule } from '../bull/bull.module';
     UtilModule,
     BullModule,
   ],
-  providers: [GithubService, GithubSyncService],
-  exports: [GithubService, GithubSyncService],
+  providers: [GithubService, GithubSyncService, GithubCatalogService],
+  exports: [GithubService, GithubSyncService, GithubCatalogService],
 })
 export class GithubModule {}
