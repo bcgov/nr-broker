@@ -1121,6 +1121,12 @@ result = db.collectionConfig.insertOne({
   collection: 'repository',
   collectionMapper: [{ getPath: 'name', setPath: 'name' }],
   collectionVertexName: 'name',
+  connectedTable: [
+    { collection: 'brokerAccount', direction: 'upstream' },
+    { collection: 'project', direction: 'upstream' },
+    { collection: 'service', direction: 'upstream' },
+    { collection: 'team', direction: 'upstream' },
+  ],
   index: 8,
   edges: [],
   fieldDefaultSort: {
