@@ -18,6 +18,7 @@ import {
  */
 const {
   queueInstances,
+  cleanResults,
   workerInstances,
   queueEventsInstances,
   MockQueue,
@@ -28,8 +29,10 @@ const {
     name: string;
     opts: unknown;
     add: Mock;
+    clean: Mock;
     close: Mock;
   }> = [];
+  const cleanResults: Array<string[] | Error> = [];
   const workerInstances: Array<{
     name: string;
     processor: (job: unknown) => Promise<void>;
@@ -41,6 +44,7 @@ const {
 
   class MockQueue {
     add: Mock;
+    clean: Mock;
     close: Mock;
 
     constructor(
@@ -48,6 +52,13 @@ const {
       public opts: unknown,
     ) {
       this.add = vi.fn(async () => undefined);
+      this.clean = vi.fn(async () => {
+        const result = cleanResults.shift();
+        if (result instanceof Error) {
+          throw result;
+        }
+        return result ?? [];
+      });
       this.close = vi.fn(async () => undefined);
       queueInstances.push(this);
     }
@@ -87,6 +98,7 @@ const {
 
   return {
     queueInstances,
+    cleanResults,
     workerInstances,
     queueEventsInstances,
     MockQueue,
@@ -118,6 +130,7 @@ const fakeOrm = {
 } as unknown as MikroORM;
 
 beforeEach(() => {
+  cleanResults.length = 0;
   vi.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
   vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
   vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -178,6 +191,9 @@ describe('BullService.registerWorker', () => {
 
     expect(queueInstances).toHaveLength(1);
     expect(queueInstances[0].name).toBe(REDIS_QUEUES.NOTIFICATION_COMS);
+    expect(queueInstances[0].opts).toMatchObject({
+      defaultJobOptions: { removeOnComplete: true },
+    });
     expect(workerInstances).toHaveLength(1);
     expect(workerInstances[0].name).toBe(REDIS_QUEUES.NOTIFICATION_COMS);
     expect(workerInstances[0].opts).toMatchObject({
@@ -233,6 +249,30 @@ describe('BullService.registerWorker', () => {
     expect(
       workerInstances.filter((w) => w.name === REDIS_QUEUES.NOTIFICATION_COMS),
     ).toHaveLength(1);
+    expect(queueInstances[0].clean).toHaveBeenCalledTimes(1);
+  });
+
+  it('cleans completed jobs in batches on worker registration', async () => {
+    service = new BullService(fakeConnection, fakeOrm, REDIS_QUEUES.NOTIFICATION_COMS);
+    cleanResults.push(Array(1000).fill('old-job'), []);
+
+    service.registerWorker(REDIS_QUEUES.NOTIFICATION_COMS, async () => undefined);
+    const queue = queueInstances[0];
+    await vi.waitFor(() => expect(queue.clean).toHaveBeenCalledTimes(2));
+    expect(queue.clean).toHaveBeenCalledWith(0, 1000, 'completed');
+  });
+
+  it('logs a cleanup error without preventing worker startup', async () => {
+    service = new BullService(fakeConnection, fakeOrm, REDIS_QUEUES.NOTIFICATION_COMS);
+    const error = vi.spyOn(service['logger'] as Logger, 'error');
+    cleanResults.push(new Error('cleanup failed'));
+
+    service.registerWorker(REDIS_QUEUES.NOTIFICATION_COMS, async () => undefined);
+    await vi.waitFor(() => expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('cleanup failed'),
+      expect.anything(),
+    ));
+    expect(workerInstances).toHaveLength(1);
   });
 
   it('swallows a handler error so a single failed job does not stop the worker', async () => {
@@ -315,6 +355,9 @@ describe('BullService.enqueue', () => {
 
     expect(queueInstances).toHaveLength(1);
     expect(queueInstances[0].name).toBe(REDIS_QUEUES.GITHUB_SYNC_SECRETS);
+    expect(queueInstances[0].opts).toMatchObject({
+      defaultJobOptions: { removeOnComplete: true },
+    });
     expect(queueInstances[0].add).toHaveBeenCalledWith(
       REDIS_QUEUES.GITHUB_SYNC_SECRETS,
       { a: 1 },
@@ -376,6 +419,9 @@ describe('BullService.registerLeaderJob', () => {
 
     const leaderQueue = queueInstances.find((q) => q.name === 'leader');
     expect(leaderQueue).toBeDefined();
+    expect(leaderQueue!.opts).toMatchObject({
+      defaultJobOptions: { removeOnComplete: true },
+    });
     expect(leaderQueue!.add).toHaveBeenCalledWith(
       BULL_LEADER_JOBS.INTENTION_EXPIRY,
       {},
@@ -422,6 +468,8 @@ describe('BullService leader worker', () => {
       queueInstances.some((q) => q.name === 'leader'),
     ).toBe(true);
     expect(queueEventsInstances).toHaveLength(1);
+    expect(queueInstances.find((q) => q.name === 'leader')!.clean)
+      .toHaveBeenCalledWith(0, 1000, 'completed');
   });
 
   it('dispatches a fired leader job to its registered handler', async () => {

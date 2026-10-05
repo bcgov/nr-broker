@@ -22,5 +22,5 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["dist/**", "node_modules/**", "coverage/**"],
+  "exclude": ["dist/**", "node_modules/**", "coverage/**", "test/**", "./vitest*", "**/*spec.ts", "**/*.config.ts", "**/*.setup.ts"],
 }

@@ -119,7 +119,11 @@ implements OnModuleInit, OnModuleDestroy {
     // and standalone queue worker). Because BullMQ claims each job for exactly
     // one worker, a repeatable leader job fires once per tick regardless of
     // how many processes are running.
-    this.leaderQueue = new Queue('leader', { connection: this.connection });
+    this.leaderQueue = new Queue('leader', {
+      connection: this.connection,
+      defaultJobOptions: { removeOnComplete: true },
+    });
+    void this.cleanCompletedJobs(this.leaderQueue);
     this.leaderWorker = new Worker(
       'leader',
       async (job: Job) => {
@@ -177,8 +181,12 @@ implements OnModuleInit, OnModuleDestroy {
     if (this.dataWorkers.has(queueName)) {
       return;
     }
-    const queue = new Queue(queueName, { connection: this.connection });
+    const queue = new Queue(queueName, {
+      connection: this.connection,
+      defaultJobOptions: { removeOnComplete: true },
+    });
     this.dataQueues.set(queueName, queue);
+    void this.cleanCompletedJobs(queue);
 
     const worker = new Worker(
       queueName,
@@ -213,6 +221,20 @@ implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`BullMQ worker started for "${queueName}"`);
   }
 
+  private async cleanCompletedJobs(queue: Queue): Promise<void> {
+    try {
+      let removed: string[];
+      do {
+        removed = await queue.clean(0, 1000, 'completed');
+      } while (removed.length === 1000);
+    } catch (error) {
+      this.logger.error(
+        `Failed to clean completed jobs on "${queue.name}": ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+    }
+  }
+
   /**
    * Add a job to a data queue. Creates the queue lazily on first use so that
    * producer-only processes (which never consume) still get a queue.
@@ -227,7 +249,10 @@ implements OnModuleInit, OnModuleDestroy {
     opts?: JobsOptions,
   ): Promise<void> {
     const queue = this.dataQueues.get(queueName) ??
-      new Queue(queueName, { connection: this.connection });
+      new Queue(queueName, {
+        connection: this.connection,
+        defaultJobOptions: { removeOnComplete: true },
+      });
     this.dataQueues.set(queueName, queue);
     await queue.add(queueName, data as Record<string, unknown>, opts);
   }
