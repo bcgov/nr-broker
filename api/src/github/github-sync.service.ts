@@ -461,7 +461,7 @@ export class GithubSyncService implements OnModuleInit {
   }
 
   // Generate JWT
-  private generateJWT(): string {
+  public generateJWT(): string {
     const payload = {
       iat: Math.floor(Date.now() / 1000) - 60,
       exp: Math.floor(Date.now() / 1000) + 2 * 60, // JWT expires in 2 minutes
