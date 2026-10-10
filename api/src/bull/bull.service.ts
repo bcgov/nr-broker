@@ -275,12 +275,12 @@ implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     this.ensureLeader();
     this.leaderHandlers.set(jobName, handler);
-    await this.leaderQueue.add(
+    await this.leaderQueue.upsertJobScheduler(
       jobName,
-      {},
       {
-        repeat: { pattern: cronPattern },
-        jobId: jobName,
+        pattern: cronPattern,
+      },
+      {
       },
     );
     this.logger.log(
