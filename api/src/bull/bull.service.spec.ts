@@ -29,6 +29,7 @@ const {
     name: string;
     opts: unknown;
     add: Mock;
+    upsertJobScheduler: Mock;
     clean: Mock;
     close: Mock;
   }> = [];
@@ -44,6 +45,7 @@ const {
 
   class MockQueue {
     add: Mock;
+    upsertJobScheduler: Mock;
     clean: Mock;
     close: Mock;
 
@@ -52,6 +54,7 @@ const {
       public opts: unknown,
     ) {
       this.add = vi.fn(async () => undefined);
+      this.upsertJobScheduler = vi.fn(async () => undefined);
       this.clean = vi.fn(async () => {
         const result = cleanResults.shift();
         if (result instanceof Error) {
@@ -422,10 +425,10 @@ describe('BullService.registerLeaderJob', () => {
     expect(leaderQueue!.opts).toMatchObject({
       defaultJobOptions: { removeOnComplete: true },
     });
-    expect(leaderQueue!.add).toHaveBeenCalledWith(
+    expect(leaderQueue!.upsertJobScheduler).toHaveBeenCalledWith(
       BULL_LEADER_JOBS.INTENTION_EXPIRY,
+      { pattern: '* * * * *' },
       {},
-      { repeat: { pattern: '* * * * *' }, jobId: BULL_LEADER_JOBS.INTENTION_EXPIRY },
     );
     expect(handler).toHaveBeenCalledOnce();
   });

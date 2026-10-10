@@ -59,56 +59,26 @@ $ cd api; npm ci
 $ cd ui; npm ci
 ```
 
- ### Setup Redis Stack
+### Start infrastructure
 
-The development setup assumes you are using podman to run the Redis Stack.
-
- ```bash
- # Start up local redis stack
- $ podman run -p 6379:6379 -p 8001:8001 --name broker-redis -d redis/redis-stack
- ```
-
-The Redis UI is at the url: http://localhost:8001
-
-### Setup MongoDB
-
-The development setup assumes you are using podman to run MongoDB.
+From the repository root, start Redis 8 (including Search and JSON), Redis Insight, MongoDB and Vault:
 
 ```bash
-# Start up local MongoDB
-$ podman run \
-  -p 27017:27017 \
-  --name broker-mongo \
-  -e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
-	-e MONGO_INITDB_ROOT_PASSWORD=secret \
-  -d mongo:8 \
-  --wiredTigerCacheSizeGB 0.25
+podman kube play infra.yml
 ```
 
-Once started, you must use the MongoDB setup script to bootstrap the database. If you encounter an error here, it is likely you are missing a required tool or need an environment file.
+Redis Insight is available at http://localhost:5540. Make sure no existing containers use ports 6379, 5540, 27017 or 8200. The setup scripts require the configured `scripts/setenv-common.sh` described above.
+
+After MongoDB and Vault are ready, bootstrap them in this order from the repository root:
 
 ```bash
-# Configure the local MongoDB with basic setup
-$ ./scripts/mongo-setup.sh
+./scripts/mongo-setup.sh
+./scripts/vault-setup.sh
 ```
 
-See: [MongoDB Development](./dev_mongodb.md)
+**Run `./scripts/vault-setup.sh` again after every Vault restart.** Vault runs in development mode and loses its data on restart. MongoDB, Redis and Redis Insight keep their data in named volumes across restarts; rerun MongoDB setup only if its volume is removed.
 
-### Setup HashiCorp Vault
-
-```bash
-# Start up local Vault
-$ podman run -p 8200:8200 --cap-add=IPC_LOCK -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' -d --name=broker-vault hashicorp/vault
-```
-
-Once started, you must run the Vault setup script to bootstrap it. MongoDB must be running and setup before running this.
-
-```bash
-# Configure the local Vault with basic setup
-$ ./scripts/vault-setup.sh
-```
-
-See: [Vault Development](./dev_vault.md)
+See: [MongoDB Development](./dev_mongodb.md) and [Vault Development](./dev_vault.md).
 
 ## Running Locally
 

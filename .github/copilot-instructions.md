@@ -134,21 +134,18 @@ Actions are polymorphic via a `class-transformer` discriminator on the `action` 
 
 ### Backend Development
 ```bash
-# Install dependencies
-npm ci
-
-# Start databases (Podman)
-podman run -p 27017:27017 --name broker-mongo -e MONGO_INITDB_ROOT_USERNAME=mongoadmin -e MONGO_INITDB_ROOT_PASSWORD=secret -d mongo:8 --wiredTigerCacheSizeGB 0.25
-podman run -p 6379:6379 -p 8001:8001 --name broker-redis -d redis/redis-stack
-podman run -p 8200:8200 --cap-add=IPC_LOCK -e VAULT_DEV_ROOT_TOKEN_ID=myroot -d --name broker-vault hashicorp/vault
-
-# Bootstrap databases
+# From the repository root, after configuring scripts/setenv-common.sh
+podman kube play infra.yml
 ./scripts/mongo-setup.sh
 ./scripts/vault-setup.sh
 
-# Watch mode (sources setenv-backend-dev.sh automatically)
+# From api/ (watch mode sources setenv-backend-dev.sh automatically)
+cd api
+npm ci
 npm run watch
 ```
+
+Vault runs in development mode: rerun `./scripts/vault-setup.sh` from the repository root after every Vault restart. MongoDB, Redis, and Redis Insight retain data in named volumes unless those volumes are removed. See `docs/development.md` for the full setup.
 
 ### Frontend Development
 ```bash
