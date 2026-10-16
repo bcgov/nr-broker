@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: broker-redis-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: broker-mongo-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: broker-redisinsight-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: broker
+spec:
+  containers:
+    - name: redis
+      image: docker.io/library/redis:8
+      args:
+        - --appendonly
+        - "yes"
+      ports:
+        - containerPort: 6379
+          hostPort: 6379
+      volumeMounts:
+        - name: redis-data
+          mountPath: /data
+    - name: redisinsight
+      image: docker.io/redis/redisinsight:latest
+      ports:
+        - containerPort: 5540
+          hostPort: 5540
+      volumeMounts:
+        - name: redisinsight-data
+          mountPath: /data
+    - name: mongo
+      image: docker.io/library/mongo:8
+      args:
+        - --wiredTigerCacheSizeGB
+        - "0.25"
+      env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: mongoadmin
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: secret
+      ports:
+        - containerPort: 27017
+          hostPort: 27017
+      volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+    - name: vault
+      image: docker.io/hashicorp/vault:latest
+      env:
+        - name: VAULT_DEV_ROOT_TOKEN_ID
+          value: myroot
+        - name: VAULT_DEV_LISTEN_ADDRESS
+          value: 0.0.0.0:8200
+      securityContext:
+        capabilities:
+          add:
+            - IPC_LOCK
+      ports:
+        - containerPort: 8200
+          hostPort: 8200
+  volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: broker-redis-data
+    - name: mongo-data
+      persistentVolumeClaim:
+        claimName: broker-mongo-data
+    - name: redisinsight-data
+      persistentVolumeClaim:
+        claimName: broker-redisinsight-data
