@@ -10,6 +10,7 @@ import { AwsModule } from '../aws/aws.module';
 import { BullModule } from '../bull/bull.module';
 import { IntentionSyncService } from './intention-sync.service';
 import { GraphSyncService } from './graph-sync/graph-sync.service';
+import { CatalogSyncService } from './catalog-sync.service';
 
 /**
  * The graph module allows users to interact with the graph database.
@@ -25,7 +26,12 @@ import { GraphSyncService } from './graph-sync/graph-sync.service';
     BullModule,
   ],
   controllers: [GraphController],
-  providers: [GraphService, IntentionSyncService, GraphSyncService],
-  exports: [GraphService, IntentionSyncService],
+  providers: [
+    GraphService,
+    IntentionSyncService,
+    GraphSyncService,
+    CatalogSyncService,
+  ],
+  exports: [GraphService, IntentionSyncService, CatalogSyncService],
 })
 export class GraphModule {}

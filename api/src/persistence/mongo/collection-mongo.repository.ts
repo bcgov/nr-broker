@@ -353,6 +353,7 @@ export class CollectionMongoRepository implements CollectionRepository {
                   },
                 },
                 { $unwind: '$vertex' },
+                { $unset: ['provenance', 'vertex.provenance'] },
               ],
               as: 'upstream',
             },
@@ -373,6 +374,7 @@ export class CollectionMongoRepository implements CollectionRepository {
                   },
                 },
                 { $unwind: '$vertex' },
+                { $unset: ['provenance', 'vertex.provenance'] },
               ],
               as: 'downstream',
             },
@@ -393,7 +395,7 @@ export class CollectionMongoRepository implements CollectionRepository {
             },
           },
           {
-            $unset: ['_id'],
+            $unset: ['_id', 'vertex.provenance'],
           },
           {
             $facet: {

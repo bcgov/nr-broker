@@ -20,6 +20,7 @@ import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
 import { ActionEmbeddable } from '../intention/entity/action.embeddable';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
 
 interface OverlayMapBase {
   key: string;
@@ -501,6 +502,7 @@ export class IntentionSyncService {
       }),
       targetBy,
       target,
+      ProvenanceEmbeddable.intention(),
     );
   }
 
@@ -562,12 +564,17 @@ export class IntentionSyncService {
           : { ...(curr.prop ?? {}), ...prop };
       if (!deepEqual(curr.prop, saveProps, { strict: true })) {
         // Save prop changes
-        await this.graphService.editEdge(null, curr.id.toString(), {
-          name,
-          source,
-          target,
-          prop: saveProps,
-        });
+        await this.graphService.editEdge(
+          null,
+          curr.id.toString(),
+          {
+            name,
+            source,
+            target,
+            prop: saveProps,
+          },
+          ProvenanceEmbeddable.intention(),
+        );
         this.logger.debug(
           `Updated '${name}' edge properties from vertex ${source} to ${target}`,
         );
@@ -581,12 +588,16 @@ export class IntentionSyncService {
 
     // Edge doesn't exist, try to create it
     try {
-      const newEdge = await this.graphService.addEdge(null, {
-        name,
-        source,
-        target,
-        ...(prop ? { prop } : {}),
-      });
+      const newEdge = await this.graphService.addEdge(
+        null,
+        {
+          name,
+          source,
+          target,
+          ...(prop ? { prop } : {}),
+        },
+        ProvenanceEmbeddable.intention(),
+      );
       this.logger.debug(
         `Created '${name}' edge from vertex ${source} to ${target}`,
       );

@@ -219,7 +219,8 @@ export const GITHUB_CATALOG_ORGS = (process.env.GITHUB_CATALOG_ORGS ?? '')
   .filter((org) => org.length > 0);
 export const GITHUB_CATALOG_SCAN_CRON =
   process.env.GITHUB_CATALOG_SCAN_CRON ?? '0 5 * * *';
-export const GITHUB_CATALOG_MAX_FILES = 50;
+export const GITHUB_CATALOG_ROOT_FILE = 'catalog-info.yaml';
+export const GITHUB_CATALOG_LAST_SCAN_KEY_PREFIX = 'github-catalog-scan:last-scan:';
 
 export const GITHUB_MANAGED_URL_REGEX =
   process.env.GITHUB_MANAGED_URL_REGEX ??
