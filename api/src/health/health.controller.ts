@@ -9,6 +9,7 @@ import { BrokerJwtAuthGuard } from '../auth/broker-jwt-auth.guard';
 import { HealthService } from './health.service';
 import { CommunicationHealthIndicator } from '../communication/communication.health';
 import { SyncQueueHealthIndicator } from './sync-queue.health';
+import { GithubHealthIndicator } from './github.health';
 
 @Controller({
   path: 'health',
@@ -22,6 +23,7 @@ export class HealthController {
     private readonly syncQueue: SyncQueueHealthIndicator,
     private readonly healthService: HealthService,
     private readonly db: MikroOrmHealthIndicator,
+    private readonly github: GithubHealthIndicator,
   ) {}
 
   /**
@@ -40,6 +42,7 @@ export class HealthController {
       () => this.db.pingCheck('database'),
       () => this.syncQueue.isHealthy('syncQueue'),
       () => this.communication.isHealthy('communication'),
+      () => this.github.isHealthy('github'),
     ]);
   }
 

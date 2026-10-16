@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDialog } from '@angular/material/dialog';
-import { CURRENT_USER, SYNC_QUEUE_CONFIG_RECORD } from '../app-initialize.factory';
+import { CURRENT_USER } from '../app-initialize.factory';
 import { environment } from '../../environments/environment';
 import { RolesDialogComponent } from './roles-dialog/roles-dialog.component';
 import { HealthStatusService } from '../service/health-status.service';
@@ -19,11 +19,6 @@ import { UserSelfDto } from '../service/persistence/dto/user.dto';
 import { PreferencesService } from '../preferences.service';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { LinkSnackbarComponent } from './link-snackbar/link-snackbar.component';
-import { SyncQueueConfigDto } from '../service/persistence/dto/sync-queue-config.dto';
-import {
-  hasEnabledQueueForSetupKey,
-  SyncQueueHealthRecord,
-} from '../util/sync-queue-health.util';
 
 @Component({
   selector: 'app-toolbar',
@@ -47,9 +42,6 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   private readonly collectionUtil = inject(CollectionUtilService);
   private readonly preferences = inject(PreferencesService);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly syncQueueConfigRecord = inject<Record<string, SyncQueueConfigDto>>(
-    SYNC_QUEUE_CONFIG_RECORD,
-  );
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
   readonly sidebarClick = output<boolean>();
@@ -80,19 +72,9 @@ export class ToolbarComponent implements OnInit, OnDestroy {
           this.healthStatus.set(undefined);
         } else {
           this.healthStatus.set(data.status === 'ok');
-          const queues = data?.details?.['syncQueue']?.['queues'] as
-            | SyncQueueHealthRecord
-            | undefined;
-          const githubQueueEnabled = hasEnabledQueueForSetupKey(
-            queues,
-            this.syncQueueConfigRecord,
-            'gitHubUserLink',
-          );
+          const githubAliasEnabled = data?.details?.['github']?.['alias'];
 
-          if (
-            this.showLinkDialog &&
-            githubQueueEnabled
-          ) {
+          if (this.showLinkDialog && githubAliasEnabled) {
             const config = new MatSnackBarConfig();
             config.verticalPosition = 'bottom';
             this.snackBar.openFromComponent(LinkSnackbarComponent, config);
