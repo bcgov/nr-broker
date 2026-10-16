@@ -248,10 +248,25 @@ export class GithubCatalogService implements OnModuleInit {
       },
       { headers: { Authorization: `bearer ${token}` } },
     );
-    if (response.data.errors?.length) {
+    // The app may lack contents: read on some repositories. GitHub returns
+    // partial data with these fields null for those, so they are skipped.
+    const contentFields = ['catalogFile', 'defaultBranchRef'];
+    const errors = (
+      (response.data.errors ?? []) as {
+        message: string;
+        path?: (string | number)[];
+      }[]
+    ).filter(
+      (error) =>
+        !contentFields.includes(String(error.path?.[error.path.length - 1])),
+    );
+    if (errors.length) {
       throw new Error(
-        `GitHub GraphQL query failed for ${org}: ${response.data.errors
-          .map((error: { message: string }) => error.message)
+        `GitHub GraphQL query failed for ${org}: ${errors
+          .map(
+            (error) =>
+              `${error.message}${error.path ? ` (${error.path.join('.')})` : ''}`,
+          )
           .join('; ')}`,
       );
     }
