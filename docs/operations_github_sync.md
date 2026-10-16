@@ -57,3 +57,29 @@ The `syncSecretsStatus` and `syncUsersStatus` fields on the Repository record tr
 These are visible in the NR Broker UI on the Repository detail page (requires `sudo` access).
 
 Sync activity is recorded in the audit log with the `tools.sync` dataset. See: [Understanding the Audit Log](/operations_audit.md)
+
+## Catalog scan
+
+Broker can scan GitHub organizations for Backstage `catalog-info.yaml` files, such as those created by the [nr-repository-composer](https://github.com/bcgov/nr-repository-composer) `backstage` and `backstage-location` generators. Set `GITHUB_CATALOG_ORGS` to a comma-separated list of organizations. The GitHub App must be installed on each organization with read access to repository contents.
+
+A scheduled job (`GITHUB_CATALOG_SCAN_CRON`, daily by default) adds one job per organization to the `github-catalog-scan` queue. Each organization job uses a single GitHub GraphQL query to list repositories by push date. It adds one job for each active repository that has a `catalog-info.yaml` file at the root of the default branch and was pushed to since the last successful scan of that organization.
+
+The last scan time is stored in Redis under `github-catalog-scan:last-scan:<org>`. The first scan, or a scan after this key is deleted, checks every repository. To force a full rescan of an organization, delete its key.
+
+For each repository:
+
+1. Broker reads `catalog-info.yaml` at the root of the default branch. Repositories without this file are skipped.
+2. `Location` entities in the root `catalog-info.yaml` are followed one level to find component files in monorepos. Each target is read once. `Location` entities in target files are ignored. Only relative paths inside the repository are followed. URLs and glob patterns are ignored.
+3. The Repository is found by SCM URL or created with sync disabled. Existing repositories are not changed.
+4. For each `Component` entity:
+   - `spec.system` becomes the Project. The Project is created if it does not exist.
+   - `metadata.name` becomes the Service. The title, description, lifecycle and type are updated from the catalog.
+   - A `component` edge links the Project to the Service and a `source` edge links the Service to the Repository.
+
+Components without `spec.system` are skipped.
+
+### Catalog ownership
+
+Items created by the catalog scan record the repository and catalog file that created them. Catalog updates are only allowed for items created by the same repository and catalog file. Updates to any other item, including items created manually or before this check existed, are denied and recorded in the audit log as a failed `graph-vertex-edit` or `graph-edge-edit`. The rest of the repository continues to sync.
+
+Users can still edit catalog items, but the next scan of the catalog file may revert their changes. Update the catalog file instead. See [Graph Provenance](/dev_graph_provenance.md) for details.

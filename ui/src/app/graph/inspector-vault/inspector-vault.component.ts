@@ -58,6 +58,7 @@ export class InspectorVaultComponent {
           };
           delete data.id;
           delete data.vertex;
+          delete data.source;
           data.vaultConfig = result.vaultConfig;
           this.graphApi
             .editVertex(

@@ -8,8 +8,17 @@ export class CollectionBaseDto {
   tags?: string[];
 }
 
+/**
+ * Latest automated source to update a collection item. Null if only
+ * manually managed.
+ */
+export type CollectionSource = 'catalog' | 'intention' | 'opensearch';
+
+export type ProvenanceType = 'manual' | CollectionSource;
+
 export interface VertexPointerDto {
   id: string;
   vertex: string;
   tags?: string[];
+  source?: CollectionSource | null;
 }

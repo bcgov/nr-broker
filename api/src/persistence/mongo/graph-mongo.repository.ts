@@ -30,6 +30,7 @@ import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
 import { GraphPermissionEntity } from '../entity/graph-permission.entity';
 import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
+import { ProvenanceEmbeddable } from '../entity/provenance.embeddable';
 import { GraphDirectedCombo } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
@@ -673,6 +674,7 @@ export class GraphMongoRepository implements GraphRepository {
               edge: '$$ROOT',
             },
           },
+          { $unset: 'edge.provenance' },
           {
             $lookup: {
               from: collection,
@@ -700,7 +702,10 @@ export class GraphMongoRepository implements GraphRepository {
   }
 
   // Edge
-  public async addEdge(edgeInsert: EdgeInsertDto): Promise<EdgeEntity> {
+  public async addEdge(
+    edgeInsert: EdgeInsertDto,
+    provenance: ProvenanceEmbeddable,
+  ): Promise<EdgeEntity> {
     const sourceVertex = await this.getVertex(edgeInsert.source);
     const targetVertex = await this.getVertex(edgeInsert.target);
     const sourceConfig = await this.getCollectionConfig(
@@ -760,6 +765,7 @@ export class GraphMongoRepository implements GraphRepository {
       edge.restrict = true;
     }
     edge.timestamps = TimestampEmbeddable.create();
+    edge.provenance = [provenance];
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
@@ -791,7 +797,19 @@ export class GraphMongoRepository implements GraphRepository {
     return edge;
   }
 
-  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeEntity> {
+  public async editEdge(
+    id: string,
+    edge: EdgeInsertDto,
+    provenance?: ProvenanceEmbeddable,
+  ): Promise<EdgeEntity> {
+    const provenanceSet = provenance
+      ? {
+          provenance: ProvenanceEmbeddable.merge(
+            (await this.getEdge(id))?.provenance,
+            provenance,
+          ),
+        }
+      : {};
     const result = await this.edgeRepository.getCollection().updateOne(
       { _id: new ObjectId(id) },
       edge.prop
@@ -799,11 +817,13 @@ export class GraphMongoRepository implements GraphRepository {
             $set: {
               prop: edge.prop,
               'timestamps.updatedAt': new Date(),
+              ...provenanceSet,
             },
           }
         : {
             $set: {
               'timestamps.updatedAt': new Date(),
+              ...provenanceSet,
             },
             $unset: { prop: true },
           },
@@ -946,6 +966,7 @@ export class GraphMongoRepository implements GraphRepository {
                   },
                 },
               },
+              { $unset: 'provenance' },
             ],
           },
         },
@@ -1044,8 +1065,13 @@ export class GraphMongoRepository implements GraphRepository {
   public async addVertex(
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
+    provenance: ProvenanceEmbeddable,
   ): Promise<VertexEntity> {
     vertex.timestamps = TimestampEmbeddable.create();
+    vertex.provenance = [provenance];
+    if (provenance.source) {
+      collection.source = provenance.source;
+    }
 
     this.dataSource.persist(vertex);
     await this.dataSource.flush();
@@ -1076,6 +1102,7 @@ export class GraphMongoRepository implements GraphRepository {
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields = false,
+    provenance?: ProvenanceEmbeddable,
   ): Promise<VertexEntity> {
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
@@ -1087,10 +1114,11 @@ export class GraphMongoRepository implements GraphRepository {
       vertex.collection,
     );
     const collectionData = wrap(collection).toJSON();
-    // Don't allow id, tag or vertex to be set
+    // Don't allow id, tag, vertex or source to be set
     delete collectionData.id;
     delete collectionData.vertex;
     delete collectionData.tags;
+    delete collectionData.source;
 
     const unsetFields = {};
     const pushFields = {};
@@ -1131,7 +1159,10 @@ export class GraphMongoRepository implements GraphRepository {
     const collResult = await repository.getCollection().updateOne(
       { vertex: new ObjectId(id) },
       {
-        $set: collectionData,
+        $set: {
+          ...collectionData,
+          ...(provenance?.source ? { source: provenance.source } : {}),
+        },
         $setOnInsert: {
           vertex: new ObjectId(id),
         },
@@ -1152,6 +1183,14 @@ export class GraphMongoRepository implements GraphRepository {
           name: vertex.name,
           'timestamps.updatedAt': new Date(),
           ...(vertex.prop ? { prop: vertex.prop } : {}),
+          ...(provenance
+            ? {
+                provenance: ProvenanceEmbeddable.merge(
+                  curVertex.provenance,
+                  provenance,
+                ),
+              }
+            : {}),
         },
         $unset: {
           ...(!vertex.prop ? { prop: true } : {}),
@@ -1200,6 +1239,7 @@ export class GraphMongoRepository implements GraphRepository {
             },
           },
           { $unwind: '$vertex' },
+          { $unset: ['edge.provenance', 'vertex.provenance'] },
         ])
         .then((arr: any[]) => {
           return arr.map((combo) => {
@@ -1225,6 +1265,7 @@ export class GraphMongoRepository implements GraphRepository {
             },
           },
           { $unwind: '$vertex' },
+          { $unset: ['edge.provenance', 'vertex.provenance'] },
         ])
         .then((arr: any[]) => {
           return arr.map((combo) => {
@@ -1269,7 +1310,7 @@ export class GraphMongoRepository implements GraphRepository {
     }
     pipeline.push(
       { $addFields: { id: '$_id', 'edge.id': '$edge._id' } },
-      { $unset: ['_id', 'edge._id'] },
+      { $unset: ['_id', 'edge._id', 'provenance', 'edge.provenance'] },
     );
     return this.vertexRepository.aggregate(
       pipeline,
@@ -1397,6 +1438,7 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         { $unwind: '$vertex' },
+        { $unset: ['edge.provenance', 'vertex.provenance'] },
       ])
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
@@ -1466,6 +1508,7 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         { $unwind: '$vertex' },
+        { $unset: ['edge.provenance', 'vertex.provenance'] },
       ])
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
@@ -1600,6 +1643,7 @@ export class GraphMongoRepository implements GraphRepository {
           },
         },
         { $unwind: '$collection' },
+        { $unset: ['edge.provenance', 'vertex.provenance'] },
       ])
       .then((streamArr: any[]) => {
         return streamArr.map((stream) => {
