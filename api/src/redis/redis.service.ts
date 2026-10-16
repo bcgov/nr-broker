@@ -53,6 +53,15 @@ export class RedisService {
     return this.client.rPop(name);
   }
 
+  public async get(key: string): Promise<string | null> {
+    const value = await this.client.get(key);
+    return typeof value === 'string' ? value : null;
+  }
+
+  public async set(key: string, value: string): Promise<void> {
+    await this.client.set(key, value);
+  }
+
   public publish(
     channel: (typeof REDIS_PUBSUB)[EventSourceKeys],
     event: MessageEvent,

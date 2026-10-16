@@ -49,6 +49,7 @@ import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
+import { ProvenanceEmbeddable } from '../entity/provenance.embeddable';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -112,14 +113,21 @@ export class GraphRedisRepository implements GraphRepository {
     return this.repo.getTeamRolePermissionRules(roleName);
   }
 
-  public async addEdge(edge: EdgeInsertDto): Promise<EdgeEntity> {
-    const returnVal = await this.repo.addEdge(edge);
+  public async addEdge(
+    edge: EdgeInsertDto,
+    provenance: ProvenanceEmbeddable,
+  ): Promise<EdgeEntity> {
+    const returnVal = await this.repo.addEdge(edge, provenance);
     this.invalidateCache();
     return returnVal;
   }
 
-  public async editEdge(id: string, edge: EdgeInsertDto): Promise<EdgeEntity> {
-    const returnVal = await this.repo.editEdge(id, edge);
+  public async editEdge(
+    id: string,
+    edge: EdgeInsertDto,
+    provenance?: ProvenanceEmbeddable,
+  ): Promise<EdgeEntity> {
+    const returnVal = await this.repo.editEdge(id, edge, provenance);
     this.invalidateCache();
     return returnVal;
   }
@@ -172,8 +180,9 @@ export class GraphRedisRepository implements GraphRepository {
       | ServiceEntity
       | TeamEntity
       | UserEntity,
+    provenance: ProvenanceEmbeddable,
   ): Promise<VertexEntity> {
-    const returnVal = await this.repo.addVertex(vertex, collection);
+    const returnVal = await this.repo.addVertex(vertex, collection, provenance);
     this.upsertVertexTypeaheadIndex(returnVal);
     this.invalidateCache();
     return returnVal;
@@ -191,12 +200,14 @@ export class GraphRedisRepository implements GraphRepository {
       | TeamEntity
       | UserEntity,
     ignoreBlankFields?: boolean,
+    provenance?: ProvenanceEmbeddable,
   ): Promise<VertexEntity> {
     const returnVal = await this.repo.editVertex(
       id,
       vertex,
       collection,
       ignoreBlankFields,
+      provenance,
     );
     this.upsertVertexTypeaheadIndex(returnVal);
     this.invalidateCache();

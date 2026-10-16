@@ -141,6 +141,7 @@ export class UserCollectionService {
     delete currentUserObj.id;
     delete currentUserObj._id;
     delete currentUserObj.vertex;
+    delete currentUserObj.source;
 
     const token = await this.githubService.getUserAccessToken(code);
     const userData = await this.githubService.getUserInfo(token);
@@ -158,6 +159,7 @@ export class UserCollectionService {
       delete aliasUserObj.id;
       delete aliasUserObj._id;
       delete aliasUserObj.vertex;
+      delete aliasUserObj.source;
 
       const removeAliasVertex = new VertexInsertDto(
         'user',

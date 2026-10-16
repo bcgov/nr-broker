@@ -12,6 +12,7 @@ import { ObjectId } from 'mongodb';
 import { EdgeInsertDto, EdgeDto } from '../dto/edge.dto';
 import { TimestampEmbeddable } from './timestamp.embeddable';
 import { EdgePropEmbeddable } from './edge-prop.embeddable';
+import { ProvenanceEmbeddable } from './provenance.embeddable';
 
 @Entity({ tableName: 'edge' })
 @Index({ options: { 'timestamps.createdAt': 1 } })
@@ -56,6 +57,19 @@ export class EdgeEntity extends BaseEntity {
 
   @Embedded({ entity: () => TimestampEmbeddable, nullable: true, object: true })
   timestamps?: TimestampEmbeddable;
+
+  /**
+   * Sources that created or updated this item. Not included in responses.
+   */
+  @ApiHideProperty()
+  @Embedded({
+    entity: () => ProvenanceEmbeddable,
+    array: true,
+    object: true,
+    nullable: true,
+    hidden: true,
+  })
+  provenance?: ProvenanceEmbeddable[];
 
   static upgradeInsertDto(value: EdgeInsertDto): EdgeEntity {
     const edge = new EdgeEntity();

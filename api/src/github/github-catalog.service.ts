@@ -1,13 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios, { AxiosInstance, isAxiosError } from 'axios';
 import { Job } from 'bullmq';
-import { posix } from 'node:path';
-import { plainToInstance } from 'class-transformer';
-import { shake } from 'radash';
-import { parseAllDocuments } from 'yaml';
 import {
   BULL_LEADER_JOBS,
-  GITHUB_CATALOG_MAX_FILES,
+  GITHUB_CATALOG_LAST_SCAN_KEY_PREFIX,
+  GITHUB_CATALOG_ROOT_FILE,
   GITHUB_CATALOG_ORGS,
   GITHUB_CATALOG_SCAN_CRON,
   GITHUB_SYNC_CLIENT_ID,
@@ -16,16 +13,13 @@ import {
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { BullService } from '../bull/bull.service';
-import { GraphService } from '../graph/graph.service';
-import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { VertexInsertDto } from '../persistence/dto/vertex.dto';
-import { EdgeInsertDto } from '../persistence/dto/edge.dto';
-import { VertexEntity } from '../persistence/entity/vertex.entity';
-import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
+import { CatalogSyncService } from '../graph/catalog-sync.service';
+import { RedisService } from '../redis/redis.service';
 import { GithubSyncService } from './github-sync.service';
-
-export const CATALOG_ROOT_FILE = 'catalog-info.yaml';
+import { CatalogUtil } from '../util/catalog.util';
+import { CatalogEntity, CatalogEntityType } from '../catalog/catalog-entity';
+import { CatalogComponentEntity } from '../catalog/catalog-component.entity';
+import { CatalogLocationEntity } from '../catalog/catalog-location.entity';
 
 export interface CatalogOrgScanJob {
   type: 'org';
@@ -43,20 +37,52 @@ export interface CatalogRepoScanJob {
 
 export type CatalogScanJob = CatalogOrgScanJob | CatalogRepoScanJob;
 
-export interface BackstageComponent {
-  path: string;
+interface CatalogRepositoryNode {
   name: string;
-  system?: string;
-  title?: string;
-  description?: string;
-  lifecycle?: string;
-  type?: string;
+  url: string;
+  description: string | null;
+  isArchived: boolean;
+  isDisabled: boolean;
+  pushedAt: string | null;
+  defaultBranchRef: { name: string } | null;
+  catalogFile: { __typename: string } | null;
 }
 
-export interface ParsedCatalogFile {
-  components: BackstageComponent[];
-  locations: string[];
+interface CatalogRepositoryPage {
+  pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  nodes: (CatalogRepositoryNode | null)[];
 }
+
+const ORG_CATALOG_REPOSITORIES_QUERY = `
+  query ($org: String!, $after: String, $expression: String!) {
+    organization(login: $org) {
+      repositories(
+        first: 100
+        after: $after
+        orderBy: { field: PUSHED_AT, direction: DESC }
+      ) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          name
+          url
+          description
+          isArchived
+          isDisabled
+          pushedAt
+          defaultBranchRef {
+            name
+          }
+          catalogFile: object(expression: $expression) {
+            __typename
+          }
+        }
+      }
+    }
+  }
+`;
 
 interface InstallationToken {
   token: string;
@@ -67,8 +93,9 @@ const TOKEN_EXPIRY_MARGIN_MS = 5 * 60 * 1000;
 
 /**
  * Scans configured GitHub organizations for Backstage `catalog-info.yaml`
- * files and records the discovered projects, services and repositories in
- * the graph. `Location` entities are followed to find components in monorepos.
+ * files at the root of each repository and records the discovered projects,
+ * services and repositories in the graph. `Location` entities in the root
+ * catalog file are followed one level.
  */
 @Injectable()
 export class GithubCatalogService implements OnModuleInit {
@@ -79,10 +106,10 @@ export class GithubCatalogService implements OnModuleInit {
   constructor(
     private readonly auditService: AuditService,
     private readonly bullService: BullService,
-    private readonly collectionRepository: CollectionRepository,
+    private readonly catalogSyncService: CatalogSyncService,
     private readonly githubSyncService: GithubSyncService,
-    private readonly graphService: GraphService,
-    private readonly graphRepository: GraphRepository,
+    private readonly redisService: RedisService,
+    private readonly catalogUtil: CatalogUtil,
   ) {
     this.axiosInstance = axios.create({
       baseURL: 'https://api.github.com',
@@ -141,19 +168,37 @@ export class GithubCatalogService implements OnModuleInit {
     });
   }
 
+  /**
+   * Queue a scan for each active repository with a root catalog file that was
+   * pushed to since the last successful org scan. Repositories are ordered by
+   * push date so paging stops at the first repository older than the last scan.
+   */
   private async scanOrg(org: string): Promise<void> {
     const token = await this.getOrgInstallationToken(org);
-    let page = 1;
+    const lastScanKey = `${GITHUB_CATALOG_LAST_SCAN_KEY_PREFIX}${org}`;
+    const lastScan = await this.redisService.get(lastScanKey);
+    const since = lastScan ? new Date(lastScan).getTime() : 0;
+    const scanStartedAt = new Date().toISOString();
+    let after: string | null = null;
     let hasNextPage = true;
     let count = 0;
 
     while (hasNextPage) {
-      const response = await this.axiosInstance.get('/installation/repositories', {
-        params: { per_page: 100, page },
-        headers: { Authorization: `token ${token}` },
-      });
-      for (const repo of response.data.repositories ?? []) {
-        if (repo.archived || repo.disabled || repo.owner?.login !== org) {
+      const page = await this.queryOrgRepositories(org, after, token);
+      for (const repo of page.nodes) {
+        if (!repo) {
+          continue;
+        }
+        if (!repo.pushedAt || new Date(repo.pushedAt).getTime() < since) {
+          hasNextPage = false;
+          break;
+        }
+        if (
+          repo.isArchived ||
+          repo.isDisabled ||
+          !repo.defaultBranchRef ||
+          repo.catalogFile?.__typename !== 'Blob'
+        ) {
           continue;
         }
         await this.enqueue(
@@ -161,277 +206,139 @@ export class GithubCatalogService implements OnModuleInit {
             type: 'repo',
             org,
             repo: repo.name,
-            defaultBranch: repo.default_branch,
-            htmlUrl: repo.html_url,
+            defaultBranch: repo.defaultBranchRef.name,
+            htmlUrl: repo.url,
             description: repo.description ?? undefined,
           },
           `repo-${org}-${repo.name}`,
         );
         count++;
       }
-      hasNextPage = response.headers.link?.includes('rel="next"') ?? false;
-      page++;
+      if (hasNextPage) {
+        hasNextPage = page.pageInfo.hasNextPage;
+        after = page.pageInfo.endCursor;
+      }
     }
+
+    await this.redisService.set(lastScanKey, scanStartedAt);
 
     this.auditService.recordToolsSync(
       'info',
       'success',
-      `Catalog scan queued ${count} repositories for ${org}`,
+      lastScan
+        ? `Catalog scan queued ${count} repositories updated since ${lastScan} for ${org}`
+        : `Catalog scan queued ${count} repositories for ${org}`,
     );
+  }
+
+  private async queryOrgRepositories(
+    org: string,
+    after: string | null,
+    token: string,
+  ): Promise<CatalogRepositoryPage> {
+    const response = await this.axiosInstance.post(
+      '/graphql',
+      {
+        query: ORG_CATALOG_REPOSITORIES_QUERY,
+        variables: {
+          org,
+          after,
+          expression: `HEAD:${GITHUB_CATALOG_ROOT_FILE}`,
+        },
+      },
+      { headers: { Authorization: `bearer ${token}` } },
+    );
+    if (response.data.errors?.length) {
+      throw new Error(
+        `GitHub GraphQL query failed for ${org}: ${response.data.errors
+          .map((error: { message: string }) => error.message)
+          .join('; ')}`,
+      );
+    }
+    const repositories = response.data.data?.organization?.repositories;
+    if (!repositories) {
+      throw new Error(`GitHub organization not found: ${org}`);
+    }
+    return repositories;
   }
 
   private async scanRepository(job: CatalogRepoScanJob): Promise<void> {
     const token = await this.getOrgInstallationToken(job.org);
     const components = await this.collectComponents(job, token);
-    if (components.length === 0) {
-      return;
-    }
-
-    this.auditService.recordToolsSync(
-      'start',
-      'unknown',
-      `Start catalog sync: ${job.htmlUrl}`,
-    );
-
-    const repositoryVertex = await this.ensureRepository(job);
-    let failures = 0;
-    for (const component of components) {
-      try {
-        await this.syncComponent(component, repositoryVertex);
-      } catch (error) {
-        failures++;
-        this.logger.warn(
-          `Catalog sync failed for ${job.org}/${job.repo}:${component.path} (${component.name}): ${
-            (error as Error).message
-          }`,
-        );
-      }
-    }
-
-    this.auditService.recordToolsSync(
-      'end',
-      failures === 0 ? 'success' : 'failure',
-      `End catalog sync: ${job.htmlUrl}`,
+    await this.catalogSyncService.syncRepository(
+      {
+        name: job.repo,
+        scmUrl: job.htmlUrl,
+        description: job.description ?? `${job.org}/${job.repo}`,
+      },
+      components,
     );
   }
 
   /**
-   * Read the root catalog file and follow `Location` targets within the same
-   * repository. Visited paths and a file cap guard against cycles.
+   * Read the root catalog file. If it declares `Location` targets, read each
+   * target as well. Only the root file may declare a `Location`, so target
+   * files are read for components only.
    */
   private async collectComponents(
     job: CatalogRepoScanJob,
     token: string,
-  ): Promise<BackstageComponent[]> {
-    const components: BackstageComponent[] = [];
-    const visited = new Set<string>();
-    const pending = [CATALOG_ROOT_FILE];
+  ): Promise<CatalogComponentEntity[]> {
+    const rootEntities = await this.readCatalogFile<
+      CatalogComponentEntity | CatalogLocationEntity
+    >(
+      job,
+      GITHUB_CATALOG_ROOT_FILE,
+      token,
+      [CatalogComponentEntity, CatalogLocationEntity],
+    );
+    if (rootEntities === null) {
+      return [];
+    }
 
-    while (pending.length > 0 && visited.size < GITHUB_CATALOG_MAX_FILES) {
-      const path = pending.shift();
-      if (visited.has(path)) {
+    const components: CatalogComponentEntity[] = [];
+    const locationPaths = new Set<string>();
+    for (const entity of rootEntities) {
+      if (entity instanceof CatalogComponentEntity) {
+        components.push(entity);
+      } else if (entity instanceof CatalogLocationEntity) {
+        entity.targets.forEach((target) => locationPaths.add(target));
+      }
+    }
+    locationPaths.delete(GITHUB_CATALOG_ROOT_FILE);
+
+    for (const path of locationPaths) {
+      const entities = await this.readCatalogFile(job, path, token, [
+        CatalogComponentEntity,
+      ]);
+      if (entities === null) {
+        this.logger.warn(
+          `Catalog location target not found: ${job.org}/${job.repo}:${path}`,
+        );
         continue;
       }
-      visited.add(path);
-
-      const content = await this.fetchFile(job, path, token);
-      if (content === null) {
-        if (path !== CATALOG_ROOT_FILE) {
-          this.logger.warn(
-            `Catalog location target not found: ${job.org}/${job.repo}:${path}`,
-          );
-        }
-        continue;
-      }
-
-      const parsed = this.parseCatalogFile(path, content);
-      components.push(...parsed.components);
-      pending.push(...parsed.locations);
+      components.push(...entities);
     }
 
     return components;
   }
 
-  public parseCatalogFile(path: string, content: string): ParsedCatalogFile {
-    const result: ParsedCatalogFile = { components: [], locations: [] };
-
-    for (const doc of parseAllDocuments(content)) {
-      if (doc.errors.length > 0) {
-        this.logger.warn(`Unable to parse catalog document in ${path}`);
-        continue;
-      }
-      const entity = doc.toJS();
-      if (!entity || typeof entity !== 'object') {
-        continue;
-      }
-
-      if (entity.kind === 'Location') {
-        const targets = [
-          entity.spec?.target,
-          ...(Array.isArray(entity.spec?.targets) ? entity.spec.targets : []),
-        ];
-        for (const target of targets) {
-          const resolved = this.resolveLocationTarget(path, target);
-          if (resolved) {
-            result.locations.push(resolved);
-          }
-        }
-      } else if (entity.kind === 'Component') {
-        const name = entity.metadata?.name;
-        if (typeof name !== 'string' || name === '') {
-          this.logger.warn(`Catalog component in ${path} has no name`);
-          continue;
-        }
-        result.components.push({
-          path,
-          name,
-          system: this.asString(entity.spec?.system),
-          title: this.asString(entity.metadata?.title),
-          description: this.asString(entity.metadata?.description),
-          lifecycle: this.asString(entity.spec?.lifecycle),
-          type: this.asString(entity.spec?.type),
-        });
-      }
-    }
-
-    return result;
-  }
-
-  /**
-   * Resolve a Location target relative to the file that declares it. Only
-   * relative paths inside the repository are followed; URLs, absolute paths
-   * and glob patterns are ignored.
-   */
-  public resolveLocationTarget(
-    fromPath: string,
-    target: unknown,
-  ): string | null {
-    if (typeof target !== 'string' || target === '') {
-      return null;
-    }
-    if (
-      target.includes('://') ||
-      target.includes('*') ||
-      posix.isAbsolute(target)
-    ) {
-      return null;
-    }
-    const resolved = posix.normalize(
-      posix.join(posix.dirname(fromPath), target),
-    );
-    if (resolved === '..' || resolved.startsWith('../')) {
-      return null;
-    }
-    return resolved;
-  }
-
-  private async syncComponent(
-    component: BackstageComponent,
-    repositoryVertex: VertexEntity,
-  ): Promise<void> {
-    if (!component.system) {
-      this.logger.warn(
-        `Catalog component ${component.name} (${component.path}) has no spec.system; skipping`,
-      );
-      return;
-    }
-
-    const projectVertex = await this.ensureVertex('project', component.system, {
-      name: component.system,
-    });
-    const serviceVertex = await this.graphService.upsertVertex(
-      null,
-      plainToInstance(VertexInsertDto, {
-        collection: 'service',
-        data: shake({
-          name: component.name,
-          title: component.title,
-          description: component.description,
-          lifecycle: component.lifecycle,
-          type: component.type,
-        }),
-      }),
-      'name',
-    );
-
-    await this.ensureEdge('component', projectVertex, serviceVertex);
-    await this.ensureEdge('source', serviceVertex, repositoryVertex);
-
-    this.auditService.recordToolsSync(
-      'info',
-      'success',
-      `Catalog synced service from ${component.path}`,
-      component.system,
-      component.name,
-    );
-  }
-
-  /**
-   * Find the repository by SCM URL (then name) and create it if missing. An
-   * existing repository is left unchanged so sync settings are preserved.
-   */
-  private async ensureRepository(
+  private async readCatalogFile<T extends CatalogEntity>(
     job: CatalogRepoScanJob,
-  ): Promise<VertexEntity> {
-    const existing = await this.collectionRepository.getCollectionByKeyValue(
-      'repository',
-      'scmUrl',
-      job.htmlUrl,
-    );
-    if (existing) {
-      return this.graphRepository.getVertex(existing.vertex.toString());
+    path: string,
+    token: string,
+    types: CatalogEntityType<T>[],
+  ): Promise<T[] | null> {
+    const content = await this.fetchFile(job, path, token);
+    if (content === null) {
+      return null;
     }
-    return this.ensureVertex('repository', job.repo, {
-      name: job.repo,
-      description: job.description ?? `${job.org}/${job.repo}`,
-      type: 'git',
-      scmUrl: job.htmlUrl,
-      enableSyncSecrets: false,
-      enableSyncUsers: false,
-    });
-  }
-
-  private async ensureVertex(
-    collection: CollectionNames,
-    name: string,
-    data: Record<string, unknown>,
-  ): Promise<VertexEntity> {
-    const existing = await this.graphRepository.getVertexByName(
-      collection,
-      name,
-    );
-    if (existing) {
-      return existing;
-    }
-    return this.graphService.addVertex(
-      null,
-      plainToInstance(VertexInsertDto, { collection, data }),
-      true,
-    );
-  }
-
-  private async ensureEdge(
-    name: string,
-    source: VertexEntity,
-    target: VertexEntity,
-  ): Promise<void> {
-    const sourceId = source.id.toString();
-    const targetId = target.id.toString();
-    const existing = await this.graphRepository.getEdgeByNameAndVertices(
-      name,
-      sourceId,
-      targetId,
-    );
-    if (existing) {
-      return;
-    }
-    await this.graphService.addEdge(
-      null,
-      plainToInstance(EdgeInsertDto, {
-        name,
-        source: sourceId,
-        target: targetId,
-      }),
+    return CatalogEntity.parseCatalogEntities(
+      path,
+      content,
+      types,
+      this.catalogUtil,
+      (error) => this.logger.warn(error.message),
     );
   }
 
@@ -485,9 +392,5 @@ export class GithubCatalogService implements OnModuleInit {
     };
     this.orgTokens.set(org, token);
     return token.token;
-  }
-
-  private asString(value: unknown): string | undefined {
-    return typeof value === 'string' && value !== '' ? value : undefined;
   }
 }

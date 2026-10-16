@@ -23,6 +23,7 @@ import { CollectionConfigInstanceDto } from '../dto/collection-config.dto';
 import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
+import { ProvenanceEmbeddable } from '../entity/provenance.embeddable';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -53,10 +54,18 @@ export abstract class GraphRepository {
     roleName?: string,
   ): Promise<GraphRolePermissionRuleDto[]>;
   // Edge
-  public abstract addEdge(edge: EdgeInsertDto): Promise<EdgeEntity>;
+  public abstract addEdge(
+    edge: EdgeInsertDto,
+    provenance: ProvenanceEmbeddable,
+  ): Promise<EdgeEntity>;
+  /**
+   * Edit an edge. The provenance record is merged into the edge's records.
+   * If no provenance is passed, the records are not changed.
+   */
   public abstract editEdge(
     id: string,
     edge: EdgeInsertDto,
+    provenance?: ProvenanceEmbeddable,
   ): Promise<EdgeEntity>;
   public abstract deleteEdge(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getEdge(id: string): Promise<EdgeEntity | null>;
@@ -79,12 +88,19 @@ export abstract class GraphRepository {
   public abstract addVertex(
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
+    provenance: ProvenanceEmbeddable,
   ): Promise<VertexEntity>;
+  /**
+   * Edit a vertex. The provenance record is merged into the vertex's records
+   * and automated sources update the collection source flag. If no provenance
+   * is passed, neither is changed.
+   */
   public abstract editVertex(
     id: string,
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields?: boolean,
+    provenance?: ProvenanceEmbeddable,
   ): Promise<VertexEntity>;
   public abstract deleteVertex(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getVertex(id: string): Promise<VertexEntity | null>;

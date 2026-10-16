@@ -4,6 +4,7 @@ import { DateUtil } from './date.util';
 import { ActionUtil } from './action.util';
 import { UserUtil } from './user.util';
 import { BrokerTokenUtil } from './broker-token.util';
+import { CatalogUtil } from './catalog.util';
 
 /**
  * The util module provides utility services to other modules.
@@ -17,6 +18,7 @@ import { BrokerTokenUtil } from './broker-token.util';
     UserUtil,
     ValidatorUtil,
     BrokerTokenUtil,
+    CatalogUtil,
   ],
   exports: [
     ActionUtil,
@@ -24,6 +26,7 @@ import { BrokerTokenUtil } from './broker-token.util';
     UserUtil,
     ValidatorUtil,
     BrokerTokenUtil,
+    CatalogUtil,
   ],
 })
 export class UtilModule {}
