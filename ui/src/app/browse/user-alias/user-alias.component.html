@@ -4,12 +4,12 @@
 
     @if(healthStatus.health$ | async; as health) {
       @if(isSelf() && health?.details?.['github']?.['alias']) {
-      <button
-        mat-button
-        (click)="linkGitHubAccount()"
-        aria-label="Link Account">
-        Link
-      </button>
+        <button
+          mat-button
+          (click)="linkGitHubAccount()"
+          aria-label="Link Account">
+          Link
+        </button>
       }
     }
   </div>
