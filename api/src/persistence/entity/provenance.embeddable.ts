@@ -1,8 +1,5 @@
 import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
-import {
-  CollectionSource,
-  ProvenanceType,
-} from '../dto/vertex-pointer.dto';
+import { CollectionSource, ProvenanceType } from '../dto/provenance.dto';
 
 /**
  * Records a source that created or updated a vertex or edge. An item can have

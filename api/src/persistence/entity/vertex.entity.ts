@@ -8,7 +8,7 @@ import {
   Embedded,
 } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 import { PointGeomEmbeddable } from './point-geom.embeddable';
 
@@ -21,7 +21,6 @@ import { ProvenanceEmbeddable } from './provenance.embeddable';
 @Index({ options: { 'timestamps.createdAt': 1 } })
 @Index({ options: { 'timestamps.updatedAt': 1 } })
 export class VertexEntity extends BaseEntity {
-  @ApiHideProperty()
   @PrimaryKey()
   @Property()
   _id: ObjectId;
@@ -50,15 +49,14 @@ export class VertexEntity extends BaseEntity {
   timestamps?: TimestampEmbeddable;
 
   /**
-   * Sources that created or updated this item. Not included in responses.
+   * Sources that created or updated this item. Stripped from queries that
+   * return multiple results.
    */
-  @ApiHideProperty()
   @Embedded({
     entity: () => ProvenanceEmbeddable,
     array: true,
     object: true,
     nullable: true,
-    hidden: true,
   })
   provenance?: ProvenanceEmbeddable[];
 

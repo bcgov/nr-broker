@@ -1069,9 +1069,6 @@ export class GraphMongoRepository implements GraphRepository {
   ): Promise<VertexEntity> {
     vertex.timestamps = TimestampEmbeddable.create();
     vertex.provenance = [provenance];
-    if (provenance.source) {
-      collection.source = provenance.source;
-    }
 
     this.dataSource.persist(vertex);
     await this.dataSource.flush();
@@ -1114,11 +1111,10 @@ export class GraphMongoRepository implements GraphRepository {
       vertex.collection,
     );
     const collectionData = wrap(collection).toJSON();
-    // Don't allow id, tag, vertex or source to be set
+    // Don't allow id, tag or vertex to be set
     delete collectionData.id;
     delete collectionData.vertex;
     delete collectionData.tags;
-    delete collectionData.source;
 
     const unsetFields = {};
     const pushFields = {};
