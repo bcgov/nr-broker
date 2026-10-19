@@ -109,6 +109,20 @@ db.syncQueueConfig.insertMany([
     },
   },
   {
+    queue: 'GITHUB_CATALOG_SCAN',
+    label: 'GitHub catalog',
+    summary: 'Sync catalog-info.yaml from a GitHub repository to Broker.',
+    types: ['catalog'],
+    description: [
+      'Sync projects, services and repository links from the catalog-info.yaml file in a GitHub repository to Broker.',
+      'Locations listed in the root catalog file are followed one level.',
+      'Repositories must grant access to Broker\'s GitHub App before enabling sync.',
+    ],
+    requires: {
+      envAll: ['GITHUB_SYNC_CLIENT_ID', 'GITHUB_SYNC_PRIVATE_KEY'],
+    },
+  },
+  {
     queue: 'GITHUB_SYNC_USERS',
     label: 'User access',
     summary: 'Sync repository user access to GitHub repository roles.',
@@ -1193,6 +1207,13 @@ result = db.collectionConfig.insertOne({
         sudo: ['queuedAt', 'syncAt'],
       },
     },
+    syncCatalogStatus: {
+      type: 'embeddedDoc',
+      required: false,
+      mask: {
+        sudo: ['queuedAt', 'syncAt'],
+      },
+    },
   },
   browseFields: ['name', 'type', 'scmUrl'],
   name: 'Repository',
@@ -1210,6 +1231,12 @@ result = db.collectionConfig.insertOne({
       queue: {
         queue: 'GITHUB_SYNC_USERS',
         queuedStatusProperty: 'syncUsersStatus',
+      },
+    },
+    {
+      queue: {
+        queue: 'GITHUB_CATALOG_SCAN',
+        queuedStatusProperty: 'syncCatalogStatus',
       },
     },
   ],

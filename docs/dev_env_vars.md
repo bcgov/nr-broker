@@ -189,7 +189,7 @@ The queues are the values of `REDIS_QUEUES` in `api/src/constants.ts`:
 
 | Queue | Purpose |
 | --- | --- |
-| `github-catalog-scan` | Scans GitHub organizations for Backstage catalog files |
+| `github-catalog-scan` | Scans GitHub organizations for Backstage catalog files and syncs the catalog of a single repository |
 | `github-sync-secrets` | Syncs secrets from GitHub repositories |
 | `github-sync-users` | Syncs users from GitHub repositories |
 | `kubernetes-sync-secrets` | Syncs secrets into Kubernetes/OpenShift |

@@ -6,12 +6,13 @@ For general information about how the collection sync system works, see [Collect
 
 ## How it works
 
-BullMQ workers consume the `github-sync-secrets` and `github-sync-users` queues when queue processing is enabled. Collection sync requests enqueue repository IDs with a five-second debounce and deduplicate repeated requests for the same repository. When a repository is dequeued:
+BullMQ workers consume the `github-sync-secrets`, `github-sync-users` and `github-catalog-scan` queues when queue processing is enabled. Collection sync requests enqueue repository IDs with a five-second debounce and deduplicate repeated requests for the same repository. When a repository is dequeued:
 
 1. Broker looks up the repository and checks whether secret sync or user sync is enabled.
 2. For **secret sync**, it reads all secrets from `apps/tools/<project>/<service>` in Vault and writes them as GitHub repository secrets.
 3. For **user sync**, it reads the `edgeToRoles` configuration from the user collection config, traverses the graph to find users connected via those edges, and updates GitHub collaborator roles accordingly.
-4. Sync status is recorded on the repository (`syncSecretsStatus`, `syncUsersStatus`).
+4. For **catalog sync**, it reads `catalog-info.yaml` from the default branch (following root `Location` targets one level) and records the projects, services and repository links in the graph.
+5. Sync status is recorded on the repository (`syncSecretsStatus`, `syncUsersStatus`, `syncCatalogStatus`).
 
 Queue processing runs in the API process unless it is configured as a separate worker. It is queue-driven rather than a fixed-interval cron poll.
 

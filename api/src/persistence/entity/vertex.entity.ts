@@ -8,7 +8,7 @@ import {
   Embedded,
 } from '@mikro-orm/decorators/legacy';
 import { ObjectId } from 'mongodb';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 
 import { PointGeomEmbeddable } from './point-geom.embeddable';
 
@@ -21,6 +21,7 @@ import { ProvenanceEmbeddable } from './provenance.embeddable';
 @Index({ options: { 'timestamps.createdAt': 1 } })
 @Index({ options: { 'timestamps.updatedAt': 1 } })
 export class VertexEntity extends BaseEntity {
+  @ApiHideProperty()
   @PrimaryKey()
   @Property()
   _id: ObjectId;

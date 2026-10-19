@@ -162,7 +162,7 @@ export class GithubService {
     owner: string,
     repo: string,
     path: string,
-    ref: string,
+    ref: string | undefined,
     token: string,
   ): Promise<string | null> {
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');

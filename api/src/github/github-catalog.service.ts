@@ -6,6 +6,7 @@ import {
   GITHUB_CATALOG_ROOT_FILE,
   GITHUB_CATALOG_ORGS,
   GITHUB_CATALOG_SCAN_CRON,
+  GITHUB_MANAGED_URL_REGEX,
   GITHUB_SYNC_CLIENT_ID,
   GITHUB_SYNC_PRIVATE_KEY,
   REDIS_QUEUES,
@@ -13,6 +14,8 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { BullService } from '../bull/bull.service';
 import { CatalogSyncService } from '../graph/catalog-sync.service';
+import { GraphService } from '../graph/graph.service';
+import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { RedisService } from '../redis/redis.service';
 import { GithubService } from './github.service';
 import { GithubTokenService } from './github-token.service';
@@ -30,9 +33,12 @@ export interface CatalogRepoScanJob {
   type: 'repo';
   org: string;
   repo: string;
-  defaultBranch: string;
+  // Omitted to use the default branch of the repository
+  defaultBranch?: string;
   htmlUrl: string;
   description?: string;
+  // Set when queued by collection sync so the sync status can be recorded
+  repositoryId?: string;
 }
 
 export type CatalogScanJob = CatalogOrgScanJob | CatalogRepoScanJob;
@@ -102,6 +108,8 @@ export class GithubCatalogService implements OnModuleInit {
     private readonly githubTokenService: GithubTokenService,
     private readonly redisService: RedisService,
     private readonly catalogUtil: CatalogUtil,
+    private readonly collectionRepository: CollectionRepository,
+    private readonly graphService: GraphService,
   ) {}
 
   public isEnabled(): boolean {
@@ -112,16 +120,23 @@ export class GithubCatalogService implements OnModuleInit {
     );
   }
 
+  public isSyncEnabled(): boolean {
+    return GITHUB_SYNC_CLIENT_ID !== '' && GITHUB_SYNC_PRIVATE_KEY !== '';
+  }
+
   onModuleInit(): void {
-    if (!this.isEnabled()) {
+    if (!this.isSyncEnabled()) {
       return;
     }
     this.bullService.registerWorker(
       REDIS_QUEUES.GITHUB_CATALOG_SCAN,
       async (job: Job) => {
-        await this.processJob(job.data as CatalogScanJob);
+        await this.processJob(job.data as CatalogScanJob | string);
       },
     );
+    if (!this.isEnabled()) {
+      return;
+    }
     this.bullService.registerLeaderJob(
       BULL_LEADER_JOBS.GITHUB_CATALOG_SCAN,
       GITHUB_CATALOG_SCAN_CRON,
@@ -135,12 +150,44 @@ export class GithubCatalogService implements OnModuleInit {
     }
   }
 
-  public async processJob(data: CatalogScanJob): Promise<void> {
-    if (data.type === 'org') {
+  /**
+   * A string job is a repository id queued by collection sync. Otherwise the
+   * job is a scan job from the scheduled org scan.
+   */
+  public async processJob(data: CatalogScanJob | string): Promise<void> {
+    if (typeof data === 'string') {
+      await this.processRepositoryId(data);
+    } else if (data.type === 'org') {
       await this.scanOrg(data.org);
     } else if (data.type === 'repo') {
       await this.scanRepository(data);
     }
+  }
+
+  private async processRepositoryId(repositoryId: string): Promise<void> {
+    const repository = await this.collectionRepository.getCollectionById(
+      'repository',
+      repositoryId,
+    );
+    const match = new RegExp(GITHUB_MANAGED_URL_REGEX).exec(
+      repository.scmUrl ?? '',
+    );
+    if (!match) {
+      this.auditService.recordToolsSync(
+        'info',
+        'unknown',
+        `Skip catalog sync of unmanaged url (${repository.id})`,
+      );
+      return;
+    }
+    const [org, repo] = match[1].split('/');
+    await this.scanRepository({
+      type: 'repo',
+      org,
+      repo,
+      htmlUrl: repository.scmUrl,
+      repositoryId,
+    });
   }
 
   private async enqueue(data: CatalogScanJob, jobId: string) {
@@ -269,6 +316,19 @@ export class GithubCatalogService implements OnModuleInit {
       },
       components,
     );
+
+    if (job.repositoryId) {
+      // Reload so the status update does not overwrite changes made by the sync
+      const repository = await this.collectionRepository.getCollectionById(
+        'repository',
+        job.repositoryId,
+      );
+      await this.graphService.updateSyncStatus(
+        repository,
+        'syncCatalogStatus',
+        'syncAt',
+      );
+    }
   }
 
   /**
