@@ -1,13 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
-import * as jwt from 'jsonwebtoken';
 import { Job } from 'bullmq';
 import { MikroORM } from '@mikro-orm/core';
 import {
-  GITHUB_SYNC_CLIENT_ID,
-  GITHUB_SYNC_PRIVATE_KEY,
   GITHUB_MANAGED_URL_REGEX,
   VAULT_KV_APPS_MOUNT,
   REDIS_QUEUES,
@@ -27,12 +23,13 @@ import { CollectionNameEnum } from '../persistence/entity/collection-entity-unio
 import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphService } from '../graph/graph.service';
 import { BullService } from '../bull/bull.service';
+import { GithubService } from './github.service';
+import { GithubTokenService } from './github-token.service';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 @Injectable()
 export class GithubSyncService implements OnModuleInit {
   private readonly logger = new Logger(GithubSyncService.name);
-  private readonly axiosInstance: AxiosInstance;
   private brokerManagedRegex = new RegExp(GITHUB_MANAGED_URL_REGEX);
 
   constructor(
@@ -42,16 +39,11 @@ export class GithubSyncService implements OnModuleInit {
     private readonly graphRepository: GraphRepository,
     private readonly collectionRepository: CollectionRepository,
     private readonly bullService: BullService,
+    private readonly githubService: GithubService,
+    private readonly githubTokenService: GithubTokenService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
-  ) {
-    this.axiosInstance = axios.create({
-      baseURL: 'https://api.github.com',
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-      },
-    });
-  }
+  ) {}
 
   public isBrokerManagedScmUrl(scmUrl: string) {
     if (!scmUrl) {
@@ -208,13 +200,16 @@ export class GithubSyncService implements OnModuleInit {
     secretValue: string,
   ): Promise<void> {
     const { owner, repo } = this.getOwnerAndRepoFromUrl(scmUrl);
-    const token = await this.getInstallationAccessToken(owner, repo);
+    const token = await this.githubTokenService.getRepoInstallationAccessToken(
+      owner,
+      repo,
+    );
     const filteredSecretName = secretName.replace(/[^a-zA-Z0-9_]/g, '_');
 
     if (!token) {
       throw new Error('GitHub access token is null!');
     }
-    const { key: base64PublicKey, key_id: keyId } = await this.getPublicKey(
+    const { key: base64PublicKey, key_id: keyId } = await this.githubService.getPublicKey(
       owner,
       repo,
       token,
@@ -225,17 +220,12 @@ export class GithubSyncService implements OnModuleInit {
       secretValue,
     );
     // Update secret
-    await this.axiosInstance.put(
-      `/repos/${owner}/${repo}/actions/secrets/${filteredSecretName}`,
-      {
-        encrypted_value: encryptedSecret,
-        key_id: keyId,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-        },
-      },
+    await this.githubService.putRepoActionsSecret(
+      owner,
+      repo,
+      filteredSecretName,
+      { encrypted_value: encryptedSecret, key_id: keyId },
+      token,
     );
   }
 
@@ -255,7 +245,8 @@ export class GithubSyncService implements OnModuleInit {
       );
 
       const { owner, repo } = this.getOwnerAndRepoFromUrl(repository.scmUrl);
-      const token = await this.getInstallationAccessToken(owner, repo);
+      const token =
+        await this.githubTokenService.getRepoInstallationAccessToken(owner, repo);
 
       if (!token) {
         throw new Error('GitHub access token is null!');
@@ -268,7 +259,7 @@ export class GithubSyncService implements OnModuleInit {
       // Get collaborators
       let collaborators: any[];
       try {
-        collaborators = await this.listRepoCollaborators(owner, repo, token);
+        collaborators = await this.githubService.listRepoCollaborators(owner, repo, token);
       } catch (error) {
         this.auditService.recordToolsSync(
           'end',
@@ -311,7 +302,7 @@ export class GithubSyncService implements OnModuleInit {
           // console.log(`Adding ${username} as ${edgeRole.role}`);
 
           try {
-            await this.addRepoCollaborator(
+            await this.githubService.addRepoCollaborator(
               owner,
               repo,
               username,
@@ -335,7 +326,7 @@ export class GithubSyncService implements OnModuleInit {
 
       for (const user of removeCollaborators) {
         try {
-          await this.removeRepoCollaborator(owner, repo, user, token);
+          await this.githubService.removeRepoCollaborator(owner, repo, user, token);
         } catch (error) {
           this.auditService.recordToolsSync(
             'end',
@@ -401,7 +392,7 @@ export class GithubSyncService implements OnModuleInit {
           }
 
           const can_admins_bypass = false;
-          await this.updateRepoEnvironment(
+          await this.githubService.updateRepoEnvironment(
             owner,
             repo,
             environmentName,
@@ -419,7 +410,7 @@ export class GithubSyncService implements OnModuleInit {
           );
 
           if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
-            await this.addRepoEnvironmentBranchPolicy(
+            await this.githubService.addRepoEnvironmentBranchPolicy(
               owner,
               repo,
               environmentName,
@@ -428,7 +419,7 @@ export class GithubSyncService implements OnModuleInit {
               token,
             );
 
-            await this.addRepoEnvironmentBranchPolicy(
+            await this.githubService.addRepoEnvironmentBranchPolicy(
               owner,
               repo,
               environmentName,
@@ -460,66 +451,6 @@ export class GithubSyncService implements OnModuleInit {
     }
   }
 
-  // Generate JWT
-  public generateJWT(): string {
-    const payload = {
-      iat: Math.floor(Date.now() / 1000) - 60,
-      exp: Math.floor(Date.now() / 1000) + 2 * 60, // JWT expires in 2 minutes
-      iss: GITHUB_SYNC_CLIENT_ID,
-    };
-    return jwt.sign(payload, GITHUB_SYNC_PRIVATE_KEY, { algorithm: 'RS256' });
-  }
-
-  private async getInstallationId(
-    owner: string,
-    repo: string,
-    token: string,
-  ): Promise<string> {
-    try {
-      const response = await this.axiosInstance.get(
-        `/repos/${owner}/${repo}/installation`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (response.data.id) return response.data.id;
-    } catch (error) {
-      console.error(
-        `Catch error on make API call on get Installation ID for ${owner}/${repo}`,
-      );
-      // throw new Error('Failed to get installation id.');
-    }
-  }
-
-  private async getInstallationAccessToken(
-    owner: string,
-    repo: string,
-  ): Promise<string> {
-    const token = this.generateJWT();
-    try {
-      const installationId = await this.getInstallationId(owner, repo, token);
-      if (installationId) {
-        const response = await this.axiosInstance.post(
-          `/app/installations/${installationId}/access_tokens`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        if (response.data.token) return response.data.token;
-      }
-    } catch (error) {
-      console.error(
-        `Github App has not been authorized to access ${owner}/${repo}`,
-      );
-      // throw new Error('Failed to get access token.');
-    }
-  }
-
   private getOwnerAndRepoFromUrl(repoUrl: string): {
     owner: string;
     repo: string;
@@ -530,22 +461,6 @@ export class GithubSyncService implements OnModuleInit {
       return { owner: match[1], repo: match[2] };
     }
     throw new Error('Invalid GitHub URL');
-  }
-
-  private async getPublicKey(
-    owner: string,
-    repo: string,
-    accessToken: string,
-  ): Promise<any> {
-    const url = `https://api.github.com/repos/${owner}/${repo}/actions/secrets/public-key`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github.v3+json',
-      },
-    });
-
-    return response.data;
   }
 
   /**
@@ -588,295 +503,6 @@ export class GithubSyncService implements OnModuleInit {
   }
 
   /**
-   * List collaborators of a repository
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param token The installation access token
-   * @returns An array of collaborators (See GitHub API documentation)
-   */
-  private async listRepoCollaborators(
-    owner: string,
-    repo: string,
-    token: string,
-  ): Promise<any[]> {
-    let collaborators: any[] = [];
-    let page = 1;
-    let hasNextPage = true;
-
-    while (hasNextPage) {
-      const response = await this.axiosInstance.get(
-        `/repos/${owner}/${repo}/collaborators`,
-        {
-          params: {
-            per_page: 100,
-            page,
-            affiliation: 'direct',
-          },
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-          },
-        },
-      );
-
-      collaborators = collaborators.concat(response.data);
-
-      // Check if there is a "next" page in the Link header
-      const linkHeader = response.headers.link;
-      hasNextPage = linkHeader?.includes('rel="next"') ?? false;
-
-      page++;
-    }
-
-    return collaborators;
-  }
-
-  /**
-   * Add a collaborator to a repository
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param username The GitHub username to add as a collaborator
-   * @param permission The permission level to grant the collaborator
-   * @param token The installation access token
-   */
-  private async addRepoCollaborator(
-    owner: string,
-    repo: string,
-    username: string,
-    permission: string,
-    token: string,
-  ) {
-    // try {
-    //   await this.axiosInstance.get(`/orgs/${owner}/memberships/${username}`, {
-    //     headers: {
-    //       Authorization: `token ${token}`,
-    //       Accept: 'application/vnd.github+json',
-    //       'X-GitHub-Api-Version': '2022-11-28',
-    //     },
-    //   });
-    // } catch (error) {
-    //   console.log(error);
-    //   return;
-    // }
-    await this.axiosInstance.put(
-      `/repos/${owner}/${repo}/collaborators/${username}`,
-      {
-        permission,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
-  }
-
-  /**
-   * Remove a collaborator from a repository
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param username The GitHub username to remove as a collaborator
-   * @param token The installation access token
-   */
-  private async removeRepoCollaborator(
-    owner: string,
-    repo: string,
-    username: string,
-    token: string,
-  ) {
-    await this.axiosInstance.delete(
-      `/repos/${owner}/${repo}/collaborators/${username}`,
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
-  }
-
-  /**
-   * Add or update a repo environment
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param token The installation access token
-   * @returns An array of environments (See GitHub API documentation)
-   */
-  private async listRepoEnvironments(
-    owner: string,
-    repo: string,
-    token: string,
-  ): Promise<any[]> {
-    let environments: any[] = [];
-    let page = 1;
-    let hasNextPage = true;
-
-    while (hasNextPage) {
-      const response = await this.axiosInstance.get(
-        `/repos/${owner}/${repo}/environments`,
-        {
-          params: {
-            per_page: 100,
-            page,
-          },
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
-          },
-        },
-      );
-
-      environments = environments.concat(...response.data.environments);
-
-      // Check if there is a "next" page in the Link header
-      const linkHeader = response.headers.link;
-      hasNextPage = linkHeader?.includes('rel="next"') ?? false;
-
-      page++;
-    }
-
-    return environments;
-  }
-
-  /**
-   * Get a repo environment
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param environment The environment name
-   * @param token The installation access token
-   * @returns An environment (See GitHub API documentation)
-   */
-  private async getRepoEnvironment(
-    owner: string,
-    repo: string,
-    environment: string,
-    token: string,
-  ): Promise<any> {
-    const response = await this.axiosInstance
-      .get(`/repos/${owner}/${repo}/environments/${environment}`, {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      })
-      .catch((err) => {
-        if (err.response) {
-          return err.response.data;
-        }
-      });
-    return response.data;
-  }
-
-  /**
-   * Add or update a repo environment
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param environment The GitHub environment to add/update
-   * @param reviewerIds Array of user ids who will approve deployments to this environment
-   * @param token The installation access token
-   */
-  private async updateRepoEnvironment(
-    owner: string,
-    repo: string,
-    environment: string,
-    reviewerIds: { type: 'User' | 'Team'; id: number }[],
-    deployment_branch_policy: {
-      protected_branches: boolean;
-      custom_branch_policies: boolean;
-    },
-    can_admins_bypass: boolean,
-    token: string,
-  ) {
-    await this.axiosInstance.put(
-      `/repos/${owner}/${repo}/environments/${environment}`,
-      {
-        reviewers: reviewerIds,
-        deployment_branch_policy: deployment_branch_policy,
-        can_admins_bypass: can_admins_bypass,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
-  }
-
-  /**
-   * Update a repo environment branch policy
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param environment The GitHub environment to update
-   * @param branchPattern The name pattern that branches must match to deploy to this environment
-   * @param patternType Whether this rule targets a branch or tag. Can be one of: branch, tag.
-   * @param token The installation access token
-   * @returns Id for the created branch policy
-   */
-  private async addRepoEnvironmentBranchPolicy(
-    owner: string,
-    repo: string,
-    environment: string,
-    branchPattern: string,
-    patternType: string,
-    token: string,
-  ) {
-    await this.axiosInstance.post(
-      `/repos/${owner}/${repo}/environments/${environment}/deployment-branch-policies`,
-      {
-        name: branchPattern,
-        type: patternType,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
-  }
-
-  /**
-   * Update a repo environment branch policy
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param environment The GitHub environment to update
-   * @param branchPolicyId The GitHub branch policy id to update
-   * @param branchPattern The name pattern that branches must match to deploy to this environment
-   * @param token The installation access token
-   */
-  private async updateRepoEnvironmentBranchPolicy(
-    owner: string,
-    repo: string,
-    environment: string,
-    branchPolicyId: number,
-    branchPattern: string,
-    token: string,
-  ) {
-    await this.axiosInstance.put(
-      `/repos/${owner}/${repo}/environments/${environment}/deployment-branch-policies/${branchPolicyId}`,
-      {
-        name: branchPattern,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
-  }
-
-  /**
    * Remove an environment from a repository if it exists
    * @param owner The owning organization or user
    * @param repo The repository name
@@ -889,33 +515,8 @@ export class GithubSyncService implements OnModuleInit {
     environment: string,
     token: string,
   ) {
-    if (await this.getRepoEnvironment(owner, repo, environment, token)) {
-      await this.removeRepoEnvironment(owner, repo, environment, token);
+    if (await this.githubService.getRepoEnvironment(owner, repo, environment, token)) {
+      await this.githubService.removeRepoEnvironment(owner, repo, environment, token);
     }
-  }
-
-  /**
-   * Remove an environment from a repository
-   * @param owner The owning organization or user
-   * @param repo The repository name
-   * @param environment The GitHub environment to remove
-   * @param token The installation access token
-   */
-  private async removeRepoEnvironment(
-    owner: string,
-    repo: string,
-    environment: string,
-    token: string,
-  ) {
-    await this.axiosInstance.delete(
-      `/repos/${owner}/${repo}/environments/${environment}`,
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      },
-    );
   }
 }

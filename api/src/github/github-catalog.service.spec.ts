@@ -12,6 +12,7 @@ describe('GithubCatalogService', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
       new CatalogUtil(),
     );
   });
@@ -68,22 +69,23 @@ describe('GithubCatalogService', () => {
 
     let bullService: { enqueue: ReturnType<typeof vi.fn> };
     let redisService: { get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
+    let tokenService: { getOrgInstallationToken: ReturnType<typeof vi.fn> };
     let post: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       bullService = { enqueue: vi.fn() };
+      tokenService = { getOrgInstallationToken: vi.fn().mockResolvedValue('tkn') };
       redisService = { get: vi.fn(), set: vi.fn() };
       service = new GithubCatalogService(
         { recordToolsSync: vi.fn() } as any,
         bullService as any,
         {} as any,
-        {} as any,
+        { graphql: (...args: unknown[]) => post(...args) } as any,
+        tokenService as any,
         redisService as any,
         new CatalogUtil(),
       );
-      vi.spyOn(service as any, 'getOrgInstallationToken').mockResolvedValue('tkn');
       post = vi.fn();
-      (service as any).axiosInstance = { post };
     });
 
     const enqueuedRepos = () =>
@@ -93,21 +95,19 @@ describe('GithubCatalogService', () => {
       redisService.get.mockResolvedValue('2026-01-10T00:00:00.000Z');
       post.mockResolvedValueOnce({
         data: {
-          data: {
-            organization: {
-              repositories: {
-                pageInfo: { hasNextPage: true, endCursor: 'c1' },
-                nodes: [
-                  repo('new', '2026-01-12T00:00:00Z'),
-                  repo('pushed', '2026-01-11T00:00:00Z'),
-                  repo('no-catalog', '2026-01-11T00:00:00Z', { catalogFile: null }),
-                  repo('tree', '2026-01-11T00:00:00Z', { catalogFile: { __typename: 'Tree' } }),
-                  repo('empty', '2026-01-11T00:00:00Z', { defaultBranchRef: null }),
-                  repo('archived', '2026-01-11T00:00:00Z', { isArchived: true }),
-                  repo('old', '2026-01-09T00:00:00Z'),
-                  repo('older', '2026-01-08T00:00:00Z'),
-                ],
-              },
+          organization: {
+            repositories: {
+              pageInfo: { hasNextPage: true, endCursor: 'c1' },
+              nodes: [
+                repo('new', '2026-01-12T00:00:00Z'),
+                repo('pushed', '2026-01-11T00:00:00Z'),
+                repo('no-catalog', '2026-01-11T00:00:00Z', { catalogFile: null }),
+                repo('tree', '2026-01-11T00:00:00Z', { catalogFile: { __typename: 'Tree' } }),
+                repo('empty', '2026-01-11T00:00:00Z', { defaultBranchRef: null }),
+                repo('archived', '2026-01-11T00:00:00Z', { isArchived: true }),
+                repo('old', '2026-01-09T00:00:00Z'),
+                repo('older', '2026-01-08T00:00:00Z'),
+              ],
             },
           },
         },
@@ -116,7 +116,7 @@ describe('GithubCatalogService', () => {
       await service.processJob({ type: 'org', org: 'org' });
 
       expect(post).toHaveBeenCalledTimes(1);
-      expect(post.mock.calls[0][1].variables).toEqual({
+      expect(post.mock.calls[0][1]).toEqual({
         org: 'org',
         after: null,
         expression: 'HEAD:catalog-info.yaml',
@@ -140,24 +140,20 @@ describe('GithubCatalogService', () => {
       post
         .mockResolvedValueOnce({
           data: {
-            data: {
-              organization: {
-                repositories: {
-                  pageInfo: { hasNextPage: true, endCursor: 'c1' },
-                  nodes: [repo('a', '2026-01-12T00:00:00Z')],
-                },
+            organization: {
+              repositories: {
+                pageInfo: { hasNextPage: true, endCursor: 'c1' },
+                nodes: [repo('a', '2026-01-12T00:00:00Z')],
               },
             },
           },
         })
         .mockResolvedValueOnce({
           data: {
-            data: {
-              organization: {
-                repositories: {
-                  pageInfo: { hasNextPage: false, endCursor: 'c2' },
-                  nodes: [repo('b', '2020-01-01T00:00:00Z'), repo('empty', null)],
-                },
+            organization: {
+              repositories: {
+                pageInfo: { hasNextPage: false, endCursor: 'c2' },
+                nodes: [repo('b', '2020-01-01T00:00:00Z'), repo('empty', null)],
               },
             },
           },
@@ -166,13 +162,13 @@ describe('GithubCatalogService', () => {
       await service.processJob({ type: 'org', org: 'org' });
 
       expect(post).toHaveBeenCalledTimes(2);
-      expect(post.mock.calls[1][1].variables.after).toBe('c1');
+      expect(post.mock.calls[1][1].after).toBe('c1');
       expect(enqueuedRepos()).toEqual(['a', 'b']);
     });
 
     it('does not record the scan time when the query fails', async () => {
       redisService.get.mockResolvedValue(null);
-      post.mockResolvedValueOnce({ data: { errors: [{ message: 'boom' }] } });
+      post.mockResolvedValueOnce({ errors: [{ message: 'boom' }] });
 
       await expect(
         service.processJob({ type: 'org', org: 'org' }),

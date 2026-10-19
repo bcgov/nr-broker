@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import axios, { AxiosInstance, isAxiosError } from 'axios';
 import { Job } from 'bullmq';
 import {
   BULL_LEADER_JOBS,
@@ -15,7 +14,8 @@ import { AuditService } from '../audit/audit.service';
 import { BullService } from '../bull/bull.service';
 import { CatalogSyncService } from '../graph/catalog-sync.service';
 import { RedisService } from '../redis/redis.service';
-import { GithubSyncService } from './github-sync.service';
+import { GithubService } from './github.service';
+import { GithubTokenService } from './github-token.service';
 import { CatalogUtil } from '../util/catalog.util';
 import { CatalogEntity, CatalogEntityType } from '../catalog/catalog-entity';
 import { CatalogComponentEntity } from '../catalog/catalog-component.entity';
@@ -84,13 +84,6 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
   }
 `;
 
-interface InstallationToken {
-  token: string;
-  expiresAt: number;
-}
-
-const TOKEN_EXPIRY_MARGIN_MS = 5 * 60 * 1000;
-
 /**
  * Scans configured GitHub organizations for Backstage `catalog-info.yaml`
  * files at the root of each repository and records the discovered projects,
@@ -100,25 +93,16 @@ const TOKEN_EXPIRY_MARGIN_MS = 5 * 60 * 1000;
 @Injectable()
 export class GithubCatalogService implements OnModuleInit {
   private readonly logger = new Logger(GithubCatalogService.name);
-  private readonly axiosInstance: AxiosInstance;
-  private readonly orgTokens = new Map<string, InstallationToken>();
 
   constructor(
     private readonly auditService: AuditService,
     private readonly bullService: BullService,
     private readonly catalogSyncService: CatalogSyncService,
-    private readonly githubSyncService: GithubSyncService,
+    private readonly githubService: GithubService,
+    private readonly githubTokenService: GithubTokenService,
     private readonly redisService: RedisService,
     private readonly catalogUtil: CatalogUtil,
-  ) {
-    this.axiosInstance = axios.create({
-      baseURL: 'https://api.github.com',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
-  }
+  ) {}
 
   public isEnabled(): boolean {
     return (
@@ -174,7 +158,7 @@ export class GithubCatalogService implements OnModuleInit {
    * push date so paging stops at the first repository older than the last scan.
    */
   private async scanOrg(org: string): Promise<void> {
-    const token = await this.getOrgInstallationToken(org);
+    const token = await this.githubTokenService.getOrgInstallationToken(org);
     const lastScanKey = `${GITHUB_CATALOG_LAST_SCAN_KEY_PREFIX}${org}`;
     const lastScan = await this.redisService.get(lastScanKey);
     const since = lastScan ? new Date(lastScan).getTime() : 0;
@@ -236,23 +220,20 @@ export class GithubCatalogService implements OnModuleInit {
     after: string | null,
     token: string,
   ): Promise<CatalogRepositoryPage> {
-    const response = await this.axiosInstance.post(
-      '/graphql',
+    const body = await this.githubService.graphql(
+      ORG_CATALOG_REPOSITORIES_QUERY,
       {
-        query: ORG_CATALOG_REPOSITORIES_QUERY,
-        variables: {
-          org,
-          after,
-          expression: `HEAD:${GITHUB_CATALOG_ROOT_FILE}`,
-        },
+        org,
+        after,
+        expression: `HEAD:${GITHUB_CATALOG_ROOT_FILE}`,
       },
-      { headers: { Authorization: `bearer ${token}` } },
+      token,
     );
     // The app may lack contents: read on some repositories. GitHub returns
     // partial data with these fields null for those, so they are skipped.
     const contentFields = ['catalogFile', 'defaultBranchRef'];
     const errors = (
-      (response.data.errors ?? []) as {
+      (body.errors ?? []) as {
         message: string;
         path?: (string | number)[];
       }[]
@@ -270,7 +251,7 @@ export class GithubCatalogService implements OnModuleInit {
           .join('; ')}`,
       );
     }
-    const repositories = response.data.data?.organization?.repositories;
+    const repositories = body.data?.organization?.repositories;
     if (!repositories) {
       throw new Error(`GitHub organization not found: ${org}`);
     }
@@ -278,7 +259,7 @@ export class GithubCatalogService implements OnModuleInit {
   }
 
   private async scanRepository(job: CatalogRepoScanJob): Promise<void> {
-    const token = await this.getOrgInstallationToken(job.org);
+    const token = await this.githubTokenService.getOrgInstallationToken(job.org);
     const components = await this.collectComponents(job, token);
     await this.catalogSyncService.syncRepository(
       {
@@ -362,50 +343,12 @@ export class GithubCatalogService implements OnModuleInit {
     path: string,
     token: string,
   ): Promise<string | null> {
-    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
-    try {
-      const response = await this.axiosInstance.get(
-        `/repos/${job.org}/${job.repo}/contents/${encodedPath}`,
-        {
-          params: { ref: job.defaultBranch },
-          headers: {
-            Authorization: `token ${token}`,
-            Accept: 'application/vnd.github.raw+json',
-          },
-          responseType: 'text',
-          transformResponse: (body) => body,
-        },
-      );
-      return typeof response.data === 'string' ? response.data : null;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  private async getOrgInstallationToken(org: string): Promise<string> {
-    const cached = this.orgTokens.get(org);
-    if (cached && cached.expiresAt - TOKEN_EXPIRY_MARGIN_MS > Date.now()) {
-      return cached.token;
-    }
-
-    const appJwt = this.githubSyncService.generateJWT();
-    const installation = await this.axiosInstance.get(
-      `/orgs/${encodeURIComponent(org)}/installation`,
-      { headers: { Authorization: `Bearer ${appJwt}` } },
+    return this.githubService.getRepoFileContent(
+      job.org,
+      job.repo,
+      path,
+      job.defaultBranch,
+      token,
     );
-    const response = await this.axiosInstance.post(
-      `/app/installations/${installation.data.id}/access_tokens`,
-      {},
-      { headers: { Authorization: `Bearer ${appJwt}` } },
-    );
-    const token: InstallationToken = {
-      token: response.data.token,
-      expiresAt: new Date(response.data.expires_at).getTime(),
-    };
-    this.orgTokens.set(org, token);
-    return token.token;
   }
 }
