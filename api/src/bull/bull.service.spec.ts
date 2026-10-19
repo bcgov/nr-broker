@@ -411,7 +411,7 @@ describe('BullService.registerLeaderJob', () => {
     service = new BullService(fakeConnection, fakeOrm, '');
   });
 
-  it('schedules the repeatable job and invokes the handler once', async () => {
+  it('schedules the repeatable job without running the handler', async () => {
     const handler = vi.fn(async () => undefined);
 
     await service.registerLeaderJob(
@@ -430,23 +430,7 @@ describe('BullService.registerLeaderJob', () => {
       { pattern: '* * * * *' },
       {},
     );
-    expect(handler).toHaveBeenCalledOnce();
-  });
-
-  it('logs and swallows a handler error while still scheduling the job', async () => {
-    const error = vi
-      .spyOn(service['logger'] as import('@nestjs/common').Logger, 'error');
-    const handler = vi.fn(async () => {
-      throw new Error('leader boom');
-    });
-
-    await expect(
-      service.registerLeaderJob(BULL_LEADER_JOBS.JWT_LIFECYCLE, '0 0 * * *', handler),
-    ).resolves.toBeUndefined();
-    expect(error).toHaveBeenCalledWith(
-      expect.stringContaining('failed'),
-      expect.anything(),
-    );
+    expect(handler).not.toHaveBeenCalled();
   });
 });
 
@@ -482,8 +466,6 @@ describe('BullService leader worker', () => {
     });
     await service.registerLeaderJob(BULL_LEADER_JOBS.COLLECTION_SYNC, '* * * * *', handler);
 
-    // reset the call from scheduling so we only count the worker dispatch
-    handler.mockClear();
     const worker = leaderWorker();
     expect(worker).toBeDefined();
     await worker!.processor({ name: BULL_LEADER_JOBS.COLLECTION_SYNC });

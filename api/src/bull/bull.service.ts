@@ -286,16 +286,6 @@ implements OnModuleInit, OnModuleDestroy {
     this.logger.log(
       `BullMQ leader job "${jobName}" scheduled (${cronPattern})`,
     );
-    try {
-      await handler();
-    } catch (error) {
-      this.logger.error(
-        `Leader job "${jobName}" failed: ${
-          (error as Error).message
-        }`,
-        (error as Error).stack,
-      );
-    }
   }
 
   async onModuleDestroy(): Promise<void> {
