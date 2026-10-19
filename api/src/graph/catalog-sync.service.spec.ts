@@ -12,7 +12,11 @@ describe('CatalogSyncService', () => {
   const vertex = (id: string) => ({ id: { toString: () => id } });
 
   let auditService: { recordToolsSync: ReturnType<typeof vi.fn> };
-  let collectionRepository: { getCollectionByKeyValue: ReturnType<typeof vi.fn> };
+  let collectionRepository: {
+    getCollectionByKeyValue: ReturnType<typeof vi.fn>;
+    getCollectionByVertexId: ReturnType<typeof vi.fn>;
+    saveTags: ReturnType<typeof vi.fn>;
+  };
   let graphService: {
     addVertex: ReturnType<typeof vi.fn>;
     upsertVertex: ReturnType<typeof vi.fn>;
@@ -27,7 +31,11 @@ describe('CatalogSyncService', () => {
 
   beforeEach(() => {
     auditService = { recordToolsSync: vi.fn() };
-    collectionRepository = { getCollectionByKeyValue: vi.fn().mockResolvedValue(null) };
+    collectionRepository = {
+      getCollectionByKeyValue: vi.fn().mockResolvedValue(null),
+      getCollectionByVertexId: vi.fn().mockResolvedValue({ id: 'svc-id' }),
+      saveTags: vi.fn(),
+    };
     graphService = {
       addVertex: vi.fn().mockImplementation(async (_req, dto) => vertex(dto.collection)),
       upsertVertex: vi.fn().mockResolvedValue(vertex('service')),
@@ -50,6 +58,29 @@ describe('CatalogSyncService', () => {
     await service.syncRepository(repository, []);
     expect(auditService.recordToolsSync).not.toHaveBeenCalled();
     expect(collectionRepository.getCollectionByKeyValue).not.toHaveBeenCalled();
+  });
+
+  it('sets owner and filtered tags on the service', async () => {
+    await service.syncRepository(repository, [
+      new CatalogComponentEntity(
+        'catalog-info.yaml',
+        'api',
+        'sys',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ['a', ' ', '', ' b ', 'a'],
+        ' team ',
+      ),
+    ]);
+    expect(graphService.upsertVertex.mock.calls[0][1].data).toEqual({
+      name: 'api',
+    });
+    expect(graphService.upsertVertex.mock.calls[0][1].prop).toEqual({
+      owner: 'team',
+    });
+    expect(collectionRepository.saveTags).toHaveBeenCalledWith('service', 'svc-id', ['a', 'b']);
   });
 
   it('creates the repository, project, service and edges', async () => {

@@ -39,6 +39,8 @@ describe('CatalogEntity', () => {
           'The place to be',
           'production',
           'website',
+          undefined,
+          'artist-relations-team',
         ),
       ]);
     });

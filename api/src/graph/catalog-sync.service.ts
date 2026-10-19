@@ -105,12 +105,14 @@ export class CatalogSyncService {
           lifecycle: component.lifecycle,
           type: component.type,
         }),
+        prop: await this.buildServiceProp(component),
       }),
       'name',
       null,
       provenance,
     );
 
+    await this.syncTags(serviceVertex, component.tags);
     await this.ensureEdge('component', projectVertex, serviceVertex, provenance);
     await this.ensureEdge('source', serviceVertex, repositoryVertex, provenance);
 
@@ -121,6 +123,52 @@ export class CatalogSyncService {
       component.system,
       component.name,
     );
+  }
+
+  /**
+   * Keep existing vertex properties and set owner when it is not blank.
+   */
+  private async buildServiceProp(
+    component: CatalogComponentEntity,
+  ): Promise<Record<string, string> | undefined> {
+    const existing = await this.graphRepository.getVertexByName(
+      'service',
+      component.name,
+    );
+    const prop = { ...(existing?.prop ?? {}) };
+    const owner = component.owner?.trim();
+    if (owner) {
+      prop.owner = owner;
+    }
+    return Object.keys(prop).length > 0 ? prop : undefined;
+  }
+
+  /**
+   * Replace the service tags with the catalog tags. Blank tags are dropped.
+   */
+  private async syncTags(
+    serviceVertex: VertexEntity,
+    tags: string[] | undefined,
+  ): Promise<void> {
+    if (!tags) {
+      return;
+    }
+    const cleanTags = [
+      ...new Set(
+        tags.map((tag) => tag.replace(/[&<>"']/g, '').trim()).filter(Boolean),
+      ),
+    ];
+    const service = await this.collectionRepository.getCollectionByVertexId(
+      'service',
+      serviceVertex.id.toString(),
+    );
+    if (service) {
+      await this.collectionRepository.saveTags(
+        'service',
+        service.id.toString(),
+        cleanTags,
+      );
+    }
   }
 
   /**

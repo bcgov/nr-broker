@@ -34,4 +34,10 @@ export class CatalogUtil {
   public asString(value: unknown): string | undefined {
     return typeof value === 'string' && value !== '' ? value : undefined;
   }
+
+  public asStringArray(value: unknown): string[] | undefined {
+    return Array.isArray(value) && value.every((item) => typeof item === 'string')
+      ? (value as string[])
+      : undefined;
+  }
 }

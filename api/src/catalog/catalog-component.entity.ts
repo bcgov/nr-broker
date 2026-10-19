@@ -16,6 +16,8 @@ export class CatalogComponentEntity extends CatalogEntity {
     readonly description?: string,
     readonly lifecycle?: string,
     readonly type?: string,
+    readonly tags?: string[],
+    readonly owner?: string,
   ) {
     super(path);
   }
@@ -39,6 +41,8 @@ export class CatalogComponentEntity extends CatalogEntity {
       catalogUtil.asString(json.metadata?.description),
       catalogUtil.asString(json.spec?.lifecycle),
       catalogUtil.asString(json.spec?.type),
+      catalogUtil.asStringArray(json.metadata?.tags),
+      catalogUtil.asString(json.spec?.owner),
     );
   }
 }
