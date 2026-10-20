@@ -190,9 +190,10 @@ describe('GithubCatalogService', () => {
       };
       const graphService = { updateSyncStatus: vi.fn() };
       const catalogSyncService = { syncRepository: vi.fn() };
+      const bullService = { enqueue: vi.fn() };
       const svc = new GithubCatalogService(
         { recordToolsSync: vi.fn() } as any,
-        {} as any,
+        bullService as any,
         catalogSyncService as any,
         {} as any,
         { getOrgInstallationToken: vi.fn().mockResolvedValue('tkn') } as any,
@@ -202,7 +203,7 @@ describe('GithubCatalogService', () => {
         graphService as any,
       );
       vi.spyOn(svc as any, 'collectComponents').mockResolvedValue([{ name: 'a' }]);
-      return { svc, graphService, catalogSyncService, collectionRepository };
+      return { svc, graphService, catalogSyncService, collectionRepository, bullService };
     };
     const job = {
       type: 'repo' as const,
@@ -249,6 +250,24 @@ describe('GithubCatalogService', () => {
       await svc.processJob('r1');
 
       expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
+    });
+
+    it('queues a scan for a managed url', async () => {
+      const { svc, bullService } = build();
+
+      expect(await svc.enqueueRepoScan('https://github.com/org/repo')).toBe(true);
+      expect(bullService.enqueue).toHaveBeenCalledWith(
+        'github-catalog-scan',
+        expect.objectContaining({ type: 'repo', org: 'org', repo: 'repo' }),
+        expect.objectContaining({ jobId: 'repo-org-repo' }),
+      );
+    });
+
+    it('does not queue a scan for an unmanaged url', async () => {
+      const { svc, bullService } = build();
+
+      expect(await svc.enqueueRepoScan('https://example.com/org/repo')).toBe(false);
+      expect(bullService.enqueue).not.toHaveBeenCalled();
     });
 
     it('does not record sync status for scheduled scans', async () => {

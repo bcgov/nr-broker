@@ -164,15 +164,38 @@ export class GithubCatalogService implements OnModuleInit {
     }
   }
 
+  /**
+   * Queue a scan of one repository. Returns false if the URL is not a
+   * Broker-managed GitHub repository URL.
+   */
+  public async enqueueRepoScan(scmUrl: string): Promise<boolean> {
+    const job = this.buildRepoScanJob(scmUrl);
+    if (!job) {
+      return false;
+    }
+    await this.enqueue(job, `repo-${job.org}-${job.repo}`);
+    return true;
+  }
+
+  private buildRepoScanJob(
+    scmUrl: string | undefined,
+    repositoryId?: string,
+  ): CatalogRepoScanJob | null {
+    const match = new RegExp(GITHUB_MANAGED_URL_REGEX).exec(scmUrl ?? '');
+    if (!match) {
+      return null;
+    }
+    const [org, repo] = match[1].split('/');
+    return { type: 'repo', org, repo, htmlUrl: scmUrl!, repositoryId };
+  }
+
   private async processRepositoryId(repositoryId: string): Promise<void> {
     const repository = await this.collectionRepository.getCollectionById(
       'repository',
       repositoryId,
     );
-    const match = new RegExp(GITHUB_MANAGED_URL_REGEX).exec(
-      repository.scmUrl ?? '',
-    );
-    if (!match) {
+    const job = this.buildRepoScanJob(repository.scmUrl, repositoryId);
+    if (!job) {
       this.auditService.recordToolsSync(
         'info',
         'unknown',
@@ -180,14 +203,7 @@ export class GithubCatalogService implements OnModuleInit {
       );
       return;
     }
-    const [org, repo] = match[1].split('/');
-    await this.scanRepository({
-      type: 'repo',
-      org,
-      repo,
-      htmlUrl: repository.scmUrl,
-      repositoryId,
-    });
+    await this.scanRepository(job);
   }
 
   private async enqueue(data: CatalogScanJob, jobId: string) {
