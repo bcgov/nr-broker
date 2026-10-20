@@ -13,7 +13,7 @@ import {
 } from '../constants';
 import { AuditService } from '../audit/audit.service';
 import { BullService } from '../bull/bull.service';
-import { CatalogSyncService } from '../graph/catalog-sync.service';
+import { CatalogSyncService } from '../graph/sync/catalog-sync.service';
 import { GraphService } from '../graph/graph.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { RedisService } from '../redis/redis.service';

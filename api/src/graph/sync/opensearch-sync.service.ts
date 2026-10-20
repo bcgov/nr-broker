@@ -15,11 +15,11 @@ import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
 import { BULL_LEADER_JOBS } from '../../constants';
 import { BullService } from '../../bull/bull.service';
-import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
+import { ProvenanceInfo } from '../../persistence/provenance-info';
 
 @Injectable()
-export class GraphSyncService implements OnModuleInit {
-  private readonly logger = new Logger(GraphSyncService.name);
+export class OpensearchSyncService implements OnModuleInit {
+  private readonly logger = new Logger(OpensearchSyncService.name);
   constructor(
     private readonly graphService: GraphService,
     private readonly opensearchService: OpensearchService,
@@ -146,7 +146,7 @@ export class GraphSyncService implements OnModuleInit {
           upsert,
           'name',
           key,
-          ProvenanceEmbeddable.opensearch(),
+          ProvenanceInfo.opensearch(),
         );
       } catch (e) {
         this.logger.log(

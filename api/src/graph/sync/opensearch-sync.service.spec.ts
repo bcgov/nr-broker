@@ -1,20 +1,20 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GraphSyncService } from './graph-sync.service';
+import { OpensearchSyncService } from './opensearch-sync.service';
 
-describe('GraphSyncService', () => {
-  let service: GraphSyncService;
+describe('OpensearchSyncService', () => {
+  let service: OpensearchSyncService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GraphSyncService],
+      providers: [OpensearchSyncService],
     })
       .useMocker(() => {
         return vi.fn();
       })
       .compile();
 
-    service = module.get<GraphSyncService>(GraphSyncService);
+    service = module.get<OpensearchSyncService>(OpensearchSyncService);
   });
 
   it('should be defined', () => {

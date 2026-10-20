@@ -220,6 +220,8 @@ export const GITHUB_CATALOG_ORGS = (process.env.GITHUB_CATALOG_ORGS ?? '')
 export const GITHUB_CATALOG_SCAN_CRON =
   process.env.GITHUB_CATALOG_SCAN_CRON ?? '0 5 * * *';
 export const GITHUB_CATALOG_ROOT_FILE = 'catalog-info.yaml';
+export const CATALOG_ANNOTATION_INSTANCES =
+  'playbook.io.nrs.gov.bc.ca/instances';
 export const GITHUB_CATALOG_LAST_SCAN_KEY_PREFIX = 'github-catalog-scan:last-scan:';
 
 export const GITHUB_MANAGED_URL_REGEX =

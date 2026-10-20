@@ -49,6 +49,8 @@ import { CollectionWatchEntity } from '../persistence/entity/collection-watch.en
 import { UserEntity } from '../persistence/entity/user.entity';
 import { VertexPointerDto } from '../persistence/dto/vertex-pointer.dto';
 import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
+import { ProvenanceType } from '../persistence/dto/provenance.dto';
+import { ProvenanceInfo } from '../persistence/provenance-info';
 
 @Injectable()
 export class GraphService {
@@ -97,7 +99,7 @@ export class GraphService {
   public async addEdge(
     req: Request,
     edge: EdgeInsertDto,
-    provenance = ProvenanceEmbeddable.manual(),
+    provenance = ProvenanceInfo.manual(),
   ): Promise<EdgeDto> {
     try {
       const resp = await this.graphRepository.addEdge(edge, provenance);
@@ -135,7 +137,7 @@ export class GraphService {
     req: Request,
     id: string,
     edge: EdgeInsertDto,
-    provenance = ProvenanceEmbeddable.manual(),
+    provenance = ProvenanceInfo.manual(),
   ): Promise<EdgeDto> {
     const curEdge = await this.graphRepository.getEdge(id);
     if (curEdge && !this.isUpdateAllowed(curEdge.provenance, provenance)) {
@@ -236,7 +238,7 @@ export class GraphService {
     req: Request,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
-    provenance = ProvenanceEmbeddable.manual(),
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
     const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
@@ -307,7 +309,7 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
     ignoreBlankFields = false,
-    provenance = ProvenanceEmbeddable.manual(),
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
     const curVertex = await this.graphRepository.getVertex(id);
     if (curVertex && !this.isUpdateAllowed(curVertex.provenance, provenance)) {
@@ -458,24 +460,51 @@ export class GraphService {
   }
 
   /**
-   * Catalog updates are only allowed for items with a record from the same
-   * repository and catalog file. All other sources are always allowed.
+   * Whether an update with this provenance may change an item with these
+   * records.
+   *
+   * - Overwrite updates are always allowed.
+   * - Catalog updates are allowed for items with a record from the same
+   *   repository and catalog file. Adoptable catalog updates are also allowed
+   *   for items with no catalog records.
+   * - All other sources are always allowed.
    */
-  private isUpdateAllowed(
+  public isUpdateAllowed(
     records: ProvenanceEmbeddable[] | undefined,
-    provenance: ProvenanceEmbeddable,
+    provenance: ProvenanceInfo,
   ): boolean {
-    if (provenance.type !== 'catalog') {
+    if (provenance.overwrite) {
       return true;
     }
-    return (records ?? []).some((record) => provenance.matches(record));
+    switch (provenance.type) {
+      case ProvenanceType.CATALOG:
+        return (
+          (records ?? []).some((record) => provenance.record.matches(record)) ||
+          (provenance.adoptable &&
+            !(records ?? []).some((record) => record.type === provenance.type))
+        );
+      case ProvenanceType.INTENTION:
+        // Intention updates are always allowed
+        return true;
+      case ProvenanceType.MANUAL:
+        // Manual updates are always allowed
+        return true;
+      case ProvenanceType.OPENSEARCH:
+        // Opensearch updates are always allowed
+        return true;
+      default:
+        // If this is an error then not all provenance types are above
+        // eslint-disable-next-line no-case-declarations
+        const _exhaustiveCheck: never = provenance.type;
+        return _exhaustiveCheck;
+    }
   }
 
-  private provenanceDeniedException(provenance: ProvenanceEmbeddable) {
+  private provenanceDeniedException(provenance: ProvenanceInfo) {
     return new ForbiddenException({
       statusCode: 403,
       message: 'Update denied',
-      error: `This item is not managed by ${provenance.path} in ${provenance.repository}. Only the catalog file that created it can update it.`,
+      error: `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
     });
   }
 
@@ -598,7 +627,7 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
-    provenance = ProvenanceEmbeddable.manual(),
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
     const vertex = VertexEntity.upgradeInsertDto(vertexInsert);
 

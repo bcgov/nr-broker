@@ -30,7 +30,7 @@ import { ServiceDetailsResponseDto, ServiceDto } from '../dto/service.dto';
 import { ActionUtil } from '../../util/action.util';
 import { GraphPermissionEntity } from '../entity/graph-permission.entity';
 import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
-import { ProvenanceEmbeddable } from '../entity/provenance.embeddable';
+import { ProvenanceInfo } from '../provenance-info';
 import { GraphDirectedCombo } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
@@ -704,7 +704,7 @@ export class GraphMongoRepository implements GraphRepository {
   // Edge
   public async addEdge(
     edgeInsert: EdgeInsertDto,
-    provenance: ProvenanceEmbeddable,
+    provenance: ProvenanceInfo,
   ): Promise<EdgeEntity> {
     const sourceVertex = await this.getVertex(edgeInsert.source);
     const targetVertex = await this.getVertex(edgeInsert.target);
@@ -765,7 +765,7 @@ export class GraphMongoRepository implements GraphRepository {
       edge.restrict = true;
     }
     edge.timestamps = TimestampEmbeddable.create();
-    edge.provenance = [provenance];
+    edge.provenance = [provenance.record];
 
     // No duplicate edges
     const relationCnt = await this.edgeRepository.count({
@@ -800,14 +800,11 @@ export class GraphMongoRepository implements GraphRepository {
   public async editEdge(
     id: string,
     edge: EdgeInsertDto,
-    provenance?: ProvenanceEmbeddable,
+    provenance?: ProvenanceInfo,
   ): Promise<EdgeEntity> {
     const provenanceSet = provenance
       ? {
-          provenance: ProvenanceEmbeddable.merge(
-            (await this.getEdge(id))?.provenance,
-            provenance,
-          ),
+          provenance: provenance.mergeInto((await this.getEdge(id))?.provenance),
         }
       : {};
     const result = await this.edgeRepository.getCollection().updateOne(
@@ -1065,10 +1062,10 @@ export class GraphMongoRepository implements GraphRepository {
   public async addVertex(
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
-    provenance: ProvenanceEmbeddable,
+    provenance: ProvenanceInfo,
   ): Promise<VertexEntity> {
     vertex.timestamps = TimestampEmbeddable.create();
-    vertex.provenance = [provenance];
+    vertex.provenance = [provenance.record];
 
     this.dataSource.persist(vertex);
     await this.dataSource.flush();
@@ -1099,7 +1096,7 @@ export class GraphMongoRepository implements GraphRepository {
     vertex: VertexEntity,
     collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields = false,
-    provenance?: ProvenanceEmbeddable,
+    provenance?: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const curVertex = await this.getVertex(id);
     if (curVertex === null) {
@@ -1155,10 +1152,7 @@ export class GraphMongoRepository implements GraphRepository {
     const collResult = await repository.getCollection().updateOne(
       { vertex: new ObjectId(id) },
       {
-        $set: {
-          ...collectionData,
-          ...(provenance?.source ? { source: provenance.source } : {}),
-        },
+        $set: collectionData,
         $setOnInsert: {
           vertex: new ObjectId(id),
         },
@@ -1181,10 +1175,7 @@ export class GraphMongoRepository implements GraphRepository {
           ...(vertex.prop ? { prop: vertex.prop } : {}),
           ...(provenance
             ? {
-                provenance: ProvenanceEmbeddable.merge(
-                  curVertex.provenance,
-                  provenance,
-                ),
+                provenance: provenance.mergeInto(curVertex.provenance),
               }
             : {}),
         },

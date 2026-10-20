@@ -108,4 +108,75 @@ describe('CatalogEntity', () => {
       ]);
     });
   });
+
+  describe('instances annotation', () => {
+    const parse = (annotation: string) => {
+      const onError = vi.fn();
+      const entities = CatalogEntity.parseCatalogEntities(
+        'catalog-info.yaml',
+        [
+          'kind: Component',
+          'metadata:',
+          '  name: api',
+          '  annotations:',
+          `    playbook.io.nrs.gov.bc.ca/instances: '${annotation}'`,
+        ].join('\n'),
+        [CatalogComponentEntity],
+        catalogUtil,
+        onError,
+      );
+      return {
+        instances: entities[0]?.instances,
+        errors: onError.mock.calls.map((call) => call[0].message),
+      };
+    };
+
+    it('leaves instances undefined without the annotation', () => {
+      const [entity] = CatalogEntity.parseCatalogEntities(
+        'catalog-info.yaml',
+        'kind: Component\nmetadata:\n  name: api\n',
+        [CatalogComponentEntity],
+        catalogUtil,
+      );
+      expect(entity.instances).toBeUndefined();
+    });
+
+    it('defaults the name to the environment', () => {
+      expect(
+        parse(
+          '[{"env":"production","name":"blue","url":"https://blue.example.gov.bc.ca"},{"env":"production","name":"green"},{"env":"test"}]',
+        ),
+      ).toEqual({
+        instances: [
+          {
+            env: 'production',
+            name: 'blue',
+            url: 'https://blue.example.gov.bc.ca',
+          },
+          { env: 'production', name: 'green' },
+          { env: 'test', name: 'test' },
+        ],
+        errors: [],
+      });
+    });
+
+    it.each([
+      ['not json', 'the value is not valid JSON'],
+      ['{"env":"test"}', 'the value must be a JSON array'],
+      ['[{"name":"x"}]', 'each entry must have an env'],
+      ['[{"env":"test","url":"ftp://x"}]', 'url must be an http or https URL'],
+      [
+        '[{"env":"test"},{"env":"production","name":"test"}]',
+        'the instance name test is used more than once',
+      ],
+    ])('rejects %s', (annotation, reason) => {
+      const { instances, errors } = parse(annotation);
+      expect(instances).toBeUndefined();
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain(
+        'Catalog component api in catalog-info.yaml has an invalid playbook.io.nrs.gov.bc.ca/instances annotation',
+      );
+      expect(errors[0]).toContain(reason);
+    });
+  });
 });

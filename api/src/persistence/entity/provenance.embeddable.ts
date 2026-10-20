@@ -1,5 +1,5 @@
 import { Embeddable, Property } from '@mikro-orm/decorators/legacy';
-import { CollectionSource, ProvenanceType } from '../dto/provenance.dto';
+import { ProvenanceType } from '../dto/provenance.dto';
 
 /**
  * Records a source that created or updated a vertex or edge. An item can have
@@ -41,32 +41,48 @@ export class ProvenanceEmbeddable {
   }
 
   static manual(): ProvenanceEmbeddable {
-    return new ProvenanceEmbeddable('manual');
+    return new ProvenanceEmbeddable(ProvenanceType.MANUAL);
   }
 
   static intention(): ProvenanceEmbeddable {
-    return new ProvenanceEmbeddable('intention');
+    return new ProvenanceEmbeddable(ProvenanceType.INTENTION);
   }
 
   static opensearch(): ProvenanceEmbeddable {
-    return new ProvenanceEmbeddable('opensearch');
+    return new ProvenanceEmbeddable(ProvenanceType.OPENSEARCH);
   }
 
   static catalog(repository: string, path: string): ProvenanceEmbeddable {
-    return new ProvenanceEmbeddable('catalog', repository, path);
+    return new ProvenanceEmbeddable(ProvenanceType.CATALOG, repository, path);
   }
 
   /**
    * Merge a record into a list of records. A matching record has its update
-   * time refreshed; otherwise the record is appended.
+   * time refreshed; otherwise the record is appended. With `overwrite`, all
+   * records of the same type are replaced by the record (for example, a new
+   * catalog repository and path), keeping the earliest creation time.
    */
   static merge(
     records: ProvenanceEmbeddable[] | undefined,
     record: ProvenanceEmbeddable,
+    overwrite = false,
   ): ProvenanceEmbeddable[] {
     const merged = (records ?? []).map((existing) =>
       ProvenanceEmbeddable.fromObject(existing),
     );
+    if (overwrite) {
+      const sameType = merged.filter((existing) => existing.type === record.type);
+      const replacement = ProvenanceEmbeddable.fromObject(record);
+      replacement.createdAt = sameType.reduce(
+        (earliest, existing) =>
+          existing.createdAt < earliest ? existing.createdAt : earliest,
+        replacement.createdAt,
+      );
+      return [
+        ...merged.filter((existing) => existing.type !== record.type),
+        replacement,
+      ];
+    }
     const match = merged.find((existing) => existing.matches(record));
     if (match) {
       match.updatedAt = record.updatedAt;
@@ -93,14 +109,6 @@ export class ProvenanceEmbeddable {
   }
 
   /**
-   * The collection source flag for this record. Manual records do not set
-   * a source.
-   */
-  get source(): CollectionSource | null {
-    return this.type === 'manual' ? null : this.type;
-  }
-
-  /**
    * Catalog records also require a matching repository and path.
    */
   matches(
@@ -109,7 +117,7 @@ export class ProvenanceEmbeddable {
     if (this.type !== other.type) {
       return false;
     }
-    if (this.type !== 'catalog') {
+    if (this.type !== ProvenanceType.CATALOG) {
       return true;
     }
     return this.repository === other.repository && this.path === other.path;

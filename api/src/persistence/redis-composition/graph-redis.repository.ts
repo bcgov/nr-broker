@@ -49,7 +49,7 @@ import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
-import { ProvenanceEmbeddable } from '../entity/provenance.embeddable';
+import { ProvenanceInfo } from '../provenance-info';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -115,7 +115,7 @@ export class GraphRedisRepository implements GraphRepository {
 
   public async addEdge(
     edge: EdgeInsertDto,
-    provenance: ProvenanceEmbeddable,
+    provenance: ProvenanceInfo,
   ): Promise<EdgeEntity> {
     const returnVal = await this.repo.addEdge(edge, provenance);
     this.invalidateCache();
@@ -125,7 +125,7 @@ export class GraphRedisRepository implements GraphRepository {
   public async editEdge(
     id: string,
     edge: EdgeInsertDto,
-    provenance?: ProvenanceEmbeddable,
+    provenance?: ProvenanceInfo,
   ): Promise<EdgeEntity> {
     const returnVal = await this.repo.editEdge(id, edge, provenance);
     this.invalidateCache();
@@ -180,7 +180,7 @@ export class GraphRedisRepository implements GraphRepository {
       | ServiceEntity
       | TeamEntity
       | UserEntity,
-    provenance: ProvenanceEmbeddable,
+    provenance: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const returnVal = await this.repo.addVertex(vertex, collection, provenance);
     this.upsertVertexTypeaheadIndex(returnVal);
@@ -200,7 +200,7 @@ export class GraphRedisRepository implements GraphRepository {
       | TeamEntity
       | UserEntity,
     ignoreBlankFields?: boolean,
-    provenance?: ProvenanceEmbeddable,
+    provenance?: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const returnVal = await this.repo.editVertex(
       id,

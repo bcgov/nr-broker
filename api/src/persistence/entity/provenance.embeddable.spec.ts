@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ProvenanceEmbeddable } from './provenance.embeddable';
+import { ProvenanceType } from '../dto/provenance.dto';
 
 describe('ProvenanceEmbeddable', () => {
   const repo = 'https://github.com/org/repo';
@@ -19,10 +20,8 @@ describe('ProvenanceEmbeddable', () => {
     expect(ProvenanceEmbeddable.intention().matches(ProvenanceEmbeddable.opensearch())).toBe(false);
   });
 
-  it('maps manual to no source', () => {
-    expect(ProvenanceEmbeddable.manual().source).toBeNull();
-    expect(ProvenanceEmbeddable.opensearch().source).toBe('opensearch');
-    expect(ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml').source).toBe('catalog');
+  it('records manual provenance with an explicit type', () => {
+    expect(ProvenanceEmbeddable.manual().type).toBe(ProvenanceType.MANUAL);
   });
 
   it('merges matching records and appends others', () => {
@@ -41,5 +40,24 @@ describe('ProvenanceEmbeddable', () => {
     const appended = ProvenanceEmbeddable.merge(merged, ProvenanceEmbeddable.intention());
     expect(appended.map((record) => record.type)).toEqual(['manual', 'catalog', 'intention']);
     expect(ProvenanceEmbeddable.merge(undefined, update)).toHaveLength(1);
+  });
+
+  it('replaces records of the same type when overwriting', () => {
+    const created = new Date('2020-01-01');
+    const existing = [
+      { type: 'manual', createdAt: created, updatedAt: created },
+      { type: 'catalog', repository: repo, path: 'catalog-info.yaml', createdAt: created, updatedAt: created },
+    ] as ProvenanceEmbeddable[];
+
+    const moved = ProvenanceEmbeddable.catalog('https://github.com/org/moved', 'app/catalog-info.yaml');
+    const merged = ProvenanceEmbeddable.merge(existing, moved, true);
+    expect(merged).toHaveLength(2);
+    expect(merged[0].type).toBe('manual');
+    expect(merged[1]).toMatchObject({
+      repository: 'https://github.com/org/moved',
+      path: 'app/catalog-info.yaml',
+      createdAt: created,
+      updatedAt: moved.updatedAt,
+    });
   });
 });

@@ -21,7 +21,7 @@ import { interval, merge, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { GraphService } from './graph.service';
-import { GraphSyncService } from './graph-sync/graph-sync.service';
+import { OpensearchSyncService } from './sync/opensearch-sync.service';
 import { RedisService } from '../redis/redis.service';
 import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { Roles } from '../roles.decorator';
@@ -52,7 +52,7 @@ import { CollectionWatchArrayDto } from '../persistence/dto/collection-watch.dto
 export class GraphController {
   constructor(
     private readonly graph: GraphService,
-    private readonly graphSync: GraphSyncService,
+    private readonly graphSync: OpensearchSyncService,
     private readonly redis: RedisService,
   ) {}
 

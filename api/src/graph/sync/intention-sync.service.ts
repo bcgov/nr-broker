@@ -4,23 +4,23 @@ import { dset } from 'dset';
 import deepEqual from 'deep-equal';
 import { plainToClass } from 'class-transformer';
 
-import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../constants';
-import { IntentionEntity } from '../intention/entity/intention.entity';
-import { CollectionNames } from '../persistence/dto/collection-dto-union.type';
-import { VertexEntity } from '../persistence/entity/vertex.entity';
-import { PersistenceUtilService } from '../persistence/persistence-util.service';
-import { GraphService } from './graph.service';
-import { GraphRepository } from '../persistence/interfaces/graph.repository';
-import { EdgePropDto } from '../persistence/dto/edge-prop.dto';
-import { ActionUtil } from '../util/action.util';
-import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { IntentionActionPointerEmbeddable } from '../persistence/entity/intention-action-pointer.embeddable';
-import { BuildRepository } from '../persistence/interfaces/build.repository';
-import { BrokerAccountEntity } from '../persistence/entity/broker-account.entity';
-import { IntentionRepository } from '../persistence/interfaces/intention.repository';
-import { ActionEmbeddable } from '../intention/entity/action.embeddable';
-import { VertexInsertDto } from '../persistence/dto/vertex.dto';
-import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
+import { INTENTION_SERVICE_INSTANCE_SEARCH_PATHS } from '../../constants';
+import { IntentionEntity } from '../../intention/entity/intention.entity';
+import { CollectionNames } from '../../persistence/dto/collection-dto-union.type';
+import { VertexEntity } from '../../persistence/entity/vertex.entity';
+import { PersistenceUtilService } from '../../persistence/persistence-util.service';
+import { GraphService } from '../graph.service';
+import { GraphRepository } from '../../persistence/interfaces/graph.repository';
+import { EdgePropDto } from '../../persistence/dto/edge-prop.dto';
+import { ActionUtil } from '../../util/action.util';
+import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
+import { IntentionActionPointerEmbeddable } from '../../persistence/entity/intention-action-pointer.embeddable';
+import { BuildRepository } from '../../persistence/interfaces/build.repository';
+import { BrokerAccountEntity } from '../../persistence/entity/broker-account.entity';
+import { IntentionRepository } from '../../persistence/interfaces/intention.repository';
+import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
+import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
+import { ProvenanceInfo } from '../../persistence/provenance-info';
 
 interface OverlayMapBase {
   key: string;
@@ -502,7 +502,7 @@ export class IntentionSyncService {
       }),
       targetBy,
       target,
-      ProvenanceEmbeddable.intention(),
+      ProvenanceInfo.intention(),
     );
   }
 
@@ -573,7 +573,7 @@ export class IntentionSyncService {
             target,
             prop: saveProps,
           },
-          ProvenanceEmbeddable.intention(),
+          ProvenanceInfo.intention(),
         );
         this.logger.debug(
           `Updated '${name}' edge properties from vertex ${source} to ${target}`,
@@ -596,7 +596,7 @@ export class IntentionSyncService {
           target,
           ...(prop ? { prop } : {}),
         },
-        ProvenanceEmbeddable.intention(),
+        ProvenanceInfo.intention(),
       );
       this.logger.debug(
         `Created '${name}' edge from vertex ${source} to ${target}`,
