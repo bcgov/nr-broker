@@ -10,6 +10,9 @@ import { AwsModule } from '../aws/aws.module';
 import { BullModule } from '../bull/bull.module';
 import { IntentionSyncService } from './sync/intention-sync.service';
 import { OpensearchSyncService } from './sync/opensearch-sync.service';
+import { CatalogAdoptionService } from './sync/catalog-adoption.service';
+import { CatalogGraphSyncService } from './sync/catalog-graph-sync.service';
+import { CatalogInstanceSyncService } from './sync/catalog-instance-sync.service';
 import { CatalogSyncService } from './sync/catalog-sync.service';
 
 /**
@@ -30,6 +33,9 @@ import { CatalogSyncService } from './sync/catalog-sync.service';
     GraphService,
     IntentionSyncService,
     OpensearchSyncService,
+    CatalogAdoptionService,
+    CatalogGraphSyncService,
+    CatalogInstanceSyncService,
     CatalogSyncService,
   ],
   exports: [GraphService, IntentionSyncService, CatalogSyncService],

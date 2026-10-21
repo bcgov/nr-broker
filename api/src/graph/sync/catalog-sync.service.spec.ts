@@ -3,6 +3,9 @@ import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogSyncService } from './catalog-sync.service';
 import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
 import { GraphService } from '../graph.service';
+import { CatalogAdoptionService } from './catalog-adoption.service';
+import { CatalogGraphSyncService } from './catalog-graph-sync.service';
+import { CatalogInstanceSyncService } from './catalog-instance-sync.service';
 
 describe('CatalogSyncService', () => {
   const repository = {
@@ -45,7 +48,7 @@ describe('CatalogSyncService', () => {
       call[1].target,
     ]);
 
-  let auditService: { recordToolsSync: ReturnType<typeof vi.fn> };
+  let auditService: { recordGitHubCatalogSync: ReturnType<typeof vi.fn> };
   let collectionRepository: {
     getCollectionByKeyValue: ReturnType<typeof vi.fn>;
     getCollectionByVertexId: ReturnType<typeof vi.fn>;
@@ -69,7 +72,7 @@ describe('CatalogSyncService', () => {
   let service: CatalogSyncService;
 
   beforeEach(() => {
-    auditService = { recordToolsSync: vi.fn() };
+    auditService = { recordGitHubCatalogSync: vi.fn() };
     collectionRepository = {
       getCollectionByKeyValue: vi.fn().mockResolvedValue(null),
       getCollectionByVertexId: vi.fn().mockResolvedValue({ id: 'svc-id' }),
@@ -103,18 +106,29 @@ describe('CatalogSyncService', () => {
         prod: { vertex: { toString: () => 'env-prod' } },
       }),
     };
-    service = new CatalogSyncService(
+    const graphSyncService = new CatalogGraphSyncService(
       auditService as any,
       collectionRepository as any,
       graphService as any,
       graphRepository as any,
+    );
+    service = new CatalogSyncService(
+      auditService as any,
       persistenceUtilService as any,
+      new CatalogAdoptionService(graphRepository as any),
+      graphSyncService,
+      new CatalogInstanceSyncService(
+        auditService as any,
+        graphRepository as any,
+        graphService as any,
+        graphSyncService,
+      ),
     );
   });
 
   it('does nothing when there are no components', async () => {
     await service.syncRepository(repository, []);
-    expect(auditService.recordToolsSync).not.toHaveBeenCalled();
+    expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalled();
     expect(collectionRepository.getCollectionByKeyValue).not.toHaveBeenCalled();
   });
 
@@ -155,10 +169,14 @@ describe('CatalogSyncService', () => {
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
     ]);
-    expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
       'End catalog sync: https://github.com/org/repo',
+      {
+        repository: 'repo',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
     );
   });
 
@@ -247,6 +265,48 @@ describe('CatalogSyncService', () => {
       ['component', 'project-vertex', 'service'],
       ['source', 'service', 'repo-vertex'],
     ]);
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'info',
+      'unknown',
+      'Catalog https://github.com/org/repo:catalog-info.yaml does not manage project project-vertex; linking without update',
+      {
+        repositoryUrl: repository.scmUrl,
+        catalogPath: 'catalog-info.yaml',
+      },
+    );
+  });
+
+  it('audits a failed update before linking the existing vertex', async () => {
+    graphRepository.getVertexByName.mockImplementation(async (collection) =>
+      collection === 'project'
+        ? vertex('project-vertex', {
+            name: 'sys',
+            provenance: [
+              ProvenanceEmbeddable.catalog(
+                repository.scmUrl,
+                'catalog-info.yaml',
+              ),
+            ],
+          })
+        : null,
+    );
+    graphService.editVertex.mockRejectedValue(new Error('write unavailable'));
+
+    await service.syncRepository(repository, [
+      component('catalog-info.yaml', 'api', 'sys'),
+    ]);
+
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'info',
+      'failure',
+      'Catalog update failed for project sys; linking without update: write unavailable',
+      expect.objectContaining({
+        repositoryUrl: repository.scmUrl,
+        catalogPath: 'catalog-info.yaml',
+        failure: expect.any(Error),
+      }),
+    );
+    expect(edges()).toContainEqual(['component', 'project-vertex', 'service']);
   });
 
   it('updates a project managed by the same catalog file', async () => {
@@ -316,10 +376,14 @@ describe('CatalogSyncService', () => {
       ['instance', 'service', 'serviceInstance'],
       ['deploy-type', 'serviceInstance', 'env-prod'],
     ]);
-    expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
       'End catalog sync: https://github.com/org/repo',
+      {
+        repository: 'repo',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
     );
   });
 
@@ -362,6 +426,15 @@ describe('CatalogSyncService', () => {
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
     ]);
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'info',
+      'unknown',
+      'Catalog https://github.com/org/repo:catalog-info.yaml does not manage instance other of service; skipping',
+      {
+        repositoryUrl: repository.scmUrl,
+        catalogPath: 'catalog-info.yaml',
+      },
+    );
   });
 
   it('records a failure for unknown environments and syncs other instances', async () => {
@@ -377,10 +450,14 @@ describe('CatalogSyncService', () => {
         .filter((call) => call[1].collection === 'serviceInstance')
         .map((call) => call[1].data.name),
     ).toEqual(['production']);
-    expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
       'End catalog sync: https://github.com/org/repo',
+      {
+        repository: 'repo',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
     );
   });
 
@@ -399,10 +476,14 @@ describe('CatalogSyncService', () => {
     expect(
       graphService.addEdge.mock.calls.some((call) => call[1].name === 'deploy-type'),
     ).toBe(false);
-    expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
       'End catalog sync: https://github.com/org/repo',
+      {
+        repository: 'repo',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
     );
   });
 
@@ -424,10 +505,14 @@ describe('CatalogSyncService', () => {
         .filter((call) => call[1].collection === 'service')
         .map((call) => call[1].data.name),
     ).toEqual(['a', 'b']);
-    expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
       'End catalog sync: https://github.com/org/repo',
+      {
+        repository: 'repo',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
     );
   });
   describe('adoption', () => {
@@ -528,10 +613,14 @@ describe('CatalogSyncService', () => {
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
       expect(graphService.addVertex).not.toHaveBeenCalled();
       expect(graphService.addEdge).not.toHaveBeenCalled();
-      expect(auditService.recordToolsSync).toHaveBeenLastCalledWith(
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
         'end',
         'success',
         'End catalog sync: https://github.com/org/repo',
+        {
+          repository: 'repo',
+          repositoryUrl: 'https://github.com/org/repo',
+        },
       );
     });
 
