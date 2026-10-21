@@ -1,281 +1,146 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CatalogUtil } from '../util/catalog.util';
+import { describe, expect, it, vi } from 'vitest';
 import { GithubCatalogService } from './github-catalog.service';
 
 describe('GithubCatalogService', () => {
-  let service: GithubCatalogService;
+  const build = () => {
+    const auditService = { recordGitHubCatalogSync: vi.fn() };
+    const bullService = { enqueue: vi.fn(), registerWorker: vi.fn() };
+    const catalogSyncService = { syncRepository: vi.fn() };
+    const githubTokenService = {
+      getOrgInstallationToken: vi.fn().mockResolvedValue('tkn'),
+    };
+    const fileReader = { collectComponents: vi.fn().mockResolvedValue([{ name: 'a' }]) };
+    const orgScanner = { scan: vi.fn(), registerLeaderJob: vi.fn(), enqueueOrgScans: vi.fn() };
+    const collectionRepository = {
+      getCollectionById: vi
+        .fn()
+        .mockResolvedValue({ id: 'r1', scmUrl: 'https://github.com/org/repo' }),
+    };
+    const graphService = { updateSyncStatus: vi.fn() };
+    const service = new GithubCatalogService(
+      auditService as any,
+      bullService as any,
+      catalogSyncService as any,
+      githubTokenService as any,
+      fileReader as any,
+      orgScanner as any,
+      collectionRepository as any,
+      graphService as any,
+    );
+    return {
+      service,
+      auditService,
+      bullService,
+      catalogSyncService,
+      fileReader,
+      orgScanner,
+      collectionRepository,
+      graphService,
+    };
+  };
 
-  beforeEach(() => {
-    service = new GithubCatalogService(
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      new CatalogUtil(),
-      {} as any,
-      {} as any,
+  const repoJob = {
+    type: 'repo' as const,
+    org: 'org',
+    repo: 'repo',
+    htmlUrl: 'https://github.com/org/repo',
+  };
+
+  it('delegates organization jobs to the organization scanner', async () => {
+    const { service, orgScanner } = build();
+
+    await service.processJob({ type: 'org', org: 'example' });
+
+    expect(orgScanner.scan).toHaveBeenCalledWith('example');
+  });
+
+  it('syncs repository components and updates collection sync status', async () => {
+    const { service, graphService, catalogSyncService, fileReader } = build();
+
+    await service.processJob({ ...repoJob, repositoryId: 'r1' });
+
+    expect(fileReader.collectComponents).toHaveBeenCalledWith(
+      { ...repoJob, repositoryId: 'r1' },
+      'tkn',
+    );
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'repo', scmUrl: repoJob.htmlUrl }),
+      [{ name: 'a' }],
+    );
+    expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'r1' }),
+      'syncCatalogStatus',
+      'syncAt',
     );
   });
 
-  describe('collectComponents', () => {
-    it('follows unique root locations one level and ignores nested locations', async () => {
-      const files: Record<string, string> = {
-        'catalog-info.yaml': [
-          'kind: Component',
-          'metadata:',
-          '  name: root',
-          '---',
-          'kind: Location',
-          'spec:',
-          '  targets:',
-          '    - ./catalog-info.yaml',
-          '    - ./api/catalog-info.yaml',
-          '    - ./missing.yaml',
-          '---',
-          'kind: Location',
-          'spec:',
-          '  target: ./api/catalog-info.yaml',
-        ].join('\n'),
-        'api/catalog-info.yaml': 'kind: Component\nmetadata:\n  name: api\nspec:\n  system: sys\n---\nkind: Location\nspec:\n  target: ../nested.yaml\n',
-        'nested.yaml': 'kind: Component\nmetadata:\n  name: nested\n',
-      };
-      const fetchFile = vi
-        .spyOn(service as any, 'fetchFile')
-        .mockImplementation(async (_job, path: string) => files[path] ?? null);
+  it('looks up repositories queued by id', async () => {
+    const { service, graphService, catalogSyncService } = build();
 
-      const components = await (service as any).collectComponents({}, 'tkn');
+    await service.processJob('r1');
 
-      expect(components.map((c: { name: string }) => c.name)).toEqual(['root', 'api']);
-      expect(fetchFile.mock.calls.map((call) => call[1])).toEqual([
-        'catalog-info.yaml',
-        'api/catalog-info.yaml',
-        'missing.yaml',
-      ]);
-    });
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'repo', scmUrl: repoJob.htmlUrl }),
+      [{ name: 'a' }],
+    );
+    expect(graphService.updateSyncStatus).toHaveBeenCalled();
   });
 
-  describe('processJob (org)', () => {
-    const repo = (name: string, pushedAt: string | null, extra: object = {}) => ({
-      name,
-      url: `https://github.com/org/${name}`,
-      description: null,
-      isArchived: false,
-      isDisabled: false,
-      pushedAt,
-      defaultBranchRef: { name: 'main' },
-      catalogFile: { __typename: 'Blob' },
-      ...extra,
+  it('audits and skips repository ids with unmanaged URLs', async () => {
+    const { service, catalogSyncService, collectionRepository, auditService } =
+      build();
+    collectionRepository.getCollectionById.mockResolvedValue({
+      id: 'r1',
+      scmUrl: 'https://example.com/org/repo',
     });
 
-    let bullService: { enqueue: ReturnType<typeof vi.fn> };
-    let redisService: { get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
-    let tokenService: { getOrgInstallationToken: ReturnType<typeof vi.fn> };
-    let post: ReturnType<typeof vi.fn>;
+    await service.processJob('r1');
 
-    beforeEach(() => {
-      bullService = { enqueue: vi.fn() };
-      tokenService = { getOrgInstallationToken: vi.fn().mockResolvedValue('tkn') };
-      redisService = { get: vi.fn(), set: vi.fn() };
-      service = new GithubCatalogService(
-        { recordToolsSync: vi.fn() } as any,
-        bullService as any,
-        {} as any,
-        { graphql: (...args: unknown[]) => post(...args) } as any,
-        tokenService as any,
-        redisService as any,
-        new CatalogUtil(),
-        {} as any,
-        {} as any,
-      );
-      post = vi.fn();
-    });
-
-    const enqueuedRepos = () =>
-      bullService.enqueue.mock.calls.map((call) => call[1].repo);
-
-    it('queues only active repositories with a catalog file pushed since the last scan', async () => {
-      redisService.get.mockResolvedValue('2026-01-10T00:00:00.000Z');
-      post.mockResolvedValueOnce({
-        data: {
-          organization: {
-            repositories: {
-              pageInfo: { hasNextPage: true, endCursor: 'c1' },
-              nodes: [
-                repo('new', '2026-01-12T00:00:00Z'),
-                repo('pushed', '2026-01-11T00:00:00Z'),
-                repo('no-catalog', '2026-01-11T00:00:00Z', { catalogFile: null }),
-                repo('tree', '2026-01-11T00:00:00Z', { catalogFile: { __typename: 'Tree' } }),
-                repo('empty', '2026-01-11T00:00:00Z', { defaultBranchRef: null }),
-                repo('archived', '2026-01-11T00:00:00Z', { isArchived: true }),
-                repo('old', '2026-01-09T00:00:00Z'),
-                repo('older', '2026-01-08T00:00:00Z'),
-              ],
-            },
-          },
-        },
-      });
-
-      await service.processJob({ type: 'org', org: 'org' });
-
-      expect(post).toHaveBeenCalledTimes(1);
-      expect(post.mock.calls[0][1]).toEqual({
-        org: 'org',
-        after: null,
-        expression: 'HEAD:catalog-info.yaml',
-      });
-      expect(enqueuedRepos()).toEqual(['new', 'pushed']);
-      expect(bullService.enqueue.mock.calls[0][1]).toMatchObject({
-        type: 'repo',
-        org: 'org',
-        repo: 'new',
-        defaultBranch: 'main',
-        htmlUrl: 'https://github.com/org/new',
-      });
-      expect(redisService.set).toHaveBeenCalledWith(
-        'github-catalog-scan:last-scan:org',
-        expect.any(String),
-      );
-    });
-
-    it('pages through all repositories when there is no previous scan', async () => {
-      redisService.get.mockResolvedValue(null);
-      post
-        .mockResolvedValueOnce({
-          data: {
-            organization: {
-              repositories: {
-                pageInfo: { hasNextPage: true, endCursor: 'c1' },
-                nodes: [repo('a', '2026-01-12T00:00:00Z')],
-              },
-            },
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            organization: {
-              repositories: {
-                pageInfo: { hasNextPage: false, endCursor: 'c2' },
-                nodes: [repo('b', '2020-01-01T00:00:00Z'), repo('empty', null)],
-              },
-            },
-          },
-        });
-
-      await service.processJob({ type: 'org', org: 'org' });
-
-      expect(post).toHaveBeenCalledTimes(2);
-      expect(post.mock.calls[1][1].after).toBe('c1');
-      expect(enqueuedRepos()).toEqual(['a', 'b']);
-    });
-
-    it('does not record the scan time when the query fails', async () => {
-      redisService.get.mockResolvedValue(null);
-      post.mockResolvedValueOnce({ errors: [{ message: 'boom' }] });
-
-      await expect(
-        service.processJob({ type: 'org', org: 'org' }),
-      ).rejects.toThrow('boom');
-      expect(redisService.set).not.toHaveBeenCalled();
-    });
+    expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'info',
+      'unknown',
+      'Skip catalog sync of unmanaged url (r1)',
+      {
+        repositoryId: 'r1',
+        repositoryUrl: 'https://example.com/org/repo',
+      },
+    );
   });
 
-  describe('processJob (repo)', () => {
-    const build = () => {
-      const collectionRepository = {
-        getCollectionById: vi
-          .fn()
-          .mockResolvedValue({ id: 'r1', scmUrl: 'https://github.com/org/repo' }),
-      };
-      const graphService = { updateSyncStatus: vi.fn() };
-      const catalogSyncService = { syncRepository: vi.fn() };
-      const bullService = { enqueue: vi.fn() };
-      const svc = new GithubCatalogService(
-        { recordToolsSync: vi.fn() } as any,
-        bullService as any,
-        catalogSyncService as any,
-        {} as any,
-        { getOrgInstallationToken: vi.fn().mockResolvedValue('tkn') } as any,
-        {} as any,
-        new CatalogUtil(),
-        collectionRepository as any,
-        graphService as any,
-      );
-      vi.spyOn(svc as any, 'collectComponents').mockResolvedValue([{ name: 'a' }]);
-      return { svc, graphService, catalogSyncService, collectionRepository, bullService };
-    };
-    const job = {
-      type: 'repo' as const,
-      org: 'org',
-      repo: 'repo',
-      htmlUrl: 'https://github.com/org/repo',
-    };
+  it('queues a scan only for managed URLs', async () => {
+    const { service, bullService } = build();
 
-    it('records sync status when queued by collection sync', async () => {
-      const { svc, graphService, catalogSyncService } = build();
+    expect(await service.enqueueRepoScan(repoJob.htmlUrl)).toBe(true);
+    expect(bullService.enqueue).toHaveBeenCalledWith(
+      'github-catalog-scan',
+      expect.objectContaining({ type: 'repo', org: 'org', repo: 'repo' }),
+      expect.objectContaining({ jobId: 'repo-org-repo' }),
+    );
 
-      await svc.processJob({ ...job, repositoryId: 'r1' });
+    expect(await service.enqueueRepoScan('https://example.com/org/repo')).toBe(
+      false,
+    );
+    expect(bullService.enqueue).toHaveBeenCalledTimes(1);
+  });
 
-      expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'repo', scmUrl: job.htmlUrl }),
-        [{ name: 'a' }],
-      );
-      expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'r1' }),
-        'syncCatalogStatus',
-        'syncAt',
-      );
-    });
+  it('does not record sync status for scheduled repository scans', async () => {
+    const { service, graphService } = build();
 
-    it('looks up the repository when the job is an id', async () => {
-      const { svc, graphService, catalogSyncService } = build();
+    await service.processJob(repoJob);
 
-      await svc.processJob('r1');
+    expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
+  });
 
-      expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'repo', scmUrl: job.htmlUrl }),
-        [{ name: 'a' }],
-      );
-      expect(graphService.updateSyncStatus).toHaveBeenCalled();
-    });
+  it('registers the org scanner leader job when enabled', () => {
+    const { service, orgScanner } = build();
+    vi.spyOn(service, 'isEnabled').mockReturnValue(true);
+    vi.spyOn(service, 'isSyncEnabled').mockReturnValue(true);
+    const bullService = (service as any).bullService;
 
-    it('skips repository ids with unmanaged urls', async () => {
-      const { svc, catalogSyncService, collectionRepository } = build();
-      collectionRepository.getCollectionById.mockResolvedValue({
-        id: 'r1',
-        scmUrl: 'https://example.com/org/repo',
-      });
+    service.onModuleInit();
 
-      await svc.processJob('r1');
-
-      expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
-    });
-
-    it('queues a scan for a managed url', async () => {
-      const { svc, bullService } = build();
-
-      expect(await svc.enqueueRepoScan('https://github.com/org/repo')).toBe(true);
-      expect(bullService.enqueue).toHaveBeenCalledWith(
-        'github-catalog-scan',
-        expect.objectContaining({ type: 'repo', org: 'org', repo: 'repo' }),
-        expect.objectContaining({ jobId: 'repo-org-repo' }),
-      );
-    });
-
-    it('does not queue a scan for an unmanaged url', async () => {
-      const { svc, bullService } = build();
-
-      expect(await svc.enqueueRepoScan('https://example.com/org/repo')).toBe(false);
-      expect(bullService.enqueue).not.toHaveBeenCalled();
-    });
-
-    it('does not record sync status for scheduled scans', async () => {
-      const { svc, graphService } = build();
-
-      await svc.processJob(job);
-
-      expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
-    });
+    expect(orgScanner.registerLeaderJob).toHaveBeenCalled();
+    expect(bullService.registerWorker).toHaveBeenCalled();
   });
 });
