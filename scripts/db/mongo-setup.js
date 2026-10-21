@@ -627,7 +627,7 @@ result = db.collectionConfig.insertOne({
       role: 'admin',
       label: 'Admin',
       description:
-        'Recommended for people who need full access to the project, including sensitive and destructive actions like managing security or deleting a repository.',
+        'Provides full access to the project, including sensitive and destructive actions like managing security or deleting a repository.',
       url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
     },
     {
@@ -635,7 +635,7 @@ result = db.collectionConfig.insertOne({
       role: 'maintain',
       label: 'Maintain',
       description:
-        'Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.',
+        'Manage the code repository without access to sensitive or destructive actions.',
       url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
     },
     {
@@ -643,7 +643,7 @@ result = db.collectionConfig.insertOne({
       role: 'write',
       label: 'Write',
       description:
-        'Recommended for contributors who need to write access to the repository, including pushing code, creating branches, and opening issues and pull requests.',
+        'Write access to the repository, pushing code, create branches, and opening issues and pull requests.',
       url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
     },
     {
@@ -651,14 +651,14 @@ result = db.collectionConfig.insertOne({
       role: 'triage',
       label: 'Triage',
       description:
-        'Recommended for contributors who need to proactively manage issues, discussions, and pull requests without write access',
+        'Manage issues, discussions, and pull requests without write access.',
       url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
     },
     {
       role: 'read',
       label: 'Read',
       description:
-        'Recommended for people who only need read access to the repository, such as stakeholders or observers.',
+        'Provides read access to the repository, such as stakeholders or observers.',
       url: 'https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization',
     },
   ],
@@ -670,7 +670,7 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
       title: 'Owner',
-      help: 'A non-technical role responsible for managing team membership, and assigning roles.',
+      help: 'A team coordinator who maintains membership and assigns roles in the Broker team.',
     },
     {
       id: 'df74a9fc',
@@ -706,7 +706,7 @@ result = db.collectionConfig.insertOne({
       relation: 'oneToMany',
       show: true,
       title: 'Tester',
-      help: 'A non-developer role focused on managing issues, participating in discussions, and reviewing deployment outcomes to ensure quality.',
+      help: 'A quality-focused collaborator who reviews deployment outcomes without making direct code or secrets changes.',
     },
     {
       id: 'cb02f9b',
@@ -962,7 +962,7 @@ result = db.collectionConfig.insertOne({
     },
     email: {
       name: 'Email',
-      required: true,
+      required: false,
       type: 'email',
       hint: 'The email address to contact the team at',
       mask: {
@@ -974,6 +974,15 @@ result = db.collectionConfig.insertOne({
       required: false,
       type: 'url',
       hint: 'The team website address',
+      mask: {
+        update: true,
+      },
+    },
+    description: {
+      name: 'Description',
+      required: false,
+      type: 'string',
+      hint: 'A short description of the team',
       mask: {
         update: true,
       },

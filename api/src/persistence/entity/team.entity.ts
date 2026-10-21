@@ -20,8 +20,8 @@ export class TeamEntity extends VertexPointerEntity {
   @SerializedPrimaryKey()
   id!: string; // won't be saved in the database
 
-  @Property()
-  email: string;
+  @Property({ nullable: true })
+  email?: string;
 
   @Property()
   @Index({ options: { collation: { locale: COLLECTION_COLLATION_LOCALE } } })
@@ -29,4 +29,7 @@ export class TeamEntity extends VertexPointerEntity {
 
   @Property({ nullable: true })
   website?: string;
+
+  @Property({ nullable: true })
+  description?: string;
 }
