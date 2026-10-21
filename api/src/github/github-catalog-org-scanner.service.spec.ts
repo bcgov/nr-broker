@@ -123,6 +123,33 @@ describe('GithubCatalogOrgScanner', () => {
     );
   });
 
+  it('skips repositories without default branch commits since the last scan', async () => {
+    redisService.get.mockResolvedValue('2026-01-10T00:00:00.000Z');
+    githubService.graphql.mockResolvedValue({
+      data: {
+        organization: {
+          repositories: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [
+              repository('changed', '2026-01-12T00:00:00Z'),
+              repository('unchanged', '2026-01-11T00:00:00Z', {
+                defaultBranchRef: {
+                  name: 'main',
+                  target: { branchHistory: { totalCount: 0 } },
+                },
+              }),
+            ],
+          },
+        },
+      },
+    });
+
+    await scanner.scan('org');
+
+    expect(githubService.graphql.mock.calls[0][1].hasSince).toBe(true);
+    expect(enqueuedRepos()).toEqual(['changed']);
+  });
+
   it('continues paging when no previous scan exists', async () => {
     redisService.get.mockResolvedValue(null);
     githubService.graphql
@@ -131,7 +158,11 @@ describe('GithubCatalogOrgScanner', () => {
           organization: {
             repositories: {
               pageInfo: { hasNextPage: true, endCursor: 'cursor-1' },
-              nodes: [repository('a', '2026-01-12T00:00:00Z')],
+              nodes: [
+                repository('a', '2026-01-12T00:00:00Z', {
+                  defaultBranchRef: { name: 'main', target: null },
+                }),
+              ],
             },
           },
         },
@@ -151,6 +182,7 @@ describe('GithubCatalogOrgScanner', () => {
 
     expect(githubService.graphql).toHaveBeenCalledTimes(2);
     expect(githubService.graphql.mock.calls[1][1].after).toBe('cursor-1');
+    expect(githubService.graphql.mock.calls[0][1].hasSince).toBe(false);
     expect(enqueuedRepos()).toEqual(['a', 'b']);
   });
 

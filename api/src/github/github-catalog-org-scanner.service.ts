@@ -44,6 +44,7 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
     $after: String
     $expression: String!
     $since: GitTimestamp
+    $hasSince: Boolean!
   ) {
     organization(login: $org) {
       repositories(
@@ -64,7 +65,8 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
           pushedAt
           defaultBranchRef {
             name
-            target {
+            # Counting unbounded history is expensive and can time out (502)
+            target @include(if: $hasSince) {
               ... on Commit {
                 branchHistory: history(first: 1, since: $since) {
                   totalCount
@@ -129,6 +131,13 @@ export class GithubCatalogOrgScanner {
     let hasNextPage = true;
     let count = 0;
 
+    this.auditService.recordGitHubCatalogSync(
+      'start',
+      'unknown',
+      `Starting catalog scan for ${org}`,
+      { organization: org, lastScan },
+    );
+
     while (hasNextPage) {
       const page = await this.queryRepositories(org, after, lastScan, token);
       for (const repo of page.nodes) {
@@ -144,7 +153,8 @@ export class GithubCatalogOrgScanner {
           repo.isDisabled ||
           !repo.defaultBranchRef ||
           repo.catalogFile?.__typename !== 'Blob' ||
-          !repo.defaultBranchRef.target?.branchHistory?.totalCount
+          (lastScan &&
+            !repo.defaultBranchRef.target?.branchHistory?.totalCount)
         ) {
           continue;
         }
@@ -197,6 +207,7 @@ export class GithubCatalogOrgScanner {
         after,
         expression: `HEAD:${GITHUB_CATALOG_ROOT_FILE}`,
         since,
+        hasSince: since !== null,
       },
       token,
     );
