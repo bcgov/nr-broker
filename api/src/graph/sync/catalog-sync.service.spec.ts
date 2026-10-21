@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CatalogComponentEntity } from '../../catalog/catalog-component.entity';
+import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogSyncService } from './catalog-sync.service';
 import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
 import { GraphService } from '../graph.service';
@@ -22,9 +22,9 @@ describe('CatalogSyncService', () => {
     path: string,
     name: string,
     system?: string,
-    instances?: CatalogComponentEntity['instances'],
+    instances?: CatalogComponent['instances'],
   ) =>
-    new CatalogComponentEntity(
+    new CatalogComponent(
       path,
       name,
       system,
@@ -120,7 +120,7 @@ describe('CatalogSyncService', () => {
 
   it('sets owner and filtered tags on the service', async () => {
     await service.syncRepository(repository, [
-      new CatalogComponentEntity(
+      new CatalogComponent(
         'catalog-info.yaml',
         'api',
         'sys',
@@ -142,8 +142,8 @@ describe('CatalogSyncService', () => {
 
   it('creates the repository, project, service and edges', async () => {
     await service.syncRepository(repository, [
-      new CatalogComponentEntity('catalog-info.yaml', 'api', 'sys', 'API'),
-      new CatalogComponentEntity('catalog-info.yaml', 'no-system'),
+      new CatalogComponent('catalog-info.yaml', 'api', 'sys', 'API'),
+      new CatalogComponent('catalog-info.yaml', 'no-system'),
     ]);
 
     expect(addedCollections()).toEqual(['repository', 'project', 'service']);

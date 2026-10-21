@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { CatalogUtil } from '../util/catalog.util';
 import { CatalogEntity, CatalogEntityType } from './catalog-entity';
-import { CatalogComponentEntity } from './catalog-component.entity';
-import { CatalogLocationEntity } from './catalog-location.entity';
+import { CatalogComponent } from './catalog-component';
+import { CatalogLocationEntity } from './catalog-location';
 
 describe('CatalogEntity', () => {
   const catalogUtil = new CatalogUtil();
   const allTypes: CatalogEntityType<
-    CatalogComponentEntity | CatalogLocationEntity
-  >[] = [CatalogComponentEntity, CatalogLocationEntity];
+    CatalogComponent | CatalogLocationEntity
+  >[] = [CatalogComponent, CatalogLocationEntity];
 
   describe('parseCatalogEntities', () => {
     it('parses a component entity', () => {
@@ -31,7 +31,7 @@ describe('CatalogEntity', () => {
         catalogUtil,
       );
       expect(entities).toEqual([
-        new CatalogComponentEntity(
+        new CatalogComponent(
           'catalog-info.yaml',
           'artist-web',
           'artist',
@@ -84,11 +84,11 @@ describe('CatalogEntity', () => {
       const entities = CatalogEntity.parseCatalogEntities(
         'api/catalog-info.yaml',
         'kind: Location\nspec:\n  target: ../x.yaml\n---\nkind: Component\nmetadata:\n  name: api\n',
-        [CatalogComponentEntity],
+        [CatalogComponent],
         catalogUtil,
       );
       expect(entities).toEqual([
-        new CatalogComponentEntity('api/catalog-info.yaml', 'api'),
+        new CatalogComponent('api/catalog-info.yaml', 'api'),
       ]);
     });
 
@@ -121,7 +121,7 @@ describe('CatalogEntity', () => {
           '  annotations:',
           `    playbook.io.nrs.gov.bc.ca/instances: '${annotation}'`,
         ].join('\n'),
-        [CatalogComponentEntity],
+        [CatalogComponent],
         catalogUtil,
         onError,
       );
@@ -135,7 +135,7 @@ describe('CatalogEntity', () => {
       const [entity] = CatalogEntity.parseCatalogEntities(
         'catalog-info.yaml',
         'kind: Component\nmetadata:\n  name: api\n',
-        [CatalogComponentEntity],
+        [CatalogComponent],
         catalogUtil,
       );
       expect(entity.instances).toBeUndefined();

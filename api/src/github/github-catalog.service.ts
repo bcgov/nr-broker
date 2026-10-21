@@ -21,8 +21,8 @@ import { GithubService } from './github.service';
 import { GithubTokenService } from './github-token.service';
 import { CatalogUtil } from '../util/catalog.util';
 import { CatalogEntity, CatalogEntityType } from '../catalog/catalog-entity';
-import { CatalogComponentEntity } from '../catalog/catalog-component.entity';
-import { CatalogLocationEntity } from '../catalog/catalog-location.entity';
+import { CatalogComponent } from '../catalog/catalog-component';
+import { CatalogLocationEntity } from '../catalog/catalog-location';
 
 export interface CatalogOrgScanJob {
   type: 'org';
@@ -355,23 +355,23 @@ export class GithubCatalogService implements OnModuleInit {
   private async collectComponents(
     job: CatalogRepoScanJob,
     token: string,
-  ): Promise<CatalogComponentEntity[]> {
+  ): Promise<CatalogComponent[]> {
     const rootEntities = await this.readCatalogFile<
-      CatalogComponentEntity | CatalogLocationEntity
+      CatalogComponent | CatalogLocationEntity
     >(
       job,
       GITHUB_CATALOG_ROOT_FILE,
       token,
-      [CatalogComponentEntity, CatalogLocationEntity],
+      [CatalogComponent, CatalogLocationEntity],
     );
     if (rootEntities === null) {
       return [];
     }
 
-    const components: CatalogComponentEntity[] = [];
+    const components: CatalogComponent[] = [];
     const locationPaths = new Set<string>();
     for (const entity of rootEntities) {
-      if (entity instanceof CatalogComponentEntity) {
+      if (entity instanceof CatalogComponent) {
         components.push(entity);
       } else if (entity instanceof CatalogLocationEntity) {
         entity.targets.forEach((target) => locationPaths.add(target));
@@ -381,7 +381,7 @@ export class GithubCatalogService implements OnModuleInit {
 
     for (const path of locationPaths) {
       const entities = await this.readCatalogFile(job, path, token, [
-        CatalogComponentEntity,
+        CatalogComponent,
       ]);
       if (entities === null) {
         this.logger.warn(

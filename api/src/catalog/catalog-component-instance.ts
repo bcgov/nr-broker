@@ -1,77 +1,27 @@
 import { CATALOG_ANNOTATION_INSTANCES } from '../constants';
-import { CatalogUtil } from '../util/catalog.util';
-import { CatalogEntity } from './catalog-entity';
 import { CatalogEntityParseError } from './catalog-entity-parse.error';
 
 /**
  * A service instance declared in the instances annotation of a component.
  */
-export interface CatalogInstance {
-  env: string;
-  name: string;
-  url?: string;
-}
+export class CatalogComponentInstance {
+  readonly env: string;
+  readonly name: string;
+  readonly url?: string;
 
-/**
- * A Backstage `Component` entity declared in a catalog file.
- */
-export class CatalogComponentEntity extends CatalogEntity {
-  static readonly kind = 'Component';
-
-  constructor(
-    path: string,
-    readonly name: string,
-    readonly system?: string,
-    readonly title?: string,
-    readonly description?: string,
-    readonly lifecycle?: string,
-    readonly type?: string,
-    readonly tags?: string[],
-    readonly owner?: string,
-    readonly instances?: CatalogInstance[],
-  ) {
-    super(path);
-  }
-
-  static fromJson(
-    path: string,
-    json: any,
-    catalogUtil: CatalogUtil,
-  ): CatalogComponentEntity {
-    const name = catalogUtil.asString(json.metadata?.name);
-    if (!name) {
-      throw new CatalogEntityParseError(
-        `Catalog component in ${path} has no name`,
-      );
+  constructor(env: string, name: string, url?: string) {
+    this.env = env;
+    this.name = name;
+    if (url !== undefined) {
+      this.url = url;
     }
-    return new CatalogComponentEntity(
-      path,
-      name,
-      catalogUtil.asString(json.spec?.system),
-      catalogUtil.asString(json.metadata?.title),
-      catalogUtil.asString(json.metadata?.description),
-      catalogUtil.asString(json.spec?.lifecycle),
-      catalogUtil.asString(json.spec?.type),
-      catalogUtil.asStringArray(json.metadata?.tags),
-      catalogUtil.asString(json.spec?.owner),
-      CatalogComponentEntity.parseInstances(
-        path,
-        name,
-        json.metadata?.annotations?.[CATALOG_ANNOTATION_INSTANCES],
-      ),
-    );
   }
 
-  /**
-   * Parse the instances annotation: a JSON array of `{ env, name?, url? }`.
-   * The name defaults to the environment. A missing annotation returns
-   * undefined so existing instances are left alone.
-   */
-  private static parseInstances(
+  static parseAnnotation(
     path: string,
     component: string,
     value: unknown,
-  ): CatalogInstance[] | undefined {
+  ): CatalogComponentInstance[] | undefined {
     if (value === undefined || value === null) {
       return undefined;
     }
@@ -92,7 +42,7 @@ export class CatalogComponentEntity extends CatalogEntity {
       throw fail('the value must be a JSON array');
     }
 
-    const instances: CatalogInstance[] = [];
+    const instances: CatalogComponentInstance[] = [];
     const names = new Set<string>();
     for (const entry of entries) {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
@@ -105,7 +55,7 @@ export class CatalogComponentEntity extends CatalogEntity {
       if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
         throw fail('name must be a non-empty string');
       }
-      if (url !== undefined && !CatalogComponentEntity.isHttpUrl(url)) {
+      if (url !== undefined && !CatalogComponentInstance.isHttpUrl(url)) {
         throw fail('url must be an http or https URL');
       }
       const instanceName = ((name as string | undefined) ?? env).trim();
@@ -115,11 +65,13 @@ export class CatalogComponentEntity extends CatalogEntity {
         );
       }
       names.add(instanceName);
-      instances.push({
-        env: env.trim(),
-        name: instanceName,
-        ...(url !== undefined ? { url: url as string } : {}),
-      });
+      instances.push(
+        new CatalogComponentInstance(
+          env.trim(),
+          instanceName,
+          url as string | undefined,
+        ),
+      );
     }
     return instances;
   }

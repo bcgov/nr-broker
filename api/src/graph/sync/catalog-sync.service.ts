@@ -3,9 +3,9 @@ import { plainToInstance } from 'class-transformer';
 import { shake } from 'radash';
 import { AuditService } from '../../audit/audit.service';
 import {
-  CatalogComponentEntity,
-  CatalogInstance,
-} from '../../catalog/catalog-component.entity';
+  CatalogComponent,
+} from '../../catalog/catalog-component';
+import { CatalogComponentInstance } from '../../catalog/catalog-component-instance';
 import { CatalogRepository } from '../../catalog/catalog-repository';
 import { GITHUB_CATALOG_ROOT_FILE } from '../../constants';
 import { CollectionNames } from '../../persistence/dto/collection-dto-union.type';
@@ -54,7 +54,7 @@ export class CatalogSyncService {
    */
   public async syncRepository(
     repository: CatalogRepository,
-    components: CatalogComponentEntity[],
+    components: CatalogComponent[],
   ): Promise<void> {
     if (components.length === 0) {
       return;
@@ -124,7 +124,7 @@ export class CatalogSyncService {
    */
   private async syncComponent(
     repository: CatalogRepository,
-    component: CatalogComponentEntity,
+    component: CatalogComponent,
     repositoryVertex: VertexEntity,
     envMap: EnvironmentEntityMap,
     adoptable: boolean,
@@ -199,7 +199,7 @@ export class CatalogSyncService {
    */
   private async canAdopt(
     repository: CatalogRepository,
-    components: CatalogComponentEntity[],
+    components: CatalogComponent[],
     repositoryVertex: VertexEntity | null,
   ): Promise<boolean> {
     if (!repositoryVertex) {
@@ -215,7 +215,7 @@ export class CatalogSyncService {
       return false;
     }
 
-    const block = (component: CatalogComponentEntity, reason: string) => {
+    const block = (component: CatalogComponent, reason: string) => {
       this.logger.warn(
         `Catalog ${repository.scmUrl} cannot adopt existing items. Service ${component.name} (${component.path}): ${reason}`,
       );
@@ -381,7 +381,7 @@ export class CatalogSyncService {
    * not changed. All instances are tried before any failure is reported.
    */
   private async syncInstances(
-    instances: CatalogInstance[],
+    instances: CatalogComponentInstance[],
     serviceVertex: VertexEntity,
     envMap: EnvironmentEntityMap,
     provenance: ProvenanceInfo,
@@ -532,7 +532,7 @@ export class CatalogSyncService {
    */
   private buildServiceProp(
     existing: VertexEntity | null,
-    component: CatalogComponentEntity,
+    component: CatalogComponent,
   ): Record<string, string> | undefined {
     const prop = { ...(existing?.prop ?? {}) };
     const owner = component.owner?.trim();
