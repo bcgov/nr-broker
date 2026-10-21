@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { Job } from 'bullmq';
 import {
   GITHUB_CATALOG_ORGS,
@@ -47,6 +47,12 @@ export class GithubCatalogService implements OnModuleInit {
       GITHUB_CATALOG_ORGS.length > 0 &&
       GITHUB_SYNC_CLIENT_ID !== '' &&
       GITHUB_SYNC_PRIVATE_KEY !== ''
+    );
+  }
+
+  public isCatalogOrg(org: string): boolean {
+    return GITHUB_CATALOG_ORGS.some(
+      (configured) => configured.toLowerCase() === org.toLowerCase(),
     );
   }
 
@@ -118,6 +124,11 @@ export class GithubCatalogService implements OnModuleInit {
     const job = this.buildRepoScanJob(scmUrl);
     if (!job) {
       return false;
+    }
+    if (!this.isCatalogOrg(job.org)) {
+      throw new BadRequestException(
+        `The organization ${job.org} is not in the configured catalog organizations. Add it to GITHUB_CATALOG_ORGS or use a repository from a configured organization, then retry.`,
+      );
     }
     await this.enqueue(job, `repo-${job.org}-${job.repo}`);
     return true;

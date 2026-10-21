@@ -110,7 +110,13 @@ describe('GithubCatalogService', () => {
 
   it('queues a scan only for managed URLs', async () => {
     const { service, bullService } = build();
+    vi.spyOn(service, 'isCatalogOrg').mockImplementation(
+      (org) => org === 'org',
+    );
 
+    await expect(
+      service.enqueueRepoScan('https://github.com/other/repo'),
+    ).rejects.toThrow('not in the configured catalog organizations');
     expect(await service.enqueueRepoScan(repoJob.htmlUrl)).toBe(true);
     expect(bullService.enqueue).toHaveBeenCalledWith(
       'github-catalog-scan',

@@ -24,7 +24,12 @@ interface CatalogRepositoryNode {
   isArchived: boolean;
   isDisabled: boolean;
   pushedAt: string | null;
-  defaultBranchRef: { name: string } | null;
+  defaultBranchRef: {
+    name: string;
+    target: {
+      branchHistory: { totalCount: number } | null;
+    } | null;
+  } | null;
   catalogFile: { __typename: string } | null;
 }
 
@@ -34,7 +39,12 @@ interface CatalogRepositoryPage {
 }
 
 const ORG_CATALOG_REPOSITORIES_QUERY = `
-  query ($org: String!, $after: String, $expression: String!) {
+  query (
+    $org: String!
+    $after: String
+    $expression: String!
+    $since: GitTimestamp
+  ) {
     organization(login: $org) {
       repositories(
         first: 100
@@ -54,6 +64,13 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
           pushedAt
           defaultBranchRef {
             name
+            target {
+              ... on Commit {
+                branchHistory: history(first: 1, since: $since) {
+                  totalCount
+                }
+              }
+            }
           }
           catalogFile: object(expression: $expression) {
             __typename
@@ -98,8 +115,9 @@ export class GithubCatalogOrgScanner {
   }
 
   /**
-   * Queue active repositories with a root catalog file pushed since the last
-   * successful scan. Repository results are ordered by push date.
+   * Queue active repositories whose default branch changed since the last
+   * successful scan and that have a root catalog file. Results are ordered by
+   * repository push date so pagination can stop at the scan boundary.
    */
   public async scan(org: string): Promise<void> {
     const token = await this.githubTokenService.getOrgInstallationToken(org);
@@ -112,7 +130,7 @@ export class GithubCatalogOrgScanner {
     let count = 0;
 
     while (hasNextPage) {
-      const page = await this.queryRepositories(org, after, token);
+      const page = await this.queryRepositories(org, after, lastScan, token);
       for (const repo of page.nodes) {
         if (!repo) {
           continue;
@@ -125,7 +143,8 @@ export class GithubCatalogOrgScanner {
           repo.isArchived ||
           repo.isDisabled ||
           !repo.defaultBranchRef ||
-          repo.catalogFile?.__typename !== 'Blob'
+          repo.catalogFile?.__typename !== 'Blob' ||
+          !repo.defaultBranchRef.target?.branchHistory?.totalCount
         ) {
           continue;
         }
@@ -168,6 +187,7 @@ export class GithubCatalogOrgScanner {
   private async queryRepositories(
     org: string,
     after: string | null,
+    since: string | null,
     token: string,
   ): Promise<CatalogRepositoryPage> {
     const body = await this.githubService.graphql(
@@ -176,6 +196,7 @@ export class GithubCatalogOrgScanner {
         org,
         after,
         expression: `HEAD:${GITHUB_CATALOG_ROOT_FILE}`,
+        since,
       },
       token,
     );
