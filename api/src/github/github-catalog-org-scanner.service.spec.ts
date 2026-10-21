@@ -14,7 +14,10 @@ describe('GithubCatalogOrgScanner', () => {
     isArchived: false,
     isDisabled: false,
     pushedAt,
-    defaultBranchRef: { name: 'main' },
+    defaultBranchRef: {
+      name: 'main',
+      target: { branchHistory: { totalCount: 1 } },
+    },
     catalogFile: { __typename: 'Blob' },
     ...extra,
   });
