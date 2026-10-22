@@ -48,7 +48,7 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
   ) {
     organization(login: $org) {
       repositories(
-        first: 100
+        first: 50
         after: $after
         orderBy: { field: PUSHED_AT, direction: DESC }
       ) {
