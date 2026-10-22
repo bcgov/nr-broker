@@ -30,6 +30,17 @@ const hostInfo = {
   },
 };
 
+export interface GitHubCatalogSyncDetails {
+  organization?: string;
+  repository?: string;
+  repositoryId?: string;
+  repositoryUrl?: string;
+  catalogPath?: string;
+  lastScan?: string | null;
+  queuedRepositories?: number;
+  failure?: unknown;
+}
+
 /**
  * Audit service of the broker
  */
@@ -519,6 +530,67 @@ export class AuditService {
       });
   }
 
+  /**
+   * Records GitHub catalog scan events with structured context for diagnostics.
+   */
+  public recordGitHubCatalogSync(
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    details: GitHubCatalogSyncDetails = {},
+  ) {
+    const failure = details.failure;
+    from([
+      {
+        message,
+        event: {
+          action: 'sync-github-catalog',
+          category: 'configuration',
+          dataset: 'broker.audit',
+          kind: 'event',
+          type,
+          outcome,
+        },
+        labels: {
+          ...(details.organization
+            ? { github_organization: details.organization }
+            : {}),
+          ...(details.repository
+            ? { github_repository: details.repository }
+            : {}),
+          ...(details.repositoryId
+            ? { repository_id: details.repositoryId }
+            : {}),
+          ...(details.catalogPath
+            ? { catalog_file: details.catalogPath }
+            : {}),
+          ...(details.lastScan ? { catalog_last_scan: details.lastScan } : {}),
+          ...(details.queuedRepositories !== undefined
+            ? {
+                catalog_queued_repositories:
+                  details.queuedRepositories.toString(),
+              }
+            : {}),
+        },
+        ...(details.repositoryUrl
+          ? { url: { full: details.repositoryUrl } }
+          : {}),
+      },
+    ])
+      .pipe(
+        map(this.addEcsFunc),
+        map(this.addHostFunc),
+        map(this.addLabelsFunc),
+        map(this.addErrorFunc(failure)),
+        map(this.addMetadataActivityFunc()),
+        map(this.addServiceFunc),
+        map(this.addTimestampFunc()),
+      )
+      .subscribe((ecsObj) => {
+        this.stream.putRecord(ecsObj);
+      });
+  }
+
   public recordAliasLink(
     user: UserEntity,
     type: 'start' | 'end' | 'info',
@@ -651,25 +723,33 @@ export class AuditService {
   }
 
   /**
-   * Map function generator for adding http exceptions to ECS document
-   * @param exception The HttpException to add as error
+   * Map function generator for adding errors to ECS document
+   * @param exception The error to add
    * @returns Function to manipulate the ECS document
    */
-  private addErrorFunc(exception: HttpException | null) {
+  private addErrorFunc(exception: unknown) {
     return (ecsObj: any) => {
-      if (!exception) {
+      if (exception === undefined || exception === null) {
         return ecsObj;
       }
-      const response = exception.getResponse();
+      if (exception instanceof HttpException) {
+        const response = exception.getResponse();
+        return merge(ecsObj, {
+          error: {
+            code: exception.getStatus(),
+            message: exception.message,
+            structured_data:
+              typeof response === 'object'
+                ? { error: (response as any).error }
+                : response,
+            type: exception.name,
+          },
+        });
+      }
       return merge(ecsObj, {
         error: {
-          code: exception.getStatus(),
-          message: exception.message,
-          structured_data:
-            typeof response === 'object'
-              ? { error: (response as any).error }
-              : response,
-          type: exception.name,
+          message: exception instanceof Error ? exception.message : String(exception),
+          type: exception instanceof Error ? exception.name : typeof exception,
         },
       });
     };

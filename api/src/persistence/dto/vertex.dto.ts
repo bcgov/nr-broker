@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsObject,
   IsString,
   IsOptional,
@@ -14,6 +15,7 @@ import {
 } from './collection-dto-union.type';
 import { PointGeomDto } from './point-geom.dto';
 import { TimestampDto } from './timestamp.dto';
+import { ProvenanceDto } from './provenance.dto';
 
 // Shared DTO: Copy in back-end and front-end should be identical
 
@@ -68,6 +70,11 @@ export class VertexDto {
   @IsObject()
   @Type(() => TimestampDto)
   timestamps?: TimestampDto;
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => ProvenanceDto)
+  provenance?: ProvenanceDto[];
 }
 
 export class VertexInsertDto<T extends keyof CollectionDtoUnion = any> {
