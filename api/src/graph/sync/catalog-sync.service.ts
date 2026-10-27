@@ -110,25 +110,8 @@ export class CatalogSyncService {
       component.path,
       { adoptable },
     );
-    if (!component.system) {
-      this.logger.warn(
-        `Catalog component ${component.name} (${component.path}) has no spec.system; skipping`,
-      );
-      return;
-    }
-
-    const projectVertex = await this.graphSyncService.upsertProject(
-      component.system,
-      provenance,
-    );
     const serviceVertex = await this.graphSyncService.upsertService(
       component,
-      provenance,
-    );
-    await this.graphSyncService.ensureEdge(
-      'component',
-      projectVertex,
-      serviceVertex,
       provenance,
     );
     await this.graphSyncService.ensureEdge(
@@ -137,6 +120,22 @@ export class CatalogSyncService {
       repositoryVertex,
       provenance,
     );
+    if (component.system) {
+      const projectVertex = await this.graphSyncService.upsertProject(
+        component.system,
+        provenance,
+      );
+      await this.graphSyncService.ensureEdge(
+        'component',
+        projectVertex,
+        serviceVertex,
+        provenance,
+      );
+    } else {
+      this.logger.warn(
+        `Catalog component ${component.name} (${component.path}) has no spec.system; skipping project creation`,
+      );
+    }
     if (component.instances) {
       await this.instanceSyncService.sync(
         component.instances,

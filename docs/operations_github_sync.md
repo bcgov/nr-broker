@@ -31,7 +31,7 @@ Secret sync copies Vault secrets to GitHub repository secrets so they are availa
 
 ### Enabling secret sync
 
-On the Repository record, set **Enable secret sync** to `true`. When a token is generated or secrets are manually synchronized, all secrets in the tools namespace for a service (`apps-kv-mount`/tools/`project`/`service`) will be synchronized to the associated repository.
+On the Repository record, set **Enable secret sync** to `true`. When a token is generated or secrets are manually synchronized, all secrets in the tools namespace for a service (`apps`/tools/`project`/`service`) will be synchronized to the associated repository.
 
 ## User sync
 
@@ -57,13 +57,13 @@ The `syncSecretsStatus` and `syncUsersStatus` fields on the Repository record tr
 
 These are visible in the NR Broker UI on the Repository detail page (requires `sudo` access).
 
-Sync activity is recorded in the audit log with the `tools.sync` dataset. See: [Understanding the Audit Log](/operations_audit.md)
+Sync activity is recorded in the audit log under the `broker.audit` dataset (for example, the `sync-tools` and `sync-github-catalog` actions). See: [Understanding the Audit Log](/operations_audit.md)
 
 ## Catalog scan
 
 Broker can scan GitHub organizations for Backstage `catalog-info.yaml` files, such as those created by the [nr-repository-composer](https://github.com/bcgov/nr-repository-composer) `backstage` and `backstage-location` generators. Set `GITHUB_CATALOG_ORGS` to a comma-separated list of organizations. The GitHub App must be installed on each organization with read access to repository contents.
 
-A scheduled job (`GITHUB_CATALOG_SCAN_CRON`, daily by default) adds one job per organization to the `github-catalog-scan` queue. Each organization job uses a single GitHub GraphQL query to list repositories by push date. It adds one job for each active repository that has a `catalog-info.yaml` file at the root of the default branch and was pushed to since the last successful scan of that organization.
+A scheduled job (`GITHUB_CATALOG_SCAN_CRON`, daily by default) adds one job per organization to the `github-catalog-scan` queue. Each organization job uses a single GitHub GraphQL query, paginated, to list repositories by push date. It adds one job for each active repository that has a `catalog-info.yaml` file at the root of the default branch and was pushed to since the last successful scan of that organization.
 
 The last scan time is stored in Redis under `github-catalog-scan:last-scan:<org>`. The first scan, or a scan after this key is deleted, checks every repository. To force a full rescan of an organization, delete its key.
 
