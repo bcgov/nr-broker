@@ -42,6 +42,11 @@ export class RepositoryBaseDto extends CollectionBaseDto {
   @IsObject()
   @Type(() => SyncStatusDto)
   syncUsersStatus?: SyncStatusDto;
+
+  @IsOptional()
+  @IsObject()
+  @Type(() => SyncStatusDto)
+  syncCatalogStatus?: SyncStatusDto;
 }
 
 export class RepositoryDto

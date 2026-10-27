@@ -8,7 +8,7 @@ import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { ActionUtil } from '../util/action.util';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
-import { IntentionSyncService } from '../graph/intention-sync.service';
+import { IntentionSyncService } from '../graph/sync/intention-sync.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';

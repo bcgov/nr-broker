@@ -15,6 +15,7 @@ import { PointGeomEmbeddable } from './point-geom.embeddable';
 import { VertexInsertDto, VertexPropDto } from '../dto/vertex.dto';
 import { TimestampEmbeddable } from './timestamp.embeddable';
 import { CollectionEntityUnion } from './collection-entity-union.type';
+import { ProvenanceEmbeddable } from './provenance.embeddable';
 
 @Entity({ tableName: 'vertex' })
 @Index({ options: { 'timestamps.createdAt': 1 } })
@@ -47,6 +48,18 @@ export class VertexEntity extends BaseEntity {
 
   @Embedded({ entity: () => TimestampEmbeddable, nullable: true, object: true })
   timestamps?: TimestampEmbeddable;
+
+  /**
+   * Sources that created or updated this item. Stripped from queries that
+   * return multiple results.
+   */
+  @Embedded({
+    entity: () => ProvenanceEmbeddable,
+    array: true,
+    object: true,
+    nullable: true,
+  })
+  provenance?: ProvenanceEmbeddable[];
 
   static upgradeInsertDto(value: VertexInsertDto): VertexEntity {
     const vertex = new VertexEntity();

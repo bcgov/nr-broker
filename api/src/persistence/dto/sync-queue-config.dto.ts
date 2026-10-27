@@ -1,5 +1,6 @@
 // Shared DTO: Copy in back-end and front-end should be identical
 export enum SyncType {
+  CATALOG = 'catalog',
   SECRETS = 'secrets',
   USERS = 'users',
 }

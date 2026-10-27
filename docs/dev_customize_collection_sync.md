@@ -31,6 +31,7 @@ These queue names are used by internal jobs:
 | Key | Queue Name | Typical Consumer |
 |-----|------------|------------------|
 | `GITHUB_SYNC_SECRETS` | `github-sync-secrets` | [GitHub Sync](/operations_github_sync.md) — secrets |
+| `GITHUB_CATALOG_SCAN` | `github-catalog-scan` | [GitHub Sync](/operations_github_sync.md) — catalog |
 | `GITHUB_SYNC_USERS` | `github-sync-users` | [GitHub Sync](/operations_github_sync.md) — users |
 | `KUBERNETES_SYNC_SECRETS` | `kubernetes-sync-secrets` | [Kubernetes / OpenShift Secret Sync](/operations_kubernetes_sync.md) |
 

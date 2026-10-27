@@ -32,7 +32,7 @@ import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
 import { CommunicationQueueService } from '../communication/communication-queue.service';
 import { BullService } from '../bull/bull.service';
 import { IntentionRepository } from '../persistence/interfaces/intention.repository';
-import { IntentionSyncService } from '../graph/intention-sync.service';
+import { IntentionSyncService } from '../graph/sync/intention-sync.service';
 import { ACTION_NAMES, ActionDto } from './dto/action.dto';
 import { SystemRepository } from '../persistence/interfaces/system.repository';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';

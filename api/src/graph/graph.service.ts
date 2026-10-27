@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   MessageEvent,
   NotFoundException,
@@ -47,6 +48,9 @@ import { CollectionWatchIdentifierDto, CollectionWatchDto } from '../persistence
 import { CollectionWatchEntity } from '../persistence/entity/collection-watch.entity';
 import { UserEntity } from '../persistence/entity/user.entity';
 import { VertexPointerDto } from '../persistence/dto/vertex-pointer.dto';
+import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
+import { ProvenanceType } from '../persistence/dto/provenance.dto';
+import { ProvenanceInfo } from '../persistence/provenance-info';
 
 @Injectable()
 export class GraphService {
@@ -92,9 +96,13 @@ export class GraphService {
     return this.graphRepository.getTeamRolePermissionRules(roleName);
   }
 
-  public async addEdge(req: Request, edge: EdgeInsertDto): Promise<EdgeDto> {
+  public async addEdge(
+    req: Request,
+    edge: EdgeInsertDto,
+    provenance = ProvenanceInfo.manual(),
+  ): Promise<EdgeDto> {
     try {
-      const resp = await this.graphRepository.addEdge(edge);
+      const resp = await this.graphRepository.addEdge(edge, provenance);
       this.auditService.recordGraphAction(
         req,
         'graph-edge-add',
@@ -129,9 +137,22 @@ export class GraphService {
     req: Request,
     id: string,
     edge: EdgeInsertDto,
+    provenance = ProvenanceInfo.manual(),
   ): Promise<EdgeDto> {
+    const curEdge = await this.graphRepository.getEdge(id);
+    if (curEdge && !this.isUpdateAllowed(curEdge.provenance, provenance)) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-edit',
+        null,
+        'failure',
+        'edge',
+        edge,
+      );
+      throw this.provenanceDeniedException(provenance);
+    }
     try {
-      const resp = await this.graphRepository.editEdge(id, edge);
+      const resp = await this.graphRepository.editEdge(id, edge, provenance);
       this.auditService.recordGraphAction(
         req,
         'graph-edge-edit',
@@ -217,6 +238,7 @@ export class GraphService {
     req: Request,
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
     const [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
@@ -239,7 +261,11 @@ export class GraphService {
       }
     }
     try {
-      const resp = await this.graphRepository.addVertex(vertex, collection);
+      const resp = await this.graphRepository.addVertex(
+        vertex,
+        collection,
+        provenance,
+      );
       this.auditService.recordGraphAction(
         req,
         'graph-vertex-add',
@@ -283,7 +309,20 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     ignorePermissions = false,
     ignoreBlankFields = false,
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
+    const curVertex = await this.graphRepository.getVertex(id);
+    if (curVertex && !this.isUpdateAllowed(curVertex.provenance, provenance)) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-edit',
+        null,
+        'failure',
+        'vertex',
+        vertexInsert,
+      );
+      throw this.provenanceDeniedException(provenance);
+    }
     // eslint-disable-next-line prefer-const
     let [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
@@ -341,6 +380,7 @@ export class GraphService {
         vertex,
         collection,
         ignoreBlankFields,
+        provenance,
       );
 
       this.auditService.recordGraphAction(
@@ -416,6 +456,55 @@ export class GraphService {
           ...wrap(vertex).toJSON(),
         },
       },
+    });
+  }
+
+  /**
+   * Whether an update with this provenance may change an item with these
+   * records.
+   *
+   * - Overwrite updates are always allowed.
+   * - Catalog updates are allowed for items with a record from the same
+   *   repository and catalog file. Adoptable catalog updates are also allowed
+   *   for items with no catalog records.
+   * - All other sources are always allowed.
+   */
+  public isUpdateAllowed(
+    records: ProvenanceEmbeddable[] | undefined,
+    provenance: ProvenanceInfo,
+  ): boolean {
+    if (provenance.overwrite) {
+      return true;
+    }
+    switch (provenance.type) {
+      case ProvenanceType.CATALOG:
+        return (
+          (records ?? []).some((record) => provenance.record.matches(record)) ||
+          (provenance.adoptable &&
+            !(records ?? []).some((record) => record.type === provenance.type))
+        );
+      case ProvenanceType.INTENTION:
+        // Intention updates are always allowed
+        return true;
+      case ProvenanceType.MANUAL:
+        // Manual updates are always allowed
+        return true;
+      case ProvenanceType.OPENSEARCH:
+        // Opensearch updates are always allowed
+        return true;
+      default:
+        // If this is an error then not all provenance types are above
+        // eslint-disable-next-line no-case-declarations
+        const _exhaustiveCheck: never = provenance.type;
+        return _exhaustiveCheck;
+    }
+  }
+
+  private provenanceDeniedException(provenance: ProvenanceInfo) {
+    return new ForbiddenException({
+      statusCode: 403,
+      message: 'Update denied',
+      error: `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
     });
   }
 
@@ -538,11 +627,12 @@ export class GraphService {
     vertexInsert: VertexInsertDto,
     targetBy: 'id' | 'parentId' | 'name',
     target: string | null = null,
+    provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
     const vertex = VertexEntity.upgradeInsertDto(vertexInsert);
 
     if (targetBy === 'id') {
-      return this.editVertex(req, target, vertexInsert, true, true);
+      return this.editVertex(req, target, vertexInsert, true, true, provenance);
     } else if (targetBy === 'parentId') {
       const config = await this.collectionRepository.getCollectionConfigByName(
         vertex.collection,
@@ -569,9 +659,10 @@ export class GraphService {
           vertexInsert,
           true,
           true,
+          provenance,
         );
       } else {
-        return this.addVertex(req, vertexInsert, true);
+        return this.addVertex(req, vertexInsert, true, provenance);
       }
     } else if (targetBy === 'name') {
       const config = await this.collectionRepository.getCollectionConfigByName(
@@ -608,9 +699,10 @@ export class GraphService {
           vertexInsert,
           true,
           true,
+          provenance,
         );
       } else {
-        return this.addVertex(req, vertexInsert, true);
+        return this.addVertex(req, vertexInsert, true, provenance);
       }
     }
   }
