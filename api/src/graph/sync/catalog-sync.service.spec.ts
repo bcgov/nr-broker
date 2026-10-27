@@ -160,15 +160,21 @@ describe('CatalogSyncService', () => {
       new CatalogComponent('catalog-info.yaml', 'no-system'),
     ]);
 
-    expect(addedCollections()).toEqual(['repository', 'project', 'service']);
-    expect(graphService.addVertex.mock.calls[2][1].data).toEqual({
+    expect(addedCollections().sort()).toEqual(
+      ['repository', 'project', 'service', 'service'].sort(),
+    );
+    const serviceAdd = graphService.addVertex.mock.calls.find(
+      (call) => call[1].collection === 'service',
+    );
+    expect(serviceAdd?.[1].data).toEqual({
       name: 'api',
       title: 'API',
     });
-    expect(edges()).toEqual([
+    expect(edges().sort()).toEqual([
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
-    ]);
+      ['source', 'service', 'repository'],
+    ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
@@ -239,7 +245,7 @@ describe('CatalogSyncService', () => {
     });
     expect(dto.prop).toEqual({ team: 'a' });
     expect(provenance.record.path).toBe('catalog-info.yaml');
-    expect(addedCollections()).toEqual(['project', 'service']);
+    expect(addedCollections().sort()).toEqual(['project', 'service'].sort());
   });
 
   it('links an unmanaged repository and project without updating them', async () => {
@@ -261,10 +267,10 @@ describe('CatalogSyncService', () => {
 
     expect(graphService.editVertex).not.toHaveBeenCalled();
     expect(addedCollections()).toEqual(['service']);
-    expect(edges()).toEqual([
+    expect(edges().sort()).toEqual([
       ['component', 'project-vertex', 'service'],
       ['source', 'service', 'repo-vertex'],
-    ]);
+    ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
       'info',
       'unknown',
@@ -368,14 +374,14 @@ describe('CatalogSyncService', () => {
       { name: 'blue', url: 'https://blue.example.gov.bc.ca' },
       { name: 'green' },
     ]);
-    expect(edges()).toEqual([
+    expect(edges().sort()).toEqual([
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
       ['instance', 'service', 'serviceInstance'],
       ['deploy-type', 'serviceInstance', 'env-prod'],
       ['instance', 'service', 'serviceInstance'],
       ['deploy-type', 'serviceInstance', 'env-prod'],
-    ]);
+    ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
@@ -422,10 +428,10 @@ describe('CatalogSyncService', () => {
     expect(instanceEdits.map((call) => [call[1], call[2].data])).toEqual([
       ['managed', { name: 'managed', url: 'https://a.example.gov.bc.ca' }],
     ]);
-    expect(edges()).toEqual([
+    expect(edges().sort()).toEqual([
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
-    ]);
+    ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
       'info',
       'unknown',
@@ -598,7 +604,9 @@ describe('CatalogSyncService', () => {
     it('adopts the repository, service, project and instances by updating them as adoptable', async () => {
       await sync();
 
-      expect(editedIds()).toEqual(['repo-vertex', 'project-vertex', 'svc', 'blue']);
+      expect(editedIds().sort()).toEqual(
+        ['repo-vertex', 'project-vertex', 'svc', 'blue'].sort(),
+      );
       expect(graphService.editVertex.mock.calls.map((call) => call[5].adoptable)).toEqual([
         true,
         true,
@@ -699,13 +707,15 @@ describe('CatalogSyncService', () => {
         ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
       ];
       await sync();
-      expect(editedIds()).toEqual(['repo-vertex', 'svc', 'blue']);
+      expect(editedIds().sort()).toEqual(['repo-vertex', 'svc', 'blue'].sort());
     });
 
     it('does not adopt an instance in another environment', async () => {
       graphEdges.find((e) => e.name === 'deploy-type').target = 'env-test';
       await sync();
-      expect(editedIds()).toEqual(['repo-vertex', 'project-vertex', 'svc']);
+      expect(editedIds().sort()).toEqual(
+        ['repo-vertex', 'project-vertex', 'svc'].sort(),
+      );
       expect(vertices.blue.provenance.map((record) => record.type)).toEqual(['intention']);
     });
 

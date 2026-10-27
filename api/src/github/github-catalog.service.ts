@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { Job } from 'bullmq';
 import {
   GITHUB_CATALOG_ORGS,
@@ -12,7 +17,10 @@ import { BullService } from '../bull/bull.service';
 import { CatalogSyncService } from '../graph/sync/catalog-sync.service';
 import { GraphService } from '../graph/graph.service';
 import { CollectionRepository } from '../persistence/interfaces/collection.repository';
-import { GithubTokenService } from './github-token.service';
+import {
+  GithubApiOperationError,
+  GithubTokenService,
+} from './github-token.service';
 import { GithubCatalogFileReader } from './github-catalog-file-reader.service';
 import { GithubCatalogOrgScanner } from './github-catalog-org-scanner.service';
 import type { CatalogRepoScanJob, CatalogScanJob } from './github-catalog.types';
@@ -94,10 +102,30 @@ export class GithubCatalogService implements OnModuleInit {
         await this.scanRepository(data);
       }
     } catch (failure) {
+      // A non-rate-limit 403 is an access denial and retrying will not help.
+      const rateLimited =
+        failure instanceof GithubApiOperationError
+          ? failure.isRateLimited
+          : isAxiosError(failure) &&
+            (failure.response?.status === 429 ||
+              failure.response?.headers?.['retry-after'] !== undefined ||
+              failure.response?.headers?.['x-ratelimit-remaining'] === '0' ||
+              /rate limit/i.test(
+                failure.response?.data?.message ?? failure.message,
+              ));
+      const denied =
+        !rateLimited &&
+        (failure instanceof GithubApiOperationError
+          ? failure.status === 403
+          : isAxiosError(failure) && failure.response?.status === 403);
       this.auditService.recordGitHubCatalogSync(
         'end',
         'failure',
-        'GitHub catalog scan failed',
+        failure instanceof GithubApiOperationError
+          ? failure.message
+          : denied
+            ? 'GitHub catalog scan failed because GitHub denied access (403). Check that the GitHub app is installed on the repository with read access to its contents.'
+            : 'GitHub catalog scan failed',
         {
           ...(typeof data === 'string'
             ? { repositoryId: data }
@@ -112,6 +140,9 @@ export class GithubCatalogService implements OnModuleInit {
           failure,
         },
       );
+      if (denied) {
+        return;
+      }
       throw failure;
     }
   }

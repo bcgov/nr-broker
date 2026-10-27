@@ -1,7 +1,67 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import * as jwt from 'jsonwebtoken';
 import { GITHUB_SYNC_CLIENT_ID, GITHUB_SYNC_PRIVATE_KEY } from '../constants';
 import { GithubService } from './github.service';
+
+export type InstallationApiOperation =
+  | 'getOrgInstallationId'
+  | 'createInstallationAccessToken';
+
+export class GithubApiOperationError extends Error {
+  public readonly status?: number;
+  public readonly isRateLimited: boolean;
+
+  constructor(
+    public readonly operation: InstallationApiOperation,
+    organization: string,
+    failure: unknown,
+  ) {
+    const axiosError = isAxiosError(failure) ? failure : undefined;
+    const status = axiosError?.response?.status;
+    const responseData = axiosError?.response?.data as
+      | { message?: unknown }
+      | string
+      | undefined;
+    const githubMessage =
+      typeof responseData === 'object' &&
+      responseData !== null &&
+      typeof responseData.message === 'string'
+        ? responseData.message
+        : typeof responseData === 'string'
+          ? responseData
+          : undefined;
+    const reason =
+      githubMessage ||
+      (failure instanceof Error ? failure.message : String(failure));
+    const headers = axiosError?.response?.headers;
+    const retryAfter = headers?.['retry-after'];
+    const rateLimitRemaining = headers?.['x-ratelimit-remaining'];
+    const isRateLimited =
+      status === 429 ||
+      retryAfter !== undefined ||
+      String(rateLimitRemaining) === '0' ||
+      /rate limit/i.test(reason);
+    const diagnosis =
+      isRateLimited
+        ? 'GitHub rate limit reached'
+        : status === 401
+          ? 'GitHub rejected the app JWT; check the app ID and private key'
+          : status === 403
+            ? 'GitHub denied the request; check the app installation and its access'
+            : status === 404
+              ? 'GitHub could not find an installation accessible to this app'
+              : undefined;
+    const statusText = status ? ` (HTTP ${status})` : '';
+    super(
+      `GitHub ${operation} failed for organization ${organization}${statusText}: ${diagnosis ? `${diagnosis}. ` : ''}${reason}`,
+      { cause: failure },
+    );
+    this.name = GithubApiOperationError.name;
+    this.status = status;
+    this.isRateLimited = isRateLimited;
+  }
+}
 
 interface InstallationToken {
   token: string;
@@ -71,14 +131,34 @@ export class GithubTokenService {
     }
 
     const appJwt = this.generateJWT();
-    const installationId = await this.githubService.getOrgInstallationId(
-      org,
-      appJwt,
-    );
-    const response = await this.githubService.createInstallationAccessToken(
-      installationId,
-      appJwt,
-    );
+    let installationId: number;
+    try {
+      installationId = await this.githubService.getOrgInstallationId(
+        org,
+        appJwt,
+      );
+    } catch (failure) {
+      throw new GithubApiOperationError(
+        'getOrgInstallationId',
+        org,
+        failure,
+      );
+    }
+
+    let response: { token: string; expires_at: string };
+    try {
+      response = await this.githubService.createInstallationAccessToken(
+        installationId,
+        appJwt,
+      );
+    } catch (failure) {
+      throw new GithubApiOperationError(
+        'createInstallationAccessToken',
+        org,
+        failure,
+      );
+    }
+
     const token: InstallationToken = {
       token: response.token,
       expiresAt: new Date(response.expires_at).getTime(),

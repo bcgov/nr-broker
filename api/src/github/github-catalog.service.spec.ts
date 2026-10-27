@@ -1,5 +1,7 @@
+import { AxiosError } from 'axios';
 import { describe, expect, it, vi } from 'vitest';
 import { GithubCatalogService } from './github-catalog.service';
+import { GithubApiOperationError } from './github-token.service';
 
 describe('GithubCatalogService', () => {
   const build = () => {
@@ -32,6 +34,7 @@ describe('GithubCatalogService', () => {
       auditService,
       bullService,
       catalogSyncService,
+      githubTokenService,
       fileReader,
       orgScanner,
       collectionRepository,
@@ -136,6 +139,78 @@ describe('GithubCatalogService', () => {
     await service.processJob(repoJob);
 
     expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
+  });
+
+  it('audits and swallows 403 errors from GitHub', async () => {
+    const { service, auditService, fileReader } = build();
+    fileReader.collectComponents.mockRejectedValue(
+      new AxiosError('denied', '403', undefined, undefined, {
+        status: 403,
+      } as any),
+    );
+
+    await expect(service.processJob(repoJob)).resolves.toBeUndefined();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'end',
+      'failure',
+      expect.stringContaining('denied access (403)'),
+      expect.anything(),
+    );
+  });
+
+  it('audits and skips retries for installation access denials', async () => {
+    const { service, auditService, githubTokenService } = build();
+    const failure = new GithubApiOperationError(
+      'getOrgInstallationId',
+      'org',
+      new AxiosError(
+        'Request failed with status code 403',
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          status: 403,
+          data: { message: 'Resource not accessible by integration' },
+        } as any,
+      ),
+    );
+    githubTokenService.getOrgInstallationToken.mockRejectedValue(failure);
+
+    await expect(service.processJob(repoJob)).resolves.toBeUndefined();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'end',
+      'failure',
+      failure.message,
+      expect.objectContaining({ failure }),
+    );
+  });
+
+  it('audits the GitHub installation API operation and propagates rate limits', async () => {
+    const { service, auditService, githubTokenService } = build();
+    const failure = new GithubApiOperationError(
+      'createInstallationAccessToken',
+      'org',
+      new AxiosError(
+        'Request failed with status code 403',
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          status: 403,
+          data: { message: 'You have exceeded a secondary rate limit' },
+          headers: { 'retry-after': '60' },
+        } as any,
+      ),
+    );
+    githubTokenService.getOrgInstallationToken.mockRejectedValue(failure);
+
+    await expect(service.processJob(repoJob)).rejects.toBe(failure);
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'end',
+      'failure',
+      failure.message,
+      expect.objectContaining({ failure }),
+    );
   });
 
   it('registers the org scanner leader job when enabled', () => {
