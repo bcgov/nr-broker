@@ -12,4 +12,5 @@ metadata:
   annotations:
     license: Apache-2.0
     github.com/project-slug: bcgov-nr/nr-broker
-    composer.io.nrs.gov.bc.ca/generators: backstage
+  tags:
+    - frontend
