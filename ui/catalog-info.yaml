@@ -13,3 +13,6 @@ metadata:
     license: Apache-2.0
     github.com/project-slug: bcgov-nr/nr-broker
     composer.io.nrs.gov.bc.ca/generators: backstage
+    playbook.io.nrs.gov.bc.ca/instances: '[{"env":"development","url":"https://nr-broker-dev.apps.silver.devops.gov.bc.ca"},{"env":"test","url":"https://nr-broker-test.apps.silver.devops.gov.bc.ca"},{"env":"production","url":"https://broker.io.nrs.gov.bc.ca"}]'
+  tags:
+    - frontend
