@@ -4,3 +4,4 @@ spec:
   generators:
     - backstage
     - backstage-api
+    - backstage-instances

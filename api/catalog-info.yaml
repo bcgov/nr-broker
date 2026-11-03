@@ -10,6 +10,19 @@ metadata:
     license: Apache-2.0
   tags:
     - ""
+  links:
+    - env: development
+      type: instance
+      title: development
+      url: https://nr-broker-dev.apps.silver.devops.gov.bc.ca/api
+    - env: test
+      type: instance
+      title: test
+      url: https://nr-broker-test.apps.silver.devops.gov.bc.ca/api
+    - env: production
+      type: instance
+      title: production
+      url: https://broker.io.nrs.gov.bc.ca/api
 spec:
   system: nr-broker
   type: website

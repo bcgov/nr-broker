@@ -3,3 +3,4 @@ kind: NRComposer
 spec:
   generators:
     - backstage
+    - backstage-instances
