@@ -12,15 +12,20 @@ PULL_IMAGE="true"
 USE_LOCAL="false"
 
 # NR Repository Composer runner script
-# Usage: ./nr-repository-composer.sh <working-directory> <generator> [options...]
+# Usage: ./nr-repository-composer.sh [ --local ] [ --all ] <working-directory> [generator] [options...]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 print_usage() {
-    echo "Usage: $0 [--local] <working-directory> [generator] [options...]"
+    echo "Usage: $0 [ --local ] [ --all ] <working-directory> [generator] [options...]"
     echo ""
     echo "Options:"
     echo "  --local           Use local image ($LOCAL_IMAGE) instead of GitHub registry"
+    echo "  --all             Re-run every generator recorded in this repository's"
+    echo "                    catalog-info.yaml files. Discovery happens inside"
+    echo "                    the container and performs no git or GitHub side"
+    echo "                    effects. Interactive by default; pass"
+    echo "                    --headless --force through for a scripted run."
     echo ""
     echo "Generator Options:"
     echo "  --help-prompts    Show detailed descriptions of each prompt"
@@ -32,18 +37,43 @@ print_usage() {
     echo "  $0 /path/to/repo backstage"
     echo "  $0 . gh-maven-build --help"
     echo "  $0 ~/projects/my-app gh-nodejs-build --ask-answered"
+    echo "  $0 . --all                             # re-run all generators, interactively"
+    echo "  $0 . --all --headless --force          # re-run all generators, non-interactively"
     echo "  $0 . --help"
     echo "  $0 --local . backstage"
     echo ""
     echo "Note: 'nr-repository-composer:' prefix is automatically added to the generator name"
 }
 
-# Check for --local flag
-if [ "${1:-}" = "--local" ]; then
-    USE_LOCAL="true"
-    PULL_IMAGE="false"
-    shift
-fi
+# Consume boolean flags (--local, --all). These may appear before or after the
+# working directory; everything else becomes the working directory / generator /
+# passthrough arguments.
+OPT_ALL=""
+EXTRA_ARGS=()
+ARGV=("$@")
+for arg in "${ARGV[@]+"${ARGV[@]}"}"; do
+    case "$arg" in
+        --help|-h)
+            print_usage
+            exit 0
+            ;;
+        --local)
+            USE_LOCAL="true"
+            PULL_IMAGE="false"
+            ;;
+        --all)
+            OPT_ALL="true"
+            ;;
+        *)
+            # Keep the first non-flag argument as the working directory.
+            if [ -z "${WORKING_DIR:-}" ]; then
+                WORKING_DIR="$arg"
+            else
+                EXTRA_ARGS+=("$arg")
+            fi
+            ;;
+    esac
+done
 
 # Select image based on --local flag
 if [ "$USE_LOCAL" = "true" ]; then
@@ -51,11 +81,10 @@ if [ "$USE_LOCAL" = "true" ]; then
 fi
 
 # Check arguments
-if [ $# -lt 1 ]; then
+if [ -z "${WORKING_DIR:-}" ]; then
     print_usage
     exit 1
 fi
-
 
 # Detect container runtime (prefer podman over docker)
 if command -v podman &> /dev/null; then
@@ -68,20 +97,20 @@ else
     exit 1
 fi
 
-WORKING_DIR="$1"
-
-# If $2 starts with - (option), don't treat it as a generator
-if [[ "${2:-}" == -* ]]; then
+if [[ "$OPT_ALL" = "true" ]]; then
     GENERATOR=""
-    shift 1
 else
-    GENERATOR="$2"
-    shift 2
-fi
+    if [ ${#EXTRA_ARGS[@]} -gt 0 ] && [[ "${EXTRA_ARGS[0]}" != -* ]]; then
+        GENERATOR="${EXTRA_ARGS[0]}"
+        EXTRA_ARGS=("${EXTRA_ARGS[@]:1}")
+    else
+        GENERATOR=""
+    fi
 
-# Prepend nr-repository-composer: to generator name if not already present
-if [[ -n "$GENERATOR" && "$GENERATOR" != nr-repository-composer:* ]]; then
-    GENERATOR="nr-repository-composer:$GENERATOR"
+    # Prepend nr-repository-composer: to generator name if not already present
+    if [[ -n "$GENERATOR" && "$GENERATOR" != nr-repository-composer:* ]]; then
+        GENERATOR="nr-repository-composer:$GENERATOR"
+    fi
 fi
 
 # Resolve working directory to absolute path
@@ -112,33 +141,57 @@ if [ -z "$GIT_ROOT" ]; then
     exit 1
 fi
 
-# Calculate relative path from git root to working directory
-RELATIVE_PATH="${WORKING_DIR#$GIT_ROOT}"
-RELATIVE_PATH="${RELATIVE_PATH#/}"  # Remove leading slash if present
+# Build the container argument string for a given working directory (a path
+# inside the git repo). $CONTAINER_CMD, $IMAGE, $GIT_ROOT and $PULL_IMAGE must
+# already be set.
+build_container_args() {
+    local workdir="$1"
+    local rel="${workdir#"$GIT_ROOT"}"
+    rel="${rel#/}"    # Remove leading slash if present
+    local args="run --rm -it -v ${GIT_ROOT}:/src"
 
-# Set container working directory
-if [ -z "$RELATIVE_PATH" ]; then
-    CONTAINER_WORKDIR="/src"
-else
-    CONTAINER_WORKDIR="/src/$RELATIVE_PATH"
+    if [ -z "$rel" ]; then
+        args="$args -w /src"
+    else
+        args="$args -w /src/$rel"
+    fi
+
+    if [ "$CONTAINER_CMD" = "podman" ]; then
+        args="$args --userns keep-id"
+        if [ "$PULL_IMAGE" = "true" ]; then
+            args="$args --pull newer"
+        fi
+    else
+        if [ "$PULL_IMAGE" = "true" ]; then
+            args="$args --pull always"
+        fi
+    fi
+
+    printf '%s' "$args"
+}
+
+# Dispatch to --all discovery or a single generator run.
+#
+# --all is handled inside the container: the image's entrypoint runs the
+# backstage-scan generator to discover every generator recorded in the
+# repository's catalog-info.yaml files, then re-runs each one. Discovery needs
+# no host tooling. It performs no git or GitHub side effects — review the
+# resulting changes with your own git workflow.
+if [[ "$OPT_ALL" = "true" ]]; then
+    # Always start at the repository root so Location targets resolve.
+    CONTAINER_ARGS="$(build_container_args "$GIT_ROOT")"
+    # shellcheck disable=SC2086
+    if [ -z "${EXTRA_ARGS+set}" ]; then
+        exec $CONTAINER_CMD $CONTAINER_ARGS $IMAGE --all
+    fi
+    exec $CONTAINER_CMD $CONTAINER_ARGS $IMAGE --all "${EXTRA_ARGS[@]}"
 fi
 
-# Build container arguments
-CONTAINER_ARGS="run --rm -it -v ${GIT_ROOT}:/src -w ${CONTAINER_WORKDIR}"
-
-# Add container runtime specific arguments
-if [ "$CONTAINER_CMD" = "podman" ]; then
-    CONTAINER_ARGS="$CONTAINER_ARGS --userns keep-id"
-    # Add pull policy for podman
-    if [ "$PULL_IMAGE" = "true" ]; then
-        CONTAINER_ARGS="$CONTAINER_ARGS --pull newer"
-    fi
-else
-    # Docker: add pull policy
-    if [ "$PULL_IMAGE" = "true" ]; then
-        CONTAINER_ARGS="$CONTAINER_ARGS --pull always"
-    fi
+# Single generator: build the arguments and run, passing through any extra options.
+CONTAINER_ARGS="$(build_container_args "$WORKING_DIR")"
+if [ -z "${EXTRA_ARGS+set}" ]; then
+    # shellcheck disable=SC2086
+    exec $CONTAINER_CMD $CONTAINER_ARGS $IMAGE "$GENERATOR"
 fi
-
-# Run the container with any additional arguments passed to the script
-exec $CONTAINER_CMD $CONTAINER_ARGS $IMAGE "$GENERATOR" "$@"
+# shellcheck disable=SC2086
+exec $CONTAINER_CMD $CONTAINER_ARGS $IMAGE "$GENERATOR" "${EXTRA_ARGS[@]}"

@@ -8,9 +8,34 @@ metadata:
   annotations:
     github.com/project-slug: "bcgov-nr/nr-broker"
     license: Apache-2.0
-    composer.io.nrs.gov.bc.ca/generators: backstage
+  tags:
+    - ""
+  links:
+    - env: development
+      type: instance
+      title: development
+      url: https://nr-broker-dev.apps.silver.devops.gov.bc.ca/api
+    - env: test
+      type: instance
+      title: test
+      url: https://nr-broker-test.apps.silver.devops.gov.bc.ca/api
+    - env: production
+      type: instance
+      title: production
+      url: https://broker.io.nrs.gov.bc.ca/api
 spec:
   system: nr-broker
   type: website
   lifecycle: production
   owner: Oscar
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: nr-broker
+spec:
+  type: openapi
+  lifecycle: production
+  owner: oscar
+  definition: https://broker.io.nrs.gov.bc.ca/api-json
