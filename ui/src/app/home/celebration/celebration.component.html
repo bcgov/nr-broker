@@ -1,0 +1,123 @@
+<ng-container>
+  @if (loading()) {
+    <div class="celebration-loading">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>Loading team activity…</span>
+    </div>
+  } @else {
+    <div class="celebration">
+
+      <div class="celebration-header">
+        <mat-icon class="celebration-title-icon">celebration</mat-icon>
+        <h3>Team activity</h3>
+        <span
+          class="live-badge"
+          [class.live-badge--active]="live()"
+          matTooltip="Live feed of successful deployments, builds, and provisions as they happen"
+          matTooltipShowDelay="500">
+          <mat-icon class="live-dot" inline="true">
+            {{ live() ? 'signal_cellular_alt' : 'wifi_off' }}
+          </mat-icon>
+          {{ live() ? 'Live' : 'Offline' }}
+        </span>
+      </div>
+
+      <!-- Global stat counters -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{ successesToday() }}</div>
+          <div class="stat-label">Successes today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ totalSuccesses() }}</div>
+          <div class="stat-label">Total successes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ successRatePercent() }}%</div>
+          <div class="stat-label">Success rate</div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="successRatePercent()"
+            class="stat-bar">
+          </mat-progress-bar>
+        </div>
+      </div>
+
+      <div class="celebration-columns">
+        <!-- Live feed of recent successes -->
+        <div class="feed-panel">
+          <div class="panel-title">
+            <mat-icon inline="true" class="panel-icon">bolt</mat-icon>
+            Recent successes
+          </div>
+
+          @if (feed().length === 0) {
+            <div class="feed-empty">
+              <p>No activity yet. Successes will appear here as they happen.</p>
+            </div>
+          } @else {
+            <ul class="feed-list">
+              @for (entry of feed(); track entry.id) {
+                <li
+                  class="feed-item"
+                  [class.feed-item--new]="isHighlighted(entry)">
+                  <app-outcome-icon
+                    [outcome]="entry.outcome"
+                    class="feed-icon"></app-outcome-icon>
+
+                  <div class="feed-body">
+                    <div class="feed-description">{{ describe(entry) }}</div>
+                    @if (entry.event.accountName) {
+                      <div class="feed-meta">
+                        <mat-icon inline="true" class="meta-icon">
+                          groups
+                        </mat-icon>
+                        {{ entry.event.accountName }}
+                      </div>
+                    }
+                  </div>
+
+                  <div class="feed-time">{{ timeAgo(entry) }}</div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Team spotlight -->
+        <div class="spotlight-panel">
+          <div class="panel-title">
+            <mat-icon inline="true" class="panel-icon">trophy</mat-icon>
+            Team spotlight
+          </div>
+
+          @if (topThreeTeams().length === 0) {
+            <div class="feed-empty">
+              <p>No teams to highlight yet.</p>
+            </div>
+          } @else {
+            <ul class="spotlight-list">
+              @for (team of topThreeTeams(); track team.accountId; let i = $index) {
+                <li
+                  class="spotlight-item"
+                  [class.spotlight-item--leader]="i === 0">
+                  <mat-icon
+                    inline="true"
+                    class="spotlight-medal"
+                    [color]="i === 0 ? 'primary' : 'secondary'">
+                    {{ i === 0 ? 'emoji_events' : (i === 1 ? 'workspace_premium' : 'star') }}
+                  </mat-icon>
+                  <div class="spotlight-name">{{ team.accountName }}</div>
+                  <span class="spotlight-count" matTooltip="Successful intentions">
+                    {{ team.successes }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</ng-container>

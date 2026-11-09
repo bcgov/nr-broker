@@ -8,6 +8,7 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { UtilModule } from '../util/util.module';
 import { BullModule } from '../bull/bull.module';
 import { VaultModule } from '../vault/vault.module';
+import { RedisModule } from '../redis/redis.module';
 import { IntentionController } from './intention.controller';
 import { IntentionService } from './intention.service';
 import { ActionService } from './action.service';
@@ -45,6 +46,7 @@ import {
     UtilModule,
     BullModule,
     VaultModule,
+    RedisModule,
   ],
   controllers: [IntentionController],
   providers: [

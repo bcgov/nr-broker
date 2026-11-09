@@ -25,7 +25,9 @@ import {
   INTENTION_REJECTED_TTL_MS,
   INTENTION_TRANSIENT_TTL_MS,
   BULL_LEADER_JOBS,
+  REDIS_PUBSUB,
 } from '../constants';
+import { RedisService } from '../redis/redis.service';
 import { AuditService } from '../audit/audit.service';
 import { ActionService } from './action.service';
 import { BrokerJwtEmbeddable } from '../auth/broker-jwt.embeddable';
@@ -77,6 +79,8 @@ import { ValidatorUtil } from '../util/validator.util';
 import { ActionSourceEmbeddable } from './entity/action-source.embeddable';
 import { UserDto } from './dto/user.dto';
 import { UserEmbeddable } from './entity/user.embeddable';
+import { CelebrationEventDto } from './dto/celebration-event.dto';
+import { GlobalStatsDto } from './dto/global-stats.dto';
 import { IntentionValidationException, IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 import { VaultService } from '../vault/vault.service';
 
@@ -117,6 +121,7 @@ export class IntentionService implements OnModuleInit {
     private readonly intentionValidationRuleEngine: IntentionValidationRuleEngine,
     private readonly bullService: BullService,
     private readonly vaultService: VaultService,
+    private readonly redisService: RedisService,
     // used by: @CreateRequestContext()
     private readonly orm: MikroORM,
   ) {}
@@ -483,6 +488,20 @@ export class IntentionService implements OnModuleInit {
     return this.intentionRepository.getUniqueFieldValues(field, search, limit);
   }
 
+  /**
+   * Returns aggregate statistics about closed intentions for the home page
+   * to celebrate team successes and surface activity at a glance.
+   * @param recentLimit How many of the most recent closed intentions to return
+   * @param accountLimit How many of the most active accounts to return
+   * @returns A {@link GlobalStatsDto} of global and per-team statistics
+   */
+  public async getGlobalStats(
+    recentLimit = 10,
+    accountLimit = 5,
+  ): Promise<GlobalStatsDto> {
+    return this.intentionRepository.getGlobalStats(recentLimit, accountLimit);
+  }
+
   public async getIntention(id: string) {
     const intention = this.intentionUtilService
       .convertIntentionEntityToDto(await this.intentionRepository.getIntention(id));
@@ -760,6 +779,8 @@ export class IntentionService implements OnModuleInit {
     if (outcome === 'success') {
       // All open intention have link to account
       const account = await this.getAccount(intention.accountId?.toString());
+      // Celebrate the success in realtime so the UI can highlight team activity
+      this.publishCelebration(intention, account?.name);
       await this.intentionSync.sync(intention, account);
     }
     for (const action of intention.actions) {
@@ -775,6 +796,32 @@ export class IntentionService implements OnModuleInit {
       }
     }
     return this.intentionRepository.closeIntention(intention);
+  }
+
+  /**
+   * Broadcasts a lightweight "success" event on the Redis `celebration`
+   * pub/sub channel so the UI can celebrate the intention's completion in
+   * realtime. Uses the first action's context for the celebration payload.
+   * @param intention The successfully closed intention
+   * @param accountName The resolved broker account name, when available
+   */
+  private publishCelebration(
+    intention: IntentionEntity,
+    accountName?: string,
+  ): void {
+    const firstAction = intention.actions[0];
+    const event: CelebrationEventDto = {
+      intentionId: intention.id,
+      accountName:
+        accountName ?? intention.accountId?.toString() ?? 'unknown',
+      action: firstAction?.action,
+      project: firstAction?.service?.project,
+      service: firstAction?.service?.name,
+      environment: firstAction?.service?.environment,
+      user: firstAction?.user?.name ?? intention.user?.name,
+      timestamp: intention.transaction.end ?? new Date().toISOString(),
+    };
+    this.redisService.publish(REDIS_PUBSUB.CELEBRATION, { data: event });
   }
 
   // TODO: Currently only works for package-installation actions

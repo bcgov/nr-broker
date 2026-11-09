@@ -11,6 +11,7 @@ import { IntentionRepository } from '../interfaces/intention.repository';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
+import { GlobalStatsDto } from '../../intention/dto/global-stats.dto';
 
 @Injectable()
 export class IntentionMongoRepository implements IntentionRepository {
@@ -297,5 +298,150 @@ export class IntentionMongoRepository implements IntentionRepository {
         { $project: { _id: 0, value: '$_id' } },
       ])
       .then((results: any[]) => results.map((r) => r.value));
+  }
+
+  public async getGlobalStats(
+    recentLimit = 10,
+    accountLimit = 5,
+  ): Promise<GlobalStatsDto> {
+    const dayAgoIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const [facet] = await this.intentionRepository.aggregate([
+      { $match: { closed: true } },
+      {
+        $facet: {
+          totals: [
+            {
+              $group: {
+                _id: null,
+                totalClosed: { $sum: 1 },
+                totalSuccesses: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ['$transaction.outcome', 'success'] },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+                successesToday: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $eq: ['$transaction.outcome', 'success'] },
+                          { $gte: ['$transaction.end', dayAgoIso] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+          byAction: [
+            { $unwind: { path: '$actions', preserveNullAndEmptyArrays: true } },
+            { $match: { 'transaction.outcome': 'success' } },
+            { $group: { _id: '$actions.action', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $project: { _id: 0, action: '$_id', count: 1 } },
+          ],
+          byAccount: [
+            {
+              $group: {
+                _id: '$accountId',
+                successes: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ['$transaction.outcome', 'success'] },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: 'brokerAccount',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'account',
+              },
+            },
+            { $unwind: { path: '$account', preserveNullAndEmptyArrays: true } },
+            { $sort: { successes: -1 } },
+            { $limit: accountLimit },
+            { $project: { _id: 1, account: 1, successes: 1 } },
+          ],
+          recent: [
+            { $sort: { 'transaction.end': -1 } },
+            { $limit: recentLimit },
+            {
+              $project: {
+                intentionId: '$_id',
+                outcome: '$transaction.outcome',
+                timestamp: '$transaction.end',
+                action: {
+                  $arrayElemAt: [
+                    { $slice: ['$actions', 0, 1] },
+                    0,
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      } as any],
+    );
+
+    const totals = facet?.totals?.[0];
+    const totalClosed = totals?.totalClosed ?? 0;
+    const totalSuccesses = totals?.totalSuccesses ?? 0;
+
+    const byAction: Record<string, number> = {};
+    for (const bucket of facet?.byAction ?? []) {
+      if (bucket.action !== null && bucket.action !== undefined) {
+        byAction[bucket.action] = bucket.count;
+      }
+    }
+
+    const byAccount = (facet?.byAccount ?? [])
+      .filter((row: any) => row.account && row.account.name)
+      .map((row: any) => ({
+        accountId:
+          row._id instanceof ObjectId ? row._id.toString() : String(row._id ?? ''),
+        accountName: row.account.name,
+        successes: row.successes,
+      }));
+
+    const recent = (facet?.recent ?? []).map((row: any) => {
+      const firstAction = row.action ?? {};
+      return {
+        intentionId:
+          row.intentionId instanceof ObjectId
+            ? row.intentionId.toString()
+            : String(row.intentionId ?? ''),
+        outcome: row.outcome,
+        action: firstAction.action,
+        project: firstAction.service?.project,
+        service: firstAction.service?.name,
+        environment: firstAction.service?.environment,
+        user: firstAction.user?.name,
+        timestamp: row.timestamp,
+      };
+    });
+
+    return {
+      totalSuccesses,
+      totalClosed,
+      successRate: totalClosed > 0 ? totalSuccesses / totalClosed : 0,
+      successesToday: totals?.successesToday ?? 0,
+      byAction,
+      byAccount,
+      recent,
+    };
   }
 }

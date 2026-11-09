@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SystemApiService } from '../service/system-api.service';
 import { ConnectionConfigDto } from '../service/persistence/dto/connection-config.dto';
 import { PreferencesService } from '../preferences.service';
+import { CelebrationComponent } from './celebration/celebration.component';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +27,7 @@ import { PreferencesService } from '../preferences.service';
     MatRippleModule,
     MatTabsModule,
     MatTooltipModule,
+    CelebrationComponent,
   ],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
