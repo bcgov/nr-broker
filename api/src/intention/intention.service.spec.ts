@@ -18,6 +18,7 @@ import { IntentionUtilService } from './intention-util.service';
 import { ValidatorUtil } from '../util/validator.util';
 import { IntentionValidationRuleEngine } from './validation/intention-validation-rule.engine';
 import { VaultService } from '../vault/vault.service';
+import { RedisService } from '../redis/redis.service';
 import { BadRequestException } from '@nestjs/common';
 import { IntentionDto } from './dto/intention.dto';
 
@@ -90,6 +91,9 @@ describe('IntentionService', () => {
     } as unknown as BullService;
     const vaultService = {
       postAuthTokenRevokeAccessor: vi.fn().mockReturnValue(of({})) } as unknown as VaultService;
+    const redisService = {
+      publish: vi.fn(),
+    } as unknown as RedisService;
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IntentionService,
@@ -105,6 +109,7 @@ describe('IntentionService', () => {
         { provide: PersistenceUtilService, useValue: persistenceUtilService },
         { provide: IntentionUtilService, useValue: intentionUtilService },
         { provide: ValidatorUtil, useValue: validatorUtil },
+        { provide: RedisService, useValue: redisService },
         { provide: IntentionValidationRuleEngine, useValue: intentionValidationRuleEngine },
         { provide: BullService, useValue: bullService },
         { provide: VaultService, useValue: vaultService },

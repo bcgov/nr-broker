@@ -30,9 +30,9 @@ describe('HomeComponent', () => {
     fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController)
-      .match(() => true)
-      .forEach((req) =>
+    const controller = TestBed.inject(HttpTestingController);
+    controller.match((req) => req.url.includes('/v1/intention/stats')).forEach(
+      (req) =>
         req.flush({
           totalSuccesses: 0,
           totalClosed: 0,
@@ -42,7 +42,10 @@ describe('HomeComponent', () => {
           byAccount: [],
           recent: [],
         }),
-      );
+    );
+    controller
+      .match((req) => req.url.includes('/v1/system/preference/connection'))
+      .forEach((req) => req.flush([]));
   });
 
   it('should create', () => {
