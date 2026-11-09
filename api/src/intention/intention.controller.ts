@@ -3,19 +3,26 @@ import {
   Body,
   Controller,
   Get,
+  MessageEvent,
   Param,
   ParseIntPipe,
   Post,
   Query,
   Req,
+  Sse,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
+import { Observable, interval, map, merge } from 'rxjs';
 
-import { HEADER_BROKER_TOKEN } from '../constants';
+import {
+  HEADER_BROKER_TOKEN,
+  REDIS_PUBSUB,
+  SSE_HEARTBEAT_INTERVAL_MS,
+} from '../constants';
 import { ActionUtil } from '../util/action.util';
 import { IntentionEntityValidationPipe } from './intention-dto-validation.pipe';
 import { IntentionService } from './intention.service';
@@ -29,11 +36,13 @@ import { ArtifactDto } from './dto/artifact.dto';
 import { ArtifactSearchQuery } from './dto/artifact-search-query.dto';
 import { ActionPatchRestDto } from './dto/action-patch-rest.dto';
 import { IntentionDto } from './dto/intention.dto';
+import { GlobalStatsDto } from './dto/global-stats.dto';
 import {
   ACTION_END_STATUSES,
   INTENTION_CLOSE_STATUSES,
 } from './dto/constants.dto';
 import { ParseObjectIdPipe } from '../util/parse-objectid.pipe';
+import { RedisService } from '../redis/redis.service';
 
 @Controller({
   path: 'intention',
@@ -43,6 +52,7 @@ export class IntentionController {
   constructor(
     private readonly actionUtil: ActionUtil,
     private readonly intentionService: IntentionService,
+    private readonly redis: RedisService,
   ) {}
 
   @Post('open')
@@ -246,6 +256,40 @@ export class IntentionController {
       undefined,
       'start',
     );
+  }
+
+  @Get('stats')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'recent', required: false })
+  @ApiQuery({ name: 'accounts', required: false })
+  getGlobalStats(
+    @Query('recent', new ParseIntPipe({ optional: true })) recent:
+      | number
+      | undefined,
+    @Query('accounts', new ParseIntPipe({ optional: true })) accounts:
+      | number
+      | undefined,
+  ): Promise<GlobalStatsDto> {
+    return this.intentionService.getGlobalStats(
+      recent ?? 10,
+      accounts ?? 5,
+    );
+  }
+
+  @Sse('celebration/events')
+  @UseGuards(BrokerCombinedAuthGuard)
+  @ApiBearerAuth()
+  celebrationEvents(): Observable<MessageEvent> {
+    // Disable heartbeat when interval is under 5 seconds (e.g., SSE_HEARTBEAT_INTERVAL_MS=0)
+    if (SSE_HEARTBEAT_INTERVAL_MS < 5000) {
+      return this.redis.getEventSource(REDIS_PUBSUB.CELEBRATION);
+    }
+
+    const heartbeat$ = interval(SSE_HEARTBEAT_INTERVAL_MS).pipe(
+      map(() => ({ data: JSON.stringify({ event: 'heartbeat' }) })),
+    );
+    return merge(this.redis.getEventSource(REDIS_PUBSUB.CELEBRATION), heartbeat$);
   }
 
   @Get(':id')

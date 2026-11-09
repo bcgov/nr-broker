@@ -146,6 +146,9 @@ export const KUBERNETES_SYNC_SECRET_LABEL_VALUE = 'nr-broker';
 export const REDIS_PUBSUB = {
   GRAPH: 'graph',
   BROKER_ACCOUNT_TOKEN: 'broker-account-token',
+  // Broadcast a lightweight "success" event whenever an intention closes
+  // successfully, so the UI can celebrate team activity in realtime.
+  CELEBRATION: 'celebration',
 } as const;
 
 /**

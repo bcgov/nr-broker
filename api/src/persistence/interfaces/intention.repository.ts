@@ -3,6 +3,7 @@ import { IntentionEntity } from '../../intention/entity/intention.entity';
 import { IntentionSearchResult } from '../../intention/dto/intention-search-result.dto';
 import { ActionEmbeddable } from '../../intention/entity/action.embeddable';
 import { ArtifactEmbeddable } from '../../intention/entity/artifact.embeddable';
+import { GlobalStatsDto } from '../../intention/dto/global-stats.dto';
 
 export abstract class IntentionRepository {
   public abstract addIntention(intention: IntentionEntity): Promise<void>;
@@ -98,4 +99,16 @@ export abstract class IntentionRepository {
     search: string,
     limit: number,
   ): Promise<string[]>;
+
+  /**
+   * Returns aggregate statistics about closed intentions, used by the home
+   * page to celebrate team successes and surface activity at a glance.
+   * @param recentLimit How many of the most recent closed intentions to return
+   * @param accountLimit How many of the most active accounts to return
+   * @returns A {@link GlobalStatsDto} of global and per-team statistics
+   */
+  public abstract getGlobalStats(
+    recentLimit: number,
+    accountLimit: number,
+  ): Promise<GlobalStatsDto>;
 }
