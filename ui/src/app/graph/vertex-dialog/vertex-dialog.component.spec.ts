@@ -3,6 +3,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { ProvenanceType } from '../../service/persistence/dto/provenance.dto';
+import { VertexDto } from '../../service/persistence/dto/vertex.dto';
 
 import { VertexDialogComponent } from './vertex-dialog.component';
 
@@ -32,5 +34,32 @@ describe('VertexDialogComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows a footer warning when editing a vertex with non-manual provenance', () => {
+    component.data.vertex = {
+      provenance: [{ type: ProvenanceType.CATALOG }],
+    } as VertexDto;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Automation may overwrite');
+  });
+
+  it('does not show a footer warning for manual-only provenance', () => {
+    component.data.vertex = {
+      provenance: [{ type: ProvenanceType.MANUAL }],
+    } as VertexDto;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Automation may overwrite');
+  });
+
+  it('does not show a footer warning for intention-only provenance', () => {
+    component.data.vertex = {
+      provenance: [{ type: ProvenanceType.INTENTION }],
+    } as VertexDto;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Automation may overwrite');
   });
 });

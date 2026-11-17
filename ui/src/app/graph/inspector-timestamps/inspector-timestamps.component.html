@@ -2,19 +2,13 @@
 @if (localTimestamps) {
   <div class="container">
     <h3>Information</h3>
-    <mat-list>
+    <div class="inspector-timestamps" [class]="layout()">
     @if (localTimestamps.createdAt) {
-      <mat-list-item>
-        <span matListItemTitle>Created</span>
-        <span matListItemLine>{{ localTimestamps.createdAt | date:'medium' }}</span>
-      </mat-list-item>
+      <app-details-item item="Created">{{ localTimestamps.createdAt | date: 'medium' }}</app-details-item>
     }
     @if (localTimestamps.updatedAt) {
-      <mat-list-item>
-        <span matListItemTitle>Modified</span>
-        <span matListItemLine>{{ localTimestamps.updatedAt | date:'medium' }}</span>
-      </mat-list-item>
+      <app-details-item item="Modified">{{ localTimestamps.updatedAt | date: 'medium' }}</app-details-item>
     }
-    </mat-list>
+    </div>
   </div>
 }

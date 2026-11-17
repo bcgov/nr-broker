@@ -3,6 +3,8 @@ import { lastValueFrom } from 'rxjs';
 import sodium from 'libsodium-wrappers';
 import { Job } from 'bullmq';
 import { MikroORM } from '@mikro-orm/core';
+import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
+
 import {
   GITHUB_MANAGED_URL_REGEX,
   VAULT_KV_APPS_MOUNT,
@@ -25,7 +27,6 @@ import { GraphService } from '../graph/graph.service';
 import { BullService } from '../bull/bull.service';
 import { GithubService } from './github.service';
 import { GithubTokenService } from './github-token.service';
-import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
 
 @Injectable()
 export class GithubSyncService implements OnModuleInit {

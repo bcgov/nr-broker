@@ -22,6 +22,9 @@ export class ProvenanceEmbeddable {
   @Property({ nullable: true })
   path?: string;
 
+  @Property({ nullable: true })
+  intentionId?: string;
+
   @Property()
   createdAt: Date;
 
@@ -44,8 +47,10 @@ export class ProvenanceEmbeddable {
     return new ProvenanceEmbeddable(ProvenanceType.MANUAL);
   }
 
-  static intention(): ProvenanceEmbeddable {
-    return new ProvenanceEmbeddable(ProvenanceType.INTENTION);
+  static intention(intentionId?: string): ProvenanceEmbeddable {
+    const record = new ProvenanceEmbeddable(ProvenanceType.INTENTION);
+    record.intentionId = intentionId;
+    return record;
   }
 
   static opensearch(): ProvenanceEmbeddable {
@@ -86,6 +91,7 @@ export class ProvenanceEmbeddable {
     const match = merged.find((existing) => existing.matches(record));
     if (match) {
       match.updatedAt = record.updatedAt;
+      match.intentionId = record.intentionId ?? match.intentionId;
     } else {
       merged.push(ProvenanceEmbeddable.fromObject(record));
     }
@@ -95,7 +101,7 @@ export class ProvenanceEmbeddable {
   static fromObject(
     value: Pick<
       ProvenanceEmbeddable,
-      'type' | 'repository' | 'path' | 'createdAt' | 'updatedAt'
+      'type' | 'repository' | 'path' | 'intentionId' | 'createdAt' | 'updatedAt'
     >,
   ): ProvenanceEmbeddable {
     const record = new ProvenanceEmbeddable(
@@ -103,6 +109,7 @@ export class ProvenanceEmbeddable {
       value.repository,
       value.path,
     );
+    record.intentionId = value.intentionId;
     record.createdAt = value.createdAt ?? record.createdAt;
     record.updatedAt = value.updatedAt ?? record.createdAt;
     return record;

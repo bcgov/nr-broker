@@ -130,7 +130,12 @@ export class IntentionSyncService {
         [{ key: 'name', path: 'action.service.name' }],
         'name',
       );
-      this.overlayEdge('component', projectVertex, serviceVertex);
+      this.overlayEdge(
+        'component',
+        projectVertex,
+        serviceVertex,
+        intention.id.toString(),
+      );
       if (account) {
         const accountVertex = await this.graphRepository.getVertex(
           account.vertex.toString(),
@@ -142,7 +147,12 @@ export class IntentionSyncService {
         );
         if (!serviceAuth) {
           // If not authorized through service, default to by project.
-          this.overlayEdge('authorized', accountVertex, projectVertex);
+          this.overlayEdge(
+            'authorized',
+            accountVertex,
+            projectVertex,
+            intention.id.toString(),
+          );
         }
       }
       if (
@@ -302,12 +312,18 @@ export class IntentionSyncService {
       'parentId',
       serviceVertex.id.toString(),
     );
-    await this.overlayEdge('instance', serviceVertex, serviceInstanceVertex);
+    await this.overlayEdge(
+      'instance',
+      serviceVertex,
+      serviceInstanceVertex,
+      intention.id.toString(),
+    );
     if (envMap[action.service.environment]) {
       this.overlayEdgeById(
         'deploy-type',
         serviceInstanceVertex.id.toString(),
         envMap[action.service.environment].vertex.toString(),
+        intention.id.toString(),
       );
     }
 
@@ -320,6 +336,7 @@ export class IntentionSyncService {
         serverVertex,
         action.cloud.target.propStrategy,
         action.cloud.target.prop,
+        intention.id.toString(),
       );
     }
   }
@@ -432,6 +449,7 @@ export class IntentionSyncService {
     serverVertex: VertexEntity,
     propStrategy: 'merge' | 'replace' = 'merge',
     prop: EdgePropDto,
+    intentionId: string,
   ) {
     const instanceVertex =
       await this.graphRepository.getVertexByParentIdAndName(
@@ -451,6 +469,7 @@ export class IntentionSyncService {
       'installation',
       instanceVertex,
       serverVertex,
+      intentionId,
       propStrategy,
       prop,
     );
@@ -502,7 +521,7 @@ export class IntentionSyncService {
       }),
       targetBy,
       target,
-      ProvenanceInfo.intention(),
+      ProvenanceInfo.intention(context.intention.id.toString()),
     );
   }
 
@@ -510,6 +529,7 @@ export class IntentionSyncService {
     name: string,
     source: VertexEntity,
     target: VertexEntity,
+    intentionId: string,
     propStrategy: 'merge' | 'replace' = 'merge',
     prop?: EdgePropDto,
   ) {
@@ -518,6 +538,7 @@ export class IntentionSyncService {
         name,
         source.id.toString(),
         target.id.toString(),
+        intentionId,
         propStrategy,
         prop,
       );
@@ -542,6 +563,7 @@ export class IntentionSyncService {
     name: string,
     source: string,
     target: string,
+    intentionId: string,
     propStrategy: 'merge' | 'replace' = 'merge',
     prop?: EdgePropDto,
   ) {
@@ -573,7 +595,7 @@ export class IntentionSyncService {
             target,
             prop: saveProps,
           },
-          ProvenanceInfo.intention(),
+          ProvenanceInfo.intention(intentionId),
         );
         this.logger.debug(
           `Updated '${name}' edge properties from vertex ${source} to ${target}`,
@@ -596,7 +618,7 @@ export class IntentionSyncService {
           target,
           ...(prop ? { prop } : {}),
         },
-        ProvenanceInfo.intention(),
+        ProvenanceInfo.intention(intentionId),
       );
       this.logger.debug(
         `Created '${name}' edge from vertex ${source} to ${target}`,

@@ -34,8 +34,8 @@ export class ProvenanceInfo {
     return new ProvenanceInfo(ProvenanceEmbeddable.manual());
   }
 
-  static intention(): ProvenanceInfo {
-    return new ProvenanceInfo(ProvenanceEmbeddable.intention());
+  static intention(intentionId: string): ProvenanceInfo {
+    return new ProvenanceInfo(ProvenanceEmbeddable.intention(intentionId));
   }
 
   static opensearch(): ProvenanceInfo {

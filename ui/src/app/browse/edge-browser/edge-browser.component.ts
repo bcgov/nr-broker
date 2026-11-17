@@ -24,6 +24,7 @@ import { InspectorEdgeComponent } from '../../graph/inspector-edge/inspector-edg
 import { CollectionApiService } from '../../service/collection-api.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
+import { InspectorProvenanceComponent } from '../../graph/inspector-provenance/inspector-provenance.component';
 import { UserPermissionDto } from '../../service/persistence/dto/user-permission.dto';
 
 @Component({
@@ -32,6 +33,7 @@ import { UserPermissionDto } from '../../service/persistence/dto/user-permission
     InspectorEdgeComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
+    InspectorProvenanceComponent,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,

@@ -105,6 +105,18 @@ export class EdgeEntity extends BaseEntity {
             },
           }
         : {}),
+      ...(includeOptional && this.provenance
+        ? {
+            provenance: this.provenance.map((record) => ({
+              type: record.type,
+              ...(record.repository ? { repository: record.repository } : {}),
+              ...(record.path ? { path: record.path } : {}),
+              ...(record.intentionId ? { intentionId: record.intentionId } : {}),
+              createdAt: record.createdAt.toISOString(),
+              updatedAt: record.updatedAt.toISOString(),
+            })),
+          }
+        : {}),
     };
   }
 

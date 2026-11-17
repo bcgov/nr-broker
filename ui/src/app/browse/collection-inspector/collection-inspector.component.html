@@ -185,6 +185,10 @@
           }
           <app-inspector-timestamps
             [timestamps]="cd.vertex.timestamps"></app-inspector-timestamps>
+          <app-inspector-provenance
+            [showHelp]="showHelp()"
+            [timestamps]="cd.vertex.timestamps"
+            [provenance]="cd.vertex.provenance"></app-inspector-provenance>
         </mat-card-content>
       </mat-card>
 

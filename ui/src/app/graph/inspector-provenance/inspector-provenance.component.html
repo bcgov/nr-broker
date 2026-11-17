@@ -1,0 +1,103 @@
+@if (hasProvenance()) {
+  <div class="provenance-container">
+    <h3>Managed By</h3>
+    @if (showHelp()) {
+      <p class="provenance-help">Lists the sources that created or updated this item.
+        Automated sources keep the item up to date and may overwrite manual changes.</p>
+    }
+
+    <div class="provenance-list">
+      @for (source of displayProvenance(); track source.key) {
+        <div class="provenance-item">
+          <div class="provenance-item-head">
+            <span class="provenance-item-icon" [class.automated]="source.automated">
+              <mat-icon inline="true">{{ source.icon }}</mat-icon>
+            </span>
+            <span class="provenance-item-label">{{ source.label }}</span>
+            <div class="provenance-item-badges">
+              @if (source.record.intentionId) {
+                <span
+                  matRipple
+                  class="provenance-item-badge provenance-item-badge-link"
+                  [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
+                  mat-button>
+                  View History
+                </span>
+              }
+              @if (latestProvenance()?.record.type === source.record.type) {
+                <span
+                  class="provenance-item-badge"
+                  [class.provenance-item-badge-warn]="showManualWarning()"
+                  [matTooltip]="manualEditTooltip"
+                  [matTooltipDisabled]="!showManualWarning()"
+                  matTooltipPosition="right"
+                  matTooltipShowDelay="300">
+                  @if (showManualWarning()) {
+                    <mat-icon class="provenance-item-badge-icon" inline="true">error</mat-icon>
+                  }
+                  Most recent
+                </span>
+              }
+              @if (isCreator(source)) {
+                <span
+                  class="provenance-item-badge provenance-item-badge-creator"
+                  [matTooltip]="creatorTooltip"
+                  matTooltipPosition="right"
+                  matTooltipShowDelay="300">
+                  Creator
+                </span>
+              }
+            </div>
+          </div>
+
+          @if (showHelp()) {
+            <p class="provenance-item-description">{{ source.description }}</p>
+          }
+
+          <div class="provenance-item-details">
+
+            @if (source.repository && source.path) {
+              <a [href]="source.repository"
+                target="_blank"
+                rel="noopener noreferrer">
+                <app-details-item item="Repository" clickable>{{ source.repository }}</app-details-item>
+              </a>
+
+              @let catalogUrl = catalogFileUrl(source);
+              @if (catalogUrl) {
+              <a [href]="source.repository"
+                target="_blank"
+                rel="noopener noreferrer">
+                <app-details-item item="Catalog File" clickable>{{ source.path }}</app-details-item>
+              </a>
+              }
+            }
+            <app-details-item item="Created">{{ source.record.createdAt | date: 'medium' }}</app-details-item>
+            <app-details-item item="Modified">{{ source.record.updatedAt | date: 'medium' }}</app-details-item>
+          </div>
+
+          @if (source.record.intentionId) {
+            <div>
+              <button
+                [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
+                mat-button>
+                View History
+                </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (hasAdditional() && !expanded()) {
+      <div class="provenance-item-row">
+      <button
+        mat-button
+        class="provenance-toggle"
+        (click)="toggleExpanded()">
+        Show more ({{ additionalCount() }})
+      </button>
+      </div>
+    }
+  </div>
+}
