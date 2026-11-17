@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   computed,
   signal,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +14,9 @@ import { RouterLink } from '@angular/router';
 
 import { ProvenanceDto, ProvenanceType } from '../../service/persistence/dto/provenance.dto';
 import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
+import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
+import { ScreenService } from '../../util/screen.service';
+import { MatRippleModule } from '@angular/material/core';
 
 /**
  * A provenance record with the display metadata used to present it.
@@ -105,7 +109,15 @@ const CREATOR_DATE_PRECISION_MS = 1000;
 
 @Component({
   selector: 'app-inspector-provenance',
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, RouterLink],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatRippleModule,
+    MatTooltipModule,
+    RouterLink,
+    DetailsItemComponent,
+  ],
   templateUrl: './inspector-provenance.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './inspector-provenance.component.scss',
@@ -123,6 +135,8 @@ export class InspectorProvenanceComponent {
    * The item's own timestamps, used to recognise the source that created it.
    */
   readonly timestamps = input<TimestampDto>();
+
+  readonly screen = inject(ScreenService);
 
   /**
    * Shown as a tooltip on the "Most recent" tag when a manual edit is in effect

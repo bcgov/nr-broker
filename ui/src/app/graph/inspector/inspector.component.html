@@ -157,7 +157,8 @@
               [prop]="localComboData.edge.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
-            [timestamps]="localComboData.edge.timestamps"></app-inspector-timestamps>
+            [timestamps]="localComboData.edge.timestamps"
+            [layout]="'narrow'"></app-inspector-timestamps>
         }
         @if (localComboData.type === 'vertex') {
           @if (localComboData.vertex.prop) {
@@ -165,10 +166,8 @@
               [prop]="localComboData.vertex.prop"></app-inspector-properties>
           }
           <app-inspector-timestamps
-            [timestamps]="localComboData.vertex.timestamps"></app-inspector-timestamps>
-          <app-inspector-provenance
             [timestamps]="localComboData.vertex.timestamps"
-            [provenance]="localComboData.vertex.provenance"></app-inspector-provenance>
+            [layout]="'narrow'"></app-inspector-timestamps>
         }
       </div>
     }

@@ -51,7 +51,6 @@ import { CollectionCombo } from '../../service/collection/dto/collection-search-
 import { EdgeComboDto } from '../../service/persistence/dto/edge-combo.dto';
 import { InspectorPropertiesComponent } from '../inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../inspector-timestamps/inspector-timestamps.component';
-import { InspectorProvenanceComponent } from '../inspector-provenance/inspector-provenance.component';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
@@ -80,7 +79,6 @@ import { ConnectionsHelpDialogComponent } from '../connections-help-dialog/conne
     InspectorVertexComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
-    InspectorProvenanceComponent,
     TitleCasePipe,
     MatTooltipModule,
     WatchButtonComponent,

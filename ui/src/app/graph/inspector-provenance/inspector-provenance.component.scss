@@ -14,9 +14,8 @@ h3 {
 .provenance-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   margin-left: 16px;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .provenance-item {
@@ -59,7 +58,6 @@ h3 {
   border-radius: 8px;
   font-size: 12px;
   padding: 2px 8px;
-  text-transform: uppercase;
   letter-spacing: 0.4px;
   color: $muted;
   cursor: default;
@@ -75,6 +73,23 @@ h3 {
     color: var(--mat-sys-on-primary-container, #001d33);
     cursor: default;
   }
+
+  // Interactive "View History" link pill: a mat-button styled as a link.
+  &.provenance-item-badge-link {
+    color: $primary;
+    cursor: pointer;
+    text-decoration: none;
+    background: none;
+    outline: 1px solid var(--mat-sys-primary);
+
+    &:hover {
+      background: var(--mat-sys-surface-container-highest, rgba(0, 0, 0, 0.08));
+    }
+
+    &:focus-visible {
+      outline: 2px solid $primary;
+    }
+  }
 }
 
 .provenance-item-badge-icon {
@@ -87,43 +102,32 @@ h3 {
   color: $muted;
 }
 
-.provenance-item-row {
+.provenance-item-details {
   display: flex;
-  gap: 8px;
-  font-size: 12px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0 16px;
+  width: 100%;
 }
 
-.provenance-item-row-label {
-  font-weight: 400;
-  flex: 0 0 72px;
+.provenance-item-details > * {
+  width: calc(50% - 8px);
 }
 
-.provenance-item-row-value {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  word-break: break-all;
+.inspector-timestamps.narrow > * {
+  width: 100%;
 }
 
-.provenance-item-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  color: $primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.provenance-item-link-icon {
-  font-size: 14px;
-  height: 18x;
-  width: 14px;
-
+.provenance-item-row {
+  margin: 0 0 0 16px;
 }
 
 .provenance-toggle {
   margin-top: 8px;
 }
+
+.provenance-item a {
+  text-decoration: none;
+}
+
