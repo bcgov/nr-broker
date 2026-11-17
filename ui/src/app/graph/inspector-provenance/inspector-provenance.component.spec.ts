@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { provideRouter, RouterLink } from '@angular/router';
 
 import { InspectorProvenanceComponent } from './inspector-provenance.component';
 import { ProvenanceDto, ProvenanceType } from '../../service/persistence/dto/provenance.dto';
@@ -167,8 +168,10 @@ describe('InspectorProvenanceComponent', () => {
       }),
     ]);
 
-    const link = fixture.nativeElement.querySelector('.provenance-item-link') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe(
+    const link = fixture.debugElement
+      .query(By.css('.provenance-item-badge-link'))
+      .injector.get(RouterLink);
+    expect(link.urlTree?.toString()).toBe(
       '/intention/history;field=id;value=65a123456789012345678901',
     );
   });
