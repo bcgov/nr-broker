@@ -14,15 +14,15 @@ metadata:
     - env: development
       type: instance
       title: development
-      url: https://nr-broker-dev.apps.silver.devops.gov.bc.ca/api
+      url: https://nr-broker-dev.apps.silver.devops.gov.bc.ca
     - env: test
       type: instance
       title: test
-      url: https://nr-broker-test.apps.silver.devops.gov.bc.ca/api
+      url: https://nr-broker-test.apps.silver.devops.gov.bc.ca
     - env: production
       type: instance
       title: production
-      url: https://broker.io.nrs.gov.bc.ca/api
+      url: https://broker.io.nrs.gov.bc.ca
 spec:
   system: nr-broker
   type: website

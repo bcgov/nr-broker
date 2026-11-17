@@ -42,6 +42,16 @@ describe('ProvenanceEmbeddable', () => {
     expect(ProvenanceEmbeddable.merge(undefined, update)).toHaveLength(1);
   });
 
+  it('updates the intention ID when merging intention provenance', () => {
+    const existing = ProvenanceEmbeddable.intention('old-id');
+    const update = ProvenanceEmbeddable.intention('new-id');
+
+    const merged = ProvenanceEmbeddable.merge([existing], update);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0].intentionId).toBe('new-id');
+  });
+
   it('replaces records of the same type when overwriting', () => {
     const created = new Date('2020-01-01');
     const existing = [

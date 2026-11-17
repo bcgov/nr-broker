@@ -1,0 +1,129 @@
+// Design-token colours with light-mode fallbacks, shared across the item styles.
+$primary: var(--mat-sys-primary, #1a73e8);
+$muted: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6));
+
+h3 {
+  margin: 16px 16px 0;
+}
+
+.provenance-help {
+  margin: 4px 16px 0;
+  color: $muted;
+}
+
+.provenance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-left: 16px;
+  margin-top: 8px;
+}
+
+.provenance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.provenance-item-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.provenance-item-icon {
+  display: inline-flex;
+
+  &.automated {
+    color: $primary;
+  }
+}
+
+.provenance-item-label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.provenance-item-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.provenance-item-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.06));
+  border-radius: 8px;
+  font-size: 12px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
+  cursor: default;
+
+  &.provenance-item-badge-warn {
+    background: var(--mat-sys-error-container, #f9dedc);
+    color: var(--mat-sys-on-error-container, #410002);
+    cursor: help;
+  }
+
+  &.provenance-item-badge-creator {
+    background: var(--mat-sys-primary-container, #d2e3fc);
+    color: var(--mat-sys-on-primary-container, #001d33);
+    cursor: default;
+  }
+}
+
+.provenance-item-badge-icon {
+  font-size: 14px;
+  height: 18x;
+  width: 14px;
+}
+
+.provenance-item-description {
+  color: $muted;
+}
+
+.provenance-item-row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.provenance-item-row-label {
+  font-weight: 400;
+  flex: 0 0 72px;
+}
+
+.provenance-item-row-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  word-break: break-all;
+}
+
+.provenance-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.provenance-item-link-icon {
+  font-size: 14px;
+  height: 18x;
+  width: 14px;
+
+}
+
+.provenance-toggle {
+  margin-top: 8px;
+}

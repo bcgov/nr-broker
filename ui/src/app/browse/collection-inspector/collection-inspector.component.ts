@@ -48,6 +48,7 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
+import { InspectorProvenanceComponent } from '../../graph/inspector-provenance/inspector-provenance.component';
 import { TeamRolesComponent } from '../team-roles/team-roles.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
 import { TagDialogComponent } from '../../graph/tag-dialog/tag-dialog.component';
@@ -97,6 +98,7 @@ import { SyncQueueConfigDto } from '../../service/persistence/dto/sync-queue-con
     InspectorRepositorySyncComponent,
     InspectorPropertiesComponent,
     InspectorTimestampsComponent,
+    InspectorProvenanceComponent,
     InspectorVaultComponent,
     InspectorServiceSecureComponent,
     TeamMembersComponent,

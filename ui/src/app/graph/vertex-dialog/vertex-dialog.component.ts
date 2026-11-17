@@ -17,6 +17,7 @@ import { CollectionConfigDto } from '../../service/persistence/dto/collection-co
 import { GraphUtilService } from '../../service/graph-util.service';
 import { VertexDialogEditorComponent } from '../vertex-dialog-editor/vertex-dialog-editor.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
+import { ProvenanceType } from '../../service/persistence/dto/provenance.dto';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
 import { CollectionNames } from '../../service/persistence/dto/collection-dto-union.type';
 
@@ -118,6 +119,16 @@ export class VertexDialogComponent implements OnInit, AfterViewInit {
 
   closeDialog() {
     this.dialogRef.close();
+  }
+
+  hasAutomatedProvenance(): boolean {
+    return (
+      this.data.vertex?.provenance?.some(
+        (source) =>
+          source.type !== ProvenanceType.MANUAL &&
+          source.type !== ProvenanceType.INTENTION,
+      ) ?? false
+    );
   }
 
   isCollectionConfig(cc: any): cc is CollectionConfigDto {

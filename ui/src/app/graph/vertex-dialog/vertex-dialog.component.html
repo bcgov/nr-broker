@@ -30,6 +30,9 @@
     }
   </mat-dialog-content>
   <mat-dialog-actions align="end">
+    @if (data.vertex && hasAutomatedProvenance()) {
+      <small class="provenance-warning" role="status">Automation may overwrite</small>
+    }
     <button
       mat-button
       mat-dialog-close>Cancel</button>

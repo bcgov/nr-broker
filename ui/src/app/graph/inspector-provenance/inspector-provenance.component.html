@@ -1,0 +1,110 @@
+@if (hasProvenance()) {
+  <div class="provenance-container">
+    <h3>Managed By</h3>
+    @if (showHelp()) {
+      <p class="provenance-help">Lists the sources that created or updated this item.
+        Automated sources keep the item up to date and may overwrite manual changes.</p>
+    }
+
+    <div class="provenance-list">
+      @for (source of displayProvenance(); track source.key) {
+        <div class="provenance-item">
+          <div class="provenance-item-head">
+            <span class="provenance-item-icon" [class.automated]="source.automated">
+              <mat-icon inline="true">{{ source.icon }}</mat-icon>
+            </span>
+            <span class="provenance-item-label">{{ source.label }}</span>
+            <div class="provenance-item-badges">
+              @if (latestProvenance()?.record.type === source.record.type) {
+                <span
+                  class="provenance-item-badge"
+                  [class.provenance-item-badge-warn]="showManualWarning()"
+                  [matTooltip]="manualEditTooltip"
+                  [matTooltipDisabled]="!showManualWarning()"
+                  matTooltipPosition="right"
+                  matTooltipShowDelay="300">
+                  @if (showManualWarning()) {
+                    <mat-icon class="provenance-item-badge-icon" inline="true">error</mat-icon>
+                  }
+                  Most recent
+                </span>
+              }
+              @if (isCreator(source)) {
+                <span
+                  class="provenance-item-badge provenance-item-badge-creator"
+                  [matTooltip]="creatorTooltip"
+                  matTooltipPosition="right"
+                  matTooltipShowDelay="300">
+                  Creator
+                </span>
+              }
+            </div>
+          </div>
+
+        @if (showHelp()) {
+          <p class="provenance-item-description">{{ source.description }}</p>
+        }
+
+          @if (source.repository || source.path) {
+            <div class="provenance-item-row">
+              <span class="provenance-item-row-label">Repository</span>
+              <span class="provenance-item-row-value">{{ source.repository || '—' }}</span>
+            </div>
+            <div class="provenance-item-row">
+              <span class="provenance-item-row-label">Path</span>
+              @let catalogUrl = catalogFileUrl(source);
+              @if (catalogUrl) {
+                <a
+                  class="provenance-item-link"
+                  [href]="catalogUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  matTooltip="Open catalog file on GitHub"
+                  matTooltipPosition="right"
+                  matTooltipShowDelay="300">
+                  {{ source.path }}
+                  <mat-icon class="provenance-item-link-icon" inline="true">open_in_new</mat-icon>
+                </a>
+              } @else {
+                <span class="provenance-item-row-value">{{ source.path || '—' }}</span>
+              }
+            </div>
+          }
+
+          @if (source.record.intentionId) {
+            <div class="provenance-item-row">
+              <span class="provenance-item-row-label">Intention</span>
+              <a
+                class="provenance-item-link"
+                [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
+                matTooltip="View intention history"
+                matTooltipPosition="right"
+                matTooltipShowDelay="300">
+                View history
+                <mat-icon class="provenance-item-link-icon" inline="true">history</mat-icon>
+              </a>
+            </div>
+          }
+
+          <div class="provenance-item-row">
+            <span class="provenance-item-row-label">Created</span>
+            <span class="provenance-item-row-value">{{ source.record.createdAt | date: 'medium' }}</span>
+          </div>
+          <div class="provenance-item-row">
+            <span class="provenance-item-row-label">Modified</span>
+            <span class="provenance-item-row-value">{{ source.record.updatedAt | date: 'medium' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (hasAdditional() && !expanded()) {
+      <button
+        mat-stroked-button
+        class="provenance-toggle"
+        (click)="toggleExpanded()">
+        Show more ({{ additionalCount() }})
+      </button>
+    }
+  </div>
+}

@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsDefined,
   IsObject,
   IsOptional,
@@ -8,6 +9,7 @@ import {
 import { Type } from 'class-transformer';
 import { EdgePropDto } from './edge-prop.dto';
 import { TimestampDto } from './timestamp.dto';
+import { ProvenanceDto } from './provenance.dto';
 // Shared DTO: Copy in back-end and front-end should be identical
 
 export class EdgeInsertDto {
@@ -36,4 +38,9 @@ export class EdgeDto extends EdgeInsertDto {
   it!: number;
   restrict?: boolean;
   timestamps?: TimestampDto;
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => ProvenanceDto)
+  provenance?: ProvenanceDto[];
 }

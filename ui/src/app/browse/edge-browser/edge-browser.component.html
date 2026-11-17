@@ -105,6 +105,10 @@
         }
         <app-inspector-timestamps
           [timestamps]="edgeResource.value().timestamps"></app-inspector-timestamps>
+        <app-inspector-provenance
+          [showHelp]="showHelp()"
+          [timestamps]="edgeResource.value().timestamps"
+          [provenance]="edgeResource.value().provenance"></app-inspector-provenance>
       </mat-card-content>
     </mat-card>
   </div>

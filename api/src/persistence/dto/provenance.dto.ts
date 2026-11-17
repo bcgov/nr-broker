@@ -20,6 +20,9 @@ export class ProvenanceDto {
    */
   path?: string;
 
+  /** Intention only: ID of the intention that last updated this item. */
+  intentionId?: string;
+
   createdAt!: string;
 
   updatedAt!: string;

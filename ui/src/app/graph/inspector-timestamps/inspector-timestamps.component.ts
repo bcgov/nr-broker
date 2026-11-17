@@ -1,7 +1,8 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
 import { MatListModule } from '@angular/material/list';
+
+import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
 
 @Component({
   selector: 'app-inspector-timestamps',
