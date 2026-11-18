@@ -1,14 +1,14 @@
 @if (hasSyncQueues()) {
-  @if (syncAvailable()) {
-    <div class="edge-container">
-      <div class="fields-wrapper">
-        @if (header() === 'small') {
-          <h3 class="heading">Sync Tools</h3>
-        } @else {
-          <h2 class="heading">Sync Tools</h2>
-        }
-      </div>
+  <div class="edge-container">
+    <div class="fields-wrapper">
+      @if (header() === 'small') {
+        <h3 class="heading">Sync Tools</h3>
+      } @else {
+        <h2 class="heading">Sync Tools</h2>
+      }
     </div>
+  </div>
+  @if (syncAvailable()) {
     <div class="edge-body">
       @for (action of healthySyncActions(); track action.queue) {
       <div>
