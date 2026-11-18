@@ -138,6 +138,10 @@ export class GraphRedisRepository implements GraphRepository {
     return returnVal;
   }
 
+  public getCatalogEdges(repository: string): Promise<EdgeEntity[]> {
+    return this.repo.getCatalogEdges(repository);
+  }
+
   public getEdge(id: string): Promise<EdgeEntity> {
     return this.repo.getEdge(id);
   }

@@ -1,23 +1,16 @@
-import { CATALOG_ANNOTATION_INSTANCES } from '../constants';
 import { CatalogEntityParseError } from './catalog-entity-parse.error';
 
 /**
- * A service instance declared in the instances annotation of a component.
+ * A service instance declared by a component's metadata.links entry.
  */
 export class CatalogComponentInstance {
-  readonly env: string;
-  readonly name: string;
-  readonly url?: string;
+  constructor(
+    readonly env: string,
+    readonly name: string,
+    readonly url: string,
+  ) {}
 
-  constructor(env: string, name: string, url?: string) {
-    this.env = env;
-    this.name = name;
-    if (url !== undefined) {
-      this.url = url;
-    }
-  }
-
-  static parseAnnotation(
+  static parseLinks(
     path: string,
     component: string,
     value: unknown,
@@ -27,41 +20,35 @@ export class CatalogComponentInstance {
     }
     const fail = (reason: string) =>
       new CatalogEntityParseError(
-        `Catalog component ${component} in ${path} has an invalid ${CATALOG_ANNOTATION_INSTANCES} annotation: ${reason}`,
+        `Catalog component ${component} in ${path} has invalid metadata.links: ${reason}`,
       );
-    if (typeof value !== 'string') {
-      throw fail('the value must be a JSON string');
-    }
-    let entries: unknown;
-    try {
-      entries = JSON.parse(value);
-    } catch {
-      throw fail('the value is not valid JSON');
-    }
-    if (!Array.isArray(entries)) {
-      throw fail('the value must be a JSON array');
+    if (!Array.isArray(value)) {
+      throw fail('the value must be an array');
     }
 
     const instances: CatalogComponentInstance[] = [];
     const names = new Set<string>();
-    for (const entry of entries) {
+    for (const entry of value) {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-        throw fail('each entry must be an object');
+        continue;
       }
-      const { env, name, url } = entry as Record<string, unknown>;
+      const { type, env, title, url } = entry as Record<string, unknown>;
+      if (type !== 'instance') {
+        continue;
+      }
       if (typeof env !== 'string' || env.trim() === '') {
-        throw fail('each entry must have an env');
+        throw fail('each instance link must have an env');
       }
-      if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
-        throw fail('name must be a non-empty string');
+      if (title !== undefined && (typeof title !== 'string' || title.trim() === '')) {
+        throw fail('instance link title must be a non-empty string');
       }
-      if (url !== undefined && !CatalogComponentInstance.isHttpUrl(url)) {
-        throw fail('url must be an http or https URL');
+      if (!CatalogComponentInstance.isHttpUrl(url)) {
+        throw fail('each instance link must have an http or https url');
       }
-      const instanceName = ((name as string | undefined) ?? env).trim();
+      const instanceName = (typeof title === 'string' ? title : env).trim();
       if (names.has(instanceName)) {
         throw fail(
-          `the instance name ${instanceName} is used more than once. Give each instance in the same environment a distinct name.`,
+          `the instance name ${instanceName} is used more than once. Give each instance link a distinct title.`,
         );
       }
       names.add(instanceName);
@@ -69,14 +56,14 @@ export class CatalogComponentInstance {
         new CatalogComponentInstance(
           env.trim(),
           instanceName,
-          url as string | undefined,
+          url,
         ),
       );
     }
     return instances;
   }
 
-  private static isHttpUrl(value: unknown): boolean {
+  private static isHttpUrl(value: unknown): value is string {
     if (typeof value !== 'string') {
       return false;
     }

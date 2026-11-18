@@ -394,6 +394,26 @@ result = db.collectionConfig.insertOne({
       show: true,
     },
     {
+      id: '2c10f8a1',
+      collection: 'service',
+      name: 'subcomponent-of',
+      title: 'Subcomponent of',
+      titleInbound: 'Has subcomponent',
+      relation: 'oneToOne',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: '2c10f8a2',
+      collection: 'service',
+      name: 'depends-on',
+      title: 'Depends on',
+      titleInbound: 'Dependency of',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
+    {
       id: 'b1a02ac8',
       collection: 'repository',
       name: 'source',
@@ -1170,7 +1190,7 @@ result = db.collectionConfig.insertOne({
     description: {
       name: 'Description',
       required: true,
-      type: 'description',
+      type: 'string',
       hint: 'A brief description of the contents',
       mask: {
         update: true,

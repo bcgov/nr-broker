@@ -11,7 +11,9 @@ describe('GithubCatalogService', () => {
     const githubTokenService = {
       getOrgInstallationToken: vi.fn().mockResolvedValue('tkn'),
     };
-    const fileReader = { collectComponents: vi.fn().mockResolvedValue([{ name: 'a' }]) };
+    const fileReader = {
+      collectEntities: vi.fn().mockResolvedValue({ entities: [{ name: 'a' }], complete: true }),
+    };
     const orgScanner = { scan: vi.fn(), registerLeaderJob: vi.fn(), enqueueOrgScans: vi.fn() };
     const collectionRepository = {
       getCollectionById: vi
@@ -19,6 +21,12 @@ describe('GithubCatalogService', () => {
         .mockResolvedValue({ id: 'r1', scmUrl: 'https://github.com/org/repo' }),
     };
     const graphService = { updateSyncStatus: vi.fn() };
+    const githubService = {
+      getRepoMetadata: vi.fn().mockResolvedValue({
+        description: 'Repository description from GitHub',
+        topics: ['broker', 'typescript'],
+      }),
+    };
     const service = new GithubCatalogService(
       auditService as any,
       bullService as any,
@@ -28,6 +36,7 @@ describe('GithubCatalogService', () => {
       orgScanner as any,
       collectionRepository as any,
       graphService as any,
+      githubService as any,
     );
     return {
       service,
@@ -39,6 +48,7 @@ describe('GithubCatalogService', () => {
       orgScanner,
       collectionRepository,
       graphService,
+      githubService,
     };
   };
 
@@ -62,13 +72,14 @@ describe('GithubCatalogService', () => {
 
     await service.processJob({ ...repoJob, repositoryId: 'r1' });
 
-    expect(fileReader.collectComponents).toHaveBeenCalledWith(
+    expect(fileReader.collectEntities).toHaveBeenCalledWith(
       { ...repoJob, repositoryId: 'r1' },
       'tkn',
     );
     expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'repo', scmUrl: repoJob.htmlUrl }),
       [{ name: 'a' }],
+      true,
     );
     expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'r1' }),
@@ -78,15 +89,106 @@ describe('GithubCatalogService', () => {
   });
 
   it('looks up repositories queued by id', async () => {
-    const { service, graphService, catalogSyncService } = build();
+    const { service, graphService, catalogSyncService, githubService } = build();
 
     await service.processJob('r1');
 
     expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'repo', scmUrl: repoJob.htmlUrl }),
+      expect.objectContaining({
+        name: 'repo',
+        scmUrl: repoJob.htmlUrl,
+        description: 'Repository description from GitHub',
+        tags: ['broker', 'typescript'],
+      }),
       [{ name: 'a' }],
+      true,
     );
+    expect(githubService.getRepoMetadata).toHaveBeenCalledWith('org', 'repo', 'tkn');
     expect(graphService.updateSyncStatus).toHaveBeenCalled();
+  });
+
+  it('fetches description and topics for direct repository scan jobs', async () => {
+    const { service, catalogSyncService, githubService } = build();
+
+    await service.processJob(repoJob);
+
+    expect(githubService.getRepoMetadata).toHaveBeenCalledWith('org', 'repo', 'tkn');
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Repository description from GitHub',
+        tags: ['broker', 'typescript'],
+      }),
+      [{ name: 'a' }],
+      true,
+    );
+  });
+
+  it.each([{ tags: [] }, { tags: ['scheduled-topic'] }])('uses metadata already included in a scan job: $tags', async ({ tags }) => {
+    const { service, catalogSyncService, githubService } = build();
+
+    await service.processJob({ ...repoJob, description: 'Scheduled description', tags });
+
+    expect(githubService.getRepoMetadata).not.toHaveBeenCalled();
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ description: 'Scheduled description', tags }),
+      [{ name: 'a' }],
+      true,
+    );
+  });
+
+  it('fetches a missing description without replacing topics included in the job', async () => {
+    const { service, catalogSyncService } = build();
+
+    await service.processJob({ ...repoJob, tags: ['queued-topic'] });
+
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Repository description from GitHub',
+        tags: ['queued-topic'],
+      }),
+      [{ name: 'a' }],
+      true,
+    );
+  });
+
+  it('uses the organization and name only when GitHub has no description', async () => {
+    const { service, catalogSyncService, githubService } = build();
+    githubService.getRepoMetadata.mockResolvedValue({ description: null, topics: [] });
+
+    await service.processJob('r1');
+
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ description: 'org/repo' }),
+      [{ name: 'a' }],
+      true,
+    );
+  });
+
+  it('passes an empty topic list through to clear repository tags', async () => {
+    const { service, catalogSyncService, githubService } = build();
+    githubService.getRepoMetadata.mockResolvedValue({ description: null, topics: [] });
+
+    await service.processJob('r1');
+
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: [] }),
+      [{ name: 'a' }],
+      true,
+    );
+  });
+
+  it('reports metadata lookup failures without syncing or recording success', async () => {
+    const { service, catalogSyncService, githubService, graphService, auditService } = build();
+    const failure = new Error('Metadata lookup failed');
+    githubService.getRepoMetadata.mockRejectedValue(failure);
+
+    await expect(service.processJob('r1')).rejects.toThrow('Metadata lookup failed');
+
+    expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
+    expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
+      'end', 'failure', expect.any(String), expect.objectContaining({ failure }),
+    );
   });
 
   it('audits and skips repository ids with unmanaged URLs', async () => {
@@ -141,9 +243,29 @@ describe('GithubCatalogService', () => {
     expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
   });
 
+  it('passes incomplete snapshots to sync without authorizing cleanup', async () => {
+    const { service, fileReader, catalogSyncService } = build();
+    fileReader.collectEntities.mockResolvedValue({ entities: [{ name: 'a' }], complete: false });
+
+    await service.processJob(repoJob);
+
+    expect(catalogSyncService.syncRepository).toHaveBeenCalledWith(
+      expect.any(Object), [{ name: 'a' }], false,
+    );
+  });
+
+  it('does not reconcile edges when the root catalog file is missing', async () => {
+    const { service, fileReader, catalogSyncService } = build();
+    fileReader.collectEntities.mockResolvedValue(null);
+
+    await service.processJob(repoJob);
+
+    expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
+  });
+
   it('audits and swallows 403 errors from GitHub', async () => {
     const { service, auditService, fileReader } = build();
-    fileReader.collectComponents.mockRejectedValue(
+    fileReader.collectEntities.mockRejectedValue(
       new AxiosError('denied', '403', undefined, undefined, {
         status: 403,
       } as any),

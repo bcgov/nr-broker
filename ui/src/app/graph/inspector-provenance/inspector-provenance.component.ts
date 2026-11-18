@@ -268,7 +268,7 @@ export class InspectorProvenanceComponent {
   /**
    * For a catalog source, builds a link to the catalog file on GitHub when the
    * repository is a GitHub URL and a path is present, so the user can open the
-   * file directly in a new tab. Returns undefined for non-GitHub repositories or
+   * file on the default branch using HEAD. Returns undefined for non-GitHub repositories or
    * when no path is available.
    */
   catalogFileUrl(source: DisplayProvenance): string | undefined {
@@ -285,6 +285,6 @@ export class InspectorProvenanceComponent {
       .split('/')
       .map((segment) => encodeURIComponent(segment))
       .join('/');
-    return `${repository.replace(/\/+$/, '')}/blob/main/${encodedPath}`;
+    return `${repository.replace(/\/+$/, '')}/blob/HEAD/${encodedPath}`;
   }
 }

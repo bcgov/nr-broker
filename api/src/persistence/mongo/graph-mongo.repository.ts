@@ -31,6 +31,7 @@ import { ActionUtil } from '../../util/action.util';
 import { GraphPermissionEntity } from '../entity/graph-permission.entity';
 import { TimestampEmbeddable } from '../entity/timestamp.embeddable';
 import { ProvenanceInfo } from '../provenance-info';
+import { ProvenanceType } from '../dto/provenance.dto';
 import { GraphDirectedCombo } from '../dto/collection-combo.dto';
 import { GraphUpDownDto } from '../dto/graph-updown.dto';
 import { ServiceInstanceDetailsResponseDto } from '../dto/service-instance.dto';
@@ -871,6 +872,18 @@ export class GraphMongoRepository implements GraphRepository {
     this.dataSource.remove(edge);
     await this.dataSource.flush();
     return resp;
+  }
+
+  public getCatalogEdges(repository: string): Promise<EdgeEntity[]> {
+    return this.edgeRepository.find({
+      provenance: {
+        $elemMatch: {
+          type: ProvenanceType.CATALOG,
+          repository,
+          path: { $exists: true },
+        },
+      },
+    });
   }
 
   public getEdge(id: string): Promise<EdgeEntity | null> {

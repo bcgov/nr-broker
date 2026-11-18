@@ -114,7 +114,7 @@ describe('InspectorProvenanceComponent', () => {
     expect(component.sortedProvenance()[0].path).toBe('catalog-info.yaml');
   });
 
-  it('builds a GitHub link to the catalog file for a valid GitHub repository', () => {
+  it('builds a GitHub link to the catalog file using the default branch HEAD ref', () => {
     setProvenance([
       record(ProvenanceType.CATALOG, '2024-01-05T00:00:00Z', {
         repository: 'https://github.com/example/repo',
@@ -123,7 +123,7 @@ describe('InspectorProvenanceComponent', () => {
     ]);
     const source = component.sortedProvenance()[0];
     expect(component.catalogFileUrl(source)).toBe(
-      'https://github.com/example/repo/blob/main/components/web/catalog-info.yaml',
+      'https://github.com/example/repo/blob/HEAD/components/web/catalog-info.yaml',
     );
   });
 
@@ -136,7 +136,7 @@ describe('InspectorProvenanceComponent', () => {
     ]);
     const source = component.sortedProvenance()[0];
     expect(component.catalogFileUrl(source)).toBe(
-      'https://github.com/example/repo/blob/main/catalog-info.yaml',
+      'https://github.com/example/repo/blob/HEAD/catalog-info.yaml',
     );
   });
 

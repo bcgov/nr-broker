@@ -10,6 +10,7 @@ export interface CatalogRepoScanJob {
   defaultBranch?: string;
   htmlUrl: string;
   description?: string;
+  tags?: string[];
   repositoryId?: string;
 }
 

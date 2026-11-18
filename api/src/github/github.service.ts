@@ -154,6 +154,21 @@ export class GithubService {
     return response.data;
   }
 
+  public async getRepoMetadata(
+    owner: string,
+    repo: string,
+    token: string,
+  ): Promise<{ description: string | null; topics: string[] }> {
+    const response = await this.axiosInstance.get<{
+      description: string | null;
+      topics: string[];
+    }>(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return { description: response.data.description, topics: response.data.topics };
+  }
+
   /**
    * Read the raw contents of a repository file
    * @returns The file contents or null if the file does not exist
