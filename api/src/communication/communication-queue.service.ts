@@ -3,7 +3,7 @@ import {
   Injectable,
   OnModuleInit,
 } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { Job, JobsOptions } from 'bullmq';
 import ejs from 'ejs';
 import { v4 as uuidv4 } from 'uuid';
 import { REDIS_QUEUES } from '../constants';
@@ -82,6 +82,7 @@ export class CommunicationQueueService implements OnModuleInit {
    * @param toUsers The recipients (upstream roles or vertex watchers).
    * @param template The communication template key.
    * @param context The EJS render context.
+   * @param deduplication Optional producer-defined duplicate suppression.
    */
   queue(
     type: string,
@@ -89,6 +90,7 @@ export class CommunicationQueueService implements OnModuleInit {
     toUsers: CommunicationUserRef[],
     template: string,
     context: ejs.Data,
+    deduplication?: JobsOptions['deduplication'],
   ): Promise<void> {
     const job: CommunicationJob = {
       uuid: uuidv4(),
@@ -106,12 +108,10 @@ export class CommunicationQueueService implements OnModuleInit {
       'unknown',
       ['communication'],
     );
-    // Enqueue a structured BullMQ job. The consumer reads `job.data` directly
-    // (no JSON parse), and `jobId` = uuid prevents duplicate enqueues.
     return this.bullService.enqueue(
       REDIS_QUEUES.NOTIFICATION_COMS,
       job,
-      { jobId: job.uuid },
+      { jobId: job.uuid, ...(deduplication ? { deduplication } : {}) },
     );
   }
 
