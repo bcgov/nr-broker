@@ -23,6 +23,9 @@ import {
 import {
   SyncQueueHelpDialogComponent,
 } from '../sync-queue-help-dialog/sync-queue-help-dialog.component';
+import {
+  SyncDiagnosticDialogComponent,
+} from '../sync-diagnostic-dialog/sync-diagnostic-dialog.component';
 
 interface ResolvedSyncQueueAction {
   queue: string;
@@ -105,12 +108,8 @@ export class InspectorRepositorySyncComponent {
     if (dryRun) {
       return this.callSync(action, true, {
         next: (result) => {
-          if (Array.isArray(result)) {
-            const count = result.length;
-            this.openSnackBar(
-              `${action.label} dry run completed (${count} target${count === 1 ? '' : 's'})`,
-            );
-          }
+          const count = Array.isArray(result) ? result.length : 0;
+          this.openSyncDiagnostic(action, count);
         },
       });
     }
@@ -258,6 +257,23 @@ export class InspectorRepositorySyncComponent {
           this.queueDescriptionLines(action.queue).length > 0
             ? this.queueDescriptionLines(action.queue)
             : ['No description is configured for this queue.'],
+      },
+    });
+  }
+
+  private openSyncDiagnostic(
+    action: ResolvedSyncQueueAction,
+    targetCount: number,
+  ): void {
+    this.dialog.open(SyncDiagnosticDialogComponent, {
+      width: '600px',
+      data: {
+        label: action.label,
+        queue: action.queue,
+        summary: action.summary,
+        source: action.source,
+        traverseSummary: action.traverseSummary,
+        targetCount,
       },
     });
   }

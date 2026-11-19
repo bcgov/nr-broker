@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>Sync Dry Run - {{ data.label }}</h2>
+
+<mat-dialog-content>
+  <mat-list>
+    @if (data.summary) {
+      <mat-list-item>
+        <span matListItemTitle>Summary</span>
+        <span matListItemLine>{{ data.summary }}</span>
+      </mat-list-item>
+    }
+
+    @if (data.source === 'traverse') {
+      <mat-list-item>
+        <span matListItemTitle>Queued via Collection</span>
+        <span matListItemLine>{{ data.traverseSummary }}</span>
+      </mat-list-item>
+    }
+
+    <mat-list-item>
+      <span matListItemTitle>Queue</span>
+      <span matListItemLine>{{ data.queue }}</span>
+    </mat-list-item>
+  </mat-list>
+
+  <mat-divider></mat-divider>
+
+  <mat-list-item>
+    <span matListItemTitle>Result</span>
+    <span matListItemLine>{{ targetSummary }}</span>
+  </mat-list-item>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    (click)="close()">Close</button>
+</mat-dialog-actions>
