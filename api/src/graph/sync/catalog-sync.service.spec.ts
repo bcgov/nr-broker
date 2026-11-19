@@ -244,7 +244,10 @@ describe('CatalogSyncService', () => {
 
   it('creates a project from a System without any components', async () => {
     await service.syncRepository(repository, [
-      new CatalogSystem('systems/catalog.yaml', 'sys', 'System title', 'System description'),
+      new CatalogSystem(
+        'systems/catalog.yaml', 'sys', 'System title', 'System description',
+        ['broker', ' api ', 'broker', '<tag>', ' '], 'natural-resources', 'platform',
+      ),
     ]);
 
     expect(addedCollections()).toEqual(['repository', 'project']);
@@ -252,7 +255,12 @@ describe('CatalogSyncService', () => {
       name: 'sys',
       title: 'System title',
       description: 'System description',
+      domain: 'natural-resources',
+      type: 'platform',
     });
+    expect(collectionRepository.saveTags).toHaveBeenCalledWith(
+      'project', 'svc-id', ['broker', 'api', 'tag'],
+    );
     expect(graphService.addVertex.mock.calls[1][3].record.path).toBe('systems/catalog.yaml');
     expect(persistenceUtilService.getEnvMap).not.toHaveBeenCalled();
   });
@@ -408,10 +416,11 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
-      new CatalogSystem('catalog-info.yaml', 'sys'),
+      new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['unmanaged'], 'unmanaged-domain', 'platform'),
     ]);
 
     expect(graphService.editVertex).not.toHaveBeenCalled();
+    expect(collectionRepository.saveTags).not.toHaveBeenCalled();
     expect(addedCollections()).toEqual(['service']);
     expect(edges().sort()).toEqual([
       ['component', 'project-vertex', 'service'],
@@ -446,7 +455,7 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
-      new CatalogSystem('catalog-info.yaml', 'sys'),
+      new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['failed'], 'failed-domain'),
     ]);
 
     expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
@@ -460,9 +469,14 @@ describe('CatalogSyncService', () => {
       }),
     );
     expect(edges()).toContainEqual(['component', 'project-vertex', 'service']);
+    expect(collectionRepository.saveTags).not.toHaveBeenCalled();
   });
 
-  it('updates a project managed by the same catalog file', async () => {
+  it.each([
+    { tags: ['updated'], type: 'platform' },
+    { tags: [], type: 'product' },
+    { tags: undefined, type: undefined },
+  ])('updates a project managed by the same catalog file: $tags, $type', async ({ tags, type }) => {
     graphRepository.getVertexByName.mockImplementation(async (collection) =>
       collection === 'project'
         ? vertex('project-vertex', {
@@ -475,13 +489,20 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('a/catalog-info.yaml', 'api', 'sys'),
-      new CatalogSystem('a/catalog-info.yaml', 'sys'),
+      new CatalogSystem('a/catalog-info.yaml', 'sys', undefined, undefined, tags, 'domain:default/resources', type),
     ]);
 
     expect(graphService.editVertex.mock.calls.map((call) => call[1])).toEqual([
       'project-vertex',
     ]);
-    expect(graphService.editVertex.mock.calls[0][2].data).toEqual({ name: 'sys' });
+    expect(graphService.editVertex.mock.calls[0][2].data).toEqual({
+      name: 'sys', domain: 'domain:default/resources', ...(type ? { type } : {}),
+    });
+    if (tags) {
+      expect(collectionRepository.saveTags).toHaveBeenCalledWith('project', 'svc-id', tags);
+    } else {
+      expect(collectionRepository.saveTags).not.toHaveBeenCalled();
+    }
   });
 
   it('passes the catalog file as provenance', async () => {

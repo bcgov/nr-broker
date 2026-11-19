@@ -168,6 +168,10 @@ describe('CatalogEntity', () => {
           '  name: sys',
           '  title: System title',
           '  description: System description',
+          '  tags: [broker, typescript]',
+          'spec:',
+          '  domain: domain:default/natural-resources',
+          '  type: platform',
           '---',
           'kind: Resource',
           'metadata:',
@@ -180,7 +184,10 @@ describe('CatalogEntity', () => {
       );
       expect(entities).toEqual([
         new CatalogComponent('catalog-info.yaml', 'api', 'sys'),
-        new CatalogSystem('catalog-info.yaml', 'sys', 'System title', 'System description'),
+        new CatalogSystem(
+          'catalog-info.yaml', 'sys', 'System title', 'System description',
+          ['broker', 'typescript'], 'domain:default/natural-resources', 'platform',
+        ),
       ]);
       expect(onError.mock.calls.map((call) => call[0].message)).toEqual([
         'Catalog system in catalog-info.yaml has no name',

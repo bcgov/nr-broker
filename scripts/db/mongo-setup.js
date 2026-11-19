@@ -335,6 +335,24 @@ result = db.collectionConfig.insertOne({
         update: true,
       },
     },
+    domain: {
+      name: 'Domain',
+      required: false,
+      type: 'string',
+      hint: 'The Backstage domain this project belongs to',
+      mask: {
+        update: true,
+      },
+    },
+    type: {
+      name: 'Type',
+      required: false,
+      type: 'string',
+      hint: 'The Backstage system type for this project',
+      mask: {
+        update: true,
+      },
+    },
     website: {
       name: 'Website URL',
       type: 'url',

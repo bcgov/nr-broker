@@ -13,6 +13,9 @@ export class CatalogSystem extends CatalogEntity {
     readonly name: string,
     readonly title?: string,
     readonly description?: string,
+    readonly tags?: string[],
+    readonly domain?: string,
+    readonly type?: string,
   ) {
     super(path);
   }
@@ -33,6 +36,9 @@ export class CatalogSystem extends CatalogEntity {
       name,
       catalogUtil.asString(json.metadata?.title),
       catalogUtil.asString(json.metadata?.description),
+      catalogUtil.asStringArray(json.metadata?.tags),
+      catalogUtil.asString(json.spec?.domain),
+      catalogUtil.asString(json.spec?.type),
     );
   }
 }

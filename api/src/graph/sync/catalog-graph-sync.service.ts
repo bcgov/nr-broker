@@ -23,6 +23,7 @@ interface UpsertOptions {
   keep?: string[];
   /** Vertex properties to save; defaults to the existing properties */
   prop?: Record<string, string>;
+  tags?: string[];
 }
 
 type EdgeVertex = Pick<VertexEntity, 'id' | 'collection'>;
@@ -70,7 +71,7 @@ export class CatalogGraphSyncService {
       GITHUB_CATALOG_ROOT_FILE,
       { adoptable },
     );
-    const vertex = await this.upsertLinkedVertex(
+    return this.upsertLinkedVertex(
       'repository',
       existing,
       {
@@ -86,15 +87,9 @@ export class CatalogGraphSyncService {
           enableSyncUsers: false,
         },
         keep: ['enableSyncSecrets', 'enableSyncUsers'],
+        tags: repository.tags,
       },
     );
-    if (
-      repository.tags &&
-      (!existing || this.graphService.isUpdateAllowed(existing.provenance, provenance))
-    ) {
-      await this.syncTags('repository', vertex, repository.tags);
-    }
-    return vertex;
   }
 
   public async getProject(name: string): Promise<VertexEntity | null> {
@@ -112,8 +107,11 @@ export class CatalogGraphSyncService {
         name: system.name,
         title: system.title,
         description: system.description,
+        domain: system.domain,
+        type: system.type,
       },
       provenance,
+      { tags: system.tags },
     );
   }
 
@@ -315,8 +313,9 @@ export class CatalogGraphSyncService {
       );
       return existing;
     }
+    let vertex: VertexEntity;
     try {
-      return await this.upsertVertex(
+      vertex = await this.upsertVertex(
         collection,
         existing,
         data,
@@ -341,6 +340,8 @@ export class CatalogGraphSyncService {
       );
       return existing;
     }
+    await this.syncTags(collection, vertex, options.tags);
+    return vertex;
   }
 
   private async getConfigDefaults(

@@ -73,7 +73,7 @@ For each repository:
 2. `Location` entities in the root `catalog-info.yaml` are followed one level to find catalog files in monorepos. Each target is read once, including all its YAML documents. `Location` entities in target files are ignored. Only relative paths inside the repository are followed. URLs and glob patterns are ignored.
 3. The Repository is found by SCM URL. It is added if missing, with secret and user sync disabled. Adding fails if another Repository already has the same name. A Repository managed by the root `catalog-info.yaml` has its name, description, SCM URL and GitHub topic tags updated. Sync settings are not changed.
    Organization scans include the GitHub description and topics in each repository job. Direct repository syncs fetch the current description and topics from GitHub. The description falls back to `organization/repository` only when GitHub has no description. An empty topic list clears the Repository's tags.
-4. Each `System` entity creates or updates a Project using `metadata.name`, `metadata.title` and `metadata.description`, even if no Components refer to it. Systems are synced before Components, regardless of document or file order.
+4. Each `System` entity creates or updates a Project using `metadata.name`, `metadata.title`, `metadata.description`, `metadata.tags`, `spec.domain` and `spec.type`, even if no Components refer to it. Systems are synced before Components, regardless of document or file order. Tags replace the Project's tags after filtering and deduplication; `metadata.tags: []` clears them. Omitting tags, domain or type leaves the existing value unchanged. The domain reference is stored as supplied, without creating a Domain entity.
 5. For each `Component` entity:
    - `spec.system` links to an existing Project. A Component alone never creates or updates a Project; declare a matching `kind: System` in the root file or a Location target to create it.
    - `metadata.name` becomes the Service. The title, description, lifecycle and type are updated from the catalog.
@@ -97,9 +97,23 @@ metadata:
   name: artist
   title: Artist
   description: Artist services
+  tags:
+    - music
+spec:
+  domain: entertainment
+  type: platform
 ```
 
 Items are added with the collection's default field values for anything the catalog does not set. Existing items keep values the catalog does not set.
+
+New databases include the optional Project domain and type fields. For an existing database, run these repeatable configuration updates before syncing:
+
+```bash
+mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-domain.js
+mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-type.js
+```
+
+The scripts only update the Project field configuration; existing Project documents are populated by their next catalog sync.
 
 ### Service relationships
 
