@@ -30,6 +30,19 @@ Each queued job contains:
 4. Each resolved user receives the notification through all configured channels
 5. Results are logged to the audit trail
 
+### Token expiry alert deduplication
+
+Token expiry notifications use BullMQ TTL-based deduplication. The key includes
+the token ID (`jti`), expiration time, days-until-expiration threshold, and
+notification type. Repeated scans suppress the same alert for 24 hours, even
+after its job completes and is removed. Owner notifications use a separate key.
+Other communications keep their existing behavior unless a producer explicitly
+supplies deduplication options.
+
+The deduplication keys expire automatically. No MongoDB fields, migrations, or
+manual Redis updates are needed. This prevents duplicate enqueueing within the
+TTL; it does not guarantee exactly-once delivery by the email provider.
+
 ## User Subscription Resolution
 
 The communication system supports two types of user references:

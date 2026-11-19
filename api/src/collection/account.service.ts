@@ -637,6 +637,7 @@ export class AccountService implements OnModuleInit {
         if (![7, 3, 2, 1].includes(daysUntilExpiration)) {
           continue;
         }
+
         const account = await this.collectionRepository.getCollectionById(
           'brokerAccount',
           expiredJwt.accountId.toString(),
@@ -660,6 +661,11 @@ export class AccountService implements OnModuleInit {
             : 'Never used',
         };
 
+        const alertKey = `${expiredJwt.claims.jti}:${expiredJwt.claims.exp}:${daysUntilExpiration}`;
+        // A threshold lasts 24 hours. Keep its deduplication key even after
+        // the worker completes and removes the notification job.
+        const alertTtl = 24 * INTERVAL_HOUR_MS;
+
         await this.communicationQueueService.queue(
           'token-expiration-alert',
           account.vertex.toString(),
@@ -669,6 +675,7 @@ export class AccountService implements OnModuleInit {
           ],
           'token-expiration-alert',
           context,
+          { id: `token-expiration-alert:${alertKey}`, ttl: alertTtl },
         );
 
         if (daysUntilExpiration === 7) {
@@ -680,6 +687,7 @@ export class AccountService implements OnModuleInit {
             ],
             'token-expiration-owner',
             context,
+            { id: `token-expiration-owner:${alertKey}`, ttl: alertTtl },
           );
         }
       }
