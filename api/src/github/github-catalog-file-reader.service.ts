@@ -4,6 +4,8 @@ import { CatalogComponent } from '../catalog/catalog-component';
 import { CatalogEntity } from '../catalog/catalog-entity';
 import type { CatalogEntityType } from '../catalog/catalog-entity';
 import { CatalogLocationEntity } from '../catalog/catalog-location';
+import { CatalogSystem } from '../catalog/catalog-system';
+import type { CatalogSnapshot } from '../catalog/catalog-repository';
 import { GITHUB_CATALOG_ROOT_FILE } from '../constants';
 import { CatalogUtil } from '../util/catalog.util';
 import { GithubService } from './github.service';
@@ -22,27 +24,32 @@ export class GithubCatalogFileReader {
   /**
    * Read the root file and follow its Location targets one level.
    */
-  public async collectComponents(
+  public async collectEntities(
     job: CatalogRepoScanJob,
     token: string,
-  ): Promise<CatalogComponent[]> {
+  ): Promise<CatalogSnapshot | null> {
+    let complete = true;
+    const onError = () => {
+      complete = false;
+    };
     const rootEntities = await this.readCatalogFile<
-      CatalogComponent | CatalogLocationEntity
+      CatalogComponent | CatalogSystem | CatalogLocationEntity
     >(
       job,
       GITHUB_CATALOG_ROOT_FILE,
       token,
-      [CatalogComponent, CatalogLocationEntity],
+      [CatalogComponent, CatalogSystem, CatalogLocationEntity],
+      onError,
     );
     if (rootEntities === null) {
-      return [];
+      return null;
     }
 
-    const components: CatalogComponent[] = [];
+    const entities: (CatalogComponent | CatalogSystem)[] = [];
     const locationPaths = new Set<string>();
     for (const entity of rootEntities) {
-      if (entity instanceof CatalogComponent) {
-        components.push(entity);
+      if (entity instanceof CatalogComponent || entity instanceof CatalogSystem) {
+        entities.push(entity);
       } else if (entity instanceof CatalogLocationEntity) {
         entity.targets.forEach((target) => locationPaths.add(target));
       }
@@ -50,10 +57,12 @@ export class GithubCatalogFileReader {
     locationPaths.delete(GITHUB_CATALOG_ROOT_FILE);
 
     for (const path of locationPaths) {
-      const entities = await this.readCatalogFile(job, path, token, [
+      const targetEntities = await this.readCatalogFile<CatalogComponent | CatalogSystem>(job, path, token, [
         CatalogComponent,
-      ]);
-      if (entities === null) {
+        CatalogSystem,
+      ], onError);
+      if (targetEntities === null) {
+        complete = false;
         this.logWarning(
           `Catalog location target not found: ${job.org}/${job.repo}:${path}`,
           job,
@@ -61,9 +70,9 @@ export class GithubCatalogFileReader {
         );
         continue;
       }
-      components.push(...entities);
+      entities.push(...targetEntities);
     }
-    return components;
+    return { entities, complete };
   }
 
   private async readCatalogFile<T extends CatalogEntity>(
@@ -71,6 +80,7 @@ export class GithubCatalogFileReader {
     path: string,
     token: string,
     types: CatalogEntityType<T>[],
+    onError: () => void,
   ): Promise<T[] | null> {
     const content = await this.githubService.getRepoFileContent(
       job.org,
@@ -87,7 +97,10 @@ export class GithubCatalogFileReader {
       content,
       types,
       this.catalogUtil,
-      (error) => this.logWarning(error.message, job, path),
+      (error) => {
+        onError();
+        this.logWarning(error.message, job, path);
+      },
     );
   }
 

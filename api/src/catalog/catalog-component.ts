@@ -1,4 +1,3 @@
-import { CATALOG_ANNOTATION_INSTANCES } from '../constants';
 import { CatalogUtil } from '../util/catalog.util';
 import { CatalogEntity } from './catalog-entity';
 import { CatalogComponentInstance } from './catalog-component-instance';
@@ -21,6 +20,8 @@ export class CatalogComponent extends CatalogEntity {
     readonly tags?: string[],
     readonly owner?: string,
     readonly instances?: CatalogComponentInstance[],
+    readonly subcomponentOf?: string,
+    readonly dependsOn?: string[],
   ) {
     super(path);
   }
@@ -36,6 +37,21 @@ export class CatalogComponent extends CatalogEntity {
         `Catalog component in ${path} has no name`,
       );
     }
+    const subcomponentOf = catalogUtil.asString(json.spec?.subcomponentOf);
+    if (json.spec?.subcomponentOf !== undefined && !subcomponentOf?.trim()) {
+      throw new CatalogEntityParseError(
+        `Catalog component ${name} in ${path} has an invalid spec.subcomponentOf; use a non-empty Component reference`,
+      );
+    }
+    const dependsOn = catalogUtil.asStringArray(json.spec?.dependsOn);
+    if (
+      json.spec?.dependsOn !== undefined &&
+      (!dependsOn || dependsOn.some((reference) => reference.trim() === ''))
+    ) {
+      throw new CatalogEntityParseError(
+        `Catalog component ${name} in ${path} has an invalid spec.dependsOn; use an array of non-empty entity references`,
+      );
+    }
     return new CatalogComponent(
       path,
       name,
@@ -46,11 +62,13 @@ export class CatalogComponent extends CatalogEntity {
       catalogUtil.asString(json.spec?.type),
       catalogUtil.asStringArray(json.metadata?.tags),
       catalogUtil.asString(json.spec?.owner),
-      CatalogComponentInstance.parseAnnotation(
+      CatalogComponentInstance.parseLinks(
         path,
         name,
-        json.metadata?.annotations?.[CATALOG_ANNOTATION_INSTANCES],
+        json.metadata?.links,
       ),
+      subcomponentOf,
+      dependsOn,
     );
   }
 }

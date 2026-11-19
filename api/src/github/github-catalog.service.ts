@@ -23,6 +23,7 @@ import {
 } from './github-token.service';
 import { GithubCatalogFileReader } from './github-catalog-file-reader.service';
 import { GithubCatalogOrgScanner } from './github-catalog-org-scanner.service';
+import { GithubService } from './github.service';
 import type { CatalogRepoScanJob, CatalogScanJob } from './github-catalog.types';
 
 export type {
@@ -48,6 +49,7 @@ export class GithubCatalogService implements OnModuleInit {
     private readonly orgScanner: GithubCatalogOrgScanner,
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
+    private readonly githubService: GithubService,
   ) {}
 
   public isEnabled(): boolean {
@@ -209,15 +211,22 @@ export class GithubCatalogService implements OnModuleInit {
 
   private async scanRepository(job: CatalogRepoScanJob): Promise<void> {
     const token = await this.githubTokenService.getOrgInstallationToken(job.org);
-    const components = await this.fileReader.collectComponents(job, token);
-    await this.catalogSyncService.syncRepository(
-      {
-        name: job.repo,
-        scmUrl: job.htmlUrl,
-        description: job.description ?? `${job.org}/${job.repo}`,
-      },
-      components,
-    );
+    const snapshot = await this.fileReader.collectEntities(job, token);
+    if (snapshot) {
+      const metadata = job.tags === undefined || job.description === undefined
+        ? await this.githubService.getRepoMetadata(job.org, job.repo, token)
+        : undefined;
+      await this.catalogSyncService.syncRepository(
+        {
+          name: job.repo,
+          scmUrl: job.htmlUrl,
+          description: job.description ?? metadata?.description ?? `${job.org}/${job.repo}`,
+          tags: job.tags ?? metadata?.topics,
+        },
+        snapshot.entities,
+        snapshot.complete,
+      );
+    }
 
     if (job.repositoryId) {
       // Reload so the status update does not overwrite changes made by the sync

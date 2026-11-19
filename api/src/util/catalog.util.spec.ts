@@ -4,6 +4,31 @@ import { CatalogUtil } from './catalog.util';
 describe('CatalogUtil', () => {
   const util = new CatalogUtil();
 
+  describe('resolveComponentReference', () => {
+    it.each([
+      'artist-api',
+      'default/artist-api',
+      'component:artist-api',
+      'component:default/artist-api',
+      ' Component:Default/artist-api ',
+    ])('resolves %s to a service name', (reference) => {
+      expect(util.resolveComponentReference(reference)).toBe('artist-api');
+    });
+
+    it.each([
+      'resource:default/database',
+      'api:default/artist-api',
+      'component:other/artist-api',
+      'other/artist-api',
+      'component:',
+      'artist/api/extra',
+      'https://example.com',
+      '',
+    ])('does not resolve unsupported reference %s', (reference) => {
+      expect(util.resolveComponentReference(reference)).toBeNull();
+    });
+  });
+
   describe('resolveLocationTarget', () => {
     it('resolves targets relative to the declaring file', () => {
       expect(

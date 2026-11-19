@@ -24,6 +24,9 @@ export class ProjectEntity extends VertexPointerEntity {
   description?: string;
 
   @Property({ nullable: true })
+  domain?: string;
+
+  @Property({ nullable: true })
   email?: string;
 
   @Property()
@@ -32,6 +35,9 @@ export class ProjectEntity extends VertexPointerEntity {
 
   @Property({ nullable: true })
   title?: string;
+
+  @Property({ nullable: true })
+  type?: string;
 
   @Property({ nullable: true })
   website?: string;

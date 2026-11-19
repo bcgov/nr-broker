@@ -24,6 +24,9 @@ interface CatalogRepositoryNode {
   isArchived: boolean;
   isDisabled: boolean;
   pushedAt: string | null;
+  repositoryTopics: {
+    nodes: ({ topic: { name: string } | null } | null)[];
+  } | null;
   defaultBranchRef: {
     name: string;
     target: {
@@ -63,6 +66,13 @@ const ORG_CATALOG_REPOSITORIES_QUERY = `
           isArchived
           isDisabled
           pushedAt
+          repositoryTopics(first: 100) {
+            nodes {
+              topic {
+                name
+              }
+            }
+          }
           defaultBranchRef {
             name
             # Counting unbounded history is expensive and can time out (502)
@@ -165,6 +175,9 @@ export class GithubCatalogOrgScanner {
           defaultBranch: repo.defaultBranchRef.name,
           htmlUrl: repo.url,
           description: repo.description ?? undefined,
+          tags: (repo.repositoryTopics?.nodes ?? []).flatMap((node) =>
+            node?.topic?.name ? [node.topic.name] : [],
+          ),
         };
         await this.bullService.enqueue(
           REDIS_QUEUES.GITHUB_CATALOG_SCAN,

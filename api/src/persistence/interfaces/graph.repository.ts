@@ -68,6 +68,7 @@ export abstract class GraphRepository {
     provenance?: ProvenanceInfo,
   ): Promise<EdgeEntity>;
   public abstract deleteEdge(id: string): Promise<GraphDeleteResponseDto>;
+  public abstract getCatalogEdges(repository: string): Promise<EdgeEntity[]>;
   public abstract getEdge(id: string): Promise<EdgeEntity | null>;
   public abstract getEdgeByNameAndVertices(
     name: string,

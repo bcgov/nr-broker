@@ -4,6 +4,17 @@ import { posix } from 'node:path';
 @Injectable()
 export class CatalogUtil {
   /**
+   * Broker services have global names, so only Component references in the
+   * default namespace can be resolved without ambiguity.
+   */
+  public resolveComponentReference(reference: string): string | null {
+    const match = /^(?:component:)?(?:default\/)?([a-z0-9][a-z0-9_.-]*)$/i.exec(
+      reference.trim(),
+    );
+    return match?.[1] ?? null;
+  }
+
+  /**
    * Resolve a Location target relative to the file that declares it. Only
    * relative paths inside the repository are followed; URLs, absolute paths
    * and glob patterns are ignored.

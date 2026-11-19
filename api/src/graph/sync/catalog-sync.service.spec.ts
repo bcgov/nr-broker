@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CatalogComponent } from '../../catalog/catalog-component';
+import { CatalogEntity } from '../../catalog/catalog-entity';
+import { CatalogSystem } from '../../catalog/catalog-system';
+import { CatalogUtil } from '../../util/catalog.util';
 import { CatalogSyncService } from './catalog-sync.service';
 import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
 import { GraphService } from '../graph.service';
@@ -59,10 +62,13 @@ describe('CatalogSyncService', () => {
     addVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
     addEdge: ReturnType<typeof vi.fn>;
+    deleteEdge: ReturnType<typeof vi.fn>;
     isUpdateAllowed: ReturnType<typeof vi.fn>;
   };
   let graphRepository: {
     getVertex: ReturnType<typeof vi.fn>;
+    getEdge: ReturnType<typeof vi.fn>;
+    getCatalogEdges: ReturnType<typeof vi.fn>;
     getVertexByName: ReturnType<typeof vi.fn>;
     getVertexByParentIdAndName: ReturnType<typeof vi.fn>;
     getEdgeByNameAndVertices: ReturnType<typeof vi.fn>;
@@ -72,6 +78,7 @@ describe('CatalogSyncService', () => {
   let service: CatalogSyncService;
 
   beforeEach(() => {
+    const vertexCounts = new Map<string, number>();
     auditService = { recordGitHubCatalogSync: vi.fn() };
     collectionRepository = {
       getCollectionByKeyValue: vi.fn().mockResolvedValue(null),
@@ -82,11 +89,16 @@ describe('CatalogSyncService', () => {
     graphService = {
       addVertex: vi
         .fn()
-        .mockImplementation(async (_req, dto) => vertex(dto.collection)),
+        .mockImplementation(async (_req, dto) => {
+          const count = (vertexCounts.get(dto.collection) ?? 0) + 1;
+          vertexCounts.set(dto.collection, count);
+          return vertex(count === 1 ? dto.collection : `${dto.collection}-${count}`);
+        }),
       editVertex: vi
         .fn()
         .mockImplementation(async (_req, id) => vertex(id)),
       addEdge: vi.fn(),
+      deleteEdge: vi.fn(),
       isUpdateAllowed: vi
         .fn()
         .mockImplementation((records, provenance) =>
@@ -95,6 +107,8 @@ describe('CatalogSyncService', () => {
     };
     graphRepository = {
       getVertex: vi.fn(),
+      getEdge: vi.fn().mockResolvedValue(null),
+      getCatalogEdges: vi.fn().mockResolvedValue([]),
       getVertexByName: vi.fn().mockResolvedValue(null),
       getVertexByParentIdAndName: vi.fn().mockResolvedValue(null),
       getEdgeByNameAndVertices: vi.fn().mockResolvedValue(null),
@@ -123,13 +137,15 @@ describe('CatalogSyncService', () => {
         graphService as any,
         graphSyncService,
       ),
+      new CatalogUtil(),
     );
   });
 
-  it('does nothing when there are no components', async () => {
+  it('does not create collections for an empty catalog', async () => {
     await service.syncRepository(repository, []);
     expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalled();
     expect(collectionRepository.getCollectionByKeyValue).not.toHaveBeenCalled();
+    expect(graphRepository.getCatalogEdges).toHaveBeenCalledWith(repository.scmUrl);
   });
 
   it('sets owner and filtered tags on the service', async () => {
@@ -154,10 +170,146 @@ describe('CatalogSyncService', () => {
     expect(collectionRepository.saveTags).toHaveBeenCalledWith('service', 'svc-id', ['a', 'b']);
   });
 
+  it('syncs repository tags from GitHub topics', async () => {
+    await service.syncRepository(
+      { ...repository, tags: ['broker', ' api ', 'broker'] },
+      [component('catalog-info.yaml', 'api')],
+    );
+
+    expect(collectionRepository.saveTags).toHaveBeenCalledWith(
+      'repository',
+      'svc-id',
+      ['broker', 'api'],
+    );
+  });
+
+  it.each([{ tags: ['updated-topic'] }, { tags: [] }])('updates tags on an existing catalog-managed repository: $tags', async ({ tags }) => {
+    collectionRepository.getCollectionByKeyValue.mockResolvedValue({
+      vertex: 'existing-repo',
+    });
+    graphRepository.getVertex.mockResolvedValue(vertex('existing-repo', {
+      collection: 'repository',
+      provenance: [rootProvenance],
+    }));
+    collectionRepository.getCollectionByVertexId.mockResolvedValue({
+      id: 'existing-repo-id',
+      tags: ['old-topic'],
+      enableSyncSecrets: true,
+      enableSyncUsers: true,
+    });
+
+    await service.syncRepository(
+      { ...repository, tags },
+      [component('catalog-info.yaml', 'api')],
+    );
+
+    expect(collectionRepository.saveTags).toHaveBeenCalledWith(
+      'repository', 'existing-repo-id', tags,
+    );
+    expect(graphService.editVertex).toHaveBeenCalledWith(
+      null, 'existing-repo',
+      expect.objectContaining({
+        data: expect.objectContaining({ enableSyncSecrets: true, enableSyncUsers: true }),
+      }),
+      true, true, expect.anything(),
+    );
+  });
+
+  it('does not create projects from component system references', async () => {
+    const warn = vi.spyOn((service as any).logger, 'warn');
+    await service.syncRepository(repository, [
+      component('catalog-info.yaml', 'api', 'missing', [
+        { env: 'production', name: 'blue', url: 'https://blue.example.gov.bc.ca' },
+      ]),
+    ]);
+
+    expect(addedCollections()).toEqual(['repository', 'service', 'serviceInstance']);
+    expect(edges()).not.toContainEqual(['component', 'project', 'service']);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('add a kind: System document'));
+  });
+
+  it('links an existing project without a System declaration or project update', async () => {
+    graphRepository.getVertexByName.mockImplementation(async (collection) =>
+      collection === 'project' ? vertex('existing-project') : null,
+    );
+
+    await service.syncRepository(repository, [
+      component('catalog-info.yaml', 'api', 'sys'),
+    ]);
+
+    expect(addedCollections()).toEqual(['repository', 'service']);
+    expect(graphService.editVertex).not.toHaveBeenCalled();
+    expect(edges()).toContainEqual(['component', 'existing-project', 'service']);
+  });
+
+  it('creates a project from a System without any components', async () => {
+    await service.syncRepository(repository, [
+      new CatalogSystem(
+        'systems/catalog.yaml', 'sys', 'System title', 'System description',
+        ['broker', ' api ', 'broker', '<tag>', ' '], 'natural-resources', 'platform',
+      ),
+    ]);
+
+    expect(addedCollections()).toEqual(['repository', 'project']);
+    expect(graphService.addVertex.mock.calls[1][1].data).toEqual({
+      name: 'sys',
+      title: 'System title',
+      description: 'System description',
+      domain: 'natural-resources',
+      type: 'platform',
+    });
+    expect(collectionRepository.saveTags).toHaveBeenCalledWith(
+      'project', 'svc-id', ['broker', 'api', 'tag'],
+    );
+    expect(graphService.addVertex.mock.calls[1][3].record.path).toBe('systems/catalog.yaml');
+    expect(persistenceUtilService.getEnvMap).not.toHaveBeenCalled();
+  });
+
+  it('syncs a System once before components from other files and preserves its provenance', async () => {
+    await service.syncRepository(repository, [
+      component('api/catalog.yaml', 'api', 'sys'),
+      component('ui/catalog.yaml', 'ui', 'sys'),
+      new CatalogSystem('systems/catalog.yaml', 'sys'),
+    ]);
+
+    expect(addedCollections()).toEqual(['repository', 'project', 'service', 'service']);
+    expect(graphService.addVertex.mock.calls[1][3].record.path).toBe('systems/catalog.yaml');
+    expect(
+      graphService.addEdge.mock.calls
+        .filter((call) => call[1].name === 'component')
+        .map((call) => call[2].record.path),
+    ).toEqual(['api/catalog.yaml', 'ui/catalog.yaml']);
+  });
+
+  it('records a failed System sync and continues syncing other entities', async () => {
+    graphService.addVertex.mockImplementation(async (_req, dto) => {
+      if (dto.collection === 'project' && dto.data.name === 'broken') {
+        throw new Error('Project write failed');
+      }
+      return vertex(dto.collection);
+    });
+
+    await service.syncRepository(repository, [
+      new CatalogSystem('catalog-info.yaml', 'broken'),
+      new CatalogSystem('catalog-info.yaml', 'sys'),
+      component('catalog-info.yaml', 'api', 'broken'),
+    ]);
+
+    expect(addedCollections()).toEqual(['repository', 'project', 'project', 'service']);
+    expect(edges()).toEqual([['source', 'service', 'repository']]);
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+      'end',
+      'failure',
+      'End catalog sync: https://github.com/org/repo',
+      expect.any(Object),
+    );
+  });
+
   it('creates the repository, project, service and edges', async () => {
     await service.syncRepository(repository, [
       new CatalogComponent('catalog-info.yaml', 'api', 'sys', 'API'),
       new CatalogComponent('catalog-info.yaml', 'no-system'),
+      new CatalogSystem('catalog-info.yaml', 'sys'),
     ]);
 
     expect(addedCollections().sort()).toEqual(
@@ -173,7 +325,7 @@ describe('CatalogSyncService', () => {
     expect(edges().sort()).toEqual([
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
-      ['source', 'service', 'repository'],
+      ['source', 'service-2', 'repository'],
     ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
@@ -232,6 +384,7 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
+      new CatalogSystem('catalog-info.yaml', 'sys'),
     ]);
 
     const [, id, dto, , , provenance] = graphService.editVertex.mock.calls[0];
@@ -263,9 +416,11 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
+      new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['unmanaged'], 'unmanaged-domain', 'platform'),
     ]);
 
     expect(graphService.editVertex).not.toHaveBeenCalled();
+    expect(collectionRepository.saveTags).not.toHaveBeenCalled();
     expect(addedCollections()).toEqual(['service']);
     expect(edges().sort()).toEqual([
       ['component', 'project-vertex', 'service'],
@@ -300,6 +455,7 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
+      new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['failed'], 'failed-domain'),
     ]);
 
     expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
@@ -313,9 +469,14 @@ describe('CatalogSyncService', () => {
       }),
     );
     expect(edges()).toContainEqual(['component', 'project-vertex', 'service']);
+    expect(collectionRepository.saveTags).not.toHaveBeenCalled();
   });
 
-  it('updates a project managed by the same catalog file', async () => {
+  it.each([
+    { tags: ['updated'], type: 'platform' },
+    { tags: [], type: 'product' },
+    { tags: undefined, type: undefined },
+  ])('updates a project managed by the same catalog file: $tags, $type', async ({ tags, type }) => {
     graphRepository.getVertexByName.mockImplementation(async (collection) =>
       collection === 'project'
         ? vertex('project-vertex', {
@@ -328,17 +489,26 @@ describe('CatalogSyncService', () => {
 
     await service.syncRepository(repository, [
       component('a/catalog-info.yaml', 'api', 'sys'),
+      new CatalogSystem('a/catalog-info.yaml', 'sys', undefined, undefined, tags, 'domain:default/resources', type),
     ]);
 
     expect(graphService.editVertex.mock.calls.map((call) => call[1])).toEqual([
       'project-vertex',
     ]);
-    expect(graphService.editVertex.mock.calls[0][2].data).toEqual({ name: 'sys' });
+    expect(graphService.editVertex.mock.calls[0][2].data).toEqual({
+      name: 'sys', domain: 'domain:default/resources', ...(type ? { type } : {}),
+    });
+    if (tags) {
+      expect(collectionRepository.saveTags).toHaveBeenCalledWith('project', 'svc-id', tags);
+    } else {
+      expect(collectionRepository.saveTags).not.toHaveBeenCalled();
+    }
   });
 
   it('passes the catalog file as provenance', async () => {
     await service.syncRepository(repository, [
       component('a/catalog-info.yaml', 'api', 'sys'),
+      new CatalogSystem('a/catalog-info.yaml', 'sys'),
     ]);
 
     const provenance = (record: ProvenanceEmbeddable) => [
@@ -359,12 +529,32 @@ describe('CatalogSyncService', () => {
     ).toEqual([file, file]);
   });
 
-  it('creates instances and links them to their environment', async () => {
+  it('creates instances from YAML links and links them to their environment', async () => {
     await service.syncRepository(repository, [
-      component('catalog-info.yaml', 'api', 'sys', [
-        { env: 'production', name: 'blue', url: 'https://blue.example.gov.bc.ca' },
-        { env: 'prod', name: 'green' },
-      ]),
+      ...CatalogEntity.parseCatalogEntities(
+        'catalog-info.yaml',
+        [
+          'kind: Component',
+          'metadata:',
+          '  name: api',
+          '  links:',
+          '    - type: instance',
+          '      env: production',
+          '      title: blue',
+          '      url: https://blue.example.gov.bc.ca',
+          '    - type: instance',
+          '      env: prod',
+          '      title: green',
+          '      url: https://green.example.gov.bc.ca',
+          '    - type: documentation',
+          '      url: https://docs.example.gov.bc.ca',
+          'spec:',
+          '  system: sys',
+        ].join('\n'),
+        [CatalogComponent],
+        new CatalogUtil(),
+      ),
+      new CatalogSystem('catalog-info.yaml', 'sys'),
     ]);
 
     const instanceAdds = graphService.addVertex.mock.calls
@@ -372,15 +562,15 @@ describe('CatalogSyncService', () => {
       .map((call) => call[1].data);
     expect(instanceAdds).toEqual([
       { name: 'blue', url: 'https://blue.example.gov.bc.ca' },
-      { name: 'green' },
+      { name: 'green', url: 'https://green.example.gov.bc.ca' },
     ]);
     expect(edges().sort()).toEqual([
       ['component', 'project', 'service'],
       ['source', 'service', 'repository'],
       ['instance', 'service', 'serviceInstance'],
       ['deploy-type', 'serviceInstance', 'env-prod'],
-      ['instance', 'service', 'serviceInstance'],
-      ['deploy-type', 'serviceInstance', 'env-prod'],
+      ['instance', 'service', 'serviceInstance-2'],
+      ['deploy-type', 'serviceInstance-2', 'env-prod'],
     ].sort());
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
@@ -412,14 +602,15 @@ describe('CatalogSyncService', () => {
       { target: { toString: () => 'env-prod' } },
     ]);
     graphRepository.getEdgeByNameAndVertices.mockImplementation(
-      async (name) => (name === 'instance' ? { id: 'edge' } : null),
+      async (name) => (['instance', 'deploy-type'].includes(name) ? { id: 'edge' } : null),
     );
 
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys', [
         { env: 'production', name: 'managed', url: 'https://a.example.gov.bc.ca' },
-        { env: 'production', name: 'other' },
+        { env: 'production', name: 'other', url: 'https://other.example.gov.bc.ca' },
       ]),
+      new CatalogSystem('catalog-info.yaml', 'sys'),
     ]);
 
     const instanceEdits = graphService.editVertex.mock.calls.filter(
@@ -446,8 +637,8 @@ describe('CatalogSyncService', () => {
   it('records a failure for unknown environments and syncs other instances', async () => {
     await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys', [
-        { env: 'staging', name: 'staging' },
-        { env: 'production', name: 'production' },
+        { env: 'staging', name: 'staging', url: 'https://staging.example.gov.bc.ca' },
+        { env: 'production', name: 'production', url: 'https://prod.example.gov.bc.ca' },
       ]),
     ]);
 
@@ -476,7 +667,9 @@ describe('CatalogSyncService', () => {
     ]);
 
     await service.syncRepository(repository, [
-      component('catalog-info.yaml', 'api', 'sys', [{ env: 'production', name: 'production' }]),
+      component('catalog-info.yaml', 'api', 'sys', [
+        { env: 'production', name: 'production', url: 'https://prod.example.gov.bc.ca' },
+      ]),
     ]);
 
     expect(
@@ -521,6 +714,385 @@ describe('CatalogSyncService', () => {
       },
     );
   });
+
+  describe('service relationships', () => {
+    let savedServices: Map<string, ReturnType<typeof vertex>>;
+    let savedEdges: Set<string>;
+    const edgeKey = (name: string, source: string, target: string) => `${name}:${source}:${target}`;
+    const parse = (documents: object[]) => CatalogEntity.parseCatalogEntities(
+      'components/catalog.yaml',
+      documents.map((document) => JSON.stringify(document)).join('\n---\n'),
+      [CatalogComponent],
+      new CatalogUtil(),
+    );
+    const declaringComponent = (spec: object = {}) => ({
+      kind: 'Component',
+      metadata: { name: 'child' },
+      spec,
+    });
+
+    beforeEach(() => {
+      savedServices = new Map([['external', vertex('external-service', { collection: 'service' })]]);
+      savedEdges = new Set();
+      collectionRepository.getCollectionConfigByName.mockResolvedValue({
+        fields: {},
+        edges: [
+          { name: 'subcomponent-of', collection: 'service', restrict: true },
+          { name: 'depends-on', collection: 'service', restrict: true },
+        ],
+      });
+      graphService.addVertex.mockImplementation(async (_req, dto) => {
+        const added = vertex(`${dto.collection}-${dto.data.name}`, { collection: dto.collection });
+        if (dto.collection === 'service') {
+          savedServices.set(dto.data.name, added);
+        }
+        return added;
+      });
+      graphService.editVertex.mockImplementation(async (_req, id) =>
+        vertex(id, { collection: 'service' }),
+      );
+      graphRepository.getVertexByName.mockImplementation(async (collection, name) =>
+        collection === 'service' ? savedServices.get(name) ?? null : null,
+      );
+      graphRepository.getEdgeByNameAndVertices.mockImplementation(async (name, source, target) =>
+        savedEdges.has(edgeKey(name, source, target)) ? { id: 'existing-edge', restrict: true } : null,
+      );
+      graphService.addEdge.mockImplementation(async (_req, edge) => {
+        savedEdges.add(edgeKey(edge.name, edge.source, edge.target));
+      });
+    });
+
+    it('resolves forward and cross-repository references with catalog provenance and reuses edges', async () => {
+      const components = parse([
+        declaringComponent({
+          subcomponentOf: 'component:default/parent',
+          dependsOn: ['external', 'component:default/parent', 'external', 'default/external'],
+        }),
+        { kind: 'Component', metadata: { name: 'parent' } },
+      ]);
+
+      await service.syncRepository(repository, components);
+
+      expect(edges()).toEqual(expect.arrayContaining([
+        ['subcomponent-of', 'service-child', 'service-parent'],
+        ['depends-on', 'service-child', 'external-service'],
+        ['depends-on', 'service-child', 'service-parent'],
+      ]));
+      const relationshipCalls = () => graphService.addEdge.mock.calls.filter(
+        (call) => ['subcomponent-of', 'depends-on'].includes(call[1].name),
+      );
+      expect(relationshipCalls()).toHaveLength(3);
+      for (const call of relationshipCalls()) {
+        expect(call[2].record).toMatchObject({
+          repository: repository.scmUrl,
+          path: 'components/catalog.yaml',
+        });
+      }
+
+      await service.syncRepository(repository, components);
+      expect(relationshipCalls()).toHaveLength(3);
+    });
+
+    it('warns about unsupported and missing targets without creating placeholder services', async () => {
+      const warn = vi.spyOn((service as any).logger, 'warn');
+      await service.syncRepository(repository, parse([
+        declaringComponent({
+          subcomponentOf: 'missing',
+          dependsOn: ['resource:default/database', 'component:other/external', 'external'],
+        }),
+      ]));
+
+      expect([...savedServices.keys()]).toEqual(['external', 'child']);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('references missing service missing'));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('unsupported depends-on reference resource:default/database'));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('unsupported depends-on reference component:other/external'));
+      expect(edges()).toContainEqual(['depends-on', 'service-child', 'external-service']);
+    });
+
+    it.each([undefined, false])('does not create relationships when restrict is %s', async (restrict) => {
+      collectionRepository.getCollectionConfigByName.mockResolvedValue({
+        fields: {},
+        edges: [{ name: 'depends-on', collection: 'service', restrict }],
+      });
+      const warn = vi.spyOn((service as any).logger, 'warn');
+      await service.syncRepository(repository, parse([
+        declaringComponent({ dependsOn: ['external'] }),
+      ]));
+
+      expect(edges().some(([name]) => name === 'depends-on')).toBe(false);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Configure depends-on as a restricted'));
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'failure', expect.any(String), expect.any(Object),
+      );
+    });
+
+    it('records rejected relationships as failures and continues with other references', async () => {
+      graphService.addEdge.mockImplementation(async (_req, edge) => {
+        if (edge.name === 'subcomponent-of') {
+          throw new Error('No edges to self');
+        }
+      });
+      await service.syncRepository(repository, parse([
+        declaringComponent({ subcomponentOf: 'child', dependsOn: ['external'] }),
+      ]));
+
+      expect(edges()).toContainEqual(['depends-on', 'service-child', 'external-service']);
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'failure', expect.any(String), expect.any(Object),
+      );
+    });
+
+    it('reports an existing unrestricted relationship instead of silently reusing it', async () => {
+      graphRepository.getEdgeByNameAndVertices.mockImplementation(async (name) =>
+        name === 'depends-on' ? { id: 'unrestricted-edge', restrict: false } : null,
+      );
+      const warn = vi.spyOn((service as any).logger, 'warn');
+      await service.syncRepository(repository, parse([
+        declaringComponent({ dependsOn: ['external'] }),
+      ]));
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Existing depends-on edge is not restricted'));
+      expect(edges().some(([name]) => name === 'depends-on')).toBe(false);
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'failure', expect.any(String), expect.any(Object),
+      );
+    });
+
+    it('does not sync outgoing relationships for a component whose service update fails', async () => {
+      savedServices.set('child', vertex('existing-child'));
+      graphService.editVertex.mockRejectedValue(new Error('Update denied'));
+
+      await service.syncRepository(repository, parse([
+        declaringComponent({ dependsOn: ['external'] }),
+      ]));
+
+      expect(graphService.addEdge).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('edge reconciliation', () => {
+    interface StoredEdge {
+      id: string;
+      name: string;
+      source: string;
+      target: string;
+      restrict: boolean;
+      provenance: ProvenanceEmbeddable[];
+    }
+
+    let storedEdges: Map<string, StoredEdge>;
+    let cascadedInstances: string[];
+    const addStoredEdge = (
+      id: string,
+      name: string,
+      source: string,
+      target: string,
+      provenance = [rootProvenance],
+    ) => {
+      storedEdges.set(id, { id, name, source, target, restrict: true, provenance });
+    };
+
+    beforeEach(() => {
+      storedEdges = new Map();
+      cascadedInstances = [];
+      collectionRepository.getCollectionConfigByName.mockResolvedValue({
+        fields: {},
+        edges: [{ name: 'subcomponent-of', collection: 'service', restrict: true }],
+      });
+      graphService.addVertex.mockImplementation(async (_req, dto) =>
+        vertex(dto.collection, { collection: dto.collection }),
+      );
+      graphRepository.getCatalogEdges.mockImplementation(async () => [...storedEdges.values()]);
+      graphRepository.getEdge.mockImplementation(async (id) => storedEdges.get(id) ?? null);
+      graphRepository.getEdgeByNameAndVertices.mockImplementation(async (name, source, target) =>
+        [...storedEdges.values()].find((edge) =>
+          edge.name === name && edge.source === source && edge.target === target,
+        ) ?? null,
+      );
+      graphService.addEdge.mockImplementation(async (_req, edge, provenance) => {
+        if (
+          edge.name === 'subcomponent-of' &&
+          [...storedEdges.values()].some((existing) =>
+            existing.name === edge.name && existing.source === edge.source,
+          )
+        ) {
+          throw new Error('One-to-one relation already exists');
+        }
+        addStoredEdge(`new-${edge.name}-${edge.target}`, edge.name, edge.source, edge.target, [provenance.record]);
+      });
+      graphService.deleteEdge.mockImplementation(async (_req, id) => {
+        const edge = storedEdges.get(id);
+        storedEdges.delete(id);
+        if (edge?.name === 'instance') {
+          cascadedInstances.push(edge.target);
+          for (const related of storedEdges.values()) {
+            if (related.source === edge.target || related.target === edge.target) {
+              storedEdges.delete(related.id);
+            }
+          }
+        }
+      });
+    });
+
+    it('removes stale catalog edges even with other provenance, but preserves desired and unrelated edges', async () => {
+      addStoredEdge('source', 'source', 'service', 'repository');
+      addStoredEdge('stale-dependency', 'depends-on', 'service', 'old-dependency', [
+        ProvenanceEmbeddable.manual(),
+        rootProvenance,
+        ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
+      ]);
+      addStoredEdge('removed-file', 'component', 'project', 'removed-service', [
+        ProvenanceEmbeddable.catalog(repository.scmUrl, 'removed/catalog-info.yaml'),
+      ]);
+      addStoredEdge('manual', 'depends-on', 'service', 'manual-dependency', [ProvenanceEmbeddable.manual()]);
+      addStoredEdge('intention', 'depends-on', 'service', 'intention-dependency', [ProvenanceEmbeddable.intention()]);
+      addStoredEdge('other-repository', 'depends-on', 'service', 'other-dependency', [
+        ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
+      ]);
+      addStoredEdge('no-file', 'depends-on', 'service', 'unscoped-dependency', [
+        ProvenanceEmbeddable.catalog(repository.scmUrl, ''),
+      ]);
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(graphService.deleteEdge.mock.calls).toEqual([
+        [null, 'stale-dependency'],
+        [null, 'removed-file'],
+      ]);
+      expect([...storedEdges.keys()]).toEqual([
+        'source', 'manual', 'intention', 'other-repository', 'no-file',
+      ]);
+    });
+
+    it('removes edges for an empty catalog without creating or directly deleting vertices', async () => {
+      addStoredEdge('old-source', 'source', 'old-service', 'repository');
+
+      await service.syncRepository(repository, []);
+
+      expect(storedEdges.size).toBe(0);
+      expect(graphService.deleteEdge).toHaveBeenCalledWith(null, 'old-source');
+      expect(graphService.addVertex).not.toHaveBeenCalled();
+      expect(cascadedInstances).toEqual([]);
+    });
+
+    it('allows normal instance cascades and skips edges already removed by the cascade', async () => {
+      addStoredEdge('instance', 'instance', 'service', 'old-instance');
+      addStoredEdge('environment', 'deploy-type', 'old-instance', 'env-prod');
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(cascadedInstances).toEqual(['old-instance']);
+      expect(graphService.deleteEdge.mock.calls).toEqual([[null, 'instance']]);
+      expect(storedEdges.has('environment')).toBe(false);
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'success', expect.any(String), expect.any(Object),
+      );
+    });
+
+    it('retains existing instance and environment edges while their link is still declared', async () => {
+      addStoredEdge('instance', 'instance', 'service', 'existing-instance');
+      addStoredEdge('environment', 'deploy-type', 'existing-instance', 'env-prod');
+      graphRepository.getVertexByParentIdAndName.mockResolvedValue(
+        vertex('existing-instance', { provenance: [rootProvenance] }),
+      );
+      graphRepository.searchEdgesShallow.mockImplementation(async (name) =>
+        name === 'deploy-type' ? [storedEdges.get('environment')] : [],
+      );
+
+      await service.syncRepository(repository, [
+        component('catalog-info.yaml', 'api', undefined, [
+          { env: 'production', name: 'blue', url: 'https://blue.example.gov.bc.ca' },
+        ]),
+      ]);
+
+      expect(graphService.deleteEdge).not.toHaveBeenCalled();
+      expect(storedEdges.has('instance')).toBe(true);
+      expect(storedEdges.has('environment')).toBe(true);
+    });
+
+    it('preserves desired edges when a declaration moves to another catalog file', async () => {
+      addStoredEdge('source', 'source', 'service', 'repository', [
+        ProvenanceEmbeddable.catalog(repository.scmUrl, 'old/catalog-info.yaml'),
+      ]);
+
+      await service.syncRepository(repository, [component('new/catalog-info.yaml', 'api')]);
+
+      expect(graphService.deleteEdge).not.toHaveBeenCalled();
+      expect(storedEdges.has('source')).toBe(true);
+    });
+
+    it('replaces an obsolete one-to-one parent before creating the new parent edge', async () => {
+      addStoredEdge('old-parent', 'subcomponent-of', 'service', 'old-parent-service');
+      graphRepository.getVertexByName.mockImplementation(async (collection, name) =>
+        collection === 'service' && name === 'parent'
+          ? vertex('new-parent-service', { collection: 'service' })
+          : null,
+      );
+      const declaring = CatalogComponent.fromJson('catalog-info.yaml', {
+        metadata: { name: 'api' },
+        spec: { subcomponentOf: 'parent' },
+      }, new CatalogUtil());
+
+      await service.syncRepository(repository, [declaring]);
+
+      expect(storedEdges.has('old-parent')).toBe(false);
+      expect([...storedEdges.values()]).toEqual(expect.arrayContaining([
+        expect.objectContaining({ name: 'subcomponent-of', source: 'service', target: 'new-parent-service' }),
+      ]));
+      const parentAdd = graphService.addEdge.mock.calls.findIndex((call) => call[1].name === 'subcomponent-of');
+      expect(graphService.deleteEdge.mock.invocationCallOrder[0])
+        .toBeLessThan(graphService.addEdge.mock.invocationCallOrder[parentAdd]);
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'success', expect.any(String), expect.any(Object),
+      );
+    });
+
+    it.each([{ components: [] }, { components: [component('catalog-info.yaml', 'api')] }])(
+      'does not remove edges for an incomplete snapshot %j',
+      async ({ components }) => {
+        addStoredEdge('old-source', 'source', 'old-service', 'repository');
+
+        await service.syncRepository(repository, components, false);
+
+        expect(graphRepository.getCatalogEdges).not.toHaveBeenCalled();
+        expect(graphService.deleteEdge).not.toHaveBeenCalled();
+        expect(storedEdges.has('old-source')).toBe(true);
+      },
+    );
+
+    it('does not remove edges when a component fails to sync', async () => {
+      addStoredEdge('old-source', 'source', 'old-service', 'repository');
+      graphService.addVertex.mockImplementation(async (_req, dto) => {
+        if (dto.collection === 'service') {
+          throw new Error('Service write failed');
+        }
+        return vertex(dto.collection);
+      });
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(graphRepository.getCatalogEdges).not.toHaveBeenCalled();
+      expect(graphService.deleteEdge).not.toHaveBeenCalled();
+      expect(storedEdges.has('old-source')).toBe(true);
+    });
+
+    it('reports deletion failures and continues applying other edge changes', async () => {
+      addStoredEdge('stale', 'depends-on', 'service', 'old-target');
+      graphService.deleteEdge.mockRejectedValue(new Error('Delete unavailable'));
+      const warn = vi.spyOn((service as any).logger, 'warn');
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Delete unavailable'));
+      expect([...storedEdges.values()]).toEqual(expect.arrayContaining([
+        expect.objectContaining({ name: 'source', source: 'service', target: 'repository' }),
+      ]));
+      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+        'end', 'failure', expect.any(String), expect.any(Object),
+      );
+    });
+  });
+
   describe('adoption', () => {
     const id = (value: string) => ({ toString: () => value });
     let vertices: Record<string, any>;
@@ -599,7 +1171,10 @@ describe('CatalogSyncService', () => {
       component('a/catalog-info.yaml', 'api', 'sys', [
         { env: 'production', name: 'blue', url: 'https://blue.example.gov.bc.ca' },
       ]),
-    ]) => service.syncRepository(repository, components);
+    ]) => service.syncRepository(repository, [
+      ...components,
+      new CatalogSystem('a/catalog-info.yaml', 'sys'),
+    ]);
 
     it('adopts the repository, service, project and instances by updating them as adoptable', async () => {
       await sync();
@@ -630,6 +1205,18 @@ describe('CatalogSyncService', () => {
           repositoryUrl: 'https://github.com/org/repo',
         },
       );
+    });
+
+    it('does not adopt a project without a System declaration', async () => {
+      await service.syncRepository(repository, [
+        component('a/catalog-info.yaml', 'api', 'sys', [
+          { env: 'production', name: 'blue', url: 'https://blue.example.gov.bc.ca' },
+        ]),
+      ]);
+
+      expect(editedIds().sort()).toEqual(['repo-vertex', 'svc', 'blue'].sort());
+      expect(vertices['project-vertex'].provenance.map((record) => record.type)).toEqual(['manual']);
+      expect(graphService.addVertex).not.toHaveBeenCalled();
     });
 
     it('adds the repository instead of matching by name when the SCM URL is not found', async () => {

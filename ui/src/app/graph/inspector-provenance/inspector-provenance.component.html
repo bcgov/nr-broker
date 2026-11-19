@@ -65,7 +65,7 @@
 
               @let catalogUrl = catalogFileUrl(source);
               @if (catalogUrl) {
-              <a [href]="source.repository"
+              <a [href]="catalogUrl"
                 target="_blank"
                 rel="noopener noreferrer">
                 <app-details-item item="Catalog File" clickable>{{ source.path }}</app-details-item>

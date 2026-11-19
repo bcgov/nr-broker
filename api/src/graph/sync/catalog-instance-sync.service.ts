@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { AuditService } from '../../audit/audit.service';
 import { CatalogComponentInstance } from '../../catalog/catalog-component-instance';
 import { EnvironmentEntityMap } from '../../persistence/persistence-util.service';
-import { EdgeInsertDto } from '../../persistence/dto/edge.dto';
 import { VertexEntity } from '../../persistence/entity/vertex.entity';
 import { GraphRepository } from '../../persistence/interfaces/graph.repository';
 import { ProvenanceInfo } from '../../persistence/provenance-info';
 import { GraphService } from '../graph.service';
-import { CatalogGraphSyncService } from './catalog-graph-sync.service';
+import { CatalogEdgePlan, CatalogGraphSyncService } from './catalog-graph-sync.service';
 
 @Injectable()
 export class CatalogInstanceSyncService {
@@ -28,6 +26,7 @@ export class CatalogInstanceSyncService {
     serviceVertex: VertexEntity,
     envMap: EnvironmentEntityMap,
     provenance: ProvenanceInfo,
+    plan?: CatalogEdgePlan,
   ): Promise<void> {
     const failures: string[] = [];
     for (const instance of instances) {
@@ -45,6 +44,9 @@ export class CatalogInstanceSyncService {
           existing &&
           !this.graphService.isUpdateAllowed(existing.provenance, provenance)
         ) {
+          if (plan) {
+            plan.complete = false;
+          }
           this.auditService.recordGitHubCatalogSync(
             'info',
             'unknown',
@@ -81,18 +83,15 @@ export class CatalogInstanceSyncService {
           serviceVertex,
           instanceVertex,
           provenance,
+          { plan },
         );
-        if (deployTypes.length === 0) {
-          await this.graphService.addEdge(
-            null,
-            plainToInstance(EdgeInsertDto, {
-              name: 'deploy-type',
-              source: instanceVertex.id.toString(),
-              target: envVertexId,
-            }),
-            provenance,
-          );
-        }
+        await this.catalogGraphSyncService.ensureEdge(
+          'deploy-type',
+          instanceVertex,
+          { id: envVertexId, collection: 'environment' },
+          provenance,
+          { plan },
+        );
       } catch (error) {
         failures.push(`${instance.name}: ${(error as Error).message}`);
       }

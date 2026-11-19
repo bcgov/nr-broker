@@ -14,6 +14,9 @@ describe('GithubCatalogOrgScanner', () => {
     isArchived: false,
     isDisabled: false,
     pushedAt,
+    repositoryTopics: {
+      nodes: [{ topic: { name: 'broker' } }, { topic: { name: 'typescript' } }],
+    },
     defaultBranchRef: {
       name: 'main',
       target: { branchHistory: { totalCount: 1 } },
@@ -104,6 +107,7 @@ describe('GithubCatalogOrgScanner', () => {
         repo: 'new',
         defaultBranch: 'main',
         htmlUrl: 'https://github.com/org/new',
+        tags: ['broker', 'typescript'],
       }),
       expect.objectContaining({ jobId: 'repo-org-new' }),
     ]);

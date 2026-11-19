@@ -188,7 +188,7 @@ export class CollectionMongoRepository implements CollectionRepository {
   ): Promise<string[]> {
     const repo = getRepositoryFromCollectionName(this.dataSource, type);
 
-    repo
+    await repo
       .getCollection()
       .updateOne({ _id: new ObjectId(id) } as any, { $set: { tags } } as any);
     return tags;

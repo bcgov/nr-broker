@@ -335,6 +335,24 @@ result = db.collectionConfig.insertOne({
         update: true,
       },
     },
+    domain: {
+      name: 'Domain',
+      required: false,
+      type: 'string',
+      hint: 'The Backstage domain this project belongs to',
+      mask: {
+        update: true,
+      },
+    },
+    type: {
+      name: 'Type',
+      required: false,
+      type: 'string',
+      hint: 'The Backstage system type for this project',
+      mask: {
+        update: true,
+      },
+    },
     website: {
       name: 'Website URL',
       type: 'url',
@@ -389,6 +407,26 @@ result = db.collectionConfig.insertOne({
       collection: 'service',
       name: 'provision-token',
       onDelete: 'cascade',
+      relation: 'oneToMany',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: '2c10f8a1',
+      collection: 'service',
+      name: 'subcomponent-of',
+      title: 'Subcomponent of',
+      titleInbound: 'Has subcomponent',
+      relation: 'oneToOne',
+      restrict: true,
+      show: true,
+    },
+    {
+      id: '2c10f8a2',
+      collection: 'service',
+      name: 'depends-on',
+      title: 'Depends on',
+      titleInbound: 'Dependency of',
       relation: 'oneToMany',
       restrict: true,
       show: true,
@@ -1170,7 +1208,7 @@ result = db.collectionConfig.insertOne({
     description: {
       name: 'Description',
       required: true,
-      type: 'description',
+      type: 'string',
       hint: 'A brief description of the contents',
       mask: {
         update: true,

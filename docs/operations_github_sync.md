@@ -69,39 +69,126 @@ The last scan time is stored in Redis under `github-catalog-scan:last-scan:<org>
 
 For each repository:
 
-1. Broker reads `catalog-info.yaml` at the root of the default branch. Repositories without this file are skipped.
-2. `Location` entities in the root `catalog-info.yaml` are followed one level to find component files in monorepos. Each target is read once. `Location` entities in target files are ignored. Only relative paths inside the repository are followed. URLs and glob patterns are ignored.
-3. The Repository is found by SCM URL. It is added if missing, with secret and user sync disabled. Adding fails if another Repository already has the same name. A Repository managed by the root `catalog-info.yaml` has its name, description and SCM URL updated. Sync settings are not changed.
-4. For each `Component` entity:
-   - `spec.system` becomes the Project. The Project is added if missing.
+1. Broker reads every YAML document in `catalog-info.yaml` at the root of the default branch. Separate documents with `---`. Repositories without this file are skipped.
+2. `Location` entities in the root `catalog-info.yaml` are followed one level to find catalog files in monorepos. Each target is read once, including all its YAML documents. `Location` entities in target files are ignored. Only relative paths inside the repository are followed. URLs and glob patterns are ignored.
+3. The Repository is found by SCM URL. It is added if missing, with secret and user sync disabled. Adding fails if another Repository already has the same name. A Repository managed by the root `catalog-info.yaml` has its name, description, SCM URL and GitHub topic tags updated. Sync settings are not changed.
+   Organization scans include the GitHub description and topics in each repository job. Direct repository syncs fetch the current description and topics from GitHub. The description falls back to `organization/repository` only when GitHub has no description. An empty topic list clears the Repository's tags.
+4. Each `System` entity creates or updates a Project using `metadata.name`, `metadata.title`, `metadata.description`, `metadata.tags`, `spec.domain` and `spec.type`, even if no Components refer to it. Systems are synced before Components, regardless of document or file order. Tags replace the Project's tags after filtering and deduplication; `metadata.tags: []` clears them. Omitting tags, domain or type leaves the existing value unchanged. The domain reference is stored as supplied, without creating a Domain entity.
+5. For each `Component` entity:
+   - `spec.system` links to an existing Project. A Component alone never creates or updates a Project; declare a matching `kind: System` in the root file or a Location target to create it.
    - `metadata.name` becomes the Service. The title, description, lifecycle and type are updated from the catalog.
    - A `component` edge links the Project to the Service and a `source` edge links the Service to the Repository.
-   - The `playbook.io.nrs.gov.bc.ca/instances` annotation becomes service instances (see below).
+   - Entries in `metadata.links` with `type: instance` become service instances (see below). Other link types are ignored.
+6. After Components sync, `spec.subcomponentOf` and `spec.dependsOn` link Services to other Services (see below).
 
-Components without `spec.system` are skipped.
+Components without `spec.system`, or whose Project does not exist, still sync their Service, repository link and instances. The missing Project link is logged as a warning.
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: artist-web
+spec:
+  system: artist
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: artist
+  title: Artist
+  description: Artist services
+  tags:
+    - music
+spec:
+  domain: entertainment
+  type: platform
+```
 
 Items are added with the collection's default field values for anything the catalog does not set. Existing items keep values the catalog does not set.
 
+New databases include the optional Project domain and type fields. For an existing database, run these repeatable configuration updates before syncing:
+
+```bash
+mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-domain.js
+mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-type.js
+```
+
+The scripts only update the Project field configuration; existing Project documents are populated by their next catalog sync.
+
+### Service relationships
+
+Components can declare relationships to other Services:
+
+```yaml
+spec:
+  subcomponentOf: component:default/artist
+  dependsOn:
+    - artist-api
+    - component:default/authentication
+```
+
+| Catalog field | Edge | Direction | Number of targets |
+| --- | --- | --- | --- |
+| `spec.subcomponentOf` | `subcomponent-of` | Child Service to parent Service | One |
+| `spec.dependsOn` | `depends-on` | Service to dependency Service | Many |
+
+Both edge types are restricted (`restrict: true`), so they do not carry inherited graph permissions. They do not cascade deletion to related Services.
+
+References may be a bare name, `default/name`, `component:name` or `component:default/name`. Broker Services have global names; other namespaces and entity kinds, such as `resource:default/database`, are not resolved. Unsupported references and missing Services are logged and skipped. No placeholder Services are created.
+
+All Components in the repository are synced before relationships are resolved, so document and Location target order do not matter. Targets may also be existing Services from other repositories. Existing edges are reused. New edges record the declaring Component's catalog provenance. Removing a reference removes its catalog-owned edge (see cleanup below). An obsolete parent edge is removed before its replacement is added. Self-links, cycles and additional parents are rejected by the normal graph rules; other relationships continue syncing and the scan records a failure.
+
+New databases include these edge configurations. For an existing database, run the non-destructive, repeatable update from the repository root:
+
+```bash
+mongosh "<broker-database-connection-string>" scripts/db/mongo-add-service-catalog-edges.js
+```
+
+Then reindex the graph cache using `POST /v1/graph/reindex-cache` before running catalog sync. The update also marks any existing Service-to-Service edges with these names as restricted. Do not rerun the database setup script against an existing database; it resets data.
+
 ### Service instances
 
-Declare instances in the `playbook.io.nrs.gov.bc.ca/instances` annotation as a JSON array. Each entry has:
+Declare deployed instances in `metadata.links`. Each instance link has:
 
 | Field | Required | Description |
 | --- | --- | --- |
+| `type` | Yes | Must be `instance`. Links with any other type, or no type, are ignored. |
 | `env` | Yes | The environment name, short name or alias, such as `production` or `prod` |
-| `name` | No | The instance name. Defaults to `env`. Use distinct names to have more than one instance in an environment. |
-| `url` | No | The base URL of the instance. Must start with `http://` or `https://`. |
+| `title` | No | The display name, stored as the instance name. Defaults to `env`. Use distinct titles to have more than one instance in an environment. |
+| `url` | Yes | The base URL of the instance. Must be an `http://` or `https://` URL. |
 
 ```yaml
 metadata:
   name: artist-web
-  annotations:
-    playbook.io.nrs.gov.bc.ca/instances: '[{"env":"production","name":"blue","url":"https://blue.example.gov.bc.ca"},{"env":"production","name":"green"},{"env":"test"}]'
+  links:
+    - type: instance
+      env: production
+      title: blue
+      url: https://blue.example.gov.bc.ca
+    - type: instance
+      env: production
+      title: green
+      url: https://green.example.gov.bc.ca
+    - type: instance
+      env: test
+      url: https://test.example.gov.bc.ca
 ```
 
-Each instance is added under the Service with an `instance` edge and linked to its Environment with a `deploy-type` edge. Instance names must be unique within a component. If the annotation is not valid, the whole component is skipped and a warning is logged. An unknown environment fails only that instance.
+Each instance is added under the Service with an `instance` edge and linked to its Environment with a `deploy-type` edge. Instance names must be unique within a component. If an instance link is not valid, the whole component is skipped and a warning is logged. An unknown environment fails only that instance. The previous `playbook.io.nrs.gov.bc.ca/instances` annotation is no longer read.
 
-Instances removed from the annotation are not deleted. An instance cannot move to another environment through the catalog. Remove the instance in Broker or give it a new name.
+Removing an instance link removes its catalog-owned edges. Normal graph cascade rules apply: removing an `instance` edge may also delete the instance and its environment edge. An existing instance cannot move to another environment through the catalog. Remove the instance in Broker or give its link a new title.
+
+### Removing stale catalog edges
+
+Each complete repository scan builds the desired edges before changing them. Edges with catalog provenance matching the repository and a catalog file are removed when they are no longer desired. This includes removed Components, relationship references, instance links and Location targets. A valid empty catalog can remove all catalog-owned edges for that repository.
+
+The whole edge is removed if any provenance record matches, even if it also has manual, intention or another catalog's provenance. Edges with no matching catalog provenance are not cleanup candidates. An edge still needed by any current declaration is kept, including when its declaration moves between files.
+
+Cleanup does not directly delete vertices. It uses normal graph deletion, including configured cascades that can delete service instances. Deletions are audited and invalidate the graph cache.
+
+Cleanup is skipped when the root file is missing, a Location target cannot be read, any catalog document fails to parse, or entity and relationship planning is incomplete. Valid declarations can still sync during an incomplete scan. A Location target removed from the root file is different from an unreadable declared target: its old edges can be cleaned up on the next complete scan.
+
+Stale edges are removed before desired edges are applied so one-to-one relationships can be replaced. Graph changes are incremental, not transactional. A failed deletion or creation is reported, other changes are attempted, and the scan records a failure.
 
 ### Catalog ownership
 
@@ -129,8 +216,8 @@ New Services do not affect the check.
 When the catalog files can adopt items:
 
 - **Service**: adopted.
-- **Project**: adopted, unless a catalog file already manages it.
-- **Service instances**: existing instances under the Service named in the annotation are adopted, unless a catalog file manages them or they are in a different environment. Instances under a Service the file already manages are adopted the same way, for example instances created by an intention.
+- **Project**: adopted only when declared by a `System` entity, unless a catalog file already manages it. Its catalog ownership comes from the System's file, not a Component's file.
+- **Service instances**: existing instances under the Service named by instance links are adopted, unless a catalog file manages them or they are in a different environment. Instances under a Service the file already manages are adopted the same way, for example instances created by an intention.
 - **Repository**: adopted for the root `catalog-info.yaml` if no catalog file manages it.
 
 Each adoption is an edit, so it is recorded in the audit log. If a Service fails a check, the reason is logged and nothing is adopted. Items already managed by the catalog files still sync. Fix the Service in Broker, then rerun the sync.
