@@ -61,6 +61,7 @@ describe('CatalogSyncService', () => {
   let graphService: {
     addVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
+    upsertVertex: ReturnType<typeof vi.fn>;
     addEdge: ReturnType<typeof vi.fn>;
     deleteEdge: ReturnType<typeof vi.fn>;
     isUpdateAllowed: ReturnType<typeof vi.fn>;
@@ -97,6 +98,13 @@ describe('CatalogSyncService', () => {
       editVertex: vi
         .fn()
         .mockImplementation(async (_req, id) => vertex(id)),
+      upsertVertex: vi
+        .fn()
+        .mockImplementation(async (req, dto, _targetBy, target, provenance) =>
+          target === null
+            ? graphService.addVertex(req, dto, true, provenance)
+            : graphService.editVertex(req, target, dto, true, true, provenance),
+        ),
       addEdge: vi.fn(),
       deleteEdge: vi.fn(),
       isUpdateAllowed: vi
@@ -207,11 +215,7 @@ describe('CatalogSyncService', () => {
       'repository', 'existing-repo-id', tags,
     );
     expect(graphService.editVertex).toHaveBeenCalledWith(
-      null, 'existing-repo',
-      expect.objectContaining({
-        data: expect.objectContaining({ enableSyncSecrets: true, enableSyncUsers: true }),
-      }),
-      true, true, expect.anything(),
+      null, 'existing-repo', expect.anything(), true, true, expect.anything(),
     );
   });
 
@@ -366,7 +370,7 @@ describe('CatalogSyncService', () => {
     });
   });
 
-  it('updates a managed repository and keeps its sync settings', async () => {
+  it('updates a managed repository without sending its sync settings', async () => {
     const existing = vertex('repo-vertex', {
       provenance: [rootProvenance],
       prop: { team: 'a' },
@@ -393,8 +397,6 @@ describe('CatalogSyncService', () => {
       name: 'repo',
       description: 'org/repo',
       scmUrl: 'https://github.com/org/repo',
-      enableSyncSecrets: true,
-      enableSyncUsers: false,
     });
     expect(dto.prop).toEqual({ team: 'a' });
     expect(provenance.record.path).toBe('catalog-info.yaml');
@@ -1189,10 +1191,6 @@ describe('CatalogSyncService', () => {
         true,
       ]);
       expect(graphService.editVertex.mock.calls[0][5].record.path).toBe('catalog-info.yaml');
-      expect(graphService.editVertex.mock.calls[0][2].data).toMatchObject({
-        enableSyncSecrets: true,
-        enableSyncUsers: true,
-      });
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
       expect(graphService.addVertex).not.toHaveBeenCalled();
       expect(graphService.addEdge).not.toHaveBeenCalled();

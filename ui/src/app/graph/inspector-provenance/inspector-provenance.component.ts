@@ -72,7 +72,7 @@ const PROVENANCE_META: Record<
     icon: 'sync',
     description: 'Added or updated by intention sync.',
     automated: true,
-    manualForWarning: true,
+    manualForWarning: false,
   },
   [ProvenanceType.OPENSEARCH]: {
     label: 'OpenSearch',

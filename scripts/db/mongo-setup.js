@@ -339,7 +339,7 @@ result = db.collectionConfig.insertOne({
       name: 'Domain',
       required: false,
       type: 'string',
-      hint: 'The Backstage domain this project belongs to',
+      hint: 'Groups related projects by business area, such as forestry or water management',
       mask: {
         update: true,
       },
@@ -348,7 +348,7 @@ result = db.collectionConfig.insertOne({
       name: 'Type',
       required: false,
       type: 'string',
-      hint: 'The Backstage system type for this project',
+      hint: 'Describes the main role, such as a product or shared platform',
       mask: {
         update: true,
       },

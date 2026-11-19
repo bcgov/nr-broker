@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { shake } from 'radash';
 import { AuditService } from '../../audit/audit.service';
 import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogRepository } from '../../catalog/catalog-repository';
 import { CatalogSystem } from '../../catalog/catalog-system';
 import { GITHUB_CATALOG_ROOT_FILE } from '../../constants';
-import { CollectionNames } from '../../persistence/dto/collection-dto-union.type';
+import {
+  CollectionBaseDtoUnion,
+  CollectionBaseDtoUnionObject,
+  CollectionNames,
+} from '../../persistence/dto/collection-dto-union.type';
 import { EdgeInsertDto } from '../../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { ProvenanceInfo } from '../../persistence/provenance-info';
@@ -19,8 +23,6 @@ import { GraphService } from '../graph.service';
 interface UpsertOptions {
   /** Fallback values used when adding, below collection config defaults and catalog data */
   defaults?: Record<string, unknown>;
-  /** Existing collection fields carried into an edit (for required fields) */
-  keep?: string[];
   /** Vertex properties to save; defaults to the existing properties */
   prop?: Record<string, string>;
   tags?: string[];
@@ -86,7 +88,6 @@ export class CatalogGraphSyncService {
           enableSyncSecrets: false,
           enableSyncUsers: false,
         },
-        keep: ['enableSyncSecrets', 'enableSyncUsers'],
         tags: repository.tags,
       },
     );
@@ -120,18 +121,23 @@ export class CatalogGraphSyncService {
     provenance: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const existing = await this.getService(component.name);
-    const service = await this.upsertVertex(
-      'service',
-      existing,
-      {
-        name: component.name,
-        title: component.title,
-        description: component.description,
-        lifecycle: component.lifecycle,
-        type: component.type,
-      },
+    const service = await this.graphService.upsertVertex(
+      null,
+      await this.buildVertexInsert(
+        'service',
+        existing,
+        {
+          name: component.name,
+          title: component.title,
+          description: component.description,
+          lifecycle: component.lifecycle,
+          type: component.type,
+        },
+        { prop: this.buildServiceProp(existing, component) },
+      ),
+      'id',
+      existing?.id.toString() ?? null,
       provenance,
-      { prop: this.buildServiceProp(existing, component) },
     );
     await this.syncTags('service', service, component.tags);
     return service;
@@ -239,56 +245,40 @@ export class CatalogGraphSyncService {
     return JSON.stringify([name, source, target]);
   }
 
-  public async upsertVertex(
+  /** Builds the vertex insert for adding or editing from catalog data */
+  public async buildVertexInsert(
     collection: CollectionNames,
     existing: VertexEntity | null,
     data: Record<string, unknown>,
-    provenance: ProvenanceInfo,
     options: UpsertOptions = {},
-  ): Promise<VertexEntity> {
+  ): Promise<VertexInsertDto> {
     const catalogData = shake(data);
+    let vertexData: Record<string, unknown>;
+    let prop = options.prop;
     if (!existing) {
-      return this.graphService.addVertex(
-        null,
-        plainToInstance(VertexInsertDto, {
-          collection,
-          data: {
-            ...options.defaults,
-            ...(await this.getConfigDefaults(collection)),
-            ...catalogData,
-          },
-          ...(options.prop ? { prop: options.prop } : {}),
-        }),
-        true,
-        provenance,
-      );
+      vertexData = {
+        ...options.defaults,
+        ...(await this.getConfigDefaults(collection)),
+        ...catalogData,
+      };
+    } else {
+      vertexData = catalogData;
+      prop = prop ?? existing.prop;
     }
 
-    const kept: Record<string, unknown> = {};
-    if (options.keep?.length) {
-      const current = await this.collectionRepository.getCollectionByVertexId(
-        collection,
-        existing.id.toString(),
-      );
-      for (const key of options.keep) {
-        if (current?.[key] !== undefined) {
-          kept[key] = current[key];
-        }
-      }
-    }
-    const prop = options.prop ?? existing.prop;
-    return this.graphService.editVertex(
-      null,
-      existing.id.toString(),
-      plainToInstance(VertexInsertDto, {
-        collection,
-        data: { ...kept, ...catalogData },
-        ...(prop && Object.keys(prop).length > 0 ? { prop } : {}),
-      }),
-      true,
-      true,
-      provenance,
+    const vertexInsert = new VertexInsertDto(
+      collection,
+      plainToInstance(
+        CollectionBaseDtoUnionObject[collection] as ClassConstructor<
+          CollectionBaseDtoUnion[CollectionNames]
+        >,
+        vertexData,
+      ),
     );
+    if (prop && Object.keys(prop).length > 0) {
+      vertexInsert.prop = prop;
+    }
+    return vertexInsert;
   }
 
   private async upsertLinkedVertex(
@@ -315,12 +305,12 @@ export class CatalogGraphSyncService {
     }
     let vertex: VertexEntity;
     try {
-      vertex = await this.upsertVertex(
-        collection,
-        existing,
-        data,
+      vertex = await this.graphService.upsertVertex(
+        null,
+        await this.buildVertexInsert(collection, existing, data, options),
+        'id',
+        existing?.id.toString() ?? null,
         provenance,
-        options,
       );
     } catch (error) {
       if (!existing) {

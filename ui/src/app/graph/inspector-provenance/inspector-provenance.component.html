@@ -75,16 +75,6 @@
             <app-details-item item="Created">{{ source.record.createdAt | date: 'medium' }}</app-details-item>
             <app-details-item item="Modified">{{ source.record.updatedAt | date: 'medium' }}</app-details-item>
           </div>
-
-          @if (source.record.intentionId) {
-            <div>
-              <button
-                [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
-                mat-button>
-                View History
-                </button>
-            </div>
-          }
         </div>
       }
     </div>
