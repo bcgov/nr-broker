@@ -87,20 +87,20 @@ describe('InspectorProvenanceComponent', () => {
     expect(component.showManualWarning()).toBe(false);
   });
 
-  it('warns when intention is the latest record and another automated source is present', () => {
+  it('does not warn when intention is the latest record and another automated source is present', () => {
     setProvenance([
       record(ProvenanceType.CATALOG, '2024-01-02T00:00:00Z'),
       record(ProvenanceType.INTENTION, '2024-01-05T00:00:00Z'),
     ]);
-    expect(component.showManualWarning()).toBe(true);
+    expect(component.showManualWarning()).toBe(false);
   });
 
-  it('does not treat intention as an automated overwrite source for warnings', () => {
+  it('warns when intention is an automated overwrite source for a manual edit', () => {
     setProvenance([
       record(ProvenanceType.INTENTION, '2024-01-02T00:00:00Z'),
       record(ProvenanceType.MANUAL, '2024-01-05T00:00:00Z'),
     ]);
-    expect(component.showManualWarning()).toBe(false);
+    expect(component.showManualWarning()).toBe(true);
   });
 
   it('keeps catalog repository and path on the display record', () => {
@@ -159,6 +159,22 @@ describe('InspectorProvenanceComponent', () => {
     ]);
     const source = component.sortedProvenance()[0];
     expect(component.catalogFileUrl(source)).toBeUndefined();
+  });
+
+  it('hides the remove button unless removing is allowed', () => {
+    setProvenance([record(ProvenanceType.MANUAL, '2024-01-05T00:00:00Z')]);
+    expect(fixture.nativeElement.querySelector('button.provenance-item-badge')).toBeNull();
+  });
+
+  it('emits the record when the remove button is selected', () => {
+    const manual = record(ProvenanceType.MANUAL, '2024-01-05T00:00:00Z');
+    fixture.componentRef.setInput('canRemove', true);
+    setProvenance([manual]);
+    const removed: ProvenanceDto[] = [];
+    component.removeRecord.subscribe((r) => removed.push(r));
+
+    fixture.nativeElement.querySelector('button.provenance-item-badge').click();
+    expect(removed).toEqual([manual]);
   });
 
   it('links intention provenance to filtered intention history', () => {

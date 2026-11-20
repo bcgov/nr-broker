@@ -17,6 +17,7 @@ import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/
 import { GraphUtilService } from '../../service/graph-util.service';
 import { PermissionService } from '../../service/permission.service';
 import { EdgeDto } from '../../service/persistence/dto/edge.dto';
+import { ProvenanceDto } from '../../service/persistence/dto/provenance.dto';
 import { CONFIG_ARR } from '../../app-initialize.factory';
 import { EdgeDialogComponent } from '../../graph/edge-dialog/edge-dialog.component';
 import { VertexDto } from '../../service/persistence/dto/vertex.dto';
@@ -62,6 +63,7 @@ export class EdgeBrowserComponent implements OnInit, OnDestroy {
 
   public edgeId = input('');
 
+  readonly hasAdmin = this.permission.hasAdmin();
   hasDelete = signal(false);
   hasUpdate = signal(false);
   showHelp = signal(false);
@@ -240,6 +242,29 @@ export class EdgeBrowserComponent implements OnInit, OnDestroy {
           this.graphApi
             .deleteEdge(this.edgeId())
             .subscribe();
+        }
+      });
+  }
+
+  removeProvenance(record: ProvenanceDto) {
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          message:
+            'Are you sure you want to remove this source? It will no longer be listed as managing this item.',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.confirm) {
+          this.graphApi.deleteEdgeProvenance(this.edgeId(), record.type).subscribe({
+            next: () => {
+              this.openSnackBar('Source removed');
+              this.refresh();
+            },
+            error: () => this.openSnackBar('Failed to remove source'),
+          });
         }
       });
   }

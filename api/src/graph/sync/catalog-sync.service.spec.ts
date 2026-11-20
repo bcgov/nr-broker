@@ -61,7 +61,9 @@ describe('CatalogSyncService', () => {
   let graphService: {
     addVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
+    upsertVertex: ReturnType<typeof vi.fn>;
     addEdge: ReturnType<typeof vi.fn>;
+    editEdge: ReturnType<typeof vi.fn>;
     deleteEdge: ReturnType<typeof vi.fn>;
     isUpdateAllowed: ReturnType<typeof vi.fn>;
   };
@@ -97,7 +99,15 @@ describe('CatalogSyncService', () => {
       editVertex: vi
         .fn()
         .mockImplementation(async (_req, id) => vertex(id)),
+      upsertVertex: vi
+        .fn()
+        .mockImplementation(async (req, dto, _targetBy, target, provenance) =>
+          target === null
+            ? graphService.addVertex(req, dto, true, provenance)
+            : graphService.editVertex(req, target, dto, true, true, provenance),
+        ),
       addEdge: vi.fn(),
+      editEdge: vi.fn(),
       deleteEdge: vi.fn(),
       isUpdateAllowed: vi
         .fn()
@@ -207,11 +217,7 @@ describe('CatalogSyncService', () => {
       'repository', 'existing-repo-id', tags,
     );
     expect(graphService.editVertex).toHaveBeenCalledWith(
-      null, 'existing-repo',
-      expect.objectContaining({
-        data: expect.objectContaining({ enableSyncSecrets: true, enableSyncUsers: true }),
-      }),
-      true, true, expect.anything(),
+      null, 'existing-repo', expect.anything(), true, true, expect.anything(),
     );
   });
 
@@ -366,7 +372,7 @@ describe('CatalogSyncService', () => {
     });
   });
 
-  it('updates a managed repository and keeps its sync settings', async () => {
+  it('updates a managed repository without sending its sync settings', async () => {
     const existing = vertex('repo-vertex', {
       provenance: [rootProvenance],
       prop: { team: 'a' },
@@ -393,8 +399,6 @@ describe('CatalogSyncService', () => {
       name: 'repo',
       description: 'org/repo',
       scmUrl: 'https://github.com/org/repo',
-      enableSyncSecrets: true,
-      enableSyncUsers: false,
     });
     expect(dto.prop).toEqual({ team: 'a' });
     expect(provenance.record.path).toBe('catalog-info.yaml');
@@ -920,6 +924,13 @@ describe('CatalogSyncService', () => {
         }
         addStoredEdge(`new-${edge.name}-${edge.target}`, edge.name, edge.source, edge.target, [provenance.record]);
       });
+      graphService.editEdge.mockImplementation(async (_req, id, _edge, provenance) => {
+        const existing = storedEdges.get(id);
+        if (existing) {
+          existing.provenance = provenance.mergeInto(existing.provenance);
+        }
+        return existing;
+      });
       graphService.deleteEdge.mockImplementation(async (_req, id) => {
         const edge = storedEdges.get(id);
         storedEdges.delete(id);
@@ -962,6 +973,45 @@ describe('CatalogSyncService', () => {
       expect([...storedEdges.keys()]).toEqual([
         'source', 'manual', 'intention', 'other-repository', 'no-file',
       ]);
+    });
+
+    it('adds provenance to an existing desired edge when it is missing', async () => {
+      addStoredEdge('source', 'source', 'service', 'repository', [
+        ProvenanceEmbeddable.manual(),
+      ]);
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(graphService.editEdge).toHaveBeenCalledWith(
+        null,
+        'source',
+        expect.objectContaining({
+          name: 'source',
+          source: 'service',
+          target: 'repository',
+        }),
+        expect.objectContaining({
+          record: expect.objectContaining({
+            type: 'catalog',
+            repository: repository.scmUrl,
+            path: 'catalog-info.yaml',
+          }),
+        }),
+      );
+      expect(storedEdges.get('source')?.provenance).toHaveLength(2);
+    });
+
+    it('does not edit an existing desired edge when its provenance is already present', async () => {
+      const provenance = ProvenanceEmbeddable.catalog(
+        repository.scmUrl,
+        'catalog-info.yaml',
+      );
+      addStoredEdge('source', 'source', 'service', 'repository', [provenance]);
+
+      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(graphService.editEdge).not.toHaveBeenCalled();
+      expect(storedEdges.get('source')?.provenance).toEqual([provenance]);
     });
 
     it('removes edges for an empty catalog without creating or directly deleting vertices', async () => {
@@ -1096,7 +1146,13 @@ describe('CatalogSyncService', () => {
   describe('adoption', () => {
     const id = (value: string) => ({ toString: () => value });
     let vertices: Record<string, any>;
-    let graphEdges: { name: string; source: string; target: string }[];
+    let graphEdges: {
+      id: { toString: () => string };
+      name: string;
+      source: string;
+      target: string;
+      provenance: ProvenanceEmbeddable[];
+    }[];
 
     const addVertex = (
       key: string,
@@ -1116,10 +1172,34 @@ describe('CatalogSyncService', () => {
     beforeEach(() => {
       vertices = {};
       graphEdges = [
-        { name: 'source', source: 'svc', target: 'repo-vertex' },
-        { name: 'component', source: 'project-vertex', target: 'svc' },
-        { name: 'instance', source: 'svc', target: 'blue' },
-        { name: 'deploy-type', source: 'blue', target: 'env-prod' },
+        {
+          id: id('source-edge'),
+          name: 'source',
+          source: 'svc',
+          target: 'repo-vertex',
+          provenance: [ProvenanceEmbeddable.catalog(repository.scmUrl, 'a/catalog-info.yaml')],
+        },
+        {
+          id: id('component-edge'),
+          name: 'component',
+          source: 'project-vertex',
+          target: 'svc',
+          provenance: [ProvenanceEmbeddable.catalog(repository.scmUrl, 'a/catalog-info.yaml')],
+        },
+        {
+          id: id('instance-edge'),
+          name: 'instance',
+          source: 'svc',
+          target: 'blue',
+          provenance: [ProvenanceEmbeddable.catalog(repository.scmUrl, 'a/catalog-info.yaml')],
+        },
+        {
+          id: id('deploy-type-edge'),
+          name: 'deploy-type',
+          source: 'blue',
+          target: 'env-prod',
+          provenance: [ProvenanceEmbeddable.catalog(repository.scmUrl, 'a/catalog-info.yaml')],
+        },
       ];
       addVertex('repo-vertex', 'repository', 'repo');
       addVertex('svc', 'service', 'api');
@@ -1139,6 +1219,14 @@ describe('CatalogSyncService', () => {
         }
         vertices[key].provenance = provenance.mergeInto(vertices[key].provenance);
         return vertices[key];
+      });
+      graphService.editEdge.mockImplementation(async (_req, key, _dto, provenance) => {
+        const edge = graphEdges.find((current) => current.id.toString() === key);
+        if (!edge || !GraphService.prototype.isUpdateAllowed(edge.provenance, provenance)) {
+          throw new Error('Update denied');
+        }
+        edge.provenance = provenance.mergeInto(edge.provenance);
+        return edge;
       });
       graphRepository.getVertex.mockImplementation(async (key) => vertices[key] ?? null);
       graphRepository.getVertexByName.mockImplementation(async (collection, name) =>
@@ -1189,10 +1277,6 @@ describe('CatalogSyncService', () => {
         true,
       ]);
       expect(graphService.editVertex.mock.calls[0][5].record.path).toBe('catalog-info.yaml');
-      expect(graphService.editVertex.mock.calls[0][2].data).toMatchObject({
-        enableSyncSecrets: true,
-        enableSyncUsers: true,
-      });
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
       expect(graphService.addVertex).not.toHaveBeenCalled();
       expect(graphService.addEdge).not.toHaveBeenCalled();
@@ -1249,7 +1333,13 @@ describe('CatalogSyncService', () => {
         'the service is linked to more than one repository',
         () => {
           addVertex('other-repo', 'repository', 'other');
-          graphEdges.push({ name: 'source', source: 'svc', target: 'other-repo' });
+          graphEdges.push({
+            id: id('other-source-edge'),
+            name: 'source',
+            source: 'svc',
+            target: 'other-repo',
+            provenance: [ProvenanceEmbeddable.manual()],
+          });
         },
       ],
       [

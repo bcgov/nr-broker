@@ -10,6 +10,7 @@ import { GraphDataResponseDto } from './persistence/dto/graph-data.dto';
 import { CollectionConfigInstanceDto } from './persistence/dto/collection-config.dto';
 import { EdgeInsertDto, EdgeDto } from './persistence/dto/edge.dto';
 import { VertexInsertDto, VertexDto } from './persistence/dto/vertex.dto';
+import { ProvenanceType } from './persistence/dto/provenance.dto';
 import { GraphTypeaheadResult } from './graph/dto/graph-typeahead-result.dto';
 import { GraphRolePermissionRuleDto } from './graph/dto/graph-role-permission-rule.dto';
 import { GraphEventDto } from './persistence/dto/graph-event.dto';
@@ -145,6 +146,15 @@ export class GraphApiService {
     );
   }
 
+  deleteEdgeProvenance(id: string, type: ProvenanceType) {
+    return this.http.delete<EdgeDto>(
+      `${environment.apiUrl}/v1/graph/edge/${encodeURIComponent(id)}/provenance/${encodeURIComponent(type)}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
   findEdge(name: string, source: string, target: string) {
     return this.http.post<any>(
       `${environment.apiUrl}/v1/graph/edge/find`,
@@ -221,6 +231,15 @@ export class GraphApiService {
   deleteVertex(id: string) {
     return this.http.delete<any>(
       `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}`,
+      {
+        responseType: 'json',
+      },
+    );
+  }
+
+  deleteVertexProvenance(id: string, type: ProvenanceType) {
+    return this.http.delete<VertexDto>(
+      `${environment.apiUrl}/v1/graph/vertex/${encodeURIComponent(id)}/provenance/${encodeURIComponent(type)}`,
       {
         responseType: 'json',
       },

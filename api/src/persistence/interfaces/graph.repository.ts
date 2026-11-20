@@ -24,6 +24,7 @@ import { CollectionWatchVertexDto } from '../dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { ProvenanceInfo } from '../provenance-info';
+import { ProvenanceType } from '../dto/provenance.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -67,6 +68,13 @@ export abstract class GraphRepository {
     edge: EdgeInsertDto,
     provenance?: ProvenanceInfo,
   ): Promise<EdgeEntity>;
+  /**
+   * Remove the edge's provenance records of the type.
+   */
+  public abstract deleteEdgeProvenance(
+    id: string,
+    type: ProvenanceType,
+  ): Promise<EdgeEntity>;
   public abstract deleteEdge(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getCatalogEdges(repository: string): Promise<EdgeEntity[]>;
   public abstract getEdge(id: string): Promise<EdgeEntity | null>;
@@ -101,6 +109,13 @@ export abstract class GraphRepository {
     collection: CollectionEntityUnion[typeof vertex.collection],
     ignoreBlankFields?: boolean,
     provenance?: ProvenanceInfo,
+  ): Promise<VertexEntity>;
+  /**
+   * Remove the vertex's provenance records of the type.
+   */
+  public abstract deleteVertexProvenance(
+    id: string,
+    type: ProvenanceType,
   ): Promise<VertexEntity>;
   public abstract deleteVertex(id: string): Promise<GraphDeleteResponseDto>;
   public abstract getVertex(id: string): Promise<VertexEntity | null>;

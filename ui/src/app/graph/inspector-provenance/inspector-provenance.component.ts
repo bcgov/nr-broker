@@ -1,6 +1,7 @@
 import {
   Component,
   input,
+  output,
   ChangeDetectionStrategy,
   computed,
   signal,
@@ -15,6 +16,7 @@ import { RouterLink } from '@angular/router';
 import { ProvenanceDto, ProvenanceType } from '../../service/persistence/dto/provenance.dto';
 import { TimestampDto } from '../../service/persistence/dto/timestamp.dto';
 import { DetailsItemComponent } from '../../shared/details-item/details-item.component';
+import { getCatalogFileUrl } from '../../util/catalog-url.util';
 import { ScreenService } from '../../util/screen.service';
 import { MatRippleModule } from '@angular/material/core';
 
@@ -72,7 +74,7 @@ const PROVENANCE_META: Record<
     icon: 'sync',
     description: 'Added or updated by intention sync.',
     automated: true,
-    manualForWarning: true,
+    manualForWarning: false,
   },
   [ProvenanceType.OPENSEARCH]: {
     label: 'OpenSearch',
@@ -82,13 +84,6 @@ const PROVENANCE_META: Record<
     manualForWarning: false,
   },
 };
-
-/**
- * The GitHub prefix used to recognise catalog repositories that can be linked to
- * the file on GitHub. Only GitHub hosts are supported; other SCM hosts such as
- * GitLab or Bitbucket fall back to showing the raw path.
- */
-const GITHUB_REPOSITORY_PREFIX = 'https://github.com/';
 
 /**
  * Shown as a tooltip on the "Most recent" tag when a manual edit is in effect
@@ -135,6 +130,15 @@ export class InspectorProvenanceComponent {
    * The item's own timestamps, used to recognise the source that created it.
    */
   readonly timestamps = input<TimestampDto>();
+
+  /**
+   * Whether the remove button is shown on each source. Removing is limited to
+   * admins, so the parent decides.
+   */
+  readonly canRemove = input(false);
+
+  /** Emits the record to remove when the user selects its remove button. */
+  readonly removeRecord = output<ProvenanceDto>();
 
   readonly screen = inject(ScreenService);
 
@@ -272,19 +276,6 @@ export class InspectorProvenanceComponent {
    * when no path is available.
    */
   catalogFileUrl(source: DisplayProvenance): string | undefined {
-    if (source.record.type !== ProvenanceType.CATALOG) {
-      return undefined;
-    }
-    const repository = source.repository;
-    const path = source.path;
-    if (!repository || !path || !repository.startsWith(GITHUB_REPOSITORY_PREFIX)) {
-      return undefined;
-    }
-    // The catalog file may live at the repository root or in a subdirectory.
-    const encodedPath = path
-      .split('/')
-      .map((segment) => encodeURIComponent(segment))
-      .join('/');
-    return `${repository.replace(/\/+$/, '')}/blob/HEAD/${encodedPath}`;
+    return getCatalogFileUrl(source.record);
   }
 }

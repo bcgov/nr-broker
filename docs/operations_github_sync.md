@@ -106,15 +106,6 @@ spec:
 
 Items are added with the collection's default field values for anything the catalog does not set. Existing items keep values the catalog does not set.
 
-New databases include the optional Project domain and type fields. For an existing database, run these repeatable configuration updates before syncing:
-
-```bash
-mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-domain.js
-mongosh "<broker-database-connection-string>" --file scripts/db/mongo-add-project-type.js
-```
-
-The scripts only update the Project field configuration; existing Project documents are populated by their next catalog sync.
-
 ### Service relationships
 
 Components can declare relationships to other Services:
@@ -137,14 +128,6 @@ Both edge types are restricted (`restrict: true`), so they do not carry inherite
 References may be a bare name, `default/name`, `component:name` or `component:default/name`. Broker Services have global names; other namespaces and entity kinds, such as `resource:default/database`, are not resolved. Unsupported references and missing Services are logged and skipped. No placeholder Services are created.
 
 All Components in the repository are synced before relationships are resolved, so document and Location target order do not matter. Targets may also be existing Services from other repositories. Existing edges are reused. New edges record the declaring Component's catalog provenance. Removing a reference removes its catalog-owned edge (see cleanup below). An obsolete parent edge is removed before its replacement is added. Self-links, cycles and additional parents are rejected by the normal graph rules; other relationships continue syncing and the scan records a failure.
-
-New databases include these edge configurations. For an existing database, run the non-destructive, repeatable update from the repository root:
-
-```bash
-mongosh "<broker-database-connection-string>" scripts/db/mongo-add-service-catalog-edges.js
-```
-
-Then reindex the graph cache using `POST /v1/graph/reindex-cache` before running catalog sync. The update also marks any existing Service-to-Service edges with these names as restricted. Do not rerun the database setup script against an existing database; it resets data.
 
 ### Service instances
 
@@ -174,7 +157,7 @@ metadata:
       url: https://test.example.gov.bc.ca
 ```
 
-Each instance is added under the Service with an `instance` edge and linked to its Environment with a `deploy-type` edge. Instance names must be unique within a component. If an instance link is not valid, the whole component is skipped and a warning is logged. An unknown environment fails only that instance. The previous `playbook.io.nrs.gov.bc.ca/instances` annotation is no longer read.
+Each instance is added under the Service with an `instance` edge and linked to its Environment with a `deploy-type` edge. Instance names must be unique within a component. If an instance link is not valid, the link is skipped and a warning is logged. An unknown environment fails only that instance.
 
 Removing an instance link removes its catalog-owned edges. Normal graph cascade rules apply: removing an `instance` edge may also delete the instance and its environment edge. An existing instance cannot move to another environment through the catalog. Remove the instance in Broker or give its link a new title.
 

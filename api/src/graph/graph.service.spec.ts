@@ -1,13 +1,16 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphService } from './graph.service';
 import { AuditService } from '../audit/audit.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
 import { ProvenanceInfo } from '../persistence/provenance-info';
+import { ProvenanceType } from '../persistence/dto/provenance.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
+import { RepositoryBaseDto } from '../persistence/dto/repository.dto';
+import { plainToInstance } from 'class-transformer';
 
 describe('GraphService', () => {
   const repo = 'https://github.com/org/repo';
@@ -18,6 +21,8 @@ describe('GraphService', () => {
     editEdge: ReturnType<typeof vi.fn>;
     getVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
+    deleteVertexProvenance: ReturnType<typeof vi.fn>;
+    deleteEdgeProvenance: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -27,6 +32,8 @@ describe('GraphService', () => {
       editEdge: vi.fn(),
       getVertex: vi.fn(),
       editVertex: vi.fn(),
+      deleteVertexProvenance: vi.fn(),
+      deleteEdgeProvenance: vi.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -134,6 +141,217 @@ describe('GraphService', () => {
         edge,
         expect.objectContaining({ type: 'manual', adoptable: false, overwrite: false }),
       );
+    });
+  });
+
+  describe('deleteVertexProvenance', () => {
+    it('removes a matching record and audits it', async () => {
+      graphRepository.getVertex.mockResolvedValue({
+        provenance: [
+          ProvenanceEmbeddable.manual(),
+          ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml'),
+        ],
+      });
+      graphRepository.deleteVertexProvenance.mockResolvedValue({
+        collection: 'service',
+        __helper: { toJSON: () => ({}) },
+      });
+      (service as any).collectionRepository.getCollectionConfigByName = vi
+        .fn()
+        .mockResolvedValue({ index: 'service' });
+      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
+
+      await service.deleteVertexProvenance(null, 'id', ProvenanceType.CATALOG);
+      expect(graphRepository.deleteVertexProvenance).toHaveBeenCalledWith('id', ProvenanceType.CATALOG);
+      expect(auditService.recordGraphAction).toHaveBeenCalledWith(
+        null,
+        'graph-vertex-provenance-delete',
+        null,
+        'success',
+        'vertex',
+        'id',
+      );
+    });
+
+    it('returns not found when no record has the type', async () => {
+      graphRepository.getVertex.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.manual()],
+      });
+
+      await expect(
+        service.deleteVertexProvenance(null, 'id', ProvenanceType.CATALOG),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(graphRepository.deleteVertexProvenance).not.toHaveBeenCalled();
+    });
+
+    it('returns not found when the vertex has no records', async () => {
+      graphRepository.getVertex.mockResolvedValue({});
+
+      await expect(
+        service.deleteVertexProvenance(null, 'id', ProvenanceType.MANUAL),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('deleteEdgeProvenance', () => {
+    it('removes a matching record and audits it', async () => {
+      graphRepository.getEdge.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml')],
+      });
+      graphRepository.deleteEdgeProvenance.mockResolvedValue({
+        toEdgeResponse: () => ({ id: 'id' }),
+      });
+      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
+
+      const result = await service.deleteEdgeProvenance(null, 'id', ProvenanceType.CATALOG);
+      expect(result).toEqual({ id: 'id' });
+      expect(graphRepository.deleteEdgeProvenance).toHaveBeenCalledWith('id', ProvenanceType.CATALOG);
+      expect(auditService.recordGraphAction).toHaveBeenCalledWith(
+        null,
+        'graph-edge-provenance-delete',
+        null,
+        'success',
+        'edge',
+        'id',
+      );
+    });
+
+    it('returns not found when no record matches', async () => {
+      graphRepository.getEdge.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.manual()],
+      });
+
+      await expect(
+        service.deleteEdgeProvenance(null, 'id', ProvenanceType.CATALOG),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(graphRepository.deleteEdgeProvenance).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('editVertex validation', () => {
+    const edit = (ignoreBlankFields: boolean) => {
+      const data = plainToInstance(RepositoryBaseDto, { name: 'repo' });
+      const collectionRepository = (service as any).collectionRepository;
+      collectionRepository.getCollectionConfigByName = vi.fn().mockResolvedValue({
+        fields: { name: { type: 'string' } },
+        collectionMapper: [{ setPath: 'name', getPath: 'name' }],
+        permissions: {},
+      });
+      (service as any).validatorUtil.buildFirstFailedPropertyErrorMsg = vi.fn().mockReturnValue('invalid');
+      collectionRepository.assignCollection = vi.fn().mockReturnValue(data);
+      collectionRepository.getCollectionByVertexId = vi.fn().mockResolvedValue({ name: 'repo' });
+      graphRepository.getVertex.mockResolvedValue({ provenance: [] });
+      graphRepository.editVertex.mockResolvedValue({
+        collection: 'repository',
+        __helper: { toJSON: () => ({}) },
+      });
+      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
+      return service.editVertex(
+        null,
+        'id',
+        new VertexInsertDto('repository', data),
+        true,
+        ignoreBlankFields,
+      );
+    };
+
+    it('skips missing required fields when ignoring blank fields', async () => {
+      await edit(true);
+      expect(graphRepository.editVertex).toHaveBeenCalled();
+    });
+
+    it('rejects missing required fields otherwise', async () => {
+      await expect(edit(false)).rejects.toBeInstanceOf(BadRequestException);
+      expect(graphRepository.editVertex).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('upsertVertex unchanged check', () => {
+    const provenance = ProvenanceInfo.intention('i1');
+    const insert = {
+      collection: 'service',
+      data: { name: 'svc', title: 'Svc' },
+    } as unknown as VertexInsertDto;
+    let collectionRepository: {
+      getCollectionConfigByName: ReturnType<typeof vi.fn>;
+      getCollectionByVertexId: ReturnType<typeof vi.fn>;
+    };
+    const curVertex = () => ({
+      id: { toString: () => 'vid' },
+      name: 'svc',
+      provenance: [ProvenanceEmbeddable.intention('i0')],
+    });
+
+    beforeEach(() => {
+      collectionRepository = (service as any).collectionRepository;
+      collectionRepository.getCollectionConfigByName = vi.fn().mockResolvedValue({
+        fields: { name: { type: 'string' }, title: { type: 'string' } },
+        collectionMapper: [{ setPath: 'name', getPath: 'name' }],
+      });
+      graphRepository.getVertex.mockResolvedValue(curVertex());
+    });
+
+    it('skips the edit when no field changes', async () => {
+      collectionRepository.getCollectionByVertexId = vi
+        .fn()
+        .mockResolvedValue({ name: 'svc', title: 'Svc', other: 1 });
+
+      const result = await service.upsertVertex(null, insert, 'id', 'vid', provenance);
+      expect(result).toMatchObject({ name: 'svc' });
+      expect(graphRepository.editVertex).not.toHaveBeenCalled();
+      expect(auditService.recordGraphAction).not.toHaveBeenCalled();
+    });
+
+    it('adds the vertex as given when none is found', async () => {
+      graphRepository.getVertexByName = vi.fn().mockResolvedValue(null);
+      collectionRepository.getCollectionConfigByName = vi.fn().mockResolvedValue({
+        fields: { name: { type: 'string', unique: true }, title: { type: 'string' } },
+        collectionMapper: [{ setPath: 'name', getPath: 'name' }],
+        collectionVertexName: 'name',
+      });
+      vi.spyOn(service, 'addVertex').mockResolvedValue({} as any);
+
+      await service.upsertVertex(null, insert, 'name', 'svc', provenance);
+      expect((service.addVertex as any).mock.calls[0][1]).toBe(insert);
+    });
+
+    it('edits with the vertex insert as given', async () => {
+      collectionRepository.getCollectionByVertexId = vi
+        .fn()
+        .mockResolvedValue({ name: 'svc', title: 'Old' });
+      vi.spyOn(service, 'editVertex').mockResolvedValue({} as any);
+
+      await service.upsertVertex(null, insert, 'id', 'vid', provenance);
+      expect((service.editVertex as any).mock.calls[0][1]).toBe('vid');
+      expect((service.editVertex as any).mock.calls[0][2]).toBe(insert);
+    });
+
+    it('adds the vertex as given when the id target is null', async () => {
+      vi.spyOn(service, 'addVertex').mockResolvedValue({} as any);
+
+      await service.upsertVertex(null, insert, 'id', null, provenance);
+      expect((service.addVertex as any).mock.calls[0][1]).toBe(insert);
+    });
+
+    it('edits when a field changes', async () => {
+      collectionRepository.getCollectionByVertexId = vi
+        .fn()
+        .mockResolvedValue({ name: 'svc', title: 'Old' });
+      vi.spyOn(service, 'editVertex').mockResolvedValue({} as any);
+
+      await service.upsertVertex(null, insert, 'id', 'vid', provenance);
+      expect(service.editVertex).toHaveBeenCalled();
+    });
+
+    it('edits when the provenance record is new', async () => {
+      graphRepository.getVertex.mockResolvedValue({ ...curVertex(), provenance: [] });
+      collectionRepository.getCollectionByVertexId = vi
+        .fn()
+        .mockResolvedValue({ name: 'svc', title: 'Svc' });
+      vi.spyOn(service, 'editVertex').mockResolvedValue({} as any);
+
+      await service.upsertVertex(null, insert, 'id', 'vid', provenance);
+      expect(service.editVertex).toHaveBeenCalled();
     });
   });
 

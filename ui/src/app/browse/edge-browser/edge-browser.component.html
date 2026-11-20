@@ -108,7 +108,9 @@
         <app-inspector-provenance
           [showHelp]="showHelp()"
           [timestamps]="edgeResource.value().timestamps"
-          [provenance]="edgeResource.value().provenance"></app-inspector-provenance>
+          [provenance]="edgeResource.value().provenance"
+          [canRemove]="hasAdmin"
+          (removeRecord)="removeProvenance($event)"></app-inspector-provenance>
       </mat-card-content>
     </mat-card>
   </div>

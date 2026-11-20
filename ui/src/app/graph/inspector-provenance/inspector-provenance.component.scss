@@ -46,7 +46,7 @@ h3 {
 .provenance-item-badges {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin-left: auto;
 }
 
@@ -90,6 +90,14 @@ h3 {
       outline: 2px solid $primary;
     }
   }
+}
+
+// A native button does not inherit text styles; match the span badges.
+button.provenance-item-badge {
+  border: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 12px;
 }
 
 .provenance-item-badge-icon {

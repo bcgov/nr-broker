@@ -9,6 +9,7 @@ import { Request } from 'express';
 import ejs from 'ejs';
 import { ValidationError, wrap } from '@mikro-orm/core';
 import delve from 'dlv';
+import deepEqual from 'deep-equal';
 import { dset } from 'dset';
 import { validate } from 'class-validator';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
@@ -198,6 +199,56 @@ export class GraphService {
     }
   }
 
+  /**
+   * Removes the edge's provenance records of the type, so the source no
+   * longer manages it.
+   */
+  public async deleteEdgeProvenance(
+    req: Request,
+    id: string,
+    type: ProvenanceType,
+  ): Promise<EdgeDto> {
+    const curEdge = await this.graphRepository.getEdge(id);
+    if (
+      !curEdge?.provenance?.some((existing) => existing.type === type)
+    ) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: 'Provenance record does not exist',
+      });
+    }
+    try {
+      const resp = await this.graphRepository.deleteEdgeProvenance(id, type);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-provenance-delete',
+        null,
+        'success',
+        'edge',
+        id,
+      );
+      this.publishGraphEvent({
+        data: { event: 'edge-edit', edge: resp.toEdgeResponse() },
+      });
+      return resp.toEdgeResponse();
+    } catch (error) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-provenance-delete',
+        null,
+        'failure',
+        'edge',
+        id,
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
+  }
+
   public async deleteEdge(
     req: Request,
     id: string,
@@ -327,6 +378,7 @@ export class GraphService {
     let [vertex, collection, config] = await this.validateVertex(
       vertexInsert,
       ignorePermissions ? false : 'update',
+      ignoreBlankFields,
     );
     // console.log(vertex);
     // console.log(collection);
@@ -511,6 +563,7 @@ export class GraphService {
   private async validateVertex(
     vertexInsert: VertexInsertDto,
     checkPermission: false | 'update' | 'create',
+    skipMissingProperties = false,
   ): Promise<
     [
       vertex: VertexEntity,
@@ -532,6 +585,7 @@ export class GraphService {
     }
 
     const errors = await validate(vertexInsert, {
+      skipMissingProperties,
       whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
@@ -622,6 +676,16 @@ export class GraphService {
     return vertex;
   }
 
+  /**
+   * Adds or edits a vertex using the vertex insert as given. An edit is
+   * skipped, returning the current vertex, when it would not change any
+   * stored field.
+   *
+   * Targets:
+   * - 'id': the vertex with the target id; a null target adds a new vertex
+   * - 'parentId': find by parent id (target) and name
+   * - 'name': find by unique name
+   */
   public async upsertVertex(
     req: Request,
     vertexInsert: VertexInsertDto,
@@ -629,82 +693,143 @@ export class GraphService {
     target: string | null = null,
     provenance = ProvenanceInfo.manual(),
   ): Promise<VertexEntity> {
-    const vertex = VertexEntity.upgradeInsertDto(vertexInsert);
+    const config = await this.collectionRepository.getCollectionConfigByName(
+      vertexInsert.collection,
+    );
+    const curVertex = await this.findUpsertVertex(
+      config,
+      vertexInsert,
+      targetBy,
+      target,
+    );
 
-    if (targetBy === 'id') {
-      return this.editVertex(req, target, vertexInsert, true, true, provenance);
-    } else if (targetBy === 'parentId') {
-      const config = await this.collectionRepository.getCollectionConfigByName(
-        vertex.collection,
-      );
-      const mappedVertex = this.mapCollectionToVertex(
-        config,
-        vertex,
-        vertexInsert.data,
-      );
-      // Must have name set
-      if (!mappedVertex.name) {
-        throw new Error();
-      }
-
-      const curVertex = await this.graphRepository.getVertexByParentIdAndName(
-        vertex.collection,
-        target,
-        mappedVertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(
-          req,
-          curVertex.id.toString(),
-          vertexInsert,
-          true,
-          true,
-          provenance,
-        );
-      } else {
-        return this.addVertex(req, vertexInsert, true, provenance);
-      }
-    } else if (targetBy === 'name') {
-      const config = await this.collectionRepository.getCollectionConfigByName(
-        vertex.collection,
-      );
-      // Must be unique name
-      if (
-        !config.fields[config.collectionVertexName] ||
-        !config.fields[config.collectionVertexName].unique
-      ) {
-        throw new BadRequestException({
-          statusCode: 400,
-          message: 'Bad request',
-          error: 'Upsert vertex must be identified by unique field',
-        });
-      }
-      const mappedVertex = this.mapCollectionToVertex(
-        config,
-        vertex,
-        vertexInsert.data,
-      );
-      // Must have name set
-      if (!mappedVertex.name) {
-        throw new Error();
-      }
-      const curVertex = await this.graphRepository.getVertexByName(
-        vertex.collection,
-        mappedVertex.name,
-      );
-      if (curVertex) {
-        return this.editVertex(
-          req,
-          curVertex.id.toString(),
-          vertexInsert,
-          true,
-          true,
-          provenance,
-        );
-      } else {
-        return this.addVertex(req, vertexInsert, true, provenance);
-      }
+    if (!curVertex) {
+      return targetBy === 'id' && target
+        ? this.editVertex(req, target, vertexInsert, true, true, provenance)
+        : this.addVertex(req, vertexInsert, true, provenance);
     }
+    if (await this.isVertexUnchanged(config, curVertex, vertexInsert, provenance)) {
+      return curVertex;
+    }
+    return this.editVertex(
+      req,
+      curVertex.id.toString(),
+      vertexInsert,
+      true,
+      true,
+      provenance,
+    );
+  }
+
+  private async findUpsertVertex(
+    config: CollectionConfigEntity,
+    vertexInsert: VertexInsertDto,
+    targetBy: 'id' | 'parentId' | 'name',
+    target: string | null,
+  ): Promise<VertexEntity | null> {
+    if (targetBy === 'id') {
+      return target ? this.graphRepository.getVertex(target) : null;
+    }
+    // Must be unique name
+    if (
+      targetBy === 'name' &&
+      !config.fields[config.collectionVertexName]?.unique
+    ) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: 'Upsert vertex must be identified by unique field',
+      });
+    }
+    const mappedVertex = this.mapCollectionToVertex(
+      config,
+      VertexEntity.upgradeInsertDto(vertexInsert),
+      vertexInsert.data,
+    );
+    // Must have name set
+    if (!mappedVertex.name) {
+      throw new Error();
+    }
+    return targetBy === 'parentId'
+      ? this.graphRepository.getVertexByParentIdAndName(
+          vertexInsert.collection,
+          target,
+          mappedVertex.name,
+        )
+      : this.graphRepository.getVertexByName(
+          vertexInsert.collection,
+          mappedVertex.name,
+        );
+  }
+
+  /**
+   * True when an edit that ignores blank fields would leave the vertex and its
+   * collection unchanged. Any doubt (denied update, array fields, unknown
+   * fields) returns false so the edit runs and reports normally.
+   */
+  private async isVertexUnchanged(
+    config: CollectionConfigEntity,
+    curVertex: VertexEntity,
+    vertexInsert: VertexInsertDto,
+    provenance: ProvenanceInfo,
+  ): Promise<boolean> {
+    if (!this.isUpdateAllowed(curVertex.provenance, provenance)) {
+      return false;
+    }
+    const recordKey = (r: ProvenanceEmbeddable) => [
+      r.type,
+      r.repository,
+      r.path,
+    ];
+    if (
+      !deepEqual(
+        provenance.mergeInto(curVertex.provenance).map(recordKey),
+        (curVertex.provenance ?? []).map(recordKey),
+      )
+    ) {
+      return false;
+    }
+
+    const data = (vertexInsert.data ?? {}) as Record<string, unknown>;
+    if (
+      Object.keys(data).some(
+        (key) =>
+          !config.fields[key] || config.fields[key].type === 'embeddedDocArray',
+      )
+    ) {
+      return false;
+    }
+    const mapped = this.mapCollectionToVertex(
+      config,
+      VertexEntity.upgradeInsertDto(vertexInsert),
+      vertexInsert.data,
+    );
+    if (
+      mapped.name !== curVertex.name ||
+      !this.plainEqual(mapped.prop, curVertex.prop)
+    ) {
+      return false;
+    }
+    const current = (await this.collectionRepository.getCollectionByVertexId(
+      vertexInsert.collection,
+      curVertex.id.toString(),
+    )) as unknown as Record<string, unknown> | null;
+    if (!current) {
+      return false;
+    }
+    return Object.entries(data).every(([key, value]) =>
+      this.plainEqual(current[key], value),
+    );
+  }
+
+  private plainEqual(a: unknown, b: unknown): boolean {
+    return deepEqual(this.plain(a), this.plain(b), { strict: true });
+  }
+
+  private plain(value: unknown): unknown {
+    return value === undefined || value === null
+      ? undefined
+      : JSON.parse(JSON.stringify(value));
   }
 
   public async getEdgeByNameAndVertices(
@@ -802,6 +927,66 @@ export class GraphService {
   public async connectedVertex(request: Request) {
     const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
+  }
+
+  /**
+   * Removes the vertex's provenance records of the type, so the source no
+   * longer manages it.
+   */
+  public async deleteVertexProvenance(
+    req: Request,
+    id: string,
+    type: ProvenanceType,
+  ): Promise<VertexEntity> {
+    const curVertex = await this.graphRepository.getVertex(id);
+    if (
+      !curVertex?.provenance?.some((existing) => existing.type === type)
+    ) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: 'Provenance record does not exist',
+      });
+    }
+    try {
+      const resp = await this.graphRepository.deleteVertexProvenance(id, type);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-provenance-delete',
+        null,
+        'success',
+        'vertex',
+        id,
+      );
+      const config = await this.collectionRepository.getCollectionConfigByName(
+        resp.collection,
+      );
+      this.publishGraphEvent({
+        data: {
+          event: 'vertex-edit',
+          vertex: {
+            category: CollectionNameEnum[resp.collection],
+            index: config.index,
+            ...wrap(resp).toJSON(),
+          },
+        },
+      });
+      return resp;
+    } catch (error) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-provenance-delete',
+        null,
+        'failure',
+        'vertex',
+        id,
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
   }
 
   public async deleteVertex(

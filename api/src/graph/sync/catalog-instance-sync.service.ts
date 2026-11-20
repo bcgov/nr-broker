@@ -72,10 +72,15 @@ export class CatalogInstanceSyncService {
           );
         }
 
-        const instanceVertex = await this.catalogGraphSyncService.upsertVertex(
-          'serviceInstance',
-          existing,
-          { name: instance.name, url: instance.url },
+        const instanceVertex = await this.graphService.upsertVertex(
+          null,
+          await this.catalogGraphSyncService.buildVertexInsert(
+            'serviceInstance',
+            existing,
+            { name: instance.name, url: instance.url },
+          ),
+          'id',
+          existing?.id.toString() ?? null,
           provenance,
         );
         await this.catalogGraphSyncService.ensureEdge(

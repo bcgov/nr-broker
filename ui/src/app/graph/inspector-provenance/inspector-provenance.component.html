@@ -15,14 +15,24 @@
             </span>
             <span class="provenance-item-label">{{ source.label }}</span>
             <div class="provenance-item-badges">
-              @if (source.record.intentionId) {
-                <span
+              @if (canRemove()) {
+                <button
                   matRipple
+                  type="button"
+                  class="provenance-item-badge provenance-item-badge-link"
+                  (click)="removeRecord.emit(source.record)">
+                  Remove
+                </button>
+              }
+              @if (source.record.intentionId) {
+                <button
+                  matRipple
+                  type="button"
                   class="provenance-item-badge provenance-item-badge-link"
                   [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
-                  mat-button>
+                  >
                   View History
-                </span>
+                </button>
               }
               @if (latestProvenance()?.record.type === source.record.type) {
                 <span
@@ -75,16 +85,6 @@
             <app-details-item item="Created">{{ source.record.createdAt | date: 'medium' }}</app-details-item>
             <app-details-item item="Modified">{{ source.record.updatedAt | date: 'medium' }}</app-details-item>
           </div>
-
-          @if (source.record.intentionId) {
-            <div>
-              <button
-                [routerLink]="['/intention/history', { field: 'id', value: source.record.intentionId }]"
-                mat-button>
-                View History
-                </button>
-            </div>
-          }
         </div>
       }
     </div>
