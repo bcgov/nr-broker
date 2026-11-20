@@ -50,6 +50,7 @@ import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
 import { ProvenanceInfo } from '../provenance-info';
+import { ProvenanceType } from '../dto/provenance.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -130,6 +131,13 @@ export class GraphRedisRepository implements GraphRepository {
     const returnVal = await this.repo.editEdge(id, edge, provenance);
     this.invalidateCache();
     return returnVal;
+  }
+
+  public deleteEdgeProvenance(
+    id: string,
+    type: ProvenanceType,
+  ): Promise<EdgeEntity> {
+    return this.repo.deleteEdgeProvenance(id, type);
   }
 
   public async deleteEdge(id: string): Promise<GraphDeleteResponseDto> {
@@ -216,6 +224,13 @@ export class GraphRedisRepository implements GraphRepository {
     this.upsertVertexTypeaheadIndex(returnVal);
     this.invalidateCache();
     return returnVal;
+  }
+
+  public deleteVertexProvenance(
+    id: string,
+    type: ProvenanceType,
+  ): Promise<VertexEntity> {
+    return this.repo.deleteVertexProvenance(id, type);
   }
 
   public async deleteVertex(id: string): Promise<GraphDeleteResponseDto> {

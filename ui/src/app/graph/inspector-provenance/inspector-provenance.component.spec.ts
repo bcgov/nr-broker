@@ -161,6 +161,22 @@ describe('InspectorProvenanceComponent', () => {
     expect(component.catalogFileUrl(source)).toBeUndefined();
   });
 
+  it('hides the remove button unless removing is allowed', () => {
+    setProvenance([record(ProvenanceType.MANUAL, '2024-01-05T00:00:00Z')]);
+    expect(fixture.nativeElement.querySelector('button.provenance-item-badge')).toBeNull();
+  });
+
+  it('emits the record when the remove button is selected', () => {
+    const manual = record(ProvenanceType.MANUAL, '2024-01-05T00:00:00Z');
+    fixture.componentRef.setInput('canRemove', true);
+    setProvenance([manual]);
+    const removed: ProvenanceDto[] = [];
+    component.removeRecord.subscribe((r) => removed.push(r));
+
+    fixture.nativeElement.querySelector('button.provenance-item-badge').click();
+    expect(removed).toEqual([manual]);
+  });
+
   it('links intention provenance to filtered intention history', () => {
     setProvenance([
       record(ProvenanceType.INTENTION, '2024-01-05T00:00:00Z', {

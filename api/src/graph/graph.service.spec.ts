@@ -1,11 +1,12 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphService } from './graph.service';
 import { AuditService } from '../audit/audit.service';
 import { GraphRepository } from '../persistence/interfaces/graph.repository';
 import { ProvenanceEmbeddable } from '../persistence/entity/provenance.embeddable';
 import { ProvenanceInfo } from '../persistence/provenance-info';
+import { ProvenanceType } from '../persistence/dto/provenance.dto';
 import { EdgeInsertDto } from '../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { RepositoryBaseDto } from '../persistence/dto/repository.dto';
@@ -20,6 +21,8 @@ describe('GraphService', () => {
     editEdge: ReturnType<typeof vi.fn>;
     getVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
+    deleteVertexProvenance: ReturnType<typeof vi.fn>;
+    deleteEdgeProvenance: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -29,6 +32,8 @@ describe('GraphService', () => {
       editEdge: vi.fn(),
       getVertex: vi.fn(),
       editVertex: vi.fn(),
+      deleteVertexProvenance: vi.fn(),
+      deleteEdgeProvenance: vi.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -136,6 +141,90 @@ describe('GraphService', () => {
         edge,
         expect.objectContaining({ type: 'manual', adoptable: false, overwrite: false }),
       );
+    });
+  });
+
+  describe('deleteVertexProvenance', () => {
+    it('removes a matching record and audits it', async () => {
+      graphRepository.getVertex.mockResolvedValue({
+        provenance: [
+          ProvenanceEmbeddable.manual(),
+          ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml'),
+        ],
+      });
+      graphRepository.deleteVertexProvenance.mockResolvedValue({
+        collection: 'service',
+        __helper: { toJSON: () => ({}) },
+      });
+      (service as any).collectionRepository.getCollectionConfigByName = vi
+        .fn()
+        .mockResolvedValue({ index: 'service' });
+      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
+
+      await service.deleteVertexProvenance(null, 'id', ProvenanceType.CATALOG);
+      expect(graphRepository.deleteVertexProvenance).toHaveBeenCalledWith('id', ProvenanceType.CATALOG);
+      expect(auditService.recordGraphAction).toHaveBeenCalledWith(
+        null,
+        'graph-vertex-provenance-delete',
+        null,
+        'success',
+        'vertex',
+        'id',
+      );
+    });
+
+    it('returns not found when no record has the type', async () => {
+      graphRepository.getVertex.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.manual()],
+      });
+
+      await expect(
+        service.deleteVertexProvenance(null, 'id', ProvenanceType.CATALOG),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(graphRepository.deleteVertexProvenance).not.toHaveBeenCalled();
+    });
+
+    it('returns not found when the vertex has no records', async () => {
+      graphRepository.getVertex.mockResolvedValue({});
+
+      await expect(
+        service.deleteVertexProvenance(null, 'id', ProvenanceType.MANUAL),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('deleteEdgeProvenance', () => {
+    it('removes a matching record and audits it', async () => {
+      graphRepository.getEdge.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml')],
+      });
+      graphRepository.deleteEdgeProvenance.mockResolvedValue({
+        toEdgeResponse: () => ({ id: 'id' }),
+      });
+      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
+
+      const result = await service.deleteEdgeProvenance(null, 'id', ProvenanceType.CATALOG);
+      expect(result).toEqual({ id: 'id' });
+      expect(graphRepository.deleteEdgeProvenance).toHaveBeenCalledWith('id', ProvenanceType.CATALOG);
+      expect(auditService.recordGraphAction).toHaveBeenCalledWith(
+        null,
+        'graph-edge-provenance-delete',
+        null,
+        'success',
+        'edge',
+        'id',
+      );
+    });
+
+    it('returns not found when no record matches', async () => {
+      graphRepository.getEdge.mockResolvedValue({
+        provenance: [ProvenanceEmbeddable.manual()],
+      });
+
+      await expect(
+        service.deleteEdgeProvenance(null, 'id', ProvenanceType.CATALOG),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(graphRepository.deleteEdgeProvenance).not.toHaveBeenCalled();
     });
   });
 

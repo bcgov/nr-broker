@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseEnumPipe,
   Post,
   Put,
   Query,
@@ -27,6 +28,7 @@ import { BrokerOidcAuthGuard } from '../auth/broker-oidc-auth.guard';
 import { Roles } from '../roles.decorator';
 import { BrokerCombinedAuthGuard } from '../auth/broker-combined-auth.guard';
 import { EdgeInsertDto } from '../persistence/dto/edge.dto';
+import { ProvenanceType } from '../persistence/dto/provenance.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { AllowOwner } from '../allow-owner.decorator';
 import {
@@ -264,6 +266,18 @@ export class GraphController {
     return this.graph.deleteEdge(request, id);
   }
 
+  @Delete('edge/:id/provenance/:type')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  deleteEdgeProvenance(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+    @Param('type', new ParseEnumPipe(ProvenanceType)) type: ProvenanceType,
+  ) {
+    return this.graph.deleteEdgeProvenance(request, id, type);
+  }
+
   @Post('vertex')
   @Roles('admin')
   @AllowBodyValue([
@@ -353,6 +367,18 @@ export class GraphController {
     @Param('id', new ParseObjectIdPipe()) id: string,
   ) {
     return this.graph.deleteVertex(request, id);
+  }
+
+  @Delete('vertex/:id/provenance/:type')
+  @Roles('admin')
+  @UseGuards(BrokerOidcAuthGuard)
+  @ApiBearerAuth()
+  deleteVertexProvenance(
+    @Req() request: Request,
+    @Param('id', new ParseObjectIdPipe()) id: string,
+    @Param('type', new ParseEnumPipe(ProvenanceType)) type: ProvenanceType,
+  ) {
+    return this.graph.deleteVertexProvenance(request, id, type);
   }
 
   @Post('vertex/:id/upstream/:index')

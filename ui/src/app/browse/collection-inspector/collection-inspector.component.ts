@@ -24,6 +24,7 @@ import { Subject, startWith, takeUntil } from 'rxjs';
 
 import { GraphApiService } from '../../service/graph-api.service';
 import { CollectionApiService } from '../../service/collection-api.service';
+import { ProvenanceDto } from '../../service/persistence/dto/provenance.dto';
 import { PermissionService } from '../../service/permission.service';
 import {
   CONFIG_RECORD,
@@ -48,6 +49,7 @@ import { EdgeDto } from '../../service/persistence/dto/edge.dto';
 import { GraphUtilService } from '../../service/graph-util.service';
 import { InspectorPropertiesComponent } from '../../graph/inspector-properties/inspector-properties.component';
 import { InspectorTimestampsComponent } from '../../graph/inspector-timestamps/inspector-timestamps.component';
+import { getCatalogFileUrl } from '../../util/catalog-url.util';
 import { InspectorProvenanceComponent } from '../../graph/inspector-provenance/inspector-provenance.component';
 import { TeamRolesComponent } from '../team-roles/team-roles.component';
 import { DeleteConfirmDialogComponent } from '../../graph/delete-confirm-dialog/delete-confirm-dialog.component';
@@ -164,6 +166,18 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
 
   public vertexProperties = computed(() => {
     return this.comboData()?.vertex.prop;
+  });
+
+  /** GitHub catalog files that manage this item */
+  readonly catalogFiles = computed(() => {
+    const files: { url: string; path: string }[] = [];
+    for (const record of this.comboData()?.vertex.provenance ?? []) {
+      const url = getCatalogFileUrl(record);
+      if (url && record.path) {
+        files.push({ url, path: record.path });
+      }
+    }
+    return files;
   });
 
   readonly isOwner = computed(() => {
@@ -447,6 +461,33 @@ export class CollectionInspectorComponent implements OnInit, OnDestroy {
           this.graphApi
             .deleteVertex(this.comboData()?.collection.vertex)
             .subscribe();
+        }
+      });
+  }
+
+  removeProvenance(record: ProvenanceDto) {
+    const vertex = this.comboData()?.vertex.id;
+    if (!vertex) {
+      return;
+    }
+    this.dialog
+      .open(DeleteConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          message:
+            'Are you sure you want to remove this source? It will no longer be listed as managing this item.',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result && result.confirm) {
+          this.graphApi.deleteVertexProvenance(vertex, record.type).subscribe({
+            next: () => {
+              this.openSnackBar('Source removed');
+              this.updateCollection();
+            },
+            error: () => this.openSnackBar('Failed to remove source'),
+          });
         }
       });
   }

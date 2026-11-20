@@ -199,6 +199,56 @@ export class GraphService {
     }
   }
 
+  /**
+   * Removes the edge's provenance records of the type, so the source no
+   * longer manages it.
+   */
+  public async deleteEdgeProvenance(
+    req: Request,
+    id: string,
+    type: ProvenanceType,
+  ): Promise<EdgeDto> {
+    const curEdge = await this.graphRepository.getEdge(id);
+    if (
+      !curEdge?.provenance?.some((existing) => existing.type === type)
+    ) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: 'Provenance record does not exist',
+      });
+    }
+    try {
+      const resp = await this.graphRepository.deleteEdgeProvenance(id, type);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-provenance-delete',
+        null,
+        'success',
+        'edge',
+        id,
+      );
+      this.publishGraphEvent({
+        data: { event: 'edge-edit', edge: resp.toEdgeResponse() },
+      });
+      return resp.toEdgeResponse();
+    } catch (error) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-edge-provenance-delete',
+        null,
+        'failure',
+        'edge',
+        id,
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
+  }
+
   public async deleteEdge(
     req: Request,
     id: string,
@@ -877,6 +927,66 @@ export class GraphService {
   public async connectedVertex(request: Request) {
     const user = await this.authSerivice.getUser(request);
     return this.graphRepository.getUserConnectedVertex(user.vertex.toString());
+  }
+
+  /**
+   * Removes the vertex's provenance records of the type, so the source no
+   * longer manages it.
+   */
+  public async deleteVertexProvenance(
+    req: Request,
+    id: string,
+    type: ProvenanceType,
+  ): Promise<VertexEntity> {
+    const curVertex = await this.graphRepository.getVertex(id);
+    if (
+      !curVertex?.provenance?.some((existing) => existing.type === type)
+    ) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Not found',
+        error: 'Provenance record does not exist',
+      });
+    }
+    try {
+      const resp = await this.graphRepository.deleteVertexProvenance(id, type);
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-provenance-delete',
+        null,
+        'success',
+        'vertex',
+        id,
+      );
+      const config = await this.collectionRepository.getCollectionConfigByName(
+        resp.collection,
+      );
+      this.publishGraphEvent({
+        data: {
+          event: 'vertex-edit',
+          vertex: {
+            category: CollectionNameEnum[resp.collection],
+            index: config.index,
+            ...wrap(resp).toJSON(),
+          },
+        },
+      });
+      return resp;
+    } catch (error) {
+      this.auditService.recordGraphAction(
+        req,
+        'graph-vertex-provenance-delete',
+        null,
+        'failure',
+        'vertex',
+        id,
+      );
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Bad request',
+        error: '',
+      });
+    }
   }
 
   public async deleteVertex(

@@ -31,6 +31,22 @@ Records are not mutually exclusive. If a user edits an item created by a catalog
 
 Items that existed before provenance was added have no records. Catalog updates to these items are denied unless the catalog sync marks them as adoptable. See [GitHub Sync](/operations_github_sync.md#adopting-existing-items) for the checks. Callers can check an update in advance with `GraphService.isUpdateAllowed(records, provenance)`.
 
+## Removing records
+
+Admins can remove the records of one type from a vertex or an edge, for example when a catalog file no longer exists and should stop managing the item. Removing records does not change the item. Other sources can still update it, and an item with no records is treated like one that existed before provenance was added.
+
+```
+DELETE /v1/graph/vertex/:id/provenance/:type
+DELETE /v1/graph/edge/:id/provenance/:type
+```
+
+- `type` is `manual`, `catalog`, `intention` or `opensearch`. Any other value returns 400.
+- Catalog updates only apply to an item managed by the same catalog file, so an item has one catalog record in practice. If it has several, all of them are removed.
+- The request returns 404 if the item has no record of the type.
+- The call is audited as `graph-vertex-provenance-delete` or `graph-edge-provenance-delete`. It publishes a `vertex-edit` or `edge-edit` graph event.
+
+The collection inspector and the edge browser show a Remove button on each source in the Managed By section for admins.
+
 ## Passing provenance
 
 `GraphService.addVertex`, `editVertex`, `upsertVertex`, `addEdge` and `editEdge` take an optional `ProvenanceInfo` (`api/src/persistence/provenance-info.ts`) as the last argument. It wraps the `ProvenanceEmbeddable` record to apply, with `adoptable` and `overwrite` options. It defaults to `ProvenanceInfo.manual()`. Automated services pass their own:

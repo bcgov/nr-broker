@@ -145,6 +145,16 @@
                 <button mat-menu-item [matMenuTriggerFor]="detailsCopyMenu">
                   <mat-icon>content_copy</mat-icon>Copy
                 </button>
+                @let files = catalogFiles();
+                @for (file of files; track file.url) {
+                  <a
+                    mat-menu-item
+                    [href]="file.url"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    <mat-icon>open_in_new</mat-icon>Open Catalog Info{{ files.length > 1 ? ' (' + file.path + ')' : '' }}
+                  </a>
+                }
               </mat-menu>
 
               <mat-menu #detailsCopyMenu="matMenu">
@@ -188,7 +198,9 @@
           <app-inspector-provenance
             [showHelp]="showHelp()"
             [timestamps]="cd.vertex.timestamps"
-            [provenance]="cd.vertex.provenance"></app-inspector-provenance>
+            [provenance]="cd.vertex.provenance"
+            [canRemove]="hasAdmin()"
+            (removeRecord)="removeProvenance($event)"></app-inspector-provenance>
         </mat-card-content>
       </mat-card>
 

@@ -92,6 +92,14 @@ h3 {
   }
 }
 
+// A native button does not inherit text styles; match the span badges.
+button.provenance-item-badge {
+  border: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 12px;
+}
+
 .provenance-item-badge-icon {
   font-size: 14px;
   height: 18x;

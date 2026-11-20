@@ -1207,7 +1207,7 @@ result = db.collectionConfig.insertOne({
     },
     description: {
       name: 'Description',
-      required: true,
+      required: false,
       type: 'string',
       hint: 'A brief description of the contents',
       mask: {

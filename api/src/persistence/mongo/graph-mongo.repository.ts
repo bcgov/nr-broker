@@ -837,6 +837,34 @@ export class GraphMongoRepository implements GraphRepository {
     return rval;
   }
 
+  public async deleteEdgeProvenance(
+    id: string,
+    type: ProvenanceType,
+  ): Promise<EdgeEntity> {
+    const curEdge = await this.getEdge(id);
+    if (curEdge === null) {
+      throw new Error();
+    }
+    const result = await this.edgeRepository.getCollection().updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          provenance: (curEdge.provenance ?? []).filter(
+            (existing) => existing.type !== type,
+          ),
+        },
+      },
+    );
+    if (result.matchedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getEdge(id);
+    if (rval === null) {
+      throw new Error();
+    }
+    return rval;
+  }
+
   public async deleteEdge(
     id: string,
     cascade = true,
@@ -1199,6 +1227,34 @@ export class GraphMongoRepository implements GraphRepository {
     );
     // console.log(vertResult);
     if (vertResult.matchedCount !== 1) {
+      throw new Error();
+    }
+    const rval = await this.getVertex(id);
+    if (rval === null) {
+      throw new Error();
+    }
+    return rval;
+  }
+
+  public async deleteVertexProvenance(
+    id: string,
+    type: ProvenanceType,
+  ): Promise<VertexEntity> {
+    const curVertex = await this.getVertex(id);
+    if (curVertex === null) {
+      throw new Error();
+    }
+    const result = await this.vertexRepository.getCollection().updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          provenance: (curVertex.provenance ?? []).filter(
+            (existing) => existing.type !== type,
+          ),
+        },
+      },
+    );
+    if (result.matchedCount !== 1) {
       throw new Error();
     }
     const rval = await this.getVertex(id);
