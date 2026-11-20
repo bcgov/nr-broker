@@ -406,7 +406,6 @@ result = db.collectionConfig.insertOne({
       id: 'fc9bc870',
       collection: 'service',
       name: 'provision-token',
-      onDelete: 'cascade',
       relation: 'oneToMany',
       restrict: true,
       show: true,
