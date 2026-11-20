@@ -184,6 +184,19 @@ export class CatalogGraphSyncService {
       return;
     }
     if (existing) {
+      if (!existing.provenance?.some((record) => provenance.record.matches(record))) {
+        await this.graphService.editEdge(
+          null,
+          existing.id.toString(),
+          plainToInstance(EdgeInsertDto, {
+            name,
+            source: sourceId,
+            target: targetId,
+            prop: existing.prop,
+          }),
+          provenance,
+        );
+      }
       return;
     }
     await this.graphService.addEdge(
