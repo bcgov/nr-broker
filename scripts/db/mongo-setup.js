@@ -1270,12 +1270,14 @@ result = db.collectionConfig.insertOne({
     {
       queue: {
         queue: 'GITHUB_SYNC_SECRETS',
+        requiredEnabledProperty: 'enableSyncSecrets',
         queuedStatusProperty: 'syncSecretsStatus',
       },
     },
     {
       queue: {
         queue: 'GITHUB_SYNC_USERS',
+        requiredEnabledProperty: 'enableSyncUsers',
         queuedStatusProperty: 'syncUsersStatus',
       },
     },
