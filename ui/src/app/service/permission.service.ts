@@ -10,14 +10,20 @@ export class PermissionService {
   readonly user = inject<UserSelfDto>(CURRENT_USER);
 
   private hasAdminPermission: boolean;
+  private hasTeamAdminPermission: boolean;
   constructor() {
     const user = this.user;
 
     this.hasAdminPermission = !!user?.roles?.includes('admin');
+    this.hasTeamAdminPermission = !!user?.roles?.includes('team_admin');
   }
 
   public hasAdmin() {
     return this.hasAdminPermission;
+  }
+
+  public hasTeamAdmin() {
+    return this.hasTeamAdminPermission;
   }
 
   public hasSudo(permissions: UserPermissionDto, vertex: string) {

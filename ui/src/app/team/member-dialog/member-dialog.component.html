@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>Members - {{ data.name }}</h2>
 
 <mat-dialog-content>
- @if (permission.hasAdmin() || isOwner()) {
+ @if (canManageRoles()) {
    <p>Add a user to role</p>
    <div class="form-panel">
      <mat-form-field>
@@ -53,7 +53,7 @@
    } @else {
      <div class="member-header">
        <p>Review member roles</p>
-       @if (permission.hasAdmin() || isOwner()) {
+       @if (canManageRoles()) {
          <button mat-icon-button [matMenuTriggerFor]="groupMenu">
            <mat-icon>more_vert</mat-icon>
          </button>
@@ -86,7 +86,7 @@
                  </mat-chip-set>
                </mat-panel-description>
              </mat-expansion-panel-header>
-             @if (permission.hasAdmin() || isOwner()) {
+             @if (canManageRoles()) {
                <mat-selection-list
                 #userList
                class="user-list">
@@ -139,7 +139,7 @@
              @if (edge.help) {
                <div class="user-role-help">{{ edge.help }}</div>
              }
-           @if (permission.hasAdmin() || isOwner()) {
+           @if (canManageRoles()) {
              <mat-selection-list
                #userList
               class="user-list">
