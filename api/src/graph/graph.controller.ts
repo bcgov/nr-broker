@@ -36,6 +36,7 @@ import {
   CollectionNames,
 } from '../persistence/dto/collection-dto-union.type';
 import { AllowBodyValue } from '../allow-body-value.decorator';
+import { AllowTeamAdmin } from '../allow-team-admin.decorator';
 import { AllowEmptyEdges } from '../allow-empty-edges.decorator';
 import { PersistenceCacheInterceptor } from '../persistence/persistence-cache.interceptor';
 import { PersistenceCacheKey } from '../persistence/persistence-cache-key.decorator';
@@ -178,6 +179,7 @@ export class GraphController {
   @Post('edge')
   @Roles('admin')
   @AllowEmptyEdges('team')
+  @AllowTeamAdmin({ edgeFrom: 'body' })
   @AllowOwner({
     graphObjectType: 'vertex',
     graphIdFromBodyPath: 'target',
@@ -227,6 +229,7 @@ export class GraphController {
 
   @Put('edge/:id')
   @Roles('admin')
+  @AllowTeamAdmin({ edgeFrom: 'both' })
   @AllowOwner({
     graphObjectType: 'edge',
     graphIdFromParamKey: 'id',
@@ -252,6 +255,7 @@ export class GraphController {
 
   @Delete('edge/:id')
   @Roles('admin')
+  @AllowTeamAdmin({ edgeFrom: 'param' })
   @AllowOwner({
     graphObjectType: 'edge',
     graphIdFromParamKey: 'id',
