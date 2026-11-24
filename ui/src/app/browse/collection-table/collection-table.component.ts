@@ -166,12 +166,18 @@ export class CollectionTableComponent implements OnInit, OnDestroy {
   });
 
   showUserRoles = computed(() => {
-    const target = this.target();
-    if (!target?.collection) {
+    // The Roles button lists the upstream team users connected to the target
+    // object, so it is only relevant when this table is displaying users that
+    // are connected upstream to the target. Otherwise the button leaks onto
+    // upstream connection views (e.g. a repository's broker accounts, projects,
+    // services, or teams) whose config also enables showUserRoles.
+    if (this.collection() !== 'user') {
       return false;
     }
-    // console.log('Checking showUserRoles for', target.collection);
-    // console.log(this.configRecord[target.collection]?.showUserRoles);
+    const target = this.target();
+    if (!target?.collection || this.direction() !== 'upstream') {
+      return false;
+    }
     return this.configRecord[target.collection]?.showUserRoles === true;
   });
 
