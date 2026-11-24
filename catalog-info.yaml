@@ -7,3 +7,21 @@ spec:
     - api/catalog-info.yaml
     - ui/catalog-info.yaml
   type: path
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: nr-broker
+  description: NR Broker handles the business logic of authenticating and
+    validating requests for automated processes to access secrets.
+  tags:
+    - graph
+    - secrets
+    - security
+    - audit
+    - api
+spec:
+  owner: oscar
+  type: service
+  domain: citz

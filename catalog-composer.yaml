@@ -4,3 +4,5 @@ spec:
   generators:
     - gh-docs-deploy
     - nr-repository-composer
+    - backstage-system
+  answers: { customRunner }
