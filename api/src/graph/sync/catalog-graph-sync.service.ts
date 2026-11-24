@@ -19,6 +19,8 @@ import { ProvenanceType } from '../../persistence/dto/provenance.dto';
 import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../../persistence/interfaces/graph.repository';
 import { GraphService } from '../graph.service';
+import { SyncResult } from '../../persistence/dto/sync-status.dto';
+import { syncFailure } from '../../util/sync-result.util';
 
 interface UpsertOptions {
   /** Fallback values used when adding, below collection config defaults and catalog data */
@@ -41,6 +43,7 @@ interface CatalogPlannedEdge {
 export interface CatalogEdgePlan {
   complete: boolean;
   edges: Map<string, CatalogPlannedEdge>;
+  failures?: SyncResult[];
 }
 
 @Injectable()
@@ -67,6 +70,7 @@ export class CatalogGraphSyncService {
     repository: CatalogRepository,
     existing: VertexEntity | null,
     adoptable: boolean,
+    plan?: CatalogEdgePlan,
   ): Promise<VertexEntity> {
     const provenance = ProvenanceInfo.catalog(
       repository.scmUrl,
@@ -90,6 +94,7 @@ export class CatalogGraphSyncService {
         },
         tags: repository.tags,
       },
+      plan,
     );
   }
 
@@ -100,6 +105,7 @@ export class CatalogGraphSyncService {
   public async upsertProject(
     system: CatalogSystem,
     provenance: ProvenanceInfo,
+    plan?: CatalogEdgePlan,
   ): Promise<VertexEntity> {
     return this.upsertLinkedVertex(
       'project',
@@ -113,6 +119,7 @@ export class CatalogGraphSyncService {
       },
       provenance,
       { tags: system.tags },
+      plan,
     );
   }
 
@@ -214,7 +221,7 @@ export class CatalogGraphSyncService {
     repository: CatalogRepository,
     plan: CatalogEdgePlan,
   ): Promise<void> {
-    const failures: string[] = [];
+    const failures: SyncResult[] = [];
     if (plan.complete) {
       const edges = await this.graphRepository.getCatalogEdges(repository.scmUrl);
       for (const edge of edges) {
@@ -234,7 +241,8 @@ export class CatalogGraphSyncService {
             await this.graphService.deleteEdge(null, edge.id.toString());
           }
         } catch (error) {
-          failures.push(`delete ${edge.name} (${edge.id}): ${(error as Error).message}`);
+          const failure = syncFailure(error);
+          failures.push({ ...failure, errorMessage: `delete ${edge.name} (${edge.id}): ${failure.errorMessage}` });
         }
       }
     }
@@ -244,13 +252,17 @@ export class CatalogGraphSyncService {
           restricted: edge.restricted,
         });
       } catch (error) {
-        failures.push(
-          `add ${edge.name} (${edge.source.id} -> ${edge.target.id}): ${(error as Error).message}`,
-        );
+        const failure = syncFailure(error);
+        failures.push({
+          ...failure,
+          errorMessage: `add ${edge.name} (${edge.source.id} -> ${edge.target.id}): ${failure.errorMessage}`,
+        });
       }
     }
     if (failures.length > 0) {
-      throw new Error(`Catalog edge sync failed (${failures.join('; ')})`);
+      throw new Error(`Catalog edge sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
+        cause: failures.find((failure) => failure.errorCode) ?? failures[0],
+      });
     }
   }
 
@@ -300,6 +312,7 @@ export class CatalogGraphSyncService {
     data: Record<string, unknown>,
     provenance: ProvenanceInfo,
     options: UpsertOptions = {},
+    plan?: CatalogEdgePlan,
   ): Promise<VertexEntity> {
     if (
       existing &&
@@ -328,6 +341,9 @@ export class CatalogGraphSyncService {
     } catch (error) {
       if (!existing) {
         throw error;
+      }
+      if (plan) {
+        plan.failures?.push(syncFailure(error));
       }
       this.auditService.recordGitHubCatalogSync(
         'info',

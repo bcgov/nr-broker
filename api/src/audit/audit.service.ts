@@ -17,6 +17,7 @@ import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
 import { UserEmbeddable } from '../intention/entity/user.embeddable';
 import { APP_ENVIRONMENT } from '../constants';
 import { UserUtil } from '../util/user.util';
+import { syncFailure } from '../util/sync-result.util';
 
 const hostInfo = {
   host: {
@@ -484,7 +485,7 @@ export class AuditService {
     message: string,
     project?: string,
     service?: string,
-    failure?: HttpException,
+    failure?: unknown,
   ) {
     from([
       {
@@ -746,9 +747,11 @@ export class AuditService {
           },
         });
       }
+      const failure = syncFailure(exception);
       return merge(ecsObj, {
         error: {
-          message: exception instanceof Error ? exception.message : String(exception),
+          ...(failure.errorCode ? { code: failure.errorCode } : {}),
+          message: failure.errorMessage,
           type: exception instanceof Error ? exception.name : typeof exception,
         },
       });

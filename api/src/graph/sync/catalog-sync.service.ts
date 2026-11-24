@@ -13,6 +13,8 @@ import {
 import { CatalogAdoptionService } from './catalog-adoption.service';
 import { CatalogEdgePlan, CatalogGraphSyncService } from './catalog-graph-sync.service';
 import { CatalogInstanceSyncService } from './catalog-instance-sync.service';
+import { SyncResult } from '../../persistence/dto/sync-status.dto';
+import { syncFailure, syncMessage, syncOutcome } from '../../util/sync-result.util';
 
 /**
  * Records catalog systems, components, their repository and instances in the graph.
@@ -40,17 +42,7 @@ export class CatalogSyncService {
     repository: CatalogRepository,
     entities: (CatalogComponent | CatalogSystem)[],
     complete = true,
-  ): Promise<void> {
-    const plan: CatalogEdgePlan = { complete, edges: new Map() };
-    if (entities.length === 0) {
-      if (complete) {
-        await this.graphSyncService.reconcileEdges(repository, plan);
-      } else {
-        this.logger.warn(`Catalog edge cleanup skipped for ${repository.scmUrl}: the catalog scan is incomplete`);
-      }
-      return;
-    }
-
+  ): Promise<SyncResult> {
     this.auditService.recordGitHubCatalogSync(
       'start',
       'unknown',
@@ -61,6 +53,39 @@ export class CatalogSyncService {
       },
     );
 
+    const result = await this.syncEntities(repository, entities, complete);
+    this.auditService.recordGitHubCatalogSync(
+      'end',
+      syncOutcome(result),
+      syncMessage('Catalog sync', repository.scmUrl, result),
+      {
+        repository: repository.name,
+        repositoryUrl: repository.scmUrl,
+        ...(result.errorMessage ? { failure: result } : {}),
+      },
+    );
+    return result;
+  }
+
+  private async syncEntities(
+    repository: CatalogRepository,
+    entities: (CatalogComponent | CatalogSystem)[],
+    complete: boolean,
+  ): Promise<SyncResult> {
+    const failures: SyncResult[] = complete
+      ? []
+      : [{
+          state: 'partial',
+          errorCode: 'CATALOG_SCAN_INCOMPLETE',
+          errorMessage: 'The catalog scan is incomplete. Check the catalog scan audit messages and retry.',
+        }];
+    const plan: CatalogEdgePlan = { complete, edges: new Map(), failures };
+    if (entities.length === 0) {
+      if (complete) {
+        await this.graphSyncService.reconcileEdges(repository, plan);
+      }
+      return failures[0] ?? { state: 'success' };
+    }
     const components = entities.filter((entity) => entity instanceof CatalogComponent);
     const systems = entities.filter((entity) => entity instanceof CatalogSystem);
     const envMap = components.some((component) => component.instances?.length)
@@ -78,23 +103,24 @@ export class CatalogSyncService {
       repository,
       existingRepository,
       adoptable,
+      plan,
     );
 
-    let failures = complete ? 0 : 1;
     const projects = new Map<string, VertexEntity>();
     for (const system of systems) {
       try {
         const project = await this.graphSyncService.upsertProject(
           system,
           ProvenanceInfo.catalog(repository.scmUrl, system.path, { adoptable }),
+          plan,
         );
         projects.set(system.name, project);
       } catch (error) {
         plan.complete = false;
-        failures++;
+        failures.push(syncFailure(error));
         this.logger.warn(
           `Catalog sync failed for ${repository.scmUrl}:${system.path} (${system.name}): ${
-            (error as Error).message
+            syncFailure(error).errorMessage
           }`,
         );
       }
@@ -114,10 +140,10 @@ export class CatalogSyncService {
         services.set(component, service);
       } catch (error) {
         plan.complete = false;
-        failures++;
+        failures.push(syncFailure(error));
         this.logger.warn(
           `Catalog sync failed for ${repository.scmUrl}:${component.path} (${component.name}): ${
-            (error as Error).message
+            syncFailure(error).errorMessage
           }`,
         );
       }
@@ -141,6 +167,7 @@ export class CatalogSyncService {
       for (const { name, reference } of relationships) {
         const targetName = this.catalogUtil.resolveComponentReference(reference);
         if (!targetName) {
+          failures.push(syncFailure(`Unsupported ${name} reference ${reference} for ${component.name}. Use a Component reference in the default namespace.`));
           this.logger.warn(
             `Catalog component ${component.name} (${component.path}) has an unsupported ${name} reference ${reference}; use a Component reference in the default namespace`,
           );
@@ -149,6 +176,7 @@ export class CatalogSyncService {
         try {
           const target = await this.graphSyncService.getService(targetName);
           if (!target) {
+            failures.push(syncFailure(`Service ${targetName} referenced by ${component.name} does not exist. Sync the target Component first.`));
             this.logger.warn(
               `Catalog component ${component.name} (${component.path}) references missing service ${targetName} for ${name}; sync the target Component first`,
             );
@@ -157,10 +185,10 @@ export class CatalogSyncService {
           await this.graphSyncService.ensureEdge(name, service, target, provenance, { restricted: true, plan });
         } catch (error) {
           plan.complete = false;
-          failures++;
+          failures.push(syncFailure(error));
           this.logger.warn(
             `Catalog relationship sync failed for ${repository.scmUrl}:${component.path} (${component.name}, ${name}, ${reference}): ${
-              (error as Error).message
+              syncFailure(error).errorMessage
             }`,
           );
         }
@@ -173,19 +201,20 @@ export class CatalogSyncService {
     try {
       await this.graphSyncService.reconcileEdges(repository, plan);
     } catch (error) {
-      failures++;
-      this.logger.warn(`Catalog edge sync failed for ${repository.scmUrl}: ${(error as Error).message}`);
+      failures.push(syncFailure(error));
+      this.logger.warn(`Catalog edge sync failed for ${repository.scmUrl}: ${syncFailure(error).errorMessage}`);
     }
 
-    this.auditService.recordGitHubCatalogSync(
-      'end',
-      failures === 0 ? 'success' : 'failure',
-      `End catalog sync: ${repository.scmUrl}`,
-      {
-        repository: repository.name,
-        repositoryUrl: repository.scmUrl,
-      },
-    );
+    if (failures.length > 0 || !plan.complete) {
+      return {
+        state: 'partial',
+        errorCode: failures.find((failure) => failure.errorCode)?.errorCode ?? 'CATALOG_SYNC_INCOMPLETE',
+        errorMessage: failures.length > 0
+          ? failures.map((failure) => failure.errorMessage).join('; ')
+          : 'Some catalog items could not be synced. Check catalog ownership and retry.',
+      };
+    }
+    return { state: 'success' };
   }
 
   private async syncComponent(
@@ -225,6 +254,7 @@ export class CatalogSyncService {
           { plan },
         );
       } else {
+        plan.failures?.push(syncFailure(`Project ${component.system} referenced by ${component.name} does not exist. Add a matching System document and retry.`));
         this.logger.warn(
           `Catalog component ${component.name} (${component.path}) references missing project ${component.system}; add a kind: System document with metadata.name: ${component.system} to create it`,
         );

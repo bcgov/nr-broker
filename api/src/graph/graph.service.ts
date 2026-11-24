@@ -45,6 +45,7 @@ import {
 } from '../persistence/entity/collection-entity-union.type';
 import { ValidatorUtil } from '../util/validator.util';
 import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddable';
+import { SyncResult } from '../persistence/dto/sync-status.dto';
 import { CollectionWatchIdentifierDto, CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../persistence/entity/collection-watch.entity';
 import { UserEntity } from '../persistence/entity/user.entity';
@@ -477,7 +478,7 @@ export class GraphService {
     prop: {
       [K in keyof T]: T[K] extends SyncStatusEmbeddable ? K : never;
     }[keyof T],
-    event: 'queuedAt' | 'syncAt',
+    ...update: [event: 'queuedAt'] | [event: 'syncAt', result: SyncResult]
   ) {
     const vertex = await this.graphRepository.getVertex(
       entity.vertex.toString(),
@@ -486,18 +487,7 @@ export class GraphService {
       vertex.collection,
     );
 
-    const syncStatus: SyncStatusEmbeddable =
-      entity[prop] ?? new SyncStatusEmbeddable();
-
-    if (event === 'queuedAt') {
-      syncStatus.queuedAt = new Date();
-    }
-    if (event === 'syncAt') {
-      syncStatus.syncAt = new Date();
-    }
-    entity[prop] = syncStatus as any;
-
-    this.graphRepository.editVertex(vertex.id, vertex, entity);
+    await this.graphRepository.updateSyncStatus(vertex, String(prop), ...update);
 
     this.publishGraphEvent({
       data: {

@@ -50,14 +50,25 @@ On the Repository record, set **Enable user sync** to `true`. User sync will run
 
 ## Monitoring sync status
 
-The `syncSecretsStatus` and `syncUsersStatus` fields on the Repository record track:
+The `syncSecretsStatus`, `syncUsersStatus` and `syncCatalogStatus` fields on the Repository record track:
 
 - `queuedAt` — when the job was last enqueued
-- `syncAt` — when the last sync completed successfully
+- `syncAt` — when the last attempt finished, including failed, partial and skipped attempts
+- `state` — `success`, `failure`, `partial` or `skipped`
+- `errorCode` — the HTTP status or error code, when available
+- `errorMessage` — the reason an attempt failed, partially completed or was skipped
 
-These are visible in the NR Broker UI on the Repository detail page (requires `sudo` access).
+Each finished attempt replaces the previous result. A successful attempt clears old error details. Enqueuing another attempt updates only `queuedAt`, preserving the previous result until that attempt finishes. Older records may have timestamps without a state.
+
+Catalog scans also update existing Repository records found by SCM URL, including scheduled scans. An incomplete catalog scan, a failed entity or relationship, or a skipped instance update records `partial`, not `success`. A missing root catalog file records `skipped`. GitHub access denials and other scan failures record `failure` before retry handling.
+
+User and secret syncs record `partial` when some writes succeed and later writes fail. Repository secret sync status summarizes all services in the queued run so a later successful service cannot hide an earlier failure.
+
+The Repository detail page shows the current sync status and time on one line. Select the status to see any error details from the last attempt. If another sync is queued, the line shows the queued time; previous error details remain available until that attempt finishes.
 
 Sync activity is recorded in the audit log under the `broker.audit` dataset (for example, the `sync-tools` and `sync-github-catalog` actions). See: [Understanding the Audit Log](/operations_audit.md)
+
+Terminal messages distinguish completed, partially completed, failed and skipped syncs. Partial attempts use the audit outcome `failure`; skipped attempts use `unknown`. Error codes and messages are included in audit error fields when available.
 
 ## Catalog scan
 

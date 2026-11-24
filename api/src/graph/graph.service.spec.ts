@@ -11,6 +11,11 @@ import { EdgeInsertDto } from '../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../persistence/dto/vertex.dto';
 import { RepositoryBaseDto } from '../persistence/dto/repository.dto';
 import { plainToInstance } from 'class-transformer';
+import { createMock } from '@golevelup/ts-vitest';
+import { RepositoryEntity } from '../persistence/entity/repository.entity';
+import { GraphMongoRepository } from '../persistence/mongo/graph-mongo.repository';
+import { VertexEntity } from '../persistence/entity/vertex.entity';
+import { ObjectId } from 'mongodb';
 
 describe('GraphService', () => {
   const repo = 'https://github.com/org/repo';
@@ -21,6 +26,7 @@ describe('GraphService', () => {
     editEdge: ReturnType<typeof vi.fn>;
     getVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
+    updateSyncStatus: ReturnType<typeof vi.fn>;
     deleteVertexProvenance: ReturnType<typeof vi.fn>;
     deleteEdgeProvenance: ReturnType<typeof vi.fn>;
   };
@@ -32,6 +38,7 @@ describe('GraphService', () => {
       editEdge: vi.fn(),
       getVertex: vi.fn(),
       editVertex: vi.fn(),
+      updateSyncStatus: vi.fn(),
       deleteVertexProvenance: vi.fn(),
       deleteEdgeProvenance: vi.fn(),
     };
@@ -43,15 +50,102 @@ describe('GraphService', () => {
       ],
     })
       .useMocker(() => {
-        return vi.fn();
+        return createMock({ getCollectionConfigByName: vi.fn(), publish: vi.fn() });
       })
       .compile();
 
     service = module.get<GraphService>(GraphService);
   });
 
+  describe('sync status persistence', () => {
+    const vertexId = new ObjectId();
+    const vertex = createMock<VertexEntity>({ id: vertexId.toString(), collection: 'repository' });
+    let updateOne: ReturnType<typeof vi.fn>;
+    let repository: GraphMongoRepository;
+
+    beforeEach(() => {
+      updateOne = vi.fn().mockResolvedValue({ matchedCount: 1 });
+      repository = new GraphMongoRepository(
+        createMock({ findOne: vi.fn().mockResolvedValue({ fields: { syncCatalogStatus: { type: 'embeddedDoc' } } }) }),
+        createMock(), createMock(), createMock(), createMock(), createMock(),
+        createMock({ getRepository: vi.fn().mockReturnValue({ getCollection: () => ({ updateOne }) }) }),
+      );
+    });
+
+    it('updates only queue time, preserving any newer result and unrelated collection fields', async () => {
+      await repository.updateSyncStatus(vertex, 'syncCatalogStatus', 'queuedAt');
+
+      expect(updateOne).toHaveBeenCalledWith(
+        { vertex: vertexId },
+        [{ $set: { syncCatalogStatus: { $mergeObjects: [
+          { $ifNull: ['$syncCatalogStatus', {}] },
+          { $literal: { queuedAt: expect.any(Date) } },
+        ] } } }],
+      );
+    });
+
+    it('updates the final result atomically while preserving queued time and clearing old errors', async () => {
+      await repository.updateSyncStatus(vertex, 'syncCatalogStatus', 'syncAt', { state: 'success' });
+
+      expect(updateOne).toHaveBeenCalledWith(
+        { vertex: vertexId },
+        [
+          { $set: { syncCatalogStatus: { $mergeObjects: [
+            { $ifNull: ['$syncCatalogStatus', {}] },
+            { $literal: { syncAt: expect.any(Date), state: 'success' } },
+          ] } } },
+          { $unset: ['syncCatalogStatus.errorCode', 'syncCatalogStatus.errorMessage'] },
+        ],
+      );
+    });
+
+    it('surfaces a missing target rather than creating a partial collection record', async () => {
+      updateOne.mockResolvedValue({ matchedCount: 0 });
+
+      await expect(repository.updateSyncStatus(vertex, 'syncCatalogStatus', 'syncAt', {
+        state: 'failure', errorCode: '403', errorMessage: '$denied',
+      })).rejects.toThrow('was not found');
+      expect(updateOne.mock.calls[0][1][0].$set.syncCatalogStatus.$mergeObjects[1]).toEqual({
+        $literal: { syncAt: expect.any(Date), state: 'failure', errorCode: '403', errorMessage: '$denied' },
+      });
+    });
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('awaits status persistence and does not publish a success event when the write fails', async () => {
+    const repository = plainToInstance(RepositoryEntity, {
+      vertex: 'v1',
+      syncCatalogStatus: {
+        queuedAt: new Date(1000), state: 'failure', errorCode: '403', errorMessage: 'Old failure',
+      },
+    });
+    graphRepository.getVertex.mockResolvedValue({ id: 'v1', collection: 'repository' });
+    vi.spyOn(service['collectionRepository'], 'getCollectionConfigByName').mockResolvedValue(createMock({ index: 'repository' }));
+    const publish = vi.spyOn(service['redisService'], 'publish');
+    let rejectWrite!: (error: Error) => void;
+    graphRepository.updateSyncStatus.mockReturnValue(new Promise((_resolve, reject) => {
+      rejectWrite = reject;
+    }));
+    let settled = false;
+    const update = service.updateSyncStatus(repository, 'syncCatalogStatus', 'syncAt', { state: 'success' });
+    const checked = expect(update).rejects.toThrow('Status write failed');
+    void update.then(() => {
+      settled = true;
+    }, () => {
+      settled = true;
+    });
+    await vi.waitFor(() => expect(graphRepository.updateSyncStatus).toHaveBeenCalled());
+
+    expect(settled).toBe(false);
+    expect(graphRepository.updateSyncStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'v1' }), 'syncCatalogStatus', 'syncAt', { state: 'success' },
+    );
+    rejectWrite(new Error('Status write failed'));
+    await checked;
+    expect(publish).not.toHaveBeenCalled();
   });
 
   describe('catalog provenance', () => {

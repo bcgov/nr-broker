@@ -153,7 +153,10 @@ describe('CatalogSyncService', () => {
 
   it('does not create collections for an empty catalog', async () => {
     await service.syncRepository(repository, []);
-    expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalled();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+      'end', 'success', 'Catalog sync completed: https://github.com/org/repo',
+      expect.any(Object),
+    );
     expect(collectionRepository.getCollectionByKeyValue).not.toHaveBeenCalled();
     expect(graphRepository.getCatalogEdges).toHaveBeenCalledWith(repository.scmUrl);
   });
@@ -306,7 +309,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
       expect.any(Object),
     );
   });
@@ -336,7 +339,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
-      'End catalog sync: https://github.com/org/repo',
+      'Catalog sync completed: https://github.com/org/repo',
       {
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
@@ -457,7 +460,7 @@ describe('CatalogSyncService', () => {
     );
     graphService.editVertex.mockRejectedValue(new Error('write unavailable'));
 
-    await service.syncRepository(repository, [
+    const result = await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
       new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['failed'], 'failed-domain'),
     ]);
@@ -474,6 +477,20 @@ describe('CatalogSyncService', () => {
     );
     expect(edges()).toContainEqual(['component', 'project-vertex', 'service']);
     expect(collectionRepository.saveTags).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      state: 'partial',
+      errorCode: 'CATALOG_SYNC_INCOMPLETE',
+      errorMessage: 'write unavailable',
+    });
+  });
+
+  it('propagates setup failures to the scan worker', async () => {
+    collectionRepository.getCollectionByKeyValue.mockRejectedValue(new Error('Repository lookup failed'));
+
+    await expect(service.syncRepository(repository, [component('catalog-info.yaml', 'api')])).rejects.toThrow('Repository lookup failed');
+    expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalledWith(
+      'end', expect.anything(), expect.anything(), expect.anything(),
+    );
   });
 
   it.each([
@@ -579,7 +596,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
-      'End catalog sync: https://github.com/org/repo',
+      'Catalog sync completed: https://github.com/org/repo',
       {
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
@@ -654,11 +671,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -682,11 +699,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -711,11 +728,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -973,6 +990,22 @@ describe('CatalogSyncService', () => {
       expect([...storedEdges.keys()]).toEqual([
         'source', 'manual', 'intention', 'other-repository', 'no-file',
       ]);
+    });
+
+    it('reports unresolved references without changing existing cleanup behavior', async () => {
+      addStoredEdge('stale', 'depends-on', 'service', 'old-dependency');
+      const declaration = new CatalogComponent(
+        'catalog-info.yaml', 'api', undefined, undefined, undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, ['resource:default/database'],
+      );
+
+      const result = await service.syncRepository(repository, [declaration]);
+
+      expect(result).toMatchObject({
+        state: 'partial',
+        errorMessage: expect.stringContaining('Unsupported depends-on reference'),
+      });
+      expect(graphService.deleteEdge).toHaveBeenCalledWith(null, 'stale');
     });
 
     it('adds provenance to an existing desired edge when it is missing', async () => {
@@ -1283,7 +1316,7 @@ describe('CatalogSyncService', () => {
       expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
         'end',
         'success',
-        'End catalog sync: https://github.com/org/repo',
+        'Catalog sync completed: https://github.com/org/repo',
         {
           repository: 'repo',
           repositoryUrl: 'https://github.com/org/repo',

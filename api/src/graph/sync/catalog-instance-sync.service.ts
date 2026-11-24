@@ -7,6 +7,8 @@ import { GraphRepository } from '../../persistence/interfaces/graph.repository';
 import { ProvenanceInfo } from '../../persistence/provenance-info';
 import { GraphService } from '../graph.service';
 import { CatalogEdgePlan, CatalogGraphSyncService } from './catalog-graph-sync.service';
+import { syncFailure } from '../../util/sync-result.util';
+import { SyncResult } from '../../persistence/dto/sync-status.dto';
 
 @Injectable()
 export class CatalogInstanceSyncService {
@@ -28,7 +30,7 @@ export class CatalogInstanceSyncService {
     provenance: ProvenanceInfo,
     plan?: CatalogEdgePlan,
   ): Promise<void> {
-    const failures: string[] = [];
+    const failures: SyncResult[] = [];
     for (const instance of instances) {
       try {
         const env = envMap[instance.env];
@@ -46,6 +48,7 @@ export class CatalogInstanceSyncService {
         ) {
           if (plan) {
             plan.complete = false;
+            plan.failures?.push(syncFailure(`Catalog does not manage instance ${instance.name} of ${serviceVertex.name}. Check catalog ownership before retrying.`));
           }
           this.auditService.recordGitHubCatalogSync(
             'info',
@@ -98,11 +101,14 @@ export class CatalogInstanceSyncService {
           { plan },
         );
       } catch (error) {
-        failures.push(`${instance.name}: ${(error as Error).message}`);
+        const failure = syncFailure(error);
+        failures.push({ ...failure, errorMessage: `${instance.name}: ${failure.errorMessage}` });
       }
     }
     if (failures.length > 0) {
-      throw new Error(`Instance sync failed (${failures.join('; ')})`);
+      throw new Error(`Instance sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
+        cause: failures.find((failure) => failure.errorCode) ?? failures[0],
+      });
     }
   }
 }

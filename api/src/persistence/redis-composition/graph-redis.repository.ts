@@ -51,6 +51,7 @@ import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.e
 import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
 import { ProvenanceInfo } from '../provenance-info';
 import { ProvenanceType } from '../dto/provenance.dto';
+import { SyncResult } from '../dto/sync-status.dto';
 
 @Injectable()
 export class GraphRedisRepository implements GraphRepository {
@@ -198,6 +199,14 @@ export class GraphRedisRepository implements GraphRepository {
     this.upsertVertexTypeaheadIndex(returnVal);
     this.invalidateCache();
     return returnVal;
+  }
+
+  public async updateSyncStatus(
+    vertex: VertexEntity,
+    property: string,
+    ...update: [event: 'queuedAt'] | [event: 'syncAt', result: SyncResult]
+  ): Promise<void> {
+    await this.repo.updateSyncStatus(vertex, property, ...update);
   }
 
   public async editVertex(

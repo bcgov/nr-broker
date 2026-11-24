@@ -49,6 +49,7 @@ import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { TeamDto } from '../dto/team.dto';
 import { GraphRolePermissionRuleDto } from '../../graph/dto/graph-role-permission-rule.dto';
+import { SyncResult } from '../dto/sync-status.dto';
 
 @Injectable()
 export class GraphMongoRepository implements GraphRepository {
@@ -1130,6 +1131,52 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error();
     }
     return rval;
+  }
+
+  public async updateSyncStatus(
+    vertex: VertexEntity,
+    property: string,
+    ...update: [event: 'queuedAt'] | [event: 'syncAt', result: SyncResult]
+  ): Promise<void> {
+    if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(property)) {
+      throw new Error(`Invalid sync status property: ${property}`);
+    }
+    const config = await this.getCollectionConfig(vertex.collection);
+    if (config?.fields[property]?.type !== 'embeddedDoc') {
+      throw new Error(`Sync status property ${property} is not configured for ${vertex.collection}`);
+    }
+    const [event, result] = update;
+    const fields = event === 'queuedAt'
+      ? { queuedAt: new Date() }
+      : {
+          syncAt: new Date(),
+          state: result.state,
+          ...(result.errorCode ? { errorCode: result.errorCode } : {}),
+          ...(result.errorMessage ? { errorMessage: result.errorMessage } : {}),
+        };
+    const pipeline: Record<string, unknown>[] = [
+      { $set: { [property]: { $mergeObjects: [
+        { $ifNull: [`$${property}`, {}] },
+        { $literal: fields },
+      ] } } },
+    ];
+    if (event === 'syncAt') {
+      const unset = [
+        ...(!result.errorCode ? [`${property}.errorCode`] : []),
+        ...(!result.errorMessage ? [`${property}.errorMessage`] : []),
+      ];
+      if (unset.length > 0) {
+        pipeline.push({ $unset: unset });
+      }
+    }
+    const repository = getRepositoryFromCollectionName(this.dataSource, vertex.collection);
+    const written = await repository.getCollection().updateOne(
+      { vertex: new ObjectId(vertex.id) },
+      pipeline,
+    );
+    if (written.matchedCount !== 1) {
+      throw new Error(`Collection for vertex ${vertex.id} was not found`);
+    }
   }
 
   public async editVertex(

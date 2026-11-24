@@ -12,7 +12,9 @@ For authorization, key normalization, managed-secret behavior, and Broker Vault 
 2. NR Broker enqueues each eligible OpenShift Project ID in the BullMQ queue `kubernetes-sync-secrets`. Repeated requests for the same project are debounced for five seconds.
 3. A worker consumes the queue job, finds the project's upstream Cloud, and reads the configuration from the Vault `clouds` KV mount at `<cloud-name>/<project-name>/nr-broker-sync`.
 4. For each mapping, Broker verifies the service authorization, reads the source from the Vault `apps` mount, and creates or fully replaces a Kubernetes `Opaque` Secret in the project's namespace. The secret is labeled as managed by NR Broker.
-5. The sync status is recorded on the OpenShift Project (`syncSecretsStatus`) after all mappings succeed. A missing project, Cloud, configuration, or failed mapping records a failure instead.
+5. Each finished attempt records `syncAt` and `state` on the OpenShift Project (`syncSecretsStatus`). The state is `success`, `failure`, `partial` (earlier mappings succeeded or source keys were skipped) or `skipped` (no mappings). Failed and partial attempts include `errorMessage` and any available `errorCode`. A successful retry clears old error details. A missing project can only be reported in the audit log because there is no record to update.
+
+Mappings stop at the first failed write. The terminal audit message and stored result distinguish a failed attempt from one that applied earlier mappings before failing.
 
 The queue worker is part of the API process unless queue processing is configured separately. This is queue-driven processing, not a fixed cron poll.
 

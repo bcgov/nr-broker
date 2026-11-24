@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, input, inject, ChangeDetectionStrategy, computed, TemplateRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
@@ -43,6 +43,7 @@ interface ResolvedSyncQueueAction {
   imports: [
     CommonModule,
     MatButtonModule,
+    MatDialogModule,
     MatTooltipModule,
     DetailsItemComponent,
   ],
@@ -51,6 +52,13 @@ interface ResolvedSyncQueueAction {
   styleUrl: './inspector-repository-sync.component.scss',
 })
 export class InspectorRepositorySyncComponent {
+  readonly syncStateLabels: Record<NonNullable<SyncStatusDto['state']>, string> = {
+    success: 'Successful',
+    failure: 'Failed',
+    partial: 'Partially completed',
+    skipped: 'Skipped',
+  };
+
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly collectionApi = inject(CollectionApiService);
@@ -175,6 +183,12 @@ export class InspectorRepositorySyncComponent {
     return this.getSyncStatus(statusKey)?.queuedAt;
   }
 
+  openSyncDetails(template: TemplateRef<unknown>, status?: SyncStatusDto): void {
+    if (status?.errorCode || status?.errorMessage) {
+      this.dialog.open(template, { width: '600px' });
+    }
+  }
+
   private openSnackBar(message: string) {
     const config = new MatSnackBarConfig();
     config.duration = 5000;
@@ -282,7 +296,7 @@ export class InspectorRepositorySyncComponent {
     return (this.data() as unknown as Record<string, unknown>)[property];
   }
 
-  private getSyncStatus(property?: string): SyncStatusDto | undefined {
+  getSyncStatus(property?: string): SyncStatusDto | undefined {
     if (!property) {
       return undefined;
     }
