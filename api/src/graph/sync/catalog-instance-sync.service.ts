@@ -9,6 +9,7 @@ import { GraphService } from '../graph.service';
 import { CatalogEdgePlan, CatalogGraphSyncService } from './catalog-graph-sync.service';
 import { syncFailure } from '../../util/sync-result.util';
 import { SyncResult } from '../../persistence/dto/sync-status.dto';
+import { CatalogAdoptionService } from './catalog-adoption.service';
 
 @Injectable()
 export class CatalogInstanceSyncService {
@@ -17,6 +18,7 @@ export class CatalogInstanceSyncService {
     private readonly graphRepository: GraphRepository,
     private readonly graphService: GraphService,
     private readonly catalogGraphSyncService: CatalogGraphSyncService,
+    private readonly adoptionService: CatalogAdoptionService,
   ) {}
 
   /**
@@ -75,15 +77,13 @@ export class CatalogInstanceSyncService {
           );
         }
 
-        const instanceVertex = await this.graphService.upsertVertex(
-          null,
+        const instanceVertex = await this.adoptionService.upsertVertex(
           await this.catalogGraphSyncService.buildVertexInsert(
             'serviceInstance',
             existing,
             { name: instance.name, url: instance.url },
           ),
-          'id',
-          existing?.id.toString() ?? null,
+          existing,
           provenance,
         );
         await this.catalogGraphSyncService.ensureEdge(
@@ -106,9 +106,12 @@ export class CatalogInstanceSyncService {
       }
     }
     if (failures.length > 0) {
-      throw new Error(`Instance sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
-        cause: failures.find((failure) => failure.errorCode) ?? failures[0],
-      });
+      throw Object.assign(
+        new Error(`Instance sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
+          cause: failures.find((failure) => failure.errorCode) ?? failures[0],
+        }),
+        { code: failures.find((failure) => failure.errorCode)?.errorCode },
+      );
     }
   }
 }

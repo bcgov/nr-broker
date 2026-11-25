@@ -16,6 +16,7 @@ import { RepositoryEntity } from '../persistence/entity/repository.entity';
 import { GraphMongoRepository } from '../persistence/mongo/graph-mongo.repository';
 import { VertexEntity } from '../persistence/entity/vertex.entity';
 import { ObjectId } from 'mongodb';
+import { EdgeEntity } from '../persistence/entity/edge.entity';
 
 describe('GraphService', () => {
   const repo = 'https://github.com/org/repo';
@@ -70,6 +71,105 @@ describe('GraphService', () => {
         createMock(), createMock(), createMock(), createMock(), createMock(),
         createMock({ getRepository: vi.fn().mockReturnValue({ getCollection: () => ({ updateOne }) }) }),
       );
+    });
+
+    describe('edge cardinality', () => {
+      const sourceA = new ObjectId();
+      const sourceB = new ObjectId();
+      const sourceC = new ObjectId();
+      const targetA = new ObjectId();
+      const targetB = new ObjectId();
+      const sharedTarget = new ObjectId();
+      let relation: 'oneToMany' | 'manyToMany' | 'oneToOne';
+      let storedEdges: EdgeEntity[];
+      let repository: GraphMongoRepository;
+
+      beforeEach(() => {
+        relation = 'oneToMany';
+        storedEdges = [];
+        const vertices = new Map([
+          [sourceA.toString(), { collection: 'project' }],
+          [sourceB.toString(), { collection: 'project' }],
+          [sourceC.toString(), { collection: 'team' }],
+          [targetA.toString(), { collection: 'service' }],
+          [targetB.toString(), { collection: 'service' }],
+          [sharedTarget.toString(), { collection: 'repository' }],
+        ]);
+        repository = new GraphMongoRepository(
+          createMock({
+            findOne: vi.fn().mockImplementation(({ collection }) => Promise.resolve(
+              collection === 'project' || collection === 'team'
+                ? { index: collection === 'project' ? 1 : 3, edges: [
+                    { name: 'component', collection: 'service', relation },
+                    { name: 'component', collection: 'repository', relation: 'manyToMany' },
+                  ] }
+                : { index: collection === 'service' ? 2 : 4 },
+            )),
+          }),
+          createMock({
+            count: vi.fn().mockImplementation(async (filter) => storedEdges.filter((edge) =>
+              Object.entries(filter).every(([key, value]) => {
+                const actual = edge[key as keyof EdgeEntity];
+                return value instanceof ObjectId
+                  ? actual instanceof ObjectId && actual.equals(value)
+                  : actual === value;
+              }),
+            ).length),
+          }),
+          createMock({
+            findOne: vi.fn().mockImplementation(async ({ _id }) => vertices.get(_id.toString()) ?? null),
+            aggregate: vi.fn().mockResolvedValue([]),
+          }),
+          createMock(), createMock(), createMock(),
+          createMock({
+            persist: vi.fn().mockImplementation((edge: EdgeEntity) => {
+              edge.id = new ObjectId().toString();
+              storedEdges.push(edge);
+            }),
+            flush: vi.fn().mockResolvedValue(undefined),
+          }),
+        );
+      });
+
+      const addEdge = (source: ObjectId, target: ObjectId) => repository.addEdge(
+        { name: 'component', source: source.toString(), target: target.toString() },
+        ProvenanceInfo.manual(),
+      );
+
+      it('allows one parent multiple children but rejects a second parent for a child', async () => {
+        await addEdge(sourceA, targetA);
+        await addEdge(sourceA, targetB);
+
+        await expect(addEdge(sourceB, targetA)).rejects.toThrow('One-to-many relation already has a parent');
+        expect(storedEdges).toHaveLength(2);
+      });
+
+      it('allows multiple parents for a many-to-many relationship', async () => {
+        relation = 'manyToMany';
+
+        await addEdge(sourceA, targetA);
+        await addEdge(sourceB, targetA);
+
+        expect(storedEdges).toHaveLength(2);
+      });
+
+      it('uses the configured target collection and scopes parent checks to the source collection', async () => {
+        await addEdge(sourceA, targetA);
+        await addEdge(sourceC, targetA);
+        await addEdge(sourceA, sharedTarget);
+        await addEdge(sourceB, sharedTarget);
+
+        expect(storedEdges).toHaveLength(4);
+      });
+
+      it('preserves one-to-one source and duplicate edge checks', async () => {
+        relation = 'oneToOne';
+        await addEdge(sourceA, targetA);
+
+        await expect(addEdge(sourceA, targetA)).rejects.toThrow('No duplicate edges');
+        await expect(addEdge(sourceA, targetB)).rejects.toThrow('One-to-one relation already exists');
+        await addEdge(sourceB, targetA);
+      });
     });
 
     it('updates only queue time, preserving any newer result and unrelated collection fields', async () => {

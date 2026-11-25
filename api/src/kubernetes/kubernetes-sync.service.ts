@@ -1,8 +1,8 @@
 import * as https from 'https';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosInstance, isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { Job } from 'bullmq';
 import {
@@ -483,28 +483,22 @@ export class KubernetesSyncService implements OnModuleInit {
     const requestConfig = { headers, ...(httpsAgent ? { httpsAgent } : {}) };
 
     try {
-      // Try to GET the existing secret
-      await this.axiosInstance.get(url, requestConfig);
-      // Secret exists; replace it in full with the current source data.
-      await this.axiosInstance.put(url, k8sSecret, requestConfig);
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 404) {
-        // Secret doesn't exist, CREATE it
+      try {
+        await this.axiosInstance.get(url, requestConfig);
+        await this.axiosInstance.put(url, k8sSecret, requestConfig);
+      } catch (error) {
+        if (!isAxiosError(error) || error.response?.status !== 404) throw error;
         const createUrl = `${baseUrl}/api/v1/namespaces/${config.namespace}/secrets`;
         await this.axiosInstance.post(createUrl, k8sSecret, requestConfig);
-      } else {
-        // Assume the error came from Kubernetes and extract the API error
-        // message (response.data.message / reason) for audit logging; fall
-        // back to the axios message when the response body has none.
-        const response = axiosError.response?.data as
-          | { message?: string; reason?: string }
-          | undefined;
-        const k8sMessage =
-          (response && (response.message || response.reason)) ||
-          axiosError.message;
-        throw new Error(k8sMessage, { cause: error });
       }
+    } catch (error) {
+      if (isAxiosError<{ message?: string; reason?: string }>(error) && error.response) {
+        const data = error.response.data;
+        throw new HttpException(data?.message || data?.reason || error.message, error.response.status, {
+          cause: error,
+        });
+      }
+      throw error;
     }
   }
 }

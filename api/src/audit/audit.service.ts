@@ -747,10 +747,12 @@ export class AuditService {
           },
         });
       }
-      const failure = syncFailure(exception);
+      const failure = typeof exception === 'object' && 'state' in exception && 'errorMessage' in exception
+        ? exception
+        : syncFailure(exception);
       return merge(ecsObj, {
         error: {
-          ...(failure.errorCode ? { code: failure.errorCode } : {}),
+          ...('errorCode' in failure && failure.errorCode ? { code: failure.errorCode } : {}),
           message: failure.errorMessage,
           type: exception instanceof Error ? exception.name : typeof exception,
         },

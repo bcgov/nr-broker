@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import { describe, expect, it, vi } from 'vitest';
 import { GithubTokenService } from './github-token.service';
+import { syncFailure } from '../util/sync-result.util';
 
 describe('GithubTokenService', () => {
   const build = () => {
@@ -66,5 +67,19 @@ describe('GithubTokenService', () => {
       message: expect.stringContaining('GitHub rate limit reached'),
       cause: failure,
     });
+  });
+
+  it('preserves a network error code when the GitHub request has no HTTP response', async () => {
+    const { service, githubService } = build();
+    githubService.getOrgInstallationId.mockRejectedValue(new AxiosError('Connection failed', 'ECONNREFUSED'));
+
+    try {
+      await service.getOrgInstallationToken('example');
+      expect.fail('Expected the request to fail');
+    } catch (error) {
+      expect(syncFailure(error)).toMatchObject({
+        state: 'failure', errorCode: 'ECONNREFUSED', errorMessage: expect.stringContaining('Connection failed'),
+      });
+    }
   });
 });

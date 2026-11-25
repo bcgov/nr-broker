@@ -134,7 +134,7 @@ spec:
 | `spec.subcomponentOf` | `subcomponent-of` | Child Service to parent Service | One |
 | `spec.dependsOn` | `depends-on` | Service to dependency Service | Many |
 
-Both edge types are restricted (`restrict: true`), so they do not carry inherited graph permissions. They do not cascade deletion to related Services.
+The standard configuration marks both edge types as restricted (`restrict: true`), so new edges do not carry inherited graph permissions. Existing edges retain their restriction setting. These edge types do not cascade deletion to related Services in the standard configuration.
 
 References may be a bare name, `default/name`, `component:name` or `component:default/name`. Broker Services have global names; other namespaces and entity kinds, such as `resource:default/database`, are not resolved. Unsupported references and missing Services are logged and skipped. No placeholder Services are created.
 
@@ -186,34 +186,22 @@ Stale edges are removed before desired edges are applied so one-to-one relations
 
 ### Catalog ownership
 
-Items created by the catalog scan record the repository and catalog file that created them. Catalog updates are only allowed for items created by the same repository and catalog file. Other existing items are handled as follows:
+Items created or adopted by the catalog scan record the repository and catalog file that manages them. Catalog updates to an item with catalog provenance are only allowed for the same repository and catalog file. Items managed by another catalog file are handled as follows:
 
 - **Repository and Project**: not updated. Services from the catalog are still linked to them.
 - **Service**: the update is denied and recorded in the audit log as a failed `graph-vertex-edit`. The component is not synced. The rest of the repository continues to sync.
-- **Service instance**: not updated, for example an instance created by an intention. Other instances continue to sync.
+- **Service instance**: not updated. Other instances continue to sync.
 
 ### Adopting existing items
 
-Items added before the catalog files existed can be adopted by them. At the start of each repository sync, Broker checks whether the repository's catalog files can adopt existing items. If they can, all catalog updates in the sync are marked as adoptable. An adoptable update is allowed for an item with no catalog records, and it adds a catalog record for the file. The catalog file manages the item from then on.
-
-The catalog files can adopt items if all of these are true:
-
-- The Repository is found by SCM URL and at least one Service has a `source` edge to it.
-- Every existing Service the catalog declares:
-  - has a `source` edge to this Repository, and to no other Repository
-  - is not managed by another catalog file
-  - is declared by only one component in this repository
-  - is in exactly one Project, and its name matches `spec.system`
-
-New Services do not affect the check.
-
-When the catalog files can adopt items:
+Catalog sync adopts each existing item without catalog provenance independently. Adoption adds a catalog record for the file, which manages the item from then on. Existing service links and the presence of a system are not prerequisites for adoption; normal graph relationship rules still apply.
 
 - **Service**: adopted.
 - **Project**: adopted only when declared by a `System` entity, unless a catalog file already manages it. Its catalog ownership comes from the System's file, not a Component's file.
 - **Service instances**: existing instances under the Service named by instance links are adopted, unless a catalog file manages them or they are in a different environment. Instances under a Service the file already manages are adopted the same way, for example instances created by an intention.
 - **Repository**: adopted for the root `catalog-info.yaml` if no catalog file manages it.
+- **Edges**: existing desired edges without catalog provenance are adopted. An edge managed by a different catalog file is not adopted; its update is denied and the sync is reported as partially completed.
 
-Each adoption is an edit, so it is recorded in the audit log. If a Service fails a check, the reason is logged and nothing is adopted. Items already managed by the catalog files still sync. Fix the Service in Broker, then rerun the sync.
+Each adoption is an edit, so it is recorded in the audit log. A failure to update one item does not prevent other items from syncing.
 
 Users can still edit catalog items, but the next scan of the catalog file may revert their changes. Update the catalog file instead. See [Graph Provenance](/dev_graph_provenance.md) for details.

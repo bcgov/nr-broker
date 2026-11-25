@@ -725,8 +725,13 @@ export class GraphMongoRepository implements GraphRepository {
       throw new Error('Unable to locate source and/or target');
     }
     const edgeConfig = sourceConfig.edges.find(
-      (edgeConfig) => edgeConfig.name === edgeInsert.name,
+      (edgeConfig) =>
+        edgeConfig.name === edgeInsert.name &&
+        edgeConfig.collection === targetVertex.collection,
     );
+    if (!edgeConfig) {
+      throw new Error(`Edge ${edgeInsert.name} is not configured for ${sourceVertex.collection} to ${targetVertex.collection}`);
+    }
 
     // No edges to self
     if (edgeInsert.source === edgeInsert.target) {
@@ -787,6 +792,15 @@ export class GraphMongoRepository implements GraphRepository {
       });
       if (relationCnt > 0) {
         throw new Error('One-to-one relation already exists');
+      }
+    } else if (edgeConfig.relation === 'oneToMany') {
+      const relationCnt = await this.edgeRepository.count({
+        is: edge.is,
+        target: edge.target,
+        name: edge.name,
+      });
+      if (relationCnt > 0) {
+        throw new Error('One-to-many relation already has a parent');
       }
     }
     this.dataSource.persist(edge);

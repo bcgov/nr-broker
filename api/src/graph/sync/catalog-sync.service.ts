@@ -4,7 +4,7 @@ import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogRepository } from '../../catalog/catalog-repository';
 import { CatalogSystem } from '../../catalog/catalog-system';
 import { CatalogUtil } from '../../util/catalog.util';
-import { ProvenanceInfo } from '../../persistence/provenance-info';
+import { GITHUB_CATALOG_ROOT_FILE } from '../../constants';
 import { VertexEntity } from '../../persistence/entity/vertex.entity';
 import {
   EnvironmentEntityMap,
@@ -94,15 +94,10 @@ export class CatalogSyncService {
     const existingRepository = await this.graphSyncService.getRepository(
       repository.scmUrl,
     );
-    const adoptable = await this.adoptionService.canAdopt(
-      repository,
-      components,
-      existingRepository,
-    );
     const repositoryVertex = await this.graphSyncService.upsertRepository(
       repository,
       existingRepository,
-      adoptable,
+      this.adoptionService.provenance(repository.scmUrl, GITHUB_CATALOG_ROOT_FILE),
       plan,
     );
 
@@ -111,7 +106,7 @@ export class CatalogSyncService {
       try {
         const project = await this.graphSyncService.upsertProject(
           system,
-          ProvenanceInfo.catalog(repository.scmUrl, system.path, { adoptable }),
+          this.adoptionService.provenance(repository.scmUrl, system.path),
           plan,
         );
         projects.set(system.name, project);
@@ -133,7 +128,6 @@ export class CatalogSyncService {
           component,
           repositoryVertex,
           envMap,
-          adoptable,
           projects,
           plan,
         );
@@ -159,10 +153,9 @@ export class CatalogSyncService {
           reference,
         })),
       ];
-      const provenance = ProvenanceInfo.catalog(
+      const provenance = this.adoptionService.provenance(
         repository.scmUrl,
         component.path,
-        { adoptable },
       );
       for (const { name, reference } of relationships) {
         const targetName = this.catalogUtil.resolveComponentReference(reference);
@@ -182,7 +175,7 @@ export class CatalogSyncService {
             );
             continue;
           }
-          await this.graphSyncService.ensureEdge(name, service, target, provenance, { restricted: true, plan });
+          await this.graphSyncService.ensureEdge(name, service, target, provenance, { plan });
         } catch (error) {
           plan.complete = false;
           failures.push(syncFailure(error));
@@ -222,14 +215,12 @@ export class CatalogSyncService {
     component: CatalogComponent,
     repositoryVertex: VertexEntity,
     envMap: EnvironmentEntityMap,
-    adoptable: boolean,
     projects: Map<string, VertexEntity>,
     plan: CatalogEdgePlan,
   ): Promise<VertexEntity> {
-    const provenance = ProvenanceInfo.catalog(
+    const provenance = this.adoptionService.provenance(
       repository.scmUrl,
       component.path,
-      { adoptable },
     );
     const serviceVertex = await this.graphSyncService.upsertService(
       component,

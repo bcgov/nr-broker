@@ -5,7 +5,6 @@ import { AuditService } from '../../audit/audit.service';
 import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogRepository } from '../../catalog/catalog-repository';
 import { CatalogSystem } from '../../catalog/catalog-system';
-import { GITHUB_CATALOG_ROOT_FILE } from '../../constants';
 import {
   CollectionBaseDtoUnion,
   CollectionBaseDtoUnionObject,
@@ -21,6 +20,7 @@ import { GraphRepository } from '../../persistence/interfaces/graph.repository';
 import { GraphService } from '../graph.service';
 import { SyncResult } from '../../persistence/dto/sync-status.dto';
 import { syncFailure } from '../../util/sync-result.util';
+import { CatalogAdoptionService } from './catalog-adoption.service';
 
 interface UpsertOptions {
   /** Fallback values used when adding, below collection config defaults and catalog data */
@@ -37,7 +37,6 @@ interface CatalogPlannedEdge {
   source: EdgeVertex;
   target: EdgeVertex;
   provenance: ProvenanceInfo;
-  restricted?: boolean;
 }
 
 export interface CatalogEdgePlan {
@@ -53,6 +52,7 @@ export class CatalogGraphSyncService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
+    private readonly adoptionService: CatalogAdoptionService,
   ) {}
 
   public async getRepository(scmUrl: string): Promise<VertexEntity | null> {
@@ -69,14 +69,9 @@ export class CatalogGraphSyncService {
   public async upsertRepository(
     repository: CatalogRepository,
     existing: VertexEntity | null,
-    adoptable: boolean,
+    provenance: ProvenanceInfo,
     plan?: CatalogEdgePlan,
   ): Promise<VertexEntity> {
-    const provenance = ProvenanceInfo.catalog(
-      repository.scmUrl,
-      GITHUB_CATALOG_ROOT_FILE,
-      { adoptable },
-    );
     return this.upsertLinkedVertex(
       'repository',
       existing,
@@ -128,8 +123,7 @@ export class CatalogGraphSyncService {
     provenance: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const existing = await this.getService(component.name);
-    const service = await this.graphService.upsertVertex(
-      null,
+    const service = await this.adoptionService.upsertVertex(
       await this.buildVertexInsert(
         'service',
         existing,
@@ -142,8 +136,7 @@ export class CatalogGraphSyncService {
         },
         { prop: this.buildServiceProp(existing, component) },
       ),
-      'id',
-      existing?.id.toString() ?? null,
+      existing,
       provenance,
     );
     await this.syncTags('service', service, component.tags);
@@ -159,19 +152,8 @@ export class CatalogGraphSyncService {
     source: EdgeVertex,
     target: EdgeVertex,
     provenance: ProvenanceInfo,
-    options: { restricted?: boolean; plan?: CatalogEdgePlan } = {},
+    options: { plan?: CatalogEdgePlan } = {},
   ): Promise<void> {
-    if (options.restricted) {
-      const config = await this.collectionRepository.getCollectionConfigByName(source.collection);
-      const edge = config?.edges?.find(
-        (candidate) => candidate.name === name && candidate.collection === target.collection,
-      );
-      if (edge?.restrict !== true) {
-        throw new Error(
-          `Configure ${name} as a restricted Service-to-Service edge. Run scripts/db/mongo-add-service-catalog-edges.js and reindex the graph cache, then retry.`,
-        );
-      }
-    }
     const sourceId = source.id.toString();
     const targetId = target.id.toString();
     const existing = await this.graphRepository.getEdgeByNameAndVertices(
@@ -179,31 +161,23 @@ export class CatalogGraphSyncService {
       sourceId,
       targetId,
     );
-    if (existing && options.restricted && existing.restrict !== true) {
-      throw new Error(
-        `Existing ${name} edge is not restricted. Run scripts/db/mongo-add-service-catalog-edges.js and reindex the graph cache, then retry.`,
-      );
-    }
     if (options.plan) {
       options.plan.edges.set(this.edgeKey(name, sourceId, targetId), {
-        name, source, target, provenance, restricted: options.restricted,
+        name, source, target, provenance,
       });
       return;
     }
     if (existing) {
-      if (!existing.provenance?.some((record) => provenance.record.matches(record))) {
-        await this.graphService.editEdge(
-          null,
-          existing.id.toString(),
-          plainToInstance(EdgeInsertDto, {
-            name,
-            source: sourceId,
-            target: targetId,
-            prop: existing.prop,
-          }),
-          provenance,
-        );
-      }
+      await this.adoptionService.adoptEdge(
+        existing,
+        plainToInstance(EdgeInsertDto, {
+          name,
+          source: sourceId,
+          target: targetId,
+          prop: existing.prop,
+        }),
+        provenance,
+      );
       return;
     }
     await this.graphService.addEdge(
@@ -248,21 +222,22 @@ export class CatalogGraphSyncService {
     }
     for (const edge of plan.edges.values()) {
       try {
-        await this.ensureEdge(edge.name, edge.source, edge.target, edge.provenance, {
-          restricted: edge.restricted,
-        });
+        await this.ensureEdge(edge.name, edge.source, edge.target, edge.provenance);
       } catch (error) {
         const failure = syncFailure(error);
         failures.push({
           ...failure,
-          errorMessage: `add ${edge.name} (${edge.source.id} -> ${edge.target.id}): ${failure.errorMessage}`,
+          errorMessage: `add ${edge.source.id} -> (${edge.name}) ${edge.target.id}: ${failure.errorMessage}`,
         });
       }
     }
     if (failures.length > 0) {
-      throw new Error(`Catalog edge sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
-        cause: failures.find((failure) => failure.errorCode) ?? failures[0],
-      });
+      throw Object.assign(
+        new Error(`Catalog edge sync failed (${failures.map((failure) => failure.errorMessage).join('; ')})`, {
+          cause: failures.find((failure) => failure.errorCode) ?? failures[0],
+        }),
+        { code: failures.find((failure) => failure.errorCode)?.errorCode },
+      );
     }
   }
 
@@ -331,11 +306,9 @@ export class CatalogGraphSyncService {
     }
     let vertex: VertexEntity;
     try {
-      vertex = await this.graphService.upsertVertex(
-        null,
+      vertex = await this.adoptionService.upsertVertex(
         await this.buildVertexInsert(collection, existing, data, options),
-        'id',
-        existing?.id.toString() ?? null,
+        existing,
         provenance,
       );
     } catch (error) {

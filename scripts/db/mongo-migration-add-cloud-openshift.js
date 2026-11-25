@@ -28,7 +28,7 @@ db.collectionConfig.updateOne(
           collection: 'openshiftProject',
           name: 'host',
           titleInbound: 'Hosted on',
-          relation: 'oneToMany',
+          relation: 'manyToMany',
           show: true,
         },
         {
@@ -36,7 +36,7 @@ db.collectionConfig.updateOne(
           collection: 'server',
           name: 'host',
           titleInbound: 'Hosted on',
-          relation: 'oneToMany',
+          relation: 'manyToMany',
           show: true,
         },
       ],
@@ -216,7 +216,7 @@ if (teamConfig) {
             collection: 'cloud',
             name: 'operates',
             titleInbound: 'Operated by',
-            relation: 'oneToMany',
+            relation: 'manyToMany',
             show: true,
           },
         },
@@ -227,16 +227,16 @@ if (teamConfig) {
     const cloudEdge = teamEdges[cloudEdgeIndex];
     const needsCloudEdgeNormalization =
       cloudEdge.name !== 'operates' ||
-      cloudEdge.relation !== 'oneToMany' ||
+      cloudEdge.relation !== 'manyToMany' ||
       cloudEdge.show !== true;
 
     if (needsCloudEdgeNormalization) {
-      print('Normalizing existing team cloud edge to operates oneToMany...');
+      print('Normalizing existing team cloud edge to operates manyToMany...');
       teamEdges[cloudEdgeIndex] = {
         ...cloudEdge,
         collection: 'cloud',
         name: 'operates',
-        relation: 'oneToMany',
+        relation: 'manyToMany',
         show: true,
         titleInbound: cloudEdge.titleInbound || 'Operated by',
       };
@@ -291,7 +291,7 @@ if (serviceInstanceConfig) {
             collection: 'openshiftProject',
             name: 'installation',
             titleInbound: 'Installs',
-            relation: 'oneToMany',
+            relation: 'manyToMany',
             restrict: true,
             show: true,
           },
@@ -311,7 +311,7 @@ const deploysEdge = (id, collection) => ({
   name: 'deploys',
   title: 'Deployed on',
   titleInbound: 'Host for',
-  relation: 'oneToMany',
+  relation: 'manyToMany',
   restrict: true,
   show: true,
 });

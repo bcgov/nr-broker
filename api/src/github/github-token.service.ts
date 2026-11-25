@@ -10,6 +10,7 @@ export type InstallationApiOperation =
 
 export class GithubApiOperationError extends Error {
   public readonly status?: number;
+  public readonly code?: string;
   public readonly isRateLimited: boolean;
 
   constructor(
@@ -59,6 +60,7 @@ export class GithubApiOperationError extends Error {
     );
     this.name = GithubApiOperationError.name;
     this.status = status;
+    this.code = axiosError?.code;
     this.isRateLimited = isRateLimited;
   }
 }
