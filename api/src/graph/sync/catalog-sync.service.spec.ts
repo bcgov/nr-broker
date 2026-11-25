@@ -1126,7 +1126,7 @@ describe('CatalogSyncService', () => {
         state: 'partial',
         errorCode: '403',
         errorMessage: expect.stringContaining(
-          'add project -> (component) service: Update denied',
+          'add project -> (component) service: Forbidden',
         ),
       });
       expect(graphService.editEdge).toHaveBeenCalled();
