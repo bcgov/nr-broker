@@ -95,7 +95,7 @@ export class KubernetesSyncService implements OnModuleInit {
     );
 
     if (!openshiftProject) {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'info',
         'failure',
         `Kubernetes sync: OpenShift project not found (${openshiftProjectId})`,

@@ -66,7 +66,7 @@ User and secret syncs record `partial` when some writes succeed and later writes
 
 The Repository detail page shows the current sync status and time on one line. Select the status to see any error details from the last attempt. If another sync is queued, the line shows the queued time; previous error details remain available until that attempt finishes.
 
-Sync activity is recorded in the audit log under the `broker.audit` dataset (for example, the `sync-tools` and `sync-github-catalog` actions). See: [Understanding the Audit Log](/operations_audit.md)
+Sync activity is recorded in the audit log under the `broker.audit` dataset (for example, the `sync-tools`, `sync-graph` and `sync-github-catalog` actions). See: [Understanding the Audit Log](/operations_audit.md)
 
 Terminal messages distinguish completed, partially completed, failed and skipped syncs. Partial attempts use the audit outcome `failure`; skipped attempts use `unknown`. Error codes and messages are included in audit error fields when available.
 

@@ -16,6 +16,7 @@ describe('KubernetesSyncService outcomes', () => {
     const module = await Test.createTestingModule({ providers: [KubernetesSyncService] })
       .useMocker(() => createMock({
         recordToolsSync: vi.fn(),
+        recordGraphSync: vi.fn(),
         getKv: vi.fn(),
         updateSyncStatus: vi.fn(),
         getCollectionByKeyValue: vi.fn(),

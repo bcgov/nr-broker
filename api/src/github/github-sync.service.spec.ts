@@ -23,6 +23,7 @@ describe('GithubSyncService', () => {
           addRepoCollaborator: vi.fn(),
           updateSyncStatus: vi.fn(),
           recordToolsSync: vi.fn(),
+          recordGraphSync: vi.fn(),
           getKv: vi.fn(),
           getPublicKey: vi.fn(),
           putRepoActionsSecret: vi.fn(),
@@ -47,7 +48,7 @@ describe('GithubSyncService', () => {
     vi.spyOn(service['collectionRepository'], 'getCollectionConfigByName').mockResolvedValue(createMock({ edgeToRoles: [] }));
     vi.spyOn(service['githubService'], 'listRepoCollaborators').mockRejectedValue(Object.assign(new Error('Access denied'), { code: '403' }));
     const status = vi.spyOn(service['graphService'], 'updateSyncStatus').mockResolvedValue(undefined);
-    const audit = vi.spyOn(service['auditService'], 'recordToolsSync');
+    const audit = vi.spyOn(service['auditService'], 'recordGraphSync');
 
     await service.syncUsers(repository());
 
@@ -72,7 +73,7 @@ describe('GithubSyncService', () => {
     vi.spyOn(service['githubService'], 'addRepoCollaborator')
       .mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('Collaborator update failed'));
     const status = vi.spyOn(service['graphService'], 'updateSyncStatus').mockResolvedValue(undefined);
-    const audit = vi.spyOn(service['auditService'], 'recordToolsSync');
+    const audit = vi.spyOn(service['auditService'], 'recordGraphSync');
 
     await service.syncUsers(repository());
 

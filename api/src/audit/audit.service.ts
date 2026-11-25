@@ -471,7 +471,7 @@ export class AuditService {
   }
 
   /**
-   * Records tool sync events in the audit activity log
+   * Records tool-secret sync events in the audit activity log
    * @param type
    * @param outcome
    * @param message
@@ -487,11 +487,43 @@ export class AuditService {
     service?: string,
     failure?: unknown,
   ) {
+    this.recordSyncActivity('sync-tools', type, outcome, message, project, service, failure);
+  }
+
+  /**
+   * Records sync service events in the audit activity log.
+   * @param type
+   * @param outcome
+   * @param message
+   * @param project
+   * @param service
+   * @param failure
+   */
+  public recordGraphSync(
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    project?: string,
+    service?: string,
+    failure?: unknown,
+  ) {
+    this.recordSyncActivity('sync-graph', type, outcome, message, project, service, failure);
+  }
+
+  private recordSyncActivity(
+    action: 'sync-tools' | 'sync-graph',
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    project?: string,
+    service?: string,
+    failure?: unknown,
+  ) {
     from([
       {
         message,
         event: {
-          action: 'sync-tools',
+          action,
           category: 'configuration',
           dataset: 'broker.audit',
           kind: 'event',

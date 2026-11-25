@@ -88,12 +88,12 @@ export class GithubSyncService implements OnModuleInit {
     );
     if (!repository) {
       const error = new Error(`Repository ${repositoryId} was not found. Check the repository ID and retry.`);
-      this.auditService.recordToolsSync('end', 'failure', error.message, undefined, undefined, error);
+      this.auditService.recordGraphSync('end', 'failure', error.message, undefined, undefined, error);
       throw error;
     }
 
     if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'info',
         'unknown',
         `Skip sync of unmanaged url (${repository.id})`,
@@ -108,7 +108,7 @@ export class GithubSyncService implements OnModuleInit {
       return;
     }
 
-    this.auditService.recordToolsSync(
+    this.auditService.recordGraphSync(
       'info',
       'unknown',
       `Sync repository (${repository.id})`,
@@ -299,7 +299,7 @@ export class GithubSyncService implements OnModuleInit {
     const failures: SyncResult[] = [];
     let completed = 0;
     try {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'start',
         'unknown',
         `Start user sync: ${repository.scmUrl}`,
@@ -363,7 +363,7 @@ export class GithubSyncService implements OnModuleInit {
             completed++;
           } catch (error) {
             failures.push(syncFailure(error));
-            this.auditService.recordToolsSync(
+            this.auditService.recordGraphSync(
               'info',
               'failure',
               `Failed to add ${username} as ${edgeRole.role} to ${owner}/${repo}`,
@@ -384,7 +384,7 @@ export class GithubSyncService implements OnModuleInit {
           completed++;
         } catch (error) {
           failures.push(syncFailure(error));
-          this.auditService.recordToolsSync(
+          this.auditService.recordGraphSync(
             'info',
             'failure',
             `Failed to remove ${user} from ${owner}/${repo}`,
@@ -505,7 +505,7 @@ export class GithubSyncService implements OnModuleInit {
       result,
     );
 
-    this.auditService.recordToolsSync(
+    this.auditService.recordGraphSync(
       'end',
       syncOutcome(result),
       syncMessage('User sync', repository.scmUrl, result),

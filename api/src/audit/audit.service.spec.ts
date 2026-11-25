@@ -66,10 +66,28 @@ describe('AuditService', () => {
     const putRecord = vi.fn();
     const auditService = new AuditService({ putRecord } as any, {} as any);
 
-    auditService.recordToolsSync('end', 'failure', 'User sync failed', undefined, undefined, failure);
+    auditService.recordToolsSync('end', 'failure', 'Tool secret sync failed', undefined, undefined, failure);
 
     expect(putRecord).toHaveBeenCalledWith(expect.objectContaining({
       error: expect.objectContaining({ code: '403', message: 'Access denied' }),
+    }));
+  });
+
+  it('records graph sync events with a separate audit action', () => {
+    const putRecord = vi.fn();
+    const auditService = new AuditService({ putRecord } as any, {} as any);
+    const failure = Object.assign(new Error('Sync service unavailable'), { code: '503' });
+
+    auditService.recordGraphSync('end', 'failure', 'Graph sync failed', undefined, undefined, failure);
+
+    expect(putRecord).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Graph sync failed',
+      event: expect.objectContaining({
+        action: 'sync-graph',
+        type: 'end',
+        outcome: 'failure',
+      }),
+      error: expect.objectContaining({ code: '503', message: 'Sync service unavailable' }),
     }));
   });
 });

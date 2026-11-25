@@ -480,7 +480,7 @@ export class AccountService implements OnModuleInit {
   private async doSyncPreflight(id: string, account: BrokerAccountEntity) {
     if (!account) {
       const message = `Account with ID ${id} not found`;
-      this.auditService.recordToolsSync('info', 'failure', message);
+      this.auditService.recordGraphSync('info', 'failure', message);
       throw new NotFoundException(message);
     }
 
@@ -490,7 +490,7 @@ export class AccountService implements OnModuleInit {
         SyncType.SECRETS,
       );
     if (!queueEnabled) {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'info',
         'failure',
         'Broker account secret sync type is not enabled',
