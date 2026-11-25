@@ -21,7 +21,7 @@
                 </mat-chip>
               }
               <mat-chip disableRipple>
-                {{item.edge.relation === 'oneToOne' ? 'One-to-one' : 'One-to-many'}}
+                {{relationLabels[item.edge.relation]}}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -56,7 +56,7 @@
                 </mat-chip>
               }
               <mat-chip disableRipple>
-                {{item.edge.relation === 'oneToOne' ? 'One-to-one' : 'One-to-many'}}
+                {{relationLabels[item.edge.relation]}}
               </mat-chip>
             </mat-chip-set>
           </div>

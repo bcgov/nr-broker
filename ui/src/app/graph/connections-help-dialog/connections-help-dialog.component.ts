@@ -46,6 +46,11 @@ export interface ConnectionsHelpDialogData {
 export class ConnectionsHelpDialogComponent {
   readonly data = inject<ConnectionsHelpDialogData>(MAT_DIALOG_DATA);
   readonly configRecord = inject<CollectionConfigNameRecord>(CONFIG_RECORD);
+  readonly relationLabels: Record<CollectionEdgeConfig['relation'], string> = {
+    oneToMany: 'One-to-many',
+    oneToOne: 'One-to-one',
+    manyToMany: 'Many-to-many',
+  };
   private readonly colorUtil = inject(ColorUtilService);
 
   getVisibleTextColor(backgroundColor: string): string {
