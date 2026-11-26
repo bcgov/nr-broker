@@ -14,13 +14,13 @@ import { EdgeInsertDto } from '../../persistence/dto/edge.dto';
 import { VertexInsertDto } from '../../persistence/dto/vertex.dto';
 import { ProvenanceInfo } from '../../persistence/provenance-info';
 import { VertexEntity } from '../../persistence/entity/vertex.entity';
+import { EdgeEntity } from '../../persistence/entity/edge.entity';
 import { ProvenanceType } from '../../persistence/dto/provenance.dto';
 import { CollectionRepository } from '../../persistence/interfaces/collection.repository';
 import { GraphRepository } from '../../persistence/interfaces/graph.repository';
 import { GraphService } from '../graph.service';
 import { SyncResult } from '../../persistence/dto/sync-status.dto';
 import { syncFailure } from '../../util/sync-result.util';
-import { CatalogAdoptionService } from './catalog-adoption.service';
 
 interface UpsertOptions {
   /** Fallback values used when adding, below collection config defaults and catalog data */
@@ -52,7 +52,6 @@ export class CatalogGraphSyncService {
     private readonly collectionRepository: CollectionRepository,
     private readonly graphService: GraphService,
     private readonly graphRepository: GraphRepository,
-    private readonly adoptionService: CatalogAdoptionService,
   ) {}
 
   public async getRepository(scmUrl: string): Promise<VertexEntity | null> {
@@ -123,7 +122,7 @@ export class CatalogGraphSyncService {
     provenance: ProvenanceInfo,
   ): Promise<VertexEntity> {
     const existing = await this.getService(component.name);
-    const service = await this.adoptionService.upsertVertex(
+    const service = await this.graphService.upsertVertexById(
       await this.buildVertexInsert(
         'service',
         existing,
@@ -136,7 +135,7 @@ export class CatalogGraphSyncService {
         },
         { prop: this.buildServiceProp(existing, component) },
       ),
-      existing,
+      existing?.id.toString() ?? null,
       provenance,
     );
     await this.syncTags('service', service, component.tags);
@@ -168,7 +167,7 @@ export class CatalogGraphSyncService {
       return;
     }
     if (existing) {
-      await this.adoptionService.adoptEdge(
+      await this.adoptEdge(
         existing,
         plainToInstance(EdgeInsertDto, {
           name,
@@ -189,6 +188,21 @@ export class CatalogGraphSyncService {
       }),
       provenance,
     );
+  }
+
+  private async adoptEdge(
+    existing: EdgeEntity,
+    edge: EdgeInsertDto,
+    provenance: ProvenanceInfo,
+  ): Promise<void> {
+    if (!existing.provenance?.some((record) => provenance.record.matches(record))) {
+      await this.graphService.editEdge(
+        null,
+        existing.id.toString(),
+        edge,
+        provenance,
+      );
+    }
   }
 
   public async reconcileEdges(
@@ -306,9 +320,9 @@ export class CatalogGraphSyncService {
     }
     let vertex: VertexEntity;
     try {
-      vertex = await this.adoptionService.upsertVertex(
+      vertex = await this.graphService.upsertVertexById(
         await this.buildVertexInsert(collection, existing, data, options),
-        existing,
+        existing?.id.toString() ?? null,
         provenance,
       );
     } catch (error) {

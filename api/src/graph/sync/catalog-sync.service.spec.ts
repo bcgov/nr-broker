@@ -7,7 +7,6 @@ import { CatalogUtil } from '../../util/catalog.util';
 import { CatalogSyncService } from './catalog-sync.service';
 import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
 import { GraphService } from '../graph.service';
-import { CatalogAdoptionService } from './catalog-adoption.service';
 import { CatalogGraphSyncService } from './catalog-graph-sync.service';
 import { CatalogInstanceSyncService } from './catalog-instance-sync.service';
 
@@ -62,7 +61,7 @@ describe('CatalogSyncService', () => {
   let graphService: {
     addVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
-    upsertVertex: ReturnType<typeof vi.fn>;
+    upsertVertexById: ReturnType<typeof vi.fn>;
     addEdge: ReturnType<typeof vi.fn>;
     editEdge: ReturnType<typeof vi.fn>;
     deleteEdge: ReturnType<typeof vi.fn>;
@@ -100,12 +99,12 @@ describe('CatalogSyncService', () => {
       editVertex: vi
         .fn()
         .mockImplementation(async (_req, id) => vertex(id)),
-      upsertVertex: vi
+      upsertVertexById: vi
         .fn()
-        .mockImplementation(async (req, dto, _targetBy, target, provenance) =>
+        .mockImplementation(async (dto, target, provenance) =>
           target === null
-            ? graphService.addVertex(req, dto, true, provenance)
-            : graphService.editVertex(req, target, dto, true, true, provenance),
+            ? graphService.addVertex(null, dto, true, provenance)
+            : graphService.editVertex(null, target, dto, true, true, provenance),
         ),
       addEdge: vi.fn(),
       editEdge: vi.fn(),
@@ -131,25 +130,21 @@ describe('CatalogSyncService', () => {
         prod: { vertex: { toString: () => 'env-prod' } },
       }),
     };
-    const adoptionService = new CatalogAdoptionService(graphService as any);
     const graphSyncService = new CatalogGraphSyncService(
       auditService as any,
       collectionRepository as any,
       graphService as any,
       graphRepository as any,
-      adoptionService,
     );
     service = new CatalogSyncService(
       auditService as any,
       persistenceUtilService as any,
-      adoptionService,
       graphSyncService,
       new CatalogInstanceSyncService(
         auditService as any,
         graphRepository as any,
         graphService as any,
         graphSyncService,
-        adoptionService,
       ),
       new CatalogUtil(),
     );

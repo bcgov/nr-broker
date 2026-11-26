@@ -6,11 +6,11 @@ import { CatalogSystem } from '../../catalog/catalog-system';
 import { CatalogUtil } from '../../util/catalog.util';
 import { GITHUB_CATALOG_ROOT_FILE } from '../../constants';
 import { VertexEntity } from '../../persistence/entity/vertex.entity';
+import { ProvenanceInfo } from '../../persistence/provenance-info';
 import {
   EnvironmentEntityMap,
   PersistenceUtilService,
 } from '../../persistence/persistence-util.service';
-import { CatalogAdoptionService } from './catalog-adoption.service';
 import { CatalogEdgePlan, CatalogGraphSyncService } from './catalog-graph-sync.service';
 import { CatalogInstanceSyncService } from './catalog-instance-sync.service';
 import { SyncResult } from '../../persistence/dto/sync-status.dto';
@@ -26,7 +26,6 @@ export class CatalogSyncService {
   constructor(
     private readonly auditService: AuditService,
     private readonly persistenceUtilService: PersistenceUtilService,
-    private readonly adoptionService: CatalogAdoptionService,
     private readonly graphSyncService: CatalogGraphSyncService,
     private readonly instanceSyncService: CatalogInstanceSyncService,
     private readonly catalogUtil: CatalogUtil,
@@ -97,7 +96,7 @@ export class CatalogSyncService {
     const repositoryVertex = await this.graphSyncService.upsertRepository(
       repository,
       existingRepository,
-      this.adoptionService.provenance(repository.scmUrl, GITHUB_CATALOG_ROOT_FILE),
+      ProvenanceInfo.catalog(repository.scmUrl, GITHUB_CATALOG_ROOT_FILE),
       plan,
     );
 
@@ -106,7 +105,7 @@ export class CatalogSyncService {
       try {
         const project = await this.graphSyncService.upsertProject(
           system,
-          this.adoptionService.provenance(repository.scmUrl, system.path),
+          ProvenanceInfo.catalog(repository.scmUrl, system.path),
           plan,
         );
         projects.set(system.name, project);
@@ -153,7 +152,7 @@ export class CatalogSyncService {
           reference,
         })),
       ];
-      const provenance = this.adoptionService.provenance(
+      const provenance = ProvenanceInfo.catalog(
         repository.scmUrl,
         component.path,
       );
@@ -218,7 +217,7 @@ export class CatalogSyncService {
     projects: Map<string, VertexEntity>,
     plan: CatalogEdgePlan,
   ): Promise<VertexEntity> {
-    const provenance = this.adoptionService.provenance(
+    const provenance = ProvenanceInfo.catalog(
       repository.scmUrl,
       component.path,
     );

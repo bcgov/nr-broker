@@ -714,6 +714,19 @@ export class GraphService {
     );
   }
 
+  /**
+   * Adds or edits a vertex identified by id. A null target adds a new vertex.
+   * Runs without a request context so callers may audit and authorize the
+   * change themselves.
+   */
+  public async upsertVertexById(
+    vertexInsert: VertexInsertDto,
+    target: string | null,
+    provenance = ProvenanceInfo.manual(),
+  ): Promise<VertexEntity> {
+    return this.upsertVertex(null, vertexInsert, 'id', target, provenance);
+  }
+
   private async findUpsertVertex(
     config: CollectionConfigEntity,
     vertexInsert: VertexInsertDto,
