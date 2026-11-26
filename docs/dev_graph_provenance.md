@@ -1,6 +1,6 @@
 # Graph Provenance
 
-Broker records which sources created or updated each vertex and edge in the graph. This is used to stop automated catalog updates from changing items that a different catalog file manages.
+Broker records which sources created or updated each vertex and edge in the graph. This prevents automated syncs from changing items managed by a different automated source.
 
 ## Provenance records
 
@@ -21,19 +21,19 @@ Provenance is internal. It is hidden from entity serialization and removed from 
 
 `GraphService` checks provenance before editing a vertex or edge.
 
-- Manual, intention and OpenSearch updates are always allowed. Manual updates still require the normal permissions.
-- Catalog updates are only allowed if the item has a catalog record with the same repository and path. Otherwise the update is denied with a 403 error and a failure is recorded in the audit log.
-- Adoptable updates are also allowed if the item has no records of the same type.
-- Overwrite updates are always allowed. They replace the item's records of the same type, so a catalog record moves to the new repository and path. The earliest creation time is kept.
+- Manual and intention updates are always allowed. Manual updates still require the normal permissions.
+- OpenSearch updates are denied when catalog provenance exists. Remove the catalog provenance first if OpenSearch should manage the item.
+- Catalog updates are allowed only when there is no conflicting automated provenance. Any catalog record must match the repository and catalog file, and no OpenSearch record may exist. Manual and intention records do not prevent adoption. A denied update returns a 403 error and records a failure in the audit log.
 - Adding an item is always allowed. The new item starts with a record for the source that added it.
 
 Records are not mutually exclusive. If a user edits an item created by a catalog file, the catalog file can still update the item and may revert the manual change.
 
-Items that existed before provenance was added have no records. Catalog updates to these items are denied unless the catalog sync marks them as adoptable. See [GitHub Sync](/operations_github_sync.md#adopting-existing-items) for the checks. Callers can check an update in advance with `GraphService.isUpdateAllowed(records, provenance)`.
+Items that existed before provenance was added have no records. Catalog sync can take over these items unless another automated sync manages them. See [GitHub Sync](/operations_github_sync.md#adopting-existing-items) for the checks. Callers can check an update in advance with `GraphService.isUpdateAllowed(records, provenance)`.
 
 ## Removing records
 
 Admins can remove the records of one type from a vertex or an edge, for example when a catalog file no longer exists and should stop managing the item. Removing records does not change the item. Other sources can still update it, and an item with no records is treated like one that existed before provenance was added.
+To transfer catalog ownership, remove the existing catalog record first; the new catalog file can then adopt the item if it meets the adoption checks.
 
 ```
 DELETE /v1/graph/vertex/:id/provenance/:type
@@ -49,7 +49,7 @@ The collection inspector and the edge browser show a Remove button on each sourc
 
 ## Passing provenance
 
-`GraphService.addVertex`, `editVertex`, `upsertVertex`, `addEdge` and `editEdge` take an optional `ProvenanceInfo` (`api/src/persistence/provenance-info.ts`) as the last argument. It wraps the `ProvenanceEmbeddable` record to apply, with `adoptable` and `overwrite` options. It defaults to `ProvenanceInfo.manual()`. Automated services pass their own:
+`GraphService.addVertex`, `editVertex`, `upsertVertex`, `addEdge` and `editEdge` take an optional `ProvenanceInfo` (`api/src/persistence/provenance-info.ts`) as the last argument. It wraps the `ProvenanceEmbeddable` record to apply. It defaults to `ProvenanceInfo.manual()`. Automated services pass their own:
 
 ```typescript
 await this.graphService.upsertVertex(
@@ -57,7 +57,7 @@ await this.graphService.upsertVertex(
   vertexInsert,
   'name',
   null,
-  ProvenanceInfo.catalog(repository.scmUrl, component.path, { adoptable: true }),
+  ProvenanceInfo.catalog(repository.scmUrl, component.path),
 );
 ```
 

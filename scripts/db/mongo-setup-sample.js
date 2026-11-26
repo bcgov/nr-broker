@@ -440,7 +440,7 @@ db.collectionConfig.updateOne(
           collection: 'brokerAccount',
           name: 'owns',
           titleInbound: 'owned by',
-          relation: 'oneToMany',
+          relation: 'manyToMany',
           show: true,
         },
         {
@@ -448,7 +448,7 @@ db.collectionConfig.updateOne(
           collection: 'service',
           name: 'uses',
           titleInbound: 'used by',
-          relation: 'oneToMany',
+          relation: 'manyToMany',
           show: false,
           prototypes: [
             {

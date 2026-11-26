@@ -25,6 +25,7 @@ import { CollectionWatchEntity } from '../entity/collection-watch.entity';
 import { CollectionWatchConfigEntity } from '../entity/collection-watch-config.entity';
 import { ProvenanceInfo } from '../provenance-info';
 import { ProvenanceType } from '../dto/provenance.dto';
+import { SyncResult } from '../dto/sync-status.dto';
 
 export abstract class GraphRepository {
   // Data for graph
@@ -110,6 +111,11 @@ export abstract class GraphRepository {
     ignoreBlankFields?: boolean,
     provenance?: ProvenanceInfo,
   ): Promise<VertexEntity>;
+  public abstract updateSyncStatus(
+    vertex: VertexEntity,
+    property: string,
+    ...update: [event: 'queuedAt'] | [event: 'syncAt', result: SyncResult]
+  ): Promise<void>;
   /**
    * Remove the vertex's provenance records of the type.
    */

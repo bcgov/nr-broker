@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ForbiddenException } from '@nestjs/common';
 import { CatalogComponent } from '../../catalog/catalog-component';
 import { CatalogEntity } from '../../catalog/catalog-entity';
 import { CatalogSystem } from '../../catalog/catalog-system';
@@ -6,7 +7,6 @@ import { CatalogUtil } from '../../util/catalog.util';
 import { CatalogSyncService } from './catalog-sync.service';
 import { ProvenanceEmbeddable } from '../../persistence/entity/provenance.embeddable';
 import { GraphService } from '../graph.service';
-import { CatalogAdoptionService } from './catalog-adoption.service';
 import { CatalogGraphSyncService } from './catalog-graph-sync.service';
 import { CatalogInstanceSyncService } from './catalog-instance-sync.service';
 
@@ -61,7 +61,7 @@ describe('CatalogSyncService', () => {
   let graphService: {
     addVertex: ReturnType<typeof vi.fn>;
     editVertex: ReturnType<typeof vi.fn>;
-    upsertVertex: ReturnType<typeof vi.fn>;
+    upsertVertexById: ReturnType<typeof vi.fn>;
     addEdge: ReturnType<typeof vi.fn>;
     editEdge: ReturnType<typeof vi.fn>;
     deleteEdge: ReturnType<typeof vi.fn>;
@@ -99,12 +99,12 @@ describe('CatalogSyncService', () => {
       editVertex: vi
         .fn()
         .mockImplementation(async (_req, id) => vertex(id)),
-      upsertVertex: vi
+      upsertVertexById: vi
         .fn()
-        .mockImplementation(async (req, dto, _targetBy, target, provenance) =>
+        .mockImplementation(async (dto, target, provenance) =>
           target === null
-            ? graphService.addVertex(req, dto, true, provenance)
-            : graphService.editVertex(req, target, dto, true, true, provenance),
+            ? graphService.addVertex(null, dto, true, provenance)
+            : graphService.editVertex(null, target, dto, true, true, provenance),
         ),
       addEdge: vi.fn(),
       editEdge: vi.fn(),
@@ -139,7 +139,6 @@ describe('CatalogSyncService', () => {
     service = new CatalogSyncService(
       auditService as any,
       persistenceUtilService as any,
-      new CatalogAdoptionService(graphRepository as any),
       graphSyncService,
       new CatalogInstanceSyncService(
         auditService as any,
@@ -153,7 +152,10 @@ describe('CatalogSyncService', () => {
 
   it('does not create collections for an empty catalog', async () => {
     await service.syncRepository(repository, []);
-    expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalled();
+    expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
+      'end', 'success', 'Catalog sync completed: https://github.com/org/repo',
+      expect.any(Object),
+    );
     expect(collectionRepository.getCollectionByKeyValue).not.toHaveBeenCalled();
     expect(graphRepository.getCatalogEdges).toHaveBeenCalledWith(repository.scmUrl);
   });
@@ -306,7 +308,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
       expect.any(Object),
     );
   });
@@ -336,7 +338,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
-      'End catalog sync: https://github.com/org/repo',
+      'Catalog sync completed: https://github.com/org/repo',
       {
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
@@ -405,15 +407,16 @@ describe('CatalogSyncService', () => {
     expect(addedCollections().sort()).toEqual(['project', 'service'].sort());
   });
 
-  it('links an unmanaged repository and project without updating them', async () => {
+  it('links a repository and project managed by another catalog without updating them', async () => {
     collectionRepository.getCollectionByKeyValue.mockResolvedValue({
       vertex: 'repo-vertex',
     });
-    graphRepository.getVertex.mockResolvedValue(vertex('repo-vertex'));
+    const otherOwner = ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml');
+    graphRepository.getVertex.mockResolvedValue(vertex('repo-vertex', { provenance: [otherOwner] }));
     graphRepository.getVertexByName.mockImplementation(async (collection) =>
       collection === 'project'
         ? vertex('project-vertex', {
-            provenance: [ProvenanceEmbeddable.manual()],
+            provenance: [otherOwner],
           })
         : null,
     );
@@ -457,7 +460,7 @@ describe('CatalogSyncService', () => {
     );
     graphService.editVertex.mockRejectedValue(new Error('write unavailable'));
 
-    await service.syncRepository(repository, [
+    const result = await service.syncRepository(repository, [
       component('catalog-info.yaml', 'api', 'sys'),
       new CatalogSystem('catalog-info.yaml', 'sys', undefined, undefined, ['failed'], 'failed-domain'),
     ]);
@@ -474,6 +477,20 @@ describe('CatalogSyncService', () => {
     );
     expect(edges()).toContainEqual(['component', 'project-vertex', 'service']);
     expect(collectionRepository.saveTags).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      state: 'partial',
+      errorCode: 'CATALOG_SYNC_INCOMPLETE',
+      errorMessage: 'write unavailable',
+    });
+  });
+
+  it('propagates setup failures to the scan worker', async () => {
+    collectionRepository.getCollectionByKeyValue.mockRejectedValue(new Error('Repository lookup failed'));
+
+    await expect(service.syncRepository(repository, [component('catalog-info.yaml', 'api')])).rejects.toThrow('Repository lookup failed');
+    expect(auditService.recordGitHubCatalogSync).not.toHaveBeenCalledWith(
+      'end', expect.anything(), expect.anything(), expect.anything(),
+    );
   });
 
   it.each([
@@ -579,7 +596,7 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'success',
-      'End catalog sync: https://github.com/org/repo',
+      'Catalog sync completed: https://github.com/org/repo',
       {
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
@@ -594,13 +611,13 @@ describe('CatalogSyncService', () => {
     expect(persistenceUtilService.getEnvMap).not.toHaveBeenCalled();
   });
 
-  it('updates managed instances and skips unmanaged ones', async () => {
+  it('updates managed instances and skips those managed by another catalog', async () => {
     const file = ProvenanceEmbeddable.catalog(repository.scmUrl, 'catalog-info.yaml');
     graphRepository.getVertexByParentIdAndName.mockImplementation(
       async (_collection, _parent, name) =>
         name === 'managed'
           ? vertex('managed', { provenance: [file] })
-          : vertex('intention', { provenance: [ProvenanceEmbeddable.intention()] }),
+          : vertex('intention', { provenance: [ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml')] }),
     );
     graphRepository.searchEdgesShallow.mockResolvedValue([
       { target: { toString: () => 'env-prod' } },
@@ -654,11 +671,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -682,11 +699,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -711,11 +728,11 @@ describe('CatalogSyncService', () => {
     expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
       'end',
       'failure',
-      'End catalog sync: https://github.com/org/repo',
-      {
+      expect.stringContaining('Catalog sync partially completed: https://github.com/org/repo'),
+      expect.objectContaining({
         repository: 'repo',
         repositoryUrl: 'https://github.com/org/repo',
-      },
+      }),
     );
   });
 
@@ -813,21 +830,17 @@ describe('CatalogSyncService', () => {
       expect(edges()).toContainEqual(['depends-on', 'service-child', 'external-service']);
     });
 
-    it.each([undefined, false])('does not create relationships when restrict is %s', async (restrict) => {
+    it.each([undefined, false])('creates relationships when restrict is %s', async (restrict) => {
       collectionRepository.getCollectionConfigByName.mockResolvedValue({
         fields: {},
         edges: [{ name: 'depends-on', collection: 'service', restrict }],
       });
-      const warn = vi.spyOn((service as any).logger, 'warn');
-      await service.syncRepository(repository, parse([
+      const result = await service.syncRepository(repository, parse([
         declaringComponent({ dependsOn: ['external'] }),
       ]));
 
-      expect(edges().some(([name]) => name === 'depends-on')).toBe(false);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Configure depends-on as a restricted'));
-      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
-        'end', 'failure', expect.any(String), expect.any(Object),
-      );
+      expect(edges()).toContainEqual(['depends-on', 'service-child', 'external-service']);
+      expect(result).toEqual({ state: 'success' });
     });
 
     it('records rejected relationships as failures and continues with other references', async () => {
@@ -846,20 +859,21 @@ describe('CatalogSyncService', () => {
       );
     });
 
-    it('reports an existing unrestricted relationship instead of silently reusing it', async () => {
+    it('reuses an existing unrestricted relationship', async () => {
       graphRepository.getEdgeByNameAndVertices.mockImplementation(async (name) =>
         name === 'depends-on' ? { id: 'unrestricted-edge', restrict: false } : null,
       );
-      const warn = vi.spyOn((service as any).logger, 'warn');
-      await service.syncRepository(repository, parse([
+      const result = await service.syncRepository(repository, parse([
         declaringComponent({ dependsOn: ['external'] }),
       ]));
 
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('Existing depends-on edge is not restricted'));
       expect(edges().some(([name]) => name === 'depends-on')).toBe(false);
-      expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
-        'end', 'failure', expect.any(String), expect.any(Object),
+      expect(graphService.editEdge).toHaveBeenCalledWith(
+        null, 'unrestricted-edge',
+        expect.objectContaining({ name: 'depends-on', source: 'service-child', target: 'external-service' }),
+        expect.anything(),
       );
+      expect(result).toEqual({ state: 'success' });
     });
 
     it('does not sync outgoing relationships for a component whose service update fails', async () => {
@@ -894,6 +908,15 @@ describe('CatalogSyncService', () => {
       provenance = [rootProvenance],
     ) => {
       storedEdges.set(id, { id, name, source, target, restrict: true, provenance });
+    };
+    const allowAdoption = () => {
+      collectionRepository.getCollectionByKeyValue.mockResolvedValue({ vertex: 'repository' });
+      graphRepository.getVertex.mockResolvedValue(vertex('repository'));
+      graphRepository.searchEdgesShallow.mockImplementation(async (name, source, target) =>
+        name === 'source' && source === undefined && target === 'repository'
+          ? [{ target: 'repository' }]
+          : [],
+      );
     };
 
     beforeEach(() => {
@@ -975,12 +998,29 @@ describe('CatalogSyncService', () => {
       ]);
     });
 
+    it('reports unresolved references without changing existing cleanup behavior', async () => {
+      addStoredEdge('stale', 'depends-on', 'service', 'old-dependency');
+      const declaration = new CatalogComponent(
+        'catalog-info.yaml', 'api', undefined, undefined, undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, ['resource:default/database'],
+      );
+
+      const result = await service.syncRepository(repository, [declaration]);
+
+      expect(result).toMatchObject({
+        state: 'partial',
+        errorMessage: expect.stringContaining('Unsupported depends-on reference'),
+      });
+      expect(graphService.deleteEdge).toHaveBeenCalledWith(null, 'stale');
+    });
+
     it('adds provenance to an existing desired edge when it is missing', async () => {
+      allowAdoption();
       addStoredEdge('source', 'source', 'service', 'repository', [
         ProvenanceEmbeddable.manual(),
       ]);
 
-      await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+      const result = await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
 
       expect(graphService.editEdge).toHaveBeenCalledWith(
         null,
@@ -999,6 +1039,110 @@ describe('CatalogSyncService', () => {
         }),
       );
       expect(storedEdges.get('source')?.provenance).toHaveLength(2);
+      expect(result.state).toBe('success');
+    });
+
+    it.each([
+      ['adopts an edge without provenance', [], true],
+      ['adopts a manual edge', [ProvenanceEmbeddable.manual()], true],
+      ['adopts an intention-managed edge', [ProvenanceEmbeddable.intention()], true],
+      ['does not adopt an OpenSearch-managed edge', [ProvenanceEmbeddable.opensearch()], false],
+      ['does not take an edge managed by another catalog', [
+        ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
+      ], false],
+    ])('%s during catalog sync', async (_label, provenance, adopted) => {
+      collectionRepository.getCollectionByKeyValue.mockResolvedValue({ vertex: 'repository' });
+      graphRepository.getVertex.mockImplementation(async (id) =>
+        id === 'project'
+          ? vertex('project', { collection: 'project', name: 'sys' })
+          : vertex('repository', { collection: 'repository' }),
+      );
+      graphRepository.getVertexByName.mockImplementation(async (collection) =>
+        collection === 'project'
+          ? vertex('project', { collection: 'project', name: 'sys' })
+          : collection === 'service'
+            ? vertex('service', { collection: 'service', name: 'api', provenance: [rootProvenance] })
+            : null,
+      );
+      graphRepository.searchEdgesShallow.mockImplementation(async (name) =>
+        name === 'source'
+          ? [{ source: 'service', target: 'repository' }]
+          : name === 'component'
+            ? [{ source: 'project', target: 'service' }]
+            : [],
+      );
+      addStoredEdge('source', 'source', 'service', 'repository');
+      addStoredEdge('component-edge', 'component', 'project', 'service', provenance);
+      graphService.editEdge.mockImplementation(async (_req, id, _edge, update) => {
+        const existing = storedEdges.get(id);
+        if (!existing || !GraphService.prototype.isUpdateAllowed(existing.provenance, update)) {
+          throw new ForbiddenException('Update denied');
+        }
+        existing.provenance = update.mergeInto(existing.provenance);
+        return existing;
+      });
+
+      const result = await service.syncRepository(repository, [component('catalog-info.yaml', 'api', 'sys')]);
+
+      expect(graphService.editEdge).toHaveBeenCalledWith(
+        null,
+        'component-edge',
+        expect.objectContaining({ name: 'component', source: 'project', target: 'service' }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
+      );
+      if (adopted) {
+        expect(result).toEqual({ state: 'success' });
+        expect(storedEdges.get('component-edge')?.provenance).toEqual([
+          ...provenance,
+          expect.objectContaining({ type: 'catalog', repository: repository.scmUrl, path: 'catalog-info.yaml' }),
+        ]);
+      } else {
+        expect(result).toMatchObject({ state: 'partial', errorCode: '403' });
+        expect(storedEdges.get('component-edge')?.provenance).toEqual(provenance);
+      }
+    });
+
+    it.each([
+      ['an edge managed by another catalog', [ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml')]],
+      ['an edge managed by a different file', [ProvenanceEmbeddable.catalog(repository.scmUrl, 'old/catalog-info.yaml')]],
+    ])('reports a denied update for %s', async (_label, provenance) => {
+      graphRepository.getVertexByName.mockImplementation(async (collection) =>
+        collection === 'project' ? vertex('project', { collection: 'project' }) : null,
+      );
+      addStoredEdge('component-edge', 'component', 'project', 'service', provenance);
+      graphService.editEdge.mockImplementation(async (_req, id, _edge, update) => {
+        const existing = storedEdges.get(id);
+        if (!GraphService.prototype.isUpdateAllowed(existing?.provenance, update)) {
+          throw new ForbiddenException('Update denied');
+        }
+      });
+
+      const result = await service.syncRepository(repository, [component('catalog-info.yaml', 'api', 'sys')]);
+
+      expect(result).toMatchObject({
+        state: 'partial',
+        errorCode: '403',
+        errorMessage: expect.stringContaining(
+          'add project -> (component) service: Forbidden',
+        ),
+      });
+      expect(graphService.editEdge).toHaveBeenCalled();
+      expect(graphService.deleteEdge).not.toHaveBeenCalled();
+      expect(storedEdges.get('component-edge')?.provenance).toEqual(provenance);
+    });
+
+    it('reports an error when an allowed edge update fails', async () => {
+      allowAdoption();
+      addStoredEdge('source', 'source', 'service', 'repository', [ProvenanceEmbeddable.manual()]);
+      graphService.editEdge.mockRejectedValue(new Error('write unavailable'));
+
+      const result = await service.syncRepository(repository, [component('catalog-info.yaml', 'api')]);
+
+      expect(graphService.editEdge).toHaveBeenCalled();
+      expect(result).toMatchObject({
+        state: 'partial',
+        errorMessage: expect.stringContaining('write unavailable'),
+      });
     });
 
     it('does not edit an existing desired edge when its provenance is already present', async () => {
@@ -1264,18 +1408,13 @@ describe('CatalogSyncService', () => {
       new CatalogSystem('a/catalog-info.yaml', 'sys'),
     ]);
 
-    it('adopts the repository, service, project and instances by updating them as adoptable', async () => {
+    it('adopts the repository, service, project and instances by adding catalog provenance', async () => {
       await sync();
 
       expect(editedIds().sort()).toEqual(
         ['repo-vertex', 'project-vertex', 'svc', 'blue'].sort(),
       );
-      expect(graphService.editVertex.mock.calls.map((call) => call[5].adoptable)).toEqual([
-        true,
-        true,
-        true,
-        true,
-      ]);
+      expect(graphService.editVertex.mock.calls.every((call) => call[5].record.type === 'catalog')).toBe(true);
       expect(graphService.editVertex.mock.calls[0][5].record.path).toBe('catalog-info.yaml');
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
       expect(graphService.addVertex).not.toHaveBeenCalled();
@@ -1283,7 +1422,7 @@ describe('CatalogSyncService', () => {
       expect(auditService.recordGitHubCatalogSync).toHaveBeenLastCalledWith(
         'end',
         'success',
-        'End catalog sync: https://github.com/org/repo',
+        'Catalog sync completed: https://github.com/org/repo',
         {
           repository: 'repo',
           repositoryUrl: 'https://github.com/org/repo',
@@ -1308,25 +1447,56 @@ describe('CatalogSyncService', () => {
       await sync();
       expect(graphRepository.getVertexByName).not.toHaveBeenCalledWith('repository', 'repo');
       expect(graphService.addVertex.mock.calls[0][1].collection).toBe('repository');
-      expect(catalogManaged()).toEqual([]);
+      expect(catalogManaged()).toEqual(['svc', 'project-vertex', 'blue']);
     });
 
-    it('does not adopt the repository without a linked service', async () => {
+    it.each([false, true])('adopts an unlinked service in its declared project (other linked service: %s)', async (hasOtherLinkedService) => {
       graphEdges = graphEdges.filter((e) => e.name !== 'source');
-      await sync();
-      expect(catalogManaged()).toEqual([]);
-      // The service edit is attempted and denied by GraphService
-      expect(editedIds()).toEqual(['svc']);
-      expect(graphService.editVertex.mock.calls[0][5].adoptable).toBe(false);
+      if (hasOtherLinkedService) {
+        graphEdges.push({
+          id: id('other-source'),
+          name: 'source',
+          source: 'other-svc',
+          target: 'repo-vertex',
+          provenance: [ProvenanceEmbeddable.manual()],
+        });
+      }
+      vertices.svc.provenance = [];
+      graphEdges.find((edge) => edge.name === 'component').provenance = [];
+
+      const result = await sync();
+
+      expect(result).toEqual({ state: 'success' });
+      expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
+      expect(graphService.addEdge).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({ name: 'source', source: 'svc', target: 'repo-vertex' }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
+      );
+      expect(graphEdges.find((edge) => edge.name === 'component').provenance).toEqual([
+        expect.objectContaining({ type: 'catalog', path: 'a/catalog-info.yaml' }),
+      ]);
+    });
+
+    it('does not adopt a service managed by another catalog file', async () => {
+      vertices.svc.provenance = [
+        ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
+      ];
+
+      const result = await sync();
+
+      expect(result.state).toBe('partial');
+      expect(vertices.svc.provenance).toEqual([
+        expect.objectContaining({ type: 'catalog', repository: 'https://github.com/org/other' }),
+      ]);
+      expect(catalogManaged()).toContain('repo-vertex');
     });
 
     it.each([
       [
-        'the service is managed by another catalog file',
+        'the service is linked only to another repository',
         () => {
-          vertices.svc.provenance = [
-            ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
-          ];
+          graphEdges.find((edge) => edge.name === 'source').target = 'other-repo';
         },
       ],
       [
@@ -1354,29 +1524,67 @@ describe('CatalogSyncService', () => {
           graphEdges = graphEdges.filter((e) => e.name !== 'component');
         },
       ],
-    ])('does not adopt when %s', async (_reason, setup) => {
+    ])('adopts an unmanaged service when %s', async (_reason, setup) => {
       setup();
-      const before = catalogManaged();
       await sync();
-      expect(catalogManaged()).toEqual(before);
+      expect(vertices.svc.provenance).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: 'catalog', repository: repository.scmUrl }),
+      ]));
     });
 
-    it('does not adopt a service declared by more than one component', async () => {
-      await sync([
+    it('adopts a service without a system when the repository has no linked services', async () => {
+      graphEdges = graphEdges.filter((edge) => edge.name !== 'source');
+
+      await sync([component('a/catalog-info.yaml', 'api')]);
+
+      expect(vertices.svc.provenance).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: 'catalog', repository: repository.scmUrl }),
+      ]));
+      expect(graphService.addEdge).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({ name: 'source', source: 'svc', target: 'repo-vertex' }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
+      );
+    });
+
+    it('does not overwrite a service adopted by another catalog file', async () => {
+      const result = await sync([
         component('a/catalog-info.yaml', 'api', 'sys'),
         component('b/catalog-info.yaml', 'api', 'sys'),
       ]);
-      expect(catalogManaged()).toEqual([]);
+
+      expect(result.state).toBe('partial');
+      expect(vertices.svc.provenance).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: 'catalog', path: 'a/catalog-info.yaml' }),
+      ]));
     });
 
-    it('does not adopt anything when another declared service belongs elsewhere', async () => {
+    it('adopts services independently of their existing relationships', async () => {
       addVertex('other-svc', 'service', 'other');
       await sync([
         component('a/catalog-info.yaml', 'api', 'sys'),
         component('b/catalog-info.yaml', 'other', 'sys'),
       ]);
-      expect(catalogManaged()).toEqual([]);
-      expect(graphService.editVertex.mock.calls.map((call) => call[5].adoptable)).toEqual([false, false]);
+      expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'other-svc']);
+      expect(graphService.editVertex.mock.calls.every((call) => call[5].record.type === 'catalog')).toBe(true);
+    });
+
+    it('adopts an unmanaged service even when another service has a different catalog owner', async () => {
+      vertices.svc.provenance = [
+        ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
+      ];
+      addVertex('other-svc', 'service', 'other', []);
+
+      const result = await sync([
+        component('a/catalog-info.yaml', 'api', 'sys'),
+        component('b/catalog-info.yaml', 'other', 'sys'),
+      ]);
+
+      expect(result.state).toBe('partial');
+      expect(vertices.svc.provenance[0].repository).toBe('https://github.com/org/other');
+      expect(vertices['other-svc'].provenance).toEqual([
+        expect.objectContaining({ type: 'catalog', repository: repository.scmUrl, path: 'b/catalog-info.yaml' }),
+      ]);
     });
 
     it('links a project managed by another catalog file without adopting it', async () => {

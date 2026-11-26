@@ -27,7 +27,7 @@ export class CollectionEdgeConfig {
   onDelete?: 'cascade';
   prototypes?: CollectionEdgePrototype[];
   restrict?: boolean;
-  relation!: 'oneToMany' | 'oneToOne';
+  relation!: 'oneToMany' | 'oneToOne' | 'manyToMany';
   show!: boolean;
   title?: string;
   titleInbound?: string;

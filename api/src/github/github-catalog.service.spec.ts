@@ -7,7 +7,7 @@ describe('GithubCatalogService', () => {
   const build = () => {
     const auditService = { recordGitHubCatalogSync: vi.fn() };
     const bullService = { enqueue: vi.fn(), registerWorker: vi.fn() };
-    const catalogSyncService = { syncRepository: vi.fn() };
+    const catalogSyncService = { syncRepository: vi.fn().mockResolvedValue({ state: 'success' }) };
     const githubTokenService = {
       getOrgInstallationToken: vi.fn().mockResolvedValue('tkn'),
     };
@@ -16,6 +16,7 @@ describe('GithubCatalogService', () => {
     };
     const orgScanner = { scan: vi.fn(), registerLeaderJob: vi.fn(), enqueueOrgScans: vi.fn() };
     const collectionRepository = {
+      getCollectionByKeyValue: vi.fn().mockResolvedValue(null),
       getCollectionById: vi
         .fn()
         .mockResolvedValue({ id: 'r1', scmUrl: 'https://github.com/org/repo' }),
@@ -85,6 +86,7 @@ describe('GithubCatalogService', () => {
       expect.objectContaining({ id: 'r1' }),
       'syncCatalogStatus',
       'syncAt',
+      { state: 'success' },
     );
   });
 
@@ -185,7 +187,10 @@ describe('GithubCatalogService', () => {
     await expect(service.processJob('r1')).rejects.toThrow('Metadata lookup failed');
 
     expect(catalogSyncService.syncRepository).not.toHaveBeenCalled();
-    expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
+    expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'r1' }), 'syncCatalogStatus', 'syncAt',
+      { state: 'failure', errorMessage: 'Metadata lookup failed' },
+    );
     expect(auditService.recordGitHubCatalogSync).toHaveBeenCalledWith(
       'end', 'failure', expect.any(String), expect.objectContaining({ failure }),
     );
@@ -235,12 +240,51 @@ describe('GithubCatalogService', () => {
     expect(bullService.enqueue).toHaveBeenCalledTimes(1);
   });
 
-  it('does not record sync status for scheduled repository scans', async () => {
+  it('does not record sync status when no repository record exists', async () => {
     const { service, graphService } = build();
 
     await service.processJob(repoJob);
 
     expect(graphService.updateSyncStatus).not.toHaveBeenCalled();
+  });
+
+  it('stores the partial result returned by catalog sync on scheduled repositories', async () => {
+    const { service, catalogSyncService, collectionRepository, graphService } = build();
+    const result = { state: 'partial', errorCode: '400', errorMessage: 'Instance sync failed' };
+    catalogSyncService.syncRepository.mockResolvedValue(result);
+    collectionRepository.getCollectionByKeyValue.mockResolvedValue({ id: 'r1' });
+
+    await service.processJob(repoJob);
+
+    expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
+      { id: 'r1' }, 'syncCatalogStatus', 'syncAt', result,
+    );
+  });
+
+  it('stores access denials before suppressing non-retryable errors', async () => {
+    const { service, fileReader, graphService } = build();
+    fileReader.collectEntities.mockRejectedValue(new AxiosError(
+      'Access denied', 'ERR_BAD_REQUEST', undefined, undefined, { status: 403 } as any,
+    ));
+
+    await service.processJob('r1');
+
+    expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'r1' }), 'syncCatalogStatus', 'syncAt',
+      { state: 'failure', errorCode: '403', errorMessage: 'Access denied' },
+    );
+  });
+
+  it('records a missing catalog as skipped rather than successful', async () => {
+    const { service, fileReader, graphService } = build();
+    fileReader.collectEntities.mockResolvedValue(null);
+
+    await service.processJob('r1');
+
+    expect(graphService.updateSyncStatus).toHaveBeenCalledWith(
+      expect.any(Object), 'syncCatalogStatus', 'syncAt',
+      expect.objectContaining({ state: 'skipped', errorCode: 'CATALOG_NOT_FOUND' }),
+    );
   });
 
   it('passes incomplete snapshots to sync without authorizing cleanup', async () => {

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CONFIG_RECORD } from '../../app-initialize.factory';
+import { CollectionEdgeConfig } from '../../service/persistence/dto/collection-config.dto';
 import { ConnectionsHelpDialogComponent } from './connections-help-dialog.component';
 
 const mockConfig: any = { edges: [], color: '000000', name: 'test' };
@@ -21,10 +22,33 @@ describe('ConnectionsHelpDialogComponent', () => {
 
     fixture = TestBed.createComponent(ConnectionsHelpDialogComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
+  });
+
+  it('displays many-to-many for inbound and outbound connections', () => {
+    const edge = {
+      id: 'source',
+      collection: 'repository',
+      name: 'source',
+      relation: 'manyToMany',
+      show: true,
+    } as CollectionEdgeConfig;
+    component.data.inboundEdges.push({
+      sourceCollectionName: 'Service',
+      sourceCollection: 'service',
+      edge,
+    });
+    component.data.outboundEdges.push({
+      targetCollectionName: 'Repository',
+      edge,
+    });
+
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement.textContent.match(/Many-to-many/g) ?? []).length).toBe(2);
   });
 });

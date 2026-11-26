@@ -17,15 +17,49 @@
         @if (action.source === 'traverse') {
           <app-details-item item="Queued via Collection">{{ action.traverseSummary }}</app-details-item>
         } @else {
-          @if (showQueued(action.queuedStatusProperty)) {
-            <app-details-item item="Queued">{{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}</app-details-item>
-          } @else {
-            <app-details-item item="Last sync">@if(lastSyncAt(action.queuedStatusProperty)) {
+          @let status = getSyncStatus(action.queuedStatusProperty);
+          <app-details-item
+            item="Sync status"
+            [clickable]="!!(status?.errorCode || status?.errorMessage)"
+            [attr.role]="status?.errorCode || status?.errorMessage ? 'button' : null"
+            [attr.tabindex]="status?.errorCode || status?.errorMessage ? 0 : null"
+            [matTooltip]="status?.errorCode || status?.errorMessage ? 'View sync error details' : ''"
+            (click)="openSyncDetails(syncDetails, status)"
+            (keydown.enter)="openSyncDetails(syncDetails, status)"
+            (keydown.space)="$event.preventDefault(); openSyncDetails(syncDetails, status)">
+            @if (showQueued(action.queuedStatusProperty)) {
+              Queued &middot; {{$safeNavigationMigration(queuedAt(action.queuedStatusProperty)) | date: 'medium'}}
+            } @else if (lastSyncAt(action.queuedStatusProperty)) {
+              @if (status?.state) {
+                {{ syncStateLabels[status.state] }} &middot;
+              } @else {
+                Last sync &middot;
+              }
               {{$safeNavigationMigration(lastSyncAt(action.queuedStatusProperty)) | date: 'medium'}}
             } @else {
-              Never
-            }</app-details-item>
-          }
+              Not synced yet
+            }
+          </app-details-item>
+          <ng-template #syncDetails>
+            <h2 mat-dialog-title>{{ action.label }} sync details</h2>
+            <mat-dialog-content>
+              @if (status?.state) {
+                <p>Last result: {{ syncStateLabels[status.state] }}</p>
+              }
+              @if (status?.syncAt) {
+                <p>Last sync: {{ status.syncAt | date: 'medium' }}</p>
+              }
+              @if (status?.errorCode) {
+                <p>Error code: {{ status.errorCode }}</p>
+              }
+              @if (status?.errorMessage) {
+                <p>{{ status.errorMessage }}</p>
+              }
+            </mat-dialog-content>
+            <mat-dialog-actions align="end">
+              <button mat-button mat-dialog-close>Close</button>
+            </mat-dialog-actions>
+          </ng-template>
         }
 
         <div class="details-buttons">

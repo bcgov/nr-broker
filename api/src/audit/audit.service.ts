@@ -17,6 +17,7 @@ import { ArtifactEmbeddable } from '../intention/entity/artifact.embeddable';
 import { UserEmbeddable } from '../intention/entity/user.embeddable';
 import { APP_ENVIRONMENT } from '../constants';
 import { UserUtil } from '../util/user.util';
+import { syncFailure } from '../util/sync-result.util';
 
 const hostInfo = {
   host: {
@@ -470,7 +471,7 @@ export class AuditService {
   }
 
   /**
-   * Records tool sync events in the audit activity log
+   * Records tool-secret sync events in the audit activity log
    * @param type
    * @param outcome
    * @param message
@@ -484,13 +485,45 @@ export class AuditService {
     message: string,
     project?: string,
     service?: string,
-    failure?: HttpException,
+    failure?: unknown,
+  ) {
+    this.recordSyncActivity('sync-tools', type, outcome, message, project, service, failure);
+  }
+
+  /**
+   * Records sync service events in the audit activity log.
+   * @param type
+   * @param outcome
+   * @param message
+   * @param project
+   * @param service
+   * @param failure
+   */
+  public recordGraphSync(
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    project?: string,
+    service?: string,
+    failure?: unknown,
+  ) {
+    this.recordSyncActivity('sync-graph', type, outcome, message, project, service, failure);
+  }
+
+  private recordSyncActivity(
+    action: 'sync-tools' | 'sync-graph',
+    type: 'start' | 'end' | 'info',
+    outcome: 'success' | 'failure' | 'unknown',
+    message: string,
+    project?: string,
+    service?: string,
+    failure?: unknown,
   ) {
     from([
       {
         message,
         event: {
-          action: 'sync-tools',
+          action,
           category: 'configuration',
           dataset: 'broker.audit',
           kind: 'event',
@@ -746,9 +779,13 @@ export class AuditService {
           },
         });
       }
+      const failure = typeof exception === 'object' && 'state' in exception && 'errorMessage' in exception
+        ? exception
+        : syncFailure(exception);
       return merge(ecsObj, {
         error: {
-          message: exception instanceof Error ? exception.message : String(exception),
+          ...('errorCode' in failure && failure.errorCode ? { code: failure.errorCode } : {}),
+          message: failure.errorMessage,
           type: exception instanceof Error ? exception.name : typeof exception,
         },
       });

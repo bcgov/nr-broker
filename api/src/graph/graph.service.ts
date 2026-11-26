@@ -45,6 +45,7 @@ import {
 } from '../persistence/entity/collection-entity-union.type';
 import { ValidatorUtil } from '../util/validator.util';
 import { SyncStatusEmbeddable } from '../persistence/entity/sync-status.embeddable';
+import { SyncResult } from '../persistence/dto/sync-status.dto';
 import { CollectionWatchIdentifierDto, CollectionWatchDto } from '../persistence/dto/collection-watch.dto';
 import { CollectionWatchEntity } from '../persistence/entity/collection-watch.entity';
 import { UserEntity } from '../persistence/entity/user.entity';
@@ -477,7 +478,7 @@ export class GraphService {
     prop: {
       [K in keyof T]: T[K] extends SyncStatusEmbeddable ? K : never;
     }[keyof T],
-    event: 'queuedAt' | 'syncAt',
+    ...update: [event: 'queuedAt'] | [event: 'syncAt', result: SyncResult]
   ) {
     const vertex = await this.graphRepository.getVertex(
       entity.vertex.toString(),
@@ -486,18 +487,7 @@ export class GraphService {
       vertex.collection,
     );
 
-    const syncStatus: SyncStatusEmbeddable =
-      entity[prop] ?? new SyncStatusEmbeddable();
-
-    if (event === 'queuedAt') {
-      syncStatus.queuedAt = new Date();
-    }
-    if (event === 'syncAt') {
-      syncStatus.syncAt = new Date();
-    }
-    entity[prop] = syncStatus as any;
-
-    this.graphRepository.editVertex(vertex.id, vertex, entity);
+    await this.graphRepository.updateSyncStatus(vertex, String(prop), ...update);
 
     this.publishGraphEvent({
       data: {
@@ -515,26 +505,28 @@ export class GraphService {
    * Whether an update with this provenance may change an item with these
    * records.
    *
-   * - Overwrite updates are always allowed.
-   * - Catalog updates are allowed for items with a record from the same
-   *   repository and catalog file. Adoptable catalog updates are also allowed
-   *   for items with no catalog records.
-   * - All other sources are always allowed.
+   * - Catalog updates are allowed when there is no conflicting catalog or
+   *   OpenSearch provenance. Manual and intention provenance do not prevent
+   *   adoption.
+   * - OpenSearch updates are denied when catalog provenance exists.
+   * - Manual and intention updates are always allowed.
    */
   public isUpdateAllowed(
     records: ProvenanceEmbeddable[] | undefined,
     provenance: ProvenanceInfo,
   ): boolean {
-    if (provenance.overwrite) {
-      return true;
-    }
     switch (provenance.type) {
       case ProvenanceType.CATALOG:
-        return (
-          (records ?? []).some((record) => provenance.record.matches(record)) ||
-          (provenance.adoptable &&
-            !(records ?? []).some((record) => record.type === provenance.type))
+      {
+        const existingRecords = records ?? [];
+        const hasConflictingAutomation = existingRecords.some(
+          (record) =>
+            record.type === ProvenanceType.OPENSEARCH ||
+            (record.type === ProvenanceType.CATALOG &&
+              !provenance.record.matches(record)),
         );
+        return !hasConflictingAutomation;
+      }
       case ProvenanceType.INTENTION:
         // Intention updates are always allowed
         return true;
@@ -542,8 +534,7 @@ export class GraphService {
         // Manual updates are always allowed
         return true;
       case ProvenanceType.OPENSEARCH:
-        // Opensearch updates are always allowed
-        return true;
+        return !(records ?? []).some((record) => record.type === ProvenanceType.CATALOG);
       default:
         // If this is an error then not all provenance types are above
         // eslint-disable-next-line no-case-declarations
@@ -556,7 +547,9 @@ export class GraphService {
     return new ForbiddenException({
       statusCode: 403,
       message: 'Update denied',
-      error: `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
+      error: provenance.type === ProvenanceType.OPENSEARCH
+        ? 'This item is managed by a catalog file. Remove its catalog provenance before updating it with OpenSearch sync.'
+        : `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
     });
   }
 
@@ -719,6 +712,19 @@ export class GraphService {
       true,
       provenance,
     );
+  }
+
+  /**
+   * Adds or edits a vertex identified by id. A null target adds a new vertex.
+   * Runs without a request context so callers may audit and authorize the
+   * change themselves.
+   */
+  public async upsertVertexById(
+    vertexInsert: VertexInsertDto,
+    target: string | null,
+    provenance = ProvenanceInfo.manual(),
+  ): Promise<VertexEntity> {
+    return this.upsertVertex(null, vertexInsert, 'id', target, provenance);
   }
 
   private async findUpsertVertex(

@@ -27,6 +27,8 @@ import { GraphService } from '../graph/graph.service';
 import { BullService } from '../bull/bull.service';
 import { GithubService } from './github.service';
 import { GithubTokenService } from './github-token.service';
+import { SyncResult } from '../persistence/dto/sync-status.dto';
+import { syncFailure, syncMessage, syncOutcome } from '../util/sync-result.util';
 
 @Injectable()
 export class GithubSyncService implements OnModuleInit {
@@ -84,17 +86,29 @@ export class GithubSyncService implements OnModuleInit {
       'repository',
       repositoryId,
     );
+    if (!repository) {
+      const error = new Error(`Repository ${repositoryId} was not found. Check the repository ID and retry.`);
+      this.auditService.recordGraphSync('end', 'failure', error.message, undefined, undefined, error);
+      throw error;
+    }
 
     if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'info',
         'unknown',
         `Skip sync of unmanaged url (${repository.id})`,
       );
+      const result: SyncResult = { state: 'skipped', errorMessage: 'The repository URL is not managed by Broker.' };
+      if (syncSecrets) {
+        await this.graphService.updateSyncStatus(repository, 'syncSecretsStatus', 'syncAt', result);
+      }
+      if (syncUsers) {
+        await this.graphService.updateSyncStatus(repository, 'syncUsersStatus', 'syncAt', result);
+      }
       return;
     }
 
-    this.auditService.recordToolsSync(
+    this.auditService.recordGraphSync(
       'info',
       'unknown',
       `Sync repository (${repository.id})`,
@@ -102,9 +116,28 @@ export class GithubSyncService implements OnModuleInit {
 
     if (syncUsers && repository.enableSyncUsers) {
       await this.syncUsers(repository);
+    } else if (syncUsers) {
+      await this.graphService.updateSyncStatus(repository, 'syncUsersStatus', 'syncAt', {
+        state: 'skipped', errorMessage: 'User sync is disabled. Enable user sync and retry.',
+      });
     }
 
     if (syncSecrets && repository.enableSyncSecrets) {
+      await this.syncRepositorySecrets(repository);
+    } else if (syncSecrets) {
+      await this.graphService.updateSyncStatus(repository, 'syncSecretsStatus', 'syncAt', {
+        state: 'skipped', errorMessage: 'Secret sync is disabled. Enable secret sync and retry.',
+      });
+    }
+  }
+
+  private async syncRepositorySecrets(repository: RepositoryEntity): Promise<void> {
+    this.auditService.recordToolsSync(
+      'start', 'unknown', `Start repository secret sync: ${repository.scmUrl}`,
+    );
+    const results: SyncResult[] = [];
+    let fatalFailure: { error: unknown } | undefined;
+    try {
       const serviceDtoArr =
         await this.graphRepository.getUpstreamVertex<ServiceDto>(
           repository.vertex.toString(),
@@ -121,9 +154,10 @@ export class GithubSyncService implements OnModuleInit {
             ['component'],
           );
         if (projectDtoArr.length !== 1) {
+          results.push(syncFailure(`Service ${service.name} must belong to exactly one project. Fix the project link and retry.`));
           this.auditService.recordToolsSync(
             'info',
-            'unknown',
+            'failure',
             `Skip sync: ${service.name}`,
             'Unknown',
             service.name,
@@ -132,8 +166,29 @@ export class GithubSyncService implements OnModuleInit {
         }
         const project = projectDtoArr[0].collection;
 
-        await this.syncSecrets(project, service, repository);
+        results.push(await this.syncSecrets(project, service, repository, false));
       }
+    } catch (error) {
+      results.push(syncFailure(error));
+      fatalFailure = { error };
+    }
+    const failures = results.filter((result) => result.state !== 'success');
+    const result: SyncResult = results.length === 0
+      ? { state: 'skipped', errorMessage: 'No services are linked to the repository. Add a source link and retry.' }
+      : failures.length > 0
+        ? {
+            state: results.some((item) => item.state === 'success' || item.state === 'partial') ? 'partial' : 'failure',
+            errorCode: failures.find((item) => item.errorCode)?.errorCode,
+            errorMessage: failures.map((item) => item.errorMessage).join('; '),
+          }
+        : { state: 'success' };
+    await this.graphService.updateSyncStatus(repository, 'syncSecretsStatus', 'syncAt', result);
+    this.auditService.recordToolsSync(
+      'end', syncOutcome(result), syncMessage('Repository secret sync', repository.scmUrl, result),
+      undefined, undefined, result.errorMessage ? result : undefined,
+    );
+    if (fatalFailure) {
+      throw fatalFailure.error;
     }
   }
 
@@ -141,7 +196,8 @@ export class GithubSyncService implements OnModuleInit {
     project: ProjectDto,
     service: ServiceDto,
     repository: RepositoryEntity,
-  ) {
+    persistStatus = true,
+  ): Promise<SyncResult> {
     if (!this.isBrokerManagedScmUrl(repository.scmUrl)) {
       throw new Error('Service does not have Github repo URL to update');
     }
@@ -156,6 +212,8 @@ export class GithubSyncService implements OnModuleInit {
       service.name,
     );
     const path = `tools/${project.name}/${service.name}`;
+    let result: SyncResult = { state: 'success' };
+    let completed = 0;
     try {
       const kvData = await lastValueFrom(
         this.vaultService.getKv(VAULT_KV_APPS_MOUNT, path),
@@ -167,32 +225,31 @@ export class GithubSyncService implements OnModuleInit {
             secretName,
             secretValue.toString(),
           );
+          completed++;
         }
       }
     } catch (error) {
-      this.auditService.recordToolsSync(
-        'end',
-        'failure',
-        `End secret sync: ${repository.scmUrl}`,
-        project.name,
-        service.name,
-      );
-      return;
+      result = syncFailure(error, completed > 0);
     }
 
-    await this.graphService.updateSyncStatus(
-      repository,
-      'syncSecretsStatus',
-      'syncAt',
-    );
+    if (persistStatus) {
+      await this.graphService.updateSyncStatus(
+        repository,
+        'syncSecretsStatus',
+        'syncAt',
+        result,
+      );
+    }
 
     this.auditService.recordToolsSync(
       'end',
-      'success',
-      `End secret sync: ${repository.scmUrl}`,
+      syncOutcome(result),
+      syncMessage('Secret sync', repository.scmUrl, result),
       project.name,
       service.name,
+      result.errorMessage ? result : undefined,
     );
+    return result;
   }
 
   private async updateSecret(
@@ -238,8 +295,11 @@ export class GithubSyncService implements OnModuleInit {
       throw new Error('Service does not have user sync enabled');
     }
 
+    let result: SyncResult = { state: 'success' };
+    const failures: SyncResult[] = [];
+    let completed = 0;
     try {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'start',
         'unknown',
         `Start user sync: ${repository.scmUrl}`,
@@ -258,17 +318,7 @@ export class GithubSyncService implements OnModuleInit {
       const edgeToRoles = userConfig.edgeToRoles;
 
       // Get collaborators
-      let collaborators: any[];
-      try {
-        collaborators = await this.githubService.listRepoCollaborators(owner, repo, token);
-      } catch (error) {
-        this.auditService.recordToolsSync(
-          'end',
-          'failure',
-          `Failed to list GitHub collaborators for ${owner}/${repo}`,
-        );
-        return;
-      }
+      const collaborators = await this.githubService.listRepoCollaborators(owner, repo, token);
       const currCollabRoleMap = new Map<string, string>();
       for (const collaborator of collaborators) {
         currCollabRoleMap.set(collaborator.login, collaborator.role_name);
@@ -310,11 +360,14 @@ export class GithubSyncService implements OnModuleInit {
               edgeRole.role,
               token,
             );
+            completed++;
           } catch (error) {
-            this.auditService.recordToolsSync(
-              'end',
+            failures.push(syncFailure(error));
+            this.auditService.recordGraphSync(
+              'info',
               'failure',
               `Failed to add ${username} as ${edgeRole.role} to ${owner}/${repo}`,
+              undefined, undefined, error,
             );
             continue;
           }
@@ -328,11 +381,14 @@ export class GithubSyncService implements OnModuleInit {
       for (const user of removeCollaborators) {
         try {
           await this.githubService.removeRepoCollaborator(owner, repo, user, token);
+          completed++;
         } catch (error) {
-          this.auditService.recordToolsSync(
-            'end',
+          failures.push(syncFailure(error));
+          this.auditService.recordGraphSync(
+            'info',
             'failure',
             `Failed to remove ${user} from ${owner}/${repo}`,
+            undefined, undefined, error,
           );
         }
       }
@@ -409,6 +465,7 @@ export class GithubSyncService implements OnModuleInit {
             can_admins_bypass,
             token,
           );
+          completed++;
 
           if (environmentName === ENVIRONMENT_NAMES.PRODUCTION) {
             await this.githubService.addRepoEnvironmentBranchPolicy(
@@ -431,25 +488,29 @@ export class GithubSyncService implements OnModuleInit {
           }
         }
       } // FEATURE_FLAG_GITHUB_ENVIRONMENT_SYNC
-
-      await this.graphService.updateSyncStatus(
-        repository,
-        'syncUsersStatus',
-        'syncAt',
-      );
-
-      this.auditService.recordToolsSync(
-        'end',
-        'success',
-        `End user sync: ${repository.scmUrl}`,
-      );
     } catch (error) {
-      this.auditService.recordToolsSync(
-        'end',
-        'failure',
-        `End user sync: ${repository.scmUrl}`,
-      );
+      failures.push(syncFailure(error));
     }
+    if (failures.length > 0) {
+      result = {
+        state: completed > 0 ? 'partial' : 'failure',
+        errorCode: failures.find((failure) => failure.errorCode)?.errorCode,
+        errorMessage: failures.map((failure) => failure.errorMessage).join('; '),
+      };
+    }
+    await this.graphService.updateSyncStatus(
+      repository,
+      'syncUsersStatus',
+      'syncAt',
+      result,
+    );
+
+    this.auditService.recordGraphSync(
+      'end',
+      syncOutcome(result),
+      syncMessage('User sync', repository.scmUrl, result),
+      undefined, undefined, result.errorMessage ? result : undefined,
+    );
   }
 
   private getOwnerAndRepoFromUrl(repoUrl: string): {
@@ -499,7 +560,7 @@ export class GithubSyncService implements OnModuleInit {
       return encryptedBase64;
     } catch (error) {
       console.error('Error encrypting the secret:', error);
-      // throw new Error('Failed to encrypt the secret.');
+      throw error;
     }
   }
 

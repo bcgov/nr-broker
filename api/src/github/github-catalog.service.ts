@@ -25,6 +25,8 @@ import { GithubCatalogFileReader } from './github-catalog-file-reader.service';
 import { GithubCatalogOrgScanner } from './github-catalog-org-scanner.service';
 import { GithubService } from './github.service';
 import type { CatalogRepoScanJob, CatalogScanJob } from './github-catalog.types';
+import { SyncResult } from '../persistence/dto/sync-status.dto';
+import { syncFailure, syncMessage } from '../util/sync-result.util';
 
 export type {
   CatalogOrgScanJob,
@@ -184,6 +186,9 @@ export class GithubCatalogService implements OnModuleInit {
       'repository',
       repositoryId,
     );
+    if (!repository) {
+      throw new BadRequestException(`Repository ${repositoryId} was not found. Check the repository ID and retry.`);
+    }
     const job = this.buildRepoScanJob(repository.scmUrl, repositoryId);
     if (!job) {
       this.auditService.recordGitHubCatalogSync(
@@ -195,6 +200,10 @@ export class GithubCatalogService implements OnModuleInit {
           repositoryUrl: repository.scmUrl,
         },
       );
+      await this.graphService.updateSyncStatus(repository, 'syncCatalogStatus', 'syncAt', {
+        state: 'skipped',
+        errorMessage: 'The repository URL is not managed by Broker.',
+      });
       return;
     }
     await this.scanRepository(job);
@@ -210,35 +219,51 @@ export class GithubCatalogService implements OnModuleInit {
   }
 
   private async scanRepository(job: CatalogRepoScanJob): Promise<void> {
-    const token = await this.githubTokenService.getOrgInstallationToken(job.org);
-    const snapshot = await this.fileReader.collectEntities(job, token);
-    if (snapshot) {
-      const metadata = job.tags === undefined || job.description === undefined
-        ? await this.githubService.getRepoMetadata(job.org, job.repo, token)
-        : undefined;
-      await this.catalogSyncService.syncRepository(
-        {
-          name: job.repo,
-          scmUrl: job.htmlUrl,
-          description: job.description ?? metadata?.description ?? `${job.org}/${job.repo}`,
-          tags: job.tags ?? metadata?.topics,
-        },
-        snapshot.entities,
-        snapshot.complete,
-      );
-    }
-
-    if (job.repositoryId) {
+    let result: SyncResult = { state: 'success' };
+    try {
+      const token = await this.githubTokenService.getOrgInstallationToken(job.org);
+      const snapshot = await this.fileReader.collectEntities(job, token);
+      if (snapshot) {
+        const metadata = job.tags === undefined || job.description === undefined
+          ? await this.githubService.getRepoMetadata(job.org, job.repo, token)
+          : undefined;
+        result = await this.catalogSyncService.syncRepository(
+          {
+            name: job.repo,
+            scmUrl: job.htmlUrl,
+            description: job.description ?? metadata?.description ?? `${job.org}/${job.repo}`,
+            tags: job.tags ?? metadata?.topics,
+          },
+          snapshot.entities,
+          snapshot.complete,
+        );
+      } else {
+        result = {
+          state: 'skipped',
+          errorCode: 'CATALOG_NOT_FOUND',
+          errorMessage: 'No root catalog file was found. Add catalog-info.yaml and retry.',
+        };
+        this.auditService.recordGitHubCatalogSync(
+          'end', 'unknown', syncMessage('Catalog sync', job.htmlUrl, result),
+          { repository: job.repo, repositoryUrl: job.htmlUrl },
+        );
+      }
+    } catch (error) {
+      result = syncFailure(error);
+      throw error;
+    } finally {
       // Reload so the status update does not overwrite changes made by the sync
-      const repository = await this.collectionRepository.getCollectionById(
-        'repository',
-        job.repositoryId,
-      );
-      await this.graphService.updateSyncStatus(
-        repository,
-        'syncCatalogStatus',
-        'syncAt',
-      );
+      const repository = job.repositoryId
+        ? await this.collectionRepository.getCollectionById('repository', job.repositoryId)
+        : await this.collectionRepository.getCollectionByKeyValue('repository', 'scmUrl', job.htmlUrl);
+      if (repository) {
+        await this.graphService.updateSyncStatus(
+          repository,
+          'syncCatalogStatus',
+          'syncAt',
+          result,
+        );
+      }
     }
   }
 }

@@ -1,8 +1,8 @@
 import * as https from 'https';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { HttpException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 import { CreateRequestContext } from '@mikro-orm/decorators/legacy';
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosInstance, isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { Job } from 'bullmq';
 import {
@@ -24,6 +24,8 @@ import { CollectionNameEnum } from '../persistence/dto/collection-dto-union.type
 import { OpenshiftProjectDto } from '../persistence/dto/openshift-project.dto';
 import { BrokerTokenUtil } from '../util/broker-token.util';
 import { BullService } from '../bull/bull.service';
+import { SyncResult } from '../persistence/dto/sync-status.dto';
+import { syncFailure, syncMessage, syncOutcome } from '../util/sync-result.util';
 
 export interface KubernetesSecretMapping {
   service: string;
@@ -93,7 +95,7 @@ export class KubernetesSyncService implements OnModuleInit {
     );
 
     if (!openshiftProject) {
-      this.auditService.recordToolsSync(
+      this.auditService.recordGraphSync(
         'info',
         'failure',
         `Kubernetes sync: OpenShift project not found (${openshiftProjectId})`,
@@ -106,13 +108,24 @@ export class KubernetesSyncService implements OnModuleInit {
         openshiftProject.vertex.toString(),
         CollectionNameEnum.cloud,
         null,
-      );
+      ).catch(async (error: unknown) => {
+        const result = syncFailure(error);
+        await this.graphService.updateSyncStatus(openshiftProject, 'syncSecretsStatus', 'syncAt', result);
+        this.auditService.recordToolsSync(
+          'end', 'failure', syncMessage('Kubernetes secret sync', openshiftProject.name, result),
+          openshiftProject.name, undefined, result,
+        );
+        throw error;
+      });
 
     if (!cloudDtoArr || cloudDtoArr.length === 0) {
+      const result = syncFailure(`Cloud not found for OpenShift project ${openshiftProject.name}. Link a Cloud and retry.`);
+      await this.graphService.updateSyncStatus(openshiftProject, 'syncSecretsStatus', 'syncAt', result);
       this.auditService.recordToolsSync(
-        'info',
+        'end',
         'failure',
-        `Kubernetes sync: Cloud not found for OpenShift project (${openshiftProjectId})`,
+        syncMessage('Kubernetes secret sync', openshiftProject.name, result),
+        openshiftProject.name, undefined, result,
       );
       return;
     }
@@ -134,7 +147,25 @@ export class KubernetesSyncService implements OnModuleInit {
       openshiftProject.name,
     );
 
-    // Read sync configuration from Vault
+    let result: SyncResult;
+    try {
+      result = await this.applySecrets(cloud, openshiftProject);
+    } catch (error) {
+      result = syncFailure(error);
+    }
+    await this.graphService.updateSyncStatus(
+      openshiftProject, 'syncSecretsStatus', 'syncAt', result,
+    );
+    this.auditService.recordToolsSync(
+      'end', syncOutcome(result), syncMessage('Kubernetes secret sync', openshiftProject.name, result),
+      openshiftProject.name, undefined, result.errorMessage ? result : undefined,
+    );
+  }
+
+  private async applySecrets(
+    cloud: CloudDto,
+    openshiftProject: OpenshiftProjectEntity,
+  ): Promise<SyncResult> {
     const configPath = `${cloud.name}/${openshiftProject.name}/nr-broker-sync`;
     let config: KubernetesSyncConfig;
 
@@ -144,67 +175,48 @@ export class KubernetesSyncService implements OnModuleInit {
       );
       config = this.parseConfig(cloud, openshiftProject, kvData);
     } catch (error) {
-      this.auditService.recordToolsSync(
-        'end',
-        'failure',
-        `Kubernetes sync failed: no configuration at ${configPath}`,
-        openshiftProject.name,
-      );
-      return;
+      const result = syncFailure(error);
+      return { ...result, errorMessage: `Could not read sync configuration at ${configPath}. ${result.errorMessage}` };
     }
 
     // Validate configuration
     if (!cloud.apiUrl || !config.namespace || !config.serviceAccountToken) {
-      this.auditService.recordToolsSync(
-        'end',
-        'failure',
-        'Kubernetes sync failed: missing consoleUrl, namespace, or serviceAccountToken',
-        openshiftProject.name,
-      );
-      return;
+      return syncFailure('Missing apiUrl, namespace, or serviceAccountToken. Update the Cloud and Vault sync configuration, then retry.');
     }
 
     if (!config.secrets || config.secrets.length === 0) {
-      this.auditService.recordToolsSync(
-        'end',
-        'unknown',
-        'Kubernetes sync: no secret mappings configured',
-        openshiftProject.name,
-      );
-      return;
+      return { state: 'skipped', errorMessage: 'No secret mappings are configured. Add mappings in Vault and retry.' };
     }
 
-    // Process each secret mapping
+    const failures: SyncResult[] = [];
+    let completed = 0;
     for (const secretMapping of config.secrets) {
       try {
-        await this.applySecretMapping(config, cloud, openshiftProject, secretMapping);
+        const result = await this.applySecretMapping(config, cloud, openshiftProject, secretMapping);
+        if (result.state !== 'success') {
+          failures.push(result);
+        }
+        completed++;
       } catch (error) {
-        const err = error as Error;
+        const result = syncFailure(error, completed > 0);
         this.logger.error(
-          `Failed to apply secret mapping ${secretMapping.destinationSecretName}: ${err.message}`,
+          `Failed to apply secret mapping ${secretMapping.destinationSecretName}: ${result.errorMessage}`,
         );
-        this.auditService.recordToolsSync(
-          'end',
-          'failure',
-          `Kubernetes sync failed for secret ${secretMapping.destinationSecretName}: ${err.message}`,
-          openshiftProject.name,
-        );
-        return;
+        return {
+          ...result,
+          errorCode: failures.find((failure) => failure.errorCode)?.errorCode ?? result.errorCode,
+          errorMessage: [...failures.map((failure) => failure.errorMessage), `Secret ${secretMapping.destinationSecretName}: ${result.errorMessage}`].join('; '),
+        };
       }
     }
 
-    await this.graphService.updateSyncStatus(
-      openshiftProject,
-      'syncSecretsStatus',
-      'syncAt',
-    );
-
-    this.auditService.recordToolsSync(
-      'end',
-      'success',
-      `End Kubernetes secret sync: ${openshiftProject.name}`,
-      openshiftProject.name,
-    );
+    return failures.length > 0
+      ? {
+          state: 'partial',
+          errorCode: failures.find((failure) => failure.errorCode)?.errorCode,
+          errorMessage: failures.map((failure) => failure.errorMessage).join('; '),
+        }
+      : { state: 'success' };
   }
 
   /**
@@ -331,7 +343,7 @@ export class KubernetesSyncService implements OnModuleInit {
     cloud: CloudDto,
     openshiftProject: OpenshiftProjectEntity,
     secretMapping: KubernetesSecretMapping,
-  ): Promise<void> {
+  ): Promise<SyncResult> {
     const source = await this.resolveSecretSource(cloud, openshiftProject, secretMapping);
     if (!source) {
       throw new Error(
@@ -346,6 +358,7 @@ export class KubernetesSyncService implements OnModuleInit {
     // Build the secret data with key mapping applied. Keys are normalized to be
     // DNS-1123 compliant by default so the Kubernetes API accepts them.
     const reject = config.rejectNonCompliantKeys ?? false;
+    const skippedKeys: string[] = [];
     const secretData: Record<string, string> = {};
     for (const [sourceKey, sourceValue] of Object.entries(sourceData)) {
       let destKey = secretMapping.keyMapping
@@ -374,6 +387,7 @@ export class KubernetesSyncService implements OnModuleInit {
             message,
             openshiftProject.name,
           );
+          skippedKeys.push(sourceKey);
           continue;
         }
       }
@@ -411,6 +425,13 @@ export class KubernetesSyncService implements OnModuleInit {
       secretMapping.destinationSecretName,
       secretData,
     );
+    return skippedKeys.length > 0
+      ? {
+          state: 'partial',
+          errorCode: 'SECRET_KEYS_SKIPPED',
+          errorMessage: `Secret ${secretMapping.destinationSecretName} skipped keys that are empty after normalization: ${skippedKeys.join(', ')}. Rename the source keys and retry.`,
+        }
+      : { state: 'success' };
   }
 
   /**
@@ -462,28 +483,22 @@ export class KubernetesSyncService implements OnModuleInit {
     const requestConfig = { headers, ...(httpsAgent ? { httpsAgent } : {}) };
 
     try {
-      // Try to GET the existing secret
-      await this.axiosInstance.get(url, requestConfig);
-      // Secret exists; replace it in full with the current source data.
-      await this.axiosInstance.put(url, k8sSecret, requestConfig);
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 404) {
-        // Secret doesn't exist, CREATE it
+      try {
+        await this.axiosInstance.get(url, requestConfig);
+        await this.axiosInstance.put(url, k8sSecret, requestConfig);
+      } catch (error) {
+        if (!isAxiosError(error) || error.response?.status !== 404) throw error;
         const createUrl = `${baseUrl}/api/v1/namespaces/${config.namespace}/secrets`;
         await this.axiosInstance.post(createUrl, k8sSecret, requestConfig);
-      } else {
-        // Assume the error came from Kubernetes and extract the API error
-        // message (response.data.message / reason) for audit logging; fall
-        // back to the axios message when the response body has none.
-        const response = axiosError.response?.data as
-          | { message?: string; reason?: string }
-          | undefined;
-        const k8sMessage =
-          (response && (response.message || response.reason)) ||
-          axiosError.message;
-        throw new Error(k8sMessage, { cause: error });
       }
+    } catch (error) {
+      if (isAxiosError<{ message?: string; reason?: string }>(error) && error.response) {
+        const data = error.response.data;
+        throw new HttpException(data?.message || data?.reason || error.message, error.response.status, {
+          cause: error,
+        });
+      }
+      throw error;
     }
   }
 }

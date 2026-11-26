@@ -28,6 +28,7 @@ See: https://www.elastic.co/guide/en/ecs/current/ecs-event.html#field-event-acti
 | process-end |  |
 | process-start |  |
 | sync-tools |  |
+| sync-graph |  |
 | generate-secret-id | Generation of a secret id for an application |
 | token-generation | Generation of a token for an application |
 
