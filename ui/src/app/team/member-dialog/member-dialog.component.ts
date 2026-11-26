@@ -108,6 +108,9 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   loading = signal(true);
   userCount = signal(0);
   isOwner = signal(false);
+  readonly canManageRoles = computed(
+    () => this.permission.hasAdmin() || this.permission.hasTeamAdmin() || this.isOwner(),
+  );
   modified = signal(false);
 
   groupByUser = signal(this.preferences.get('teamGroupBy') === 'user');
@@ -247,7 +250,7 @@ export class MemberDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.modified() && (this.permission.hasAdmin() || this.isOwner())) {
+    if (this.modified() && (this.canManageRoles())) {
       this.healthStatus.health$.pipe(take(1)).subscribe((health) => {
         const queues = health?.details?.['syncQueue']?.['queues'] as
           | SyncQueueHealthRecord

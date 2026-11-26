@@ -18,6 +18,10 @@ import {
   ALLOW_BODY_VALUE_METADATA_KEY,
   AllowBodyValueArgs,
 } from '../allow-body-value.decorator';
+import {
+  ALLOW_TEAM_ADMIN_METADATA_KEY,
+  AllowTeamAdminArgs,
+} from '../allow-team-admin.decorator';
 import { ROLES_METADATA_KEY } from '../roles.decorator';
 import { ALLOW_EMPTY_EDGE_METADATA_KEY } from '../allow-empty-edges.decorator';
 import { normalizeCollectionName } from '../persistence/dto/collection-name.util';
@@ -37,6 +41,54 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
     private readonly reflector: Reflector,
   ) {
     super();
+  }
+
+  private async isTeamAdminEdgeChange(
+    request: any,
+    args: AllowTeamAdminArgs,
+  ): Promise<boolean> {
+    const user = await this.collectionRepository.getCollectionByKeyValue(
+      'user',
+      'guid',
+      delve(request.user.userinfo, OAUTH2_CLIENT_MAP_GUID),
+    );
+    if (!user) {
+      return false;
+    }
+    const selfVertex = user.vertex.toString();
+    const edges: { source: string; target: string }[] = [];
+
+    if (args.edgeFrom === 'body' || args.edgeFrom === 'both') {
+      if (!request.body?.source || !request.body?.target) {
+        return false;
+      }
+      edges.push({
+        source: request.body.source.toString(),
+        target: request.body.target.toString(),
+      });
+    }
+    if (args.edgeFrom === 'param' || args.edgeFrom === 'both') {
+      const stored = await this.graphRepository.getEdge(request.params.id);
+      if (!stored) {
+        return false;
+      }
+      edges.push({
+        source: stored.source.toString(),
+        target: stored.target.toString(),
+      });
+    }
+
+    for (const edge of edges) {
+      if (edge.source === selfVertex || edge.target === selfVertex) {
+        return false;
+      }
+      const source = await this.graphRepository.getVertex(edge.source);
+      const target = await this.graphRepository.getVertex(edge.target);
+      if (source?.collection !== 'user' || target?.collection !== 'team') {
+        return false;
+      }
+    }
+    return true;
   }
 
   async canActivate(context: ExecutionContext) {
@@ -66,6 +118,18 @@ export class BrokerOidcAuthGuard extends AuthGuard(['oidc']) {
       allowBodyValues.some(
         (test) => delve(request.body, test.path) === test.value,
       )
+    ) {
+      return true;
+    }
+
+    const allowTeamAdmin = this.reflector.get<AllowTeamAdminArgs>(
+      ALLOW_TEAM_ADMIN_METADATA_KEY,
+      context.getHandler(),
+    );
+    if (
+      allowTeamAdmin &&
+      request.user.userinfo.client_roles?.includes('team_admin') &&
+      (await this.isTeamAdminEdgeChange(request, allowTeamAdmin))
     ) {
       return true;
     }

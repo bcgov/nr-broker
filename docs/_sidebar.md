@@ -24,6 +24,7 @@
 
 - **Administration**
   - [Adding Internal Users](/operations_internal_user.md)
+  - [Team Administrator](/operations_team_admin.md)
   - [Communication Setup](/operations_communication.md)
   - [Customize Homepage](/dev_customize_connections.md)
   - [Collection Sync Queues](/dev_customize_collection_sync.md)
