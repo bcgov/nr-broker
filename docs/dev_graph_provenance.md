@@ -28,7 +28,7 @@ Provenance is internal. It is hidden from entity serialization and removed from 
 
 Records are not mutually exclusive. If a user edits an item created by a catalog file, the catalog file can still update the item and may revert the manual change.
 
-Items that existed before provenance was added have no records. Catalog sync can take over these items unless another automated sync manages them. See [GitHub Sync](/operations_github_sync.md#adopting-existing-items) for the checks. Callers can check an update in advance with `GraphService.isUpdateAllowed(records, provenance)`.
+Items that existed before provenance was added have no records. Catalog sync can take over these items unless another automated sync manages them. See [adopting existing items](/operations_github_catalog_sync.md#adopting-existing-items) for the checks. Callers can check an update in advance with `GraphService.isUpdateAllowed(records, provenance)`.
 
 ## Removing records
 

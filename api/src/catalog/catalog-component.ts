@@ -31,7 +31,7 @@ export class CatalogComponent extends CatalogEntity {
     json: any,
     catalogUtil: CatalogUtil,
   ): CatalogComponent {
-    const name = catalogUtil.asString(json.metadata?.name);
+    const name = catalogUtil.asString(json.metadata?.name)?.trim();
     if (!name) {
       throw new CatalogEntityParseError(
         `Catalog component in ${path} has no name`,

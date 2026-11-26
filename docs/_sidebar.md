@@ -20,6 +20,7 @@
   - [Intention Action Reference](/dev_intention_actions.md)
   - [Intention Event Reference](/dev_intention_event.md)
   - [Intention User Reference](/dev_intention_user.md)
+  - [Backstage Catalog Reference](/backstage-doc/README.md)
   - [JWT Reference](/operations_jwt.md)
 
 - **Administration**
@@ -34,6 +35,7 @@
   - **Internal Consumers**
   - [Communication Queue](/operations_communication_queue.md)
   - [GitHub Sync (Secret, User)](/operations_github_sync.md)
+  - [GitHub Sync (Catalog)](/operations_github_catalog_sync.md)
   - [Kubernetes / OpenShift Secret Sync](/operations_kubernetes_sync.md)
   - [External Consumers](/dev_queue_consumers.md)
 
