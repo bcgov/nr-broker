@@ -1050,10 +1050,12 @@ describe('CatalogSyncService', () => {
     it.each([
       ['adopts an edge without provenance', [], true],
       ['adopts a manual edge', [ProvenanceEmbeddable.manual()], true],
+      ['adopts an intention-managed edge', [ProvenanceEmbeddable.intention()], true],
+      ['does not adopt an OpenSearch-managed edge', [ProvenanceEmbeddable.opensearch()], false],
       ['does not take an edge managed by another catalog', [
         ProvenanceEmbeddable.catalog('https://github.com/org/other', 'catalog-info.yaml'),
       ], false],
-    ])('%s when the catalog passes adoption checks', async (_label, provenance, adopted) => {
+    ])('%s during catalog sync', async (_label, provenance, adopted) => {
       collectionRepository.getCollectionByKeyValue.mockResolvedValue({ vertex: 'repository' });
       graphRepository.getVertex.mockImplementation(async (id) =>
         id === 'project'
@@ -1091,7 +1093,7 @@ describe('CatalogSyncService', () => {
         null,
         'component-edge',
         expect.objectContaining({ name: 'component', source: 'project', target: 'service' }),
-        expect.objectContaining({ adoptable: true }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
       );
       if (adopted) {
         expect(result).toEqual({ state: 'success' });
@@ -1411,18 +1413,13 @@ describe('CatalogSyncService', () => {
       new CatalogSystem('a/catalog-info.yaml', 'sys'),
     ]);
 
-    it('adopts the repository, service, project and instances by updating them as adoptable', async () => {
+    it('adopts the repository, service, project and instances by adding catalog provenance', async () => {
       await sync();
 
       expect(editedIds().sort()).toEqual(
         ['repo-vertex', 'project-vertex', 'svc', 'blue'].sort(),
       );
-      expect(graphService.editVertex.mock.calls.map((call) => call[5].adoptable)).toEqual([
-        true,
-        true,
-        true,
-        true,
-      ]);
+      expect(graphService.editVertex.mock.calls.every((call) => call[5].record.type === 'catalog')).toBe(true);
       expect(graphService.editVertex.mock.calls[0][5].record.path).toBe('catalog-info.yaml');
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'blue']);
       expect(graphService.addVertex).not.toHaveBeenCalled();
@@ -1479,7 +1476,7 @@ describe('CatalogSyncService', () => {
       expect(graphService.addEdge).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ name: 'source', source: 'svc', target: 'repo-vertex' }),
-        expect.objectContaining({ adoptable: true }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
       );
       expect(graphEdges.find((edge) => edge.name === 'component').provenance).toEqual([
         expect.objectContaining({ type: 'catalog', path: 'a/catalog-info.yaml' }),
@@ -1551,7 +1548,7 @@ describe('CatalogSyncService', () => {
       expect(graphService.addEdge).toHaveBeenCalledWith(
         null,
         expect.objectContaining({ name: 'source', source: 'svc', target: 'repo-vertex' }),
-        expect.objectContaining({ adoptable: true }),
+        expect.objectContaining({ record: expect.objectContaining({ type: 'catalog' }) }),
       );
     });
 
@@ -1574,7 +1571,7 @@ describe('CatalogSyncService', () => {
         component('b/catalog-info.yaml', 'other', 'sys'),
       ]);
       expect(catalogManaged()).toEqual(['repo-vertex', 'svc', 'project-vertex', 'other-svc']);
-      expect(graphService.editVertex.mock.calls.every((call) => call[5].adoptable)).toBe(true);
+      expect(graphService.editVertex.mock.calls.every((call) => call[5].record.type === 'catalog')).toBe(true);
     });
 
     it('adopts an unmanaged service even when another service has a different catalog owner', async () => {

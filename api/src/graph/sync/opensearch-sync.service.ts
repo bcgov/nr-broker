@@ -16,6 +16,7 @@ import { DateUtil, INTERVAL_HOUR_MS } from '../../util/date.util';
 import { BULL_LEADER_JOBS } from '../../constants';
 import { BullService } from '../../bull/bull.service';
 import { ProvenanceInfo } from '../../persistence/provenance-info';
+import { syncFailure } from '../../util/sync-result.util';
 
 @Injectable()
 export class OpensearchSyncService implements OnModuleInit {
@@ -150,7 +151,7 @@ export class OpensearchSyncService implements OnModuleInit {
         );
       } catch (e) {
         this.logger.log(
-          `Failed to sync ${config.collection}.${key} from ${index}. Check source for missing fields.`,
+          `Failed to sync ${config.collection}.${key} from ${index}: ${syncFailure(e).errorMessage}`,
         );
         this.logger.log(upsert);
       }

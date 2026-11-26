@@ -273,41 +273,24 @@ describe('GraphService', () => {
       );
     });
 
-    it('denies a catalog vertex update to an item without catalog provenance', async () => {
+    it('denies and audits an OpenSearch update to a catalog-managed vertex', async () => {
       graphRepository.getVertex.mockResolvedValue({
-        provenance: [ProvenanceEmbeddable.manual()],
+        provenance: [ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml')],
       });
       const vertex = { collection: 'service', data: {} } as VertexInsertDto;
 
       await expect(
-        service.editVertex(null, 'id', vertex, true, true, ProvenanceInfo.catalog(repo, 'catalog-info.yaml')),
-      ).rejects.toBeInstanceOf(ForbiddenException);
+        service.editVertex(null, 'id', vertex, true, true, ProvenanceInfo.opensearch()),
+      ).rejects.toMatchObject({
+        response: expect.objectContaining({
+          statusCode: 403,
+          error: expect.stringContaining('managed by a catalog file'),
+        }),
+      });
       expect(graphRepository.editVertex).not.toHaveBeenCalled();
       expect(auditService.recordGraphAction).toHaveBeenCalledWith(
-        null,
-        'graph-vertex-edit',
-        null,
-        'failure',
-        'vertex',
-        vertex,
+        null, 'graph-vertex-edit', null, 'failure', 'vertex', vertex,
       );
-    });
-
-    it('treats missing provenance as manual for catalog updates', async () => {
-      graphRepository.getVertex.mockResolvedValue({ provenance: [] });
-      const vertex = { collection: 'service', data: {} } as VertexInsertDto;
-
-      await expect(
-        service.editVertex(
-          null,
-          'id',
-          vertex,
-          true,
-          true,
-          ProvenanceInfo.catalog(repo, 'catalog-info.yaml'),
-        ),
-      ).rejects.toBeInstanceOf(ForbiddenException);
-      expect(graphRepository.editVertex).not.toHaveBeenCalled();
     });
 
     it('allows a catalog update from the same catalog file', async () => {
@@ -333,7 +316,7 @@ describe('GraphService', () => {
       expect(graphRepository.editEdge).toHaveBeenCalledWith(
         'id',
         edge,
-        expect.objectContaining({ type: 'manual', adoptable: false, overwrite: false }),
+        expect.objectContaining({ type: 'manual' }),
       );
     });
   });
@@ -553,39 +536,53 @@ describe('GraphService', () => {
     const managed = [ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml')];
     const other = ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml');
 
-    it('allows adoptable catalog updates to items with no catalog records', () => {
-      const adoptable = ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml', { adoptable: true });
-      expect(service.isUpdateAllowed(undefined, adoptable)).toBe(true);
-      expect(service.isUpdateAllowed([ProvenanceEmbeddable.manual()], adoptable)).toBe(true);
-      expect(service.isUpdateAllowed([ProvenanceEmbeddable.manual()], other)).toBe(false);
+    it('allows catalog updates when no conflicting automated sync manages the item', () => {
+      const catalogUpdate = ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml');
+      expect(service.isUpdateAllowed(undefined, catalogUpdate)).toBe(true);
+      expect(service.isUpdateAllowed([ProvenanceEmbeddable.manual()], catalogUpdate)).toBe(true);
+      expect(service.isUpdateAllowed([ProvenanceEmbeddable.intention()], catalogUpdate)).toBe(true);
+      expect(service.isUpdateAllowed([ProvenanceEmbeddable.manual()], other)).toBe(true);
     });
 
-    it('denies adoptable catalog updates to items managed by another catalog file', () => {
+    it('denies catalog updates to items managed by another catalog file', () => {
       expect(
         service.isUpdateAllowed(
           managed,
-          ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml', { adoptable: true }),
+          ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml'),
         ),
       ).toBe(false);
     });
 
-    it('always allows overwrite updates', () => {
+    it('does not adopt items managed by OpenSearch sync', () => {
+      const catalogUpdate = ProvenanceInfo.catalog(repo, 'catalog-info.yaml');
+
+      expect(service.isUpdateAllowed([ProvenanceEmbeddable.opensearch()], catalogUpdate)).toBe(false);
+      expect(
+        service.isUpdateAllowed(
+          [ProvenanceEmbeddable.manual(), ProvenanceEmbeddable.opensearch()],
+          catalogUpdate,
+        ),
+      ).toBe(false);
+    });
+
+    it('allows OpenSearch updates unless catalog provenance exists', () => {
+      const update = ProvenanceInfo.opensearch();
+      expect(service.isUpdateAllowed(undefined, update)).toBe(true);
+      expect(
+        service.isUpdateAllowed([ProvenanceEmbeddable.manual(), ProvenanceEmbeddable.intention()], update),
+      ).toBe(true);
+      expect(service.isUpdateAllowed([ProvenanceEmbeddable.opensearch()], update)).toBe(true);
+      expect(service.isUpdateAllowed(managed, update)).toBe(false);
+      expect(service.isUpdateAllowed([...managed, ProvenanceEmbeddable.opensearch()], update)).toBe(false);
+    });
+
+    it('denies catalog updates from a different repository with the same file path', () => {
       expect(
         service.isUpdateAllowed(
           managed,
-          ProvenanceInfo.catalog('https://github.com/bcgov/moved', 'catalog-info.yaml', { overwrite: true }),
+          ProvenanceInfo.catalog('https://github.com/org/other', 'catalog-info.yaml'),
         ),
-      ).toBe(true);
-    });
-
-    it('passes overwrite updates to the repository', async () => {
-      graphRepository.getEdge.mockResolvedValue({ provenance: managed });
-      graphRepository.editEdge.mockResolvedValue({ toEdgeResponse: () => ({}) });
-      vi.spyOn(service, 'publishGraphEvent').mockImplementation(() => undefined);
-
-      const provenance = ProvenanceInfo.catalog(repo, 'b/catalog-info.yaml', { overwrite: true });
-      await service.editEdge(null, 'id', { name: 'component', source: 'a', target: 'b' } as EdgeInsertDto, provenance);
-      expect(graphRepository.editEdge).toHaveBeenCalledWith('id', expect.anything(), provenance);
+      ).toBe(false);
     });
   });
 });

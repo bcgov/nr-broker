@@ -505,26 +505,28 @@ export class GraphService {
    * Whether an update with this provenance may change an item with these
    * records.
    *
-   * - Overwrite updates are always allowed.
-   * - Catalog updates are allowed for items with a record from the same
-   *   repository and catalog file. Adoptable catalog updates are also allowed
-   *   for items with no catalog records.
-   * - All other sources are always allowed.
+   * - Catalog updates are allowed when there is no conflicting catalog or
+   *   OpenSearch provenance. Manual and intention provenance do not prevent
+   *   adoption.
+   * - OpenSearch updates are denied when catalog provenance exists.
+   * - Manual and intention updates are always allowed.
    */
   public isUpdateAllowed(
     records: ProvenanceEmbeddable[] | undefined,
     provenance: ProvenanceInfo,
   ): boolean {
-    if (provenance.overwrite) {
-      return true;
-    }
     switch (provenance.type) {
       case ProvenanceType.CATALOG:
-        return (
-          (records ?? []).some((record) => provenance.record.matches(record)) ||
-          (provenance.adoptable &&
-            !(records ?? []).some((record) => record.type === provenance.type))
+      {
+        const existingRecords = records ?? [];
+        const hasConflictingAutomation = existingRecords.some(
+          (record) =>
+            record.type === ProvenanceType.OPENSEARCH ||
+            (record.type === ProvenanceType.CATALOG &&
+              !provenance.record.matches(record)),
         );
+        return !hasConflictingAutomation;
+      }
       case ProvenanceType.INTENTION:
         // Intention updates are always allowed
         return true;
@@ -532,8 +534,7 @@ export class GraphService {
         // Manual updates are always allowed
         return true;
       case ProvenanceType.OPENSEARCH:
-        // Opensearch updates are always allowed
-        return true;
+        return !(records ?? []).some((record) => record.type === ProvenanceType.CATALOG);
       default:
         // If this is an error then not all provenance types are above
         // eslint-disable-next-line no-case-declarations
@@ -546,7 +547,9 @@ export class GraphService {
     return new ForbiddenException({
       statusCode: 403,
       message: 'Update denied',
-      error: `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
+      error: provenance.type === ProvenanceType.OPENSEARCH
+        ? 'This item is managed by a catalog file. Remove its catalog provenance before updating it with OpenSearch sync.'
+        : `This item is not managed by ${provenance.record.path} in ${provenance.record.repository}. Only the catalog file that created it can update it.`,
     });
   }
 

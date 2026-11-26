@@ -63,31 +63,15 @@ export class ProvenanceEmbeddable {
 
   /**
    * Merge a record into a list of records. A matching record has its update
-   * time refreshed; otherwise the record is appended. With `overwrite`, all
-   * records of the same type are replaced by the record (for example, a new
-   * catalog repository and path), keeping the earliest creation time.
+   * time refreshed; otherwise the record is appended.
    */
   static merge(
     records: ProvenanceEmbeddable[] | undefined,
     record: ProvenanceEmbeddable,
-    overwrite = false,
   ): ProvenanceEmbeddable[] {
     const merged = (records ?? []).map((existing) =>
       ProvenanceEmbeddable.fromObject(existing),
     );
-    if (overwrite) {
-      const sameType = merged.filter((existing) => existing.type === record.type);
-      const replacement = ProvenanceEmbeddable.fromObject(record);
-      replacement.createdAt = sameType.reduce(
-        (earliest, existing) =>
-          existing.createdAt < earliest ? existing.createdAt : earliest,
-        replacement.createdAt,
-      );
-      return [
-        ...merged.filter((existing) => existing.type !== record.type),
-        replacement,
-      ];
-    }
     const match = merged.find((existing) => existing.matches(record));
     if (match) {
       match.updatedAt = record.updatedAt;

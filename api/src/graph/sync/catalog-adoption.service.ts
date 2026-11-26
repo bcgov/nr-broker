@@ -11,7 +11,7 @@ export class CatalogAdoptionService {
   constructor(private readonly graphService: GraphService) {}
 
   provenance(repository: string, path: string): ProvenanceInfo {
-    return ProvenanceInfo.catalog(repository, path, { adoptable: true });
+    return ProvenanceInfo.catalog(repository, path);
   }
 
   upsertVertex(
@@ -34,7 +34,12 @@ export class CatalogAdoptionService {
     provenance: ProvenanceInfo,
   ): Promise<void> {
     if (!existing.provenance?.some((record) => provenance.record.matches(record))) {
-      await this.graphService.editEdge(null, existing.id.toString(), edge, provenance);
+      await this.graphService.editEdge(
+        null,
+        existing.id.toString(),
+        edge,
+        provenance,
+      );
     }
   }
 }

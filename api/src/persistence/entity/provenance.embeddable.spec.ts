@@ -52,22 +52,22 @@ describe('ProvenanceEmbeddable', () => {
     expect(merged[0].intentionId).toBe('new-id');
   });
 
-  it('replaces records of the same type when overwriting', () => {
+  it('keeps distinct catalog owners instead of replacing one', () => {
     const created = new Date('2020-01-01');
-    const existing = [
-      { type: 'manual', createdAt: created, updatedAt: created },
-      { type: 'catalog', repository: repo, path: 'catalog-info.yaml', createdAt: created, updatedAt: created },
-    ] as ProvenanceEmbeddable[];
+    const existing = ProvenanceEmbeddable.catalog(repo, 'catalog-info.yaml');
+    existing.createdAt = created;
+    existing.updatedAt = created;
+    const otherOwner = ProvenanceEmbeddable.catalog(
+      'https://github.com/org/other',
+      'catalog-info.yaml',
+    );
 
-    const moved = ProvenanceEmbeddable.catalog('https://github.com/org/moved', 'app/catalog-info.yaml');
-    const merged = ProvenanceEmbeddable.merge(existing, moved, true);
+    const merged = ProvenanceEmbeddable.merge([existing], otherOwner);
+
     expect(merged).toHaveLength(2);
-    expect(merged[0].type).toBe('manual');
-    expect(merged[1]).toMatchObject({
-      repository: 'https://github.com/org/moved',
-      path: 'app/catalog-info.yaml',
-      createdAt: created,
-      updatedAt: moved.updatedAt,
-    });
+    expect(merged.map(({ repository, path }) => ({ repository, path }))).toEqual([
+      { repository: repo, path: 'catalog-info.yaml' },
+      { repository: 'https://github.com/org/other', path: 'catalog-info.yaml' },
+    ]);
   });
 });

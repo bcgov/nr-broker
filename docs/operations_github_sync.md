@@ -194,7 +194,7 @@ Items created or adopted by the catalog scan record the repository and catalog f
 
 ### Adopting existing items
 
-Catalog sync adopts each existing item without catalog provenance independently. Adoption adds a catalog record for the file, which manages the item from then on. Existing service links and the presence of a system are not prerequisites for adoption; normal graph relationship rules still apply.
+Catalog sync adopts each existing item independently when it is not managed by another automated sync. Items with manual or intention provenance, or no provenance, can be adopted. An item already managed by a catalog file can only be updated by that same repository and catalog file path; an item managed by OpenSearch sync is not adopted. Adoption adds a catalog record for the file, which manages the item from then on. Existing service links and the presence of a system are not prerequisites for adoption; normal graph relationship rules still apply.
 
 - **Service**: adopted.
 - **Project**: adopted only when declared by a `System` entity, unless a catalog file already manages it. Its catalog ownership comes from the System's file, not a Component's file.
