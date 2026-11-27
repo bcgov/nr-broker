@@ -25,7 +25,7 @@ export class CatalogSystem extends CatalogEntity {
     json: any,
     catalogUtil: CatalogUtil,
   ): CatalogSystem {
-    const name = catalogUtil.asString(json.metadata?.name);
+    const name = catalogUtil.asString(json.metadata?.name)?.trim();
     if (!name) {
       throw new CatalogEntityParseError(
         `Catalog system in ${path} has no name`,

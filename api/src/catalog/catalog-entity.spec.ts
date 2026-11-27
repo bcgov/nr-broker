@@ -46,6 +46,34 @@ describe('CatalogEntity', () => {
       ]);
     });
 
+    it('trims Component and System names', () => {
+      const entities = CatalogEntity.parseCatalogEntities(
+        'catalog-info.yaml',
+        'kind: Component\nmetadata:\n  name: "  artist-web  "\n---\nkind: System\nmetadata:\n  name: "  artist  "\n',
+        allTypes,
+        catalogUtil,
+      );
+      expect(entities).toEqual([
+        new CatalogComponent('catalog-info.yaml', 'artist-web'),
+        new CatalogSystem('catalog-info.yaml', 'artist'),
+      ]);
+    });
+
+    it.each(['Component', 'System'])('rejects whitespace-only %s names', (kind) => {
+      const onError = vi.fn();
+      const entities = CatalogEntity.parseCatalogEntities(
+        'catalog-info.yaml',
+        JSON.stringify({ kind, metadata: { name: ' \t ' } }),
+        allTypes,
+        catalogUtil,
+        onError,
+      );
+      expect(entities).toEqual([]);
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: `Catalog ${kind.toLowerCase()} in catalog-info.yaml has no name` }),
+      );
+    });
+
     it('parses component relationship references', () => {
       const [entity] = CatalogEntity.parseCatalogEntities(
         'catalog-info.yaml',
